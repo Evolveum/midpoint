@@ -1,0 +1,41 @@
+/*!
+ * Copyright (C) 2010-2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.05rem .5rem;
+  border: 1px solid;
+  border-radius: .25rem;
+  line-height: 1;
+}
+
+/* Color variants */
+.info-badge.primary {
+  --label-color: #0d6efd;
+  border-color: var(--label-color);
+  color: var(--label-color);
+}
+
+.info-badge.danger {
+  --label-color: #dc3545;
+  border-color: var(--label-color);
+  color: var(--label-color);
+}
+
+.info-badge.purple {
+  --label-color: #6f42c1;
+  border-color: var(--label-color);
+  color: var(--label-color);
+}
+
+.badge.badge-light-purple {
+  --label-color: #f0e7fe;
+  background-color: var(--label-color);
+  color: white;
+}

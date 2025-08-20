@@ -62,6 +62,15 @@ public class Badge implements Serializable {
         this.title = title;
     }
 
+    public Badge(String cssClass, String iconCssClass, String text, String textCssClass, String title) {
+        this.cssClass = cssClass;
+        this.iconCssClass = iconCssClass;
+        this.text = text;
+        this.textCssClass = textCssClass;
+        this.title = title;
+    }
+
+
     public String getCssClass() {
         return cssClass;
     }

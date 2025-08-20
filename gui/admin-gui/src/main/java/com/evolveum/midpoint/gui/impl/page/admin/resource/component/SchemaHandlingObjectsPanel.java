@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -41,10 +42,12 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,8 +58,9 @@ import java.util.List;
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final String ID_TABLE = "table";
-
     private static final String ID_FORM = "form";
+
+    private final IModel<Boolean> switchSuggestion = Model.of(Boolean.TRUE);
 
     public SchemaHandlingObjectsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -64,9 +68,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
     protected void initLayout() {
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
+        form.setOutputMarkupId(true);
         add(form);
 
         WebMarkupContainer objectTypesPanel = createMultiValueListPanel();
+        objectTypesPanel.setOutputMarkupId(true);
         form.add(objectTypesPanel);
     }
 
@@ -82,8 +88,13 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
+            public String getAdditionalBoxCssClasses() {
+                return "table-td-middle";
+            }
+
+            @Override
             protected ISelectableDataProvider<PrismContainerValueWrapper<C>> createProvider() {
-                if( SchemaHandlingObjectsPanel.this.createProvider() != null) {
+                if (SchemaHandlingObjectsPanel.this.createProvider() != null) {
                     return SchemaHandlingObjectsPanel.this.createProvider();
                 }
                 return super.createProvider();
@@ -111,10 +122,36 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
+            protected IColumn<PrismContainerValueWrapper<C>, String> createActionsColumn() {
+                return super.createActionsColumn();
+            }
+
+            @Override
+            public @NotNull List<InlineMenuItem> getInlineMenuItems() {
+                List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
+                customizeInlineMenuItems(inlineMenuItems);
+                return inlineMenuItems;
+            }
+
+            @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> actions = getDefaultMenuActions();
                 actions.add(createShowLifecycleStatesInlineMenu());
                 return actions;
+            }
+
+            @Override
+            protected @Nullable String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
+                String customCssClass = customInlineMenuItemCssClass(rowModel);
+                if (customCssClass != null) {
+                    return customCssClass;
+                }
+                return super.getInlineMenuItemCssClass(rowModel);
+            }
+
+            @Override
+            protected boolean isDuplicationSupported() {
+                return super.isDuplicationSupported();
             }
 
             @Override
@@ -127,12 +164,41 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 List<Component> bar = new ArrayList<>();
                 createNewObjectPerformButton(idButton, bar);
                 createSuggestObjectButton(idButton, bar);
+                createToggleSuggestionButton(idButton, bar);
                 return bar;
             }
 
             @Override
             public boolean displayNoValuePanel() {
                 return allowNoValuePanel() && hasNoValues();
+            }
+
+            private void createToggleSuggestionButton(String idButton, @NotNull List<Component> bar) {
+                ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton,
+                        switchSuggestion) {
+                    @Override
+                    public @NotNull Component getTitleComponent(String id) {
+                        Label label = new Label(id, createStringResource("SchemaHandlingObjectsPanel.show.suggestion.label"));
+                        label.add(AttributeAppender.append("class", "m-0 font-weight-normal text-body"));
+                        label.setOutputMarkupId(true);
+                        return label;
+                    }
+
+                    @Override
+                    protected void onToggle(@NotNull AjaxRequestTarget target) {
+                        refreshForm(target);
+                        target.add(SchemaHandlingObjectsPanel.this);
+                    }
+
+                    @Contract(pure = true)
+                    @Override
+                    public @NotNull String getContainerCssClass() {
+                        return "d-flex flex-row-reverse align-items-center gap-1";
+                    }
+                };
+                togglePanel.setOutputMarkupId(true);
+                togglePanel.add(new VisibleBehaviour(() -> isToggleSuggestionVisible()));
+                bar.add(togglePanel);
             }
 
             private void createSuggestObjectButton(String idButton, @NotNull List<Component> bar) {
@@ -159,7 +225,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                         new Model<>(getIconForNewObjectButton()),
                         createStringResource(getKeyOfTitleForNewObjectButton())) {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -168,7 +234,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 };
                 newObjectButton.showTitleAsLabel(true);
                 newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm mr-2"));
-                newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible()));
+                newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
                 bar.add(newObjectButton);
             }
 
@@ -269,12 +335,12 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
     private InlineMenuItem createShowLifecycleStatesInlineMenu() {
         return new InlineMenuItem(createStringResource("SchemaHandlingObjectsPanel.button.showLifecycleStates")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -403,4 +469,31 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     protected boolean isSuggestButtonVisible() {
         return true;
     }
+
+    protected void customizeInlineMenuItems(List<InlineMenuItem> inlineMenuItems) {
+        // Default implementation does nothing. Override if needed.
+    }
+
+    protected @Nullable String customInlineMenuItemCssClass(@Nullable IModel<PrismContainerValueWrapper<C>> rowModel) {
+        return null;
+    }
+
+    protected IModel<Boolean> getSwitchSuggestionModel() {
+        return switchSuggestion;
+    }
+
+    protected void refreshForm(@NotNull AjaxRequestTarget target) {
+        WebMarkupContainer form = (WebMarkupContainer) get(ID_FORM);
+
+        MultivalueContainerListPanel<?> fresh = createMultiValueListPanel();
+        fresh.setOutputMarkupId(true);
+
+        form.addOrReplace(fresh);
+        target.add(fresh);
+    }
+
+    protected boolean isToggleSuggestionVisible() {
+        return isSuggestButtonVisible() && !hasNoValues();
+    }
+
 }

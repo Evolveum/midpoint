@@ -7,12 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.AttributeModifier;
@@ -29,9 +35,11 @@ import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.io.Serial;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadObjectClassObjectTypeSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
@@ -53,6 +61,9 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     private static final String ID_TOGGLE_ICON = "toggleIcon";
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
+
+    private static final String OP_DETERMINE_STATUS =
+            SmartObjectTypeSuggestionPanel.class.getName() + ".determineStatus";
 
     boolean isFilterVisible = false;
 
@@ -100,6 +111,7 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                performOnDelete(target);
             }
         };
         moreActions.setOutputMarkupId(true);
@@ -201,7 +213,8 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     }
 
     protected Model<String> getMoreActionIcon() {
-        return Model.of("fa fa-ellipsis-h");
+//        return Model.of("fa fa-ellipsis-h");
+        return Model.of(GuiStyleConstants.CLASS_ICON_TRASH);
     }
 
     protected boolean atLeastOneSelected() {
@@ -216,6 +229,42 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     @Override
     public PageBase getPageBase() {
         return super.getPageBase();
+    }
+
+    protected void performOnDelete(AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
+        OperationResult result = task.getResult();
+        IModel<SmartObjectTypeSuggestionTileModel<C>> model = SmartObjectTypeSuggestionPanel.this.getModel();
+        if (model == null || model.getObject() == null) {
+            return;
+        }
+
+        SmartObjectTypeSuggestionTileModel<C> modelObject = model.getObject();
+        if (modelObject.getValue() == null) {
+            return;
+        }
+
+        QName objectClass = modelObject.getObjectClass();
+        String resourceOid = modelObject.getResourceOid();
+
+        StatusInfo<ObjectTypesSuggestionType> statusInfo = loadObjectClassObjectTypeSuggestions(getPageBase(),
+                resourceOid,
+                objectClass,
+                task,
+                result);
+
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> thisTile = SmartObjectTypeSuggestionPanel.this
+                .getModelObject().getValue();
+        if (statusInfo != null) {
+
+            SmartIntegrationUtils.removeObjectTypeSuggestion(
+                    getPageBase(),
+                    statusInfo,
+                    thisTile,
+                    task,
+                    result);
+            target.add(getPageBase().getFeedbackPanel());
+        }
     }
 
 }

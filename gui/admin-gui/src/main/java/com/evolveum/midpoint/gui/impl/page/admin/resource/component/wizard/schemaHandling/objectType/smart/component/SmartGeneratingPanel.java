@@ -167,6 +167,10 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                     SmartGeneratingDto dto = getModelObject();
                     TaskExecutionStateType executionState = dto.getTaskExecutionState();
 
+                    if (executionState == null) {
+                        return "fa fa-question text-muted";
+                    }
+
                     switch (executionState) {
                         case RUNNING, RUNNABLE, WAITING -> {
                             return "fa fa-pause";
@@ -185,6 +189,10 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                 () -> {
                     SmartGeneratingDto dto = getModelObject();
                     TaskExecutionStateType executionState = dto.getTaskExecutionState();
+                    if(executionState == null) {
+                        return createStringResource("SmartGeneratingPanel.button.unknown").getString();
+                    }
+
                     switch (executionState) {
                         case RUNNING, RUNNABLE, WAITING -> {
                             return createStringResource("SmartGeneratingPanel.button.suspend").getString();
@@ -214,7 +222,8 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                 switch (executionState) {
                     case RUNNING, RUNNABLE, WAITING ->
                             TaskOperationUtils.suspendTasks(Collections.singletonList(taskObject), getPageBase());
-                    case SUSPENDED -> TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
+                    case SUSPENDED ->
+                            TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
                     default -> {
                         return;
                     }

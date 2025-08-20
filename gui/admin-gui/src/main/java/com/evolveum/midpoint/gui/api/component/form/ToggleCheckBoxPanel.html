@@ -8,7 +8,8 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="d-flex flex-row gap-3">
+<!--    TODO - panel component is inside 3 parents, need to check this panel on all places and refactor it.-->
+    <div class="d-flex flex-row gap-3" wicket:id="container">
         <div class="d-flex flex-column">
             <label wicket:id="label"></label>
             <p wicket:id="description" class="m-0"></p>

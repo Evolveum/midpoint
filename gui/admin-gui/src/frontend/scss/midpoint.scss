@@ -36,6 +36,7 @@
 @import "autocomplete";
 
 @import "form-validation";
+@import "smart-int";
 
 body.custom-hold-transition {
   .content-wrapper,
@@ -2471,4 +2472,8 @@ footer.main-footer a {
 
 .bg-light-info {
   background-color: #f4f8fa;
+}
+
+.bg-light-secondary {
+  background-color: #f4f4f4;
 }

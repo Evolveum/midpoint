@@ -20,10 +20,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CardWithTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.PrismItemDefinitionsTable;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -63,10 +60,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeObjectClassSizeEstimationType;
 
@@ -88,16 +82,18 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel;
     String resourceOid;
+    Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache;
 
     public SmartObjectClassTable(
             @NotNull String id,
-            @NotNull UserProfileStorage.TableId tableId,
+            UserProfileStorage.@NotNull TableId tableId,
             @NotNull IModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> model,
             @NotNull IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedModel,
-            @NotNull String resourceOid) {
+            @NotNull String resourceOid, Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache) {
         super(id, tableId, model);
         this.selectedTileModel = selectedModel;
         this.resourceOid = resourceOid;
+        this.objectClassSizeEstimationCache = objectClassSizeEstimationCache;
         setDefaultPagingSize(tableId);
     }
 
@@ -140,8 +136,6 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     protected boolean isFullTextSearchEnabled() {
         return true;
     }
-
-
 
     @Override
     public Collection<SelectorOptions<GetOperationOptions>> getSearchOptions() {
@@ -215,9 +209,9 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     @Override
     protected TemplateTile<PrismContainerValueWrapper<ComplexTypeDefinitionType>> createTileObject(
             PrismContainerValueWrapper<ComplexTypeDefinitionType> object) {
+        ComplexTypeDefinitionType realValue = object.getRealValue();
 
-        ObjectClassSizeEstimationType sizeEstimation = getObjectClassSizeEstimationType(object);
-
+        ObjectClassSizeEstimationType sizeEstimation = objectClassSizeEstimationCache.get(realValue.getName());
         return new SmartObjectClassTileModel<>(object, sizeEstimation);
     }
 

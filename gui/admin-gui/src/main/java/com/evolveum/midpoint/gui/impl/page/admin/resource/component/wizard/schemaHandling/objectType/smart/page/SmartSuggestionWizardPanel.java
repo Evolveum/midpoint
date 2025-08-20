@@ -46,7 +46,6 @@ public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionTy
     protected ResourceObjectClassTableWizardPanel<ResourceObjectTypeDefinitionType, P> createTablePanel(String idOfChoicePanel) {
         return new ResourceObjectClassTableWizardPanel<>(idOfChoicePanel, getHelper()) {
 
-
             @Override
             protected void onContinueWithSelected(IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> model, AjaxRequestTarget target) {
                 PrismContainerValueWrapper<ComplexTypeDefinitionType> object = model.getObject();
@@ -60,18 +59,38 @@ public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionTy
                 StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
                         getPageBase(), resourceOid, objectClassName, task, result);
 
-                if (suggestions != null && suggestions.getStatus() == OperationResultStatusType.SUCCESS) {
-                    showChoiceFragment(target, buildSelectSuggestedObjectTypeWizardPanel(getIdOfChoicePanel(), objectClassName));
+                //TBD
+                boolean hasSuccessfulSuggestions =
+                        suggestions != null
+                                && suggestions.getStatus() == OperationResultStatusType.SUCCESS
+                                && suggestions.getResult() != null
+                                && suggestions.getResult().getObjectType() != null
+                                && !suggestions.getResult().getObjectType().isEmpty();
+
+                if (hasSuccessfulSuggestions) {
+                    showChoiceFragment(target,
+                            buildSelectSuggestedObjectTypeWizardPanel(getIdOfChoicePanel(), objectClassName));
                 } else {
-                    boolean executed = runSuggestionAction(getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task);
-                    showChoiceFragment(target, buildGeneratingWizardPanel(getIdOfChoicePanel(), objectClassName));
+                    boolean executed = runSuggestionAction(
+                            getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task);
+                    result.computeStatusIfUnknown();
+
+                    if (!executed) {
+                        if (!result.isSuccess()) {
+                            getPageBase().showResult(result);
+                            target.add(getPageBase().getFeedbackPanel());
+                            target.add(SmartSuggestionWizardPanel.this);
+                        }
+                    } else {
+                        getSession().getFeedbackMessages().clear();
+                        target.add(getPageBase().getFeedbackPanel());
+                        showChoiceFragment(target, buildGeneratingWizardPanel(getIdOfChoicePanel(), objectClassName));
+                    }
                 }
             }
 
         };
     }
-
-
 
     @Contract("_, _ -> new")
     private @NotNull ResourceGeneratingSuggestionObjectClassWizardPanel<ResourceObjectTypeDefinitionType, P> buildGeneratingWizardPanel(

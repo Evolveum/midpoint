@@ -665,6 +665,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     /**
      * Returns the paging max size for the query
+     *
      * @return
      */
     private @Nullable Integer getPagingMaxSize() {
@@ -683,6 +684,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     /**
      * Returns configured default page size from view configuration or default settings.
+     *
      * @return
      */
     private @Nullable Integer getConfiguredDefaultPageSize() {
@@ -855,13 +857,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected IColumn<PO, String> createActionsColumn() {
-        List<InlineMenuItem> allItems = new ArrayList<>();
-        List<InlineMenuItem> menuItems = createInlineMenu();
-        if (menuItems != null) {
-            allItems.addAll(menuItems);
-        }
-        addBasicActions(allItems);
-        addCustomActions(allItems, this::getSelectedRealObjects);
+        List<InlineMenuItem> allItems = getInlineMenuItems();
 
         if (!allItems.isEmpty()) {
             InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
@@ -871,8 +867,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 }
 
                 @Override
-                protected String getInlineMenuItemCssClass() {
-                    return ContainerableListPanel.this.getInlineMenuItemCssClass();
+                protected String getInlineMenuItemCssClass(IModel<PO> rowModel) {
+                    return ContainerableListPanel.this.getInlineMenuItemCssClass(rowModel);
                 }
 
                 @Override
@@ -889,6 +885,17 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             return actionsColumn;
         }
         return null;
+    }
+
+    public @NotNull List<InlineMenuItem> getInlineMenuItems() {
+        List<InlineMenuItem> allItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = createInlineMenu();
+        if (menuItems != null) {
+            allItems.addAll(menuItems);
+        }
+        addBasicActions(allItems);
+        addCustomActions(allItems, this::getSelectedRealObjects);
+        return allItems;
     }
 
     /**
@@ -991,8 +998,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
                 if (ObjectType.F_NAME.equivalent(columnPath) || (customColumns.indexOf(customColumn) == 0 && shouldCheckForNameColumn)) {
                     column = createNameColumn(columnDisplayModel, customColumn, expression);
-                }
-                else if (AbstractRoleType.F_DISPLAY_NAME.equivalent(columnPath)) {
+                } else if (AbstractRoleType.F_DISPLAY_NAME.equivalent(columnPath)) {
                     column = new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase()) {
                         @Override
                         public void populateItem(Item item, String componentId, IModel rowModel) {
@@ -1000,8 +1006,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                             item.add(AttributeAppender.append("class", "name-min-width"));
                         }
                     };
-                }
-                else {
+                } else {
                     column = createCustomExportableColumn(columnDisplayModel, customColumn, expression);
                 }
 
@@ -1448,7 +1453,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.anyClassToQName(getPrismContext(), getType()), null);
     }
 
-    protected ISelectableDataProvider getDataProvider() {
+    public ISelectableDataProvider getDataProvider() {
         Component tableComponent = getTableComponent();
         if (tableComponent instanceof BoxedTablePanel) {
             return (ISelectableDataProvider) getTable().getDataTable().getDataProvider();
@@ -1753,7 +1758,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return null;
     }
 
-    protected String getInlineMenuItemCssClass() {
+    protected String getInlineMenuItemCssClass(@Nullable IModel<PO> rowModel) {
         return "btn btn-default btn-xs";
     }
 

@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
@@ -18,14 +20,16 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart.RealResourceStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart.ResourceStatus;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,9 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Utility methods for smart integration features in resource object type handling.
@@ -80,7 +82,7 @@ public class SmartIntegrationUtils {
             return pageBase.getSmartIntegrationService().estimateObjectClassSize(
                     resourceOid, objectClassName, MAX_SIZE_FOR_ESTIMATION, task, result);
         } catch (CommonException e) {
-            result.recordPartialError("Couldn't estimate object class size", e);
+            result.recordPartialError("Couldn't estimate object class size for " + objectClassName, e);
             LOGGER.warn("Couldn't estimate object class size for {} / {}", resourceOid, objectClassName, e);
             return null;
         }
@@ -90,7 +92,7 @@ public class SmartIntegrationUtils {
      * Loads the current status of a resource, initializing it via smart integration services.
      * Returns a real status or an error status in case of failure.
      */
-    public static @NotNull ResourceStatus loadStatus(
+    public static @NotNull ResourceStatus loadObjectTypeSuggestionStatus(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull Task task) {
@@ -100,7 +102,8 @@ public class SmartIntegrationUtils {
         try {
             var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
             RealResourceStatus status = new RealResourceStatus(resource);
-            status.initialize(smart, task, result);
+            smart.listSuggestObjectTypesOperationStatuses(resourceOid, task, result);
+            status.initializeSuggestObjectTypesOnly(smart, task, result);
             return status;
         } catch (Throwable t) {
             result.recordException(t);
@@ -123,9 +126,9 @@ public class SmartIntegrationUtils {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        ResourceStatus rs = loadStatus(pageBase, resourceOid, task);
+        ResourceStatus rs = loadObjectTypeSuggestionStatus(pageBase, resourceOid, task);
         if (!(rs instanceof RealResourceStatus real)) {
-            result.recordWarning("Unexpected resource status type: " + rs.getClass().getSimpleName());
+            result.recordFatalError("Unexpected resource status type: " + rs.getClass().getSimpleName());
             return null;
         }
         List<StatusInfo<ObjectTypesSuggestionType>> suggestions = real.getObjectTypesSuggestions(objectClassName);
@@ -140,11 +143,16 @@ public class SmartIntegrationUtils {
 
     public static @Nullable List<StatusInfo<ObjectTypesSuggestionType>> loadObjectTypeSuggestions(
             @NotNull PageBase pageBase,
-            @NotNull String resourceOid,
+            String resourceOid,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        ResourceStatus rs = loadStatus(pageBase, resourceOid, task);
+        if (resourceOid == null) {
+            result.recordWarning("Resource OID is null or empty");
+            return null;
+        }
+
+        ResourceStatus rs = loadObjectTypeSuggestionStatus(pageBase, resourceOid, task);
         if (!(rs instanceof RealResourceStatus real)) {
             result.recordWarning("Unexpected resource status type: " + rs.getClass().getSimpleName());
             return null;
@@ -246,7 +254,17 @@ public class SmartIntegrationUtils {
         StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
                 pageBase, resourceOid, objectClassName, task, opResult);
 
-        boolean executeTaskAction = suggestions == null;
+        if (opResult.isError() || opResult.isFatalError()) {
+            opResult.recordFatalError("Error loading object type suggestions: " + opResult.getMessage());
+            LOGGER.error("Error loading object type suggestions for resource {} and class {}: {}",
+                    resourceOid, objectClassName, opResult.getMessage());
+            return false;
+        }
+        //TBD We need to design the logic when we allow to execute the task action.
+        boolean executeTaskAction = suggestions == null
+                || suggestions.getResult() == null
+                || suggestions.getResult().getObjectType() == null
+                || suggestions.getResult().getObjectType().isEmpty();
 
         if (executeTaskAction) {
             pageBase.taskAwareExecutor(target, operationName)
@@ -358,4 +376,201 @@ public class SmartIntegrationUtils {
         }
     }
 
+    public static @NotNull IModel<Badge> getAiBadgeModel() {
+        Badge aiBadge = new Badge(
+                "badge badge-light-purple",
+                "fa fa-magic text-purple",
+                "AI",
+                "text-purple",
+                "This value was generated by AI");
+        return Model.of(aiBadge);
+    }
+
+    public enum SuggestionUiStyle {
+        FATAL("bg-light-danger", "info-badge danger"),
+        IN_PROGRESS("bg-light-info", "info-badge text-info"),
+        NOT_APPLICABLE("bg-light-secondary", "info-badge secondary"),
+        DEFAULT("bg-light-purple", "info-badge purple");
+
+        public final String rowClass;
+        public final String badgeClass;
+
+        SuggestionUiStyle(String rowClass, String badgeClass) {
+            this.rowClass = rowClass;
+            this.badgeClass = badgeClass;
+        }
+
+        public static SuggestionUiStyle from(OperationResultStatusType s) {
+            if (s == null) {return DEFAULT;}
+            return switch (s) {
+                case FATAL_ERROR -> FATAL;
+                case IN_PROGRESS -> IN_PROGRESS;
+                case NOT_APPLICABLE -> NOT_APPLICABLE;
+                default -> DEFAULT;
+            };
+        }
+    }
+
+    public static void suspendSuggestionTask(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<ObjectTypesSuggestionType> statusInfo,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        String token = statusInfo.getToken();
+        SmartIntegrationService smartIntegrationService = pageBase.getSmartIntegrationService();
+        try {
+            smartIntegrationService.cancelRequest(token, 5000L, task, result);
+        } catch (CommonException e) {
+            result.recordFatalError("Couldn't suspend suggestion task: " + e.getMessage(), e);
+            LOGGER.error("Couldn't suspend suggestion task for token {}: {}", token, e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("ReassignedVariable")
+    public static void removeObjectTypeSuggestion(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<ObjectTypesSuggestionType> statusInfo,
+            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> valueWrapper,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        final String token = statusInfo.getToken();
+        PrismObject<TaskType> taskPo =
+                WebModelServiceUtils.loadObject(TaskType.class, token, pageBase, task, result);
+
+        if (taskPo == null) {
+            result.recordFatalError("Task with token " + token + " not found");
+            LOGGER.error("Task with token {} not found", token);
+            return;
+        }
+
+        TaskType taskObject = taskPo.asObjectable();
+        TaskActivityStateType activityState = taskObject.getActivityState();
+        if (activityState == null || activityState.getActivity() == null || activityState.getActivity().getWorkState() == null) {
+            result.recordWarning("Task has no activity/workState to update.");
+            LOGGER.warn("Task {} has no activity/workState", token);
+            return;
+        }
+
+        AbstractActivityWorkStateType workState = taskObject.getActivityState().getActivity().getWorkState();
+        AbstractActivityWorkStateType workStateClone = workState.clone();
+
+        PrismContainerValue<?> wsPcv = workStateClone.asPrismContainerValue();
+
+        ObjectTypesSuggestionType suggestionsBean = null;
+        for (Item<?, ?> it : wsPcv.getItems()) {
+            Object real = it.getRealValue();
+            if (real instanceof ObjectTypesSuggestionType) {
+                suggestionsBean = (ObjectTypesSuggestionType) real;
+                break;
+            }
+        }
+
+        if (suggestionsBean == null) {
+            result.recordWarning("No ObjectTypesSuggestionType found in workState. Removing task.");
+            LOGGER.warn("No ObjectTypesSuggestionType found in workState for task {}", token);
+            deleteWholeTaskObject(pageBase, task, result, token);
+            return;
+        }
+
+        // Identify the object-type value (by kind + intent) we need to remove.
+        ResourceObjectTypeDefinitionType toRemove = null;
+        ResourceObjectTypeDefinitionType clicked = valueWrapper != null ? valueWrapper.getRealValue() : null;
+        if (clicked == null) {
+            result.recordWarning("No value to remove was provided.");
+            LOGGER.warn("No valueWrapper/realValue provided for removal in task {}", token);
+            return;
+        }
+
+        ShadowKindType wantKind = clicked.getKind();
+        String wantIntent = clicked.getIntent();
+
+        for (ResourceObjectTypeDefinitionType candidate : suggestionsBean.getObjectType()) {
+            if (Objects.equals(wantKind, candidate.getKind())
+                    && Objects.equals(wantIntent, candidate.getIntent())) {
+                toRemove = candidate;
+                break;
+            }
+        }
+
+        if (toRemove == null) {
+            LOGGER.info("Object type kind={} intent={} not found in suggestions for task {}",
+                    wantKind, wantIntent, token);
+            result.recordSuccessIfUnknown();
+            return;
+        }
+
+        PrismContainerValue<ResourceObjectTypeDefinitionType> toRemovePcv = toRemove.asPrismContainerValue();
+        PrismContainer<ResourceObjectTypeDefinitionType> objTypeCont =
+                suggestionsBean.asPrismContainerValue()
+                        .findContainer(ObjectTypesSuggestionType.F_OBJECT_TYPE);
+
+        if (objTypeCont != null) {
+            boolean removed = objTypeCont.remove(toRemovePcv);
+            if (!removed) {
+                suggestionsBean.getObjectType().remove(toRemove);
+            }
+        } else {
+            suggestionsBean.getObjectType().remove(toRemove);
+        }
+
+        boolean hasSuggestions = suggestionsBean.getObjectType() != null && !suggestionsBean.getObjectType().isEmpty();
+
+        ModelService modelService = pageBase.getModelService();
+        try {
+
+            ObjectDelta<TaskType> delta = PrismContext.get().deltaFor(TaskType.class)
+                    .item(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY, ActivityStateType.F_WORK_STATE)
+                    .replace(workStateClone)
+                    .asObjectDelta(token);
+
+            modelService.executeChanges(Collections.singletonList(delta), null, task, result);
+            result.recordSuccessIfUnknown();
+            LOGGER.info("Removed suggestion kind={} intent={} from task {}", wantKind, wantIntent, token);
+
+        } catch (CommonException e) {
+            result.recordFatalError("Couldn't remove object type suggestion: " + e.getMessage(), e);
+            LOGGER.error("Couldn't remove object type suggestion for task {}: {}", token, e.getMessage(), e);
+        }
+    }
+
+    private static void deleteWholeTaskObject(@NotNull PageBase pageBase, @NotNull Task task, @NotNull OperationResult result, String token) {
+        try {
+            ObjectDelta<TaskType> deleteDelta =
+                    PrismContext.get().deltaFactory().object().createDeleteDelta(TaskType.class, token);
+
+            pageBase.getModelService()
+                    .executeChanges(Collections.singleton(deleteDelta), null, task, result);
+
+            result.recordSuccessIfUnknown();
+        } catch (CommonException e) {
+            result.recordFatalError("Couldn't delete task " + token + ": " + e.getMessage(), e);
+            LOGGER.error("Couldn't delete task {}: {}", token, e.getMessage(), e);
+        }
+    }
+
+    //this is wrong but when we create container from selected model it cause problems with null values filled in
+    public static @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> createNewResourceObjectTypePrismContainerValue(
+            @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
+            @NotNull ResourceObjectTypeDefinitionType suggestion) {
+
+        var kind = suggestion.getKind();
+        var intent = suggestion.getIntent();
+        var displayName = suggestion.getDisplayName();
+        String description = suggestion.getDescription();
+        ResourceObjectTypeDelineationType delineation = suggestion.getDelineation();
+
+        PrismContainerWrapper<ResourceObjectTypeDefinitionType> containerWrapper = containerModel.getObject();
+
+        var newValue = containerWrapper.getItem().createNewValue();
+        var bean = newValue.asContainerable();
+
+        bean.setDescription(description);
+        bean.setDisplayName(displayName);
+        bean.setKind(kind);
+        bean.setIntent(intent);
+        bean.setDelineation(delineation);
+
+        return newValue;
+    }
 }

@@ -97,7 +97,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
             }
 
             @Override
-            protected String getInlineMenuItemCssClass() {
+            protected String getInlineMenuItemCssClass(IModel<SelectableBean<RoleType>> rowModel) {
                 return "btn btn-default btn-sm flex-nowrap text-nowrap";
             }
 

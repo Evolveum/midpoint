@@ -137,9 +137,10 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
 
         try {
             SmartIntegrationService sis = pageBase.getSmartIntegrationService();
-            QName suggestion = sis.suggestFocusType(resourceOid, identification, task, result);
-            if (suggestion != null) {
-                baseFormComponent.setModelObject(suggestion);
+            FocusTypeSuggestionType suggestion = sis.suggestFocusType(resourceOid, identification, task, result);
+            if (suggestion != null && suggestion.getFocusType() != null) {
+                QName focusType = suggestion.getFocusType();
+                baseFormComponent.setModelObject(focusType);
                 target.add(baseFormComponent);
             } else {
                 result.recordWarning("No suitable type suggestion was found.");

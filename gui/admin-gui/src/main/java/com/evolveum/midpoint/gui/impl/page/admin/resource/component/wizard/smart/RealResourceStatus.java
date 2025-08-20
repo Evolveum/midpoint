@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class RealResourceStatus implements ResourceStatus {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -57,6 +59,14 @@ public class RealResourceStatus implements ResourceStatus {
                     objectClassDefinition, typeDefs, sizeEstimation, stats));
         }
 
+        statuses.addAll(
+                sis.listSuggestObjectTypesOperationStatuses(resourceOid, task, result));
+    }
+
+    public void initializeSuggestObjectTypesOnly(@NotNull SmartIntegrationService sis, Task task, OperationResult result)
+            throws CommonException {
+
+        var resourceOid = resource.getOid();
         statuses.addAll(
                 sis.listSuggestObjectTypesOperationStatuses(resourceOid, task, result));
     }

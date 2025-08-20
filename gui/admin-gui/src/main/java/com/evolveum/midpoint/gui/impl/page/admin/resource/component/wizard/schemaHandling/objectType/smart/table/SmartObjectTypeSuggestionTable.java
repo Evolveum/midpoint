@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectContainerTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
@@ -48,13 +49,16 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
     private static final int MAX_TILE_COUNT = 6;
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
+    String resourceOid;
 
     public SmartObjectTypeSuggestionTable(
             @NotNull String id,
             @NotNull UserProfileStorage.TableId tableId,
             @NotNull IModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> model,
-            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedModel) {
+            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedModel,
+            @NotNull String resourceOid) {
         super(id, tableId, model);
+        this.resourceOid = resourceOid;
         this.selectedTileModel = selectedModel;
         setDefaultPagingSize(tableId);
     }
@@ -72,6 +76,7 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
         PageableListView<TemplateTile<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>,
                 PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> tiles = createTilesPanel(ID_TILES, provider);
         tiles.setOutputMarkupId(true);
+        tiles.setReuseItems(false);
 
         RadioGroup<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> radioGroup = new RadioGroup<>(
                 ID_TILES_RADIO, getSelectedTileModel());
@@ -117,7 +122,7 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
     @Override
     protected TemplateTile<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> createTileObject(
             PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object) {
-        return new SmartObjectTypeSuggestionTileModel<>(object);
+        return new SmartObjectTypeSuggestionTileModel<>(object, resourceOid);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -126,7 +131,17 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
         return new SmartObjectTypeSuggestionPanel(id, model, selectedTileModel) {
             @Serial private static final long serialVersionUID = 1L;
 
+            @Override
+            protected void performOnDelete(AjaxRequestTarget target) {
+                super.performOnDelete(target);
+                refresh(target);
+            }
         };
+    }
+
+    @Override
+    protected MultivalueContainerListDataProvider<ResourceObjectTypeDefinitionType> createProvider() {
+        return super.createProvider();
     }
 
     protected void createToolbarButtons(RepeatingView repeatingView) {
@@ -214,5 +229,10 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
 
     protected int getMaxTileCount() {
         return SmartObjectTypeSuggestionTable.MAX_TILE_COUNT;
+    }
+
+    @Override
+    public void refresh(AjaxRequestTarget target) {
+        super.refresh(target);
     }
 }

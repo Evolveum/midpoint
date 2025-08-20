@@ -100,4 +100,8 @@ public abstract class SingleSelectContainerTileTablePanel<C extends Containerabl
             }
         };
     }
+
+    public IModel<List<PrismContainerValueWrapper<C>>> getDetailsModel() {
+        return model;
+    }
 }

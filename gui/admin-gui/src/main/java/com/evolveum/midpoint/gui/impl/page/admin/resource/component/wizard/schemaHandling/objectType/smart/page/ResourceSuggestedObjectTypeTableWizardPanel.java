@@ -25,7 +25,6 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.cxf.common.util.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -44,6 +43,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import javax.xml.namespace.QName;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.createNewResourceObjectTypePrismContainerValue;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadObjectClassObjectTypeSuggestions;
 
 @PanelType(name = "rw-suggested-object-type")
@@ -76,14 +76,35 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
     }
 
     private void initLayout() {
+        SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> table = buildTableComponent();
+        add(table);
+    }
+
+    private @NotNull SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> buildTableComponent() {
         LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> suggestionModel = createPrismContainerValueWrapperModel();
-        SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> smartObjectTypeSuggestionTable = new SmartObjectTypeSuggestionTable<>(
+        ResourceDetailsModel assignmentHolderDetailsModel = getAssignmentHolderDetailsModel();
+        ResourceType resource = assignmentHolderDetailsModel.getObjectType();
+        SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> smartObjectTypeSuggestionTable
+                = new SmartObjectTypeSuggestionTable<>(
                 ID_PANEL,
                 UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_TYPES_SUGGESTIONS,
                 suggestionModel,
-                selectedModel);
+                selectedModel,
+                resource.getOid()) {
+            @Override
+            public void refresh(AjaxRequestTarget target) {
+                super.refresh(target);
+                selectedModel = Model.of();
+                SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newTable =
+                        buildTableComponent();
+                newTable.setOutputMarkupId(true);
+
+                ResourceSuggestedObjectTypeTableWizardPanel.this.addOrReplace(newTable);
+                target.add(newTable);
+            }
+        };
         smartObjectTypeSuggestionTable.setOutputMarkupId(true);
-        add(smartObjectTypeSuggestionTable);
+        return smartObjectTypeSuggestionTable;
     }
 
     private @NotNull LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> createPrismContainerValueWrapperModel() {
@@ -144,8 +165,6 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         var suggestion = selected.getRealValue();
         var kind = suggestion.getKind();
         var intent = suggestion.getIntent();
-        var displayName = suggestion.getDisplayName();
-        ResourceObjectTypeDelineationType delineation = suggestion.getDelineation();
 
         if (kind == null || intent == null || intent.isBlank()) {
             getPageBase().error(getPageBase().createStringResource("Smart.suggestion.missingKindIntent")
@@ -155,23 +174,8 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         }
 
         IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-        var newValue = createNewValue(containerModel, displayName, kind, intent, delineation);
-
+        var newValue = createNewResourceObjectTypePrismContainerValue(containerModel, suggestion);
         onContinueWithSelected(selectedModel, newValue, containerModel, target);
-    }
-
-    private @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> createNewValue(@NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, String displayName, @NotNull ShadowKindType kind, String intent, ResourceObjectTypeDelineationType delineation) {
-        PrismContainerWrapper<ResourceObjectTypeDefinitionType> containerWrapper = containerModel.getObject();
-
-        var newValue = containerWrapper.getItem().createNewValue();
-        var bean = newValue.asContainerable();
-
-        bean.setDisplayName(displayName);
-        bean.setKind(kind);
-        bean.setIntent(intent);
-        bean.setDelineation(delineation);
-
-        return newValue;
     }
 
     public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel() {

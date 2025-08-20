@@ -178,6 +178,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     PrismContext.get().queryFactory().createPaging(0, maxSizeForEstimation));
             AtomicInteger counter = new AtomicInteger();
             ResultHandler<ShadowType> handler = (object, lResult) -> counter.incrementAndGet() < maxSizeForEstimation;
+
             var metadata = modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
 
             int found = counter.get();

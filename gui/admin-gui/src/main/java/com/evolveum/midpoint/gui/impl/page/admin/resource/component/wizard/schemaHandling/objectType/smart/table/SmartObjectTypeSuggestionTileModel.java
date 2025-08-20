@@ -26,6 +26,7 @@ import org.apache.cxf.common.util.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,19 +41,21 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
     private final String filter;
     private String kind;
     private String intent;
+    private final String resourceOid;
 
-    public SmartObjectTypeSuggestionTileModel(T valueWrapper) {
+    public SmartObjectTypeSuggestionTileModel(T valueWrapper, String resourceOid) {
         super(valueWrapper);
 
         setValue(valueWrapper);
         ResourceObjectTypeDefinitionType suggestion = valueWrapper.getRealValue();
 
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
-        this.description = "TODO: e.g. account for services and applications"; //TODO replace when you have real copy
+        this.description = suggestion.getDescription();
         this.filter = buildFilterString(suggestion.getDelineation());
         this.kind = suggestion.getKind().value();
         this.intent = suggestion.getIntent();
         this.name = suggestion.getDisplayName();
+        this.resourceOid = resourceOid;
     }
 
     private static String buildFilterString(ResourceObjectTypeDelineationType delineation) {
@@ -105,7 +108,7 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
     private static final class Keys {
         static final String KIND = "SmartSuggestObjectTypeTileModel.kind";
         static final String INTENT = "SmartSuggestObjectTypeTileModel.intent";
-        static final String OBJECT_CLASS = "SmartSuggestObjectTypeTileModel.focusType";
+        static final String OBJECT_CLASS = "SmartSuggestObjectTypeTileModel.delineationClass";
         static final String FOCUS_TYPE = "SmartSuggestObjectTypeTileModel.focusType";
 
         private Keys() {
@@ -190,5 +193,17 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    protected String getResourceOid() {
+        return resourceOid;
+    }
+
+    protected QName getObjectClass() {
+        ResourceObjectTypeDefinitionType suggestion = getValue().getRealValue();
+        if (suggestion == null || suggestion.getDelineation() == null) {
+            return null;
+        }
+        return suggestion.getDelineation().getObjectClass();
     }
 }
