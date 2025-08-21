@@ -18,6 +18,8 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
+import com.evolveum.midpoint.web.session.PageStorage;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +38,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
@@ -414,11 +417,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
 
             @Override
-            public void reset() {
+            public void detach() {
                 Search search = getObject();
                 searchMode = search.getSearchMode();
 
-                super.reset();
+                super.detach();
             }
 
             @Override
@@ -500,6 +503,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         return new ContainerableListPanel(idTable, RoleType.class) {
 
                             @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected Search loadSearch(PageStorage storage) {
+                                return searchModel.getObject();
+                            }
 
                             @Override
                             protected IColumn<SelectableBean<ObjectType>, String> createNameColumn(IModel displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
@@ -835,14 +843,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         // reset search if type has changed
         if (currentType != newType) {
-            searchModel.reset();
+            searchModel.detach();
             return;
         }
 
         // we have to reset if we're switching from scoped to unscoped search (to show/hide scope)
         if ((currentRcq.getParent() != null && rcq.getParent() == null)
                 || (currentRcq.getParent() == null && rcq.getParent() != null)) {
-            searchModel.reset();
+            searchModel.detach();
             return;
         }
 
@@ -852,7 +860,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         if ((currentQuery != null && newQuery == null)
                 || (currentQuery == null && newQuery != null)) {
-            searchModel.reset();
+            searchModel.detach();
         }
     }
 
@@ -1365,10 +1373,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return new VisibleEnableBehaviour(() -> !getModelObject().getShoppingCartAssignments().isEmpty());
     }
 
-    private static abstract class SearchModel extends LoadableModel<Search> {
+    private static abstract class SearchModel extends LoadableDetachableModel<Search> {
 
         public SearchModel() {
-            super(false);
+            super();
         }
 
         public abstract void saveType();
