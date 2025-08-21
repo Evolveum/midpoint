@@ -10,7 +10,7 @@ package com.evolveum.midpoint.smart.impl.activities;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeTupleStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -20,9 +20,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -67,10 +64,17 @@ public class StatisticsComputer {
     private static final double AFFIX_PERCENTAGE_LIMIT = 0.05;
 
     /**
-     * Set of common affixes to match in attribute values.
+     * Set of common prefixes to match in attribute values.
      */
-    private static final Set<String> AFFIXES = new HashSet<>(Arrays.asList(
+    private static final Set<String> PREFIXES = new HashSet<>(Arrays.asList(
             "prod", "priv", "adm", "usr", "user", "ops", "svc", "int", "ext"
+    ));
+
+    /**
+     * Set of common suffixes to match in attribute values.
+     */
+    private static final Set<String> SUFFIXES = new HashSet<>(Arrays.asList(
+            "prod", "priv", "adm", "admin", "administrator", "usr", "user", "ops", "svc", "int", "ext"
     ));
 
     /**
@@ -356,17 +360,19 @@ public class StatisticsComputer {
      */
     private void incrementVocabularyAffixCounts(
             String value,
-            Map<String, Map<String, Integer>> affixCounts
+            Map<ShadowValuePatternType, Map<String, Integer>> affixCounts
     ) {
-        for (String affix : AFFIXES) {
+        for (String affix : PREFIXES) {
             if (value.startsWith(affix)) {
                 affixCounts
-                        .computeIfAbsent("prefix", k -> new HashMap<>())
+                        .computeIfAbsent(ShadowValuePatternType.PREFIX, k -> new HashMap<>())
                         .merge(affix, 1, Integer::sum);
             }
+        }
+        for (String affix : SUFFIXES) {
             if (value.endsWith(affix)) {
                 affixCounts
-                        .computeIfAbsent("suffix", k -> new HashMap<>())
+                        .computeIfAbsent(ShadowValuePatternType.SUFFIX, k -> new HashMap<>())
                         .merge(affix, 1, Integer::sum);
             }
         }
@@ -378,7 +384,7 @@ public class StatisticsComputer {
      */
     private void incrementFirstAndLastAffixCounts(
             String value,
-            Map<String, Map<String, Integer>> affixCounts
+            Map<ShadowValuePatternType, Map<String, Integer>> affixCounts
     ) {
         String[] tokens = value.split("[^a-zA-Z0-9]+");
         if (tokens.length < 2) {
@@ -386,14 +392,14 @@ public class StatisticsComputer {
         }
         String firstToken = tokens[0];
         String lastToken = tokens[tokens.length - 1];
-        if (!firstToken.isEmpty() && !AFFIXES.contains(firstToken)) {
+        if (!firstToken.isEmpty() && !PREFIXES.contains(firstToken)) {
             affixCounts
-                    .computeIfAbsent("firstToken", k -> new HashMap<>())
+                    .computeIfAbsent(ShadowValuePatternType.FIRST_TOKEN, k -> new HashMap<>())
                     .merge(firstToken, 1, Integer::sum);
         }
-        if (!lastToken.isEmpty() && !AFFIXES.contains(lastToken)) {
+        if (!lastToken.isEmpty() && !SUFFIXES.contains(lastToken)) {
             affixCounts
-                    .computeIfAbsent("lastToken", k -> new HashMap<>())
+                    .computeIfAbsent(ShadowValuePatternType.LAST_TOKEN, k -> new HashMap<>())
                     .merge(lastToken, 1, Integer::sum);
         }
     }
@@ -405,8 +411,8 @@ public class StatisticsComputer {
      */
     private void getAffixValueCounts(
             QName attrKey,
-            Map<String, Map<String, Integer>> vocabularyCounts,
-            Map<String, Map<String, Integer>> splitTokenCounts
+            Map<ShadowValuePatternType, Map<String, Integer>> vocabularyCounts,
+            Map<ShadowValuePatternType, Map<String, Integer>> splitTokenCounts
     ) {
         List<List<?>> elements = shadowStorage.get(attrKey);
         if (elements == null) {
@@ -434,12 +440,12 @@ public class StatisticsComputer {
      * Updates the statistics structure with the count of each affix found.
      */
     private void setAffixStatistics(QName attrKey, ShadowAttributeStatisticsType stats) {
-        Map<String, Map<String, Integer>> vocabularyCounts = new HashMap<>();
-        Map<String, Map<String, Integer>> splitTokenCounts = new HashMap<>();
+        Map<ShadowValuePatternType, Map<String, Integer>> vocabularyCounts = new HashMap<>();
+        Map<ShadowValuePatternType, Map<String, Integer>> splitTokenCounts = new HashMap<>();
         getAffixValueCounts(attrKey, vocabularyCounts, splitTokenCounts);
 
-        for (Map.Entry<String, Map<String, Integer>> typeEntry : vocabularyCounts.entrySet()) {
-            String type = typeEntry.getKey();
+        for (Map.Entry<ShadowValuePatternType, Map<String, Integer>> typeEntry : vocabularyCounts.entrySet()) {
+            ShadowValuePatternType type = typeEntry.getKey();
             Map<String, Integer> valueCounts = typeEntry.getValue();
             for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
                 stats.beginValuePatternCount()
@@ -449,8 +455,8 @@ public class StatisticsComputer {
             }
         }
 
-        for (Map.Entry<String, Map<String, Integer>> typeEntry : splitTokenCounts.entrySet()) {
-            String type = typeEntry.getKey();
+        for (Map.Entry<ShadowValuePatternType, Map<String, Integer>> typeEntry : splitTokenCounts.entrySet()) {
+            ShadowValuePatternType type = typeEntry.getKey();
             Map<String, Integer> valueCounts = typeEntry.getValue();
             if (valueCounts.size() > AFFIX_PERCENTAGE_LIMIT * statistics.getSize()) {
                 continue;
@@ -525,7 +531,7 @@ public class StatisticsComputer {
         for (Map.Entry<String, Integer> entry : ouCounts.entrySet()) {
             stats.beginValuePatternCount()
                     .value(entry.getKey())
-                    .type("DNsuffix")
+                    .type(ShadowValuePatternType.DN_SUFFIX)
                     .count(entry.getValue());
         }
     }

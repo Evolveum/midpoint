@@ -986,11 +986,10 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         for (var attribute : statistics.getAttribute()) {
             if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
                 assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(5);
+                assertThat(attribute.getValuePatternCount().size()).isEqualTo(6);
                 for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
                     assertThat(patternCount.getValue()).isNotEmpty();
                     assertThat(patternCount.getType()).isNotNull();
-                    assertThat(patternCount.getType()).isNotEmpty();
                     assertThat(patternCount.getCount()).isGreaterThanOrEqualTo(1);
                 }
             }
@@ -998,7 +997,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test240ComputeOUFieldStatistics() throws Exception {
+    public void test240ComputeDNattributeStatistics() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -1023,8 +1022,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             assertThat(entry.getValue()).doesNotStartWithIgnoringCase("cn=");
             assertThat(entry.getCount()).isGreaterThanOrEqualTo(1);
             assertThat(entry.getType()).isNotNull();
-            assertThat(entry.getType()).isNotEmpty();
-            assertThat(entry.getType()).isEqualTo("DNsuffix");
+            assertThat(entry.getType()).isEqualTo(ShadowValuePatternType.DN_SUFFIX);
         }
     }
 
