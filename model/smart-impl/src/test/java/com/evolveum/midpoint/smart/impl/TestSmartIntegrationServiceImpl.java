@@ -352,7 +352,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Engineering")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=alex\\,OU=Employees\\,DC=evolveum\\,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=alex\\,OU=Employees,DC=evolveum,DC=com");
 
         c.addAccount("brenda")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Brenda Starr")
@@ -415,7 +415,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Sales")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=henry,OU=Contractors,OU=IT,DC=evolveum,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=henry,OU=Contractors,OU=IT,OU=Contractors,OU=IT,DC=evolveum,DC=com");
 
         c.addAccount("isabel")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Isabel Archer")
@@ -1015,12 +1015,16 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var dnAttribute = statistics.getAttribute().stream()
                 .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.DN.q())))
                 .findFirst().orElseThrow();
-        assertThat(dnAttribute.getValueCount()).isNotEmpty();
-        assertThat(dnAttribute.getValueCount().size()).isEqualTo(4);
-        Map<String, Integer> valueCounts = dnAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
-        for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
-            assertThat(entry.getKey().startsWith("ou="));
+        assertThat(dnAttribute.getValuePatternCount()).isNotEmpty();
+        assertThat(dnAttribute.getValuePatternCount().size()).isEqualTo(4);
+        for (ShadowAttributeValuePatternCountType entry : dnAttribute.getValuePatternCount()) {
+            assertThat(entry.getValue()).isNotEmpty();
+            assertThat(entry.getValue()).startsWithIgnoringCase("ou=");
+            assertThat(entry.getValue()).doesNotStartWithIgnoringCase("cn=");
+            assertThat(entry.getCount()).isGreaterThanOrEqualTo(1);
+            assertThat(entry.getType()).isNotNull();
+            assertThat(entry.getType()).isNotEmpty();
+            assertThat(entry.getType()).isEqualTo("DNsuffix");
         }
     }
 

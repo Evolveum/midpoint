@@ -141,15 +141,19 @@ public class StatisticsComputer {
     public void postProcessStatistics() {
         assert shadowStorage.values().stream().map(List::size).distinct().count() <= 1;
 
-        // Value counts
-        setMissingValueCountStatistics();
-        setValueCountStatistics();
-        // Cross-table value counts
+        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
+            QName attrKey = fromAttributeRef(stats.getRef());
+
+            setMissingValueCountStatistics(attrKey, stats);
+            setValueCountStatistics(attrKey, stats);
+            if (attrKey.toString().equalsIgnoreCase("dn") || attrKey.toString().equalsIgnoreCase("distinguishedName")) {
+                setDnStatistics(attrKey, stats);
+            } else {
+                setAffixStatistics(attrKey, stats);
+            }
+        }
+
         computeValueCountsOfValuePairs();
-        // Affixes statistics
-        setAffixStatistics();
-        // Dn parsing statistics
-        setOUAttributeStatistics();
     }
 
     /**
@@ -201,15 +205,11 @@ public class StatisticsComputer {
      * Calculates and sets the count of missing (null or empty) values for each attribute
      * in the statistics object, updating the corresponding statistics entry.
      */
-    private void setMissingValueCountStatistics() {
-        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            QName attrKey = fromAttributeRef(stats.getRef());
-            int emptyCount = (int) shadowStorage.get(attrKey).stream()
-                    .filter(list -> list == null || list.isEmpty())
-                    .count();
-
-            stats.setMissingValueCount(emptyCount);
-        }
+    private void setMissingValueCountStatistics(QName attrKey, ShadowAttributeStatisticsType stats) {
+        int emptyCount = (int) shadowStorage.get(attrKey).stream()
+                .filter(list -> list == null || list.isEmpty())
+                .count();
+        stats.setMissingValueCount(emptyCount);
     }
 
     /**
@@ -238,51 +238,30 @@ public class StatisticsComputer {
      * @return a LinkedHashMap of the top N most frequent values and their counts, or an empty map if all counts are 1
      */
     private Map<String, Integer> getTopNValueCounts(Map<String, Integer> valueCounts) {
-        int maxCount = 0;
-        for (int count : valueCounts.values()) {
-            if (count > maxCount) maxCount = count;
-        }
-        if (maxCount <= 1) return new LinkedHashMap<>();
-
-        PriorityQueue<Map.Entry<String, Integer>> queue =
-                new PriorityQueue<>(Comparator.comparingInt(Map.Entry::getValue));
-
-        for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
-            if (queue.size() < TOP_N_LIMIT) {
-                queue.offer(entry);
-            } else if (entry.getValue() > queue.peek().getValue()) {
-                queue.poll();
-                queue.offer(entry);
-            }
+        if (valueCounts.values().stream().max(Integer::compare).orElse(0) <= 1) {
+            return new LinkedHashMap<>();
         }
 
-        // Collect to a LinkedHashMap in descending order
-        List<Map.Entry<String, Integer>> topList = new ArrayList<>(queue);
-        topList.sort((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()));
-
-        Map<String, Integer> result = new LinkedHashMap<>();
-        for (Map.Entry<String, Integer> entry : topList) {
-            result.put(entry.getKey(), entry.getValue());
-        }
-        return result;
+        return valueCounts.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .limit(TOP_N_LIMIT)
+                .collect(LinkedHashMap::new,
+                        (m, e) -> m.put(e.getKey(), e.getValue()),
+                        LinkedHashMap::putAll);
     }
 
     /**
      * Calculates and sets unique value counts and top N value frequencies for each attribute
      * in the statistics object, updating the corresponding statistics entry.
      */
-    private void setValueCountStatistics() {
-        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            QName attrKey = fromAttributeRef(stats.getRef());
-            Map<String, Integer> valueCounts = getValueCounts(attrKey);
-            stats.setUniqueValueCount(valueCounts.size());
-
-            valueCounts = getTopNValueCounts(valueCounts);
-            for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
-                stats.beginValueCount()
-                        .value(entry.getKey())
-                        .count(entry.getValue());
-            }
+    private void setValueCountStatistics(QName attrKey, ShadowAttributeStatisticsType stats) {
+        Map<String, Integer> valueCounts = getValueCounts(attrKey);
+        stats.setUniqueValueCount(valueCounts.size());
+        valueCounts = getTopNValueCounts(valueCounts);
+        for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
+            stats.beginValueCount()
+                    .value(entry.getKey())
+                    .count(entry.getValue());
         }
     }
 
@@ -454,36 +433,33 @@ public class StatisticsComputer {
      * Calculates and sets the statistics for affix occurrences in all shadow attribute values.
      * Updates the statistics structure with the count of each affix found.
      */
-    private void setAffixStatistics() {
-        for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
-            QName attrKey = fromAttributeRef(attribute.getRef());
-            Map<String, Map<String, Integer>> vocabularyCounts = new HashMap<>();
-            Map<String, Map<String, Integer>> splitTokenCounts = new HashMap<>();
-            getAffixValueCounts(attrKey, vocabularyCounts, splitTokenCounts);
+    private void setAffixStatistics(QName attrKey, ShadowAttributeStatisticsType stats) {
+        Map<String, Map<String, Integer>> vocabularyCounts = new HashMap<>();
+        Map<String, Map<String, Integer>> splitTokenCounts = new HashMap<>();
+        getAffixValueCounts(attrKey, vocabularyCounts, splitTokenCounts);
 
-            for (Map.Entry<String, Map<String, Integer>> typeEntry : vocabularyCounts.entrySet()) {
-                String type = typeEntry.getKey();
-                Map<String, Integer> valueCounts = typeEntry.getValue();
-                for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
-                    attribute.beginValuePatternCount()
-                            .value(entry.getKey())
-                            .type(type)
-                            .count(entry.getValue());
-                }
+        for (Map.Entry<String, Map<String, Integer>> typeEntry : vocabularyCounts.entrySet()) {
+            String type = typeEntry.getKey();
+            Map<String, Integer> valueCounts = typeEntry.getValue();
+            for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
+                stats.beginValuePatternCount()
+                        .value(entry.getKey())
+                        .type(type)
+                        .count(entry.getValue());
             }
+        }
 
-            for (Map.Entry<String, Map<String, Integer>> typeEntry : splitTokenCounts.entrySet()) {
-                String type = typeEntry.getKey();
-                Map<String, Integer> valueCounts = typeEntry.getValue();
-                if (valueCounts.size() > AFFIX_PERCENTAGE_LIMIT * statistics.getSize()) {
-                    continue;
-                }
-                for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
-                    attribute.beginValuePatternCount()
-                            .value(entry.getKey())
-                            .type(type)
-                            .count(entry.getValue());
-                }
+        for (Map.Entry<String, Map<String, Integer>> typeEntry : splitTokenCounts.entrySet()) {
+            String type = typeEntry.getKey();
+            Map<String, Integer> valueCounts = typeEntry.getValue();
+            if (valueCounts.size() > AFFIX_PERCENTAGE_LIMIT * statistics.getSize()) {
+                continue;
+            }
+            for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
+                stats.beginValuePatternCount()
+                        .value(entry.getKey())
+                        .type(type)
+                        .count(entry.getValue());
             }
         }
     }
@@ -494,7 +470,7 @@ public class StatisticsComputer {
      * For example, for the DN {@code "CN=John Doe,OU=Users,DC=example,DC=com"}, this method will return
      * {@code "OU=Users,DC=example,DC=com"}.
      */
-    private String parseOUSuffix(String dn) {
+    private String parseDNSuffix(String dn) {
         try {
             LdapName ldapName = new LdapName(dn);
             List<Rdn> rdns = ldapName.getRdns();
@@ -520,10 +496,10 @@ public class StatisticsComputer {
     /**
      * Counts the occurrences of organizational unit (OU) suffixes for the elements associated with the specified attribute key.
      * <p>
-     * The method uses {@link #parseOUSuffix(String)} to extract the OU suffix from each DN,
+     * The method uses {@link #parseDNSuffix(String)} to extract the OU suffix from each DN,
      * then counts the occurrences of each unique OU suffix.
      */
-    private Map<String, Integer> getOUValueCounts(QName attrKey) {
+    private Map<String, Integer> getDNSuffixValueCounts(QName attrKey) {
         Map<String, Integer> result = new HashMap<>();
         LinkedList<List<?>> elements = shadowStorage.get(attrKey);
         if (elements == null) {
@@ -531,9 +507,9 @@ public class StatisticsComputer {
         }
         for (List<?> inner : elements) {
             if (inner.size() != 1) continue;
-            String ouSuffix = parseOUSuffix(inner.get(0).toString());
-            if (ouSuffix != null) {
-                result.merge(ouSuffix, 1, Integer::sum);
+            String dnSuffix = parseDNSuffix(inner.get(0).toString());
+            if (dnSuffix != null) {
+                result.merge(dnSuffix, 1, Integer::sum);
             }
         }
         return result;
@@ -544,20 +520,13 @@ public class StatisticsComputer {
      * For each DN or distinguishedName attribute, it counts occurrences of each OU value, sorts them by frequency,
      * and updates the statistics object with the counts and the number of unique OUs.
      */
-    private void setOUAttributeStatistics() {
-        for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
-            QName attrKey = fromAttributeRef(attribute.getRef());
-            if (attrKey.toString().equalsIgnoreCase("dn") ||
-                    attrKey.toString().equalsIgnoreCase("distinguishedName")) {
-                Map<String, Integer> ouCounts = getOUValueCounts(attrKey);
-                for (Map.Entry<String, Integer> entry : ouCounts.entrySet()) {
-                    attribute.beginValueCount()
-                            .value(entry.getKey())
-                            .count(entry.getValue());
-                }
-                attribute.setUniqueValueCount(ouCounts.size());
-                return;
-            }
+    private void setDnStatistics(QName attrKey, ShadowAttributeStatisticsType stats) {
+        Map<String, Integer> ouCounts = getDNSuffixValueCounts(attrKey);
+        for (Map.Entry<String, Integer> entry : ouCounts.entrySet()) {
+            stats.beginValuePatternCount()
+                    .value(entry.getKey())
+                    .type("DNsuffix")
+                    .count(entry.getValue());
         }
     }
 }
