@@ -10,51 +10,61 @@ import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.io.Serializable;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 /**
- * DTO representing a "no objects" state, including title/subtitle text for empty object type panels.
+ * DTO representing a "no objects" state, including title/subtitle text
+ * for empty object-type panels.
+ *
+ * <p><strong>Important:</strong> Every identifier used with this DTO must have
+ * corresponding localization keys defined in the resource bundles:
+ * <ul>
+ *   <li>{@code NoValuePanelDto.&lt;identifier&gt;.title}</li>
+ *   <li>{@code NoValuePanelDto.&lt;identifier&gt;.title.plural}</li>
+ * </ul>
+ * Otherwise, the UI will not render proper labels.</p>
  */
-public class NoValuePanelDto implements Serializable {
+public record NoValuePanelDto(@NotNull String identifier) implements Serializable {
 
-    private final String defaultTypeSimpleName;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a NoResourceObjectDto for a specific container path.
-     *
-     * @param defaultType the default type of the object, used for generating titles.
+     * Validates the identifier.
      */
     @Contract(pure = true)
-    public <C extends Serializable> NoValuePanelDto(@NotNull Class<C> defaultType) {
-        this.defaultTypeSimpleName = defaultType.getSimpleName();
+    public NoValuePanelDto {
+        Objects.requireNonNull(identifier, "identifier");
     }
 
     /**
-     * Returns the localized title message for the  title panel.
+     * Returns the localized title message for the title panel.
      */
-    protected StringResourceModel getTitle() {
-        return createStringResource("NoResourceObjectDto.noObjectToShow.title", getTypeTitle(false));
+    public StringResourceModel getTitle() {
+        return createStringResource(
+                "NoValuePanelDto.noObjectToShow.title",
+                buildIdentifierTitleModel(false));
     }
 
     /**
      * Returns the localized subtitle message for the subtitle panel.
      */
-    protected StringResourceModel getSubtitle() {
-        return createStringResource("NoResourceObjectDto.noObjectToShow.subtitle", getTypeTitle(true));
+    public StringResourceModel getSubtitle() {
+        return createStringResource(
+                "NoValuePanelDto.noObjectToShow.subtitle",
+                buildIdentifierTitleModel(true));
     }
 
     /**
-     * Builds a type-specific title key based on the path, optionally pluralized.
+     * Builds a localized title model for the object type.
+     * Avoid naive pluralization; use dedicated resource keys.
      */
-    protected StringResourceModel getTypeTitle(boolean plural) {
-        String suffix = plural ? "s" : "";
-        return createStringResource(defaultTypeSimpleName + ".schemaHandlingObjectsPanel.title" + suffix);
+    private StringResourceModel buildIdentifierTitleModel(boolean plural) {
+        String key = "NoValuePanelDto." + identifier + (plural ? ".title.plural" : ".title");
+        return createStringResource(key);
     }
-
-    public String getDefaultTypeSimpleName() {
-        return defaultTypeSimpleName;
-    }
-
 }

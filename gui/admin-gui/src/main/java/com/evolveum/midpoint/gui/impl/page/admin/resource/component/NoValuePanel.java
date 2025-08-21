@@ -69,6 +69,12 @@ public abstract class NoValuePanel extends BasePanel<NoValuePanelDto> {
         panel.add(components);
     }
 
+    /**
+     * Creates the list of toolbar button components for this panel.
+     *
+     * @param buttonsId the Wicket ID to assign to each created button component
+     * @return a list of components representing the toolbar buttons (never {@code null})
+     */
     protected abstract List<Component> createToolbarButtons(String buttonsId);
 
     /**

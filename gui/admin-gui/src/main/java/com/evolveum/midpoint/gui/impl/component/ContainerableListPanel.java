@@ -1787,7 +1787,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
      */
     protected Component createPanelForNoValue() {
         NoValuePanel components = new NoValuePanel(ID_NO_VALUE_PANEL, () -> new NoValuePanelDto(
-                defaultType)) {
+                defaultType.getSimpleName())) {
             @Override
             protected List<Component> createToolbarButtons(String buttonsId) {
                 return createToolbarButtonsList(ID_BUTTON);
