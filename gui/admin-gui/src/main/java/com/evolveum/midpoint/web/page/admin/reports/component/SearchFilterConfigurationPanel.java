@@ -165,7 +165,10 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
 
     private void switchToFieldType(FieldType newFieldType, AjaxRequestTarget target) {
         fieldType = newFieldType;
+        reloadFilterConfigurationPanel(target);
+    }
 
+    private void reloadFilterConfigurationPanel(AjaxRequestTarget target) {
         target.add(SearchFilterConfigurationPanel.this);
         target.add(getPageBase().getFeedbackPanel());
         if (getBaseFormComponent().getForm() != null) {
@@ -193,8 +196,12 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
                     }
                     SearchFilterConfigurationPanel.this.getModel().setObject(SearchFilterConfigurationPanel.this.getPageBase()
                             .getQueryConverter().createSearchFilterType(configuredFilter));
-                    updateModelToMidpointQuery();
-                    switchToFieldType(FieldType.QUERY, target);
+                    if (FieldType.QUERY.equals(fieldType)) {
+                        updateModelToMidpointQuery();
+                        switchToFieldType(FieldType.QUERY, target);
+                    } else {
+                        reloadFilterConfigurationPanel(target);
+                    }
                 } catch (Exception e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
                 }
