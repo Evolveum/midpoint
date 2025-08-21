@@ -162,8 +162,8 @@ In the following sections, we examine scheduling for both recurring and single-r
 MidPoint currently supports two styles of schedule definition for recurring tasks:
 
 * Interval-based scheduling repeats a task every N seconds.
-* Cron-like scheduling provides the ability to specify starting times using a link:https://en.wikipedia.org/wiki/Cron[cron expression].
-    ** For example, to schedule a task to run every Sunday at 03:45, you would use the following pattern: `45 03 * * 7` (minute: 45, hour: 3, day: any, month: any, week day: 7 (Sunday)).
+* Cron-like scheduling provides the ability to specify starting times using a `cron` expression.
+    ** For example, to schedule a task to run every Sunday at 03:45, you would use the following pattern: `0 45 03 * * 7` (second: 0, minute: 45, hour: 3, day: any, month: any, week day: 7 (Sunday)).
     ** For more information on these expressions, see the link:https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html[Quartz documentation].
 
 ==== Recurring Tasks Can Be Tightly or Loosely Bound
