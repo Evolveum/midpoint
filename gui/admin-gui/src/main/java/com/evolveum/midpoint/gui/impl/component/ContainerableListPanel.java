@@ -187,7 +187,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return search;
     }
 
-    private <T extends Serializable> Search<T> loadSearch(PageStorage storage) {
+    protected <T extends Serializable> Search<T> loadSearch(PageStorage storage) {
         Search<T> search = null;
         if (storage != null) {
             search = storage.getSearch();
