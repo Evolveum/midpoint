@@ -33,8 +33,8 @@ server:
 #    ajp:
 #      enabled: true
 #      port: 9090
-#      maxPartHeaderSize: 1024
-#      maxPartCount: 300
+#      max-part-header-size: 1024
+#      max-part-count: 300
 
   servlet:
     context-path: /midpoint
