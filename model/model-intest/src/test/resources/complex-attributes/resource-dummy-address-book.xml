@@ -48,9 +48,6 @@
             <attribute>
                 <ref>ri:email</ref> <!-- complex -->
                 <inbound>
-                    <expression>
-                        <complexAttributeSynchronization/>
-                    </expression>
                     <target>
                         <path>email</path> <!-- complex -->
                     </target>
@@ -59,9 +56,6 @@
             <attribute>
                 <ref>ri:address</ref> <!-- complex -->
                 <inbound>
-                    <expression>
-                        <complexAttributeSynchronization/>
-                    </expression>
                     <target>
                         <path>physicalAddress</path> <!-- complex -->
                     </target>

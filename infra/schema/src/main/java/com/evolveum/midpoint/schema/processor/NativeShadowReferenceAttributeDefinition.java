@@ -27,6 +27,8 @@ public interface NativeShadowReferenceAttributeDefinition
      * {@code true} if the reference is used to implement complex attributes (later also complex associations).
      * Technically it means that the there should always be an embedded shadow, potentially without primary
      * and secondary identifiers.
+     *
+     * For ConnId, this means that the objects passed from/to the connector will be `EmbeddedObject` instances.
      */
     boolean isComplexAttribute();
 }

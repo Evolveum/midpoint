@@ -137,6 +137,5 @@ public interface ShadowReferenceAttributeDefinition
 
     @NotNull ShadowReferenceAttributeDefinition cloneWithNewCardinality(int newMinOccurs, int newMaxOccurs);
 
-    /** @see NativeShadowReferenceAttributeDefinition#isComplexAttribute() */
-    boolean isComplexAttribute();
+    @NotNull NativeShadowReferenceAttributeDefinition getNativeDefinition();
 }

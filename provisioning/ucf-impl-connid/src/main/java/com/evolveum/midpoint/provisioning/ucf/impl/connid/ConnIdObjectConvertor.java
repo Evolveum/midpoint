@@ -244,7 +244,7 @@ class ConnIdObjectConvertor {
     private Attribute convertReferenceAttributeToConnId(ShadowReferenceAttribute mpAttribute, ResourceObjectDefinition ocDef)
             throws SchemaException {
         var connIdAttrName = ucfAttributeNameToConnId(mpAttribute, ocDef);
-        var asEmbeddedObject = mpAttribute.getDefinitionRequired().isComplexAttribute();
+        var asEmbeddedObject = mpAttribute.getDefinitionRequired().getNativeDefinition().isComplexAttribute();
 
         var connIdAttrValues = new HashSet<>();
         for (var mpRefAttrValue : mpAttribute.getAttributeValues()) {

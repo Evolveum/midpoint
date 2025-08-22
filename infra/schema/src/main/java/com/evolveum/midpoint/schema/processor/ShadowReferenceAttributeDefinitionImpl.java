@@ -511,7 +511,7 @@ public class ShadowReferenceAttributeDefinitionImpl
     }
 
     @Override
-    public boolean isComplexAttribute() {
-        return nativeDefinition.isComplexAttribute();
+    public @NotNull NativeShadowReferenceAttributeDefinition getNativeDefinition() {
+        return nativeDefinition;
     }
 }

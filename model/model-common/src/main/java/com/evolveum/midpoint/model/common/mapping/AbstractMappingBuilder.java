@@ -63,6 +63,9 @@ public abstract class AbstractMappingBuilder<
     /** See {@link AbstractMappingImpl#mappingConfigItem}. */
     private AbstractMappingConfigItem<MBT> mappingConfigItem;
 
+    /** See {@link AbstractMappingImpl#defaultExpressionSupplier}. */
+    AbstractMappingImpl.ExpressionSupplier defaultExpressionSupplier = () -> null;
+
     /** See {@link AbstractMappingImpl#mappingKind}. */
     private MappingKindType mappingKind;
 
@@ -125,6 +128,11 @@ public abstract class AbstractMappingBuilder<
     // [EP:M:OM] [EP:M:IM] [EP:M:Tag] [EP:M:FM] [EP:M:ARC] [EP:M:MM] [EP:M:PRC] DONE 6/6
     public RT mapping(AbstractMappingConfigItem<MBT> mappingConfigItem) {
         this.mappingConfigItem = mappingConfigItem;
+        return typedThis();
+    }
+
+    public RT defaultExpressionSupplier(AbstractMappingImpl.ExpressionSupplier val) {
+        defaultExpressionSupplier = val;
         return typedThis();
     }
 
