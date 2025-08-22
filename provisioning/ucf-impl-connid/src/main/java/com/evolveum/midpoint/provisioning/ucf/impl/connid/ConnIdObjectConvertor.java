@@ -243,12 +243,13 @@ class ConnIdObjectConvertor {
 
     private Attribute convertReferenceAttributeToConnId(ShadowReferenceAttribute mpAttribute, ResourceObjectDefinition ocDef)
             throws SchemaException {
-        String connIdAttrName = ucfAttributeNameToConnId(mpAttribute, ocDef);
+        var connIdAttrName = ucfAttributeNameToConnId(mpAttribute, ocDef);
+        var asEmbeddedObject = mpAttribute.getDefinitionRequired().isComplexAttribute();
 
-        Set<ConnectorObjectReference> connIdAttrValues = new HashSet<>();
+        var connIdAttrValues = new HashSet<>();
         for (var mpRefAttrValue : mpAttribute.getAttributeValues()) {
             connIdAttrValues.add(
-                    convertReferenceAttributeValueToConnId(mpRefAttrValue));
+                    convertReferenceAttributeValueToConnId(mpRefAttrValue, asEmbeddedObject));
         }
 
         try {
@@ -258,7 +259,8 @@ class ConnIdObjectConvertor {
         }
     }
 
-    @NotNull ConnectorObjectReference convertReferenceAttributeValueToConnId(ShadowReferenceAttributeValue mpRefAttrValue)
+    @NotNull Object convertReferenceAttributeValueToConnId(
+            ShadowReferenceAttributeValue mpRefAttrValue, boolean asEmbeddedObject)
             throws SchemaException {
         var embeddedShadow = mpRefAttrValue.getShadowBean();
 
@@ -270,13 +272,17 @@ class ConnIdObjectConvertor {
                         .isEmbedded();
         var connIdInfo = convertToConnIdObjectInfo(embeddedShadow, identifiersOnly);
 
-        // TODO this object should be "by value" (ConnectorObject) for associated objects,
-        //  and "by reference" (ConnectorObjectIdentification) for regular objects.
-        //  Unfortunately, we cannot instantiate ConnectorObject here if UID is missing; and this
-        //  is a common case when creating new objects. Hence, we use ConnectorObjectIdentification
-        //  for both cases.
-        var referencedObject = new ConnectorObjectIdentification(connIdInfo.objectClass, connIdInfo.attributes);
-        return new ConnectorObjectReference(referencedObject);
+        if (asEmbeddedObject) {
+            return new EmbeddedObject(connIdInfo.objectClass, connIdInfo.attributes);
+        } else {
+            // TODO this object should be "by value" (ConnectorObject) for associated objects,
+            //  and "by reference" (ConnectorObjectIdentification) for regular objects.
+            //  Unfortunately, we cannot instantiate ConnectorObject here if UID is missing; and this
+            //  is a common case when creating new objects. Hence, we use ConnectorObjectIdentification
+            //  for both cases.
+            var referencedObject = new ConnectorObjectIdentification(connIdInfo.objectClass, connIdInfo.attributes);
+            return new ConnectorObjectReference(referencedObject);
+        }
     }
 
     /** Quite ugly method - we should have a single place from where to take the object class. TODO resolve */

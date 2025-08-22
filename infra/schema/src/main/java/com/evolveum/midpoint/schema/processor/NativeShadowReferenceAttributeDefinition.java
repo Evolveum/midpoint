@@ -22,4 +22,11 @@ public interface NativeShadowReferenceAttributeDefinition
     @NotNull default QName getReferenceTypeName() {
         return getTypeName();
     }
+
+    /**
+     * {@code true} if the reference is used to implement complex attributes (later also complex associations).
+     * Technically it means that the there should always be an embedded shadow, potentially without primary
+     * and secondary identifiers.
+     */
+    boolean isComplexAttribute();
 }

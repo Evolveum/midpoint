@@ -62,7 +62,7 @@ class ConnIdToUcfObjectConversion {
     private static final Trace LOGGER = TraceManager.getTrace(ConnIdToUcfObjectConversion.class);
 
     /** The input (the object or object identification that came from ConnId) */
-    @NotNull private final BaseConnectorObject connectorObjectFragment;
+    @NotNull private final BaseObject connectorObjectFragment;
 
     /** The definition provided by the caller. May be augmented (via auxiliary object classes) by the conversion process. */
     @NotNull private final ResourceObjectDefinition originalResourceObjectDefinition;
@@ -79,7 +79,7 @@ class ConnIdToUcfObjectConversion {
     private Conversion conversion;
 
     ConnIdToUcfObjectConversion(
-            @NotNull BaseConnectorObject connectorObject,
+            @NotNull BaseObject connectorObject,
             @NotNull ResourceObjectDefinition originalResourceObjectDefinition,
             @NotNull ConnectorContext connectorContext,
             @NotNull CompleteResourceSchema resourceSchema) {
@@ -328,6 +328,9 @@ class ConnIdToUcfObjectConversion {
             if (connIdValue instanceof ConnectorObjectReference reference) {
                 return convertReferenceToReferenceAttributeValue(reference);
             }
+            if (connIdValue instanceof EmbeddedObject embedded) {
+                return convertEmbeddedObjectToReferenceAttributeValue(embedded);
+            }
             return itemFactory.createPropertyValue(connIdValue);
         }
 
@@ -379,8 +382,12 @@ class ConnIdToUcfObjectConversion {
             ShadowAttributeDefinition mpDefinition = resourceObjectDefinition.findShadowAttributeDefinitionRequired(
                     convertedAttrName,
                     resourceSchema.isCaseIgnoreAttributeNames(),
-                    lazy(() -> "original ConnId name: '%s' in resource object identified by %s".formatted(
-                            connIdAttrName, connectorObjectFragment.getIdentification())));
+                    lazy(() ->
+                            connectorObjectFragment instanceof BaseConnectorObject baseConnectorObject
+                                    ? "original ConnId name: '%s' in resource object identified by %s".formatted(
+                                            connIdAttrName, baseConnectorObject.getIdentification())
+                                    : "original ConnId name: '%s' in embedded object of class %s".formatted(
+                                            connIdAttrName, connectorObjectFragment.getObjectClass())));
 
             var convertedAttr = mpDefinition.instantiate();
             var expectedClass = resolvePrimitiveIfNecessary(mpDefinition.getTypeClass());
@@ -433,6 +440,28 @@ class ConnIdToUcfObjectConversion {
             if (!(targetObjectOrIdentification instanceof ConnectorObject)) {
                 ucfObjectFragment.setIdentificationOnly();
             }
+            return ShadowReferenceAttributeValue.fromShadow(ucfObjectFragment);
+        }
+
+        // TODO deduplicate with the method above
+        private @NotNull ShadowReferenceAttributeValue convertEmbeddedObjectToReferenceAttributeValue(
+                EmbeddedObject embeddedObject) throws SchemaException {
+            var targetObjectClassName =
+                    connIdObjectClassNameToUcf(embeddedObject.getObjectClass(), isLegacySchema());
+            if (targetObjectClassName == null) {
+                throw new UnsupportedOperationException(
+                        "Reference attribute values without object class information are currently not supported: "
+                                + embeddedObject);
+            }
+            var targetObjectDefinition = resourceSchema.findDefinitionForObjectClassRequired(targetObjectClassName);
+
+            var embeddedConversion =
+                    new ConnIdToUcfObjectConversion(
+                            embeddedObject, targetObjectDefinition, connectorContext, resourceSchema);
+            embeddedConversion.execute();
+            // If the conversion is not successful, the conversion of the particular reference attribute - as a whole - fails
+            // (and the error is handled just as if any attribute conversion failed).
+            var ucfObjectFragment = embeddedConversion.getUcfResourceObjectFragmentIfSuccess();
             return ShadowReferenceAttributeValue.fromShadow(ucfObjectFragment);
         }
 

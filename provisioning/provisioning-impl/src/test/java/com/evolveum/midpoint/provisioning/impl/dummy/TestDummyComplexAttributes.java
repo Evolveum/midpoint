@@ -87,14 +87,14 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
                 .addAttributeValue(Person.AttributeNames.LAST_NAME.local(), "Doe")
                 .addAttributeValue(Person.AttributeNames.TITLE.local(), "Ing.");
 
-        DummyObject johnPermanentAddress = addressBookScenario.address.add("1")
+        DummyObject johnPermanentAddress = addressBookScenario.address.addUnnamed()
                 .addAttributeValue(Address.AttributeNames.TYPE.local(), TYPE_PERMANENT)
                 .addAttributeValue(Address.AttributeNames.PRIMARY.local(), false)
                 .addAttributeValue(Address.AttributeNames.STREET.local(), "123 Main St")
                 .addAttributeValue(Address.AttributeNames.CITY.local(), "Spring")
                 .addAttributeValue(Address.AttributeNames.ZIP.local(), "12345")
                 .addAttributeValue(Address.AttributeNames.COUNTRY.local(), "USA");
-        DummyObject johnTemporaryAddress = addressBookScenario.address.add("2")
+        DummyObject johnTemporaryAddress = addressBookScenario.address.addUnnamed()
                 .addAttributeValue(Address.AttributeNames.TYPE.local(), TYPE_TEMPORARY)
                 .addAttributeValue(Address.AttributeNames.PRIMARY.local(), true)
                 .addAttributeValue(Address.AttributeNames.STREET.local(), "456 Elm St")
@@ -102,11 +102,11 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
                 .addAttributeValue(Address.AttributeNames.ZIP.local(), "67890")
                 .addAttributeValue(Address.AttributeNames.COUNTRY.local(), "USA");
 
-        DummyObject johnPersonalEmail = addressBookScenario.email.add("1")
+        DummyObject johnPersonalEmail = addressBookScenario.email.addUnnamed()
                 .addAttributeValue(Email.AttributeNames.TYPE.local(), TYPE_PERSONAL)
                 .addAttributeValue(Email.AttributeNames.PRIMARY.local(), false)
                 .addAttributeValue(Email.AttributeNames.VALUE.local(), "john@doe.org");
-        DummyObject johnWorkEmail = addressBookScenario.email.add("2")
+        DummyObject johnWorkEmail = addressBookScenario.email.addUnnamed()
                 .addAttributeValue(Email.AttributeNames.TYPE.local(), TYPE_WORK)
                 .addAttributeValue(Email.AttributeNames.PRIMARY.local(), true)
                 .addAttributeValue(Email.AttributeNames.VALUE.local(), "john@evolveum.com");
@@ -206,7 +206,7 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
                 .attributes()
                 .referenceAttribute(Person.LinkNames.ADDRESS.q())
                 .assertSize(2)
-                .forPrimaryIdentifierValue("1")
+                .forAttributeValue(Address.AttributeNames.TYPE.q(), TYPE_PERMANENT)
                 .shadow()
                 .assertObjectClass(Address.OBJECT_CLASS_NAME.xsd())
                 .attributes()
@@ -216,7 +216,7 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
                 .end()
                 .end()
                 .end()
-                .forPrimaryIdentifierValue("2")
+                .forAttributeValue(Address.AttributeNames.TYPE.q(), TYPE_TEMPORARY)
                 .shadow()
                 .assertObjectClass(Address.OBJECT_CLASS_NAME.xsd())
                 .attributes()
@@ -229,7 +229,7 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
                 .end()
                 .referenceAttribute(Person.LinkNames.EMAIL.q())
                 .assertSize(2)
-                .forPrimaryIdentifierValue("1")
+                .forAttributeValue(Email.AttributeNames.TYPE.q(), TYPE_PERSONAL)
                 .shadow()
                 .assertObjectClass(Email.OBJECT_CLASS_NAME.xsd())
                 .attributes()

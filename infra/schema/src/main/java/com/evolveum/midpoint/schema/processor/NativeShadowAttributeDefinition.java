@@ -57,5 +57,6 @@ public interface NativeShadowAttributeDefinition extends
         void setReferenceParticipantRole(ShadowReferenceParticipantRole value);
         void setReferencedObjectClassName(QName value);
         void setNativeDescription(String s);
+        void setComplexAttribute(boolean value);
     }
 }

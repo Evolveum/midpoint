@@ -233,7 +233,7 @@ class ConnIdSchemaParser {
 
             var mpItemDef = createNativeAttributeDefinition(xsdItemName, xsdTypeName);
 
-            if (!connIdAttrInfo.isReference()) {
+            if (!connIdAttrInfo.isReference() && !connIdAttrInfo.isEmbedded()) {
                 LOGGER.trace("  simple attribute conversion: ConnId: {}({}) -> XSD: {}({})",
                         connIdAttrName, connIdAttrInfo.getType().getSimpleName(),
                         PrettyPrinter.prettyPrintLazily(xsdItemName),

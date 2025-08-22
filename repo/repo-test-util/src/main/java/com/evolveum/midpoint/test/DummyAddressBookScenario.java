@@ -22,6 +22,8 @@ import com.evolveum.icf.dummy.resource.DummyObjectClass;
  *
  * Please use `<icfi:useLegacySchema>false</icfi:useLegacySchema>` in the resource definition, as it expects
  * the nicer `ri:person`-style object class names.
+ *
+ * If using unnamed embedded objects, then set also `<icfi:enforceUniqueName>false</icfi:enforceUniqueName>`.
  */
 @SuppressWarnings("WeakerAccess") // there are a lot of constants that will be eventually used from the outside
 public class DummyAddressBookScenario extends AbstractDummyScenario {
@@ -150,6 +152,7 @@ public class DummyAddressBookScenario extends AbstractDummyScenario {
                                     .withMaxOccurs(-1)
                                     .withReturnedByDefault(true)
                                     .withExpandedByDefault(true)
+                                    .withUsingEmbeddedObjects(true)
                                     .build())
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(Address.OBJECT_CLASS_NAME.local())
@@ -179,6 +182,7 @@ public class DummyAddressBookScenario extends AbstractDummyScenario {
                                     .withMaxOccurs(-1)
                                     .withReturnedByDefault(true)
                                     .withExpandedByDefault(true)
+                                    .withUsingEmbeddedObjects(true)
                                     .build())
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(Email.OBJECT_CLASS_NAME.local())

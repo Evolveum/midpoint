@@ -368,7 +368,7 @@ class ConnIdCapabilitiesAndSchemaParser {
         private @Nullable ReferencesCapabilityType determineReferencesCapability(@NotNull Schema connIdSchema) {
             for (var ocInfo : connIdSchema.getObjectClassInfo()) {
                 for (var attrInfo : ocInfo.getAttributeInfo()) {
-                    if (attrInfo.isReference()) {
+                    if (attrInfo.isReference()) { // TODO consider embedded objects here as well MID-10738
                         return new ReferencesCapabilityType();
                     }
                 }

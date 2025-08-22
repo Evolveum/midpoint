@@ -73,6 +73,9 @@ public class NativeShadowAttributeDefinitionImpl<T>
     private ShadowReferenceParticipantRole referenceParticipantRole;
     private QName referencedObjectClassName;
 
+    /** @see NativeShadowReferenceAttributeDefinition#isComplexAttribute() */
+    private boolean complexAttribute;
+
     NativeShadowAttributeDefinitionImpl(@NotNull ItemName itemName, @NotNull QName typeName) {
         this.prismItemBasicData = new PrismItemBasicDefinition.Data(itemName, typeName);
         this.prismItemMatching = new PrismItemMatchingDefinition.Data<>(typeName);
@@ -404,6 +407,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
 
     @Override
     public void setReferenceParticipantRole(ShadowReferenceParticipantRole value) {
+        checkMutable();
         this.referenceParticipantRole = value;
     }
 
@@ -412,7 +416,19 @@ public class NativeShadowAttributeDefinitionImpl<T>
     }
 
     public void setReferencedObjectClassName(QName value) {
+        checkMutable();
         this.referencedObjectClassName = value;
+    }
+
+    @Override
+    public boolean isComplexAttribute() {
+        return complexAttribute;
+    }
+
+    @Override
+    public void setComplexAttribute(boolean complexAttribute) {
+        checkMutable();
+        this.complexAttribute = complexAttribute;
     }
 
     public void setNativeDescription(String value) {

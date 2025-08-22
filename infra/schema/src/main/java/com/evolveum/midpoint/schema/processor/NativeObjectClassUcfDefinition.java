@@ -46,7 +46,7 @@ public interface NativeObjectClassUcfDefinition {
      */
     boolean isAuxiliary();
 
-    /** Is this an embedded object? These are meant to be passed "by value" in reference attributes. */
+    /** Is this an embedded object class? These are meant to be passed "by value" in reference and complex attributes. */
     boolean isEmbedded();
 
     /**

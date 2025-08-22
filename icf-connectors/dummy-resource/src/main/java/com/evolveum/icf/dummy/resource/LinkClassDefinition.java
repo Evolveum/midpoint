@@ -108,6 +108,15 @@ public class LinkClassDefinition {
         /** Maximal cardinality, see {@link #minOccurs}. */
         private final int maxOccurs;
 
+        /**
+         * - If `true`, the link is using `EmbeddedObject` instances when accessed via ConnId.
+         * - If `false`, the link is using `ConnectorObjectReference` instead.
+         *
+         * The difference is that the latter require name and UID attributes.
+         * The former style is newer on (ConnId 1.7+) and is generally preferred.
+         */
+        private final boolean usingEmbeddedObjects;
+
         Participant(
                 @NotNull Set<String> objectClassNames,
                 @Nullable String linkName,
@@ -116,7 +125,8 @@ public class LinkClassDefinition {
                 boolean expandedByDefault,
                 boolean providingUnclassifiedReferences,
                 int minOccurs,
-                int maxOccurs) {
+                int maxOccurs,
+                boolean usingEmbeddedObjects) {
             this.objectClassNames = Objects.requireNonNull(objectClassNames, "object class name");
             this.linkName = linkName;
             this.updatable = updatable;
@@ -125,6 +135,7 @@ public class LinkClassDefinition {
             this.providingUnclassifiedReferences = providingUnclassifiedReferences;
             this.minOccurs = minOccurs;
             this.maxOccurs = maxOccurs;
+            this.usingEmbeddedObjects = usingEmbeddedObjects;
         }
 
         @NotNull Set<String> getObjectClassNames() {
@@ -160,6 +171,10 @@ public class LinkClassDefinition {
             return maxOccurs;
         }
 
+        public boolean isUsingEmbeddedObjects() {
+            return usingEmbeddedObjects;
+        }
+
         public String getSingleObjectClassNameIfApplicable() {
             if (objectClassNames.size() == 1) {
                 return objectClassNames.iterator().next();
@@ -186,6 +201,7 @@ public class LinkClassDefinition {
             private boolean providingUnclassifiedReferences;
             private int minOccurs;
             private int maxOccurs;
+            private boolean usingEmbeddedObjects;
 
             private ParticipantBuilder() {
             }
@@ -241,11 +257,16 @@ public class LinkClassDefinition {
                 return this;
             }
 
+            public ParticipantBuilder withUsingEmbeddedObjects(boolean usingEmbeddedObjects) {
+                this.usingEmbeddedObjects = usingEmbeddedObjects;
+                return this;
+            }
+
             public Participant build() {
                 return new Participant(
                         objectClassNames, attributeName, updatable,
                         returnedByDefault, expandedByDefault, providingUnclassifiedReferences,
-                        minOccurs, maxOccurs);
+                        minOccurs, maxOccurs, usingEmbeddedObjects);
             }
         }
     }

@@ -744,11 +744,14 @@ public class DummyResource implements DebugDumpable {
         updateNormalizedHierarchicalName(objectToAdd);
         hierarchySupport.checkHasContainingOrg(objectToAdd.getName());
 
+        boolean isEmbedded = store.getObjectClass().isEmbeddedObject();
+        boolean nameLegallyNull = isEmbedded && objectToAdd.getName() == null;
+
         String mapKey;
-        if (enforceUniqueName) {
-            mapKey = normalizedName;
-        } else {
+        if (!enforceUniqueName || nameLegallyNull) {
             mapKey = objectToAdd.getId();
+        } else {
+            mapKey = normalizedName;
         }
 
         if (store.containsObject(mapKey)) {
