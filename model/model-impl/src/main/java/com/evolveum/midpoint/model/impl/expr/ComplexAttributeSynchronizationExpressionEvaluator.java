@@ -6,6 +6,19 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.correlation.SimplifiedCorrelationResult;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -13,31 +26,26 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSingleShadowInboundsProcessingContextImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundMappingContextSpecification;
-import com.evolveum.midpoint.model.impl.sync.ItemSynchronizationState;
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
-import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition;
-import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ComplexAttributeSynchronizationExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
 /**
  * Synchronizes complex attribute values by correlating and mapping them to values of respective focus item.
@@ -196,9 +204,8 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
                 try {
 
                     var targetValueForCorrelation = computeValueForCorrelation(result);
-                    var correlationResult = executeCorrelation(targetValueForCorrelation, result);
-                    var synchronizationReaction = determineReaction(targetValueForCorrelation, correlationResult);
-                    executeReaction(correlationResult, synchronizationReaction, result);
+                    var correlationResult = executeCorrelation(targetValueForCorrelation);
+                    executeReaction(correlationResult, result);
 
                     registerValuesSeen(correlationResult);
 
@@ -210,10 +217,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
                 }
             }
 
-            private @NotNull SimplifiedCorrelationResult executeCorrelation(
-                    C valueForCorrelation, OperationResult result)
-                    throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                    SecurityViolationException, ObjectNotFoundException {
+            private @NotNull SimplifiedCorrelationResult executeCorrelation(C valueForCorrelation) {
 
                 LOGGER.trace("Executing correlation");
 
@@ -222,9 +226,26 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
                     return SimplifiedCorrelationResult.noOwner();
                 }
 
-                // TODO do correlation based on business key comparison
+                var naturalKey = focusItemDefinition.getNaturalKeyInstance();
+                if (naturalKey == null) {
+                    LOGGER.trace("No natural key, no owner");
+                    return SimplifiedCorrelationResult.noOwner();
+                }
 
-                return SimplifiedCorrelationResult.noOwner();
+                var matching = existingFocusValues.stream()
+                        .filter(v -> naturalKey.valuesMatch(v.asPrismContainerValue(), valueForCorrelation.asPrismContainerValue()))
+                        .toList();
+
+                if (matching.isEmpty()) {
+                    return SimplifiedCorrelationResult.noOwner();
+                } else if (matching.size() == 1) {
+                    var match = matching.get(0);
+                    LOGGER.trace("Correlation found a single match: {}", match);
+                    return SimplifiedCorrelationResult.existingOwner(matching.get(0));
+                } else {
+                    // TODO implement more seriously
+                    throw new IllegalStateException("Multiple matching values found for correlation, cannot decide: " + matching);
+                }
             }
 
             private C computeValueForCorrelation(OperationResult result)
@@ -237,9 +258,31 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
                 }
                 var targetValue = instantiateTargetValue();
                 PreMappingsEvaluator.computePreFocus(
-                        embeddedShadow.getBean(), typeDef, resource, targetValue, context.getTask(), result);
+                        embeddedShadow.getBean(),
+                        typeDef,
+                        determineInboundProcessingDefinition(typeDef),
+                        resource,
+                        targetValue,
+                        context.getTask(),
+                        result);
                 LOGGER.trace("Target (for correlation):\n{}", targetValue.debugDumpLazily(1));
                 return targetValue;
+            }
+
+            /**
+             * If the correlation definition is not set, we determine it from the business key.
+             */
+            private ResourceObjectInboundProcessingDefinition determineInboundProcessingDefinition(
+                    ResourceObjectTypeDefinition typeDef) {
+                if (typeDef.getCorrelation() != null) {
+                    return typeDef;
+                }
+                var businessKeyItems = focusItemDefinition.getNaturalKeyConstituents();
+                if (businessKeyItems == null || businessKeyItems.isEmpty()) {
+                    return typeDef; // no business key, no correlation
+                }
+                LOGGER.trace("Creating correlation based on the business key: {}", businessKeyItems);
+                return ResourceObjectInboundProcessingDefinition.withCorrelationDefinition(typeDef, businessKeyItems);
             }
 
             private C instantiateTargetValue() {
@@ -259,43 +302,19 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
                 }
             }
 
-            // FIXME temporary
-            private ItemSynchronizationReactionDefinition determineReaction(
-                    C valueForCorrelation, SimplifiedCorrelationResult correlationResult) {
-                var synchronizationState = ItemSynchronizationState.fromCorrelationResult(correlationResult);
-                var situationFromCorrelation = synchronizationState.situation();
-                // TODO
-                return SynchronizationReactionDefinition.itemLevel(
-                                new ItemSynchronizationReactionsType()
-                                        .reaction(new ItemSynchronizationReactionType()
-                                                .actions(new ItemSynchronizationActionsType()
-                                                        .addFocusValue(new AddFocusValueItemSynchronizationActionType()))))
-                        .get(0);
-            }
-
             private void executeReaction(
                     @NotNull SimplifiedCorrelationResult correlationResult,
-                    @Nullable ItemSynchronizationReactionDefinition synchronizationReaction,
                     @NotNull OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
                     CommunicationException, ObjectNotFoundException {
-                if (synchronizationReaction == null) {
+                var situation = correlationResult.getSituation();
+                if (situation == CorrelationSituationType.NO_OWNER) {
+                    executeAdd(result);
+                } else if (situation == CorrelationSituationType.EXISTING_OWNER) {
                     registerValuesSeen(correlationResult);
-                    return;
-                }
-                for (var action : synchronizationReaction.getActions()) {
-                    // TODO implement using action factory, like the regular ones are
-                    var beanClass = action.getClass();
-                    if (AddFocusValueItemSynchronizationActionType.class.equals(beanClass)) {
-                        executeAdd(result);
-                    } else if (DeleteFocusValueItemSynchronizationActionType.class.equals(beanClass)) {
-                        executeDelete();
-                    } else if (SynchronizeItemSynchronizationActionType.class.equals(beanClass)) {
-                        registerValuesSeen(correlationResult);
-                        executeSynchronize(correlationResult, result);
-                    } else {
-                        throw new UnsupportedOperationException("Action " + action + " is not supported here");
-                    }
+                    executeSynchronize(correlationResult, result);
+                } else {
+                    // nothing reasonable can be done here
                 }
             }
 
@@ -326,16 +345,15 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
             private void executeSynchronize(@NotNull SimplifiedCorrelationResult correlationResult, @NotNull OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                     ConfigurationException, ObjectNotFoundException {
-                throw new UnsupportedOperationException("TODO");
-//                //noinspection unchecked
-//                var targetValue = Objects.requireNonNull((C) correlationResult.getOwner());
-//                var innerProcessing = SingleShadowInboundsProcessing.evaluateToTripleMap(
-//                        createShadowProcessingContext(targetValue, result),
-//                        result);
-//                var assignmentPath = AssignmentHolderType.F_ASSIGNMENT.append(Objects.requireNonNull(targetValue.getId()));
-//                evaluatorResult.mergeIntoOtherTriples(assignmentPath, innerProcessing.getOutputTripleMap());
-//                evaluatorResult.mergeIntoItemDefinitionsMap(assignmentPath, innerProcessing.getItemDefinitionMap());
-//                evaluatorResult.mergeIntoMappingEvaluationRequestsMap(assignmentPath, innerProcessing.getEvaluationRequestsMap());
+                //noinspection unchecked
+                var targetValue = Objects.requireNonNull((C) correlationResult.getOwner());
+                var innerProcessing = SingleShadowInboundsProcessing.evaluateToTripleMap(
+                        createShadowProcessingContext(targetValue, result),
+                        result);
+                var assignmentPath = focusItemPath.append(Objects.requireNonNull(targetValue.asPrismContainerValue().getId()));
+                evaluatorResult.mergeIntoOtherTriples(assignmentPath, innerProcessing.getOutputTripleMap());
+                evaluatorResult.mergeIntoItemDefinitionsMap(assignmentPath, innerProcessing.getItemDefinitionMap());
+                evaluatorResult.mergeIntoMappingEvaluationRequestsMap(assignmentPath, innerProcessing.getEvaluationRequestsMap());
             }
 
             private @NotNull DefaultSingleShadowInboundsProcessingContextImpl<C> createShadowProcessingContext(
@@ -358,10 +376,6 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
                         projectionContext.getKey().getTypeIdentification(),
                         null,
                         projectionContext.getTag());
-            }
-
-            private void executeDelete() {
-                throw new UnsupportedOperationException("Sorry, 'delete' action is not supported yet");
             }
         }
     }

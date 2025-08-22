@@ -55,13 +55,14 @@ public class PreMappingsEvaluator {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         var preFocus = PrismContext.get().createObjectable(focusClass);
-        computePreFocus(shadowedResourceObject, objectTypeDefinition, resource, preFocus, task, result);
+        computePreFocus(shadowedResourceObject, objectTypeDefinition, objectTypeDefinition, resource, preFocus, task, result);
         return preFocus;
     }
 
     public static <C extends Containerable> void computePreFocus(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
+            @NotNull ResourceObjectInboundProcessingDefinition inboundProcessingDefinition,
             @NotNull ResourceType resource,
             @NotNull C focusValue,
             @NotNull Task task,
@@ -82,7 +83,7 @@ public class PreMappingsEvaluator {
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         task,
                         objectTypeDefinition,
-                        objectTypeDefinition,
+                        inboundProcessingDefinition,
                         true),
                 result);
     }

@@ -13,6 +13,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 
 import java.io.File;
 
+import com.evolveum.midpoint.prism.ValueSelector;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,9 +34,6 @@ import com.evolveum.midpoint.test.DummyAddressBookScenario;
 import com.evolveum.midpoint.test.DummyAddressBookScenario.Person;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Tests the inbound processing of complex attributes.
@@ -86,10 +87,13 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
      * its own objects to work with.
      */
     private void createCommonAddressBookObjects() throws Exception {
-        DummyObject john = addressBookScenario.person.add("john")
+        DummyObject john = addressBookScenario.person.add(PERSON_JOHN_NAME)
                 .addAttributeValue(Person.AttributeNames.FIRST_NAME.local(), "John")
                 .addAttributeValue(Person.AttributeNames.LAST_NAME.local(), "Doe")
                 .addAttributeValue(Person.AttributeNames.TITLE.local(), "Ing.");
+
+        // The IDs here (1, 2) are a temporary hack. Later, we'll use ConnId EmbeddedObject instances to represent
+        // the data, so ConnId Name+UID will no longer be required.
 
         DummyObject johnPersonalAddress = addressBookScenario.address.add("1")
                 .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.TYPE.local(), TYPE_PERSONAL)
@@ -173,9 +177,9 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Checks that the account and its associations are correctly imported (and re-imported after a change).
+     * Checks that the account and its complex attributes are correctly imported (and re-imported after a change).
      *
-     * Tests assignment correlation as well as automatic provenance-based mapping ranges.
+     * Tests complex items correlation based on business keys as well as automatic provenance-based mapping ranges.
      */
     @Test
     public void test110ImportPerson() throws Exception {
@@ -187,41 +191,48 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_ADDRESS_BOOK.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_PERSON))
                 .withNameValue(PERSON_JOHN_NAME)
-                .withTracing()
                 .executeOnForeground(result);
 
         and("john is found");
+        var workAddressId = new Holder<Long>();
         // @formatter:off
         assertUserAfterByUsername(PERSON_JOHN_NAME)
                 .assignments()
                 .assertAssignments(1)
                 .by().targetType(ArchetypeType.COMPLEX_TYPE).find()
                     .assertTargetOid(ARCHETYPE_PERSON.oid)
-                .end();
+                .end()
+                .end()
+                .container(UserType.F_EMAIL)
+                    .assertSize(2)
+                    .value(ValueSelector.itemEquals(EmailAddressType.F_TYPE, TYPE_PERSONAL))
+                        .assertPropertyValuesEqual(EmailAddressType.F_VALUE, "john@doe.org")
+                        .assertPropertyValuesEqual(EmailAddressType.F_PRIMARY, false)
+                    .end()
+                    .value(ValueSelector.itemEquals(EmailAddressType.F_TYPE, TYPE_WORK))
+                        .assertPropertyValuesEqual(EmailAddressType.F_VALUE, "john@evolveum.com")
+                        .assertPropertyValuesEqual(EmailAddressType.F_PRIMARY, true)
+                        .emitId(workAddressId)
+                    .end();
         // @formatter:on
 
         when("john is changed on the resource");
 
-//        var dummyJohn = addressBookScenario.person.getByNameRequired(PERSON_JOHN_NAME);
-//        var dummyMedicine = addressBookScenario.orgUnit.getByNameRequired(ORG_MEDICINE_NAME);
-//        var dummyCc1000 = addressBookScenario.costCenter.getByNameRequired(CC_1000_NAME);
-//        var dummyCc1100 = addressBookScenario.costCenter.getByNameRequired(CC_1100_NAME);
-//
-//        // one contract is added
-//        var dummyContractMedicine = addressBookScenario.contract.add(JOHN_MEDICINE_CONTRACT_ID);
-//        addressBookScenario.personContract.add(dummyJohn, dummyContractMedicine);
-//        addressBookScenario.contractOrgUnit.add(dummyContractMedicine, dummyMedicine);
-//        addressBookScenario.contractCostCenter.add(dummyContractMedicine, dummyCc1100);
-//
-//        // one is changed
-//        var dummyContractSciences = addressBookScenario.contract.getByNameRequired(JOHN_SCIENCES_CONTRACT_ID);
-//        dummyContractSciences.replaceAttributeValues(
-//                DummyHrScenarioExtended.Contract.AttributeNames.NOTE.local(), "reviewed");
-//        addressBookScenario.contractCostCenter.delete(dummyContractSciences, dummyCc1000);
-//        addressBookScenario.contractCostCenter.add(dummyContractSciences, dummyCc1100);
-//
-//        // one is deleted
-//        addressBookScenario.contract.deleteByName(JOHN_LAW_CONTRACT_ID);
+        var john = addressBookScenario.person.getByNameRequired(PERSON_JOHN_NAME);
+
+        // one email is added
+        DummyObject johnNewWorkEmail = addressBookScenario.email.add("3")
+                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.TYPE.local(), TYPE_PERSONAL)
+                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.PRIMARY.local(), true)
+                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.VALUE.local(), "john-new@doe.com");
+        addressBookScenario.personEmail.add(john, johnNewWorkEmail);
+
+        // one is changed
+        var dummyWorkEmail = addressBookScenario.email.getByNameRequired("2");
+        dummyWorkEmail.replaceAttributeValues(DummyAddressBookScenario.Email.AttributeNames.PRIMARY.local(), false);
+
+        // one is deleted
+        addressBookScenario.email.deleteByName("1");
 
         when("john is re-imported");
         importAccountsRequest()
@@ -237,7 +248,19 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(1)
                 .by().targetType(ArchetypeType.COMPLEX_TYPE).find()
                     .assertTargetOid(ARCHETYPE_PERSON.oid)
-                .end();
+                .end()
+                .end()
+                .container(UserType.F_EMAIL)
+                    .assertSize(2)
+                    .value(ValueSelector.itemEquals(EmailAddressType.F_TYPE, TYPE_PERSONAL))
+                        .assertPropertyValuesEqual(EmailAddressType.F_VALUE, "john-new@doe.com")
+                        .assertPropertyValuesEqual(EmailAddressType.F_PRIMARY, true)
+                    .end()
+                    .value(ValueSelector.itemEquals(EmailAddressType.F_TYPE, TYPE_WORK))
+                        .assertPropertyValuesEqual(EmailAddressType.F_VALUE, "john@evolveum.com")
+                        .assertPropertyValuesEqual(EmailAddressType.F_PRIMARY, false)
+                        .assertId(workAddressId.getValue()) // business key was not changed -> the PCV ID should stay the same
+                    .end();
         // @formatter:on
     }
 }

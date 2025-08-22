@@ -48,6 +48,7 @@
             <attribute>
                 <ref>ri:email</ref> <!-- complex -->
                 <inbound>
+                    <name>inbound-email</name>
                     <target>
                         <path>email</path> <!-- complex -->
                     </target>
@@ -56,6 +57,7 @@
             <attribute>
                 <ref>ri:address</ref> <!-- complex -->
                 <inbound>
+                    <name>inbound-address</name>
                     <target>
                         <path>physicalAddress</path> <!-- complex -->
                     </target>
