@@ -87,14 +87,14 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
                 .addAttributeValue(Person.AttributeNames.LAST_NAME.local(), "Doe")
                 .addAttributeValue(Person.AttributeNames.TITLE.local(), "Ing.");
 
-        DummyObject johnPermanentAddress = addressBookScenario.address.addUnnamed()
+        DummyObject johnPermanentAddress = addressBookScenario.address.add("1")
                 .addAttributeValue(Address.AttributeNames.TYPE.local(), TYPE_PERMANENT)
                 .addAttributeValue(Address.AttributeNames.PRIMARY.local(), false)
                 .addAttributeValue(Address.AttributeNames.STREET.local(), "123 Main St")
                 .addAttributeValue(Address.AttributeNames.CITY.local(), "Spring")
                 .addAttributeValue(Address.AttributeNames.ZIP.local(), "12345")
                 .addAttributeValue(Address.AttributeNames.COUNTRY.local(), "USA");
-        DummyObject johnTemporaryAddress = addressBookScenario.address.addUnnamed()
+        DummyObject johnTemporaryAddress = addressBookScenario.address.add("2")
                 .addAttributeValue(Address.AttributeNames.TYPE.local(), TYPE_TEMPORARY)
                 .addAttributeValue(Address.AttributeNames.PRIMARY.local(), true)
                 .addAttributeValue(Address.AttributeNames.STREET.local(), "456 Elm St")
@@ -102,11 +102,11 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
                 .addAttributeValue(Address.AttributeNames.ZIP.local(), "67890")
                 .addAttributeValue(Address.AttributeNames.COUNTRY.local(), "USA");
 
-        DummyObject johnPersonalEmail = addressBookScenario.email.addUnnamed()
+        DummyObject johnPersonalEmail = addressBookScenario.email.add("1")
                 .addAttributeValue(Email.AttributeNames.TYPE.local(), TYPE_PERSONAL)
                 .addAttributeValue(Email.AttributeNames.PRIMARY.local(), false)
                 .addAttributeValue(Email.AttributeNames.VALUE.local(), "john@doe.org");
-        DummyObject johnWorkEmail = addressBookScenario.email.addUnnamed()
+        DummyObject johnWorkEmail = addressBookScenario.email.add("2")
                 .addAttributeValue(Email.AttributeNames.TYPE.local(), TYPE_WORK)
                 .addAttributeValue(Email.AttributeNames.PRIMARY.local(), true)
                 .addAttributeValue(Email.AttributeNames.VALUE.local(), "john@evolveum.com");
