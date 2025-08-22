@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!--
-  ~ Copyright (c) 2022 Evolveum
+  ~ Copyright (c) 2025 Evolveum
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,24 +9,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
         xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:extend>
-    <wicket:enclosure child="notShownContainerInfo">
-        <div class="ml-auto mr-auto col-11 alert alert-info alert-dismissible">
-            <i class="icon fas fa-info"></i>
-            <span wicket:id="notShownContainerInfo"/>
-        </div>
-    </wicket:enclosure>
-    <div class="card col-11 mx-auto p-0">
-        <div class="card-header">
-                <span>
-                    <i class="fa fa-code-branch"/>
-                    <span class="pl-1">
-                    <wicket:message key="CorrelationWizardPanelWizardPanel.headerLabel"/>
-                </span>
-                </span>
-        </div>
-        <div class="card-body p-0" wicket:id="table"/>
-    </div>
-</wicket:extend>
+    <wicket:extend>
+        <div class="card-body p-0" wicket:id="table"></div>
+        <div class="card-body p-0" wicket:id="old"></div>
+    </wicket:extend>
 </body>
 </html>

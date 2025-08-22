@@ -121,8 +121,11 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
             @Override
             protected List<PrismContainerValueWrapper<ComplexTypeDefinitionType>> load() {
                 try {
-                    PrismContainerWrapper<ComplexTypeDefinitionType> container = getAssignmentHolderDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ResourceType.F_SCHEMA, WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_COMPLEX_TYPE));
+                    PrismContainerWrapper<ComplexTypeDefinitionType> container = getAssignmentHolderDetailsModel()
+                            .getObjectWrapper().findContainer(ItemPath.create(
+                                    ResourceType.F_SCHEMA,
+                                    WebPrismUtil.PRISM_SCHEMA,
+                                    PrismSchemaType.F_COMPLEX_TYPE));
                     return container.getValues();
                 } catch (SchemaException e) {
                     throw new RuntimeException("Error while loading complex type definition", e);

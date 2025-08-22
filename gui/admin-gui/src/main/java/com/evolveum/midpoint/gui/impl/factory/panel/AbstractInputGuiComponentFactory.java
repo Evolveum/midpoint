@@ -12,8 +12,10 @@ import java.util.Map;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.validator.ChoiceRequiredValidator;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 
 import com.evolveum.midpoint.web.util.ExpressionValidator;
@@ -74,6 +76,13 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             PrismPropertyWrapper<T> propertyWrapper = panelCtx.unwrapWrapperModel();
             IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
             formComponent.setLabel(label);
+
+            //TODO not work
+            boolean aiProvided = propertyWrapper.getValues().stream().anyMatch(vw -> {
+                PrismValue newVal = vw.getNewValue();
+                PrismValue valToCheck = newVal != null ? newVal : vw.getOldValue();
+                return AiUtil.isMarkedAsAiProvided(valToCheck);
+            });
 
             //TODO it should be done using value metadata (required ai flag metadata implementation)
             markIfAiGeneratedValue(formComponent, propertyWrapper);

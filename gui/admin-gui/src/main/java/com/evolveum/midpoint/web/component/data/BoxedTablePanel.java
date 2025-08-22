@@ -162,8 +162,13 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         add(header);
         add(AttributeAppender.append("aria-labelledby", () -> header.isVisible() ? header.getMarkupId() : null));
         WebMarkupContainer footer = createFooter(ID_FOOTER);
+        footer.add(AttributeAppender.append("class", getAdditionalFooterCssClasses()));
         footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
         add(footer);
+    }
+
+    protected String getAdditionalFooterCssClasses() {
+        return null;
     }
 
     //used only for debug pages, to refresh search properly when type is changed.

@@ -6,9 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -27,9 +29,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+
+import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
 /**
  * @author lskublik
@@ -59,8 +65,43 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         initLayout();
     }
 
+    @Contract(pure = true)
+    private @NotNull LoadableModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> getItemsSubCorrelatorTypes() {
+        return new LoadableModel<>() {
+            @Override
+            protected List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> load() {
+                try {
+                    PrismContainerValueWrapper<CorrelationDefinitionType> object = getValueModel().getObject();
+                    if (object == null) {
+                        return List.of();
+                    }
+                    PrismContainerWrapper<ItemsSubCorrelatorType> container = object.findContainer(
+                            ItemPath.create(
+                                    CorrelationDefinitionType.F_CORRELATORS,
+                                    CompositeCorrelatorType.F_ITEMS));
+                    return container.getValues();
+                } catch (SchemaException e) {
+                    throw new RuntimeException("Error while loading items sub-correlator types", e);
+                }
+            }
+        };
+    }
+
     private void initLayout() {
-        CorrelationItemsTable table = new CorrelationItemsTable(ID_TABLE, getValueModel(), getConfiguration()) {
+
+        ResourceDetailsModel detailsModel = getHelper().getDetailsModel();
+        ResourceType resource = detailsModel.getObjectType();
+        String resourceOid = resource.getOid();
+        SmartCorrelationTable table = new SmartCorrelationTable(
+                ID_TABLE,
+                TABLE_SMART_CORRELATION,
+                Model.of(ViewToggle.TILE),
+                getItemsSubCorrelatorTypes(),
+                resourceOid);
+        table.setOutputMarkupId(true);
+        add(table);
+
+        CorrelationItemsTable table2 = new CorrelationItemsTable("old", getValueModel(), getConfiguration()) {
             @Override
             public void editItemPerformed(
                     AjaxRequestTarget target,
@@ -69,8 +110,8 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 showTableForItemRefs(target, rowModel);
             }
         };
-        table.setOutputMarkupId(true);
-        add(table);
+        table2.setOutputMarkupId(true);
+        add(table2);
 
         Label info = new Label(
                 ID_NOT_SHOWN_CONTAINER_INFO,
@@ -136,13 +177,13 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         return getPageBase().createStringResource("CorrelationWizardPanelWizardPanel.subText");
     }
 
-    protected CorrelationItemsTable getTable() {
-        return (CorrelationItemsTable) get(ID_TABLE);
+    protected SmartCorrelationTable getTable() {
+        return (SmartCorrelationTable) get(ID_TABLE);
     }
 
     @Override
     protected boolean isValid(AjaxRequestTarget target) {
-        return getTable().isValidFormComponents(target);
+        return false;
     }
 
     @Override

@@ -103,4 +103,8 @@ public abstract class MultiSelectContainerTileTablePanel<E extends Serializable,
             }
         };
     }
+
+    protected IModel<List<PrismContainerValueWrapper<C>>> getListModel() {
+        return model;
+    }
 }

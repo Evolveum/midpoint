@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="h-100 bg-white rounded">
+
+        <div class="card-header border-0  pb-0">
+
+            <div class="d-flex justify-content-between">
+                <div class="form-check ">
+                    <input type="checkbox" wicket:id="selectCheckbox" class="form-check-input"/>
+                </div>
+
+                <div class="d-flex">
+                    <div class="align-items-center" wicket:id="moreAction"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <h5 wicket:id="title"></h5>
+            <p class="text-muted mb-2 tile-three-line-description" wicket:id="description"></p>
+
+            <div wicket:id="correlationItemsPanel"></div>
+
+            <p class="fs-5 mb-1 mt-3" wicket:id="statsLabel"></p>
+
+            <div class="d-flex gap-2">
+                <div wicket:id="statsPanel" class="col badge badge-light p-2">
+                    <div class="flex flex-row no-wrap" wicket:id="statsPanelValue" role="tab"></div>
+                    <div class="fw-normal text-muted mt-1" wicket:id="statsPanelLabel"></div>
+                </div>
+            </div>
+
+            <p class="fs-5 mb-1 mt-3" wicket:id="stateLabel"></p>
+            <div wicket:id="statePanel" class="col info-badge success-light p-2"></div>
+
+        </div>
+
+        <hr class="m-0">
+
+        <div class="card-footer bg-transparent border-0 d-flex justify-content-center ">
+            <a href="#" class="align-items-center" wicket:id="viewRuleLink"></a>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

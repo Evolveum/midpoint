@@ -62,8 +62,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     protected static final String ID_TILES = "tiles";
 
     private static final String ID_HEADER_FRAGMENT = "headerFragment";
+    private static final String ID_HEADER_CONTAINER = "headerContainer";
     static final String ID_HEADER = "header";
     private static final String ID_VIEW_TOGGLE = "viewToggle";
+    private static final String ID_TOOLBAR_BUTTONS = "toolbarButtons";
     private static final String ID_PANEL_HEADER = "panelHeader";
 
     protected static final String ID_TILE = "tile";
@@ -247,6 +249,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         };
     }
 
+    protected String getAdditionalFooterCss() {
+        return null;
+    }
+
     protected String getAdditionalBoxCssClasses() {
         return null;
     }
@@ -374,14 +380,27 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         Fragment fragment = new Fragment(id, ID_HEADER_FRAGMENT, TileTablePanel.this);
         fragment.setOutputMarkupId(true);
 
+        WebMarkupContainer headerContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
+        headerContainer.add(AttributeModifier.append("class", getAdditionalHeaderContainerCssClasses()));
+
         Component header = createHeader(ID_PANEL_HEADER);
         header.add(AttributeAppender.append("class", getTilesHeaderCssClasses()));
-        fragment.add(header);
 
-        fragment.add(createTogglePanel(ID_VIEW_TOGGLE));
-        fragment.add(getHeaderFragmentVisibility());
+        headerContainer.add(header);
+        headerContainer.add(createTogglePanel(ID_VIEW_TOGGLE));
+        headerContainer.add(createToolbarButtons(ID_TOOLBAR_BUTTONS));
+        headerContainer.add(getHeaderFragmentVisibility());
+        fragment.add(headerContainer);
 
         return fragment;
+    }
+
+    protected Component createToolbarButtons(String id) {
+        return new WebMarkupContainer(id);
+    }
+
+    protected String getAdditionalHeaderContainerCssClasses() {
+        return null;
     }
 
     protected VisibleEnableBehaviour getHeaderFragmentVisibility() {

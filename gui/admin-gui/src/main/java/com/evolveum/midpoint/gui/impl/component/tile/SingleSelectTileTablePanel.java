@@ -160,6 +160,10 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
             protected Item customizeNewRowItem(Item<O> item, IModel<O> model) {
                 SingleSelectTileTablePanel.this.customizeNewRowItem(model.getObject());
 
+                if (!isClickableRow()) {
+                    return item;
+                }
+
                 item.add(AttributeModifier.append("class", () ->
                         model.getObject().isSelected() ? "cursor-pointer table-primary" : "cursor-pointer"));
                 item.add(new AjaxEventBehavior("click") {
@@ -174,6 +178,11 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
             @Override
             public String getAdditionalBoxCssClasses() {
                 return SingleSelectTileTablePanel.this.getAdditionalTableCssClasses();
+            }
+
+            @Override
+            protected String getAdditionalFooterCssClasses() {
+                return getAdditionalFooterCss();
             }
         };
         table.setShowAsCard(false);
@@ -197,5 +206,9 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
     @Override
     protected String getTilesContainerAdditionalClass() {
         return "card-footer";
+    }
+
+    protected boolean isClickableRow(){
+        return true;
     }
 }

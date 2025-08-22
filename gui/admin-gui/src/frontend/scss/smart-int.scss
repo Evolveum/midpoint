@@ -34,6 +34,13 @@
   color: var(--label-color);
 }
 
+.info-badge.success-light {
+  --label-color: #198754;
+  border-color: var(--label-color);
+  color: var(--label-color);
+  background-color: #D1E7DD;
+}
+
 .badge.badge-light-purple {
   --label-color: #f0e7fe;
   background-color: var(--label-color);
