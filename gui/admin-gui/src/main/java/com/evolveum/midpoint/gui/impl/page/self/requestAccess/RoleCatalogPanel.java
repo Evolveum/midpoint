@@ -843,14 +843,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         // reset search if type has changed
         if (currentType != newType) {
-            searchModel.detach();
+            searchModel.reset();
             return;
         }
 
         // we have to reset if we're switching from scoped to unscoped search (to show/hide scope)
         if ((currentRcq.getParent() != null && rcq.getParent() == null)
                 || (currentRcq.getParent() == null && rcq.getParent() != null)) {
-            searchModel.detach();
+            searchModel.reset();
             return;
         }
 
@@ -860,7 +860,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         if ((currentQuery != null && newQuery == null)
                 || (currentQuery == null && newQuery != null)) {
-            searchModel.detach();
+            searchModel.reset();
         }
     }
 
@@ -1373,10 +1373,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return new VisibleEnableBehaviour(() -> !getModelObject().getShoppingCartAssignments().isEmpty());
     }
 
-    private static abstract class SearchModel extends LoadableDetachableModel<Search> {
+    private static abstract class SearchModel extends LoadableModel<Search> {
 
         public SearchModel() {
-            super();
+            super(false);
         }
 
         public abstract void saveType();
