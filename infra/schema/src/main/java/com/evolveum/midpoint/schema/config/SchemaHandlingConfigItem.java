@@ -43,17 +43,25 @@ public class SchemaHandlingConfigItem
     }
 
     /** These are currently embedded in "association type" definitions. */
-    private List<AssociatedResourceObjectTypeDefinitionConfigItem> getAssociatedObjectTypes() {
+    private List<ResourceObjectTypeDefinitionConfigItem> getAssociatedObjectTypes() {
         return getAssociationTypes().stream()
                 .map(atDef -> atDef.getAssociationObject())
                 .filter(Objects::nonNull)
                 .toList();
     }
 
-    public List<AbstractResourceObjectTypeDefinitionConfigItem<?>> getAllObjectTypes() {
-        List<AbstractResourceObjectTypeDefinitionConfigItem<?>> all = new ArrayList<>();
+    private List<ComplexAttributeTypeDefinitionConfigItem> getComplexAttributeTypes() {
+        return children(
+                value().getComplexAttributeType(),
+                ComplexAttributeTypeDefinitionConfigItem.class,
+                SchemaHandlingType.F_COMPLEX_ATTRIBUTE_TYPE);
+    }
+
+    public List<ResourceDataTypeDefinitionConfigItem<?>> getAllObjectTypes() {
+        List<ResourceDataTypeDefinitionConfigItem<?>> all = new ArrayList<>();
         all.addAll(getObjectTypes());
         all.addAll(getAssociatedObjectTypes());
+        all.addAll(getComplexAttributeTypes());
         return all;
     }
 

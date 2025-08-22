@@ -1876,7 +1876,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="associationObject" type="tns:AssociatedResourceObjectTypeDefinitionType" minOccurs="0">
+            <xsd:element name="associationObject" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         If the association contains its own data (as a separate resource object), they can be defined
@@ -7640,10 +7640,18 @@
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
-            <xsd:element name="delineation" type="tns:ComplexAttributeTypeDelineationType">
+            <xsd:element name="delineation" type="tns:ResourceObjectTypeDelineationType">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focus" type="tns:ResourceObjectFocusSpecificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the focus objects that correspond to this resource object type.
+                        TODO change the type (ResourceObjectFocusSpecificationType) to something specific for complex attributes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -7658,33 +7666,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="complexAttributeTypeDefinition" type="tns:ComplexAttributeTypeDefinitionType"/>
-
-    <xsd:complexType name="ComplexAttributeTypeDelineationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Delineates the boundary of a complex attribute type (i.e. objects that belong to that type).
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.11</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object class (e.g., "ri:address") for this complex attribute type.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayHint>emphasized</a:displayHint>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <!-- later: filter, classificationCondition, classificationOrder, maybe owned attribute -->
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="complexAttributeTypeDelineation" type="tns:ComplexAttributeTypeDelineationType"/>
 
     <xsd:complexType name="ComplexAttributeSynchronizationExpressionEvaluatorType">
         <xsd:annotation>

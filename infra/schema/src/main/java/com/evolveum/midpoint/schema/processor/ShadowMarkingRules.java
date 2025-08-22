@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.schema.config.AbstractResourceObjectDefinitionConfigItem;
+import com.evolveum.midpoint.schema.config.ResourceObjectDefinitionConfigItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -57,7 +57,7 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
     }
 
     public static ShadowMarkingRules parse(
-            @NotNull AbstractResourceObjectDefinitionConfigItem<?> definitionCI,
+            @NotNull ResourceObjectDefinitionConfigItem<?> definitionCI,
             @NotNull AbstractResourceObjectDefinitionImpl definition) throws ConfigurationException {
 
         var markingRulesMap = new Parser(definitionCI, definition).parse();
@@ -180,13 +180,13 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
 
     private static class Parser {
 
-        @NotNull private final AbstractResourceObjectDefinitionConfigItem<?> definitionCI;
+        @NotNull private final ResourceObjectDefinitionConfigItem<?> definitionCI;
         @NotNull private final AbstractResourceObjectDefinitionImpl definition;
 
         @NotNull private final Map<String, MarkingRule> parsedRulesMap = new HashMap<>();
 
         Parser(
-                @NotNull AbstractResourceObjectDefinitionConfigItem<?> definitionCI,
+                @NotNull ResourceObjectDefinitionConfigItem<?> definitionCI,
                 @NotNull AbstractResourceObjectDefinitionImpl definition) {
             this.definitionCI = definitionCI;
             this.definition = definition;

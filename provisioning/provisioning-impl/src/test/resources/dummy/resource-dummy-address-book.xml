@@ -30,37 +30,23 @@
                 <objectClass>ri:person</objectClass>
             </delineation>
         </objectType>
-        <objectType> <!-- temporary hack -->
-            <kind>association</kind>
-            <intent>address</intent>
+        <complexAttributeType>
+            <name>ri:address</name>
             <delineation>
                 <objectClass>ri:address</objectClass>
             </delineation>
             <focus>
                 <type>PhysicalMailingAddressType</type>
             </focus>
-        </objectType>
-        <objectType> <!-- temporary hack -->
-            <kind>association</kind>
-            <intent>email</intent>
+        </complexAttributeType>
+        <complexAttributeType>
+            <name>ri:email</name>
             <delineation>
                 <objectClass>ri:email</objectClass>
             </delineation>
             <focus>
                 <type>EmailAddressType</type>
             </focus>
-        </objectType>
-        <complexAttributeType> <!-- definite solution -->
-            <name>ri:address</name>
-            <delineation>
-                <objectClass>ri:address</objectClass>
-            </delineation>
-        </complexAttributeType>
-        <complexAttributeType> <!-- definite solution -->
-            <name>ri:email</name>
-            <delineation>
-                <objectClass>ri:email</objectClass>
-            </delineation>
         </complexAttributeType>
     </schemaHandling>
 </resource>

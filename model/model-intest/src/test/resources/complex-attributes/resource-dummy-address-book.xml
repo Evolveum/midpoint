@@ -88,9 +88,8 @@
                 </reaction>
             </synchronization>
         </objectType>
-        <objectType> <!-- temporary hack -->
-            <kind>association</kind>
-            <intent>address</intent>
+        <complexAttributeType>
+            <name>ri:address</name>
             <delineation>
                 <objectClass>ri:address</objectClass>
             </delineation>
@@ -145,10 +144,9 @@
                     </target>
                 </inbound>
             </attribute>
-        </objectType>
-        <objectType> <!-- temporary hack -->
-            <kind>association</kind>
-            <intent>email</intent>
+        </complexAttributeType>
+        <complexAttributeType>
+            <name>email</name>
             <delineation>
                 <objectClass>ri:email</objectClass>
             </delineation>
@@ -179,6 +177,6 @@
                     </target>
                 </inbound>
             </attribute>
-        </objectType>
+        </complexAttributeType>
     </schemaHandling>
 </resource>
