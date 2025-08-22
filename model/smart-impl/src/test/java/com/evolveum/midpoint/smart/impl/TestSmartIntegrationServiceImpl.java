@@ -288,7 +288,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("lisa")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Lisa Simpson")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_987")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "ADM_987")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "lisa.eng@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
@@ -328,7 +328,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("quinn")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Quinn Fabray")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "int.753")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "INT.753")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "quinn.ro@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "intern")
@@ -986,7 +986,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         for (var attribute : statistics.getAttribute()) {
             if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
                 assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(6);
+                assertThat(attribute.getValuePatternCount().size()).isEqualTo(9);
                 for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
                     assertThat(patternCount.getValue()).isNotEmpty();
                     assertThat(patternCount.getType()).isNotNull();

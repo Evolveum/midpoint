@@ -363,17 +363,17 @@ public class StatisticsComputer {
             Map<ShadowValuePatternType, Map<String, Integer>> affixCounts
     ) {
         for (String affix : PREFIXES) {
-            if (value.startsWith(affix)) {
+            if (value.toLowerCase().startsWith(affix)) {
                 affixCounts
                         .computeIfAbsent(ShadowValuePatternType.PREFIX, k -> new HashMap<>())
-                        .merge(affix, 1, Integer::sum);
+                        .merge(value.substring(0, affix.length()), 1, Integer::sum);
             }
         }
         for (String affix : SUFFIXES) {
-            if (value.endsWith(affix)) {
+            if (value.toLowerCase().endsWith(affix)) {
                 affixCounts
                         .computeIfAbsent(ShadowValuePatternType.SUFFIX, k -> new HashMap<>())
-                        .merge(affix, 1, Integer::sum);
+                        .merge(value.substring(0, affix.length()), 1, Integer::sum);
             }
         }
     }
@@ -392,12 +392,12 @@ public class StatisticsComputer {
         }
         String firstToken = tokens[0];
         String lastToken = tokens[tokens.length - 1];
-        if (!firstToken.isEmpty() && !PREFIXES.contains(firstToken)) {
+        if (!firstToken.isEmpty() && !PREFIXES.contains(firstToken.toLowerCase())) {
             affixCounts
                     .computeIfAbsent(ShadowValuePatternType.FIRST_TOKEN, k -> new HashMap<>())
                     .merge(firstToken, 1, Integer::sum);
         }
-        if (!lastToken.isEmpty() && !SUFFIXES.contains(lastToken)) {
+        if (!lastToken.isEmpty() && !SUFFIXES.contains(lastToken.toLowerCase())) {
             affixCounts
                     .computeIfAbsent(ShadowValuePatternType.LAST_TOKEN, k -> new HashMap<>())
                     .merge(lastToken, 1, Integer::sum);
