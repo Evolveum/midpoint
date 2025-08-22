@@ -323,6 +323,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     protected boolean isRemoveButtonVisible() {
+        if(getSettings() != null && getSettings().isRemoveButtonVisible() != null){
+            return getSettings().isRemoveButtonVisible();
+        }
+
         boolean editability = true;
         if (getEditabilityHandler() != null) {
             editability = getEditabilityHandler().isEditable(getModelObject().getParent());
