@@ -10,6 +10,8 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
+
 import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;

@@ -5,10 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.activity.policy;
+package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedItemStatePolicyTrigger;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -22,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemStatePolicyConst
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 import jakarta.xml.bind.JAXBElement;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Component;
 
 @Component

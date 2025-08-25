@@ -5,8 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.activity.policy;
+package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRule;
+import com.evolveum.midpoint.repo.common.activity.policy.ThresholdValueType;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 

@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ExecutionTimeConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ItemStateConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.RestartActivityConstraintEvaluator;
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

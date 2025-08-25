@@ -5,11 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.activity.policy;
+package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.policy.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
