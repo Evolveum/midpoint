@@ -241,16 +241,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="valuePatternCount" type="tns:ShadowAttributeValueCountType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="valuePatternCount" type="tns:ShadowAttributeValuePatternCountType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Information about the number of occurrences of a particular value pattern in this attribute.
-                        An example:
-
-                        pattern = ".*admin.*", count = 200
-                        pattern = ".*test.*", count = 100
-                        pattern = "a-.*", count = 500
-                        pattern = "x-.*", count = 50
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -260,7 +254,7 @@
     <xsd:complexType name="ShadowAttributeValueCountType">
         <xsd:annotation>
             <xsd:documentation>
-                Number of occurrences of a particular value or value pattern.
+                Number of occurrences of a particular value.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
@@ -271,14 +265,131 @@
             <xsd:element name="value" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Value or value pattern.
+                        Specific value for which the occurrence count is being tracked.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="count" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Number of occurrences.
+                        The frequency of the associated 'value' within the relevant dataset or collection.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ShadowValuePatternType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the type of value pattern count.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="prefix">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - content starts with one of these values: "prod", "priv", "adm", "usr", "user", "ops", "svc", "int", "ext"
+                        - no delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PREFIX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="suffix">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - content ends with one of these values: "prod", "priv", "adm", "admin", "administrator", "usr", "user", "ops", "svc", "int", "ext"
+                        - no delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUFFIX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="firstToken">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - content is split into tokens on non-alphanumeric characters and the first token is counted
+                        - taken into account only if cardinality is lower than 0.05 * total number of samples
+                        - delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FIRST_TOKEN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="lastToken">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - content is split into tokens on non-alphanumeric characters and the last token is counted
+                        - taken into account only if cardinality is lower than 0.05 * total number of samples
+                        - delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LAST_TOKEN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="DNsuffix">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - custom LDAP's DN attribute handling - suffix starting from first 'ou' is counted as value pattern count
+                        - 'ou' delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DN_SUFFIX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ShadowAttributeValuePatternCountType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Number of occurrences of a particular value pattern.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specific value pattern for which the occurrence count is being tracked.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="tns:ShadowValuePatternType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently supported pattern types: 'prefix', 'suffix', 'firstToken', 'lastToken', 'DNsuffix'.
+                        1. 'prefix': content starts with one of these values: "prod", "priv", "adm", "usr", "user", "ops", "svc", "int", "ext"
+                            - no delimiter needed
+                        2. 'suffix': content ends with one of these values: "prod", "priv", "adm", "admin", "administrator", "usr", "user", "ops", "svc", "int", "ext"
+                            - no delimiter needed
+                        3. 'firstToken': content is split into tokens on non-alphanumeric characters and the first token is counted
+                            - taken into account only if cardinality is lower than 0.05 * total number of samples
+                            - delimiter needed
+                        4. 'lastToken': content is split into tokens on non-alphanumeric characters and the last token is counted
+                            - taken into account only if cardinality is lower than 0.05 * total number of samples
+                            - delimiter needed
+                        5. 'DNsuffix': custom LDAP's DN attribute handling - suffix starting from first 'ou' is counted as value pattern count
+                            - 'ou' delimiter needed
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The frequency of the associated 'value' within the relevant dataset or collection.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -722,6 +833,20 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Suggested intent. May be arbitrary non-blank string.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable name for the object. Intended for display in user interfaces.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable description providing additional details about the element.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
