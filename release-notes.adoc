@@ -37,6 +37,8 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9.4
 
+* Upgraded Spring Boot to version 3.5.5.
+
 == Changes with Respect To Version 4.9.3
 
 * bug:MID-10739[] Use SecureRandom instead of Random.

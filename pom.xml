@@ -101,7 +101,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.3</version>
+        <version>3.5.5</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
         -->
