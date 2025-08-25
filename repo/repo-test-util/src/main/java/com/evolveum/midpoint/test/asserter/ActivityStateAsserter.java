@@ -49,6 +49,10 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public ActivityStateAsserter<RA> assertRestarting() {
+        return assertRestarting(true);
+    }
+
     public ActivityStateAsserter<RA> assertExecutionAttempts(Integer expected) {
         assertThat(activityState.getExecutionAttempt())
                 .as("execution attempts")

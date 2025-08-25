@@ -3846,6 +3846,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="skipped">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity was skipped before completion.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIPPED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="complete">
                 <xsd:annotation>
                     <xsd:documentation>

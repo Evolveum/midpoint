@@ -227,6 +227,12 @@ public abstract class AbstractActivityRun<
         }
 
         try {
+            // todo this should increment only when it's not from:
+            //  waiting -> running
+            //  suspended -> running (in case activity just continues, resumed)
+            //  e.g. only from:
+            //      closed -> running (restart)
+            //      suspended -> running (in case it's starting from beginning)
             activityState.incrementExecutionAttempt(result);
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
             throw new ActivityRunException("Couldn't increment execution attempt", FATAL_ERROR, PERMANENT_ERROR, e);
@@ -342,13 +348,10 @@ public abstract class AbstractActivityRun<
 
             boolean restartCounters = action != null && BooleanUtils.isTrue(action.isRestartCounters());
 
-            // Marking activity as restarting and not clearing state right away because of two reasons:
-            // 1. We want to keep the state until the next run, so it can be used for user to see or debugging
-            // 2. Other threads, workers may flush the state later on during shutdown of the task (activity)
             try {
                 activityState.markActivityRestarting(restartCounters, result);
             } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-                throw new ActivityRunException("Couldn't mark activity as restarting", FATAL_ERROR, PERMANENT_ERROR, e);
+                throw new ActivityRunException("Couldn't cleanup activity state before restart", FATAL_ERROR, PERMANENT_ERROR, e);
             }
         }
 

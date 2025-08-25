@@ -14,6 +14,7 @@ import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -50,8 +51,34 @@ public class ActivityPolicyRulesProcessor {
     }
 
     public void collectRules() {
-        String identifier = activityRun.getActivity().getIdentifier();
-        ActivityPath activityPath = activityRun.getActivityPath();
+        List<EvaluatedActivityPolicyRule> rules = collectRulesFromActivity(activityRun.getActivity());
+
+        ActivityPolicyRulesContext ctx = getPolicyRulesContext();
+        ctx.clearPolicyRules();
+        ctx.addPolicyRules(rules);
+
+        LOGGER.trace("Found {} activity policy rules for activity hierarchy {} ({})",
+                rules.size(), activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
+    }
+
+    /**
+     * Collects all policy rules from the given activity and its parent activities recursively.
+     *
+     * Rules from parent activities are included because otherwise they would only be validated
+     * in-between child activities, which might be too infrequent (e.g., for execution time policies).
+     * By collecting rules from the entire activity hierarchy, we ensure that parent rules are
+     * enforced as often as necessary.
+     *
+     * @param activity The activity from which to start collecting policy rules.
+     * @return List of evaluated activity policy rules, ordered by their defined order.
+     */
+    private List<EvaluatedActivityPolicyRule> collectRulesFromActivity(Activity<?, ?> activity) {
+        if (activity == null) {
+            return List.of();
+        }
+
+        String identifier = activity.getIdentifier();
+        ActivityPath activityPath = activity.getPath();
 
         LOGGER.trace("Collecting activity policy rules for activity {} ({})", identifier, activityPath);
 
@@ -64,13 +91,13 @@ public class ActivityPolicyRulesProcessor {
                         Comparator.comparing(
                                 EvaluatedActivityPolicyRule::getOrder,
                                 Comparator.nullsLast(Comparator.naturalOrder())))
-                .toList();
-
-        ActivityPolicyRulesContext ctx = getPolicyRulesContext();
-        ctx.clearPolicyRules();
-        ctx.addPolicyRules(rules);
+                .collect(Collectors.toList());
 
         LOGGER.trace("Found {} activity policy rules for activity {} ({})", rules.size(), identifier, activityPath);
+
+        rules.addAll(collectRulesFromActivity(activity.getParent()));
+
+        return rules;
     }
 
     public void evaluateAndEnforceRules(ItemProcessingResult processingResult, @NotNull OperationResult result)

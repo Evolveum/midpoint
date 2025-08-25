@@ -117,12 +117,6 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         }
         try {
             stateItemPath = findOrCreateActivityState(result);
-
-            if (isRestarting()) {
-                clearBeforeRestart(result);
-                getTask().refresh(result);
-            }
-
             updatePersistenceType(result);
             if (activityRun.shouldCreateWorkStateOnInitialization()) {
                 createWorkStateIfNeeded(result);

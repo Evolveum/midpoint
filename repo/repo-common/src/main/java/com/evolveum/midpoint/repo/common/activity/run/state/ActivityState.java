@@ -558,22 +558,36 @@ public abstract class ActivityState implements DebugDumpable {
                 .execute(result);
     }
 
+    // todo how to pass counter restarts?
     public void markActivityRestarting(boolean restartCounters, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        String taskOid = getTask().getOid();
-
-        LOGGER.debug("Marking activity {}, state path '{}' as restarting (restartCounters={})", taskOid, stateItemPath, restartCounters);
-
         ItemPath restartingPath = stateItemPath.append(ActivityStateType.F_RESTARTING);
 
-        ActivityRestartingStateType restartingState = new ActivityRestartingStateType();
-        restartingState.setRestartCounters(restartCounters ? true : null);
+        beans.plainRepositoryService.modifyObjectDynamically(
+                TaskType.class, getTask().getOid(), null,
+                task -> PrismContext.get().deltaFor(TaskType.class)
+                        .item(restartingPath)
+                        .replace(true)
+                        .asItemDeltas(), null, result);
+    }
+
+    public void clearStateBeforeRestart(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+        // todo fix use of restartCounters flag...
+        ItemPath counterGroupItemPath = stateItemPath.append(
+                ActivityStateType.F_COUNTERS, ExecutionSupport.CountersGroup.ACTIVITY_POLICY_RULES.getItemName());
+
+        ItemPath statisticsItemPath = stateItemPath.append(ActivityStateType.F_STATISTICS);
 
         beans.plainRepositoryService.modifyObjectDynamically(
-                TaskType.class, taskOid, null,
+                TaskType.class, getTask().getOid(), null,
                 task -> PrismContext.get().deltaFor(TaskType.class)
-                        .item(restartingPath).replace(restartingState)
+                        .item(counterGroupItemPath)
+                        .replace()
+                        .item(statisticsItemPath)
+                        .replace()
                         .asItemDeltas(), null, result);
     }
 

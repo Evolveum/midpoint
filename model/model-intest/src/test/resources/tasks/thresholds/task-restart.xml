@@ -34,7 +34,6 @@
                     <action>
                         <restartActivity>
                             <delay>1000</delay>
-                            <restartCounters>true</restartCounters>
                         </restartActivity>
                     </action>
                 </policyReaction>

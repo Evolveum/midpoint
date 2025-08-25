@@ -13,19 +13,20 @@
     <activity>
         <work>
             <noOp>
-                <steps>23</steps>
-                <delay>1000</delay>
+                <steps>10</steps>
+                <delay>300</delay>
             </noOp>
         </work>
         <policies>
             <policy>
-                <name>Max. 6s execution</name>
+                <name>Max. 2s execution</name>
                 <policyConstraints>
                     <executionTime>
-                        <exceeds>PT6S</exceeds>
+                        <exceeds>PT2S</exceeds>
                     </executionTime>
                 </policyConstraints>
                 <policyReaction>
+                    <name>suspend with notification</name>
                     <action>
                         <notification/>
                         <suspendTask/>

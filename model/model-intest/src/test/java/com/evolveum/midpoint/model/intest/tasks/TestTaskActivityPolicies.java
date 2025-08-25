@@ -148,7 +148,6 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
 
         TaskAsserter<Void> asserter = assertTask(task, "after resume");
 
-
         // todo what to do with such task - run time recorded in the task is more than 2s,
         //  so after resume it will hit policy threshold right away
         // @formatter:off
