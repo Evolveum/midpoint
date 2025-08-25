@@ -205,6 +205,9 @@ See bug:MID-10781[].
 * Fixed inconsistent type of input variable after passing ObjectTemplate validation. See bug:MID-10773[].
 * Fixed the possibility to modify the filter in the marking rule. See bug:MID-10405[].
 * Fixed the title for the edit button on the reference autocomplete panel. See bug:MID-10807[].
+* Fixed filter configuration panel on the Object collection details page.
+The behavior of the filter configuration panel was changed to switch automatically to midPoint query (from xml query if was defined before) after filter configuration popup was used and configuration changes were confirmed there.
+See bug:MID-10800[].
 
 === Releases Of Other Components
 

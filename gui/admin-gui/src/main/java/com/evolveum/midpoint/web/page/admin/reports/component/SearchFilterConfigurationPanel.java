@@ -186,7 +186,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
     }
 
     protected boolean addEmptyBlumBehaviourToTextField() {
-        return true;
+        return false;
     }
 
     protected SearchFilterTypeForQueryModel createQueryModel(IModel<SearchFilterType> model, LoadableModel<Class<O>> filterTypeModel, boolean useParsing) {

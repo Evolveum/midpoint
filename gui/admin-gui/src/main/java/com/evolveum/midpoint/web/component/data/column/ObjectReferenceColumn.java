@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.component.data.column;
 
 
@@ -43,10 +49,19 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
                 protected Collection<SelectorOptions<GetOperationOptions>> getOptions() {
                     return ObjectReferenceColumn.this.getOptions(ref);
                 }
+
+                @Override
+                protected boolean useNameAsLabel() {
+                    return ObjectReferenceColumn.this.useNameAsLabel();
+                }
             });
         }
         item.add(view);
 
+    }
+
+    protected boolean useNameAsLabel() {
+        return false;
     }
 
     protected Collection<SelectorOptions<GetOperationOptions>> getOptions(ObjectReferenceType ref) {

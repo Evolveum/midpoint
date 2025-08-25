@@ -18,6 +18,8 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
+import com.evolveum.midpoint.web.session.PageStorage;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +38,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
@@ -414,11 +417,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
 
             @Override
-            public void reset() {
+            public void detach() {
                 Search search = getObject();
                 searchMode = search.getSearchMode();
 
-                super.reset();
+                super.detach();
             }
 
             @Override
@@ -500,6 +503,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         return new ContainerableListPanel(idTable, RoleType.class) {
 
                             @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected Search loadSearch(PageStorage storage) {
+                                return searchModel.getObject();
+                            }
 
                             @Override
                             protected IColumn<SelectableBean<ObjectType>, String> createNameColumn(IModel displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
