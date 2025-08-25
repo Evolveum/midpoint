@@ -31,6 +31,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 == Changes with Respect To Version 4.8.9
 
 * Fixed filter configuration panel on the Object collection details page in case of incorrectly defined filter. See bug:MID-10800[].
+* Upgraded Spring Boot to version 3.5.5.
 
 == Changes with Respect To Version 4.8.8
 
