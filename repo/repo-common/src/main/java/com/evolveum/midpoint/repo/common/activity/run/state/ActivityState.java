@@ -91,6 +91,10 @@ public abstract class ActivityState implements DebugDumpable {
         return getRealizationState() == ActivityRealizationStateType.COMPLETE;
     }
 
+    public boolean isSkipped() {
+        return getRealizationState() == ActivityRealizationStateType.SKIPPED;
+    }
+
     public XMLGregorianCalendar getRealizationStartTimestamp() {
         return getTask().getPropertyRealValue(
                 stateItemPath.append(ActivityStateType.F_REALIZATION_START_TIMESTAMP),
@@ -558,17 +562,19 @@ public abstract class ActivityState implements DebugDumpable {
                 .execute(result);
     }
 
-    // todo how to pass counter restarts?
     public void markActivityRestarting(boolean restartCounters, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         ItemPath restartingPath = stateItemPath.append(ActivityStateType.F_RESTARTING);
 
+        ActivityRestartingStateType restartingState = new ActivityRestartingStateType();
+        restartingState.setRestartCounters(restartCounters);
+
         beans.plainRepositoryService.modifyObjectDynamically(
                 TaskType.class, getTask().getOid(), null,
                 task -> PrismContext.get().deltaFor(TaskType.class)
                         .item(restartingPath)
-                        .replace(true)
+                        .replace(restartingState)
                         .asItemDeltas(), null, result);
     }
 
@@ -647,11 +653,10 @@ public abstract class ActivityState implements DebugDumpable {
     public void incrementExecutionAttempt(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         beans.plainRepositoryService.modifyObjectDynamically(
-                TaskType.class, getTask().getOid(), null, this::prepareModifications, null, result);
-        // todo implement increment execution attempt + store previous execution in activity execution (also tree?)
+                TaskType.class, getTask().getOid(), null, this::incrementExecutionAttemptModification, null, result);
     }
 
-    private @NotNull Collection<? extends ItemDelta<?, ?>> prepareModifications(TaskType task) throws SchemaException {
+    private @NotNull Collection<? extends ItemDelta<?, ?>> incrementExecutionAttemptModification(TaskType task) throws SchemaException {
         Integer executionAttempt = task.asPrismObject().getPropertyRealValue(
                 stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT), Integer.class);
         if (executionAttempt == null) {
