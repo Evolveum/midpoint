@@ -37,6 +37,8 @@ public interface NativeShadowAttributeDefinition extends
 
     QName getReferencedObjectClassName();
 
+    boolean isComplexAttribute();
+
     NativeShadowAttributeDefinition clone();
 
     NativeShadowAttributeDefinition cloneWithNewCardinality(int newMinOccurs, int maxOccurs);

@@ -239,13 +239,16 @@ class ConnIdSchemaParser {
                         PrettyPrinter.prettyPrintLazily(xsdItemName),
                         PrettyPrinter.prettyPrintLazily(xsdTypeName));
             } else {
+                LOGGER.trace("  {} attribute conversion: ConnId: {} ({}) -> XSD: {}",
+                        connIdAttrInfo.isEmbedded() ? "complex" : "reference",
+                        connIdAttrName, connIdAttrInfo.getSubtype(),
+                        PrettyPrinter.prettyPrintLazily(xsdItemName));
                 mpItemDef.setReferencedObjectClassName(
                         ConnIdNameMapper.connIdObjectClassNameToUcf(connIdAttrInfo.getReferencedObjectClassName(), legacySchema));
                 // Currently we require the role in reference; later, we may try to derive it (or let provide it by engineer).
                 mpItemDef.setReferenceParticipantRole(
                         determineParticipantRole(connIdAttrInfo));
-                LOGGER.trace("  reference attribute conversion: ConnId: {} ({}) -> XSD: {}",
-                        connIdAttrName, connIdAttrInfo.getSubtype(), PrettyPrinter.prettyPrintLazily(xsdItemName));
+                mpItemDef.setComplexAttribute(connIdAttrInfo.isEmbedded());
             }
 
             if (Uid.NAME.equals(connIdAttrName)) {

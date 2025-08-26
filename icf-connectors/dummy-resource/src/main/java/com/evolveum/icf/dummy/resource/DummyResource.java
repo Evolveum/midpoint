@@ -914,11 +914,14 @@ public class DummyResource implements DebugDumpable {
 
         allObjects.remove(id);
 
+        boolean isEmbedded = store.getObjectClass().isEmbeddedObject();
+        boolean nameLegallyNull = isEmbedded && object.getName() == null;
+
         String mapKey;
-        if (enforceUniqueName) {
-            mapKey = normalName;
-        } else {
+        if (!enforceUniqueName || nameLegallyNull) {
             mapKey = id;
+        } else {
+            mapKey = normalName;
         }
 
         if (store.containsObject(mapKey)) {

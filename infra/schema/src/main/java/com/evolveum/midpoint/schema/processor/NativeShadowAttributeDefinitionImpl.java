@@ -448,6 +448,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
                 ResourceDefinitionFeatures.ForItem.DF_RETURNED_BY_DEFAULT,
                 ResourceDefinitionFeatures.ForItem.DF_ROLE_IN_REFERENCE,
                 ResourceDefinitionFeatures.ForItem.DF_REFERENCED_OBJECT_CLASS_NAME,
+                ResourceDefinitionFeatures.ForItem.DF_COMPLEX_ATTRIBUTE,
                 ResourceDefinitionFeatures.ForItem.DF_DESCRIPTION_NAME);
     }
 
@@ -523,6 +524,9 @@ public class NativeShadowAttributeDefinitionImpl<T>
         }
         if (isReference()) {
             sb.append(", r=").append(referenceParticipantRole);
+        }
+        if (complexAttribute) {
+            sb.append(", complex-attribute");
         }
         return sb.toString();
     }

@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import java.io.File;
 
 import com.evolveum.midpoint.prism.ValueSelector;
+import com.evolveum.midpoint.test.DummyAddressBookScenario.Address;
+import com.evolveum.midpoint.test.DummyAddressBookScenario.Email;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -95,29 +97,29 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
         // The IDs here (1, 2) are a temporary hack. Later, we'll use ConnId EmbeddedObject instances to represent
         // the data, so ConnId Name+UID will no longer be required.
 
-        DummyObject johnPersonalAddress = addressBookScenario.address.add("1")
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.TYPE.local(), TYPE_PERSONAL)
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.PRIMARY.local(), false)
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.STREET.local(), "123 Main St")
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.CITY.local(), "Spring")
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.ZIP.local(), "12345")
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.COUNTRY.local(), "USA");
-        DummyObject johnWorkAddress = addressBookScenario.address.add("2")
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.TYPE.local(), TYPE_WORK)
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.PRIMARY.local(), true)
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.STREET.local(), "456 Elm St")
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.CITY.local(), "Springfield")
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.ZIP.local(), "67890")
-                .addAttributeValue(DummyAddressBookScenario.Address.AttributeNames.COUNTRY.local(), "USA");
+        DummyObject johnPersonalAddress = addressBookScenario.address.addUnnamed()
+                .addAttributeValue(Address.AttributeNames.TYPE.local(), TYPE_PERSONAL)
+                .addAttributeValue(Address.AttributeNames.PRIMARY.local(), false)
+                .addAttributeValue(Address.AttributeNames.STREET.local(), "123 Main St")
+                .addAttributeValue(Address.AttributeNames.CITY.local(), "Spring")
+                .addAttributeValue(Address.AttributeNames.ZIP.local(), "12345")
+                .addAttributeValue(Address.AttributeNames.COUNTRY.local(), "USA");
+        DummyObject johnWorkAddress = addressBookScenario.address.addUnnamed()
+                .addAttributeValue(Address.AttributeNames.TYPE.local(), TYPE_WORK)
+                .addAttributeValue(Address.AttributeNames.PRIMARY.local(), true)
+                .addAttributeValue(Address.AttributeNames.STREET.local(), "456 Elm St")
+                .addAttributeValue(Address.AttributeNames.CITY.local(), "Springfield")
+                .addAttributeValue(Address.AttributeNames.ZIP.local(), "67890")
+                .addAttributeValue(Address.AttributeNames.COUNTRY.local(), "USA");
 
-        DummyObject johnPersonalEmail = addressBookScenario.email.add("1")
-                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.TYPE.local(), TYPE_PERSONAL)
-                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.PRIMARY.local(), false)
-                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.VALUE.local(), "john@doe.org");
-        DummyObject johnWorkEmail = addressBookScenario.email.add("2")
-                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.TYPE.local(), TYPE_WORK)
-                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.PRIMARY.local(), true)
-                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.VALUE.local(), "john@evolveum.com");
+        DummyObject johnPersonalEmail = addressBookScenario.email.addUnnamed()
+                .addAttributeValue(Email.AttributeNames.TYPE.local(), TYPE_PERSONAL)
+                .addAttributeValue(Email.AttributeNames.PRIMARY.local(), false)
+                .addAttributeValue(Email.AttributeNames.VALUE.local(), "john@doe.org");
+        DummyObject johnWorkEmail = addressBookScenario.email.addUnnamed()
+                .addAttributeValue(Email.AttributeNames.TYPE.local(), TYPE_WORK)
+                .addAttributeValue(Email.AttributeNames.PRIMARY.local(), true)
+                .addAttributeValue(Email.AttributeNames.VALUE.local(), "john@evolveum.com");
 
         addressBookScenario.personAddress.add(john, johnPersonalAddress);
         addressBookScenario.personAddress.add(john, johnWorkAddress);
@@ -159,13 +161,13 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
                 .attributes()
                 .referenceAttribute(Person.LinkNames.ADDRESS.q())
                 .assertSize(2)
-                .forPrimaryIdentifierValue("1")
+                .forAttributeValue(Address.AttributeNames.TYPE.q(), TYPE_PERSONAL)
                 .shadow()
-                .assertObjectClass(DummyAddressBookScenario.Address.OBJECT_CLASS_NAME.xsd())
+                .assertObjectClass(Address.OBJECT_CLASS_NAME.xsd())
                 .attributes()
-                .simpleAttribute(DummyAddressBookScenario.Address.AttributeNames.TYPE.q()).singleValue().assertValue(TYPE_PERSONAL).end().end()
-                .simpleAttribute(DummyAddressBookScenario.Address.AttributeNames.PRIMARY.q()).singleValue().assertValue(false).end().end()
-                .simpleAttribute(DummyAddressBookScenario.Address.AttributeNames.STREET.q()).singleValue().assertValue("123 Main St").end().end();
+                .simpleAttribute(Address.AttributeNames.TYPE.q()).singleValue().assertValue(TYPE_PERSONAL).end().end()
+                .simpleAttribute(Address.AttributeNames.PRIMARY.q()).singleValue().assertValue(false).end().end()
+                .simpleAttribute(Address.AttributeNames.STREET.q()).singleValue().assertValue("123 Main St").end().end();
 
         var shadowReadAgain = provisioningService.getObject(
                 ShadowType.class, shadows.get(0).getOid(), readOnly(), task, result);
@@ -219,20 +221,26 @@ public class TestComplexAttributes extends AbstractEmptyModelIntegrationTest {
         when("john is changed on the resource");
 
         var john = addressBookScenario.person.getByNameRequired(PERSON_JOHN_NAME);
+        var johnEmails = john.getLinkedObjects(Person.LinkNames.EMAIL.local());
+        var personalEmail = johnEmails.stream()
+                .filter(e -> TYPE_PERSONAL.equals(e.getAttributeValue(Email.AttributeNames.TYPE.local())))
+                .findFirst().orElseThrow(() -> new AssertionError("No personal email for " + PERSON_JOHN_NAME));
+        var workEmail = johnEmails.stream()
+                .filter(e -> TYPE_WORK.equals(e.getAttributeValue(Email.AttributeNames.TYPE.local())))
+                .findFirst().orElseThrow(() -> new AssertionError("No work email for " + PERSON_JOHN_NAME));
 
         // one email is added
-        DummyObject johnNewWorkEmail = addressBookScenario.email.add("3")
-                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.TYPE.local(), TYPE_PERSONAL)
-                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.PRIMARY.local(), true)
-                .addAttributeValue(DummyAddressBookScenario.Email.AttributeNames.VALUE.local(), "john-new@doe.com");
+        DummyObject johnNewWorkEmail = addressBookScenario.email.addUnnamed()
+                .addAttributeValue(Email.AttributeNames.TYPE.local(), TYPE_PERSONAL)
+                .addAttributeValue(Email.AttributeNames.PRIMARY.local(), true)
+                .addAttributeValue(Email.AttributeNames.VALUE.local(), "john-new@doe.com");
         addressBookScenario.personEmail.add(john, johnNewWorkEmail);
 
         // one is changed
-        var dummyWorkEmail = addressBookScenario.email.getByNameRequired("2");
-        dummyWorkEmail.replaceAttributeValues(DummyAddressBookScenario.Email.AttributeNames.PRIMARY.local(), false);
+        workEmail.replaceAttributeValues(Email.AttributeNames.PRIMARY.local(), false);
 
         // one is deleted
-        addressBookScenario.email.deleteByName("1");
+        addressBookScenario.email.deleteById(personalEmail.getId());
 
         when("john is re-imported");
         importAccountsRequest()

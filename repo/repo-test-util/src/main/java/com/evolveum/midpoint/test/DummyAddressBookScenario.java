@@ -152,7 +152,7 @@ public class DummyAddressBookScenario extends AbstractDummyScenario {
                                     .withMaxOccurs(-1)
                                     .withReturnedByDefault(true)
                                     .withExpandedByDefault(true)
-                                    .withUsingEmbeddedObjects(false) // TEMPORARY
+                                    .withUsingEmbeddedObjects(true)
                                     .build())
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(Address.OBJECT_CLASS_NAME.local())
@@ -182,7 +182,7 @@ public class DummyAddressBookScenario extends AbstractDummyScenario {
                                     .withMaxOccurs(-1)
                                     .withReturnedByDefault(true)
                                     .withExpandedByDefault(true)
-                                    .withUsingEmbeddedObjects(false) // TEMPORARY
+                                    .withUsingEmbeddedObjects(true)
                                     .build())
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(Email.OBJECT_CLASS_NAME.local())

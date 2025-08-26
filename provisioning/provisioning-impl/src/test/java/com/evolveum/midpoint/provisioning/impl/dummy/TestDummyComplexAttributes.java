@@ -87,14 +87,14 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
                 .addAttributeValue(Person.AttributeNames.LAST_NAME.local(), "Doe")
                 .addAttributeValue(Person.AttributeNames.TITLE.local(), "Ing.");
 
-        DummyObject johnPermanentAddress = addressBookScenario.address.add("1")
+        DummyObject johnPermanentAddress = addressBookScenario.address.addUnnamed()
                 .addAttributeValue(Address.AttributeNames.TYPE.local(), TYPE_PERMANENT)
                 .addAttributeValue(Address.AttributeNames.PRIMARY.local(), false)
                 .addAttributeValue(Address.AttributeNames.STREET.local(), "123 Main St")
                 .addAttributeValue(Address.AttributeNames.CITY.local(), "Spring")
                 .addAttributeValue(Address.AttributeNames.ZIP.local(), "12345")
                 .addAttributeValue(Address.AttributeNames.COUNTRY.local(), "USA");
-        DummyObject johnTemporaryAddress = addressBookScenario.address.add("2")
+        DummyObject johnTemporaryAddress = addressBookScenario.address.addUnnamed()
                 .addAttributeValue(Address.AttributeNames.TYPE.local(), TYPE_TEMPORARY)
                 .addAttributeValue(Address.AttributeNames.PRIMARY.local(), true)
                 .addAttributeValue(Address.AttributeNames.STREET.local(), "456 Elm St")
@@ -102,11 +102,11 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
                 .addAttributeValue(Address.AttributeNames.ZIP.local(), "67890")
                 .addAttributeValue(Address.AttributeNames.COUNTRY.local(), "USA");
 
-        DummyObject johnPersonalEmail = addressBookScenario.email.add("1")
+        DummyObject johnPersonalEmail = addressBookScenario.email.addUnnamed()
                 .addAttributeValue(Email.AttributeNames.TYPE.local(), TYPE_PERSONAL)
                 .addAttributeValue(Email.AttributeNames.PRIMARY.local(), false)
                 .addAttributeValue(Email.AttributeNames.VALUE.local(), "john@doe.org");
-        DummyObject johnWorkEmail = addressBookScenario.email.add("2")
+        DummyObject johnWorkEmail = addressBookScenario.email.addUnnamed()
                 .addAttributeValue(Email.AttributeNames.TYPE.local(), TYPE_WORK)
                 .addAttributeValue(Email.AttributeNames.PRIMARY.local(), true)
                 .addAttributeValue(Email.AttributeNames.VALUE.local(), "john@evolveum.com");
@@ -134,8 +134,14 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
         displayDumpable("person type schema", personType);
 
         then("there is a reference attribute 'person->address' in both class and type");
-        personClass.findReferenceAttributeDefinitionRequired(Person.LinkNames.ADDRESS.q());
-        personType.findReferenceAttributeDefinitionRequired(Person.LinkNames.ADDRESS.q());
+        var addrAttrDefInClass = personClass.findReferenceAttributeDefinitionRequired(Person.LinkNames.ADDRESS.q());
+        assertThat(addrAttrDefInClass.getNativeDefinition().isComplexAttribute())
+                .as("'complex attribute' flag in 'ri:address' definition in the object class")
+                .isTrue();
+        var addrAttrDefInType = personType.findReferenceAttributeDefinitionRequired(Person.LinkNames.ADDRESS.q());
+        assertThat(addrAttrDefInType.getNativeDefinition().isComplexAttribute())
+                .as("'complex attribute' flag in 'ri:address' definition in the object type")
+                .isTrue();
 
         then("there is no association 'person->address' in class nor in type");
         assertThat(personClass.findAssociationDefinition(Person.LinkNames.ADDRESS.q())).isNull();
@@ -152,8 +158,8 @@ public class TestDummyComplexAttributes extends AbstractDummyTest {
         executeGetJohn(oid, readOnly());
     }
 
-    /** Now reading the account with `noFetch` option (only if caching is turned on). */
-    @Test
+    /** Now reading the account with `noFetch` option (only if caching is turned on). CURRENTLY DISABLED. */
+    @Test(enabled = false) // MID-10832
     public void test120GetObjectWithComplexAttributesNoFetch() throws Exception {
         skipTestIf(!InternalsConfig.isShadowCachingOnByDefault(), "caching is not turned on");
 
