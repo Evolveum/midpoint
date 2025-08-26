@@ -234,7 +234,7 @@ public abstract class AbstractActivityRun<
             // todo consider whether we want to increment the counter also when
             //  resuming suspended activity that has to start from the beginning
             try {
-                activityState.incrementExecutionAttempt(result);
+                activityState.initializeAfterRestart(result);
             } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
                 throw new ActivityRunException("Couldn't increment execution attempt", FATAL_ERROR, PERMANENT_ERROR, e);
             }

@@ -578,57 +578,12 @@ public abstract class ActivityState implements DebugDumpable {
                         .asItemDeltas(), null, result);
     }
 
-    public void clearStateBeforeRestart(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-
-        // todo fix use of restartCounters flag...
-        ItemPath counterGroupItemPath = stateItemPath.append(
-                ActivityStateType.F_COUNTERS, ExecutionSupport.CountersGroup.ACTIVITY_POLICY_RULES.getItemName());
-
-        ItemPath statisticsItemPath = stateItemPath.append(ActivityStateType.F_STATISTICS);
-
-        beans.plainRepositoryService.modifyObjectDynamically(
-                TaskType.class, getTask().getOid(), null,
-                task -> PrismContext.get().deltaFor(TaskType.class)
-                        .item(counterGroupItemPath)
-                        .replace()
-                        .item(statisticsItemPath)
-                        .replace()
-                        .asItemDeltas(), null, result);
-    }
-
     public boolean isRestarting() {
         return getRestartingState() != null;
     }
 
     private ActivityRestartingStateType getRestartingState() {
         return getTask().getContainerRealValue(stateItemPath.append(ActivityStateType.F_RESTARTING), ActivityRestartingStateType.class);
-    }
-
-    public void clearBeforeRestart(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-
-        beans.plainRepositoryService.modifyObjectDynamically(
-                TaskType.class, getTask().getOid(), null,
-                task -> {
-                    List<ItemDelta<?, ?>> deltas = PrismContext.get().deltaFor(TaskType.class)
-                            .item(stateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
-                            .item(stateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
-                            .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
-                            .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
-                            .item(stateItemPath.append(ActivityStateType.F_RESTARTING)).replace()
-                            .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
-                            .asItemDeltas();
-
-                    ActivityRestartingStateType state = getRestartingState();
-                    if (BooleanUtils.isTrue(state.isRestartCounters())) {
-                        deltas.add(PrismContext.get().deltaFor(TaskType.class)
-                                .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
-                                .asItemDelta());
-                    }
-
-                    return deltas;
-                }, null, result);
     }
     //endregion
 
@@ -650,13 +605,32 @@ public abstract class ActivityState implements DebugDumpable {
 
     // todo make it cleaner, move to custom operation class together with preparation/store
     //  of new execution attempt (history) for state+overview/tree
-    public void incrementExecutionAttempt(@NotNull OperationResult result)
+    public void initializeAfterRestart(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         beans.plainRepositoryService.modifyObjectDynamically(
-                TaskType.class, getTask().getOid(), null, this::incrementExecutionAttemptModification, null, result);
+                TaskType.class, getTask().getOid(), null, this::initializeAfterRestart, null, result);
     }
 
-    private @NotNull Collection<? extends ItemDelta<?, ?>> incrementExecutionAttemptModification(TaskType task) throws SchemaException {
+    private @NotNull Collection<? extends ItemDelta<?, ?>> initializeAfterRestart(TaskType task) throws SchemaException {
+        ActivityRestartingStateType state = getRestartingState();
+
+        List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+
+        deltas.addAll(PrismContext.get().deltaFor(TaskType.class)
+                .item(stateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
+                .item(stateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
+                .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
+                .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
+                .item(stateItemPath.append(ActivityStateType.F_RESTARTING)).replace()
+                .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
+                .asItemDeltas());
+
+        if (BooleanUtils.isTrue(state.isRestartCounters())) {
+            deltas.add(PrismContext.get().deltaFor(TaskType.class)
+                    .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
+                    .asItemDelta());
+        }
+
         Integer executionAttempt = task.asPrismObject().getPropertyRealValue(
                 stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT), Integer.class);
         if (executionAttempt == null) {
@@ -664,8 +638,10 @@ public abstract class ActivityState implements DebugDumpable {
         }
         executionAttempt++;
 
-        return PrismContext.get().deltaFor(TaskType.class)
+        deltas.add(PrismContext.get().deltaFor(TaskType.class)
                 .item(stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT)).replace(executionAttempt)
-                .asItemDeltas();
+                .asItemDelta());
+
+        return deltas;
     }
 }

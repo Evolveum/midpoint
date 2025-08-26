@@ -35,6 +35,13 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         this.activityState = information;
     }
 
+    public ActivityStateAsserter<RA> assertNotRestarting() {
+        assertThat(activityState.getRestarting())
+                .withFailMessage("restarting state present even if not expected")
+                .isNull();
+        return this;
+    }
+
     public ActivityStateAsserter<RA> assertRestarting(boolean restartCounters) {
         ActivityRestartingStateType restarting = activityState.getRestarting();
 
