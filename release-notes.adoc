@@ -57,6 +57,10 @@ Also, increased the size of the http request header size to cope with big header
 *Important*: be aware of overriding total request size (e.g. header size or multipart parts) in your environment in case of using custom settings (e.g. in custom application.yml or through JVM arguments).
 The recommended values are: max-part-header-size: 768; max-part-count: 100.
 See bug:MID-10748[].
+* Extended multi-parts request configuration for AJP server.
+It is possible to set custom max-part-header-size and max-part-count properties to AJP connector in application.yml.
+If no multi-parts request configuration is set for AJP server, these properties will be taken from Tomcat server configuration.
+See bug:MID-10824[].
 * Fixed the possibility to modify the filter in the marking rule. See bug:MID-10405[].
 * Fixed missing search mapping for credentials/password/@metadata. See bug:MID-10402[].
 * Upgraded multiple libraries, including spring boot, spring security, hibernate, commons-lang3, json-smart, postgresql driver and others.
