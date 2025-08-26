@@ -471,6 +471,32 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
+    public FocusTypeSuggestionType suggestFocusType(
+            String resourceOid, ResourceObjectTypeDefinitionType typeDefBean, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        LOGGER.debug("Suggesting focus type for resourceOid {}, typeDefinition {}", resourceOid, typeDefBean);
+        var result = parentResult.subresult(OP_SUGGEST_FOCUS_TYPE)
+                .addParam("resourceOid", resourceOid)
+                .addArbitraryObjectAsParam("typeDefBean", typeDefBean) // todo reconsider (too much text)
+                .build();
+        try {
+            try (var serviceClient = getServiceClient(result)) {
+                var suggestion = Operation
+                        .init(serviceClient, resourceOid, null, task, result)
+                        .suggestFocusType(typeDefBean);
+                LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
+                return suggestion;
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
     public CorrelationSuggestionType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
