@@ -119,11 +119,17 @@
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevAttributeInfoType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container />
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" />
+        </xsd:sequence>
     </xsd:complexType>
 
-
-
-    <xsd:complexType name="ConnDevAuthInfo">
+    <xsd:complexType name="ConnDevHttpAuthInfo">
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" />
             <xsd:element name="type" type="xsd:string" />
@@ -144,5 +150,127 @@
             <xsd:element name="uri" type="xsd:string" />
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="ConnDevArtifactType">
+        <xsd:sequence>
+            <xsd:element name="operation" type="xsd:string" />
+            <xsd:element name="intent" type="tns:ConnDevOperationType" />
+            <xsd:element name="objectClass" type="xsd:string" />
+            <xsd:element name="filename" type="xsd:string" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ConnDevOperationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines supported ConnId operations for connector development. These operations are conceptual
+                in implementing connector and may not represent one-to-one mapping to connector SPI operations.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="schema">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Schema operation for particular object class
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SCHEMA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="testConnection">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Tests connection
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TEST_CONNECTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="search">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search operation for particular object class
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SEARCH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="get">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Get by uid operation for particular object class (usually it is search by oid)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GET"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ConnDevScriptIntentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines staticly supported operation intents. Intents are used to distinguish scripts
+                into manageable smaller scripts. Some intents are global (no operation and object class) and some intents
+                are object-class and operation specific.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation applies to / returns all instances of specified object class.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="filter">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search using filter
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FILTER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="native">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Native definition of schema - does not contain remapping to predefined ConnId attributes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NATIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="connid">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        ConnId specific definition of schema - contains mapping of "native" attributes to predefined ConnId attributes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CONNID"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="auth">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Authentication customization code.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>
