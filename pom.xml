@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.3</version>
+        <version>3.5.5</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
         -->
@@ -239,6 +239,7 @@
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <commons-lang3.version>3.18.0</commons-lang3.version>
+        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
