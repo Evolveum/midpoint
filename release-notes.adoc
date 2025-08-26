@@ -190,7 +190,11 @@ This reduced the number of the csrf fields which is sent by request after the fo
 Also, increased the size of the http request header size to cope with big headers.
 *Important*: be aware of overriding total request size (e.g. header size or multipart parts) in your environment in case of using custom settings (e.g. in custom application.yml or through JVM arguments).
 The recommended values are: max-part-header-size: 768; max-part-count: 100.
-See bug:MID-10748[], .
+See bug:MID-10748[].
+* Extended multi-parts request configuration for AJP server.
+It is possible to set custom max-part-header-size and max-part-count properties to AJP connector in application.yml.
+If no multi-parts request configuration is set for AJP server, these properties will be taken from Tomcat server configuration.
+See bug:MID-10824[].
 * Fixed "Select all" functionality in the assignment restriction popup while creating a delegation. See bug:MID-10757[].
 * Fixed loading and displaying the data on the Errors panel of the Task page. See bug:MID-10682[].
 * Fixed NPE on the Internals configuration page. See bug:MID-10749[].
