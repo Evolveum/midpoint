@@ -449,7 +449,8 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                     public void onClick(AjaxRequestTarget target) {
                         IModel<Serializable> rowModel = getRowModel();
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            ResourceObjectTypeDefinitionType realValue = (ResourceObjectTypeDefinitionType) valueWrapper.getRealValue();
+                            ResourceObjectTypeDefinitionType realValue =
+                                    ((ResourceObjectTypeDefinitionType) valueWrapper.getRealValue()).clone();
 
                             @SuppressWarnings("unchecked")
                             PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue =
