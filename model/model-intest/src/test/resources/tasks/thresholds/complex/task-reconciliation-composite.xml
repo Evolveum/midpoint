@@ -1,0 +1,75 @@
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="ccd6df6c-123a-4d9d-b48e-e4de9bf3f2e2">
+    <name>Dummy reconciliation with policy composite</name>
+    <assignment>
+        <targetRef oid="630d103c-7d1e-4d71-b7ff-027e052c1622" type="c:RoleType"/>
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+    <executionState>runnable</executionState>
+    <objectRef oid="8f82e457-6c6e-42d7-a433-1a346b1899ee" type="c:ResourceType"/>
+    <binding>loose</binding>
+    <activity>
+        <identifier>main acivity</identifier>
+        <composition>
+            <activity>
+                <identifier>my dummy reconciliation</identifier>
+                <work>
+                    <reconciliation>
+                        <resourceObjects>
+                            <resourceRef oid="8f82e457-6c6e-42d7-a433-1a346b1899ee" type="c:ResourceType"/>
+                            <kind>account</kind>
+                            <intent>default</intent>
+                            <objectclass>ri:AccountObjectClass</objectclass>
+                        </resourceObjects>
+                    </reconciliation>
+                </work>
+                <policies>
+                    <policy>
+                        <name>policy threshold skip</name>
+                        <policyConstraints>
+                            <itemState>
+                                <errorCategory>policyThreshold</errorCategory>
+                            </itemState>
+                        </policyConstraints>
+                        <policyReaction>
+                            <action>
+                                <skipActivity/>
+                            </action>
+                        </policyReaction>
+                    </policy>
+                </policies>
+                <tailoring>
+                    <change>
+                        <reference>resourceObjects</reference>
+                    </change>
+                </tailoring>
+            </activity>
+            <activity>
+                <work>
+                    <noOp>
+                        <steps>10</steps>
+                        <delay>200</delay>
+                    </noOp>
+                </work>
+                <policies>
+                    <policy>
+                        <name>skip after 1s</name>
+                        <policyConstraints>
+                            <executionTime>
+                                <exceeds>PT1S</exceeds>
+                            </executionTime>
+                        </policyConstraints>
+                        <policyReaction>
+                            <action>
+                                <notification/>
+                                <suspendTask/>
+                            </action>
+                        </policyReaction>
+                    </policy>
+                </policies>
+            </activity>
+        </composition>
+    </activity>
+</task>

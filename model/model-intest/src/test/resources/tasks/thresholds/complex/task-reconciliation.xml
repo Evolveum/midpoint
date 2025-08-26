@@ -1,0 +1,83 @@
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="831266b9-ee6a-4ffc-8005-27c964ea6ffa">
+    <name>Dummy reconciliation</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+    <executionState>runnable</executionState>
+    <objectRef oid="8f82e457-6c6e-42d7-a433-1a346b1899ee" type="c:ResourceType"/>
+    <binding>loose</binding>
+    <activity>
+        <identifier>my dummy reconciliation</identifier>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="8f82e457-6c6e-42d7-a433-1a346b1899ee" type="c:ResourceType"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <distribution>
+            <subtasks/>
+        </distribution>
+        <policies>
+            <policy>
+                <name>policy threshold skip</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT2S</exceeds>
+                    </executionTime>
+                </policyConstraints>
+                <policyReaction>
+                    <action>
+                        <restartActivity>
+                            <delay>1000</delay>
+                        </restartActivity>
+                    </action>
+                </policyReaction>
+            </policy>
+            <policy>
+                <name>execution attempts check</name>
+                <policyConstraints>
+                    <restartActivity>
+                        <exceeds>1</exceeds>
+                    </restartActivity>
+                </policyConstraints>
+                <policyReaction>
+                    <action>
+                        <suspendTask/>
+                    </action>
+                </policyReaction>
+            </policy>
+        </policies>
+        <tailoring>
+            <change>
+                <reference>resourceObjects</reference>
+                <distribution>
+                    <buckets>
+                        <stringSegmentation>
+                            <discriminator>attributes/name</discriminator>
+                            <boundary>
+                                <position>1</position>
+                                <characters>j</characters>
+                            </boundary>
+                            <boundary>
+                                <position>2</position>
+                                <characters>abcdefghijklmnopqrstuvwxyz</characters>
+                            </boundary>
+                            <comparisonMethod>prefix</comparisonMethod>
+                        </stringSegmentation>
+                    </buckets>
+                    <workers>
+                        <workersPerNode>
+                            <count>2</count>
+                        </workersPerNode>
+                    </workers>
+                    <workerThreads>2</workerThreads>
+                </distribution>
+            </change>
+        </tailoring>
+    </activity>
+</task>
