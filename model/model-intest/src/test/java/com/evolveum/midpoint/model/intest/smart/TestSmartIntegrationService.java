@@ -153,7 +153,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest object types' operation request");
         var token = smartIntegrationService.submitSuggestObjectTypesOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
