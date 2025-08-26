@@ -33,6 +33,9 @@ server:
 #    ajp:
 #      enabled: true
 #      port: 9090
+#      max-part-header-size: 1024
+#      max-part-count: 300
+
   servlet:
     context-path: /midpoint
     application-display-name: MidPoint
