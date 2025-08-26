@@ -224,18 +224,20 @@ public abstract class AbstractActivityRun<
         if (activityState.isComplete()) {
             logComplete();
             return ActivityRunResult.finished(activityState.getResultStatus());
-        }
+        } else if (activityState.isSkipped()) {
+            logSkipped();
+            return ActivityRunResult.skipped(activityState.getResultStatus());
+        } else if (activityState.isRestarting()) {
+            // we're incrementing the attempt counter only when restarting activity
+            // suspend/resume doesn't mean activity was restarted
 
-        try {
-            // todo this should increment only when it's not from:
-            //  waiting -> running
-            //  suspended -> running (in case activity just continues, resumed)
-            //  e.g. only from:
-            //      closed -> running (restart)
-            //      suspended -> running (in case it's starting from beginning)
-            activityState.incrementExecutionAttempt(result);
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-            throw new ActivityRunException("Couldn't increment execution attempt", FATAL_ERROR, PERMANENT_ERROR, e);
+            // todo consider whether we want to increment the counter also when
+            //  resuming suspended activity that has to start from the beginning
+            try {
+                activityState.incrementExecutionAttempt(result);
+            } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                throw new ActivityRunException("Couldn't increment execution attempt", FATAL_ERROR, PERMANENT_ERROR, e);
+            }
         }
 
         ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(this);
@@ -251,7 +253,7 @@ public abstract class AbstractActivityRun<
 
         updateAndCloseActivityState(runResult, result);
 
-        if (activityState.isComplete()) {
+        if (activityState.isComplete() || activityState.isSkipped()) {
             // TODO Is this really called only once on activity completion? Not sure about distributed/delegated ones.
             onActivityRealizationComplete(result);
             sendActivityRealizationCompleteEvent(result);
@@ -378,6 +380,11 @@ public abstract class AbstractActivityRun<
                         + "(took: {} msecs)",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
                 runResult, endTimestamp - startTimestamp);
+    }
+
+    private void logSkipped() {
+        LOGGER.debug("{}: Skipped run of activity with identifier '{}' and path '{}' (local: {}) as it was already marked as skipped",
+                getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
 
     private void logComplete() {

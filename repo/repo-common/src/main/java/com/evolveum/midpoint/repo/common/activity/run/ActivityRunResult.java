@@ -152,6 +152,10 @@ public class ActivityRunResult implements ShortDumpable {
         return new ActivityRunResult(parseStatusType(opResultStatusBean), FINISHED);
     }
 
+    public static ActivityRunResult skipped(OperationResultStatus opResultStatus) {
+        return new ActivityRunResult(opResultStatus, SKIP_ACTIVITY_ERROR);
+    }
+
     public static ActivityRunResult waiting() {
         return new ActivityRunResult(OperationResultStatus.IN_PROGRESS, IS_WAITING);
     }

@@ -65,6 +65,10 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return assertRealizationState(ActivityRealizationStateType.COMPLETE);
     }
 
+    public ActivityStateAsserter<RA> assertSkipped() {
+        return assertRealizationState(ActivityRealizationStateType.SKIPPED);
+    }
+
     public ActivityStateAsserter<RA> assertNotStarted() {
         return assertRealizationState(null);
     }

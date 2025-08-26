@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.createSt
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.COMPLETE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.SKIPPED;
 
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -117,7 +118,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         }
         try {
             stateItemPath = findOrCreateActivityState(result);
-            updatePersistenceType(result);
+            updatePersistenceAndExecutionAttempt(result);
             if (activityRun.shouldCreateWorkStateOnInitialization()) {
                 createWorkStateIfNeeded(result);
             }
@@ -234,12 +235,23 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         LOGGER.debug("Work state created in {} in {}", stateItemPath, task);
     }
 
-    private void updatePersistenceType(OperationResult result) throws ActivityRunException {
+    private void updatePersistenceAndExecutionAttempt(OperationResult result) throws ActivityRunException {
+        boolean flush = false;
+
         ActivityStatePersistenceType storedValue =
                 getPropertyRealValue(ActivityStateType.F_PERSISTENCE, ActivityStatePersistenceType.class);
         ActivityStatePersistenceType requiredValue = activityStateDefinition.getPersistence();
         if (requiredValue != storedValue) {
             setItemRealValues(ActivityStateType.F_PERSISTENCE, requiredValue);
+            flush = true;
+        }
+
+        if (getPropertyRealValue(ActivityStateType.F_EXECUTION_ATTEMPT, Integer.class) == null) {
+            setItemRealValues(ActivityStateType.F_EXECUTION_ATTEMPT, 1);
+            flush = true;
+        }
+
+        if (flush) {
             flushPendingTaskModificationsChecked(result);
         }
     }
@@ -274,7 +286,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     }
 
     public void markSkipped(OperationResultStatus resultStatus, Long endTimestamp) throws ActivityRunException {
-        setRealizationState(COMPLETE);  // todo maybe custom realization state for skipped
+        setRealizationState(SKIPPED);
         setRealizationEndTimestamp(endTimestamp);
         setResultStatus(resultStatus);
     }

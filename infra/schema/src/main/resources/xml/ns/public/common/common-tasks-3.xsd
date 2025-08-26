@@ -3849,7 +3849,8 @@
             <xsd:enumeration value="skipped">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Activity was skipped before completion.
+                        Activity execution was stopped before completion, without interruption or error.
+                        Task execution should continue with next activity.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SKIPPED"/>

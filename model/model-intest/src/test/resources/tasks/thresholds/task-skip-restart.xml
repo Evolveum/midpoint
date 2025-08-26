@@ -11,6 +11,7 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
     <activity>
+        <identifier>root activity</identifier>
         <composition>
             <activity>
                 <identifier>activity to be skipped</identifier>
