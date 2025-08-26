@@ -9,24 +9,23 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -60,6 +59,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadSuggestionWrappers;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 @PanelType(name = "resourceObjectTypes")
@@ -200,53 +200,8 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return true;
     }
 
-    private final Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>,
+    private Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>,
             StatusInfo<ObjectTypesSuggestionType>> suggestionByWrapper = new HashMap<>();
-
-    /** Creates value wrappers for each suggested object type. */
-    protected List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> loadSuggestionWrappers() {
-        final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-        final OperationResult result = task.getResult();
-
-        final ResourceType resource = getObjectDetailsModels().getObjectType();
-        final List<StatusInfo<ObjectTypesSuggestionType>> suggestions = loadObjectTypeSuggestions(
-                getPageBase(), resource.getOid(), task, result);
-        if (suggestions == null || suggestions.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        final List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> out = new ArrayList<>();
-        suggestions.stream().filter(Objects::nonNull).forEach(si -> {
-            ObjectTypesSuggestionType suggestion = si.getResult();
-            if (si.getStatus() == OperationResultStatusType.NOT_APPLICABLE) {
-                return;
-            }
-
-            if (si.getResult() == null) {
-                ObjectTypesSuggestionType tmp = new ObjectTypesSuggestionType();
-                tmp.getObjectType().add(new ResourceObjectTypeDefinitionType());
-                suggestion = tmp;
-            }
-
-            try {
-                @SuppressWarnings("unchecked")
-                PrismContainer<ResourceObjectTypeDefinitionType> container =
-                        suggestion.asPrismContainerValue().findContainer(ObjectTypesSuggestionType.F_OBJECT_TYPE);
-
-                PrismContainerWrapper<ResourceObjectTypeDefinitionType> wrapper = getPageBase().createItemWrapper(
-                        container, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
-
-                wrapper.getValues().forEach(value -> {
-                    suggestionByWrapper.put(value, si);
-                    out.add(value);
-                });
-            } catch (SchemaException e) {
-                throw new IllegalStateException("Failed to wrap object type suggestions", e);
-            }
-        });
-
-        return out;
-    }
 
     protected <C extends Containerable> boolean isSuggestionRow(@Nullable IModel<PrismContainerValueWrapper<C>> rowModel) {
         if (rowModel == null || rowModel.getObject() == null) {
@@ -368,10 +323,15 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                         List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> out = new ArrayList<>();
 
                         if (Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
-                            List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> suggestions = loadSuggestionWrappers();
-                            if (suggestions != null) {
-                                out.addAll(suggestions);
-                            }
+                            final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
+                            final OperationResult result = task.getResult();
+
+                            final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
+
+                            SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadSuggestionWrappers(
+                                    getPageBase(), resourceOid, task, result);
+                            out.addAll(suggestions.wrappers());
+                            suggestionByWrapper = suggestions.suggestionByWrapper();
                         }
 
                         List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resource = resourceDefWrapper
@@ -490,15 +450,16 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                         IModel<Serializable> rowModel = getRowModel();
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
                             ResourceObjectTypeDefinitionType realValue = (ResourceObjectTypeDefinitionType) valueWrapper.getRealValue();
-                            @SuppressWarnings("unchecked") PrismContainerValue<ResourceObjectTypeDefinitionType> newValue =
-                                    (PrismContainerValue<ResourceObjectTypeDefinitionType>) realValue.asPrismContainerValue();
-                            //why this not work? upper statement (newValue)
 
-                            PrismContainerValue<ResourceObjectTypeDefinitionType> tmpNewValue =
-                                    createNewResourceObjectTypePrismContainerValue(createContainerModel(), realValue);
+                            @SuppressWarnings("unchecked")
+                            PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue =
+                                    (PrismContainerValue<ResourceObjectTypeDefinitionType>) realValue.asPrismContainerValue();
+                            WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
+                            IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
+                            prismContainerValue.setParent(containerModel.getObject().getItem());
 
                             onNewValue(
-                                    tmpNewValue, createContainerModel(),
+                                    prismContainerValue, createContainerModel(),
                                     target, false);
                         }
                     }
@@ -625,7 +586,14 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
     @Override
     protected boolean isToggleSuggestionVisible() {
-        List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> suggestions = loadSuggestionWrappers();
-        return suggestions != null && !suggestions.isEmpty();
+        final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
+        final OperationResult result = task.getResult();
+
+        final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
+
+        SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadSuggestionWrappers(
+                getPageBase(), resourceOid, task, result);
+
+        return !suggestions.wrappers().isEmpty();
     }
 }

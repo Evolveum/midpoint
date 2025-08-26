@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectTypeSuggestionTable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -43,8 +44,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import javax.xml.namespace.QName;
 import java.util.List;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.createNewResourceObjectTypePrismContainerValue;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
 
 @PanelType(name = "rw-suggested-object-type")
 @PanelInstance(identifier = "w-suggested-object-type",
@@ -172,10 +172,16 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
+        ResourceObjectTypeDefinitionType realValue = selected.getRealValue().clone();
 
+        @SuppressWarnings("unchecked")
+        PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue =
+                (PrismContainerValue<ResourceObjectTypeDefinitionType>) realValue.asPrismContainerValue();
+        WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
         IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-        var newValue = createNewResourceObjectTypePrismContainerValue(containerModel, suggestion);
-        onContinueWithSelected(selectedModel, newValue, containerModel, target);
+        prismContainerValue.setParent(containerModel.getObject().getItem());
+
+        onContinueWithSelected(selectedModel, prismContainerValue, containerModel, target);
     }
 
     public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel() {
