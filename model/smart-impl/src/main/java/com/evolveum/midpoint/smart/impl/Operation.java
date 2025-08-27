@@ -81,12 +81,12 @@ class Operation {
         var typeIdentification = ResourceObjectTypeIdentification.of(typeDefBean);
         var delineation = ResourceObjectTypeDelineation.of(
                 typeDefBean.getDelineation(), objectClassDefinition.getObjectClassName(), List.of(), objectClassDefinition);
-        throw new UnsupportedOperationException("TODO: implement focus type suggestion");
-//        return serviceAdapter.suggestFocusType(
-//                typeIdentification,
-//                objectClassDefinition,
-//                typeDefinition.getDelineation(),
-//                resource);
+        //throw new UnsupportedOperationException("TODO: implement focus type suggestion");
+        return serviceAdapter.suggestFocusType(
+                typeIdentification,
+                objectClassDefinition,
+                delineation,
+                resource);
     }
 
     void checkIfCanRun() throws ActivityInterruptedException {
