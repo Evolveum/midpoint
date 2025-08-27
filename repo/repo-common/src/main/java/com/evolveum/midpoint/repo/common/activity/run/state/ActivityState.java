@@ -638,6 +638,8 @@ public abstract class ActivityState implements DebugDumpable {
         }
         executionAttempt++;
 
+        LOGGER.debug("Incrementing execution attempt to {} for {}", executionAttempt, getActivityPath());
+
         deltas.add(PrismContext.get().deltaFor(TaskType.class)
                 .item(stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT)).replace(executionAttempt)
                 .asItemDelta());

@@ -228,13 +228,14 @@ public abstract class AbstractActivityRun<
             logSkipped();
             return ActivityRunResult.skipped(activityState.getResultStatus());
         } else if (activityState.isRestarting()) {
+            logRestarted();
             // we're incrementing the attempt counter only when restarting activity
             // suspend/resume doesn't mean activity was restarted
 
             // todo consider whether we want to increment the counter also when
             //  resuming suspended activity that has to start from the beginning
             try {
-                activityState.initializeAfterRestart(result);
+                activityState.initializeAfterRestart(result);   // todo live data (stats, progress) are already in memory from previous initializeState call
             } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
                 throw new ActivityRunException("Couldn't increment execution attempt", FATAL_ERROR, PERMANENT_ERROR, e);
             }
@@ -380,6 +381,11 @@ public abstract class AbstractActivityRun<
                         + "(took: {} msecs)",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
                 runResult, endTimestamp - startTimestamp);
+    }
+
+    private void logRestarted() {
+        LOGGER.debug("{}: Restarting run of activity with identifier '{}' and path '{}' (local: {})",
+                getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
 
     private void logSkipped() {

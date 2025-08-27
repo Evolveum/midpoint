@@ -78,12 +78,12 @@ public class UpdateActivityPoliciesOperation {
                 continue;
             }
 
-            ActivityPolicyStateType current = getCurrentPolicyState(task, policy);
+            ActivityPolicyStateType existing = getCurrentPolicyState(task, policy);
 
             ItemDelta<?, ?> itemDelta;
 
             ActivityPolicyStateType updatedPolicy;
-            if (current == null) {
+            if (existing == null) {
                 itemDelta = beans.prismContext.deltaFor(TaskType.class)
                         .item(policiesItemPath)
                         .add(policy.clone())
@@ -93,7 +93,7 @@ public class UpdateActivityPoliciesOperation {
                 updatedPolicy = policy;
             } else {
                 // we don't update "similar" policy (same identifier and set of reactions)
-                updatedPolicy = current;
+                updatedPolicy = existing;
             }
 
             updatedPolicy.freeze();

@@ -97,7 +97,10 @@ public class ActivityPolicyRulesProcessor {
 
         LOGGER.trace("Found {} activity policy rules for activity {} ({})", rules.size(), identifier, activityPath);
 
-        rules.addAll(collectRulesFromActivity(activity.getParent()));
+        // Recursively collect rules from parent activities, not needed for now as
+        // we only support iterative activities (not composite activity)
+        // todo what about reconciliation? [viliam]
+        // rules.addAll(collectRulesFromActivity(activity.getParent()));
 
         return rules;
     }

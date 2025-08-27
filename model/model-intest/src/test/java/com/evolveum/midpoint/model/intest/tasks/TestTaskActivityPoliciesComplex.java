@@ -10,24 +10,28 @@ package com.evolveum.midpoint.model.intest.tasks;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.test.asserter.TaskAsserter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -71,7 +75,7 @@ public class TestTaskActivityPoliciesComplex extends AbstractEmptyModelIntegrati
         controller.populateWithDefaultSchema();
     }
 
-    @Test(enabled = false)
+    @Test
     public void testReconciliation() throws Exception {
         clearAfterReconciliation();
 
@@ -83,42 +87,55 @@ public class TestTaskActivityPoliciesComplex extends AbstractEmptyModelIntegrati
 
         addObject(TASK_RECONCILIATION, task, result);
 
-        waitForTaskCloseOrSuspend(TASK_RECONCILIATION.oid, 20000L);
+//        waitForTaskFinish(TASK_RECONCILIATION.oid, 20000);
+        Thread.sleep(30000);
 
-        System.out.println(PrismTestUtil.serializeAnyData(getTask(TASK_RECONCILIATION.oid).asObjectable().getActivityState(), TaskType.F_ACTIVITY_STATE));
+        PrismObject<TaskType> object = getTask(TASK_RECONCILIATION.oid);
 
-        TaskAsserter<Void> asserter = TaskAsserter.forTask(getObject(TaskType.class, TASK_RECONCILIATION.oid));
-        // @formatter:off
-        System.out.println(asserter.getObject());
-        // @formatter:on
+        ObjectQuery query = PrismTestUtil.getPrismContext()
+                .queryFor(TaskType.class)
+                .item(TaskType.F_NAME).contains(PolyString.fromOrig("Dummy reconciliation simple"))
+                .or()
+                .item(TaskType.F_NAME).contains(PolyString.fromOrig(TASK_RECONCILIATION.oid))
+                .build();
 
-        repositoryService.searchObjects(TaskType.class, null, null, result)
-                .forEach(t-> {
-                    try {
-                        System.out.println(PrismTestUtil.serializeToXml(t.asObjectable()));
-
-                        ActivityStateType state = t.asObjectable().getActivityState().getActivity();
-
-                        assertExecutionAttempts(state);
-                    } catch (SchemaException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-    }
-
-    private void assertExecutionAttempts(ActivityStateType state) throws SchemaException {
-        if (state.getExecutionAttempt() == null || state.getExecutionAttempt() != 1) {
-            Assertions.fail("Expected exactly one execution attempt, but was: " + state.getExecutionAttempt());
-            System.out.println(PrismTestUtil.serializeAnyData(state, TaskType.F_ACTIVITY_STATE));
-        }
-
-        state.getActivity().forEach(s -> {
+        logger.error("TASKS after");
+        SearchResultList<PrismObject<TaskType>> tasks = modelService.searchObjects(TaskType.class, query, null, task, result);
+        tasks.forEach(t -> {
             try {
-                assertExecutionAttempts(s);
-            } catch (SchemaException e) {
-                throw new RuntimeException(e);
+                // remove stats to make the log more readable
+                t.asObjectable().setOperationStats(null);
+
+                logger.error(PrismTestUtil.serializeObjectToString(t));
+            } catch (SchemaException ex) {
+                ex.printStackTrace();
             }
         });
+        logger.error("TASKS end");
+
+        TaskAsserter<Void> asserter = TaskAsserter.forTask(object);
+        // @formatter:off
+        asserter.assertFatalError()
+                .activityState(ActivityPath.empty())
+                    .display()
+                    .assertExecutionAttempts(1)
+                    .assertComplete()
+                    .assertFatalError()
+                    .assertNotRestarting()
+                    .end()
+                .activityState(ActivityPath.fromId("my dummy reconciliation"))
+                    .display()
+                    .assertComplete()
+                    .assertSuccess()
+                    .assertExecutionAttempts(2)
+                    .assertNotRestarting()
+                    .progress()
+                        .assertSuccessCount(0, 4)
+                        .display()
+                    .end()
+                .itemProcessingStatistics()
+                    .display();
+        // @formatter:on
     }
 
     private void clearAfterReconciliation() throws Exception {

@@ -243,6 +243,8 @@ class TaskCycleExecutor {
         }
     }
 
+    // todo we should suspend and reschedule delegate probably, not worker [viliam]
+    //  how to make sure we'll not reschedule it twice, when there are multiple workers for example?
     private void treatRestartActivityRunResult(TaskRunResult runResult, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
@@ -270,12 +272,12 @@ class TaskCycleExecutor {
             long startAt = System.currentTimeMillis() + (delay * (2 ^ (executionAttempt - 1)));
 
             LOGGER.trace("Rescheduling task {} to run later (in {} ms) because of activity restart", task, delay);
-            task.setExecutionAndSchedulingStateImmediate(
+            task.setExecutionAndSchedulingStateImmediate(  // todo can't be like this [viliam]
                     TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
                     TaskSchedulingStateType.SUSPENDED, result);
 
-            beans.localScheduler.rescheduleLater(task, startAt);
-        } catch (PreconditionViolationException | SchedulerException ex) {
+            beans.localScheduler.rescheduleLater(task, startAt);  // todo does the first parameter need to be RunningTaskQuartzImpl? [viliam]
+        } catch (PreconditionViolationException |SchedulerException ex) {
             LOGGER.error("Couldn't reschedule task {} (rescheduled because of activity restart): {}",
                     task, ex.getMessage(), ex);
         }
