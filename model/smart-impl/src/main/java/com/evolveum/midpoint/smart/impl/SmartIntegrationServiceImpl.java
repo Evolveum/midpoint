@@ -483,7 +483,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try {
             try (var serviceClient = getServiceClient(result)) {
                 var suggestion = Operation
-                        .init(serviceClient, resourceOid, null, task, result)
+                        .init(serviceClient, resourceOid, typeDefBean.getDelineation().getObjectClass(), task, result)
                         .suggestFocusType(typeDefBean);
                 LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
                 return suggestion;

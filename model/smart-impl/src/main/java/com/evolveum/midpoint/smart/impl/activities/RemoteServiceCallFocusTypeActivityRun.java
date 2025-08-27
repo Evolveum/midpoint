@@ -52,7 +52,7 @@ class RemoteServiceCallFocusTypeActivityRun
             LOGGER.debug("Going to suggest focus type for resource {} and object type {}",
                     resourceOid, objectType);
             ResourceObjectTypeIdentification typeId = ResourceObjectTypeIdentification.of(objectType.getKind(), objectType.getIntent());
-            var focusType = SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(resourceOid, typeId, task, result);
+            var focusType = SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(resourceOid, objectType, task, result);
             objectType.setFocus(
                     new ResourceObjectFocusSpecificationType()
                             .type(focusType.getFocusType())
