@@ -10,7 +10,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -25,6 +25,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
@@ -34,7 +35,12 @@ import java.util.List;
 
 public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
-    private static final String ID_CONTAINER = "container";
+    private static final String ID_PANEL_CONTAINER = "panelContainer";
+    private static final String ID_TITLE_ICON = "titleIcon";
+    private static final String ID_TEXT = "text";
+    private static final String ID_SUBTEXT = "subText";
+
+    private static final String ID_BODY_CONTAINER = "bodyContainer";
     private static final String ID_ELAPSED_TIME = "elapsedTime";
 
     private static final String ID_LIST_VIEW_CONTAINER = "listViewContainer";
@@ -45,62 +51,101 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
     private static final String ID_BUTTONS = "buttons";
 
-    public SmartGeneratingPanel(String id, IModel<SmartGeneratingDto> model) {
+    boolean isWizardPanel;
+
+    public SmartGeneratingPanel(String id, IModel<SmartGeneratingDto> model, boolean isWizardPanel) {
         super(id, model);
+        this.isWizardPanel = isWizardPanel;
+        setOutputMarkupId(true);
         add(AttributeModifier.append("class", "p-0"));
         initLayout();
     }
 
     private void initLayout() {
-        final WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
-        container.setOutputMarkupId(true);
-        add(container);
+        WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
+        panelContainer.setOutputMarkupId(true);
+        panelContainer.add(AttributeModifier.append("class", isWizardPanel ? "gap-3 mt-5" : "gap-1"));
+        add(panelContainer);
 
-        Label elapsedTime = new Label(ID_ELAPSED_TIME, () -> getModelObject().getTimeElapsed());
-        elapsedTime.setOutputMarkupId(true);
-        container.add(elapsedTime);
+        initIntroPart(panelContainer);
 
-        WebMarkupContainer listViewContainer = new WebMarkupContainer(ID_LIST_VIEW_CONTAINER);
-        listViewContainer.setOutputMarkupId(true);
-        listViewContainer.add(new VisibleBehaviour(() -> {
-            List<SmartGeneratingDto.StatusRow> rows = getSafeRows();
-            return rows != null && !rows.isEmpty();
-        }));
-        container.add(listViewContainer);
+        WebMarkupContainer bodyContainer = new WebMarkupContainer(ID_BODY_CONTAINER);
+        bodyContainer.setOutputMarkupId(true);
+        panelContainer.add(bodyContainer);
 
-        ListView<SmartGeneratingDto.StatusRow> listView = createStatusListView();
-        listView.setReuseItems(false);
-        listView.setOutputMarkupId(true);
-        listViewContainer.add(listView);
+        initCorePart(bodyContainer);
 
-        WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
-        buttonsContainer.setOutputMarkupId(true);
-        container.add(buttonsContainer);
+        addAjaxTimerBehavior(bodyContainer);
+    }
 
-        RepeatingView buttonsView = new RepeatingView(ID_BUTTONS);
-        buttonsView.setOutputMarkupId(true);
-
-        createButtons(buttonsView);
-        buttonsContainer.add(buttonsView);
-
-        container.add(new AbstractAjaxTimerBehavior(getRefreshInterval()) {
+    private void addAjaxTimerBehavior(@NotNull WebMarkupContainer bodyContainer) {
+        bodyContainer.add(new AbstractAjaxTimerBehavior(getRefreshInterval()) {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
-                final SmartGeneratingDto dto = getModelObject();
+                SmartGeneratingDto dto = getModelObject();
+                if (dto == null) {
+                    stop(target);
+                    target.add(bodyContainer);
+                    return;
+                }
+
                 if (dto.isFinished() || dto.isFailed()) {
                     stop(target);
                 }
-
                 if (dto.isFinished() && !dto.isFailed()) {
                     onFinishActionPerform(target);
                 }
-                target.add(container);
+                target.add(bodyContainer);
             }
         });
     }
 
+    private void initCorePart(@NotNull WebMarkupContainer bodyContainer) {
+        Label elapsedTime = new Label(ID_ELAPSED_TIME, () -> {
+            SmartGeneratingDto dto = getModelObject();
+            return dto != null ? dto.getTimeElapsed() : "";
+        });
+        elapsedTime.setOutputMarkupId(true);
+        bodyContainer.add(elapsedTime);
+
+        WebMarkupContainer listViewContainer = new WebMarkupContainer(ID_LIST_VIEW_CONTAINER);
+        listViewContainer.setOutputMarkupId(true);
+        listViewContainer.add(new VisibleBehaviour(this::isListViewVisible));
+        bodyContainer.add(listViewContainer);
+
+        ListView<SmartGeneratingDto.StatusRow> listView = createStatusListView();
+        listView.setOutputMarkupId(true);
+        listView.setReuseItems(false);
+        listViewContainer.add(listView);
+
+        WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
+        buttonsContainer.setOutputMarkupId(true);
+        bodyContainer.add(buttonsContainer);
+
+        RepeatingView buttonsView = new RepeatingView(ID_BUTTONS);
+        buttonsView.setOutputMarkupId(true);
+        createButtons(buttonsView);
+        buttonsContainer.add(buttonsView);
+    }
+
+    private void initIntroPart(@NotNull WebMarkupContainer panelContainer) {
+        WebMarkupContainer titleIcon = new WebMarkupContainer(ID_TITLE_ICON);
+        titleIcon.setOutputMarkupId(true);
+        titleIcon.add(AttributeModifier.append("class", getIconCssModel()));
+        panelContainer.add(titleIcon);
+
+        Label title = new Label(ID_TEXT, getTitleModel());
+        title.setOutputMarkupId(true);
+        title.add(AttributeAppender.append("class", isWizardPanel ? "h3" : "h5"));
+        panelContainer.add(title);
+
+        Label subTitle = new Label(ID_SUBTEXT, getSubTitleModel());
+        subTitle.setOutputMarkupId(true);
+        panelContainer.add(subTitle);
+    }
+
     private @NotNull ListView<SmartGeneratingDto.StatusRow> createStatusListView() {
-        return new ListView<>(SmartGeneratingPanel.ID_LIST_VIEW, () -> getModelObject().getStatusRows()) {
+        ListView<SmartGeneratingDto.StatusRow> listView = new ListView<>(ID_LIST_VIEW, this::getSafeRows) {
             @Override
             protected void populateItem(@NotNull ListItem<SmartGeneratingDto.StatusRow> item) {
                 SmartGeneratingDto.StatusRow row = item.getModelObject();
@@ -109,13 +154,19 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
                 WebMarkupContainer icon = new WebMarkupContainer(ID_LIST_ITEM_ICON);
                 icon.setOutputMarkupId(true);
-                String iconCss = row.getIconCss();
-                icon.add(AttributeModifier.replace("class", iconCss));
+                icon.add(AttributeModifier.replace("class", row.getIconCss()));
                 item.add(icon);
 
                 item.add(AttributeModifier.append("class", "status-row"));
             }
         };
+        listView.setOutputMarkupId(true);
+        listView.add(new VisibleBehaviour(this::isListViewVisible));
+        return listView;
+    }
+
+    protected boolean isListViewVisible() {
+        return !getSafeRows().isEmpty();
     }
 
     /** Null-safe accessor for rows. */
@@ -131,11 +182,10 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
     /**
      * Override this method to create custom buttons.
-     * The default implementation creates a close button that does nothing.
+     * The default implementation creates a "Run in background" and a stateful action button.
      */
-    //TODO: we dont wanna access task in gui (need to be moved to service layer)
+    // TODO: we don't want to access task in GUI (needs moving to service layer)
     protected void createButtons(@NotNull RepeatingView buttonsView) {
-
         initRunInBackgroundButton(buttonsView);
         initActionButton(buttonsView);
     }
@@ -160,83 +210,40 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         buttonsView.add(runInBackgroundButton);
     }
 
-    private void initActionButton(@NotNull RepeatingView buttonsView) {
+    public void initActionButton(@NotNull RepeatingView buttonsView) {
         AjaxIconButton actionButton = new AjaxIconButton(
                 buttonsView.newChildId(),
-                () -> {
-                    SmartGeneratingDto dto = getModelObject();
-                    TaskExecutionStateType executionState = dto.getTaskExecutionState();
-
-                    if (executionState == null) {
-                        return "fa fa-question text-muted";
-                    }
-
-                    switch (executionState) {
-                        case RUNNING, RUNNABLE, WAITING -> {
-                            return "fa fa-pause";
-                        }
-                        case SUSPENDED -> {
-                            return "fa fa-play";
-                        }
-                        case CLOSED -> {
-                            return "fa fa-check";
-                        }
-                        default -> {
-                            return "fa fa-question text-muted";
-                        }
-                    }
-                },
-                () -> {
-                    SmartGeneratingDto dto = getModelObject();
-                    TaskExecutionStateType executionState = dto.getTaskExecutionState();
-                    if(executionState == null) {
-                        return createStringResource("SmartGeneratingPanel.button.unknown").getString();
-                    }
-
-                    switch (executionState) {
-                        case RUNNING, RUNNABLE, WAITING -> {
-                            return createStringResource("SmartGeneratingPanel.button.suspend").getString();
-                        }
-                        case SUSPENDED -> {
-                            return createStringResource("SmartGeneratingPanel.button.resume").getString();
-                        }
-                        case CLOSED -> {
-                            return createStringResource("SmartGeneratingPanel.button.closed").getString();
-                        }
-                        default -> {
-                            return createStringResource("SmartGeneratingPanel.button.unknown").getString();
-                        }
-                    }
-                }) {
+                () -> iconCssFor(stateOf(getModelObject())),
+                () -> labelFor(stateOf(getModelObject()))) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                TaskType taskObject = SmartGeneratingPanel.this.getModelObject().getTaskObject();
+                SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
+                if (dto == null) {
+                    return;
+                }
+                TaskType taskObject = dto.getTaskObject();
                 if (taskObject == null) {
                     return;
                 }
 
                 TaskExecutionStateType executionState = taskObject.getExecutionState();
+                if (executionState == null) {
+                    return;
+                }
+
                 switch (executionState) {
                     case RUNNING, RUNNABLE, WAITING ->
                             TaskOperationUtils.suspendTasks(Collections.singletonList(taskObject), getPageBase());
-                    case SUSPENDED ->
-                            TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
+                    case SUSPENDED -> TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
                     default -> {
                         return;
                     }
                 }
 
                 target.add(SmartGeneratingPanel.this);
-                //TODO: implement the action for the button
-            }
-
-            @Override
-            protected void onConfigure() {
-                super.onConfigure();
-
             }
         };
 
@@ -246,16 +253,52 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         buttonsView.add(actionButton);
     }
 
+    private static TaskExecutionStateType stateOf(SmartGeneratingDto dto) {
+        return dto != null ? dto.getTaskExecutionState() : null;
+    }
+
+    @Contract(pure = true)
+    private @NotNull String iconCssFor(TaskExecutionStateType state) {
+        if (state == null) {
+            return "fa fa-question text-muted";
+        }
+        return switch (state) {
+            case RUNNING, RUNNABLE, WAITING -> "fa fa-pause";
+            case SUSPENDED -> "fa fa-play";
+            case CLOSED -> "fa fa-check";
+        };
+    }
+
+    private String labelFor(TaskExecutionStateType state) {
+        if (state == null) {
+            return createStringResource("SmartGeneratingPanel.button.unknown").getString();
+        }
+        return switch (state) {
+            case RUNNING, RUNNABLE, WAITING -> createStringResource("SmartGeneratingPanel.button.suspend").getString();
+            case SUSPENDED -> createStringResource("SmartGeneratingPanel.button.resume").getString();
+            case CLOSED -> createStringResource("SmartGeneratingPanel.button.closed").getString();
+        };
+    }
+
     protected void onFinishActionPerform(AjaxRequestTarget target) {
-        // Override this method to perform an action when the generation succeeds.
     }
 
     protected void onRunInBackgroundPerform(AjaxRequestTarget target) {
-        // Override this method to perform an action when the back button is clicked.
-        // The default implementation does nothing.
     }
 
     protected IModel<String> getRunInBackgroundButtonLabel() {
         return createStringResource("SmartGeneratingPanel.button.runInBackground");
+    }
+
+    protected IModel<String> getIconCssModel() {
+        return Model.of("fa fa-cogs");
+    }
+
+    protected IModel<String> getTitleModel() {
+        return createStringResource("SmartGeneratingSuggestionStep.wizard.step.generating.suggestion.action.text");
+    }
+
+    protected IModel<String> getSubTitleModel() {
+        return createStringResource("SmartGeneratingSuggestionStep.wizard.step.generating.suggestion.action.subText");
     }
 }
