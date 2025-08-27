@@ -121,7 +121,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ConnDevObjectClassInfo">
+    <xsd:complexType name="ConnDevObjectClassInfoType">
 
     </xsd:complexType>
 
