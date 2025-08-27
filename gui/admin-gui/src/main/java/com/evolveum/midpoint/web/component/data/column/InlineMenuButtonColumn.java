@@ -142,6 +142,19 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             }
 
             @Override
+            protected String getDropDownButtonIcon() {
+                return InlineMenuButtonColumn.this.getDropDownButtonIcon();
+            }
+
+            @Override
+            protected String getSpecialButtonClass() {
+                if (InlineMenuButtonColumn.this.getSpecialButtonClass() != null) {
+                    return InlineMenuButtonColumn.this.getSpecialButtonClass();
+                }
+                return super.getSpecialButtonClass();
+            }
+
+            @Override
             protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {
                 if (action instanceof ColumnMenuAction) {
                     if (!isHeaderPanel) {
@@ -264,5 +277,13 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
     protected String getInlineMenuItemCssClass(IModel<T> rowModel) {
         return "btn btn-default btn-xs";
+    }
+
+    protected String getDropDownButtonIcon() {
+        return null;
+    }
+
+    protected String getSpecialButtonClass() {
+        return null;
     }
 }

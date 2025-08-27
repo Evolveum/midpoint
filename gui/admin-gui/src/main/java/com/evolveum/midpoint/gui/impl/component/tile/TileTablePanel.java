@@ -114,10 +114,13 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         setOutputMarkupId(true);
 
         Component panelForNoValue = createPanelForNoValue();
+        panelForNoValue.setOutputMarkupPlaceholderTag(true);
+        panelForNoValue.setOutputMarkupId(true);
         add(panelForNoValue);
 
         WebMarkupContainer tilesView = new WebMarkupContainer(ID_TILE_VIEW);
         tilesView.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
+        tilesView.setOutputMarkupPlaceholderTag(true);
         tilesView.setOutputMarkupId(true);
         add(tilesView);
 
@@ -128,6 +131,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         tilesContainer.add(new VisibleBehaviour(this::isTileViewVisible));
         tilesContainer.add(AttributeModifier.append("class", getTilesContainerAdditionalClass()));
         tilesContainer.add(AttributeModifier.append("role", getTilesContainerRole()));
+        tilesContainer.setOutputMarkupPlaceholderTag(true);
         tilesContainer.setOutputMarkupId(true);
         tilesView.add(tilesContainer);
 
@@ -193,6 +197,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
                 Component tile = createTile(ID_TILE, item.getModel());
                 tile.add(AttributeAppender.append("role", getTileRole()));
+                customizeTileItemCss(tile, item.getModelObject());
                 item.add(tile);
             }
 
@@ -201,6 +206,9 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
                 return List.of(createTileObject(object));
             }
         };
+    }
+
+    protected void customizeTileItemCss(Component tile, T item) {
     }
 
     protected String getTileRole() {
@@ -358,6 +366,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         } else {
             target.add(get(ID_TILE_VIEW));
         }
+
+        target.add(get(ID_NO_VALUE_PANEL));
     }
 
     public BoxedTablePanel<?> getTable() {
@@ -381,7 +391,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         fragment.setOutputMarkupId(true);
 
         WebMarkupContainer headerContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
-        headerContainer.add(AttributeModifier.append("class", getAdditionalHeaderContainerCssClasses()));
+        headerContainer.add(AttributeModifier.append("class", this::getAdditionalHeaderContainerCssClasses));
 
         Component header = createHeader(ID_PANEL_HEADER);
         header.add(AttributeAppender.append("class", getTilesHeaderCssClasses()));
@@ -430,11 +440,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     protected List<Component> createNoValueButtonToolbar(String id) {
-        if (isTableVisible()) {
-            return Collections.singletonList(createTableButtonToolbar(id));
-        }
-
-        return Collections.singletonList(createTilesButtonToolbar(id));
+        return Collections.singletonList(createToolbarButtons(id));
     }
 
     private void onSearchPerformed(AjaxRequestTarget target) {

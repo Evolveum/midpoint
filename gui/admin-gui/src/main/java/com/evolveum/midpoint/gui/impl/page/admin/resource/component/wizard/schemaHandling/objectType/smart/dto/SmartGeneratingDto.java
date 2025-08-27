@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
@@ -23,6 +25,9 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.buildStatusRows;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.formatElapsedTime;
+
 /**
  * DTO backing the SmartGeneratingPanel.
  * Holds start time, current suggestion statuses, and generates display rows.
@@ -31,18 +36,16 @@ public class SmartGeneratingDto implements Serializable {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private final IModel<String> elapsedTimeModel;
-    private final IModel<List<StatusRow>> statusRowsModel;
-    private final IModel<StatusInfo<?>> statusInfo;
+    private final LoadableModel<StatusInfo<?>> statusInfo;
     private final IModel<PrismObject<TaskType>> taskModel;
 
+    public SmartGeneratingDto() {
+        this(null, null);
+    }
+
     public SmartGeneratingDto(
-            IModel<String> elapsedTimeModel,
-            IModel<List<StatusRow>> statusRows,
-            IModel<StatusInfo<?>> statusInfo,
+            LoadableModel<StatusInfo<?>> statusInfo,
             IModel<PrismObject<TaskType>> taskModel) {
-        this.elapsedTimeModel = elapsedTimeModel;
-        this.statusRowsModel = statusRows;
         this.statusInfo = statusInfo;
         this.taskModel = taskModel;
     }
@@ -51,17 +54,25 @@ public class SmartGeneratingDto implements Serializable {
      * Elapsed time as a human-readable string, e.g., "12s elapsed".
      */
     public String getTimeElapsed() {
-        return elapsedTimeModel.getObject() != null
-                ? elapsedTimeModel.getObject()
-                : "0s elapsed";
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return "-";
+        }
+        return formatElapsedTime(statusInfo.getObject());
+    }
+
+    public LoadableModel<StatusInfo<?>> getStatusInfo() {
+        return statusInfo;
     }
 
     /**
      * Builds a list of status rows for display in the UI.
      * Each row has a label and a done/in-progress flag.
      */
-    public List<StatusRow> getStatusRows() {
-        return statusRowsModel.getObject();
+    public List<StatusRow> getStatusRows(PageBase pageBase) {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return List.of();
+        }
+        return buildStatusRows(pageBase, statusInfo.getObject());
     }
 
     /**

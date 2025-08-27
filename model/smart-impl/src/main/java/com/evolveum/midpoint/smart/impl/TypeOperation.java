@@ -92,7 +92,6 @@ class TypeOperation extends Operation {
      *
      * . when suggesting mappings to correlation-capable properties, LLM should take into account the information about
      * whether source attribute is unique or not
-     *
      */
     CorrelationSuggestionType suggestCorrelation() throws SchemaException {
         var correlators = KnownCorrelator.getAllFor(getFocusTypeDefinition().getCompileTimeClass());
@@ -105,6 +104,10 @@ class TypeOperation extends Operation {
             var correlationDefinition = new CorrelationDefinitionType()
                     .correlators(new CompositeCorrelatorType()
                             .items(new ItemsSubCorrelatorType()
+                                    .name("This is dummy name") //TODO replace with real implementation on service side
+                                    .displayName("Dummy display") //TODO replace with real implementation on service side
+                                    .description("This is dummy description (replace it with real implementation on service side)") //TODO replace with real implementation on service side
+                                    .enabled(false) // TODO replace with real implementation on service side
                                     .item(new CorrelationItemType()
                                             .ref(first.focusItemPath().toBean()))));
             AiUtil.markAsAiProvided(correlationDefinition);
@@ -166,7 +169,7 @@ class TypeOperation extends Operation {
         Collection<OwnedShadow> ownedShadows;
         try {
             ownedShadows = fetchOwnedShadows(shadowsCollectionState, result);
-        }  catch (Throwable t) {
+        } catch (Throwable t) {
             shadowsCollectionState.recordException(t);
             throw t;
         } finally {

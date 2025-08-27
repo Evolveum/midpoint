@@ -32,6 +32,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 
+import org.jetbrains.annotations.NotNull;
+
 /***
  * Contains method for creating and modifying new duplicated object.
  */
@@ -96,29 +98,7 @@ public class DuplicationProcessHelper {
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        C bean = resolveContainer(getRowModel());
-                        PrismContainerValue<C> container = bean.asPrismContainerValue();
-                        PrismContainerValue<C> duplicatedContainer;
-                        ContainerableDuplicateResolver<C> resolver =
-                                pageBase.getRegistry().findContainerableDuplicateResolver(
-                                        container.getDefinition(), resolveParentContainer(getRowModel()));
-                        if (resolver == null) {
-                            duplicatedContainer = duplicateContainerValueDefault(container);
-                        } else {
-                            C duplicatedBean = resolver.duplicateObject(bean, pageBase);
-                            if (duplicatedBean == null) {
-                                pageBase.error(LocalizationUtil.translate("DuplicationProcessHelper.errorMessage.duplicate"));
-                                return;
-                            }
-                            duplicatedContainer = duplicatedBean.asPrismContainerValue();
-                        }
-
-                        createDuplicatedItem.accept(duplicatedContainer, target);
-                    }
-                };
+                return createDuplicateColumnAction(pageBase, createDuplicatedItem);
             }
 
             @Override
@@ -131,6 +111,34 @@ public class DuplicationProcessHelper {
                 return false;
             }
         });
+    }
+
+    public static <C extends Containerable> @NotNull ColumnMenuAction<PrismContainerValueWrapper<C>> createDuplicateColumnAction(
+            PageBase pageBase,
+            SerializableBiConsumer<PrismContainerValue<C>, AjaxRequestTarget> createDuplicatedItem) {
+        return new ColumnMenuAction<>() {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                C bean = resolveContainer(getRowModel());
+                PrismContainerValue<C> container = bean.asPrismContainerValue();
+                PrismContainerValue<C> duplicatedContainer;
+                ContainerableDuplicateResolver<C> resolver =
+                        pageBase.getRegistry().findContainerableDuplicateResolver(
+                                container.getDefinition(), resolveParentContainer(getRowModel()));
+                if (resolver == null) {
+                    duplicatedContainer = duplicateContainerValueDefault(container);
+                } else {
+                    C duplicatedBean = resolver.duplicateObject(bean, pageBase);
+                    if (duplicatedBean == null) {
+                        pageBase.error(LocalizationUtil.translate("DuplicationProcessHelper.errorMessage.duplicate"));
+                        return;
+                    }
+                    duplicatedContainer = duplicatedBean.asPrismContainerValue();
+                }
+
+                createDuplicatedItem.accept(duplicatedContainer, target);
+            }
+        };
     }
 
     /**

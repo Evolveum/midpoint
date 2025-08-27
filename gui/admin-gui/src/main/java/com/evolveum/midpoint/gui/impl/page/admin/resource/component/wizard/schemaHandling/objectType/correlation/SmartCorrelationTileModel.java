@@ -6,9 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorCompositionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 
@@ -17,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadCorrelationTypeSuggestion;
 
 public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<ItemsSubCorrelatorType>> extends TemplateTile<T> {
 
@@ -27,14 +34,16 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
     Integer tier;
     String efficiency;
     Boolean enabled;
+
     String resourceOid;
+    String statusInfoToken;
 
     List<StateRecord> statesRecordList = new ArrayList<>();
 
     public record StateRecord(
-            @Nullable Double value, @Nullable String label) implements Serializable {
+            @Nullable String value, @Nullable String label) implements Serializable {
 
-        public Double getValue() {
+        public String getValue() {
             return value;
         }
 
@@ -43,14 +52,14 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         }
     }
 
-    public SmartCorrelationTileModel(T valueWrapper, String resourceOid, String efficiency) {
+    public SmartCorrelationTileModel(T valueWrapper, String resourceOid, String efficiency, String statusInfoToken) {
         super(valueWrapper);
         setValue(valueWrapper);
 
         ItemsSubCorrelatorType realValue = valueWrapper.getRealValue();
-        this.name = realValue.getName();
-        this.description = realValue.getDescription();
-        this.enabled = realValue.getEnabled();
+        this.name = realValue.getName() != null ? realValue.getName() : "-";
+        this.description = realValue.getDescription() != null ? realValue.getDescription() : "-";
+        this.enabled = realValue.getEnabled() != null ? realValue.getEnabled() : Boolean.FALSE;
 
         CorrelatorCompositionDefinitionType composition = realValue.getComposition();
         this.weight = composition.getWeight();
@@ -58,17 +67,24 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         this.efficiency = efficiency;
 
         this.resourceOid = resourceOid;
+        this.statusInfoToken = statusInfoToken;
 
         buildStateRecordList(efficiency);
     }
 
+    protected StatusInfo<CorrelationSuggestionType> getStatusInfo(PageBase pageBase, Task task, OperationResult result) {
+        if (statusInfoToken == null) {
+            return null;
+        }
+        return loadCorrelationTypeSuggestion(pageBase, statusInfoToken, resourceOid, task, result);
+    }
+
     private void buildStateRecordList(String efficiency) {
-        if (weight != null) {
-            statesRecordList.add(new StateRecord(weight, "Weight"));
-        }
-        if (tier != null) {
-            statesRecordList.add(new StateRecord((double) tier, "Tier"));
-        }
+        String weightLabel = (weight != null) ? weight.toString() : "-";
+        String tierLabel = (tier != null) ? tier.toString() : "-";
+        statesRecordList.add(new StateRecord(weightLabel, "Weight"));
+        statesRecordList.add(new StateRecord(tierLabel, "Tier"));
+
         if (efficiency != null) {
             statesRecordList.add(new StateRecord(null, "Efficiency: " + efficiency));
         }

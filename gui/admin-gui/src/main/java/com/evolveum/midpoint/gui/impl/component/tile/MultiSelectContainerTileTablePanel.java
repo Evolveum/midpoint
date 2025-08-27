@@ -29,7 +29,6 @@ public abstract class MultiSelectContainerTileTablePanel<E extends Serializable,
 
     private final IModel<List<PrismContainerValueWrapper<C>>> model;
 
-
     public MultiSelectContainerTileTablePanel(
             String id,
             UserProfileStorage.TableId tableId,
@@ -104,7 +103,7 @@ public abstract class MultiSelectContainerTileTablePanel<E extends Serializable,
         };
     }
 
-    protected IModel<List<PrismContainerValueWrapper<C>>> getListModel() {
+    protected IModel<List<PrismContainerValueWrapper<C>>> getMultiTableModel() {
         return model;
     }
 }

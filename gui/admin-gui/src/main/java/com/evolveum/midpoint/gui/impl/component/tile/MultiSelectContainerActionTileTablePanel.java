@@ -6,6 +6,29 @@
  */
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.*;
+
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
@@ -35,38 +58,14 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable>
+        extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, TemplateTile<PrismContainerValueWrapper<C>>> {
 
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Serializable, C extends Containerable>
-        extends MultiSelectContainerTileTablePanel<E, C> {
-
-    public MultiSelectContainerActionTileTablePanelOld(
+    public MultiSelectContainerActionTileTablePanel(
             String id,
             UserProfileStorage.TableId tableId,
-            IModel<ViewToggle> toggleView,
-            IModel<List<PrismContainerValueWrapper<C>>> model) {
-        super(id, tableId, toggleView, model);
+            IModel<ViewToggle> toggleView) {
+        super(id, toggleView, tableId);
     }
 
     private final IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
@@ -77,12 +76,19 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
         updateCssBasedValueStatus(value, item);
     }
 
+    @Override
+    protected MultivalueContainerListDataProvider<C> createProvider() {
+        return createDataProvider();
+    }
+
+    protected abstract MultivalueContainerListDataProvider<C> createDataProvider();
+
     private void updateCssBasedValueStatus(
             @NotNull PrismContainerValueWrapper<C> value,
             @NotNull Item<PrismContainerValueWrapper<C>> item) {
         switch (value.getStatus()) {
-            case ADDED -> item.add(AttributeModifier.append("class", "table-success"));
-            case DELETED -> item.add(AttributeModifier.append("class", "table-danger"));
+            case ADDED -> item.add(AttributeModifier.append("class", "border border-success"));
+            case DELETED -> item.add(AttributeModifier.append("class", "border border-danger"));
         }
     }
 
@@ -92,10 +98,11 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
         ViewToggle value = item.getObject().getValue();
         add(AttributeModifier.replace("class", Objects.equals(value, ViewToggle.TABLE) ? "card" : ""));
         super.togglePanelItemSelectPerformed(target, item);
+        refresh(target);
     }
 
     @Override
-    protected void customizeTileItemCss(Component tile, TemplateTile<PrismContainerValueWrapper<C>> item) {
+    protected void customizeTileItemCss(Component tile, @NotNull TemplateTile<PrismContainerValueWrapper<C>> item) {
         ValueStatus status = item.getValue().getStatus();
         switch (status) {
             case DELETED -> tile.add(AttributeModifier.replace("class", "card rounded h-100 bg-danger-light"));
@@ -156,17 +163,27 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
         return true;
     }
 
+    protected List<PrismContainerValueWrapper<C>> getMultiTableModel() {
+        MultivalueContainerListDataProvider<C> provider = (MultivalueContainerListDataProvider<C>) getProvider();
+        return provider.getModel().getObject();
+    }
+
+    @Override
+    public ISortableDataProvider<PrismContainerValueWrapper<C>, String> getProvider() {
+        return super.getProvider();
+    }
+
     private @NotNull IsolatedCheckBoxPanel createHeaderCheckBoxButton(String idButton) {
         IModel<Boolean> selectModel = new IModel<>() {
             @Override
             public Boolean getObject() {
-                List<PrismContainerValueWrapper<C>> all = getMultiTableModel().getObject();
+                List<PrismContainerValueWrapper<C>> all = getMultiTableModel();
                 return all != null && !all.isEmpty() && all.stream().allMatch(PrismContainerValueWrapper::isSelected);
             }
 
             @Override
             public void setObject(Boolean value) {
-                List<PrismContainerValueWrapper<C>> all = getMultiTableModel().getObject();
+                List<PrismContainerValueWrapper<C>> all = getMultiTableModel();
                 if (all != null) {
                     all.forEach(v -> v.setSelected(Boolean.TRUE.equals(value)));
                 }
@@ -176,13 +193,13 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
         IsolatedCheckBoxPanel selectCheckbox = new IsolatedCheckBoxPanel(idButton, selectModel) {
             @Override
             public void onUpdate(@NotNull AjaxRequestTarget target) {
-                target.add(MultiSelectContainerActionTileTablePanelOld.this);
+                target.add(MultiSelectContainerActionTileTablePanel.this);
                 refresh(target);
             }
         };
 
         selectCheckbox.setOutputMarkupId(true);
-        selectCheckbox.add(new VisibleBehaviour(() -> showCheckboxColumn() && !displayNoValuePanel()));
+        selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
         selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
         return selectCheckbox;
     }
@@ -229,7 +246,7 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
         inlineMenu.setOutputMarkupPlaceholderTag(true);
         inlineMenu.setOutputMarkupId(true);
         inlineMenu.add(AttributeAppender.append("class", "mr-2"));
-        inlineMenu.add(new VisibleBehaviour(() -> showCheckboxColumn() && !displayNoValuePanel()));
+        inlineMenu.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
         inlineMenu.setRenderBodyOnly(true);
         return inlineMenu;
     }
@@ -273,6 +290,8 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
         if (menuItems != null) {
             allItems.addAll(menuItems);
         }
+
+        allItems.add(createEditInlineMenu(tileModel));
         createDuplicateInlineMenu(allItems, tileModel);
         return allItems;
     }
@@ -377,7 +396,7 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
             }
             value.setSelected(false);
         });
-        refresh(target);
+        refreshAndDetach(target);
     }
 
     protected ButtonInlineMenuItem createEditInlineMenu(PrismContainerValueWrapper<C> tileModel) {
@@ -439,7 +458,7 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
         return new LoadableDetachableModel<>() {
             @Override
             protected List<PrismContainerValueWrapper<C>> load() {
-                List<PrismContainerValueWrapper<C>> all = getMultiTableModel().getObject();
+                List<PrismContainerValueWrapper<C>> all = getMultiTableModel();
                 if (all == null || all.isEmpty()) {
                     return List.of();
                 }
@@ -457,7 +476,6 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
     public List<InlineMenuItem> getDefaultMenuActions(PrismContainerValueWrapper<C> model) {
         List<InlineMenuItem> menuItems = new ArrayList<>();
         menuItems.add(createDeleteItemMenu(model));
-        menuItems.add(createEditInlineMenu(model));
         return menuItems;
     }
 
@@ -483,12 +501,12 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
 
                 @Override
                 protected String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
-                    return MultiSelectContainerActionTileTablePanelOld.this.getInlineMenuItemCssClass(rowModel);
+                    return MultiSelectContainerActionTileTablePanel.this.getInlineMenuItemCssClass(rowModel);
                 }
 
                 @Override
                 protected boolean isButtonMenuItemEnabled(IModel<PrismContainerValueWrapper<C>> rowModel) {
-                    return MultiSelectContainerActionTileTablePanelOld.this.isInlineMenuItemVisible(rowModel);
+                    return MultiSelectContainerActionTileTablePanel.this.isInlineMenuItemVisible(rowModel);
                 }
 
                 @Override
@@ -501,7 +519,7 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
         return null;
     }
 
-    private ToggleCheckBoxPanel createToggleSuggestionButton(String idButton) {
+    private @NotNull ToggleCheckBoxPanel createToggleSuggestionButton(String idButton) {
         ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton,
                 switchToggleModel) {
             @Override
@@ -514,13 +532,13 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
 
             @Override
             protected void onToggle(@NotNull AjaxRequestTarget target) {
-                refresh(target);
+                onToggleSwitchPerformed(target);
             }
 
             @Contract(pure = true)
             @Override
             public @NotNull String getContainerCssClass() {
-                return "d-flex flex-row-reverse align-items-center gap-1";
+                return "d-flex flex-row-reverse align-items-center gap-1  btn btn-default btn-sm";
             }
         };
         togglePanel.setOutputMarkupId(true);
@@ -554,4 +572,19 @@ public abstract class MultiSelectContainerActionTileTablePanelOld<E extends Seri
     protected IModel<Boolean> getSwitchToggleModel() {
         return switchToggleModel;
     }
+
+    public void refreshAndDetach(AjaxRequestTarget target) {
+        if (getProvider() instanceof MultivalueContainerListDataProvider<C> provider) {
+            provider.getModel().detach();
+        }
+        super.refresh(target);
+        target.add(this);
+        target.add(MultiSelectContainerActionTileTablePanel.this);
+    }
+
+
+    protected void onToggleSwitchPerformed(@NotNull AjaxRequestTarget target) {
+        refreshAndDetach(target);
+    }
+
 }

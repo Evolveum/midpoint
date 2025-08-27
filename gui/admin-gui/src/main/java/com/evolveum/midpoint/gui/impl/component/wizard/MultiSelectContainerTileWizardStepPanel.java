@@ -31,6 +31,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -114,7 +115,7 @@ public abstract class MultiSelectContainerTileWizardStepPanel<E extends Serializ
                     }
 
                     @Override
-                    protected void customizeNewRowItem(PrismContainerValueWrapper<C> value) {
+                    protected void customizeNewRowItem(PrismContainerValueWrapper<C> value, Item<PrismContainerValueWrapper<C>> item) {
                         MultiSelectContainerTileWizardStepPanel.this.customizeRow(value);
                     }
 

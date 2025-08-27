@@ -82,6 +82,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         bodyContainer.add(new AbstractAjaxTimerBehavior(getRefreshInterval()) {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
+                getModelObject().getStatusInfo().reset();
                 SmartGeneratingDto dto = getModelObject();
                 if (dto == null) {
                     stop(target);
@@ -172,7 +173,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     /** Null-safe accessor for rows. */
     private List<SmartGeneratingDto.StatusRow> getSafeRows() {
         SmartGeneratingDto dto = getModelObject();
-        return dto != null ? dto.getStatusRows() : Collections.emptyList();
+        return dto != null ? dto.getStatusRows(getPageBase()) : Collections.emptyList();
     }
 
     /** Polling interval; override if you want a different cadence. */

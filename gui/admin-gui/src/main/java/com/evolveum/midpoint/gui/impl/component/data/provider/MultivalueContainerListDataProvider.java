@@ -171,4 +171,9 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
         super.clearCache();
         model.detach();
     }
+
+    public IModel<List<PrismContainerValueWrapper<C>>> getModel() {
+        return model;
+    }
+
 }

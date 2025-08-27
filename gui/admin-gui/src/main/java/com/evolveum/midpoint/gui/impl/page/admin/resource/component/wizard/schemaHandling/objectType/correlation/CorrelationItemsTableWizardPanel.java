@@ -6,16 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -24,16 +26,14 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
@@ -65,26 +65,30 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         initLayout();
     }
 
-    @Contract(pure = true)
-    private @NotNull LoadableModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> getItemsSubCorrelatorTypes() {
-        return new LoadableModel<>() {
-            @Override
-            protected List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> load() {
-                try {
-                    PrismContainerValueWrapper<CorrelationDefinitionType> object = getValueModel().getObject();
-                    if (object == null) {
-                        return List.of();
-                    }
-                    PrismContainerWrapper<ItemsSubCorrelatorType> container = object.findContainer(
-                            ItemPath.create(
-                                    CorrelationDefinitionType.F_CORRELATORS,
-                                    CompositeCorrelatorType.F_ITEMS));
-                    return container.getValues();
-                } catch (SchemaException e) {
-                    throw new RuntimeException("Error while loading items sub-correlator types", e);
-                }
-            }
-        };
+    public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel(
+            IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model, ItemPath path) {
+        return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
+    }
+
+    public PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewItemContainerValueWrapper(
+            PrismContainerValue<ItemsSubCorrelatorType> newItem,
+            PrismContainerWrapper<ItemsSubCorrelatorType> model, AjaxRequestTarget target) {
+
+        return WebPrismUtil.createNewValueWrapper(model, newItem, getPageBase(), target);
+    }
+
+    protected PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewValue(PrismContainerValue<ItemsSubCorrelatorType> value, AjaxRequestTarget target) {
+        IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model = getValueModel();
+        IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createContainerModel(model, ItemPath.create(
+                CorrelationDefinitionType.F_CORRELATORS,
+                CompositeCorrelatorType.F_ITEMS));
+        PrismContainerWrapper<ItemsSubCorrelatorType> container = containerModel.getObject();
+
+        PrismContainerValue<ItemsSubCorrelatorType> newValue = value;
+        if (newValue == null) {
+            newValue = container.getItem().createNewValue();
+        }
+        return createNewItemContainerValueWrapper(newValue, container, target);
     }
 
     private void initLayout() {
@@ -92,26 +96,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         ResourceDetailsModel detailsModel = getHelper().getDetailsModel();
         ResourceType resource = detailsModel.getObjectType();
         String resourceOid = resource.getOid();
-        SmartCorrelationTable table = new SmartCorrelationTable(
-                ID_TABLE,
-                TABLE_SMART_CORRELATION,
-                Model.of(ViewToggle.TILE),
-                getItemsSubCorrelatorTypes(),
-                resourceOid);
-        table.setOutputMarkupId(true);
-        add(table);
 
-        CorrelationItemsTable table2 = new CorrelationItemsTable("old", getValueModel(), getConfiguration()) {
-            @Override
-            public void editItemPerformed(
-                    AjaxRequestTarget target,
-                    IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
-                    List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> listItems) {
-                showTableForItemRefs(target, rowModel);
-            }
-        };
-        table2.setOutputMarkupId(true);
-        add(table2);
+        SmartCorrelationTable table = createCorrelationTable(resourceOid);
+        add(table);
 
         Label info = new Label(
                 ID_NOT_SHOWN_CONTAINER_INFO,
@@ -121,7 +108,53 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         add(info);
     }
 
-    private Boolean isNotShownContainerInfo() {
+    private @NotNull SmartCorrelationTable createCorrelationTable(String resourceOid) {
+        SmartCorrelationTable table = new SmartCorrelationTable(
+                ID_TABLE,
+                TABLE_SMART_CORRELATION,
+                Model.of(ViewToggle.TILE),
+                getValueModel().getObject(),
+                resourceOid) {
+
+            @Override
+            protected MultivalueContainerListDataProvider<ItemsSubCorrelatorType> createProvider() {
+                return super.createProvider();
+            }
+
+            @Override
+            public void editItemPerformed(
+                    AjaxRequestTarget target,
+                    IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
+                    boolean isDuplicate) {
+                if (rowModel == null) {
+                    PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(null, target);
+                    showTableForItemRefs(target, () -> newValue);
+                    return;
+                }
+
+                if (isDuplicate && rowModel.getObject() != null) {
+                    PrismContainerValueWrapper<ItemsSubCorrelatorType> object = rowModel.getObject();
+                    PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(object.getNewValue(), target);
+                    showTableForItemRefs(target, () -> newValue);
+                }
+                showTableForItemRefs(target, rowModel);
+            }
+
+            @Override
+            protected void newItemPerformed(
+                    PrismContainerValue<ItemsSubCorrelatorType> value,
+                    AjaxRequestTarget target,
+                    AssignmentObjectRelation relationSpec,
+                    boolean isDuplicate) {
+                PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(value, target);
+                showTableForItemRefs(target, () -> newValue);
+            }
+        };
+        table.setOutputMarkupId(true);
+        return table;
+    }
+
+    private @NotNull Boolean isNotShownContainerInfo() {
         PrismContainerValueWrapper<CorrelationDefinitionType> objectType = getValueModel().getObject();
         if (objectType != null) {
             try {
@@ -183,7 +216,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     @Override
     protected boolean isValid(AjaxRequestTarget target) {
-        return false;
+        return true;
     }
 
     @Override

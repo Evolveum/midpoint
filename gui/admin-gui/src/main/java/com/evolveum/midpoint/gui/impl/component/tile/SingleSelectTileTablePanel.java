@@ -158,7 +158,7 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
 
             @Override
             protected Item customizeNewRowItem(Item<O> item, IModel<O> model) {
-                SingleSelectTileTablePanel.this.customizeNewRowItem(model.getObject());
+                SingleSelectTileTablePanel.this.customizeNewRowItem(model.getObject(), item);
 
                 if (!isClickableRow()) {
                     return item;
@@ -189,7 +189,7 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
         return table;
     }
 
-    protected void customizeNewRowItem(O value) {
+    protected void customizeNewRowItem(O value, Item<O> item) {
     }
 
     void onSelectTableRow(IModel<O> model, AjaxRequestTarget target) {
@@ -208,7 +208,7 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
         return "card-footer";
     }
 
-    protected boolean isClickableRow(){
+    protected boolean isClickableRow() {
         return true;
     }
 }

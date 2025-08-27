@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -34,11 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.buildStatusRows;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.formatElapsedTime;
 
 @PanelType(name = "rw-generating-suggestion-object-class")
 @PanelInstance(identifier = "rw-generating-suggestion-object-class",
@@ -80,17 +76,22 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
         return new SmartGeneratingPanel(id, () -> {
             Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
             OperationResult result = task.getResult();
-            StatusInfo<ObjectTypesSuggestionType> latest = loadObjectClassSuggestions();
+
+            LoadableModel<StatusInfo<?>> statusInfoModel = new LoadableModel<>() {
+                @Override
+                protected StatusInfo<?> load() {
+                    return loadObjectClassSuggestions();
+                }
+            };
+
+            StatusInfo<?> latest = statusInfoModel.getObject();
             if (latest == null) {
-                return new SmartGeneratingDto(() -> "N/A", Collections::emptyList,
-                        () -> null, () -> null);
+                return new SmartGeneratingDto();
             }
 
-            List<SmartGeneratingDto.StatusRow> rows = buildStatusRows(getPageBase(), latest);
-            String elapsed = formatElapsedTime(latest);
             String token = latest.getToken();
             PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, token, getPageBase(), task, result);
-            return new SmartGeneratingDto(() -> elapsed, () -> rows, () -> latest, () -> taskTypePrismObject);
+            return new SmartGeneratingDto(statusInfoModel, () -> taskTypePrismObject);
         }, true) {
             @Override
             protected void onFinishActionPerform(AjaxRequestTarget target) {
