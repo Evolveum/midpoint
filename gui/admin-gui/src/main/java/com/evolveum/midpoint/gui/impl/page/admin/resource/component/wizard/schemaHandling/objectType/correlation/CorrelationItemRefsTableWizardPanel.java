@@ -6,11 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormCorrelationItemPanel;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -38,6 +47,7 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
 
     private static final String PANEL_TYPE = "rw-correlators";
 
+    private static final String ID_PANEL = "panel";
     private static final String ID_TABLE = "table";
 
     public CorrelationItemRefsTableWizardPanel(
@@ -52,7 +62,27 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
         initLayout();
     }
 
+    public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel(
+            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> model, ItemPath path) {
+        return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
+    }
+
     private void initLayout() {
+
+        IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel = getValueModel();
+
+        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+                .visibilityHandler((wrapper) -> ItemVisibility.AUTO)
+                .isRemoveButtonVisible(false)
+                .build();
+
+        valueModel.getObject().setExpanded(true);
+        VerticalFormCorrelationItemPanel panel =
+                new VerticalFormCorrelationItemPanel(ID_PANEL, valueModel, settings);
+        panel.setOutputMarkupId(true);
+        add(panel);
+        valueModel.getObject().getRealValue().asPrismContainerValue();
+
         CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getValueModel(), getConfiguration());
         table.setOutputMarkupId(true);
         add(table);
@@ -104,4 +134,5 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     protected String getPanelType() {
         return PANEL_TYPE;
     }
+
 }

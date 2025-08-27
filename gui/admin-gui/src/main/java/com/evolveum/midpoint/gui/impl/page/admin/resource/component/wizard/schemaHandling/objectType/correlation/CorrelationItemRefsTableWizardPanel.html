@@ -10,16 +10,37 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="card col-8 mx-auto p-0">
-        <div class="card-header">
-                <span>
-                    <i class="fa fa-bars-progress"/>
-                    <span class="pl-1">
-                    <wicket:message key="CorrelationItemRefsTableWizardPanel.headerLabel"/>
-                </span>
-                </span>
+    <div class="container-fluid px-0">
+        <div class="d-flex flex-row g-3 align-items-start">
+            <div class="col-12 col-lg-3">
+
+                <div class="card p-0 h-100">
+                    <div class="card-header">
+                        <span>
+                            <i class="fa-solid fa-gear"></i>
+                            <span class="pl-1">
+                                <wicket:message key="CorrelationItemRefsTableWizardPanel.ruleSettings"/>
+                            </span>
+                        </span>
+                    </div>
+                    <div wicket:id="panel" class="h-100"></div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-9">
+                <div class="card p-0 h-100">
+                    <div class="card-header">
+                        <span>
+                            <i class="fa fa-bars-progress"></i>
+                            <span class="pl-1">
+                                <wicket:message key="CorrelationItemRefsTableWizardPanel.headerLabel"/>
+                            </span>
+                        </span>
+                    </div>
+                    <div class="card-body p-0" wicket:id="table"></div>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-0" wicket:id="table"/>
     </div>
 </wicket:extend>
 </body>

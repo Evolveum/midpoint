@@ -262,6 +262,27 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         return new VerticalFormPrismContainerPanel<>("container", (IModel) wrapperModel, settings) {
 
             @Override
+            protected boolean isHeaderVisible() {
+                return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainerHeader(wrapperModel.getObject());
+            }
+
+            @Override
+            protected String getCssClassForFormContainer() {
+                if(getCssClassForFormSubContainer() != null){
+                    return getCssClassForFormSubContainer();
+                }
+                return super.getCssClassForFormContainer();
+            }
+
+            @Override
+            protected String getCssClassForFormContainerOfValuePanel() {
+                if(getCssClassForFormSubContainerOfValuePanel() != null){
+                    return getCssClassForFormSubContainerOfValuePanel();
+                }
+                return super.getCssClassForFormContainerOfValuePanel();
+            }
+
+            @Override
             protected IModel<String> getTitleModel() {
                 VirtualContainersSpecificationType containerConfig = getConfigurationForVirtualContainer();
                 if (containerConfig != null
@@ -290,5 +311,15 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainer(c);
             }
         };
+    }
+
+    protected boolean isVisibleSubContainerHeader(PrismContainerWrapper<? extends Containerable> c) {return true;}
+
+    protected String getCssClassForFormSubContainer() {
+        return null;
+    }
+
+    protected String getCssClassForFormSubContainerOfValuePanel() {
+        return null;
     }
 }
