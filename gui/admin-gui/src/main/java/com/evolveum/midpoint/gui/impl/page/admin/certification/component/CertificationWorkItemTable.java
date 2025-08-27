@@ -255,7 +255,7 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
             principal = getPageBase().getPrincipal();
         }
         if (StringUtils.isNotEmpty(getCampaignOid())) {
-            query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(getCampaignOid()),
+            return QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(getCampaignOid()),
                     principal, false);
             //todo change to this query later to avoid duplicated filters
 //            query = getPageBase().getPrismContext().queryFor(AccessCertificationWorkItemType.class)
