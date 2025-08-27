@@ -105,6 +105,12 @@ public interface SmartIntegrationService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 
+    /** Suggests a discrete focus type for the application (resource) object type which is not yet defined in the resource. */
+    FocusTypeSuggestionType suggestFocusType(
+            String resourceOid, ResourceObjectTypeDefinitionType typeDefBean, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
+
     /**
      * Suggests correlation rules for the given resource object type and focus type.
      * The method returns the correlation rules along with any missing mappings that are needed for the rules to work.

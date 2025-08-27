@@ -288,7 +288,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("lisa")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Lisa Simpson")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_987")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "ADM_987")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "lisa.eng@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
@@ -328,7 +328,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("quinn")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Quinn Fabray")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "int.753")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "INT.753")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "quinn.ro@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "intern")
@@ -352,7 +352,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Engineering")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=alex\\,OU=Employees\\,DC=evolveum\\,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=alex\\,OU=Employees,DC=evolveum,DC=com");
 
         c.addAccount("brenda")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Brenda Starr")
@@ -415,7 +415,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Sales")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=henry,OU=Contractors,OU=IT,DC=evolveum,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=henry,OU=Contractors,OU=IT,OU=Contractors,OU=IT,DC=evolveum,DC=com");
 
         c.addAccount("isabel")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Isabel Archer")
@@ -986,19 +986,18 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         for (var attribute : statistics.getAttribute()) {
             if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
                 assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(4);
-                Map<String, Integer> valueCounts = attribute.getValuePatternCount().stream()
-                        .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
-                assertThat(valueCounts).containsEntry("svc", 1);
-                assertThat(valueCounts).containsEntry("usr", 1);
-                assertThat(valueCounts).containsEntry("adm", 10);
-                assertThat(valueCounts).containsEntry("int", 6);
+                assertThat(attribute.getValuePatternCount().size()).isEqualTo(9);
+                for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
+                    assertThat(patternCount.getValue()).isNotEmpty();
+                    assertThat(patternCount.getType()).isNotNull();
+                    assertThat(patternCount.getCount()).isGreaterThanOrEqualTo(1);
+                }
             }
         }
     }
 
     @Test
-    public void test240ComputeOUFieldStatistics() throws Exception {
+    public void test240ComputeDNattributeStatistics() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -1015,12 +1014,15 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var dnAttribute = statistics.getAttribute().stream()
                 .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.DN.q())))
                 .findFirst().orElseThrow();
-        assertThat(dnAttribute.getValueCount()).isNotEmpty();
-        assertThat(dnAttribute.getValueCount().size()).isEqualTo(4);
-        Map<String, Integer> valueCounts = dnAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
-        for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
-            assertThat(entry.getKey().startsWith("ou="));
+        assertThat(dnAttribute.getValuePatternCount()).isNotEmpty();
+        assertThat(dnAttribute.getValuePatternCount().size()).isEqualTo(4);
+        for (ShadowAttributeValuePatternCountType entry : dnAttribute.getValuePatternCount()) {
+            assertThat(entry.getValue()).isNotEmpty();
+            assertThat(entry.getValue()).startsWithIgnoringCase("ou=");
+            assertThat(entry.getValue()).doesNotStartWithIgnoringCase("cn=");
+            assertThat(entry.getCount()).isGreaterThanOrEqualTo(1);
+            assertThat(entry.getType()).isNotNull();
+            assertThat(entry.getType()).isEqualTo(ShadowValuePatternType.DN_SUFFIX);
         }
     }
 

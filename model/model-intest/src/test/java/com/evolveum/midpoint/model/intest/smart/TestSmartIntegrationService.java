@@ -143,7 +143,9 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                             new SiSuggestObjectTypesResponseType()
                                     .objectType(new SiSuggestedObjectTypeType()
                                             .kind("account")
-                                            .intent("default"))));
+                                            .intent("default")
+                                            .displayName("Default Account")
+                                            .description("Catch-all rule for ri:account objects with no specific attribute values available."))));
         }
 
         var task = getTestTask();
@@ -151,7 +153,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest object types' operation request");
         var token = smartIntegrationService.submitSuggestObjectTypesOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -172,6 +174,8 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                     assertAiProvidedMarkPresent(o,
                             ResourceObjectTypeDefinitionType.F_KIND,
                             ResourceObjectTypeDefinitionType.F_INTENT,
+                            ResourceObjectTypeDefinitionType.F_DISPLAY_NAME,
+                            ResourceObjectTypeDefinitionType.F_DESCRIPTION,
                             ResourceObjectTypeDefinitionType.F_DELINEATION.append(ResourceObjectTypeDelineationType.F_FILTER));
                     assertAiProvidedMarkAbsent(o,
                             ResourceObjectTypeDefinitionType.F_DELINEATION.append(ResourceObjectTypeDelineationType.F_OBJECT_CLASS));

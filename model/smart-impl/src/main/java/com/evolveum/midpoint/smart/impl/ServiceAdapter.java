@@ -124,12 +124,20 @@ class ServiceAdapter {
                                 siObjectType, SiSuggestObjectTypesResponseType.F_OBJECT_TYPE));
                 continue;
             }
+            var displayName = siObjectType.getDisplayName();
+            var description = siObjectType.getDescription();
             var objectType = new ResourceObjectTypeDefinitionType()
                     .kind(typeId.getKind())
                     .intent(typeId.getIntent())
+                    .displayName(displayName)
+                    .description(description)
                     .delineation(delineation);
             AiUtil.markAsAiProvided(
-                    objectType, ResourceObjectTypeDefinitionType.F_KIND, ResourceObjectTypeDefinitionType.F_INTENT);
+                    objectType,
+                    ResourceObjectTypeDefinitionType.F_KIND,
+                    ResourceObjectTypeDefinitionType.F_INTENT,
+                    ResourceObjectTypeDefinitionType.F_DISPLAY_NAME,
+                    ResourceObjectTypeDefinitionType.F_DESCRIPTION);
             response.getObjectType().add(objectType);
         }
 
