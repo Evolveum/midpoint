@@ -10,20 +10,25 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 
+import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -53,6 +58,21 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     private static final String SUBTYPE_EMPLOYEE = "employee";
     private static final Object USER_JACK_TELEPHONE_NUMBER = "12345654321";
 
+    private static final TestObject<RoleType> ROLE_A =
+            TestObject.file(TEST_DIR, "role-a.xml", "1d954756-6e95-11f0-8ff0-0050568cc7f8");
+
+    private static final TestObject<RoleType> ROLE_B =
+            TestObject.file(TEST_DIR, "role-b.xml", "650dbd16-7818-11f0-b840-0050568cc7f8");
+
+    private static final DummyTestResource RESOURCE_DUMMY = new DummyTestResource(
+            TEST_DIR,
+            "resource-dummy-10813.xml",
+            "d9c71b78-6d25-11f0-bff2-0050568cc7f8",
+            "resource-dummy-10813",
+            DummyResourceContoller::populateWithDefaultSchema);
+
+    private DummyResourceContoller dummyResourceCtl;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -64,6 +84,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(ROLE_PIT_BOSS_FILE, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        addObject(ROLE_A, initTask, initResult);
+        addObject(ROLE_B, initTask, initResult);
+
+        dummyResourceCtl = initDummyResource(RESOURCE_DUMMY, initTask, initResult);
     }
 
     @Override
@@ -316,4 +341,54 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertTelephoneNumber(userAfter, null);
     }
 
+    /**
+     * todo not finished yet
+     *
+     * MID-10813
+     */
+    @Test(enabled = false)
+    public void test200LifecycleArchived() throws Exception {
+        UserType userA = new UserType();
+        userA.setOid("64da8f2e-78b1-11f0-850f-0050568cc7f8");
+        userA.setName(PolyStringType.fromOrig("user-a"));
+        userA.setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
+        userA.beginAssignment()
+                .targetRef(ROLE_A.oid, RoleType.COMPLEX_TYPE);
+
+        testUserLifecycleChange(userA);
+
+        UserType userB = new UserType();
+        userB.setOid("ba1a9fb8-78b3-11f0-b929-0050568cc7f8");
+        userB.setName(PolyStringType.fromOrig("user-b"));
+        userB.setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
+        userA.beginAssignment()
+                .targetRef(ROLE_B.oid, RoleType.COMPLEX_TYPE);
+
+        testUserLifecycleChange(userB);
+    }
+
+    private void testUserLifecycleChange(UserType user) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given();
+
+        Assertions.assertThat(dummyResourceCtl.getDummyResource().listAccounts()).isEmpty();
+
+        addObject(user.asPrismObject(), task, result);
+
+        Assertions.assertThat(dummyResourceCtl.getDummyResource().listAccounts()).hasSize(1);
+
+        when();
+
+        ObjectDelta<UserType> deltaA = PrismTestUtil.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ARCHIVED)
+                .asObjectDelta(user.getOid());
+
+        executeChanges(deltaA, ModelExecuteOptions.create(), task, result);
+
+        then();
+
+        Assertions.assertThat(dummyResourceCtl.getDummyResource().listAccounts()).isEmpty();
+    }
 }
