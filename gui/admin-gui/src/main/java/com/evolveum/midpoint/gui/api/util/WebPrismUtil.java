@@ -700,4 +700,27 @@ public class WebPrismUtil {
         return numberOfSameRef;
     }
 
+    /**
+     * Set read-only all items in the container and its sub-containers.
+     * Force to use LabelPanelFactory for all items.
+     * @param wrapper container value to be set read-only
+     */
+    public static void setReadOnlyRecursively(@NotNull PrismContainerValueWrapper<?> wrapper) {
+        wrapper.getItems().forEach(item -> {
+            item.setReadOnly(true);
+            if (item instanceof PrismContainerWrapper<?> containerWrapper) {
+                setReadOnlyRecursively(containerWrapper);
+            }
+        });
+    }
+
+    /**
+     * Set read-only all items in the container and its sub-containers.
+     * Force to use LabelPanelFactory for all items.
+     * @param wrapper container to be set read-only
+     */
+    public static void setReadOnlyRecursively(@NotNull PrismContainerWrapper<?> wrapper) {
+        wrapper.getValues().forEach(WebPrismUtil::setReadOnlyRecursively);
+    }
+
 }
