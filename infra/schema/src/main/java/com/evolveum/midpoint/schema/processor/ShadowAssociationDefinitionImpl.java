@@ -407,8 +407,7 @@ public class ShadowAssociationDefinitionImpl
 
     @Override
     public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition<?>> clazz, boolean caseInsensitive) {
-        Preconditions.checkArgument(!caseInsensitive, "Case-insensitive search is not supported");
-        return QNameUtil.match(elementQName, getItemName())
+        return QNameUtil.match(elementQName, getItemName(), caseInsensitive)
                 && clazz.isInstance(this);
     }
 
