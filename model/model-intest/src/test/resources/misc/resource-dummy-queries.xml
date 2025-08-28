@@ -1,0 +1,75 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="8f82e457-6c6e-42d7-a433-1a346b1899ee">
+
+    <name>Dummy</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>resource-dummy</icfi:instanceId>
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
+            <correlation>
+                <correlators>
+                    <items>
+                        <item>
+                            <ref>name</ref>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+</resource>
