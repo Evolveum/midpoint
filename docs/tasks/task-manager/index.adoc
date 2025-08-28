@@ -284,14 +284,14 @@ For tasks with no threads allocated when their node goes down (loosely bound rec
 These tasks simply wait until their next start time comes. See also <<misfire-action,misfire action>>.
 
 .Task behavior on resume
-[INFO]
+[NOTE]
 ====
 When you resume (i.e., restart) a scheduled recurring task after it has been interrupted, it starts immediately.
 
 If you have your *task segmented to buckets* using
-`<distribution><buckets><oidSegmentation /></buckets></segmentation>`, for instance,
+`<distribution><buckets>…</buckets></segmentation>`, for instance,
 the task *resumes on the bucket boundary*, meaning it starts with the first not-yet-processed bucket.
-If the task failed to process all buckets during the previous run,
+If the task failed to process all the buckets during the previous run,
 it continues with the buckets it has not touched yet.
 It does not reprocess the buckets already processed during the last run.
 
