@@ -5,7 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.activity.policy;
+package com.evolveum.midpoint.repo.common.activity.definition;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTailoringType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType
 
 public class ActivityPoliciesDefinition {
 
-    private final ActivityPoliciesType bean;
+    @NotNull private ActivityPoliciesType bean;
 
     public ActivityPoliciesDefinition(ActivityPoliciesType bean) {
         this.bean = bean;
@@ -44,5 +46,13 @@ public class ActivityPoliciesDefinition {
 
     public ActivityPoliciesType getPolicies() {
         return bean;
+    }
+
+    void applyChangeTailoring(ActivityTailoringType tailoring) {
+        if (tailoring.getReporting() != null) {
+            bean = TailoringUtil.getTailoredBean(bean, tailoring.getPolicies());
+        } else {
+            // null means we do not want it to change.
+        }
     }
 }

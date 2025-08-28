@@ -2875,8 +2875,40 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="policies" type="tns:ActivityPoliciesDefinitionTailoringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policies specific for this activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPoliciesDefinitionTailoringType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ActivityPoliciesType">
+                <xsd:sequence>
+                    <xsd:element name="tailoringMode" type="tns:TailoringModeType" minOccurs="0" default="overwrite">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How the tailoring is applied.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ActivityControlFlowDefinitionTailoringType">
