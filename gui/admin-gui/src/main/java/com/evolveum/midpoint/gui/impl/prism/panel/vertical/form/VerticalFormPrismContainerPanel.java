@@ -151,7 +151,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     }
 
     protected String getCssClassForFormContainer() {
-        return "card m-0";
+        return null;
     }
 
     protected String getCssClassForFormContainerOfValuePanel() {
