@@ -34,7 +34,7 @@ public class TestQueries extends AbstractEmptyModelIntegrationTest {
 
     private static final DummyTestResource RESOURCE_DUMMY = new DummyTestResource(
             TEST_DIR,
-            "dummy.xml",
+            "resource-dummy-queries.xml",
             "8f82e457-6c6e-42d7-a433-1a346b1899ee",
             "resource-dummy",
             TestQueries::populateWithSchema);
