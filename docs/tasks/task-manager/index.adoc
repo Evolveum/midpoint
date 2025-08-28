@@ -124,7 +124,7 @@ _Business states are to be covered in the Documentation in more detail._
         After the approval is obtained and the operation is executed, the task finishes and is closed.
     ** Single-run tasks may start
         either immediately after you create them
-        or according to a defined schedule. 
+        or according to a defined schedule.
 * Other tasks have to be repeated.
     Such tasks are *recurring*.
     ** Examples of recurring tasks include live synchronization (scheduled to run, e.g., every 5 seconds)
@@ -282,6 +282,23 @@ The restart and reschedule options make the task resilient, the suspend and clos
 
 For tasks with no threads allocated when their node goes down (loosely bound recurring tasks and scheduled single-run tasks), the `threadStopAction` attribute has no effect.
 These tasks simply wait until their next start time comes. See also <<misfire-action,misfire action>>.
+
+.Task behavior on resume
+[NOTE]
+====
+When you resume (i.e., restart) a scheduled recurring task after it has been interrupted, it starts immediately.
+
+If you have your *task segmented to buckets* using
+`<distribution><buckets>…</buckets></segmentation>`, for instance,
+the task *resumes on the bucket boundary*, meaning it starts with the first not-yet-processed bucket.
+If the task failed to process all the buckets during the previous run,
+it continues with the buckets it has not touched yet.
+It does not reprocess the buckets already processed during the last run.
+
+Conversely, if you do not segment the task,
+the work is in one large bucket.
+On task resume, if the task has not finished processing the bucket previously, it starts all over again.
+====
 
 === Is It OK to Make Tasks Non-resilient?
 
