@@ -230,10 +230,13 @@ This is now the only account type that midPoint can work with. -->
             <displayName>Default Account</displayName>
 
             <default>true</default>
-            <!-- Reference to the Resource Schema specifying
-      object class for this account type -->
 
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/ri:description = 'abc'</q:text>
+                </filter>
+            </delineation>
 
             <!-- Definition of __NAME__ attribute handling.
      ICF will put entry DN into __NAME__ attribute.-->

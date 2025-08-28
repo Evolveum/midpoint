@@ -138,14 +138,18 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
-            smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl(
-                            new SiSuggestObjectTypesResponseType()
-                                    .objectType(new SiSuggestedObjectTypeType()
-                                            .kind("account")
-                                            .intent("default")
-                                            .displayName("Default Account")
-                                            .description("Catch-all rule for ri:account objects with no specific attribute values available."))));
+            //noinspection resource
+            var serviceClient = new MockServiceClientImpl(
+                    new SiSuggestObjectTypesResponseType()
+                            .objectType(new SiSuggestedObjectTypeType()
+                                    .kind("account")
+                                    .intent("default")
+                                    .filter("attributes/ri:type = 'abc'")
+                                    .displayName("Default Account")
+                                    .description("Catch-all rule for ri:account objects with no specific attribute values available.")),
+                    new SiSuggestFocusTypeResponseType()
+                            .focusTypeName(UserType.COMPLEX_TYPE));
+            smartIntegrationService.setServiceClientSupplier(() -> serviceClient);
         }
 
         var task = getTestTask();
