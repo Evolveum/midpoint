@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -52,7 +53,7 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
     }
 
     private C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context)
-            throws ExpressionEvaluationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ExpressionSyntaxException, SecurityViolationException {
         C cachedCompiledScript = scriptCache.getCode(context.getExpressionProfile(), codeString);
         if (cachedCompiledScript != null) {
             return cachedCompiledScript;
@@ -61,7 +62,7 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
         C compiledScript;
         try {
             compiledScript = compileScript(codeString, context);
-        } catch (ExpressionEvaluationException | SecurityViolationException e) {
+        } catch (ExpressionEvaluationException | ExpressionSyntaxException | SecurityViolationException e) {
             throw e;
         } catch (Exception e) {
             throw new ExpressionEvaluationException(e.getMessage() + " while compiling " + context.getContextDescription(), e);
