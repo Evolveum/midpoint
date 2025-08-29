@@ -49,7 +49,7 @@ public class ActivityPoliciesDefinition {
     }
 
     void applyChangeTailoring(ActivityTailoringType tailoring) {
-        if (tailoring.getReporting() != null) {
+        if (tailoring.getPolicies() != null) {
             bean = TailoringUtil.getTailoredBean(bean, tailoring.getPolicies());
         } else {
             // null means we do not want it to change.

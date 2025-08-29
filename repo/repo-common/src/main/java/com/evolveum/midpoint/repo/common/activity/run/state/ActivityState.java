@@ -562,12 +562,15 @@ public abstract class ActivityState implements DebugDumpable {
                 .execute(result);
     }
 
-    public void markActivityRestarting(boolean restartCounters, @NotNull OperationResult result)
+    public void markActivityRestarting(@NotNull RestartActivityPolicyActionType action, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         ItemPath restartingPath = stateItemPath.append(ActivityStateType.F_RESTARTING);
 
         ActivityRestartingStateType restartingState = new ActivityRestartingStateType();
+
+        boolean restartCounters = BooleanUtils.isTrue(action.isRestartCounters());
+
         restartingState.setRestartCounters(restartCounters);
 
         beans.plainRepositoryService.modifyObjectDynamically(

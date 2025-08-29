@@ -349,10 +349,12 @@ public abstract class AbstractActivityRun<
             RestartActivityPolicyActionType action =
                     PolicyViolationContext.getPolicyAction(runResult.createTaskRunResult(), RestartActivityPolicyActionType.class);
 
-            boolean restartCounters = action != null && BooleanUtils.isTrue(action.isRestartCounters());
+            if (action == null) {
+                throw new ActivityRunException("Couldn't find restart activity action in the run result", FATAL_ERROR, PERMANENT_ERROR);
+            }
 
             try {
-                activityState.markActivityRestarting(restartCounters, result);
+                activityState.markActivityRestarting(action, result);
             } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
                 throw new ActivityRunException("Couldn't cleanup activity state before restart", FATAL_ERROR, PERMANENT_ERROR, e);
             }

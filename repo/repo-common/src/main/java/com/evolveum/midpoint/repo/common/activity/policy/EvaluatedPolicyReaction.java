@@ -107,6 +107,14 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        return "EvaluatedPolicyReaction{" +
+                "identifier=" + getReactionIdentifier() +
+                ", rule=" + rule.getName() + "(" + rule.getRuleIdentifier() + ")" +
+                '}';
+    }
+
     public EvaluatedActivityPolicyReactionType toPolicyReactionType() {
         EvaluatedActivityPolicyReactionType r = new EvaluatedActivityPolicyReactionType();
         r.setRef(getReactionIdentifier());
