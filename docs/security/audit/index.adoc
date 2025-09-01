@@ -507,14 +507,20 @@ If set to `true`, the printer will show the concrete item path for each item del
                         ItemPath path = changedItem != null ? changedItem.getItemPath() : ItemPath.EMPTY_PATH
 
                         DeltaPrinterOptions opts = new DeltaPrinterOptions()
-                                .showObjectDelta(true)
+                                // whether to show delta if search bar doesn't contain "Changed item path" value
+                                .showFullObjectDelta(true)
+                                // whether to show also change in subitems of the "Changed item path", e.g. if changed item path is assignment
+                                // whether to display deltas that contain changes for assignment/activation
                                 .showPartialDeltas(true)
 
                         opts.prettyPrinterOptions()
+                                // whether to show full object (with all attributes) or just the high level info (type, oid, name, etc.)
                                 .showFullAddObjectDelta(false)
                                 .showOperational(false)
-                                // or defaultUIIndentation() can be used
-                                .indentation(UserFriendlyPrettyPrinterOptions.DEFAULT_UI_INDENT)
+                                .defaultUIIndentation()
+                                // use localized names for items and types when available
+                                .locale(locale)
+                                .localizationService(localizationService)
 
                         result = []
                         for (var delta : input) {
