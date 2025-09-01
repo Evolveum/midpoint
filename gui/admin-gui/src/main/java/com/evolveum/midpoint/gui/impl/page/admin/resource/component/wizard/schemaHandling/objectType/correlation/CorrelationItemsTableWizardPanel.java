@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -72,13 +73,15 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     }
 
     public PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewItemContainerValueWrapper(
-            PrismContainerValue<ItemsSubCorrelatorType> newItem,
+            PageBase pageBase, PrismContainerValue<ItemsSubCorrelatorType> newItem,
             PrismContainerWrapper<ItemsSubCorrelatorType> model, AjaxRequestTarget target) {
 
-        return WebPrismUtil.createNewValueWrapper(model, newItem, getPageBase(), target);
+        return WebPrismUtil.createNewValueWrapper(model, newItem, pageBase, target);
     }
 
-    protected PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewValue(PrismContainerValue<ItemsSubCorrelatorType> value, AjaxRequestTarget target) {
+    protected PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewValue(
+            PageBase pageBase, PrismContainerValue<ItemsSubCorrelatorType> value,
+            AjaxRequestTarget target) {
         IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model = getValueModel();
         IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createContainerModel(model, ItemPath.create(
                 CorrelationDefinitionType.F_CORRELATORS,
@@ -89,7 +92,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         if (newValue == null) {
             newValue = container.getItem().createNewValue();
         }
-        return createNewItemContainerValueWrapper(newValue, container, target);
+        return createNewItemContainerValueWrapper(pageBase, newValue, container, target);
     }
 
     private void initLayout() {
@@ -128,16 +131,14 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
                     boolean isDuplicate) {
                 if (rowModel == null) {
-                    PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(null, target);
-                    newValue.getRealValue().setEnabled(false);
+                    PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(getPageBase(), null, target);
                     showTableForItemRefs(target, () -> newValue, null);
                     return;
                 }
 
                 if (isDuplicate && rowModel.getObject() != null) {
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> object = rowModel.getObject();
-                    PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(object.getNewValue(), target);
-                    newValue.getRealValue().setEnabled(false);
+                    PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(getPageBase(), object.getNewValue(), target);
                     showTableForItemRefs(target, () -> newValue, null);
                 }
 
@@ -167,7 +168,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     AssignmentObjectRelation relationSpec,
                     boolean isDuplicate,
                     StatusInfo<?> statusInfo) {
-                PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(value, target);
+                PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(getPageBase(), value, target);
                 showTableForItemRefs(target, () -> newValue, statusInfo);
             }
         };

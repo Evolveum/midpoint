@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -63,10 +63,14 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     private static final String ID_ALERT_DESCRIPTION = "descriptionAlert";
     private static final String ID_ALERT_BADGE = "badgeAlert";
 
+    IModel<StatusInfo<?>> statusInfoModel;
+
     public CorrelationItemRefsTableWizardPanel(
             String id,
-            WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> superHelper) {
+            WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> superHelper,
+            IModel<StatusInfo<?>> statusInfoModel) {
         super(id, superHelper);
+        this.statusInfoModel = statusInfoModel;
     }
 
     @Override
@@ -80,7 +84,7 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     private void initAlertInfoPanel() {
         WebMarkupContainer infoPanel = new WebMarkupContainer(ID_ALERT_CONTAINER);
         infoPanel.setOutputMarkupId(true);
-        infoPanel.add(new VisibleBehaviour(() -> getStatusInfo() != null));
+        infoPanel.add(new VisibleBehaviour(this::isSuggestionApplied));
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ALERT_ICON);
         icon.add(AttributeAppender.append("class", "fa fa-solid fa-wand-magic-sparkles text-purple"));
@@ -124,7 +128,7 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
                 .isRemoveButtonVisible(false)
                 .build();
 
-        if (getStatusInfo() != null) {
+        if (isSuggestionApplied()) {
             setReadOnlyRecursively(valueModel.getObject());
         }
 
@@ -137,7 +141,7 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
         CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getValueModel(), getConfiguration()) {
             @Override
             boolean isReadOnlyTable() {
-                return getStatusInfo() != null;
+                return isSuggestionApplied();
             }
         };
         table.setOutputMarkupId(true);
@@ -146,13 +150,24 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        performDiscard(target);
+        if (isSuggestionApplied()) {
+            acceptSuggestionPerformed(target, getValueModel());
+            return;
+        }
+
         onExitPerformed(target);
+    }
+
+    protected void acceptSuggestionPerformed(
+            @NotNull AjaxRequestTarget target,
+            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
     }
 
     @Override
     protected IModel<String> getSubmitLabelModel() {
-        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.accept");
+        return isSuggestionApplied()
+                ? getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.accept")
+                : getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.confirm");
     }
 
     @Override
@@ -185,7 +200,7 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
 
     @Override
     protected boolean isExitButtonVisible() {
-        return true;
+        return isSuggestionApplied();
     }
 
     protected String getPanelType() {
@@ -198,7 +213,11 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     }
 
     protected StatusInfo<?> getStatusInfo() {
-        return null;
+        return statusInfoModel.getObject();
+    }
+
+    protected boolean isSuggestionApplied() {
+        return getStatusInfo() != null;
     }
 
     @Override
@@ -220,14 +239,15 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     }
 
     protected boolean isDiscardButtonVisible() {
-        return getStatusInfo() != null;
+        return isSuggestionApplied();
     }
 
-    private void performDiscard(AjaxRequestTarget target) {
-        if (getStatusInfo() != null) {
+    protected void performDiscard(AjaxRequestTarget target) {
+        if (isSuggestionApplied()) {
             Task task = getPageBase().createSimpleTask("discardSuggestion");
             removeSuggestion(getPageBase(), getStatusInfo(), task, task.getResult());
         }
         target.add(this);
     }
+
 }

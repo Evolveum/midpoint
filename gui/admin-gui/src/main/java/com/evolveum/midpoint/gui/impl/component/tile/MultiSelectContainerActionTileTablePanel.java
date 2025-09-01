@@ -590,6 +590,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     @Override
+    protected String getTileCssStyle() {
+        return "min-height: 350px;";
+    }
+
+    @Override
     protected String getTileContainerCssClass() {
         return "row justify-content-left pt-2 ";
     }

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorTy
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -42,10 +43,15 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                         showChoiceFragment(target, createTablePanel());
                     }
                 };
-                showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), helper) {
+                showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), helper, () -> statusInfo) {
                     @Override
-                    protected StatusInfo<?> getStatusInfo() {
-                        return statusInfo;
+                    protected void acceptSuggestionPerformed(
+                            @NotNull AjaxRequestTarget target,
+                            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
+                        PrismContainerValueWrapper<ItemsSubCorrelatorType> object = valueModel.getObject();
+                        createNewValue(getPageBase(), object.getNewValue(), target);
+                        performDiscard(target);
+                        onExitPerformed(target);
                     }
                 });
             }

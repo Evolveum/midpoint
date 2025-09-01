@@ -23,16 +23,16 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 public abstract class StatusAwareDataProvider<C extends Containerable>
         extends MultivalueContainerListDataProvider<C> {
 
-    private final Map<C, StatusInfo<?>> suggestionByWrapper =
+    private final Map<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionByWrapper =
             new IdentityHashMap<>();
 
-    private final SerializableFunction<C, StatusInfo<?>> suggestionResolver;
+    private final SerializableFunction<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionResolver;
 
     public StatusAwareDataProvider(
             Component component,
             @NotNull IModel<Search<C>> search,
             IModel<List<PrismContainerValueWrapper<C>>> model,
-            SerializableFunction<C, StatusInfo<?>> suggestionResolver) {
+            SerializableFunction<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionResolver) {
 
         super(component, search, model);
         this.suggestionResolver = Objects.requireNonNull(suggestionResolver, "suggestionResolver must not be null");
@@ -40,10 +40,9 @@ public abstract class StatusAwareDataProvider<C extends Containerable>
 
     @Override
     protected void postProcessWrapper(@NotNull PrismContainerValueWrapper<C> valueWrapper) {
-        C real = valueWrapper.getRealValue();
-        StatusInfo<?> info = suggestionResolver.apply(real);
+        StatusInfo<?> info = suggestionResolver.apply(valueWrapper);
         if (info != null) {
-            suggestionByWrapper.put(valueWrapper.getRealValue(), info);
+            suggestionByWrapper.put(valueWrapper, info);
         }
     }
 
@@ -51,10 +50,12 @@ public abstract class StatusAwareDataProvider<C extends Containerable>
         return suggestionByWrapper.containsKey(wrapper.getRealValue());
     }
 
-    public StatusInfo<?> getSuggestionInfo(C value) {
+    public StatusInfo<?> getSuggestionInfo(PrismContainerValueWrapper<C> value) {
         Task task = getPageBase().createSimpleTask("Load correlation suggestion");
         StatusInfo<?> statusInfo = suggestionByWrapper.get(value);
-        return  loadCorrelationTypeSuggestion(getPageBase(), statusInfo.getToken(), getResourceOid(), task, task.getResult());
+        return statusInfo == null
+                ? null
+                : loadCorrelationTypeSuggestion(getPageBase(), statusInfo.getToken(), getResourceOid(), task, task.getResult());
     }
 
     protected abstract String getResourceOid();

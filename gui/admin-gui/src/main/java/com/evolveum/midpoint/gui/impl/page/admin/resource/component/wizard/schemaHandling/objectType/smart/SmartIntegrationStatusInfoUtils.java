@@ -147,7 +147,7 @@ public class SmartIntegrationStatusInfoUtils {
 
     public record CorrelationSuggestionProviderResult(
             @NotNull List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> wrappers,
-            @NotNull Map<ItemsSubCorrelatorType, StatusInfo<CorrelationSuggestionType>> suggestionByWrapper) {
+            @NotNull Map<PrismContainerValueWrapper<ItemsSubCorrelatorType>, StatusInfo<CorrelationSuggestionType>> suggestionByWrapper) {
 
     }
 
@@ -156,7 +156,7 @@ public class SmartIntegrationStatusInfoUtils {
             String resourceOid,
             Task task,
             OperationResult result) {
-        Map<ItemsSubCorrelatorType, StatusInfo<CorrelationSuggestionType>> suggestionByWrapper = new HashMap<>();
+        Map<PrismContainerValueWrapper<ItemsSubCorrelatorType>, StatusInfo<CorrelationSuggestionType>> suggestionByWrapper = new HashMap<>();
 
         try {
             List<StatusInfo<CorrelationSuggestionType>> suggestions =
@@ -218,7 +218,7 @@ public class SmartIntegrationStatusInfoUtils {
                             if (values != null && !values.isEmpty()) {
                                 for (PrismContainerValueWrapper<ItemsSubCorrelatorType> value : values) {
                                     valueWrappers.add(value);
-                                    suggestionByWrapper.put(value.getRealValue(), si);
+                                    suggestionByWrapper.put(value, si);
                                 }
                             }
 

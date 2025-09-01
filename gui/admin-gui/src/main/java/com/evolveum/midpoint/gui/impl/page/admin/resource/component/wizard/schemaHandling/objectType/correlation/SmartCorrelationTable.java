@@ -130,7 +130,7 @@ public class SmartCorrelationTable
     protected void customizeNewRowItem(PrismContainerValueWrapper<ItemsSubCorrelatorType> value, Item<PrismContainerValueWrapper<ItemsSubCorrelatorType>> item) {
         super.customizeNewRowItem(value, item);
 
-        StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(value.getRealValue());
+        StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(value);
         if (statusInfo != null && statusInfo.getStatus() != null) {
             item.add(AttributeModifier.append("class", SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).rowClass));
         }
@@ -140,7 +140,7 @@ public class SmartCorrelationTable
     protected void customizeTileItemCss(Component tile, @NotNull TemplateTile<PrismContainerValueWrapper<ItemsSubCorrelatorType>> item) {
         super.customizeTileItemCss(tile, item);
 
-        StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(item.getValue().getRealValue());
+        StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(item.getValue());
         if (statusInfo != null && statusInfo.getStatus() != null) {
             tile.add(AttributeModifier.replace("class", "card rounded h-100 "
                     + SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).tileClass));
@@ -150,7 +150,7 @@ public class SmartCorrelationTable
     @Override
     protected TemplateTile<PrismContainerValueWrapper<ItemsSubCorrelatorType>> createTileObject(
             @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> object) {
-        StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(object.getRealValue());
+        StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(object);
         return new SmartCorrelationTileModel<>(object, resourceOid, null, statusInfo != null ? statusInfo.getToken() : null);
     }
 
@@ -166,7 +166,7 @@ public class SmartCorrelationTable
 
             @Override
             protected void onFooterButtonClick(AjaxRequestTarget target) {
-                StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(value.getRealValue());
+                StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(value);
                 if (statusInfo != null) {
                     acceptItemPerformed(target, () -> value, statusInfo);
                     return;
@@ -197,7 +197,7 @@ public class SmartCorrelationTable
 
     @Override
     protected MultivalueContainerListDataProvider<ItemsSubCorrelatorType> createDataProvider() {
-        final Map<ItemsSubCorrelatorType, StatusInfo<CorrelationSuggestionType>> suggestionsIndex = new HashMap<>();
+        final Map<PrismContainerValueWrapper<ItemsSubCorrelatorType>, StatusInfo<CorrelationSuggestionType>> suggestionsIndex = new HashMap<>();
 
         LoadableDetachableModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> containerModel =
                 new LoadableDetachableModel<>() {
@@ -264,10 +264,11 @@ public class SmartCorrelationTable
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> cellItem,
                     String componentId,
                     IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
-                ItemsSubCorrelatorType realValue = rowModel.getObject().getRealValue();
-                StatusInfo<CorrelationSuggestionType> suggestionTypeStatusInfo = getStatusInfo(realValue);
+                PrismContainerValueWrapper<ItemsSubCorrelatorType> wrapper = rowModel.getObject();
+                StatusInfo<CorrelationSuggestionType> suggestionTypeStatusInfo = getStatusInfo(wrapper);
 
                 if (suggestionTypeStatusInfo != null) {
+                    ItemsSubCorrelatorType realValue = wrapper.getRealValue();
                     buildSuggestionNameColumnComponent(cellItem, componentId, suggestionTypeStatusInfo, realValue);
                     return;
                 }
@@ -327,7 +328,7 @@ public class SmartCorrelationTable
                 getPageBase()) {
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
-                StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(rowModel.getObject().getRealValue());
+                StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(rowModel.getObject());
                 if (statusInfo != null && statusInfo.getStatus() == OperationResultStatusType.SUCCESS) {
                     RepeatingView buttonsView = new RepeatingView(componentId);
                     AjaxIconButton acceptButton = createDiscardButton(buttonsView.newChildId(), rowModel);
@@ -417,7 +418,7 @@ public class SmartCorrelationTable
                 createStringResource("SmartCorrelationTilePanel.acceptButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(rowModel.getObject().getRealValue());
+                StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(rowModel.getObject());
                 acceptItemPerformed(target, rowModel, statusInfo);
             }
         };
@@ -468,7 +469,7 @@ public class SmartCorrelationTable
                     }
 
                     if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
-                        StatusInfo<CorrelationSuggestionType> suggestionStatus = getStatusInfo(wrapper.getRealValue());
+                        StatusInfo<CorrelationSuggestionType> suggestionStatus = getStatusInfo(wrapper);
                         return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.FATAL_ERROR;
                     }
 
@@ -485,7 +486,7 @@ public class SmartCorrelationTable
                     public void onClick(AjaxRequestTarget target) {
                         IModel<Serializable> rowModel = getRowModel();
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(valueWrapper.getRealValue());
+                            StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(valueWrapper);
                             HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
                                     getPageBase().getMainPopupBodyId(),
                                     statusInfo::getLocalizedMessage) {
@@ -542,7 +543,7 @@ public class SmartCorrelationTable
                     }
 
                     if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
-                        StatusInfo<CorrelationSuggestionType> suggestionStatus = getStatusInfo(wrapper.getRealValue());
+                        StatusInfo<CorrelationSuggestionType> suggestionStatus = getStatusInfo(wrapper);
                         return suggestionStatus != null && suggestionStatus.isExecuting();
                     }
 
@@ -562,7 +563,7 @@ public class SmartCorrelationTable
 
                         IModel<Serializable> rowModel = getRowModel();
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(valueWrapper.getRealValue());
+                            StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(valueWrapper);
                             SmartIntegrationUtils.suspendSuggestionTask(
                                     getPageBase(), statusInfo, task, result);
                         }
@@ -595,7 +596,7 @@ public class SmartCorrelationTable
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getRowModel() != null) {
-                            acceptItemPerformed(target, getRowModel(), getStatusInfo(getRowModel().getObject().getRealValue()));
+                            acceptItemPerformed(target, getRowModel(), getStatusInfo(getRowModel().getObject()));
                         }
                     }
                 };
@@ -651,7 +652,7 @@ public class SmartCorrelationTable
 
         Task task = getPageBase().createSimpleTask(OP_DELETE_CORRELATION_RULES);
         toDelete.forEach(value -> {
-            StatusInfo<CorrelationSuggestionType> status = getStatusInfo(value.getRealValue());
+            StatusInfo<CorrelationSuggestionType> status = getStatusInfo(value);
             if (status != null) {
                 removeSuggestion(getPageBase(), status, task, task.getResult());
 
@@ -709,7 +710,7 @@ public class SmartCorrelationTable
         item.setVisibilityChecker((rowModel, isHeader) -> {
             boolean present = false;
             if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
-                StatusInfo<CorrelationSuggestionType> suggestionStatus = getStatusInfo(wrapper.getRealValue());
+                StatusInfo<CorrelationSuggestionType> suggestionStatus = getStatusInfo(wrapper);
                 if (suggestionStatus == null || suggestionStatus.getStatus() != OperationResultStatusType.SUCCESS) {
                     return false;
                 }
@@ -724,11 +725,11 @@ public class SmartCorrelationTable
         return getPageBase().getSessionStorage().getResourceContentStorage(ShadowKindType.ACCOUNT);
     }
 
-    protected <C extends Containerable> StatusInfo<CorrelationSuggestionType> getStatusInfo(C value) {
+    protected <C extends Containerable> StatusInfo<CorrelationSuggestionType> getStatusInfo(PrismContainerValueWrapper<C> value) {
 
         if (getProvider() instanceof StatusAwareDataProvider<ItemsSubCorrelatorType> provider) {
             //noinspection unchecked
-            return (StatusInfo<CorrelationSuggestionType>) provider.getSuggestionInfo((ItemsSubCorrelatorType) value);
+            return (StatusInfo<CorrelationSuggestionType>) provider.getSuggestionInfo((PrismContainerValueWrapper<ItemsSubCorrelatorType>) value);
         }
         return null;
     }
