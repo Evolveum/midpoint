@@ -2,7 +2,7 @@
 midpoint-feature: dashboard
 doc-type: intro
 ---
-= Customizable Dashboards
+= Operational efficiency through customizable dashboards
 :page-wiki-name: Customizable Dashboards
 :page-wiki-id: 27361691
 :page-wiki-metadata-create-user: semancik
@@ -14,76 +14,88 @@ doc-type: intro
 :search-alias: "dashboards"
 :page-since: "4.0"
 :page-upkeep-status: green
-:page-upkeep-note: This was a "planned feature" test. I have quickly edited it to be a in present tense. But perhaps more edits are needed.
 
+Dashboards are a fundamental tool for efficient identity governance and administration in your organization.
+They provide centralized overview of critical metrics, enabling managers to monitor compliance, track operational efficiency, and respond to risks proactively.
+You can configure dashboards based on the metrics that are important for you and your stakeholders.
 
-== Description
+The key motivations for using dashboards:
 
-From the early days of midPoint there were two hardcoded dashboards: end-user home dashboard and administration dashboard.
-That was fine while midPoint was a simple IDM system.
-But now we are into identity governance, compliance, risk management support and other business-oriented aspects of identity.
-Whenever a "business" is involved there is a need for quick and clear presentation of data.
-Therefore, the old hardcoded dashboards are no longer adequate for the job.
+* Dashboards reduce operational overhead by automating data aggregation and presentation.
+* They help you spot potential risks more easily because they can highlight unwanted or non-compliant situations (e.g., users with accumulated high-risk access permissions)
+* You can configure as many different dashboards as you need for various roles who are interested in different metrics. For example, a security officer needs different data than the HR personnel.
+* You can customize dashboards to change their look and behavior: They can display custom data, have different colors, show warnings, and so on.
 
-== More Dashboards
+Dashboards can show the number of active employees, failed resources, suspended tasks, and so on.
+You can make dashboards much more powerful than that, though.
+When you set them up to use collection domains{empty}footnote:[
+A collection domain defines the context or parent set from which a collection is derived.
+For example, a collection of _non-compliant roles_ might have a domain of _all roles_.
+Using collection domains enables collections to compute percentages (e.g., _2% of all users are inactive_) and relative metrics (e.g., _10% of roles violate segregation-of-duties policies_).
+These metrics are critical for compliance reporting, as they quantify risks or deviations from policy.
+Based on the calculated ratios, policy rules can also trigger further actions, such as notifying managers about the need for remediation.
+]
+and connect them with xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] (see also xref:/midpoint/features/planned/object-collections-and-views/#new-policy-rules[]), you gain the ability to monitor xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[compliance] of your organization and xref:/midpoint/reference/misc/notifications/[receive warnings] that an action is needed to put the situation back in line with requirements.
 
-When it comes to data presentation, there is no single way how to do it right.
-Security officer will be interested in certain specific aspects of data, but that aspects make little sense for a business manager.
-And then data protection officer will need yet another way to present the data.
-Therefore, we need something that will be flexible and customizable.
-Such as customizable dashboards.
+== How dashboards help you stay compliant
 
-In the midPoint universe, dashboards are first-class citizens.
-Each deployment can have as many dashboards as needed, and they can contain custom "widgets" used to present interesting pieces of information.
-Simple widgets can present data from xref:/midpoint/reference/admin-gui/collections-views/[object collections], such as number of active employees, number of failed resources, suspended tasks and so.
-That is an elegant way to create _status dashboards_ showing status of important system components.
-But collections are much more powerful, especially the ability to define collection _domain_.
-Therefore, dynamic dashboards can be used for xref:/midpoint/features/planned/compliance/[compliance] purposes.
-Data protection dashboards may be set up.
-And so on.
+Here is a simplified architectural outline showing how dashboards can help you with compliance through policy rules and notifications:
 
-Dashboard widgets can be customized.
-Both their look&feel and behavior.
-They can display custom data, adapt colors to show warnings and so on.
+* Policy Rules → Object collections → Dashboards:
+    ** Policy rules define compliance criteria (e.g., _users must not have both finance and HR roles_).
+    ** Collections aggregate assignments violating these rules.
+    ** Dashboards display the results, often with thresholds for visual alerts (e.g., _red for critical violations_).
+* Notifications:
+    ** Thresholds in collections can trigger notifications (e.g., email alerts) when compliance metrics exceed acceptable limits.
 
-== Dashboards and Reports
+This architecture ensures compliance is a dynamic, actionable process integrated into your daily operations.
 
-Reports and dashboards are two almost independent things.
-Both work on the same data, but reports are static (printable) while dashboards are dynamic (interactive).
-But there is one use case when dashboards and reports work together: status reports.
+== What is the architecture behind dashboards
 
-System administrators often like to get regular mail summary of system operation during last 24 hours.
-But we already have a dashboard functionality for the same thing.
-And here in the midPoint land we simply hate to duplicate functionality.
-Therefore, there is a printable and mailable version of status dashboard.
-And that is exactly what status report is about.
-The report takes status dashboard configuration as an input.
-But instead of displaying dashboards in an interactive way it renders them in a stand-alone static way.
-Such as HTML table that can be delivered in regular mail message.
+Dashboards consist of widgets which do the actual job of showing you the data.
+One dashboard may contain multiple widgets, such as active, suspended, and archived user accounts in three separate widgets.
+Widgets are connected to xref:/midpoint/reference/admin-gui/collections-views/[object collections] from which they aggregate the data to show.
 
-== Object Collections and Policies
+An object collection contains a query to enumerate the objects counted in the dashboard widget.
+Those are, for instance, all employees who are on a long-term leave.
+An object collection may contain a `domain` clause defining a superset for the queried objects.
+This is useful if you want your dashboard to show, for example, what percentage of all employees (superset) is on a long-term leave (queried objects).
 
-Dashboards are meant to present data.
-But their integration with xref:/midpoint/reference/admin-gui/collections-views/[object collections] brings interesting possibilities.
-In midPoint 4.0 several objects were "promoted" to be able to contain assignments.
-Object collection was one of those.
-This means, that object collections can now contain policy rules.
-Which means that there may be policy rules that can trigger on the number of objects with specific characteristics.
-E.g. a policy rules may trigger if there are more than 5% resources that are down.
-Result of this policy rules can be displayed in the dashboard.
-But there may be more interesting configurations with more substantial effects.
-Please see xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules] for more details.
+Since dashboards serve for _showing_ data, they need to be accessible somewhere in the midPoint graphical user interface (GUI).
+When you create a dashboard, you need to add it to midPoint system configuration so that GUI users can find it under the icon:[tachometer-alt] *Dashboards* menu.
 
-== Configuration
+== Asynchronous dashboards and reports
 
-See xref:configuration/[] page for more details.
+xref:/midpoint/reference/misc/reports/[Reports] and dashboards are separate but related features.
+They both show data enumerated by object collections,
+but unlike interactive dashboards, reports are static (as in printable).
+
+However, they are used together in a xref:/midpoint/features/synergy/[synergy] in two use cases:
+Asynchronously updated dashboards and static reports created from regular dashboards.
+
+=== Asynchronous dashboards
+
+When you define widgets in a dashboard in the simplest possible way, they reference an object collection enumerating objects according to the collection query.
+Every time a user visits the dashboard, midPoint executes the query, does all the math, and shows the resulting numbers.
+This is fine as long as you do not have too many users and too many complex dashboards.
+
+The way to ease the system load caused by dashboards is to pre-compute the dashboard data once in a while instead of computing them on every load.
+That's what asynchronous dashboards are about.
+Aside the dashboard and object collection, you also define a xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] and make it "run" the dashboard in regular intervals using a scheduled xref:/midpoint/reference/misc/reports/configuration/report-task-definition/#export-report[report task] every, say, 24 hours.
+This way, you make the dashboard calculate the data for all the widgets in the dashboard on a frequency that is manageable for your systems.
+Unlike other reports, a dashboard report saves the resulting data in the widgets of the particular dashboard.
+
+=== Static reports created from dashboards
+
+System administrators often like to get a daily report with operational statistics.
+If the object collection they are interested in is defined for a dashboard already, they do not need to duplicate all the setup for their static report.
+A xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] can use the dashboard object as a configuration and periodically generate a static report with the same data overview as the dashboard presents.
+System administrators can then conveniently receive this report, for example, via e-mail in an HTML or CSV format.
 
 == See Also
 
 * xref:configuration/[]
-
-* xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
-
-* xref:/midpoint/features/planned/compliance/[Compliance]
-
-* xref:/midpoint/reference/schema/archetypes/[Archetypes]
+* xref:/midpoint/guides/dashboards-howto/[]
+* xref:/midpoint/reference/admin-gui/collections-views/[]
+* xref:/midpoint/features/planned/compliance/[]
+* xref:/midpoint/reference/schema/archetypes/[]
