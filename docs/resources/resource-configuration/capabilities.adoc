@@ -243,18 +243,28 @@ This capability cannot be disabled (for now).
 === Behavior Capability
 
 The `BehaviorCapabilityType` is a container for various behavior-related capabilities.
-Currently, it contains only one capability `lastLoginTimestamp`.
+Currently, it contains only the `lastLoginTimestamp` capability.
 
 ==== Last Login Timestamp Capability
 
-As name suggest, last login timestamp provides timestamp of last login for specific object on resource, most often account.
-This capability is natively recognized by midPoint if the resource object has attribute with name `\_LAST_LOGIN_DATE_` attribute (`long`).
+With midPoint, you can access _last login timestamps_ for specific objects on resources.
 
-Last login timestamp capability can be also manually configured to point to different attribute using `attribute` element.
-If attribute is `string` type, then `format` element can be used to specify format of the timestamp.
-It also allows to specify whether such attribute should be listed or omitted in attributes via `ignoreAttribute` flag.
+This capability is typically used with accounts because knowing the time accounts have last been logged into, you can:
 
-.Example of configured last login timestamp capability
+* Identify inactive accounts for the purposes of reporting.
+* Manage inactive accounts that might otherwise pose a security risk or violate compliance policies.
+* Optimize license costs be revoking licenses from inactive accounts.
+
+TIP: Automate xref:/iam/iga/capabilities/access-request[requesting access] to enable users with revoked privileges to reclaim their permissions when they need them.
+
+MidPoint recognizes last login timestamps natively in resources that have the `\_LAST_LOGIN_DATE_` attribute (with the `long` data type).
+
+You can also manually configure the last login timestamp feature to point to a different attribute using the `attribute` element.
+If the attribute is of the `string` type, you can specify the timestamp format using the `format` element.
+
+To specify whether such an attribute should be listed or omitted in attributes, use the `ignoreAttribute` flag.
+
+.Example of the last login timestamp capability
 [source,xml]
 ----
 <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
