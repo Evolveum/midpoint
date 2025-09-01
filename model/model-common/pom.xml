@@ -138,6 +138,7 @@
         <dependency>
             <groupId>org.graalvm.polyglot</groupId>
             <artifactId>js-community</artifactId>
+            <scope>runtime</scope>
             <type>pom</type>
         </dependency>
 

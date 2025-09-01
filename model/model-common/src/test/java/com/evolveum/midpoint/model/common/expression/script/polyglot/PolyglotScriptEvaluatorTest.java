@@ -4,7 +4,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
@@ -75,19 +74,6 @@ public class PolyglotScriptEvaluatorTest {
         assertEquals(result, "42");
     }
 
-    private static class FakePolyglotScript implements PolyglotScript {
-        private final String result;
-
-        FakePolyglotScript(String result) {
-            this.result = result;
-        }
-
-        @Override
-        public Object evaluate(Map<String, Object> variables) {
-            return this.result;
-        }
-    }
-
     private static class FakeScriptPool implements PolyglotScriptPool {
 
         private final Source source;
@@ -104,14 +90,14 @@ public class PolyglotScriptEvaluatorTest {
         }
 
         @Override
-        public PolyglotScript pool() {
+        public PolyglotScript acquire() {
             // Normally, if the pool is drained, it would wait until some script will be available again. But in this
             // fake implementation, return the script immediately regardless of the pool state.
             return new FakePolyglotScript(this.source.getCharacters().toString());
         }
 
         @Override
-        public PolyglotScript pool(long timeoutMilliseconds) throws TimeoutException {
+        public PolyglotScript acquire(long timeoutMilliseconds) throws TimeoutException {
             if (this.simulateTimeout) {
                 // Simulate Interrupt caused by long waiting for an available script.
                 throw new TimeoutException("Timeout");
@@ -123,7 +109,7 @@ public class PolyglotScriptEvaluatorTest {
         }
 
         @Override
-        public void offer(PolyglotScript script) {
+        public void release(PolyglotScript script) {
 
         }
 

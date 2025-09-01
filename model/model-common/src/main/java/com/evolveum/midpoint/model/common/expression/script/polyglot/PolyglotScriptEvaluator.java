@@ -117,8 +117,10 @@ public final class PolyglotScriptEvaluator extends AbstractCachingScriptEvaluato
      * Evaluates a script present in the specified script pool and evaluation context.
      *
      * This method attempts to retrieve a script from the provided script pool with a timeout. If a timeout occurs,
-     * it attempts to create a new script if the pool has capacity. If no new script can be created, it retrieves a
-     * script without a timeout and evaluates it.
+     * it attempts to create a new script if the pool has capacity. If no new script can be created, it tries to
+     * retrieve a script again without a timeout and then evaluates it.
+     *
+     * Note that the script pool has its own internal timeout, which will prevent the thread from waiting indefinitely.
      *
      * @param scriptPool the pool of pre-compiled scripts to retrieve the script from
      * @param context the context providing additional information for script evaluation
@@ -129,14 +131,19 @@ public final class PolyglotScriptEvaluator extends AbstractCachingScriptEvaluato
     protected Object evaluateScript(PolyglotScriptPool scriptPool, ScriptExpressionEvaluationContext context)
             throws Exception {
         try {
-            final PolyglotScript script = scriptPool.pool(500);
+            final PolyglotScript script = scriptPool.acquire(500);
             return script.evaluate(Collections.emptyMap());
         } catch (TimeoutException e) {
             final Optional<PolyglotScript> scriptOptional =
                     scriptPool.createIfHasCapacity(PolyglotScriptEvaluator::parseScript);
-            return scriptOptional
-                    .map(script -> script.evaluate(Collections.emptyMap()))
-                    .orElseGet(() -> scriptPool.pool().evaluate(Collections.emptyMap()));
+            // We cannot use the `orElseGet` method from optional, because the `acquire` method throws a checked
+            // exception. Using the `isPresent` -> `get` pattern is in this case simpler than wrapping the exception.
+            if (scriptOptional.isPresent()) {
+                return scriptOptional
+                        .get()
+                        .evaluate(Collections.emptyMap());
+            }
+            return scriptPool.acquire().evaluate(Collections.emptyMap());
         }
     }
 
