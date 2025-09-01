@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeCorrelationStrategyMethod;
 
 public class CorrelationItemTypePanel extends BasePanel<List<CorrelationItemType>> implements Popupable {
 
@@ -119,8 +121,12 @@ public class CorrelationItemTypePanel extends BasePanel<List<CorrelationItemType
                 break;
             }
 
-            String path = correlationItemType.getRef().toString();
-            String strategy = "(todo)";
+            String path = correlationItemType.getRef() != null
+                    ? correlationItemType.getRef().toString()
+                    : "(no path)";
+
+            String strategy = computeCorrelationStrategyMethod(correlationItemType);
+
             correlationItemTypes.add(new CorrelationItemRecord(path, strategy, false));
             count++;
         }

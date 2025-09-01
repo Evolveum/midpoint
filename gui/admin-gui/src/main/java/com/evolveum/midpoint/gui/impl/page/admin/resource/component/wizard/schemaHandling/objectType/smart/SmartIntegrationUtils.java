@@ -400,4 +400,31 @@ public class SmartIntegrationUtils {
             LOGGER.error("Couldn't delete task {}: {}", token, e.getMessage(), e);
         }
     }
+
+    /**
+     * Compute the correlation strategy method based on the CorrelationItemType configuration.
+     * If no fuzzy search is defined, it defaults to "Exact".
+     *
+     * @param correlationItemType The CorrelationItemType to analyze.
+     * @return A string representing the correlation strategy method.
+     */
+    public static @NotNull String computeCorrelationStrategyMethod(@NotNull CorrelationItemType correlationItemType) {
+        String strategy = "(Exact)";
+
+        ItemSearchDefinitionType search = correlationItemType.getSearch();
+        if (search != null) {
+            FuzzySearchDefinitionType fuzzy = search.getFuzzy();
+            if (fuzzy != null) {
+                LevenshteinDistanceSearchDefinitionType lev = fuzzy.getLevenshtein();
+                TrigramSimilaritySearchDefinitionType sim = fuzzy.getSimilarity();
+
+                if (lev != null && lev.getThreshold() != null) {
+                    strategy = "(Levenshtein)";
+                } else if (sim != null && sim.getThreshold() != null) {
+                    strategy = "(Trigram)";
+                }
+            }
+        }
+        return strategy;
+    }
 }
