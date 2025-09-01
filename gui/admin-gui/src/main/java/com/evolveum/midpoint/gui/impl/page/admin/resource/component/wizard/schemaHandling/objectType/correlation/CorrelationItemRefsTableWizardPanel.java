@@ -6,25 +6,30 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormCorrelationItemPanel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +37,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
+
+import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 /**
  * @author lskublik
@@ -50,6 +57,12 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     private static final String ID_PANEL = "panel";
     private static final String ID_TABLE = "table";
 
+    private static final String ID_ALERT_CONTAINER = "containerAlert";
+    private static final String ID_ALERT_ICON = "iconAlert";
+    private static final String ID_ALERT_TITLE = "titleAlert";
+    private static final String ID_ALERT_DESCRIPTION = "descriptionAlert";
+    private static final String ID_ALERT_BADGE = "badgeAlert";
+
     public CorrelationItemRefsTableWizardPanel(
             String id,
             WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> superHelper) {
@@ -59,43 +72,87 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        initAlertInfoPanel();
         initLayout();
     }
 
-    public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel(
-            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> model, ItemPath path) {
-        return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
+    private void initAlertInfoPanel() {
+        WebMarkupContainer infoPanel = new WebMarkupContainer(ID_ALERT_CONTAINER);
+        infoPanel.setOutputMarkupId(true);
+        infoPanel.add(new VisibleBehaviour(() -> getStatusInfo() != null));
+
+        WebMarkupContainer icon = new WebMarkupContainer(ID_ALERT_ICON);
+        icon.add(AttributeAppender.append("class", "fa fa-solid fa-wand-magic-sparkles text-purple"));
+        infoPanel.add(icon);
+        infoPanel.add(new Label(ID_ALERT_TITLE,
+                createStringResource("CorrelationItemRefsTableWizardPanel.unconfirmed.suggestion")));
+        infoPanel.add(new Label(ID_ALERT_DESCRIPTION,
+                createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.description")));
+
+        BadgePanel badge = new BadgePanel(ID_ALERT_BADGE,
+                getAiEfficiencyBadgeModel(
+                        createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.efficiency", "?")
+                                .getString()));
+        badge.setOutputMarkupId(true);
+        infoPanel.add(badge);
+        add(infoPanel);
+    }
+
+    @Override
+    public boolean isEnabledInHierarchy() {
+        return super.isEnabledInHierarchy();
     }
 
     private void initLayout() {
-
         IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel = getValueModel();
 
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                .visibilityHandler((wrapper) -> ItemVisibility.AUTO)
+                .visibilityHandler((wrapper) -> {
+                    ItemName itemName = wrapper.getPath().lastName();
+                    return itemName.equivalent(ItemsSubCorrelatorType.F_DESCRIPTION)
+                            || itemName.equivalent(ItemsSubCorrelatorType.F_DISPLAY_NAME)
+                            || itemName.equivalent(ItemsSubCorrelatorType.F_NAME)
+                            || itemName.equivalent(ItemsSubCorrelatorType.F_ENABLED)
+                            || itemName.equivalent(ItemsSubCorrelatorType.F_COMPOSITION)
+                            || itemName.equivalent(CorrelatorCompositionDefinitionType.F_IGNORE_IF_MATCHED_BY)
+                            || itemName.equivalent(CorrelatorCompositionDefinitionType.F_TIER)
+                            || itemName.equivalent(CorrelatorCompositionDefinitionType.F_WEIGHT)
+                            ? ItemVisibility.AUTO
+                            : ItemVisibility.HIDDEN;
+                })
                 .isRemoveButtonVisible(false)
                 .build();
 
-        valueModel.getObject().setExpanded(true);
+        if (getStatusInfo() != null) {
+            setReadOnlyRecursively(valueModel.getObject());
+        }
+
         VerticalFormCorrelationItemPanel panel =
                 new VerticalFormCorrelationItemPanel(ID_PANEL, valueModel, settings);
         panel.setOutputMarkupId(true);
         add(panel);
         valueModel.getObject().getRealValue().asPrismContainerValue();
 
-        CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getValueModel(), getConfiguration());
+        CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getValueModel(), getConfiguration()) {
+            @Override
+            boolean isReadOnlyTable() {
+                return getStatusInfo() != null;
+            }
+        };
         table.setOutputMarkupId(true);
         add(table);
     }
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
+        performDiscard(target);
         onExitPerformed(target);
     }
 
     @Override
     protected IModel<String> getSubmitLabelModel() {
-        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.confirmSettings");
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.accept");
     }
 
     @Override
@@ -128,11 +185,49 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
 
     @Override
     protected boolean isExitButtonVisible() {
-        return false;
+        return true;
     }
 
     protected String getPanelType() {
         return PANEL_TYPE;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    protected StatusInfo<?> getStatusInfo() {
+        return null;
+    }
+
+    @Override
+    protected void addCustomButtons(@NotNull RepeatingView buttons) {
+        AjaxIconButton discardButton = new AjaxIconButton(
+                buttons.newChildId(),
+                Model.of("fa fa-trash"),
+                Model.of("Discard")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                performDiscard(target);
+                onExitPerformed(target);
+            }
+        };
+        discardButton.showTitleAsLabel(true);
+        discardButton.add(new VisibleBehaviour(this::isDiscardButtonVisible));
+        discardButton.add(AttributeAppender.append("class", "btn-link text-danger"));
+        buttons.add(discardButton);
+    }
+
+    protected boolean isDiscardButtonVisible() {
+        return getStatusInfo() != null;
+    }
+
+    private void performDiscard(AjaxRequestTarget target) {
+        if (getStatusInfo() != null) {
+            Task task = getPageBase().createSimpleTask("discardSuggestion");
+            removeSuggestion(getPageBase(), getStatusInfo(), task, task.getResult());
+        }
+        target.add(this);
+    }
 }

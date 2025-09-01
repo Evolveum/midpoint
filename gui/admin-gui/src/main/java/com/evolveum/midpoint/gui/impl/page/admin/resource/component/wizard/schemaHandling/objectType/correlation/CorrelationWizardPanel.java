@@ -7,22 +7,15 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-
-import java.util.Collection;
 
 /**
  * @author lskublik
@@ -41,7 +34,7 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
         return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
 
             @Override
-            protected void showTableForItemRefs(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
+            protected void showTableForItemRefs(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel, StatusInfo<?> statusInfo) {
                 WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderDetailsModel(), rowModel) {
                     @Override
                     public void onExitPerformed(AjaxRequestTarget target) {
@@ -49,7 +42,12 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                         showChoiceFragment(target, createTablePanel());
                     }
                 };
-                showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), helper));
+                showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), helper) {
+                    @Override
+                    protected StatusInfo<?> getStatusInfo() {
+                        return statusInfo;
+                    }
+                });
             }
         };
     }

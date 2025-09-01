@@ -327,7 +327,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     protected String getTilesFooterCssClasses() {
         return "pt-3";
     }
-
+    /** Be aware. Model need to be detached after remove operation. (Usually happens in tilePanelOperations) */
     public IModel<List<T>> getTilesModel() {
         PageableListView view = getTiles();
         return view.getModel();

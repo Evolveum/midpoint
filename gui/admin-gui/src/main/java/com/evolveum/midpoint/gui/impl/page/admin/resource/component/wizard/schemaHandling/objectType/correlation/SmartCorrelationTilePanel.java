@@ -39,6 +39,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -86,7 +87,6 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
     protected void onInitialize() {
         super.onInitialize();
         this.setOutputMarkupId(true);
-
 
         statusModel = new LoadableModel<>(true) {
             @Override
@@ -153,8 +153,14 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
     }
 
     private void initFooterLinkButton(@NotNull Fragment fragment) {
+        StatusInfo<?> statusInfo = statusModel.getObject();
+        StringResourceModel stringResource = createStringResource("SmartCorrelationTilePanel.editRuleLink");
+        if (statusInfo != null) {
+            stringResource = createStringResource("SmartCorrelationTilePanel.viewRuleLink");
+        }
+
         AjaxIconButton viewRuleLink = new AjaxIconButton(ID_VIEW_RULE_LINK, Model.of("fa fa-eye me-1"),
-                createStringResource("SmartCorrelationTilePanel.viewRuleLink")) {
+                stringResource) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onFooterButtonClick(target);
@@ -187,38 +193,13 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     private void initActionSuggestionButton(@NotNull Fragment fragment) {
         RepeatingView buttonsView = new RepeatingView(ID_STATE_PANEL);
-
-        AjaxIconButton discardButton = new AjaxIconButton(buttonsView.newChildId(), Model.of("fa fa-solid fa-x"),
-                createStringResource("SmartCorrelationTilePanel.discardButton")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onDiscardButtonClick(target);
-            }
-        };
-        discardButton.setOutputMarkupId(true);
-        discardButton.add(new TooltipBehavior());
-        discardButton.add(AttributeModifier.replace("class", "col p-2 btn btn-default rounded"));
-        discardButton.showTitleAsLabel(true);
-        buttonsView.add(discardButton);
-
-        AjaxIconButton acceptButton = new AjaxIconButton(buttonsView.newChildId(), Model.of("fa fa-check"),
-                createStringResource("SmartCorrelationTilePanel.acceptButton")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onAcceptButtonClick(target);
-            }
-        };
-        acceptButton.setOutputMarkupId(true);
-        acceptButton.add(new TooltipBehavior());
-        acceptButton.add(AttributeModifier.replace("class", "col p-2 btn btn-success rounded"));
-        acceptButton.showTitleAsLabel(true);
-        buttonsView.add(acceptButton);
+        initActionButton(buttonsView);
         fragment.add(buttonsView);
     }
 
     private void initActionButton(@NotNull Fragment fragment) {
         DropdownButtonPanel buttonPanel = new DropdownButtonPanel(ID_MORE_ACTION, new DropdownButtonDto(
-                null, "fa-ellipsis-h ml-1", null, createMenuItems())) {
+                null, "fa-ellipsis-h ml-1", null, buildMenuItems())) {
             @Override
             protected boolean hasToggleIcon() {
                 return false;
@@ -275,6 +256,18 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
         // No additional layout initialization needed
     }
 
+    protected List<InlineMenuItem> buildMenuItems() {
+        List<InlineMenuItem> items = new ArrayList<>();
+        List<InlineMenuItem> menuItems = createMenuItems();
+        for (InlineMenuItem menuItem : menuItems) {
+            if (menuItem.getVisibilityChecker() == null
+                    || menuItem.getVisibilityChecker().isVisible(() -> getModelObject().getValue(), false)) {
+                items.add(menuItem);
+            }
+        }
+        return items;
+    }
+
     public List<InlineMenuItem> createMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.delete")) {
@@ -329,16 +322,12 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
         };
     }
 
+    protected void initActionButton(@NotNull RepeatingView buttonsView) {
+        // Override to implement action button behavior
+    }
+
     protected void onFooterButtonClick(AjaxRequestTarget target) {
         // Override to implement footer button click behavior
-    }
-
-    protected void onAcceptButtonClick(AjaxRequestTarget target) {
-        // Override to implement accept button click behavior
-    }
-
-    protected void onDiscardButtonClick(AjaxRequestTarget target) {
-        // Override to implement discard button click behavior
     }
 
     protected void onRefresh(AjaxRequestTarget target) {

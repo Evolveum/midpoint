@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,15 +10,21 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -43,11 +49,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -55,11 +59,14 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+
+import org.jetbrains.annotations.Nullable;
 
 public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable>
         extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, TemplateTile<PrismContainerValueWrapper<C>>> {
+
+    private final IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
 
     public MultiSelectContainerActionTileTablePanel(
             String id,
@@ -68,12 +75,15 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         super(id, toggleView, tableId);
     }
 
-    private final IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
-
     @Override
     protected void customizeNewRowItem(PrismContainerValueWrapper<C> value, Item<PrismContainerValueWrapper<C>> item) {
         super.customizeNewRowItem(value, item);
-        updateCssBasedValueStatus(value, item);
+        updateRowCssBasedValueStatus(item, value, false);
+    }
+
+    @Override
+    protected void customizeTileItemCss(Component tile, @NotNull TemplateTile<PrismContainerValueWrapper<C>> item) {
+        updateRowCssBasedValueStatus(tile, item.getValue(), true);
     }
 
     @Override
@@ -82,15 +92,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected abstract MultivalueContainerListDataProvider<C> createDataProvider();
-
-    private void updateCssBasedValueStatus(
-            @NotNull PrismContainerValueWrapper<C> value,
-            @NotNull Item<PrismContainerValueWrapper<C>> item) {
-        switch (value.getStatus()) {
-            case ADDED -> item.add(AttributeModifier.append("class", "border border-success"));
-            case DELETED -> item.add(AttributeModifier.append("class", "border border-danger"));
-        }
-    }
 
     @Override
     protected void togglePanelItemSelectPerformed(
@@ -102,22 +103,12 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     @Override
-    protected void customizeTileItemCss(Component tile, @NotNull TemplateTile<PrismContainerValueWrapper<C>> item) {
-        ValueStatus status = item.getValue().getStatus();
-        switch (status) {
-            case DELETED -> tile.add(AttributeModifier.replace("class", "card rounded h-100 bg-danger-light"));
-            case ADDED -> tile.add(AttributeModifier.replace("class", "card rounded h-100 bg-success-light"));
-            default -> tile.add(AttributeModifier.replace("class", "card rounded h-100"));
-        }
-    }
-
-    @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
         buttonsList.add(createTableActionToolbar(idButton));
         buttonsList.add(createNewObjectPerformButton(idButton, getModelObject()));
         buttonsList.add(createSuggestObjectButton(idButton));
-        buttonsList.add(createToggleSuggestionButton(idButton));
+        buttonsList.add(createToggleSuggestionButton(idButton, switchToggleModel));
         return buttonsList;
     }
 
@@ -143,7 +134,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         }
 
         if (showActionsColumn()) {
-            IColumn<PrismContainerValueWrapper<C>, String> actions = createActionsColumn();
+            @Nullable IColumn<PrismContainerValueWrapper<C>, String> actions = createActionsColumn(
+                    getPageBase(), getInlineMenuItems(null));
             if (actions != null) {
                 columns.add(actions);
             }
@@ -155,80 +147,76 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     /** Subclasses provide the domain columns only. */
     protected abstract List<IColumn<PrismContainerValueWrapper<C>, String>> createDomainColumns();
 
-    protected boolean showCheckboxColumn() {
-        return true;
+    public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<C> tileModel) {
+        List<InlineMenuItem> allItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = getDefaultMenuActions(tileModel);
+        if (menuItems != null) {
+            allItems.addAll(menuItems);
+        }
+        allItems.add(createEditInlineMenu(tileModel));
+        allItems.add(createDuplicateInlineMenu(tileModel));
+        return allItems;
     }
 
-    protected boolean showActionsColumn() {
-        return true;
+    public List<InlineMenuItem> getDefaultMenuActions(PrismContainerValueWrapper<C> model) {
+        List<InlineMenuItem> menuItems = new ArrayList<>();
+        menuItems.add(createDeleteItemMenu(model));
+        return menuItems;
+    }
+
+    public void updateRowCssBasedValueStatus(
+            @NotNull Component component,
+            @NotNull PrismContainerValueWrapper<C> value,
+            boolean isTile) {
+        if (isTile) {
+            switch (value.getStatus()) {
+                case DELETED -> component.add(AttributeModifier.replace("class", "card rounded h-100 border border-danger"));
+                case ADDED -> component.add(AttributeModifier.replace("class", "card rounded h-100 border border-success"));
+                default -> component.add(AttributeModifier.replace("class", "card rounded h-100"));
+            }
+        }
+
+        switch (value.getStatus()) {
+            case ADDED -> component.add(AttributeModifier.append("class", "table-success"));
+            case DELETED -> component.add(AttributeModifier.append("class", "table-danger"));
+        }
+
+    }
+
+    private @Nullable IColumn<PrismContainerValueWrapper<C>, String> createActionsColumn(
+            @NotNull PageBase pageBase,
+            @NotNull List<InlineMenuItem> allItems) {
+        return !allItems.isEmpty() ? new InlineMenuButtonColumn<>(allItems, pageBase) {
+            @Override
+            public String getCssClass() {
+                return "inline-menu-column";
+            }
+
+            @Override
+            protected String getDropDownButtonIcon() {
+                return "fa fa-ellipsis-h";
+            }
+
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn btn-link btn-sm";
+            }
+
+            @Override
+            protected String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
+                return "btn btn-link btn-sm text-nowrap";
+            }
+
+            @Override
+            protected String getAdditionalMultiButtonPanelCssClass() {
+                return "justify-content-end";
+            }
+        } : null;
     }
 
     protected List<PrismContainerValueWrapper<C>> getMultiTableModel() {
         MultivalueContainerListDataProvider<C> provider = (MultivalueContainerListDataProvider<C>) getProvider();
         return provider.getModel().getObject();
-    }
-
-    @Override
-    public ISortableDataProvider<PrismContainerValueWrapper<C>, String> getProvider() {
-        return super.getProvider();
-    }
-
-    private @NotNull IsolatedCheckBoxPanel createHeaderCheckBoxButton(String idButton) {
-        IModel<Boolean> selectModel = new IModel<>() {
-            @Override
-            public Boolean getObject() {
-                List<PrismContainerValueWrapper<C>> all = getMultiTableModel();
-                return all != null && !all.isEmpty() && all.stream().allMatch(PrismContainerValueWrapper::isSelected);
-            }
-
-            @Override
-            public void setObject(Boolean value) {
-                List<PrismContainerValueWrapper<C>> all = getMultiTableModel();
-                if (all != null) {
-                    all.forEach(v -> v.setSelected(Boolean.TRUE.equals(value)));
-                }
-            }
-        };
-
-        IsolatedCheckBoxPanel selectCheckbox = new IsolatedCheckBoxPanel(idButton, selectModel) {
-            @Override
-            public void onUpdate(@NotNull AjaxRequestTarget target) {
-                target.add(MultiSelectContainerActionTileTablePanel.this);
-                refresh(target);
-            }
-        };
-
-        selectCheckbox.setOutputMarkupId(true);
-        selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
-        selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
-        return selectCheckbox;
-    }
-
-    private @NotNull AjaxIconButton createSuggestObjectButton(String idButton) {
-        AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton, Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
-                createStringResource("SmartIntegration.suggestNew")) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                        createStringResource("SmartIntegration.suggestNew")) {
-
-                    @Override
-                    public void yesPerformed(AjaxRequestTarget target) {
-                        onSuggestNewPerformed(target);
-                    }
-                };
-                getPageBase().showMainPopup(dialog, target);
-            }
-        };
-
-        suggestObjectButton.showTitleAsLabel(true);
-        suggestObjectButton.add(AttributeAppender.replace("class", "btn btn-default rounded mr-2"));
-        suggestObjectButton.add(new VisibleBehaviour(this::isSuggestButtonVisible));
-        suggestObjectButton.setOutputMarkupId(true);
-        return suggestObjectButton;
     }
 
     private @NotNull DropdownButtonPanel createDropDownActionButton(String idButton) {
@@ -284,27 +272,16 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
     }
 
-    public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<C> tileModel) {
-        List<InlineMenuItem> allItems = new ArrayList<>();
-        List<InlineMenuItem> menuItems = getDefaultMenuActions(tileModel);
-        if (menuItems != null) {
-            allItems.addAll(menuItems);
-        }
-
-        allItems.add(createEditInlineMenu(tileModel));
-        createDuplicateInlineMenu(allItems, tileModel);
-        return allItems;
-    }
-
-    private void createDuplicateInlineMenu(@NotNull List<InlineMenuItem> menuItems, PrismContainerValueWrapper<C> tileModel) {
-        menuItems.add(new InlineMenuItem(getPageBase().createStringResource("DuplicationProcessHelper.menu.duplicate")) {
+    @Contract("_ -> new")
+    protected @NotNull InlineMenuItem createDuplicateInlineMenu(PrismContainerValueWrapper<C> tileModel) {
+        return new InlineMenuItem(getPageBase().createStringResource("DuplicationProcessHelper.menu.duplicate")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 ColumnMenuAction<PrismContainerValueWrapper<C>> duplicateColumnAction = DuplicationProcessHelper
                         .createDuplicateColumnAction(getPageBase(),
-                                (value, target) -> newItemPerformed(value, target, null, true));
+                                (value, target) -> newItemPerformed(value, target, null, true, null));
 
                 if (tileModel != null) {
                     duplicateColumnAction.setRowModel(() -> tileModel);
@@ -322,11 +299,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             public boolean isHeaderMenuItem() {
                 return false;
             }
-        });
+        };
     }
 
-    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
-
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec,
+            boolean isDuplicate, StatusInfo<?> statusInfo) {
     }
 
     public ColumnMenuAction<PrismContainerValueWrapper<C>> createDeleteColumnAction() {
@@ -387,7 +364,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         toDelete.forEach(value -> {
             if (value.getStatus() == ValueStatus.ADDED) {
                 IModel<PrismContainerWrapper<C>> containerModel = getContainerModel(value, null);
-                PrismContainerWrapper<C> wrapper = containerModel != null ? containerModel.getObject() : null;
+                PrismContainerWrapper<C> wrapper = containerModel.getObject();
                 if (wrapper != null) {
                     wrapper.getValues().remove(value);
                 }
@@ -396,6 +373,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             }
             value.setSelected(false);
         });
+
+        getTilesModel().detach();
         refreshAndDetach(target);
     }
 
@@ -410,16 +389,17 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
             @Override
             public InlineMenuItemAction initAction() {
-                ColumnMenuAction<PrismContainerValueWrapper<C>> editColumnAction = createEditColumnAction();
-                if (tileModel != null) {
-                    editColumnAction.setRowModel(() -> tileModel);
-                }
-                return editColumnAction;
+                return createEditColumnAction(tileModel);
             }
 
             @Override
             public boolean isLabelVisible() {
                 return true;
+            }
+
+            @Override
+            public void setVisibilityChecker(VisibilityChecker visibilityChecker) {
+                super.setVisibilityChecker(visibilityChecker);
             }
 
             @Override
@@ -429,8 +409,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
     }
 
-    public ColumnMenuAction<PrismContainerValueWrapper<C>> createEditColumnAction() {
-        return new ColumnMenuAction<>() {
+    public ColumnMenuAction<PrismContainerValueWrapper<C>> createEditColumnAction(PrismContainerValueWrapper<C> tileModel) {
+        ColumnMenuAction<PrismContainerValueWrapper<C>> columnMenuAction = new ColumnMenuAction<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -441,6 +421,12 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
                 editItemPerformed(target, getRowModel(), false);
             }
         };
+
+        if (tileModel != null) {
+            columnMenuAction.setRowModel(() -> tileModel);
+        }
+
+        return columnMenuAction;
     }
 
     //TODO add non editable mode
@@ -448,10 +434,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<C>> rowModel,
             boolean isDuplicate) {
-    }
-
-    protected IModel<PrismContainerWrapper<C>> getContainerModel(PrismContainerValueWrapper<C> value, ItemPath path) {
-        return PrismContainerWrapperModel.fromContainerValueWrapper(Model.of(value), path);
     }
 
     protected IModel<List<PrismContainerValueWrapper<C>>> getSelectedContainerItemsModel() {
@@ -469,57 +451,70 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
     }
 
-    protected boolean isSuggestButtonVisible() {
-        return true;
+    private @NotNull IsolatedCheckBoxPanel createHeaderCheckBoxButton(String idButton) {
+        IModel<Boolean> selectModel = buildHeaderCheckboxModel(this::getMultiTableModel);
+
+        IsolatedCheckBoxPanel selectCheckbox = new IsolatedCheckBoxPanel(idButton, selectModel) {
+            @Override
+            public void onUpdate(@NotNull AjaxRequestTarget target) {
+                target.add(MultiSelectContainerActionTileTablePanel.this);
+                refresh(target);
+            }
+        };
+
+        selectCheckbox.setOutputMarkupId(true);
+        selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
+        selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
+        return selectCheckbox;
     }
 
-    public List<InlineMenuItem> getDefaultMenuActions(PrismContainerValueWrapper<C> model) {
-        List<InlineMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(createDeleteItemMenu(model));
-        return menuItems;
+    private @NotNull IModel<Boolean> buildHeaderCheckboxModel(
+            @NotNull IModel<List<PrismContainerValueWrapper<C>>> multiTableModel) {
+        return new IModel<>() {
+            @Override
+            public @NotNull Boolean getObject() {
+                List<PrismContainerValueWrapper<C>> all = multiTableModel.getObject();
+                return all != null && !all.isEmpty() && all.stream().allMatch(PrismContainerValueWrapper::isSelected);
+            }
+
+            @Override
+            public void setObject(Boolean value) {
+                List<PrismContainerValueWrapper<C>> all = multiTableModel.getObject();
+                if (all != null) {
+                    all.forEach(v -> v.setSelected(Boolean.TRUE.equals(value)));
+                }
+            }
+        };
     }
 
-    protected IColumn<PrismContainerValueWrapper<C>, String> createActionsColumn() {
-        List<InlineMenuItem> allItems = getInlineMenuItems(null);
+    private @NotNull AjaxIconButton createSuggestObjectButton(String idButton) {
+        AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton, Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
+                createStringResource("SmartIntegration.suggestNew")) {
 
-        if (!allItems.isEmpty()) {
-            return new InlineMenuButtonColumn<>(allItems, getPageBase()) {
-                @Override
-                public String getCssClass() {
-                    return getInlineMenuCssClass();
-                }
+            @Serial private static final long serialVersionUID = 1L;
 
-                @Override
-                protected String getDropDownButtonIcon() {
-                    return "fa fa-ellipsis-h";
-                }
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                        createStringResource("SmartIntegration.suggestNew")) {
 
-                @Override
-                protected String getSpecialButtonClass() {
-                    return "btn btn-link btn-sm";
-                }
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        onSuggestNewPerformed(target);
+                    }
+                };
+                getPageBase().showMainPopup(dialog, target);
+            }
+        };
 
-                @Override
-                protected String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
-                    return MultiSelectContainerActionTileTablePanel.this.getInlineMenuItemCssClass(rowModel);
-                }
-
-                @Override
-                protected boolean isButtonMenuItemEnabled(IModel<PrismContainerValueWrapper<C>> rowModel) {
-                    return MultiSelectContainerActionTileTablePanel.this.isInlineMenuItemVisible(rowModel);
-                }
-
-                @Override
-                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId,
-                        IModel<PrismContainerValueWrapper<C>> rowModel) {
-                    super.populateItem(cellItem, componentId, rowModel);
-                }
-            };
-        }
-        return null;
+        suggestObjectButton.showTitleAsLabel(true);
+        suggestObjectButton.add(AttributeAppender.replace("class", "btn btn-default rounded mr-2"));
+        suggestObjectButton.add(new VisibleBehaviour(this::isSuggestButtonVisible));
+        suggestObjectButton.setOutputMarkupId(true);
+        return suggestObjectButton;
     }
 
-    private @NotNull ToggleCheckBoxPanel createToggleSuggestionButton(String idButton) {
+    private @NotNull ToggleCheckBoxPanel createToggleSuggestionButton(String idButton, IModel<Boolean> switchToggleModel) {
         ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton,
                 switchToggleModel) {
             @Override
@@ -532,7 +527,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
             @Override
             protected void onToggle(@NotNull AjaxRequestTarget target) {
-                onToggleSwitchPerformed(target);
+                refreshAndDetach(target);
             }
 
             @Contract(pure = true)
@@ -546,19 +541,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return togglePanel;
     }
 
-    protected String getInlineMenuCssClass() {
-        return "inline-menu-column ";
-    }
-
-    protected boolean isInlineMenuItemVisible(IModel<PrismContainerValueWrapper<C>> rowModel) {
+    protected boolean isDuplicationSupported() {
         return true;
     }
 
-    protected String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
-        return "btn btn-link btn-sm";
-    }
-
-    protected boolean isDuplicationSupported() {
+    protected boolean isSuggestButtonVisible() {
         return true;
     }
 
@@ -574,17 +561,85 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     public void refreshAndDetach(AjaxRequestTarget target) {
+        getTilesModel().detach();
+
         if (getProvider() instanceof MultivalueContainerListDataProvider<C> provider) {
             provider.getModel().detach();
         }
         super.refresh(target);
-        target.add(this);
-        target.add(MultiSelectContainerActionTileTablePanel.this);
     }
 
+    @Contract("_, _ -> new")
+    public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> getContainerModel(PrismContainerValueWrapper<C> value, ItemPath path) {
+        return PrismContainerWrapperModel.fromContainerValueWrapper(Model.of(value), path);
+    }
 
-    protected void onToggleSwitchPerformed(@NotNull AjaxRequestTarget target) {
-        refreshAndDetach(target);
+    @Override
+    protected String getAdditionalTableCssClasses() {
+        return "table-td-middle";
+    }
+
+    @Override
+    protected String getAdditionalFooterCss() {
+        return "bg-white border-top";
+    }
+
+    @Override
+    protected String getTilesContainerAdditionalClass() {
+        return "";
+    }
+
+    @Override
+    protected String getTileContainerCssClass() {
+        return "row justify-content-left pt-2 ";
+    }
+
+    @Override
+    protected String getAdditionalBoxCssClasses() {
+        return " m-0";
+    }
+
+    @Override
+    protected String getTilesFooterCssClasses() {
+        return "pt-1 border-0";
+    }
+
+    @Override
+    protected String getTileCssClasses() {
+        return "col-12 col-sm-12 col-md-6 col-lg-3 p-2";
+    }
+
+    @Override
+    protected String getAdditionalHeaderContainerCssClasses() {
+        return isTileViewVisible() ? "border-0 p-0" : super.getAdditionalHeaderContainerCssClasses();
+    }
+
+    @Override
+    public boolean displayNoValuePanel() {
+        return getProvider().size() == 0;
+    }
+
+    @Override
+    protected boolean isSelectedItemsPanelVisible() {
+        return false;
+    }
+
+    @Override
+    protected boolean isClickableRow() {
+        return false;
+    }
+
+    @Override
+    protected boolean isTogglePanelVisible() {
+        return true;
+    }
+
+    protected boolean showCheckboxColumn() {
+        return true;
+    }
+
+    protected boolean showActionsColumn() {
+        return true;
     }
 
 }

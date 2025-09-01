@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
@@ -30,12 +32,19 @@ import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
@@ -47,21 +56,22 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadCorrelationSuggestionWrappers;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiBadgeModel;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestion;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestion;
 
 /**
  * Multi-select tile table for correlation items.
@@ -69,16 +79,16 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 public class SmartCorrelationTable
         extends MultiSelectContainerActionTileTablePanel<PrismContainerValueWrapper<ItemsSubCorrelatorType>, ItemsSubCorrelatorType> {
 
-    private static final String CLASS_DOT = MultiSelectContainerActionTileTablePanel.class.getName() + ".";
+    private static final String CLASS_DOT = SmartCorrelationTable.class.getName() + ".";
     private static final String OP_SUGGEST_CORRELATION_RULES = CLASS_DOT + "suggestCorrelationRules";
     private static final String OP_DELETE_CORRELATION_RULES = CLASS_DOT + "deleteCorrelationRules";
+    private static final String OP_SUSPEND_SUGGESTION = CLASS_DOT + "suspendSuggestion";
 
     private static final int MAX_TILE_COUNT = 4;
 
     private final String resourceOid;
 
     PrismContainerValueWrapper<CorrelationDefinitionType> correlationWrapper;
-    Map<ItemsSubCorrelatorType, StatusInfo<CorrelationSuggestionType>> suggestionByWrapper;
 
     public SmartCorrelationTable(
             @NotNull String id,
@@ -94,12 +104,35 @@ public class SmartCorrelationTable
     }
 
     @Override
+    protected Class<? extends Containerable> getType() {
+        return ItemsSubCorrelatorType.class;
+    }
+
+    @Contract(value = " -> new", pure = true)
+    protected @NotNull LoadableModel<PrismContainerDefinition<ItemsSubCorrelatorType>> getCorrelationItemsDefinition() {
+        return new LoadableModel<>() {
+            @Override
+            protected PrismContainerDefinition<ItemsSubCorrelatorType> load() {
+                ComplexTypeDefinition resourceDef =
+                        PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ResourceType.class);
+                return resourceDef.findContainerDefinition(
+                        ItemPath.create(
+                                ResourceType.F_SCHEMA_HANDLING,
+                                SchemaHandlingType.F_OBJECT_TYPE,
+                                ResourceObjectTypeDefinitionType.F_CORRELATION,
+                                CorrelationDefinitionType.F_CORRELATORS,
+                                CompositeCorrelatorType.F_ITEMS));
+            }
+        };
+    }
+
+    @Override
     protected void customizeNewRowItem(PrismContainerValueWrapper<ItemsSubCorrelatorType> value, Item<PrismContainerValueWrapper<ItemsSubCorrelatorType>> item) {
         super.customizeNewRowItem(value, item);
 
-        OperationResultStatusType status = statusFor(item.getModelObject());
-        if (status != null) {
-            item.add(AttributeModifier.append("class", SmartIntegrationUtils.SuggestionUiStyle.from(status).rowClass));
+        StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(value.getRealValue());
+        if (statusInfo != null && statusInfo.getStatus() != null) {
+            item.add(AttributeModifier.append("class", SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).rowClass));
         }
     }
 
@@ -107,51 +140,44 @@ public class SmartCorrelationTable
     protected void customizeTileItemCss(Component tile, @NotNull TemplateTile<PrismContainerValueWrapper<ItemsSubCorrelatorType>> item) {
         super.customizeTileItemCss(tile, item);
 
-        OperationResultStatusType status = statusFor(item.getValue());
-        if (status != null) {
+        StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(item.getValue().getRealValue());
+        if (statusInfo != null && statusInfo.getStatus() != null) {
             tile.add(AttributeModifier.replace("class", "card rounded h-100 "
-                    + SmartIntegrationUtils.SuggestionUiStyle.from(status).tileClass));
+                    + SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).tileClass));
         }
     }
 
     @Override
-    protected Class<? extends Containerable> getType() {
-        return ItemsSubCorrelatorType.class;
-    }
-
-    @Override
     protected TemplateTile<PrismContainerValueWrapper<ItemsSubCorrelatorType>> createTileObject(
-            PrismContainerValueWrapper<ItemsSubCorrelatorType> object) {
-        StatusInfo<CorrelationSuggestionType> statusInfo = suggestionByWrapper.get(object.getRealValue());
+            @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> object) {
+        StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(object.getRealValue());
         return new SmartCorrelationTileModel<>(object, resourceOid, null, statusInfo != null ? statusInfo.getToken() : null);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected Component createTile(String id, @NotNull IModel<TemplateTile<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> model) {
+        PrismContainerValueWrapper<ItemsSubCorrelatorType> value = model.getObject().getValue();
         return new SmartCorrelationTilePanel(id, model) {
             @Override
             public List<InlineMenuItem> createMenuItems() {
-                return getInlineMenuItems(model.getObject().getValue());
+                return getInlineMenuItems(value);
             }
 
             @Override
             protected void onFooterButtonClick(AjaxRequestTarget target) {
-                PrismContainerValueWrapper<ItemsSubCorrelatorType> value = model.getObject().getValue();
+                StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(value.getRealValue());
+                if (statusInfo != null) {
+                    acceptItemPerformed(target, () -> value, statusInfo);
+                    return;
+                }
                 editItemPerformed(target, () -> value, false);
             }
 
             @Override
-            protected void onAcceptButtonClick(AjaxRequestTarget target) {
-                PrismContainerValueWrapper<ItemsSubCorrelatorType> value = model.getObject().getValue();
-                editItemPerformed(target, () -> value, false);
-            }
-
-            @Override
-            protected void onDiscardButtonClick(AjaxRequestTarget target) {
-                deleteItemPerformed(target, Collections.singletonList(model.getObject().getValue()));
-                refreshAndDetach(target);
-                target.add(SmartCorrelationTable.this);
+            protected void initActionButton(@NotNull RepeatingView buttonsView) {
+                buttonsView.add(createDiscardButton(buttonsView.newChildId(), () -> value));
+                buttonsView.add(createAcceptButton(buttonsView.newChildId(), () -> value));
             }
 
             @Override
@@ -170,63 +196,55 @@ public class SmartCorrelationTable
     }
 
     @Override
-    protected MultivalueContainerListDataProvider<ItemsSubCorrelatorType> createProvider() {
-        return super.createProvider();
-    }
-
-    @Override
     protected MultivalueContainerListDataProvider<ItemsSubCorrelatorType> createDataProvider() {
-        LoadableDetachableModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> containerModel = new LoadableDetachableModel<>() {
-            @Override
-            protected List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> load() {
-                List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> allValues = new ArrayList<>();
-                try {
-                    PrismContainerValueWrapper<CorrelationDefinitionType> object = correlationWrapper;
-                    if (object == null) {
-                        return List.of();
+        final Map<ItemsSubCorrelatorType, StatusInfo<CorrelationSuggestionType>> suggestionsIndex = new HashMap<>();
+
+        LoadableDetachableModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> containerModel =
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> load() {
+                        try {
+                            PrismContainerValueWrapper<CorrelationDefinitionType> object = correlationWrapper;
+                            if (object == null) {
+                                return List.of();
+                            }
+
+                            PrismContainerWrapper<ItemsSubCorrelatorType> container = object.findContainer(
+                                    ItemPath.create(
+                                            CorrelationDefinitionType.F_CORRELATORS,
+                                            CompositeCorrelatorType.F_ITEMS));
+
+                            List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> allValues = new ArrayList<>(container.getValues());
+
+                            suggestionsIndex.clear();
+                            if (Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
+                                Task task = getPageBase().createSimpleTask("Loading correlation type suggestions");
+                                OperationResult result = task.getResult();
+
+                                SmartIntegrationStatusInfoUtils.@NotNull CorrelationSuggestionProviderResult r =
+                                        loadCorrelationSuggestionWrappers(getPageBase(), resourceOid, task, result);
+
+                                allValues.addAll(r.wrappers());
+                                suggestionsIndex.putAll(r.suggestionByWrapper());
+                            }
+
+                            return allValues;
+
+                        } catch (SchemaException e) {
+                            throw new RuntimeException("Error while loading items sub-correlator types", e);
+                        }
                     }
-                    PrismContainerWrapper<ItemsSubCorrelatorType> container = object.findContainer(
-                            ItemPath.create(
-                                    CorrelationDefinitionType.F_CORRELATORS,
-                                    CompositeCorrelatorType.F_ITEMS));
+                };
 
-                    List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> values = container.getValues();
-                    allValues.addAll(values);
-
-                    if (getSwitchToggleModel().getObject().equals(Boolean.TRUE)) {
-                        Task task = getPageBase().createSimpleTask("Loading correlation type suggestions");
-                        OperationResult result = task.getResult();
-
-                        SmartIntegrationStatusInfoUtils.@NotNull CorrelationSuggestionProviderResult suggestionProviderResult =
-                                loadCorrelationSuggestionWrappers(getPageBase(), resourceOid, task, result);
-                        allValues.addAll(suggestionProviderResult.wrappers());
-                        suggestionByWrapper = suggestionProviderResult.suggestionByWrapper();
-                    }
-
-                    return allValues;
-                } catch (SchemaException e) {
-                    throw new RuntimeException("Error while loading items sub-correlator types", e);
-                }
-            }
-        };
-
-        return new MultivalueContainerListDataProvider<>(SmartCorrelationTable.this, Model.of(), containerModel);
-    }
-
-    @Contract(value = " -> new", pure = true)
-    private @NotNull LoadableModel<PrismContainerDefinition<ItemsSubCorrelatorType>> getCorrelationItemsDefinition() {
-        return new LoadableModel<>() {
+        return new StatusAwareDataProvider<>(
+                this,
+                Model.of(),
+                containerModel,
+                suggestionsIndex::get
+        ) {
             @Override
-            protected PrismContainerDefinition<ItemsSubCorrelatorType> load() {
-                ComplexTypeDefinition resourceDef =
-                        PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ResourceType.class);
-                return resourceDef.findContainerDefinition(
-                        ItemPath.create(
-                                ResourceType.F_SCHEMA_HANDLING,
-                                SchemaHandlingType.F_OBJECT_TYPE,
-                                ResourceObjectTypeDefinitionType.F_CORRELATION,
-                                CorrelationDefinitionType.F_CORRELATORS,
-                                CompositeCorrelatorType.F_ITEMS));
+            protected String getResourceOid() {
+                return resourceOid;
             }
         };
     }
@@ -247,7 +265,7 @@ public class SmartCorrelationTable
                     String componentId,
                     IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
                 ItemsSubCorrelatorType realValue = rowModel.getObject().getRealValue();
-                StatusInfo<CorrelationSuggestionType> suggestionTypeStatusInfo = suggestionByWrapper.get(realValue);
+                StatusInfo<CorrelationSuggestionType> suggestionTypeStatusInfo = getStatusInfo(realValue);
 
                 if (suggestionTypeStatusInfo != null) {
                     buildSuggestionNameColumnComponent(cellItem, componentId, suggestionTypeStatusInfo, realValue);
@@ -306,7 +324,25 @@ public class SmartCorrelationTable
                 reactionDef,
                 ItemsSubCorrelatorType.F_ENABLED,
                 AbstractItemWrapperColumn.ColumnType.STRING,
-                getPageBase()));
+                getPageBase()) {
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
+                StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(rowModel.getObject().getRealValue());
+                if (statusInfo != null && statusInfo.getStatus() == OperationResultStatusType.SUCCESS) {
+                    RepeatingView buttonsView = new RepeatingView(componentId);
+                    AjaxIconButton acceptButton = createDiscardButton(buttonsView.newChildId(), rowModel);
+                    buttonsView.add(acceptButton);
+                    AjaxIconButton discardButton = createAcceptButton(buttonsView.newChildId(), rowModel);
+                    buttonsView.add(discardButton);
+                    buttonsView.setOutputMarkupId(true);
+                    cellItem.add(AttributeModifier.append("class", " btn-group btn-group-sm gap-2 d-flex"));
+                    cellItem.add(buttonsView);
+                    return;
+                }
+
+                super.populateItem(cellItem, componentId, rowModel);
+            }
+        });
         return columns;
     }
 
@@ -320,10 +356,12 @@ public class SmartCorrelationTable
         LoadableModel<String> displayNameModel = new LoadableModel<>() {
             @Override
             protected String load() {
-                if (status.equals(OperationResultStatusType.IN_PROGRESS)) {
-                    return createStringResource("ResourceObjectTypesPanel.suggestion.inProgress").getString();
+                if (status.equals(OperationResultStatusType.SUCCESS)) {
+                    return realValue != null ? realValue.getDisplayName() : " - ";
                 }
-                return realValue != null ? realValue.getDisplayName() : " - ";
+
+                String textKey = SmartIntegrationUtils.SuggestionUiStyle.from(suggestionTypeStatusInfo).textKey;
+                return createStringResource(textKey).getString();
             }
         };
 
@@ -331,7 +369,7 @@ public class SmartCorrelationTable
                 componentId, getAiBadgeModel(), displayNameModel) {
             @Override
             protected boolean isIconVisible() {
-                return status.equals(OperationResultStatusType.IN_PROGRESS);
+                return suggestionTypeStatusInfo.isExecuting();
             }
 
             @Contract(pure = true)
@@ -343,9 +381,11 @@ public class SmartCorrelationTable
             @Contract(pure = true)
             @Override
             protected @Nullable String getLabelCss() {
-                return status.equals(OperationResultStatusType.IN_PROGRESS)
-                        ? " text-info"
-                        : null;
+                return switch (status) {
+                    case IN_PROGRESS -> " text-info";
+                    case FATAL_ERROR -> " text-danger";
+                    default -> null;
+                };
             }
 
             @Override
@@ -355,6 +395,280 @@ public class SmartCorrelationTable
         };
         labelWithBadgePanel.setOutputMarkupId(true);
         cellItem.add(labelWithBadgePanel);
+    }
+
+    protected AjaxIconButton createDiscardButton(String id, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
+        AjaxIconButton discardButton = new AjaxIconButton(id, Model.of("fa fa-solid fa-x"),
+                createStringResource("SmartCorrelationTilePanel.discardButton")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()));
+            }
+        };
+        discardButton.setOutputMarkupId(true);
+        discardButton.add(new TooltipBehavior());
+        discardButton.add(AttributeModifier.replace("class", "col p-2 btn btn-default rounded"));
+        discardButton.showTitleAsLabel(true);
+        return discardButton;
+    }
+
+    protected AjaxIconButton createAcceptButton(String id, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
+        AjaxIconButton acceptButton = new AjaxIconButton(id, Model.of("fa fa-check"),
+                createStringResource("SmartCorrelationTilePanel.acceptButton")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(rowModel.getObject().getRealValue());
+                acceptItemPerformed(target, rowModel, statusInfo);
+            }
+        };
+        acceptButton.setOutputMarkupId(true);
+        acceptButton.add(new TooltipBehavior());
+        acceptButton.add(AttributeModifier.replace("class", "col p-2 btn btn-success rounded"));
+        acceptButton.showTitleAsLabel(true);
+        return acceptButton;
+    }
+
+    @Override
+    protected ButtonInlineMenuItem createEditInlineMenu(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
+        ButtonInlineMenuItem editInlineMenu = super.createEditInlineMenu(tileModel);
+        setVisibilityBySuggestion(editInlineMenu, false);
+        return editInlineMenu;
+    }
+
+    @Override
+    protected @NotNull InlineMenuItem createDuplicateInlineMenu(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
+        InlineMenuItem duplicateInlineMenu = super.createDuplicateInlineMenu(tileModel);
+        setVisibilityBySuggestion(duplicateInlineMenu, false);
+        return duplicateInlineMenu;
+    }
+
+    @Override
+    public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
+        List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems(tileModel);
+        inlineMenuItems.add(createViewRuleInlineMenu(tileModel));
+        inlineMenuItems.add(createSuggestionStopInlineMenu());
+        inlineMenuItems.add(createSuggestionDetailsInlineMenu());
+        return inlineMenuItems;
+    }
+
+    protected ButtonInlineMenuItem createSuggestionDetailsInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.details.suggestion.inlineMenu")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_SEARCH);
+            }
+
+            @Override
+            public VisibilityChecker getVisibilityChecker() {
+                return (rowModel, isHeader) -> {
+                    if (rowModel == null || rowModel.getObject() == null) {
+                        return false;
+                    }
+
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
+                        StatusInfo<CorrelationSuggestionType> suggestionStatus = getStatusInfo(wrapper.getRealValue());
+                        return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.FATAL_ERROR;
+                    }
+
+                    return false;
+                };
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        IModel<Serializable> rowModel = getRowModel();
+                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                            StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(valueWrapper.getRealValue());
+                            HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
+                                    getPageBase().getMainPopupBodyId(),
+                                    statusInfo::getLocalizedMessage) {
+                                @Override
+                                public StringResourceModel getTitle() {
+                                    return createStringResource("ResourceObjectTypesPanel.suggestion.details.title");
+                                }
+
+                                @Override
+                                protected @NotNull Label initLabel(IModel<String> messageModel) {
+                                    Label label = super.initLabel(messageModel);
+                                    label.add(AttributeModifier.append("class", "alert alert-danger"));
+                                    return label;
+                                }
+
+                                @Override
+                                public @NotNull Component getFooter() {
+                                    Component footer = super.getFooter();
+                                    footer.add(new VisibleBehaviour(() -> false));
+                                    return footer;
+                                }
+                            };
+
+                            target.add(getPageBase().getMainPopup());
+
+                            getPageBase().showMainPopup(
+                                    helpInfoPanel, target);
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public boolean isLabelVisible() {
+                return true;
+            }
+        };
+    }
+
+    protected ButtonInlineMenuItem createSuggestionStopInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.stop.generating.inlineMenu")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_STOP_MENU_ITEM);
+            }
+
+            @Override
+            public VisibilityChecker getVisibilityChecker() {
+                return (rowModel, isHeader) -> {
+                    if (rowModel == null || rowModel.getObject() == null) {
+                        return false;
+                    }
+
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
+                        StatusInfo<CorrelationSuggestionType> suggestionStatus = getStatusInfo(wrapper.getRealValue());
+                        return suggestionStatus != null && suggestionStatus.isExecuting();
+                    }
+
+                    return false;
+                };
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        Task task = getPageBase().createSimpleTask(OP_SUSPEND_SUGGESTION);
+                        OperationResult result = task.getResult();
+
+                        IModel<Serializable> rowModel = getRowModel();
+                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                            StatusInfo<CorrelationSuggestionType> statusInfo = getStatusInfo(valueWrapper.getRealValue());
+                            SmartIntegrationUtils.suspendSuggestionTask(
+                                    getPageBase(), statusInfo, task, result);
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public boolean isLabelVisible() {
+                return true;
+            }
+        };
+    }
+
+    protected ButtonInlineMenuItem createViewRuleInlineMenu(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
+        ButtonInlineMenuItem buttonInlineMenuItem = new ButtonInlineMenuItem(
+                createStringResource("SmartCorrelationTilePanel.viewRuleLink")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_PREVIEW);
+            }
+
+            @Override
+            public @NotNull InlineMenuItemAction initAction() {
+                ColumnMenuAction<PrismContainerValueWrapper<ItemsSubCorrelatorType>> columnMenuAction = new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() != null) {
+                            acceptItemPerformed(target, getRowModel(), getStatusInfo(getRowModel().getObject().getRealValue()));
+                        }
+                    }
+                };
+
+                if (tileModel != null) {
+                    columnMenuAction.setRowModel(() -> tileModel);
+                }
+                return columnMenuAction;
+            }
+
+            @Override
+            public boolean isLabelVisible() {
+                return true;
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+        };
+
+        setVisibilityBySuggestion(buttonInlineMenuItem, true);
+        return buttonInlineMenuItem;
+    }
+
+    @Override
+    protected void onSuggestNewPerformed(AjaxRequestTarget target) {
+        PageBase pageBase = getPageBase();
+        ResourceContentStorage pageStorage = getResourceAccountContentStorage();
+        ResourceContentSearchDto contentSearch = pageStorage.getContentSearch();
+        ShadowKindType kind = contentSearch.getKind();
+        String intent = contentSearch.getIntent();
+
+        ResourceObjectTypeIdentification objectTypeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
+        SmartIntegrationService service = pageBase.getSmartIntegrationService();
+        pageBase.taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
+                .runVoid((task, result) -> {
+                    service.submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, task, result);
+                    target.add(this);
+                });
+
+        super.refreshAndDetach(target);
+    }
+
+    @Override
+    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> toDelete) {
+        if (toDelete == null || toDelete.isEmpty()) {
+            warn(createStringResource("SmartCorrelationTable.message.noItemsSelected").getString());
+            target.add(getPageBase().getFeedbackPanel());
+            target.add(getPageBase().getFeedbackPanel().getParent());
+            return;
+        }
+
+        Task task = getPageBase().createSimpleTask(OP_DELETE_CORRELATION_RULES);
+        toDelete.forEach(value -> {
+            StatusInfo<CorrelationSuggestionType> status = getStatusInfo(value.getRealValue());
+            if (status != null) {
+                removeSuggestion(getPageBase(), status, task, task.getResult());
+
+            } else {
+                if (value.getStatus() == ValueStatus.ADDED) {
+                    IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = getContainerModel(value, null);
+                    PrismContainerWrapper<ItemsSubCorrelatorType> wrapper = containerModel.getObject();
+                    if (wrapper != null) {
+                        wrapper.getValues().remove(value);
+                    }
+                } else {
+                    value.setStatus(ValueStatus.DELETED);
+                }
+                value.setSelected(false);
+            }
+        });
+        refreshAndDetach(target);
     }
 
     @SuppressWarnings("rawtypes")
@@ -378,43 +692,8 @@ public class SmartCorrelationTable
     }
 
     @Override
-    protected String getAdditionalTableCssClasses() {
-        return "table-td-middle";
-    }
-
-    @Override
-    protected String getAdditionalFooterCss() {
-        return "bg-white border-top";
-    }
-
-    @Override
-    protected String getAdditionalBoxCssClasses() {
-        return " m-0";
-    }
-
-    @Override
-    protected String getTilesFooterCssClasses() {
-        return "pt-1 border-0";
-    }
-
-    @Override
-    protected String getTileCssStyle() {
-        return "";
-    }
-
-    @Override
-    protected String getTileCssClasses() {
-        return "col-12 col-sm-12 col-md-6 col-lg-3 p-2";
-    }
-
-    @Override
-    protected String getTileContainerCssClass() {
-        return "row justify-content-left pt-2 ";
-    }
-
-    @Override
-    protected String getTilesContainerAdditionalClass() {
-        return "";
+    protected IModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> getSelectedItemsModel() {
+        return getSelectedContainerItemsModel();
     }
 
     @Override
@@ -426,103 +705,38 @@ public class SmartCorrelationTable
         return null;
     }
 
-    @Override
-    protected IModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> getSelectedItemsModel() {
-        return getSelectedContainerItemsModel();
-    }
+    private void setVisibilityBySuggestion(@NotNull InlineMenuItem item, boolean showWhenPresent) {
+        item.setVisibilityChecker((rowModel, isHeader) -> {
+            boolean present = false;
+            if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
+                StatusInfo<CorrelationSuggestionType> suggestionStatus = getStatusInfo(wrapper.getRealValue());
+                if (suggestionStatus == null || suggestionStatus.getStatus() != OperationResultStatusType.SUCCESS) {
+                    return false;
+                }
+                present = true;
+            }
 
-    @Override
-    protected boolean isSelectedItemsPanelVisible() {
-        return false;
-    }
-
-    @Override
-    protected boolean isClickableRow() {
-        return false;
-    }
-
-    @Override
-    protected boolean isTogglePanelVisible() {
-        return true;
-    }
-
-    @Override
-    protected String getAdditionalHeaderContainerCssClasses() {
-        return isTileViewVisible() ? "border-0 p-0" : super.getAdditionalHeaderContainerCssClasses();
+            return showWhenPresent == present;
+        });
     }
 
     private ResourceContentStorage getResourceAccountContentStorage() {
         return getPageBase().getSessionStorage().getResourceContentStorage(ShadowKindType.ACCOUNT);
     }
 
-    @Override
-    protected void onSuggestNewPerformed(AjaxRequestTarget target) {
-        PageBase pageBase = getPageBase();
-        ResourceContentStorage pageStorage = getResourceAccountContentStorage();
-        ResourceContentSearchDto contentSearch = pageStorage.getContentSearch();
-        ShadowKindType kind = contentSearch.getKind();
-        String intent = contentSearch.getIntent();
+    protected <C extends Containerable> StatusInfo<CorrelationSuggestionType> getStatusInfo(C value) {
 
-        ResourceObjectTypeIdentification objectTypeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
-
-        SmartIntegrationService service = pageBase.getSmartIntegrationService();
-        pageBase.taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
-                .runVoid((task, result) -> {
-                    var suggestion = service.submitSuggestCorrelationOperation(
-                            resourceOid, objectTypeIdentification,
-                            task, result);
-                    target.add(this);
-                });
-
-        super.refreshAndDetach(target);
-    }
-
-    private @Nullable OperationResultStatusType statusFor(
-            @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> wrapper) {
-        StatusInfo<CorrelationSuggestionType> info = suggestionByWrapper.get(wrapper.getRealValue());
-        return info != null ? info.getStatus() : null;
-    }
-
-    @Override
-    public boolean displayNoValuePanel() {
-        return getProvider().size() == 0;
-    }
-
-    @Override
-    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> toDelete) {
-        if (toDelete == null || toDelete.isEmpty()) {
-            warn(createStringResource("SmartCorrelationTable.message.noItemsSelected").getString());
-            target.add(getPageBase().getFeedbackPanel());
-            target.add(getPageBase().getFeedbackPanel().getParent());
-            return;
+        if (getProvider() instanceof StatusAwareDataProvider<ItemsSubCorrelatorType> provider) {
+            //noinspection unchecked
+            return (StatusInfo<CorrelationSuggestionType>) provider.getSuggestionInfo((ItemsSubCorrelatorType) value);
         }
-
-        Task task = getPageBase().createSimpleTask(OP_DELETE_CORRELATION_RULES);
-        toDelete.forEach(value -> {
-            StatusInfo<CorrelationSuggestionType> status = suggestionByWrapper.get(value.getRealValue());
-            if (status != null) {
-                removeCorrelationTypeSuggestion(getPageBase(), status, task, task.getResult());
-
-            } else {
-                if (value.getStatus() == ValueStatus.ADDED) {
-                    IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = getContainerModel(value, null);
-                    PrismContainerWrapper<ItemsSubCorrelatorType> wrapper = containerModel != null ? containerModel.getObject() : null;
-                    if (wrapper != null) {
-                        wrapper.getValues().remove(value);
-                    }
-                } else {
-                    value.setStatus(ValueStatus.DELETED);
-                }
-                value.setSelected(false);
-            }
-        });
-        refreshAndDetach(target);
-        refresh(target);
+        return null;
     }
 
-    @Override
-    protected void onToggleSwitchPerformed(@NotNull AjaxRequestTarget target) {
-        super.onToggleSwitchPerformed(target);
+    public void acceptItemPerformed(
+            AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
+            StatusInfo<?> statusInfo) {
     }
 }
 

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -128,16 +129,35 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     boolean isDuplicate) {
                 if (rowModel == null) {
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(null, target);
-                    showTableForItemRefs(target, () -> newValue);
+                    newValue.getRealValue().setEnabled(false);
+                    showTableForItemRefs(target, () -> newValue, null);
                     return;
                 }
 
                 if (isDuplicate && rowModel.getObject() != null) {
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> object = rowModel.getObject();
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(object.getNewValue(), target);
-                    showTableForItemRefs(target, () -> newValue);
+                    newValue.getRealValue().setEnabled(false);
+                    showTableForItemRefs(target, () -> newValue, null);
                 }
-                showTableForItemRefs(target, rowModel);
+
+                showTableForItemRefs(target, rowModel, null);
+            }
+
+            @Override
+            public void acceptItemPerformed(AjaxRequestTarget target,
+                    @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
+                    StatusInfo<?> statusInfo) {
+                if (rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
+                    return;
+                }
+                ItemsSubCorrelatorType realValue = rowModel.getObject().getRealValue();
+                @SuppressWarnings("unchecked")
+                PrismContainerValue<ItemsSubCorrelatorType> prismContainerValue =
+                        (PrismContainerValue<ItemsSubCorrelatorType>) realValue.asPrismContainerValue();
+//                newItemPerformed(prismContainerValue, target, null, false, statusInfo);
+                showTableForItemRefs(target, rowModel, statusInfo);
+
             }
 
             @Override
@@ -145,11 +165,13 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     PrismContainerValue<ItemsSubCorrelatorType> value,
                     AjaxRequestTarget target,
                     AssignmentObjectRelation relationSpec,
-                    boolean isDuplicate) {
+                    boolean isDuplicate,
+                    StatusInfo<?> statusInfo) {
                 PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewValue(value, target);
-                showTableForItemRefs(target, () -> newValue);
+                showTableForItemRefs(target, () -> newValue, statusInfo);
             }
         };
+
         table.setOutputMarkupId(true);
         return table;
     }
@@ -188,7 +210,8 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     protected abstract void showTableForItemRefs(
             AjaxRequestTarget target,
-            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel);
+            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
+            StatusInfo<?> statusInfo);
 
     @Override
     protected String getSaveLabelKey() {

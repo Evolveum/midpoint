@@ -11,6 +11,23 @@
 <body>
 <wicket:extend>
     <div class="container-fluid px-0">
+
+        <div class="col-12" wicket:id="containerAlert">
+            <div class="alert purple-light d-flex align-items-center justify-content-between p-3 rounded text-purple-dark">
+                <div class="d-flex align-items-start">
+                    <div wicket:id="iconAlert" class="mx-1 mt-1"></div>
+                    <div class="d-flex flex-column">
+                        <h6 wicket:id="titleAlert" class="fw-bold m-0"></h6>
+                        <p wicket:id="descriptionAlert" class="mb-0 small">
+                        </p>
+                        <div class="d-inline-flex align-items-center mt-1">
+                            <span wicket:id="badgeAlert"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex flex-row g-3 align-items-start">
             <div class="col-12 col-lg-3">
 

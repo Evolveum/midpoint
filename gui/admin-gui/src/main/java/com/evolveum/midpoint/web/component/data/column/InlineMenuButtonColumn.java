@@ -142,6 +142,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             }
 
             @Override
+            protected String getAdditionalMultiButtonPanelCssClass() {
+                return InlineMenuButtonColumn.this.getAdditionalMultiButtonPanelCssClass();
+            }
+
+            @Override
             protected String getDropDownButtonIcon() {
                 return InlineMenuButtonColumn.this.getDropDownButtonIcon();
             }
@@ -165,6 +170,10 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 }
             }
         };
+    }
+
+    protected String getAdditionalMultiButtonPanelCssClass() {
+        return null;
     }
 
     protected boolean isButtonMenuItemEnabled(IModel<T> rowModel) {

@@ -47,6 +47,12 @@
   color: white;
 }
 
+.badge.badge-purple {
+  --label-color: #6f42c1;
+  background-color: var(--label-color);
+  color: white;
+}
+
 .bg-success-light {
   background-color: #D1E7DD !important;
 }
@@ -61,4 +67,13 @@
 
 .border-3 {
   border-width:3px !important;
+}
+.alert.purple-light {
+  --label-color: #f0e7fe;
+  background-color: var(--label-color);
+  border-color: #6f42c1;
+}
+
+.text-purple-dark {
+  color: #290661 !important;
 }

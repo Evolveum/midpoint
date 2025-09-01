@@ -68,7 +68,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
 
     @Override
     protected List<InlineMenuItem> createInlineMenu() {
-        return Collections.singletonList(createDeleteItemMenu());
+        return isReadOnlyTable() ? Collections.emptyList() : Collections.singletonList(createDeleteItemMenu());
     }
 
     @Override
@@ -82,13 +82,15 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
     protected List<IColumn<PrismContainerValueWrapper<CorrelationItemType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<CorrelationItemType>, String>> columns = new ArrayList<>();
 
-        columns.add(new CheckBoxHeaderColumn<>());
+        if (isCheckboxSelectionEnabled()) {
+            columns.add(new CheckBoxHeaderColumn<>());
+        }
 
         IModel<PrismContainerDefinition<CorrelationItemType>> correlationDef = getCorrelationItemDefinition();
         columns.add(new PrismPropertyWrapperColumn<CorrelationItemType, String>(
                 correlationDef,
                 CorrelationItemType.F_REF,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getDefaultColumnType(),
                 getPageBase()) {
             @Override
             public String getCssClass() {
@@ -117,6 +119,11 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                     getPageBase()) {
                 @Override
                 protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+
+                    if (isReadOnlyTable()) {
+                        return new Label(componentId, getString("CorrelationItemRefsTable.column.fuzzy.nullValue"));
+                    }
+
                     ContainersDropDownPanel<SynchronizationActionsType> panel = new ContainersDropDownPanel(
                             componentId,
                             rowModel) {
@@ -248,5 +255,22 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
     @Override
     protected String getKeyOfTitleForNewObjectButton() {
         return "CorrelationItemRefsTable.newObject.simple";
+    }
+
+    protected AbstractItemWrapperColumn.ColumnType getDefaultColumnType() {
+        return isReadOnlyTable() ? AbstractItemWrapperColumn.ColumnType.STRING : AbstractItemWrapperColumn.ColumnType.VALUE;
+    }
+
+    @Override
+    protected boolean isCreateNewObjectVisible() {
+        return !isReadOnlyTable() && super.isCreateNewObjectVisible();
+    }
+
+    boolean isCheckboxSelectionEnabled() {
+        return !isReadOnlyTable();
+    }
+
+    boolean isReadOnlyTable() {
+        return false;
     }
 }
