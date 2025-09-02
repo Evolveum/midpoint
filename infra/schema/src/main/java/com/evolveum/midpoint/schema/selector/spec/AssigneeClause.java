@@ -113,7 +113,7 @@ public class AssigneeClause extends SelectorClause {
 
     @NotNull
     private List<PrismObject<? extends ObjectType>> getAssignees(Object object, @NotNull MatchingContext ctx) {
-        List<ObjectReferenceType> assigneeRefs = getAssigneesWithoutResolving(object);
+        List<ObjectReferenceType> assigneeRefs;
         if (object instanceof CaseType aCase) {
             assigneeRefs = CaseTypeUtil.getAllAssignees(aCase);
         } else if (object instanceof AccessCertificationCaseType aCase) {
