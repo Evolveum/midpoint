@@ -13,7 +13,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.10-SNAPSHOT</version>
+        <version>4.10-RC1</version>
     </parent>
 
     <artifactId>notifications-api</artifactId>

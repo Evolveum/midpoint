@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  oid="c4a07805-67c5-4b25-961e-e47b75a0b5a5">
+    <name>Active applications</name>
+    <type>ServiceType</type>
+    <filter>
+        <q:text>archetypeRef matches (oid = "00000000-0000-0000-0000-000000000329" and targetType = ArchetypeType) and activation/effectiveStatus = "enabled"</q:text>
+    </filter>
+    <domain>
+        <collectionRef oid="00000000-0000-0000-0001-000000000017" type="ObjectCollectionType"/>
+    </domain>
+    <defaultView>
+        <display>
+            <label>
+                <orig>Active application</orig>
+                <translation>
+                    <key>activeApplication.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Active applications</orig>
+                <translation>
+                    <key>activeApplication.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+        </display>
+    </defaultView>
+</objectCollection>
