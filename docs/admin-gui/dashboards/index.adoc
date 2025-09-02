@@ -82,7 +82,7 @@ This is fine as long as you do not have too many users or too many complex dashb
 
 The way to ease the system load caused by dashboards is to pre-compute the dashboard data once in a while instead of computing them on every load.
 That's what asynchronous dashboards are about.
-Aside the dashboard and object collection, you also define a xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] and make it "run" the dashboard in regular intervals using a scheduled xref:/midpoint/reference/misc/reports/configuration/report-task-definition/#export-report[report task].
+In addition to the dashboard and object collection, you also define a xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] and make it "run" the dashboard in regular intervals using a scheduled xref:/midpoint/reference/misc/reports/configuration/report-task-definition/#export-report[report task].
 This way, you make the dashboard calculate the data for all the widgets in the dashboard on a frequency that is manageable for your systems.
 Unlike other reports, a dashboard report saves the resulting data in the widgets of the particular dashboard.
 
