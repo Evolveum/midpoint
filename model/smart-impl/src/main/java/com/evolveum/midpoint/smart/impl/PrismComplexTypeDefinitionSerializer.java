@@ -82,9 +82,11 @@ class PrismComplexTypeDefinitionSerializer extends SchemaSerializer {
                 continue;
             }
             var itemPath = prefix.append(itemName, itemDef.isMultiValue());
+            var pathString = itemPath.asString();
+            registerPathMapping(pathString, itemPath.getItemPath());
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
-                            .name(itemPath.asString())
+                            .name(pathString)
                             .type(fixTypeName(itemDef.getTypeName()))
                             .description(itemDef.getDocumentation())
                             .minOccurs(itemDef.getMinOccurs())

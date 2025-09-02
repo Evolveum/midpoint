@@ -1139,13 +1139,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.q()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
                                 .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.EMAIL.q()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.EMAIL.path()))
                                 .midPointAttribute(asStringSimple(UserType.F_EMAIL_ADDRESS))) // to confuse the test
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(ICFS_NAME))
+                                .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
                                 .midPointAttribute(asStringSimple(UserType.F_NAME))));
         smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 

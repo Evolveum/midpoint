@@ -8,7 +8,11 @@
 package com.evolveum.midpoint.smart.impl;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.impl.marshaller.ItemPathSerialization;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.prism.path.UniformItemPath;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -31,11 +35,20 @@ import javax.xml.namespace.QName;
  *
  * Individual segments may include an XML namespace prefix, typically "ri:", "icfs:", or "c:".
  * These prefixes are either well-known, or their exact value is not important ("ext1:", "ext2:", and so on).
+ *
+ * TEMPORARY IMPLEMENTATION!!!
+ *      It ignores the multiplicity settings and uses randomly generated "genXYZ" for extension namespaces (which is wrong).
  */
 public class DescriptiveItemPath {
 
+    private final ItemPath path;
+
+    private DescriptiveItemPath(ItemPath path) {
+        this.path = path;
+    }
+
     public static DescriptiveItemPath empty() {
-        return new DescriptiveItemPath();
+        return new DescriptiveItemPath(ItemPath.EMPTY_PATH);
     }
 
     /**
@@ -43,22 +56,24 @@ public class DescriptiveItemPath {
      * If the definition is missing, all segments are assumed to be single-valued.
      */
     public static DescriptiveItemPath of(ItemPath itemPath, @Nullable ItemDefinition<?> rootItemDefinition) {
-        throw new UnsupportedOperationException("MID-10840");
+        return new DescriptiveItemPath(itemPath);
     }
 
     /** Appends a new segment to the path. */
     public DescriptiveItemPath append(QName itemName, boolean isMultivalued) {
-        throw new UnsupportedOperationException("MID-10840");
+        return new DescriptiveItemPath(path.append(itemName));
     }
 
     /** Converts this path back to {@link ItemPath}. */
     public ItemPath getItemPath() {
-        throw new UnsupportedOperationException("MID-10840");
+        return path;
     }
 
     /** Returns a string representation of this path. */
     public String asString() {
-        throw new UnsupportedOperationException("MID-10840");
+        var ctx = PrismContext.get().getSchemaRegistry().staticNamespaceContext();
+        var serialization = ItemPathSerialization.serialize(UniformItemPath.from(path), ctx, true);
+        return serialization.getXPathWithoutDeclarations();
     }
 
     /** A convenience method for quick conversion. Assumes that all segments are single-valued. */

@@ -73,7 +73,8 @@ class CorrelationSuggestionOperation {
             for (var siAttributeMatch : siResponse.getAttributeMatch()) {
                 var focusItemPath = matchingOp.getFocusItemPath(siAttributeMatch.getMidPointAttribute());
                 if (correlator.equivalent(focusItemPath)) {
-                    var resourceAttrPath = matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute());
+                    var resourceAttrPath =
+                            matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute()).rest(); // skipping "c:attributes"
                     var inbound = new InboundMappingType()
                             .target(new VariableBindingDefinitionType()
                                     .path(focusItemPath.toBean()))
