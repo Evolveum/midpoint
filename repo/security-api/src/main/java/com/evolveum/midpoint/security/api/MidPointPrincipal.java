@@ -8,6 +8,7 @@ package com.evolveum.midpoint.security.api;
 
 import java.io.Serial;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.prism.FreezableList;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -62,8 +63,9 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
      *
      * It would be the best if this list was immutable or at least freezable (e.g. using {@link FreezableList}).
      * Unfortunately, it is currently not possible, because it has to be updated when the user session is refreshed.
+     * Still, to avoid asynch. calls to cleaned up authorizations list, we wrap it to AtomicReference for now (#10781)
      */
-    @NotNull private final List<Authorization> authorizations = new ArrayList<>();
+    @NotNull private final AtomicReference<List<Authorization>> authorizations = new AtomicReference<>(new ArrayList<>());
 
     /**
      * Set if the authorizations may differ from the default ones of {@link #focus} (e.g., when "runPrivileged" is used).
@@ -101,12 +103,14 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     @Override
     public @NotNull Collection<Authorization> getAuthorities() {
-        return Collections.unmodifiableList(authorizations);
+        return Collections.unmodifiableList(authorizations.get());
     }
 
     /** Use only during "regular" building or updating of a principal. Does NOT set {@link #effectivePrivilegesModification} flag. */
     public void addAuthorization(@NotNull Authorization authorization) {
-        authorizations.add(authorization);
+        List<Authorization> newAuthList = new ArrayList<>(authorizations.get());
+        newAuthList.add(authorization);
+        resetAuthorizationsList(newAuthList);
     }
 
     /**
@@ -120,8 +124,8 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
      * So, the full elevation would be signalled for the majority of cases even if the equivalent authorization was there.
      */
     public void addExtraAuthorizationIfMissing(@NotNull Authorization authorization, boolean full) {
-        if (!authorizations.contains(authorization)) {
-            authorizations.add(authorization);
+        if (!authorizations.get().contains(authorization)) {
+            addAuthorization(authorization);
             if (full) {
                 effectivePrivilegesModification = EffectivePrivilegesModificationType.FULL_ELEVATION;
             } else if (effectivePrivilegesModification != EffectivePrivilegesModificationType.REDUCTION) {
@@ -132,8 +136,8 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         }
     }
 
-    public void clearAuthorizations() {
-        authorizations.clear();
+    public void resetAuthorizationsList(List<Authorization> newAuthList) {
+        authorizations.set(Collections.unmodifiableList(newAuthList));
     }
 
     @Override
@@ -289,7 +293,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     protected void copyValues(MidPointPrincipal clone) {
         clone.effectivePrivilegesModification = this.effectivePrivilegesModification;
         clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
-        clone.authorizations.addAll(authorizations);
+        clone.authorizations.get().addAll(authorizations.get());
         clone.effectiveActivationStatus = this.effectiveActivationStatus;
         clone.otherPrivilegesLimitations.copyValuesFrom(this.otherPrivilegesLimitations);
     }
@@ -304,7 +308,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     protected void debugDumpInternal(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "Focus", focus.asPrismObject(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations.get(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Other privilege limitations", otherPrivilegesLimitations, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Attorney", attorney == null ? null : attorney.asPrismObject(), indent + 1);
     }

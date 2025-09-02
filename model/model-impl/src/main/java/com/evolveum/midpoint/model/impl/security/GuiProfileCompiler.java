@@ -189,12 +189,9 @@ public class GuiProfileCompiler {
                 }
             }
         }
-        //giving here the code to clear the authorizations and other privileges limitations due to the ticket #10781
-        //not fixing the core of the problem but trying to improve the situation by decreasing the time period when
-        //authorizations are already cleared but not filled in yet
-        principal.clearAuthorizations();
-        collectedAuthorizationList
-                .forEach(authToAdd -> addAuthorizationToPrincipal(principal, authToAdd, authorizationTransformer));
+        List<Authorization> newAuthList = cloneOrTransformAuthorizations(principal, collectedAuthorizationList,
+                authorizationTransformer);
+        principal.resetAuthorizationsList(newAuthList);
 
         principal.clearOtherPrivilegesLimitations();
         delegationTargetMap.forEach(principal::addDelegationTarget);
@@ -231,15 +228,17 @@ public class GuiProfileCompiler {
         return collectedAssignments;
     }
 
-    private void addAuthorizationToPrincipal(
-            MidPointPrincipal principal, Authorization autz, AuthorizationTransformer authorizationTransformer) {
-        if (authorizationTransformer == null) {
-            principal.addAuthorization(autz.clone());
-        } else {
-            for (Authorization transformedAutz : emptyIfNull(authorizationTransformer.transform(autz))) {
-                principal.addAuthorization(transformedAutz);
+    private List<Authorization> cloneOrTransformAuthorizations(
+            MidPointPrincipal principal, List<Authorization> authorizationList, AuthorizationTransformer authorizationTransformer) {
+        List<Authorization> authorizationRes = new ArrayList<>();
+        authorizationList.forEach(autz -> {
+            if (authorizationTransformer == null) {
+                authorizationRes.add(autz.clone());
+            } else {
+                authorizationRes.addAll(emptyIfNull(authorizationTransformer.transform(autz)));
             }
-        }
+        });
+        return authorizationRes;
     }
 
     @NotNull
