@@ -202,7 +202,7 @@ See xref:/midpoint/reference/resources/entitlements/#_simulated_references[Simul
 Contains options like the support for adding/removing attribute values or complex deltas.
 
 | `delete`
-| `Delete
+| `Delete`
 | Describes the delete capability, i.e., the ability to delete objects on the resource.
 
 | `testConnection`
@@ -253,7 +253,7 @@ This capability is typically used with accounts because knowing the time account
 
 * Identify inactive accounts for the purposes of reporting.
 * Manage inactive accounts that might otherwise pose a security risk or violate compliance policies.
-* Optimize license costs be revoking licenses from inactive accounts.
+* Optimize license costs by revoking licenses from inactive accounts.
 
 TIP: Automate xref:/iam/iga/capabilities/access-request[requesting access] to enable users with revoked privileges to reclaim their permissions when they need them.
 
