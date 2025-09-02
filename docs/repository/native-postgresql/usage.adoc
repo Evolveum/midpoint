@@ -284,6 +284,15 @@ xref:/midpoint/reference/upgrade/database-schema-upgrade/#upgrading-native-postg
 
 You can find further details in the source code documentation for `apply_change` procedure at the end of the `postgres.sql` script.
 
+[NOTE]
+====
+When upgrading to PostgreSQL 15 or higher:
+
+* For existing databases, especially those with multiple users, consider revoking the CREATE permission on the public schema.
+* Since version 15, tables and views are created in the `$current_user` schema instead of the public schema.
+====
+
+
 == Troubleshooting
 
 If you find a bug or encounter performance problem with the Native repository,
