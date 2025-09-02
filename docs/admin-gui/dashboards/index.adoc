@@ -63,7 +63,7 @@ An object collection may contain a domain clause defining a superset for the que
 This is useful if you want your dashboard to show, for example, what percentage of all employees (superset) is on a long-term leave (queried objects).
 
 Since dashboards serve for _showing_ data, they need to be accessible in the midPoint graphical user interface (GUI).
-When you create a dashboard, you need to add it to the midPoint system configuration so that GUI users can find it under the icon:[tachometer-alt] *Dashboards* menu.
+When you create a dashboard, you need to add it to the midPoint system configuration so that GUI users can find it under the [.nowrap]#icon:tachometer-alt[] *Dashboards*# menu.
 
 == Asynchronous dashboards and reports
 
