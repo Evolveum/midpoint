@@ -2,7 +2,7 @@
 midpoint-feature: dashboard
 doc-type: intro
 ---
-= Operational efficiency through customizable dashboards
+= Visualize custom IGA metrics with dashboards
 :page-wiki-name: Customizable Dashboards
 :page-wiki-id: 27361691
 :page-wiki-metadata-create-user: semancik
@@ -12,10 +12,11 @@ doc-type: intro
 :page-nav-title: Dashboards
 :page-keywords: [ 'dashboards', 'dashboard' ]
 :search-alias: "dashboards"
-:page-since: "4.0"
 :page-upkeep-status: green
+:page-toc: top
 
-Dashboards are a fundamental tool for efficient identity governance and administration in your organization.
+
+Dashboards are a fundamental tool for efficient identity governance and administration (IGA) in your organization.
 They provide centralized overview of critical metrics, enabling managers to monitor compliance, track operational efficiency, and respond to risks proactively.
 You can configure dashboards based on the metrics that are important for you and your stakeholders.
 
