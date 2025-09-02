@@ -55,7 +55,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public Component getHeader(final String componentId) {
-        final IModel<Boolean> model = new Model<>(false);
+        final IModel<Boolean> model = getHeaderDisplayModel();
         IsolatedCheckBoxPanel panel = new IsolatedCheckBoxPanel(componentId, model, getEnabled(null)) {
 
             @Override
@@ -86,22 +86,29 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         return panel;
     }
 
+    /**
+     * Model for header checkbox. By default, it is always {@code false}.
+     */
+    protected IModel<Boolean> getHeaderDisplayModel() {
+        return new Model<>(false);
+    }
 
     @Override
     public String getCssClass() {
         return "align-middle check";
     }
 
-    protected boolean isCheckboxVisible(){
+    protected boolean isCheckboxVisible() {
         return visible;
     }
 
-    public void setCheckboxVisible(boolean visible){
+    public void setCheckboxVisible(boolean visible) {
         this.visible = visible;
     }
 
     /**
      * This method is called after select all checkbox is clicked
+     *
      * @param target
      * @param selected
      * @param table
@@ -146,7 +153,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         return selectedAll;
     }
 
-    protected boolean isTableRowSelected(IModel<T> model){
+    protected boolean isTableRowSelected(IModel<T> model) {
         if (model instanceof SelectableObjectModel) {
             return ((SelectableObjectModel<?>) model).isSelected();
         }
@@ -154,7 +161,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         if (object instanceof Selectable) {
             Selectable selectable = (Selectable) object;
             return selectable.isSelected();
-        } else if (object instanceof PrismContainerValueWrapper){
+        } else if (object instanceof PrismContainerValueWrapper) {
             PrismContainerValueWrapper valueWrapper = (PrismContainerValueWrapper) object;
             return valueWrapper.isSelected();
         }
