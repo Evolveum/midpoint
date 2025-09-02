@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.intest.smart;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 
+import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
@@ -231,11 +233,11 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                     () -> new MockServiceClientImpl(
                             new SiMatchSchemaResponseType()
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(ICFS_NAME.toBean())
-                                            .midPointAttribute(UserType.F_NAME.toBean()))
+                                            .applicationAttribute(asStringSimple(ICFS_NAME))
+                                            .midPointAttribute(asStringSimple(UserType.F_NAME)))
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.q().toBean())
-                                            .midPointAttribute(UserType.F_PERSONAL_NUMBER.toBean())))); // TODO other matches
+                                            .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.q()))
+                                            .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER))))); // TODO other matches
         }
 
         var task = getTestTask();
@@ -270,11 +272,11 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                     () -> new MockServiceClientImpl(
                             new SiMatchSchemaResponseType()
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(ICFS_NAME_PATH.toBean())
-                                            .midPointAttribute(UserType.F_NAME.toBean()))
+                                            .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                            .midPointAttribute(asStringSimple(UserType.F_NAME)))
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path().toBean())
-                                            .midPointAttribute(UserType.F_PERSONAL_NUMBER.toBean())),
+                                            .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
+                                            .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER))),
                             new SiSuggestMappingResponseType().transformationScript(null),
                             new SiSuggestMappingResponseType().transformationScript(null))); // TODO other matches
         }

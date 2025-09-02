@@ -925,17 +925,29 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="t:ItemPathType">
+            <xsd:element name="name" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Path to the attribute (item). Examples:
+                        Path to the attribute (item).
+
+                        It resembles the midPoint notation, however, with some specialties related to multivalued complex items.
+
+                        Examples:
 
                         - c:givenName
                         - c:attributes/icfs:name
                         - c:attributes/ri:login
                         - c:activation/c:validFrom
+                        - c:extension/ext1:shoeSize
+                        - c:email[*]/c:value
+
+                        The last example means that "c:email" is a multivalued container and this definition refers to its
+                        "c:value" property.
+
+                        See DescriptiveItemPath class.
 
                         Individual segments may include an XML namespace prefix, typically "ri:", "icfs:", or "c:".
+                        These prefixes are either well-known, or their exact value is not important ("ext1:", "ext2:", and so on).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1116,17 +1128,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="applicationAttribute" type="t:ItemPathType">
+            <xsd:element name="applicationAttribute" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Path the of application-side attribute, like "c:attributes/ri:login".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="midPointAttribute" type="t:ItemPathType">
+            <xsd:element name="midPointAttribute" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Path the of midPoint-side attribute, like "c:name".
+                        Path the of midPoint-side attribute, like "c:name" or "c:email[*]/c:type".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1218,7 +1230,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="t:ItemPathType">
+            <xsd:element name="name" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Attribute path, like "c:attributes/ri:login" or "c:activation/c:administrativeStatus".

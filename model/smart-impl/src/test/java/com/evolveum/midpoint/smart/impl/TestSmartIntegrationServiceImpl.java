@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,32 +21,29 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
-import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
-import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
 import com.evolveum.midpoint.smart.impl.activities.StatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Unit tests for the Smart Integration Service implementation.
@@ -613,17 +610,9 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     private SiSuggestObjectTypesRequestType normalizeSiSuggestObjectTypesRequest(Object rawData) {
         var data = (SiSuggestObjectTypesRequestType) rawData;
-        for (var attrDef : data.getSchema().getAttribute()) {
-            attrDef.setName(normalizeItemPathType(attrDef.getName()));
-        }
-        data.getSchema().getAttribute().sort(Comparator.comparing(a -> a.getName().toString()));
+        data.getSchema().getAttribute().sort(Comparator.comparing(a -> a.getName()));
         data.getStatistics().getAttribute().sort(Comparator.comparing(a -> a.getRef().toString()));
         return data;
-    }
-
-    private ItemPathType normalizeItemPathType(ItemPathType pathType) {
-        var string = PrismContext.get().itemPathSerializer().serializeStandalone(pathType.getItemPath());
-        return PrismContext.get().itemPathParser().asItemPathType(string);
     }
 
     /** What if the service returns an error in the filter? */
@@ -1070,17 +1059,17 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(ICFS_NAME_PATH.toBean())
-                                .midPointAttribute(UserType.F_NAME.toBean()))
+                                .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                .midPointAttribute(asStringSimple(UserType.F_NAME)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.FULLNAME.path().toBean())
-                                .midPointAttribute(UserType.F_FULL_NAME.toBean()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.TYPE.path().toBean())
-                                .midPointAttribute(UserType.F_DESCRIPTION.toBean()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.TYPE.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.PHONE.path().toBean())
-                                .midPointAttribute(UserType.F_TELEPHONE_NUMBER.toBean())),
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.PHONE.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
                         // No mapping for status -> activation, as non-attribute mappings are not supported yet
                 new SiSuggestMappingResponseType().transformationScript(null),
                 new SiSuggestMappingResponseType().transformationScript(null),
@@ -1150,14 +1139,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.FULLNAME.q().toBean())
-                                .midPointAttribute(UserType.F_FULL_NAME.toBean()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.q()))
+                                .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.EMAIL.q().toBean())
-                                .midPointAttribute(UserType.F_EMAIL_ADDRESS.toBean())) // to confuse the test
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.EMAIL.q()))
+                                .midPointAttribute(asStringSimple(UserType.F_EMAIL_ADDRESS))) // to confuse the test
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(ICFS_NAME.toBean())
-                                .midPointAttribute(UserType.F_NAME.toBean())));
+                                .applicationAttribute(asStringSimple(ICFS_NAME))
+                                .midPointAttribute(asStringSimple(UserType.F_NAME))));
         smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
         var task = getTestTask();

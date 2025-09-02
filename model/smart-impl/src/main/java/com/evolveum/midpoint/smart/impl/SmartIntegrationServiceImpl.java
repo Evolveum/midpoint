@@ -431,8 +431,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("objectClassName", objectClassName)
                 .build();
         try (var serviceClient = getServiceClient(result)) {
-            var types = Operation
-                    .init(serviceClient, resourceOid, objectClassName, task, result)
+            var types = new ObjectTypesSuggestionOperation(
+                    OperationContext.init(serviceClient, resourceOid, objectClassName, task, result))
                     .suggestObjectTypes(statistics);
             LOGGER.debug("Object types suggestion:\n{}", types.debugDump(1));
             return types;
@@ -456,8 +456,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try {
             try (var serviceClient = getServiceClient(result)) {
-                var suggestion = TypeOperation
-                        .init(serviceClient, resourceOid, typeIdentification, null, task, result)
+                var suggestion = new FocusTypeSuggestionOperation(
+                        TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result))
                         .suggestFocusType();
                 LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
                 return suggestion;
@@ -482,8 +482,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try {
             try (var serviceClient = getServiceClient(result)) {
-                var suggestion = Operation
-                        .init(serviceClient, resourceOid, typeDefBean.getDelineation().getObjectClass(), task, result)
+                var suggestion = new FocusTypeSuggestionOperation(
+                        OperationContext.init(serviceClient, resourceOid, typeDefBean.getDelineation().getObjectClass(), task, result))
                         .suggestFocusType(typeDefBean);
                 LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
                 return suggestion;
@@ -511,8 +511,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try (var serviceClient = getServiceClient(result)) {
-            var correlation = TypeOperation
-                    .init(serviceClient, resourceOid, typeIdentification, null, task, result)
+            var correlation = new CorrelationSuggestionOperation(
+                    TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result))
                     .suggestCorrelation();
             LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
             return correlation;
@@ -541,7 +541,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try (var serviceClient = getServiceClient(result)) {
-            var mappings = TypeOperation
+            var mappings = MappingsSuggestionOperation
                     .init(serviceClient, resourceOid, typeIdentification, activityState, task, result)
                     .suggestMappings(result);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));

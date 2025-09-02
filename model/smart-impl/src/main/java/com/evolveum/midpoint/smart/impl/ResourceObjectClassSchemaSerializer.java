@@ -1,15 +1,17 @@
 package com.evolveum.midpoint.smart.impl;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiObjectSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 /** Serializes {@link ResourceObjectClassDefinition} into {@link SiObjectSchemaType}. */
 class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
@@ -22,19 +24,24 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
         this.resource = resource;
     }
 
+    static ResourceObjectClassSchemaSerializer create(ResourceObjectClassDefinition objectClassDef, ResourceType resource) {
+        return new ResourceObjectClassSchemaSerializer(objectClassDef, resource);
+    }
+
     static SiObjectSchemaType serialize(ResourceObjectClassDefinition objectClassDef, ResourceType resource) {
-        return new ResourceObjectClassSchemaSerializer(objectClassDef, resource).serialize();
+        return create(objectClassDef, resource).serialize();
     }
 
     // TODO: complex attributes
     public SiObjectSchemaType serialize() {
+        var shadowDefinition = objectClassDef.getPrismObjectDefinition();
         var schema = new SiObjectSchemaType()
                 .name(objectClassDef.getObjectClassName())
                 .description(objectClassDef.getDescription()); // TODO change to native description
         for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : objectClassDef.getAttributeDefinitions()) {
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
-                            .name(attributeDefinition.getStandardPath().toBean())
+                            .name(DescriptiveItemPath.of(attributeDefinition.getStandardPath(), shadowDefinition).asString())
                             .type(fixTypeName(attributeDefinition.getTypeName()))
                             .description(attributeDefinition.getDescription()) // TODO change to native description
                             .minOccurs(attributeDefinition.getMinOccurs())
@@ -44,7 +51,7 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
         if (credentialsCapability != null && CapabilityUtil.getEnabledPasswordCapability(credentialsCapability) != null) {
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
-                            .name(PATH_CREDENTIALS_PASSWORD_VALUE.toBean())
+                            .name(DescriptiveItemPath.of(PATH_CREDENTIALS_PASSWORD_VALUE, shadowDefinition).asString())
                             .type(fixTypeName(ProtectedStringType.COMPLEX_TYPE))
                             .minOccurs(0)
                             .maxOccurs(1));
@@ -54,7 +61,7 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
             if (CapabilityUtil.getEnabledActivationStatus(activationCapability) != null) {
                 schema.getAttribute().add(
                         new SiAttributeDefinitionType()
-                                .name(PATH_ACTIVATION_ADMINISTRATIVE_STATUS.toBean())
+                                .name(DescriptiveItemPath.of(PATH_ACTIVATION_ADMINISTRATIVE_STATUS, shadowDefinition).asString())
                                 .type(fixTypeName(C_ACTIVATION_STATUS_TYPE))
                                 .minOccurs(0)
                                 .maxOccurs(1));
@@ -62,7 +69,7 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
             if (CapabilityUtil.getEnabledActivationValidFrom(activationCapability) != null) {
                 schema.getAttribute().add(
                         new SiAttributeDefinitionType()
-                                .name(PATH_ACTIVATION_VALID_FROM.toBean())
+                                .name(DescriptiveItemPath.of(PATH_ACTIVATION_VALID_FROM, shadowDefinition).asString())
                                 .type(fixTypeName(DOMUtil.XSD_DATETIME))
                                 .minOccurs(0)
                                 .maxOccurs(1));
@@ -70,7 +77,7 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
             if (CapabilityUtil.getEnabledActivationValidTo(activationCapability) != null) {
                 schema.getAttribute().add(
                         new SiAttributeDefinitionType()
-                                .name(PATH_ACTIVATION_VALID_TO.toBean())
+                                .name(DescriptiveItemPath.of(PATH_ACTIVATION_VALID_TO, shadowDefinition).asString())
                                 .type(fixTypeName(DOMUtil.XSD_DATETIME))
                                 .minOccurs(0)
                                 .maxOccurs(1));
