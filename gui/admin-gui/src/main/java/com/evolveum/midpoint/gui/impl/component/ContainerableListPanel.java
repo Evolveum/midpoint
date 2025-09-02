@@ -1806,4 +1806,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         components.add(new VisibleBehaviour(this::displayNoValuePanel));
         return components;
     }
+
+    protected Component getNoValuePanel() {
+        return get(ID_NO_VALUE_PANEL);
+    }
 }

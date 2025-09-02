@@ -7,17 +7,20 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -43,6 +46,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
@@ -69,6 +73,11 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<CorrelationItemType>> rowModel,
             List<PrismContainerValueWrapper<CorrelationItemType>> listItems) {
+    }
+
+    @Override
+    protected ISelectableDataProvider<PrismContainerValueWrapper<CorrelationItemType>> createProvider() {
+        return super.createProvider();
     }
 
     @Override
@@ -284,6 +293,12 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
         return getDataProvider().size() == 0;
     }
 
+    @Contract(pure = true)
+    @Override
+    protected @NotNull String getAdditionalFooterCssClasses() {
+        return "bg-white border-top";
+    }
+
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttons = new ArrayList<>();
@@ -315,12 +330,42 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
 
         ExistingMappingTable<?> existingMappingTable = new ExistingMappingTable<>(
                 getPageBase().getMainPopupBodyId(),
-                () -> parentContainerValue){
+                () -> parentContainerValue) {
             @Override
-            protected void onAddSelectedMappings(AjaxRequestTarget target, List<PrismContainerValueWrapper<MappingType>> selectedObjectsCount) {
-                PrismContainerValueWrapper<ItemsSubCorrelatorType> object = getValueModel().getObject();
+            protected void onAddSelectedMappings(AjaxRequestTarget target, List<PrismContainerValueWrapper<MappingType>> selectedObjects) {
+                if (selectedObjects == null || selectedObjects.isEmpty()) {
+                    return;
+                }
+
+                selectedObjects.forEach(mappingWrapper -> transformAndAddMappingIntoCorrelationItemContainer(mappingWrapper, target));
+                refreshTable(target);
+                target.add(getNoValuePanel());
             }
         };
-        getPageBase().showMainPopup(existingMappingTable,target);
+        getPageBase().showMainPopup(existingMappingTable, target);
+    }
+
+    //TODO check it
+    private void transformAndAddMappingIntoCorrelationItemContainer(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper, AjaxRequestTarget target) {
+        MappingType realValueMapping = mappingWrapper.getRealValue();
+
+        IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel = getValueModel();
+        IModel<PrismContainerWrapper<CorrelationItemType>> containerModel = createContainerModel(valueModel, ItemPath.create(
+                ItemsSubCorrelatorType.F_ITEM));
+
+        PrismContainerWrapper<CorrelationItemType> container = containerModel.getObject();
+
+        var newValue = container.getItem().createNewValue();
+        CorrelationItemType bean = newValue.asContainerable();
+        bean.setName(realValueMapping.getName());
+        bean.setRef(realValueMapping.getTarget().getPath());
+        bean.setDescription(realValueMapping.getDescription());
+
+        WebPrismUtil.createNewValueWrapper(container, newValue, getPageBase(), target);
+    }
+
+    public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel(
+            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> model, ItemPath path) {
+        return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
     }
 }
