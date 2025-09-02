@@ -497,7 +497,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public CorrelationSuggestionType suggestCorrelation(
+    public CorrelationSuggestionsType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable Object interactionMetadata,
@@ -585,7 +585,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public List<StatusInfo<CorrelationSuggestionType>> listSuggestCorrelationOperationStatuses(
+    public List<StatusInfo<CorrelationSuggestionsType>> listSuggestCorrelationOperationStatuses(
             String resourceOid, Task task, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_LIST_SUGGEST_CORRELATION_OPERATION_STATUSES)
@@ -597,13 +597,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     queryForActivityType(resourceOid, SchemaConstantsGenerated.C_CORRELATION_SUGGESTION),
                     taskRetrievalOptions(),
                     result);
-            var resultingList = new ArrayList<StatusInfo<CorrelationSuggestionType>>();
+            var resultingList = new ArrayList<StatusInfo<CorrelationSuggestionsType>>();
             for (PrismObject<TaskType> t : tasks) {
                 resultingList.add(
                         new StatusInfoImpl<>(
                                 t.asObjectable(),
                                 CorrelationSuggestionWorkStateType.F_RESULT,
-                                CorrelationSuggestionType.class));
+                                CorrelationSuggestionsType.class));
             }
             sortByFinishAndStartTime(resultingList);
             return resultingList;
@@ -616,7 +616,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public StatusInfo<CorrelationSuggestionType> getSuggestCorrelationOperationStatus(
+    public StatusInfo<CorrelationSuggestionsType> getSuggestCorrelationOperationStatus(
             String token, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         var result = parentResult.subresult(OP_GET_SUGGEST_CORRELATION_OPERATION_STATUS)
                 .addParam("token", token)
@@ -625,7 +625,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             return new StatusInfoImpl<>(
                     getTask(token, result),
                     CorrelationSuggestionWorkStateType.F_RESULT,
-                    CorrelationSuggestionType.class);
+                    CorrelationSuggestionsType.class);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

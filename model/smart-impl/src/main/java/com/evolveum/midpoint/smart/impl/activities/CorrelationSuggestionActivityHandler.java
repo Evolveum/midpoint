@@ -101,13 +101,13 @@ public class CorrelationSuggestionActivityHandler
             var resourceOid = getWorkDefinition().getResourceOid();
             var typeIdentification = getWorkDefinition().getTypeIdentification();
 
-            var suggestedCorrelation = SmartIntegrationBeans.get().smartIntegrationService.suggestCorrelation(
+            var suggestedCorrelations = SmartIntegrationBeans.get().smartIntegrationService.suggestCorrelation(
                     resourceOid, typeIdentification, null, task, result);
 
             var state = getActivityState();
-            state.setWorkStateItemRealValues(CorrelationSuggestionWorkStateType.F_RESULT, suggestedCorrelation);
+            state.setWorkStateItemRealValues(CorrelationSuggestionWorkStateType.F_RESULT, suggestedCorrelations);
             state.flushPendingTaskModifications(result);
-            LOGGER.debug("Suggestions written to the work state:\n{}", suggestedCorrelation.debugDump(1));
+            LOGGER.debug("Suggestions written to the work state:\n{}", suggestedCorrelations.debugDump(1));
 
             return ActivityRunResult.success();
         }

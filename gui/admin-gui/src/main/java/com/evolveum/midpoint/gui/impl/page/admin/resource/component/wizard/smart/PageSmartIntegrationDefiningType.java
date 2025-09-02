@@ -164,9 +164,9 @@ public class PageSmartIntegrationDefiningType extends PageAdminConfiguration {
         });
     }
 
-    private void updateSuggestionXmlModel(CorrelationSuggestionType suggestion) {
+    private void updateSuggestionXmlModel(CorrelationSuggestionsType suggestion) {
         suggestionXmlModel.setObject(
-                Util.serializeRealValue(suggestion, SchemaConstantsGenerated.C_CORRELATION_SUGGESTION));
+                Util.serializeRealValue(suggestion, SchemaConstantsGenerated.C_CORRELATION_SUGGESTIONS));
     }
 
     private void updateSuggestionXmlModel(MappingsSuggestionType suggestion) {

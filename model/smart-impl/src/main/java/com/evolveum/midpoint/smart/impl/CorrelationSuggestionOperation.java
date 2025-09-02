@@ -40,23 +40,23 @@ class CorrelationSuggestionOperation {
      * whether source attribute is unique or not
      *
      */
-    CorrelationSuggestionType suggestCorrelation() throws SchemaException {
+    CorrelationSuggestionsType suggestCorrelation() throws SchemaException {
         var correlators = KnownCorrelator.getAllFor(ctx.getFocusTypeDefinition().getCompileTimeClass());
-        var attributeDefinitionsForCorrelators =
-                suggestCorrelationMappings(ctx.typeDefinition, ctx.getFocusTypeDefinition(), correlators, ctx.resource);
-        var suggestion = new CorrelationSuggestionType();
-        if (!attributeDefinitionsForCorrelators.isEmpty()) {
-            var first = attributeDefinitionsForCorrelators.get(0); // already marked as AI-provided
-            suggestion.getAttributes().add(first.attributeDefinitionBean());
+        var suggestions = suggestCorrelationMappings(ctx.typeDefinition, ctx.getFocusTypeDefinition(), correlators, ctx.resource);
+        var suggestionsBean = new CorrelationSuggestionsType();
+        for (var suggestion : suggestions) {
+            var suggestionBean = new CorrelationSuggestionType();
+            suggestionBean.getAttributes().add(suggestion.attributeDefinitionBean()); // already marked as AI-provided
             var correlationDefinition = new CorrelationDefinitionType()
                     .correlators(new CompositeCorrelatorType()
                             .items(new ItemsSubCorrelatorType()
                                     .item(new CorrelationItemType()
-                                            .ref(first.focusItemPath().toBean()))));
+                                            .ref(suggestion.focusItemPath().toBean()))));
             AiUtil.markAsAiProvided(correlationDefinition);
-            suggestion.setCorrelation(correlationDefinition);
+            suggestionBean.setCorrelation(correlationDefinition);
+            suggestionsBean.getSuggestion().add(suggestionBean);
         }
-        return suggestion;
+        return suggestionsBean;
     }
 
     /** Returns suggestions for correlators - in the same order as the correlators are provided. */

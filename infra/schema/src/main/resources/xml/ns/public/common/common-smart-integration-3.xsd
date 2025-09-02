@@ -480,6 +480,28 @@
 
     <!-- suggestCorrelation method -->
 
+    <xsd:complexType name="CorrelationSuggestionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of correlation rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="suggestion" type="tns:CorrelationSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        One or more suggestions for correlation rules.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="correlationSuggestions" type="tns:CorrelationSuggestionsType"/>
+
     <xsd:complexType name="CorrelationSuggestionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -506,6 +528,13 @@
                     <xsd:documentation>
                         Suggested attribute(s) definition. Each of them must contain at least "ref", pointing to the attribute
                         name. It should contain one inbound mapping definition. Other items should be left empty.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="quality" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Estimated quality of this suggestion.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
