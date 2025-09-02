@@ -30,7 +30,9 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,13 +77,17 @@ public abstract class AbstractWizardTable<C extends Containerable, CV extends Co
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttons = new ArrayList<>();
+        initNewObjectButton(idButton, buttons);
+        return buttons;
+    }
 
+    protected void initNewObjectButton(String idButton, @NotNull List<Component> buttons) {
         AjaxIconButton newObjectButton = new AjaxIconButton(
                 idButton,
                 new Model<>("fa fa-circle-plus"),
                 createStringResource(getKeyOfTitleForNewObjectButton())) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -90,13 +96,12 @@ public abstract class AbstractWizardTable<C extends Containerable, CV extends Co
         };
         newObjectButton.add(AttributeAppender.append("class", getNewButtonCssClass()));
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible()));
+        newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
         buttons.add(newObjectButton);
-        return buttons;
     }
 
     protected String getNewButtonCssClass() {
-        return "btn btn-primary btn-sm ml-3";
+        return "btn btn-primary btn-sm";
     }
 
     @Override

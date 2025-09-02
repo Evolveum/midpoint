@@ -384,6 +384,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
+            protected String getAdditionalFooterCssClasses() {
+                return ContainerableListPanel.this.getAdditionalFooterCssClasses();
+            }
+
+            @Override
             protected Item<PO> customizeNewRowItem(Item<PO> item, IModel<PO> model) {
                 item.add(AttributeModifier.append("class", () -> GuiImplUtil.getObjectStatus(model.getObject())));
 
@@ -1766,6 +1771,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return findParent(AbstractPageObjectDetails.class) != null;
     }
 
+    protected String getAdditionalFooterCssClasses() {
+        return null;
+    }
     /**
      * Determines whether the panel should display a special UI component
      * (e.g. {@link NoValuePanel}) when there are no values
@@ -1788,13 +1796,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     protected Component createPanelForNoValue() {
         NoValuePanel components = new NoValuePanel(ID_NO_VALUE_PANEL, () -> new NoValuePanelDto(
                 defaultType.getSimpleName())) {
+
             @Override
             protected List<Component> createToolbarButtons(String buttonsId) {
                 return createToolbarButtonsList(ID_BUTTON);
             }
         };
         components.setOutputMarkupId(true);
-        components.add(new VisibleBehaviour(() -> displayNoValuePanel()));
+        components.add(new VisibleBehaviour(this::displayNoValuePanel));
         return components;
     }
 }

@@ -216,7 +216,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
         };
     }
 
-    private MappingUsedFor getSelectedTypeOfMappings() {
+    protected MappingUsedFor getSelectedTypeOfMappings() {
         DropDownChoicePanel<MappingUsedFor> header = (DropDownChoicePanel<MappingUsedFor>) getTable().getHeader();
         return header.getModel().getObject();
     }

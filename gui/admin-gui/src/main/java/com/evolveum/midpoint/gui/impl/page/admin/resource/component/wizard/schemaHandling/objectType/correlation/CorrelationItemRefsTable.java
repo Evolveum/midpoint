@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -34,13 +35,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -272,5 +277,50 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
 
     boolean isReadOnlyTable() {
         return false;
+    }
+
+    @Override
+    public boolean displayNoValuePanel() {
+        return getDataProvider().size() == 0;
+    }
+
+    @Override
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        List<Component> buttons = new ArrayList<>();
+        initAddExistingButton(idButton, buttons);
+        initNewObjectButton(idButton, buttons);
+        return buttons;
+    }
+
+    protected void initAddExistingButton(String idButton, @NotNull List<Component> buttons) {
+        AjaxIconButton addExistingButton = new AjaxIconButton(
+                idButton,
+                new Model<>("fa fas fa-link"),
+                createStringResource("CorrelationItemRefsTable.addExisting")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addExistingMappingPerformed(target);
+            }
+        };
+        addExistingButton.add(AttributeAppender.append("class", "btn btn-default btn-sm mr-2"));
+        addExistingButton.showTitleAsLabel(true);
+        buttons.add(addExistingButton);
+    }
+
+    protected void addExistingMappingPerformed(AjaxRequestTarget target) {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentContainerValue = getValueModel().getObject().getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+
+        ExistingMappingTable<?> existingMappingTable = new ExistingMappingTable<>(
+                getPageBase().getMainPopupBodyId(),
+                () -> parentContainerValue){
+            @Override
+            protected void onAddSelectedMappings(AjaxRequestTarget target, List<PrismContainerValueWrapper<MappingType>> selectedObjectsCount) {
+                PrismContainerValueWrapper<ItemsSubCorrelatorType> object = getValueModel().getObject();
+            }
+        };
+        getPageBase().showMainPopup(existingMappingTable,target);
     }
 }
