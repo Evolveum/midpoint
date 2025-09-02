@@ -174,6 +174,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
                 case ADDED -> component.add(AttributeModifier.replace("class", "card rounded h-100 border border-success"));
                 default -> component.add(AttributeModifier.replace("class", "card rounded h-100"));
             }
+            return;
         }
 
         switch (value.getStatus()) {
@@ -354,28 +355,33 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
-        if (toDelete == null || toDelete.isEmpty()) {
-            warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
-            target.add(getPageBase().getFeedbackPanel());
-            target.add(getPageBase().getFeedbackPanel().getParent());
-            return;
-        }
-
-        toDelete.forEach(value -> {
-            if (value.getStatus() == ValueStatus.ADDED) {
-                IModel<PrismContainerWrapper<C>> containerModel = getContainerModel(value, null);
-                PrismContainerWrapper<C> wrapper = containerModel.getObject();
-                if (wrapper != null) {
-                    wrapper.getValues().remove(value);
-                }
-            } else {
-                value.setStatus(ValueStatus.DELETED);
-            }
-            value.setSelected(false);
-        });
-
-        getTilesModel().detach();
+        if (noSelectedItemsWarn(getPageBase(), target, toDelete)) {return;}
+        toDelete.forEach(MultiSelectContainerActionTileTablePanel::resolveDeletedItem);
         refreshAndDetach(target);
+    }
+
+    protected static <C extends Containerable> boolean noSelectedItemsWarn(PageBase pageBase, AjaxRequestTarget target,
+            List<PrismContainerValueWrapper<C>> toDelete) {
+        if (toDelete == null || toDelete.isEmpty()) {
+            pageBase.warn(pageBase.createStringResource(
+                    "MultiSelectContainerActionTileTablePanel.message.noItemsSelected").getString());
+            target.add(pageBase.getFeedbackPanel().getParent());
+            return true;
+        }
+        return false;
+    }
+
+    protected static <C extends Containerable> void resolveDeletedItem(@NotNull PrismContainerValueWrapper<C> value) {
+        if (value.getStatus() == ValueStatus.ADDED) {
+            IModel<PrismContainerWrapper<C>> containerModel = getContainerModel(value, null);
+            PrismContainerWrapper<C> wrapper = containerModel.getObject();
+            if (wrapper != null) {
+                wrapper.getValues().remove(value);
+            }
+        } else {
+            value.setStatus(ValueStatus.DELETED);
+        }
+        value.setSelected(false);
     }
 
     protected ButtonInlineMenuItem createEditInlineMenu(PrismContainerValueWrapper<C> tileModel) {
