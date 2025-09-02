@@ -35,7 +35,7 @@ Using collection domains enables collections to compute percentages (e.g., _2% o
 These metrics are critical for compliance reporting, as they quantify risks or deviations from policy.
 Based on the calculated ratios, policy rules can also trigger further actions, such as notifying managers about the need for remediation.
 ]
-and connect them with xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] through xref:/midpoint/reference/roles-policies/policies/policy-rules/#object_marks[object marks], you gain the ability to monitor xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[compliance] of your organization and xref:/midpoint/reference/misc/notifications/[receive warnings] that an action is needed to put the situation back in line with requirements.
+and connect them with xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] through xref:/midpoint/reference/concepts/mark/[object marks], you gain the ability to monitor xrefv:/midpoint/reference/master/admin-gui/dashboards/compliance-dashboard/[compliance] of your organization and xref:/midpoint/reference/misc/notifications/[receive warnings] that an action is needed to put the situation back in line with requirements.
 
 == How dashboards help you stay compliant
 
@@ -82,7 +82,7 @@ This is fine as long as you do not have too many users or too many complex dashb
 
 The way to ease the system load caused by dashboards is to pre-compute the dashboard data once in a while instead of computing them on every load.
 That's what asynchronous dashboards are about.
-In addition to the dashboard and object collection, you also define a xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] and make it "run" the dashboard in regular intervals using a scheduled xref:/midpoint/reference/misc/reports/configuration/report-task-definition/#export-report[report task].
+In addition to the dashboard and object collection, you also define a xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] and make it "run" the dashboard in regular intervals using a scheduled xree:/midpoint/reference/misc/reports/configuration/report-task-definition/#export-report[report task].
 This way, you make the dashboard calculate the data for all the widgets in the dashboard on a frequency that is manageable for your systems.
 Unlike other reports, a dashboard report saves the resulting data in the widgets of the particular dashboard.
 
