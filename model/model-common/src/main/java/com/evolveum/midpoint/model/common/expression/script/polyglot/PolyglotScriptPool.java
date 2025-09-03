@@ -11,7 +11,7 @@ import org.graalvm.polyglot.Source;
  *
  * Implementations may have limited capacity.
  */
-interface PolyglotScriptPool {
+public interface PolyglotScriptPool {
     /**
      * Retrieves a script from the pool, if available.
      *
