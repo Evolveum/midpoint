@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource oid="10000000-0000-0000-0000-000000000004"
+<resource oid="b9f74bde-6e07-4df7-9c4e-dcf66ae6c4cc"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -16,9 +16,8 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-    <name>Dummy Resource</name>
+    <name>Dummy Abstract Resource</name>
     <abstract>true</abstract>
-    <template>true</template>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>

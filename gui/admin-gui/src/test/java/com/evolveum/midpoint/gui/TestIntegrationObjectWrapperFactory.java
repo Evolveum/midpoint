@@ -14,8 +14,10 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -70,6 +72,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
     protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-user.xml");
     protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID = "00000000-0000-0000-0000-00000000ae08";
+
+    public static final File RESOURCE_ABSTRACT_DUMMY_FILE = new File(COMMON_DIR, "resource-abstract-dummy.xml");
+    public static final String RESOURCE_ABSTRACT_DUMMY_OID = "b9f74bde-6e07-4df7-9c4e-dcf66ae6c4cc";
 
     private static final String USER_WALLY_NAME = "wally";
     private static final String USER_WALLY_FULLNAME = "Wally B. Feed";
@@ -132,6 +137,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE, initResult);
         repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, initResult);
+
+        repoAddObjectFromFile(RESOURCE_ABSTRACT_DUMMY_FILE, initResult);
 
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
 
@@ -1007,6 +1014,37 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //        assertEquals("Wrong locality definition.canAdd", Boolean.FALSE, (Boolean)localityNameWrapper.canAdd());
 //        assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean)localityNameWrapper.canModify());
     }
+
+    @Test
+    public void test900CreateResourceWrapperAndApplyDelta() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        assertLoggedInUserOid(USER_ADMINISTRATOR_OID);
+
+        PrismObject<ResourceType> abstractResource = dummyResourceCtl.getResourceType().asPrismObject();//getObject(ResourceType.class, RESOURCE_ABSTRACT_DUMMY_OID);
+        PrismObject<ResourceType> resource = DuplicationProcessHelper.duplicateObjectDefault(abstractResource);
+        resource.findOrCreateProperty(ResourceType.F_NAME).setRealValue("Resource from template");
+        resource.findOrCreateProperty(ResourceType.F_TEMPLATE).setRealValue(null);
+        resource.findOrCreateProperty(ResourceType.F_ABSTRACT).setRealValue(null);
+        resource.findOrCreateProperty(ResourceType.F_NAME).setRealValue(null);
+        resource.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).setRealValue(SchemaConstants.LIFECYCLE_PROPOSED);
+        PrismObjectWrapperFactory<ResourceType> factory = getServiceLocator(task).findObjectWrapperFactory(resource.getDefinition());
+        WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
+        PrismObjectWrapper<ResourceType> objectWrapper = factory.createObjectWrapper(resource, ItemStatus.ADDED, context);
+
+        then();
+        ObjectDelta<ResourceType> objectDelta = objectWrapper.getObjectDelta();
+
+        then();
+        displayDumpable("Delta", objectDelta);
+//        PrismAsserts.assertModifications(objectDelta, 1);
+        executeChanges(objectDelta, null, task, result);
+        assertSuccess(result);
+    }
+
 
     private <C extends Containerable> void assertItemWrapperFullControl(
             PrismContainerValueWrapper<C> containerWrapper, ItemName propName, boolean visible)
