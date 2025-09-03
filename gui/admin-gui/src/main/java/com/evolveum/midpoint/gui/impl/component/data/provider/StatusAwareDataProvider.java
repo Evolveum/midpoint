@@ -3,6 +3,7 @@ package com.evolveum.midpoint.gui.impl.component.data.provider;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
 import com.evolveum.midpoint.task.api.Task;
@@ -12,13 +13,12 @@ import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadCorrelationTypeSuggestion;
 
 public abstract class StatusAwareDataProvider<C extends Containerable>
         extends MultivalueContainerListDataProvider<C> {
@@ -46,16 +46,18 @@ public abstract class StatusAwareDataProvider<C extends Containerable>
         }
     }
 
-    public boolean isSuggestion(@NotNull PrismContainerValueWrapper<C> wrapper) {
-        return suggestionByWrapper.containsKey(wrapper.getRealValue());
-    }
-
-    public StatusInfo<?> getSuggestionInfo(PrismContainerValueWrapper<C> value) {
+    public @Nullable StatusInfo<?> getSuggestionInfo(PrismContainerValueWrapper<C> value) {
         Task task = getPageBase().createSimpleTask("Load correlation suggestion");
+        SmartIntegrationService smartService = getPageBase().getSmartIntegrationService();
         StatusInfo<?> statusInfo = suggestionByWrapper.get(value);
-        return statusInfo == null
-                ? null
-                : loadCorrelationTypeSuggestion(getPageBase(), statusInfo.getToken(), getResourceOid(), task, task.getResult());
+        if (statusInfo != null) {
+            try {
+                return smartService.getSuggestCorrelationOperationStatus(statusInfo.getToken(), task, task.getResult());
+            } catch (Throwable e) {
+                getPageBase().error("Couldn't get correlation suggestion status: " + e.getMessage());
+            }
+        }
+        return null;
     }
 
     protected abstract String getResourceOid();
