@@ -10,6 +10,7 @@ package com.evolveum.midpoint.smart.impl;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -40,9 +41,16 @@ class CorrelationSuggestionOperation {
      * whether source attribute is unique or not
      *
      */
-    CorrelationSuggestionsType suggestCorrelation() throws SchemaException {
+    CorrelationSuggestionsType suggestCorrelation(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         var correlators = KnownCorrelator.getAllFor(ctx.getFocusTypeDefinition().getCompileTimeClass());
         var suggestions = suggestCorrelationMappings(ctx.typeDefinition, ctx.getFocusTypeDefinition(), correlators, ctx.resource);
+
+        var evaluationsIterator = new CorrelatorEvaluator(ctx, suggestions)
+                .evaluateSuggestions(result)
+                .iterator();
+
         var suggestionsBean = new CorrelationSuggestionsType();
         for (var suggestion : suggestions) {
             var suggestionBean = new CorrelationSuggestionType();
@@ -54,6 +62,7 @@ class CorrelationSuggestionOperation {
                                             .ref(suggestion.focusItemPath().toBean()))));
             AiUtil.markAsAiProvided(correlationDefinition);
             suggestionBean.setCorrelation(correlationDefinition);
+            suggestionBean.setQuality(evaluationsIterator.next());
             suggestionsBean.getSuggestion().add(suggestionBean);
         }
         return suggestionsBean;
@@ -73,28 +82,29 @@ class CorrelationSuggestionOperation {
             for (var siAttributeMatch : siResponse.getAttributeMatch()) {
                 var focusItemPath = matchingOp.getFocusItemPath(siAttributeMatch.getMidPointAttribute());
                 if (correlator.equivalent(focusItemPath)) {
-                    var resourceAttrPath =
-                            matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute()).rest(); // skipping "c:attributes"
+                    var resourceAttrPath = matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute());
+                    var resourceAttrName = resourceAttrPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
                     var inbound = new InboundMappingType()
                             .target(new VariableBindingDefinitionType()
                                     .path(focusItemPath.toBean()))
                             .use(InboundMappingUseType.CORRELATION);
                     var attrDefBean = new ResourceAttributeDefinitionType()
-                            .ref(resourceAttrPath.toBean())
+                            .ref(resourceAttrName.toBean())
                             .inbound(inbound);
                     AiUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
                     AiUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
                     // Use is not provided by AI, it is set to CORRELATION by default.
                     response.add(
-                            new CorrelatorSuggestion(focusItemPath, attrDefBean));
+                            new CorrelatorSuggestion(focusItemPath, resourceAttrPath, attrDefBean));
                 }
             }
         }
         return response;
     }
 
-    private record CorrelatorSuggestion(
+    record CorrelatorSuggestion(
             ItemPath focusItemPath,
+            ItemPath resourceAttrPath,
             ResourceAttributeDefinitionType attributeDefinitionBean) {
     }
 }
