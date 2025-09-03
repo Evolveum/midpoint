@@ -318,6 +318,16 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
 
             @Override
+            protected boolean isNavigatorPanelVisible() {
+                return BoxedTablePanel.this.isNavigatorPanelVisible();
+            }
+
+            @Override
+            protected boolean isPagingSizePanelVisible() {
+                return BoxedTablePanel.this.isPagingSizePanelVisible();
+            }
+
+            @Override
             protected List<Integer> getPagingSizes() {
                 return BoxedTablePanel.this.getPagingSizes();
             }
@@ -335,6 +345,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     protected boolean isPagingVisible() {
+        return true;
+    }
+
+    protected boolean isNavigatorPanelVisible(){
+        return true;
+    }
+
+    protected boolean isPagingSizePanelVisible(){
         return true;
     }
 
@@ -431,6 +449,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                     return PagingFooter.this.getPaginationCssClass();
                 }
             };
+            nb2.add(new VisibleBehaviour(() -> isNavigatorPanelVisible()));
             footerContainer.add(nb2);
 
             Form form = new MidpointForm(ID_FORM);
@@ -462,6 +481,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             };
             // todo nasty hack, we should decide whether paging should be normal or "small"
             menu.setSmall(getPaginationCssClass() != null);
+            menu.add(new VisibleBehaviour(() -> isPagingSizePanelVisible()));
             form.add(menu);
             add(footerContainer);
         }
@@ -487,6 +507,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         }
 
         protected boolean isPagingVisible() {
+            return true;
+        }
+
+        protected boolean isNavigatorPanelVisible(){
+            return true;
+        }
+
+        protected boolean isPagingSizePanelVisible(){
             return true;
         }
 
