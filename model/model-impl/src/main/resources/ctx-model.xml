@@ -170,6 +170,13 @@
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
+    <bean id="complexAttributeSynchronizationExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.impl.expr.ComplexAttributeSynchronizationExpressionEvaluatorFactory">
+        <constructor-arg ref="expressionFactory"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
+    </bean>
+
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory">
         <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="localizationService"/>

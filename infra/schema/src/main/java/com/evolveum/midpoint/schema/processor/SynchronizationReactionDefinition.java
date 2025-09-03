@@ -99,7 +99,7 @@ public abstract class SynchronizationReactionDefinition implements Comparable<Sy
         }
     }
 
-    static @NotNull List<ItemSynchronizationReactionDefinition> itemLevel(ItemSynchronizationReactionsType reactions) {
+    public static @NotNull List<ItemSynchronizationReactionDefinition> itemLevel(ItemSynchronizationReactionsType reactions) {
         if (reactions == null) {
             return List.of();
         } else {

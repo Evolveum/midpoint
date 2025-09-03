@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * Defines "inbound processing" for resource object type or an association: correlation, synchronization reactions,
  * inbounds for attributes and associations.
@@ -45,6 +47,29 @@ public interface ResourceObjectInboundProcessingDefinition extends Serializable,
             @NotNull AssociationSynchronizationExpressionEvaluatorType bean,
             @Nullable VariableBindingDefinitionType targetBean) throws ConfigurationException {
         return new AssociationSynchronizationImplementation(associationDefinition, bean, targetBean);
+    }
+
+    static ResourceObjectInboundProcessingDefinition withCorrelationDefinition(
+            @NotNull ResourceObjectTypeDefinition typeDef, @NotNull List<QName> businessKeyItems) {
+
+        return new Delegator() {
+
+            @Override
+            public ResourceObjectInboundProcessingDefinition delegate() {
+                return typeDef;
+            }
+
+            @Override
+            public @Nullable CorrelationDefinitionType getCorrelation() {
+                var itemCorrelator = new ItemsSubCorrelatorType();
+                businessKeyItems.forEach(key -> itemCorrelator.item(
+                        new CorrelationItemType()
+                                .ref(ItemName.fromQName(key).toBean())));
+                return new CorrelationDefinitionType()
+                        .correlators(new CompositeCorrelatorType()
+                                .items(itemCorrelator));
+            }
+        };
     }
 
     /** Returns all inbound definitions for attributes and associations. */
@@ -258,5 +283,55 @@ public interface ResourceObjectInboundProcessingDefinition extends Serializable,
             @NotNull ItemPath path,
             @NotNull ShadowItemDefinition itemDefinition,
             @NotNull ItemInboundProcessingDefinition inboundProcessingDefinition) implements Serializable {
+    }
+
+    interface Delegator extends ResourceObjectInboundProcessingDefinition {
+
+        ResourceObjectInboundProcessingDefinition delegate();
+
+        @Override
+        default @NotNull Collection<CompleteItemInboundDefinition> getItemInboundDefinitions() {
+            return delegate().getItemInboundDefinitions();
+        }
+
+        @Override
+        default @NotNull List<MappingType> getActivationInboundMappings(ItemName itemName) {
+            return delegate().getActivationInboundMappings(itemName);
+        }
+
+        @Override
+        default @NotNull List<MappingType> getPasswordInboundMappings() {
+            return delegate().getPasswordInboundMappings();
+        }
+
+        @Override
+        default @NotNull List<MappingType> getAuxiliaryObjectClassInboundMappings() {
+            return delegate().getAuxiliaryObjectClassInboundMappings();
+        }
+
+        @Override
+        default DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases() {
+            return delegate().getDefaultInboundMappingEvaluationPhases();
+        }
+
+        @Override
+        default @NotNull FocusSpecification getFocusSpecification() {
+            return delegate().getFocusSpecification();
+        }
+
+        @Override
+        default @NotNull Collection<? extends SynchronizationReactionDefinition> getSynchronizationReactions() {
+            return delegate().getSynchronizationReactions();
+        }
+
+        @Override
+        default @Nullable CorrelationDefinitionType getCorrelation() {
+            return delegate().getCorrelation();
+        }
+
+        @Override
+        default String debugDump(int indent) {
+            return delegate().debugDump(indent);
+        }
     }
 }

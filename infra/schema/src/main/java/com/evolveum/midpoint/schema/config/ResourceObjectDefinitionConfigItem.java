@@ -7,35 +7,28 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-
-/** Type or class definition in schema handling. */
-public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObjectTypeDefinitionType>
-        extends ConfigurationItem<B> {
+/**
+ * Represents one of the following:
+ *
+ * - definition of a resource object type (e.g. "account/default"); B is {@link ResourceObjectTypeDefinitionType}
+ * - definition of a resource object class (e.g. "inetOrgPerson"); B is {@link ResourceObjectTypeDefinitionType}
+ */
+public class ResourceObjectDefinitionConfigItem<B extends ResourceObjectTypeDefinitionType>
+        extends AbstractResourceDataDefinitionConfigItem<B> {
 
     @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
-    public AbstractResourceObjectDefinitionConfigItem(
+    public ResourceObjectDefinitionConfigItem(
             @NotNull ConfigurationItem<B> original) {
         super(original);
-    }
-
-    void checkSyntaxOfAttributeNames() throws ConfigurationException {
-        for (var attrDefCI : getAttributes()) {
-            attrDefCI.getAttributeName();
-        }
     }
 
     public @NotNull List<QName> getAuxiliaryObjectClassNames() throws ConfigurationException {
@@ -64,20 +57,6 @@ public class AbstractResourceObjectDefinitionConfigItem<B extends ResourceObject
                 value().getAssociation(),
                 ResourceObjectAssociationConfigItem.class,
                 ResourceObjectTypeDefinitionType.F_ASSOCIATION);
-    }
-
-    /**
-     * Scans only "attribute" elements, for now!
-     */
-    public @Nullable ResourceAttributeDefinitionConfigItem getAttributeDefinitionIfPresent(ItemName attrName)
-            throws ConfigurationException {
-        List<ResourceAttributeDefinitionConfigItem> matching = new ArrayList<>();
-        for (var attrDef : getAttributes()) {
-            if (QNameUtil.match(attrDef.getAttributeName(), attrName)) {
-                matching.add(attrDef);
-            }
-        }
-        return single(matching, "Duplicate definition of attribute '%s' in %s", attrName, DESC);
     }
 
 //    public @Nullable ResourceObjectAssociationConfigItem getAssociationDefinitionIfPresent(ItemName assocName)

@@ -422,7 +422,7 @@ public abstract class AbstractModernObjectDummyConnector
     }
 
     private boolean objectMatches(DummyObject object, Object value) throws SchemaViolationException {
-        if (!(value instanceof ConnectorObjectReference reference)) {
+        if (!(value instanceof ConnectorObjectReference reference)) { // TODO EmbeddedObjects: MID-10738
             throw new SchemaViolationException("Trying to delete non-reference link value: " + value);
         }
         for (var icfAttribute : reference.getValue().getAttributes()) {
