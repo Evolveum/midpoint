@@ -41,9 +41,11 @@
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="application" type="c:ConnDevApplicationInfoType" />
+                    <xsd:element name="connector" type="c:ConnDevConnectorType" />
+                    <xsd:element name="testing" type="c:ConnDevTestingType" />
                     <xsd:element name="documentationSources" type="c:DocumentationSourceType" />
                     <xsd:element name="processedDocumentation" type="c:ProcessedDocumentationType"/>
-                    <xsd:element name="scripts" type="c:ConnectorDevelopmentScriptType"/>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -63,7 +65,55 @@
                     <xsd:element name="version" type="xsd:string" />
                     <xsd:element name="integrationType" type="tns:ConnDevIntegrationType" />
                     <xsd:element name="deploymentType" type="tns:ConnDevDeploymentType" />
+                    <xsd:element name="detectedSchema" type="tns:ConnDevSchemaType" />
                 </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevTestingType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="testingResource" type="tns:ObjectReferenceType" >
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>ResourceType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevConnectorType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="groupId" type="xsd:string" />
+            <xsd:element name="artifactId" type="xsd:string" />
+            <xsd:element name="displayName" type="t:PolyStringType"/>
+            <xsd:element name="description" type="t:PolyStringType"/>
+            <xsd:element name="version" type="xsd:string"/>
+            <xsd:element name="integrationType" type="tns:ConnDevIntegrationType" />
+            <xsd:element name="auth" type="tns:ConnDevAuthInfoType" maxOccurs="unbounded" />
+            <xsd:element name="schema" type="tns:ConnDevSchemaType" />
+            <xsd:element name="scripts" type="c:ConnectorDevelopmentScriptType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevSchemaType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container />
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectClass" type="tns:ConnDevObjectClassInfoType" />
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="DocumentationSourceType">
@@ -122,7 +172,14 @@
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevObjectClassInfoType">
-
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBasicObjectClassInfoType">
+                <xsd:sequence>
+                    <xsd:element name="endpoint" type="tns:ConnDevHttpEndpointType" maxOccurs="unbounded" />
+                    <xsd:element name="attributes" type="tns:ConnDevAttributeInfoType" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevAttributeInfoType">
