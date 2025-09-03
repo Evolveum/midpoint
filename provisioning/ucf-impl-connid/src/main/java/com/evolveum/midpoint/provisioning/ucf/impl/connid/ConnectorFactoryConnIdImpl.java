@@ -478,7 +478,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * @return ICF connector info manager that manages local connectors
      */
 
-    private ConnectorInfoManager getLocalConnectorInfoManager() {
+    DirectoryScanningInfoManager getLocalConnectorInfoManager() {
         return localConnectorInfoManager;
     }
 
@@ -711,6 +711,11 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             return false;
         }
 
+        if (file.getName().endsWith(".tmp")) {
+            LOGGER.debug("This {} is a temporary file", file.getAbsolutePath());
+            return false;
+        }
+
         Properties prop = new Properties();
         JarFile jar;
         // Open jar file
@@ -776,7 +781,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         return getRemoteConnectorInfoManager(host.asObjectable()).findConnectorInfo(key);
     }
 
-    private ConnectorKey getConnectorKey(ConnectorType connectorType) {
+    static ConnectorKey getConnectorKey(ConnectorType connectorType) {
         return new ConnectorKey(
                 connectorType.getConnectorBundle(),
                 connectorType.getConnectorVersion(),
@@ -902,5 +907,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         for (ConnectorDiscoveryListener listener : listeners) {
             listener.newConnectorDiscovered(null);
         }
+    }
+
+    public List<ConnectorInfo> addLocalConnector(URI file) {
+        var connectors = localConnectorInfoManager.registerConnector(file);
+        if (!connectors.isEmpty()) {
+            notifyConnectorAdded();
+        };
+        return connectors;
     }
 }
