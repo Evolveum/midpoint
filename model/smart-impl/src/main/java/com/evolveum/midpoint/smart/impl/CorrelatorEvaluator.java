@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -69,6 +70,7 @@ class CorrelatorEvaluator {
         this.resourceStatistics = new Statistics(
                 suggestions.stream()
                         .map(s -> s.resourceAttrPath())
+                        .filter(Objects::nonNull)
                         .collect(PathSet::new, PathSet::add, PathSet::addAll));
     }
 
@@ -112,7 +114,8 @@ class CorrelatorEvaluator {
 
     private Double computeScore(CorrelatorSuggestion suggestion) {
         var focusScore = focusStatistics.getScore(suggestion.focusItemPath());
-        var resourceScore = resourceStatistics.getScore(suggestion.resourceAttrPath());
+        var resourceScore = suggestion.resourceAttrPath() != null ?
+                resourceStatistics.getScore(suggestion.resourceAttrPath()) : null;
         if (focusScore == null) {
             return resourceScore;
         } else if (resourceScore == null) {

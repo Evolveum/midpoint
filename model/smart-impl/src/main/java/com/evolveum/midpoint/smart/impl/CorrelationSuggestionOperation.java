@@ -9,12 +9,17 @@ package com.evolveum.midpoint.smart.impl;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +59,10 @@ class CorrelationSuggestionOperation {
         var suggestionsBean = new CorrelationSuggestionsType();
         for (var suggestion : suggestions) {
             var suggestionBean = new CorrelationSuggestionType();
-            suggestionBean.getAttributes().add(suggestion.attributeDefinitionBean()); // already marked as AI-provided
+            if (suggestion.attributeDefinitionBean() != null) {
+                // no need to mark it as AI-provided, as it should already marked as such
+                suggestionBean.getAttributes().add(suggestion.attributeDefinitionBean());
+            }
             var correlationDefinition = new CorrelationDefinitionType()
                     .correlators(new CompositeCorrelatorType()
                             .items(new ItemsSubCorrelatorType()
@@ -74,37 +82,90 @@ class CorrelationSuggestionOperation {
             PrismObjectDefinition<?> focusDef,
             List<? extends ItemPath> correlators,
             ResourceType resource)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         SchemaMatchingOperation matchingOp = new SchemaMatchingOperation(ctx);
         var siResponse = matchingOp.matchSchema(objectTypeDef, focusDef, resource);
         var response = new ArrayList<CorrelatorSuggestion>();
         for (ItemPath correlator : correlators) {
-            for (var siAttributeMatch : siResponse.getAttributeMatch()) {
-                var focusItemPath = matchingOp.getFocusItemPath(siAttributeMatch.getMidPointAttribute());
-                if (correlator.equivalent(focusItemPath)) {
-                    var resourceAttrPath = matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute());
-                    var resourceAttrName = resourceAttrPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
-                    var inbound = new InboundMappingType()
-                            .target(new VariableBindingDefinitionType()
-                                    .path(focusItemPath.toBean()))
-                            .use(InboundMappingUseType.CORRELATION);
-                    var attrDefBean = new ResourceAttributeDefinitionType()
-                            .ref(resourceAttrName.toBean())
-                            .inbound(inbound);
-                    AiUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
-                    AiUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
-                    // Use is not provided by AI, it is set to CORRELATION by default.
-                    response.add(
-                            new CorrelatorSuggestion(focusItemPath, resourceAttrPath, attrDefBean));
+            var existingInboundMapping = findExistingInboundMapping(correlator);
+            if (existingInboundMapping != null) {
+                response.add(
+                        new CorrelatorSuggestion(
+                                correlator,
+                                existingInboundMapping.scoredAttributePath,
+                                null));
+            } else {
+                for (var siAttributeMatch : siResponse.getAttributeMatch()) {
+                    var focusItemPath = matchingOp.getFocusItemPath(siAttributeMatch.getMidPointAttribute());
+                    if (correlator.equivalent(focusItemPath)) {
+                        var resourceAttrPath = matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute());
+                        var resourceAttrName = resourceAttrPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
+                        var inbound = new InboundMappingType()
+                                .target(new VariableBindingDefinitionType()
+                                        .path(focusItemPath.toBean()))
+                                .use(InboundMappingUseType.CORRELATION);
+                        var attrDefBean = new ResourceAttributeDefinitionType()
+                                .ref(resourceAttrName.toBean())
+                                .inbound(inbound);
+                        AiUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
+                        AiUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
+                        // Use is not provided by AI, it is set to CORRELATION by default.
+                        response.add(
+                                new CorrelatorSuggestion(focusItemPath, resourceAttrPath, attrDefBean));
+                        break; // we don't want to suggest multiple attributes for the same correlator
+                    }
                 }
             }
+
         }
         return response;
     }
 
+    /**
+     * Finds whether there is already an inbound mapping for the given correlator. Returns {@code null} if there is none.
+     * We ignore conditions: if there is a mapping, but it has a condition, we ignore the condition and consider the mapping.
+     */
+    private @Nullable ExistingMapping findExistingInboundMapping(ItemPath correlator) throws ConfigurationException {
+        // TODO implement (MID-10847)
+        //  - iterate through ctx.typeDefinition.getAttributeDefinitions()
+        //  - for each attribute definition, check whether it has inbound mapping with use=CORRELATION or use=DEFAULT
+
+        for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : ctx.typeDefinition.getAttributeDefinitions()) {
+            for (InboundMappingType inboundMappingBean : attributeDefinition.getInboundMappingBeans()) {
+                // We derive the config item just to ask about applicability
+                var mappingCI = InboundMappingConfigItem.configItem(
+                        inboundMappingBean, ConfigurationItemOrigin.undeterminedSafe(), InboundMappingConfigItem.class);
+                // If the mapping is not explicitly disabled for correlation, we consider it.
+                // Even if it's not explicitly enabled, the use for correlation will cause it to be taken into account.
+                if (!Boolean.FALSE.equals(
+                        mappingCI.determineApplicability(InboundMappingEvaluationPhaseType.BEFORE_CORRELATION))) {
+                    // TODO consider this mapping, and return if it matches the correlator
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Information about whether inbound mapping for given correlator exists. The scoredAttributePath is present if it
+     * makes sense to evaluate the correlation score also by looking at values of that attribute.
+     */
+    private record ExistingMapping(@Nullable ItemPath scoredAttributePath) {
+    }
+
+    /**
+     * The suggestion for correlation may be based on an existing inbound mapping (in which case attributeDefinitionBean is null,
+     * and resourceAttrPath is present if and only if the existing mapping is "as-is" mapping; at least for now), or it may
+     * involve creation of a new inbound mapping (in which case attributeDefinitionBean is non-null,
+     * and resourceAttrPath is always present).
+     *
+     * The rationale behind this is that when scoring the suggestion, we look at the statistics of both focus item and
+     * resource attribute. So we need to know the resource attribute even if it is not being suggested to be created.
+     * But only if it makes sense to score it, which is currently not the case for "transforming" mappings.
+     */
     record CorrelatorSuggestion(
             ItemPath focusItemPath,
-            ItemPath resourceAttrPath,
-            ResourceAttributeDefinitionType attributeDefinitionBean) {
+            @Nullable ItemPath resourceAttrPath,
+            @Nullable ResourceAttributeDefinitionType attributeDefinitionBean) {
     }
 }
