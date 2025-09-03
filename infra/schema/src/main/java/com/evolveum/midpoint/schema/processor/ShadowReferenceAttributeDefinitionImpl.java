@@ -509,4 +509,9 @@ public class ShadowReferenceAttributeDefinitionImpl
     public @NotNull ShadowReferenceParticipantRole getParticipantRole() {
         return nativeDefinition.getReferenceParticipantRole();
     }
+
+    @Override
+    public @NotNull NativeShadowReferenceAttributeDefinition getNativeDefinition() {
+        return nativeDefinition;
+    }
 }

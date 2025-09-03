@@ -78,10 +78,10 @@ public class ShadowAssociationTypeDefinitionConfigItem
         return "the definition of association type '" + value().getName() + "'";
     }
 
-    public @Nullable AssociatedResourceObjectTypeDefinitionConfigItem getAssociationObject() {
+    public @Nullable ResourceObjectTypeDefinitionConfigItem getAssociationObject() {
         return child(
                 value().getAssociationObject(),
-                AssociatedResourceObjectTypeDefinitionConfigItem.class,
+                ResourceObjectTypeDefinitionConfigItem.class,
                 ShadowAssociationTypeDefinitionType.F_ASSOCIATION_OBJECT);
     }
 

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
 import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
 
 import jakarta.annotation.PostConstruct;
@@ -50,6 +51,7 @@ public class ShadowsLocalBeans {
 
     @Autowired AccessChecker accessChecker;
     @Autowired ClassificationHelper classificationHelper;
+    @Autowired ResourceObjectClassifier classifier;
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired public ShadowFinder shadowFinder;
     @Autowired OperationResultRecorder operationResultRecorder;

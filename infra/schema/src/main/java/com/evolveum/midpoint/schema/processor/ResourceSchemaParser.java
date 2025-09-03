@@ -94,7 +94,7 @@ class ResourceSchemaParser {
      * As {@link #classDefinitionConfigItemMap} but for object types (regular and associated).
      * Indexed by type identification, e.g., `account/default`.
      */
-    @NotNull private final Map<ResourceObjectTypeIdentification, AbstractResourceObjectTypeDefinitionConfigItem<?>>
+    @NotNull private final Map<ResourceObjectTypeIdentification, ResourceObjectTypeDefinitionConfigItem>
             typeDefinitionConfigItemMap = new HashMap<>();
 
     private ResourceSchemaParser(
@@ -283,8 +283,8 @@ class ResourceSchemaParser {
         }
     }
 
-    private <B extends ResourceObjectTypeDefinitionType> ResourceObjectTypeDefinition createEmptyObjectTypeDefinition(
-            @NotNull AbstractResourceObjectTypeDefinitionConfigItem<B> definitionCI)
+    private ResourceObjectTypeDefinition createEmptyObjectTypeDefinition(
+            @NotNull ResourceDataTypeDefinitionConfigItem<?> definitionCI)
             throws SchemaException, ConfigurationException {
 
         ResourceObjectTypeIdentification identification = definitionCI.getTypeIdentification();
@@ -293,23 +293,15 @@ class ResourceSchemaParser {
         // the bean at any level. And we hope that although we do the merging in the top-bottom direction, it will cause
         // no harm if we merge the object class refinement (i.e. topmost component) at last.
         ObjectTypeExpansion expansion = new ObjectTypeExpansion();
-        B expandedBean = expansion.expand(definitionCI.value());
+        ResourceObjectTypeDefinitionType expandedBean = expansion.expand(definitionCI.getObjectTypeDefinitionBean());
 
-        // We assume that the path was not changed. Quite a hack, though.
-        AbstractResourceObjectTypeDefinitionConfigItem<?> expandedCI;
-        if (definitionCI instanceof AssociatedResourceObjectTypeDefinitionConfigItem) {
-            //noinspection RedundantTypeArguments : The type arguments aren't redundant: they are needed for some Java compilers
-            expandedCI = ConfigurationItem.<AssociatedResourceObjectTypeDefinitionType, AssociatedResourceObjectTypeDefinitionConfigItem>configItem(
-                    (AssociatedResourceObjectTypeDefinitionType) expandedBean,
-                    definitionCI.origin(),
-                    AssociatedResourceObjectTypeDefinitionConfigItem.class);
-        } else {
-            //noinspection RedundantTypeArguments : see above
-            expandedCI = ConfigurationItem.<ResourceObjectTypeDefinitionType, ResourceObjectTypeDefinitionConfigItem>configItem(
-                    expandedBean,
-                    definitionCI.origin(),
-                    ResourceObjectTypeDefinitionConfigItem.class);
-        }
+        // UGLY HACK! The expandedBean is not a real object sitting in the resource definition, but a synthetic one.
+        // This is true for traditional object types, but even more so for complex attribute types.
+        // To be resolved later. MID-10738
+        ResourceObjectTypeDefinitionConfigItem expandedCI = ConfigurationItem.configItem(
+                expandedBean,
+                definitionCI.origin(),
+                ResourceObjectTypeDefinitionConfigItem.class);
 
         QName objectClassName = expandedCI.getObjectClassName();
         ResourceObjectClassDefinition objectClassDefinition = getObjectClassDefinitionRequired(objectClassName, expandedCI);
@@ -448,7 +440,7 @@ class ResourceSchemaParser {
          * It is merged from all the super-resources and super-types. Its CI origin and CI parent are
          * set artificially (for now).
          */
-        @NotNull private final AbstractResourceObjectDefinitionConfigItem<?> definitionCI;
+        @NotNull private final ResourceObjectDefinitionConfigItem<?> definitionCI;
 
         /** Currently, we mark the source attribute for simulated activation as ignored (if requested so). */
         @NotNull private final Collection<QName> attributesToIgnore;
@@ -792,7 +784,9 @@ class ResourceSchemaParser {
             SuperReference superRef = SuperReference.of(superRefBean);
             List<ResourceObjectTypeDefinitionType> matching = schemaHandling.getAllObjectTypes().stream()
                     .map(ci -> ci.value())
-                    .filter(superRef::matches)
+                    .filter(bean -> bean instanceof ResourceObjectTypeDefinitionType)
+                    .map(bean -> (ResourceObjectTypeDefinitionType) bean)
+                    .filter(bean -> superRef.matches(bean))
                     .collect(Collectors.toList());
             return MiscUtil.extractSingletonRequired(matching,
                     () -> new ConfigurationException("Multiple definitions matching " + superRef + " found in " + contextDescription),
