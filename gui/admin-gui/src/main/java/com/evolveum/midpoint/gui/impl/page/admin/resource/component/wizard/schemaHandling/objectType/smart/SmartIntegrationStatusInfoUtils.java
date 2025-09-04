@@ -11,10 +11,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
@@ -24,7 +22,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SmartIntegrationStatusInfoUtils {
 
@@ -152,10 +155,11 @@ public class SmartIntegrationStatusInfoUtils {
     }
 
     public static @NotNull CorrelationSuggestionProviderResult loadCorrelationSuggestionWrappers(
-            PageBase pageBase,
-            String resourceOid,
-            Task task,
-            OperationResult result) {
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull ResourceObjectTypeDefinitionType resourceObjectTypeDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         Map<PrismContainerValueWrapper<ItemsSubCorrelatorType>, StatusInfo<CorrelationSuggestionType>> suggestionByWrapper = new HashMap<>();
 
         try {
@@ -169,61 +173,44 @@ public class SmartIntegrationStatusInfoUtils {
             List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueWrappers = new ArrayList<>();
             for (StatusInfo<CorrelationSuggestionType> si : suggestions) {
 
-                if (si == null || si.getStatus() == OperationResultStatusType.NOT_APPLICABLE) {
+                if (si == null || si.getRequest() == null
+                        || si.getStatus() == OperationResultStatusType.NOT_APPLICABLE
+                        || !matchKindAndIntent(resourceObjectTypeDefinition, si.getRequest())) {
                     continue;
                 }
 
-                CorrelationSuggestionType suggestion = si.getResult();
-                if (suggestion == null) {
-                    CorrelationDefinitionType definition = new CorrelationDefinitionType();
-
-                    CompositeCorrelatorType composite = new CompositeCorrelatorType();
-                    composite.getItems().add(new ItemsSubCorrelatorType());
-                    definition.setCorrelators(composite);
-
-                    suggestion = new CorrelationSuggestionType();
-                    suggestion.setCorrelation(definition);
-                }
+                CorrelationSuggestionType suggestion = ensureCorrelationSuggestionPresent(si);
 
                 try {
                     @SuppressWarnings("unchecked")
-                    PrismContainer<CorrelationDefinitionType> correlationDef =
-                            suggestion.asPrismContainerValue()
-                                    .findContainer(CorrelationSuggestionType.F_CORRELATION);
+                    PrismContainer<CorrelationSuggestionType> suggestionContainer = suggestion.asPrismContainerValue().getContainer();
+                    PrismContainerWrapper<CorrelationSuggestionType> suggestionWrapper =
+                            pageBase.createItemWrapper(suggestionContainer, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
 
-                    if (correlationDef == null) {
+                    PrismContainerWrapper<CorrelationDefinitionType> defWrapper = suggestionWrapper.findContainer(
+                            CorrelationSuggestionType.F_CORRELATION);
+
+                    if (defWrapper == null) {
                         result.recordWarning("Suggestion without CorrelationDefinition container was skipped.");
                         continue;
                     }
 
-                    PrismContainerWrapper<CorrelationDefinitionType> defWrapper =
-                            pageBase.createItemWrapper(
-                                    correlationDef,
-                                    ItemStatus.NOT_CHANGED,
-                                    new WrapperContext(task, result)
-                            );
-
                     for (PrismContainerValueWrapper<CorrelationDefinitionType> defValue : defWrapper.getValues()) {
-                        try {
-                            PrismContainerWrapper<ItemsSubCorrelatorType> itemsWrapper =
-                                    defValue.findContainer(ItemPath.create(
-                                            CorrelationDefinitionType.F_CORRELATORS,
-                                            CompositeCorrelatorType.F_ITEMS));
+                        PrismContainerWrapper<ItemsSubCorrelatorType> itemsWrapper = defValue.findContainer(
+                                ItemPath.create(CorrelationDefinitionType.F_CORRELATORS, CompositeCorrelatorType.F_ITEMS));
 
-                            if (itemsWrapper == null) {
-                                continue;
+                        if (itemsWrapper == null) {
+                            continue;
+                        }
+
+                        List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> values = itemsWrapper.getValues();
+                        if (values != null && !values.isEmpty()) {
+                            for (PrismContainerValueWrapper<ItemsSubCorrelatorType> value : values) {
+                                PrismContainerWrapper<CorrelationItemType> container = value.findContainer(ItemsSubCorrelatorType.F_ITEM);
+                                setupStatusIfRequiredNewMapping(container, suggestion, resourceObjectTypeDefinition);
+                                valueWrappers.add(value);
+                                suggestionByWrapper.put(value, si);
                             }
-
-                            List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> values = itemsWrapper.getValues();
-                            if (values != null && !values.isEmpty()) {
-                                for (PrismContainerValueWrapper<ItemsSubCorrelatorType> value : values) {
-                                    valueWrappers.add(value);
-                                    suggestionByWrapper.put(value, si);
-                                }
-                            }
-
-                        } catch (SchemaException e) {
-                            result.recordPartialError("Failed to read correlator items from a definition.", e);
                         }
                     }
 
@@ -231,12 +218,124 @@ public class SmartIntegrationStatusInfoUtils {
                     result.recordPartialError("Failed to wrap correlation suggestion.", e);
                 }
             }
-
             return new CorrelationSuggestionProviderResult(valueWrappers, suggestionByWrapper);
-
         } finally {
             result.close();
         }
+    }
+
+    /**
+     * Ensures that the correlation suggestion contains a valid CorrelationDefinition.
+     * If not present, initializes a new one with default values.
+     * Required to avoid NPEs in later processing stages.
+     */
+    private static @NotNull CorrelationSuggestionType ensureCorrelationSuggestionPresent(
+            @NotNull StatusInfo<CorrelationSuggestionType> si) {
+        CorrelationSuggestionType suggestion = si.getResult();
+        if (suggestion == null) {
+            CorrelationDefinitionType definition = new CorrelationDefinitionType();
+
+            CompositeCorrelatorType composite = new CompositeCorrelatorType();
+            composite.getItems().add(new ItemsSubCorrelatorType());
+            definition.setCorrelators(composite);
+
+            suggestion = new CorrelationSuggestionType();
+            suggestion.setCorrelation(definition);
+        }
+        return suggestion;
+    }
+
+    /**
+     * Checks if the kind and intent of the resource object type definition match those of the request.
+     */
+    private static boolean matchKindAndIntent(
+            @NotNull ResourceObjectTypeDefinitionType resourceObjectTypeDefinition,
+            @NotNull BasicResourceObjectSetType request) {
+        return request.getKind().equals(resourceObjectTypeDefinition.getKind())
+                && request.getIntent().equals(resourceObjectTypeDefinition.getIntent());
+    }
+
+    /**
+     * Sets the status of correlation items to ADDED if they correspond to a suggested attribute mapping
+     * that does not yet exist in the resource object type definition.
+     *
+     * @param container the container wrapper holding correlation items
+     * @param suggestion the correlation suggestion containing suggested attributes
+     * @param resourceObjectTypeDefinition the resource object type definition to check existing attributes against
+     */
+    private static void setupStatusIfRequiredNewMapping(
+            @NotNull PrismContainerWrapper<CorrelationItemType> container,
+            @NotNull CorrelationSuggestionType suggestion, ResourceObjectTypeDefinitionType resourceObjectTypeDefinition) {
+
+        List<PrismContainerValueWrapper<CorrelationItemType>> correlationItems = container.getValues();
+        if (correlationItems == null) {
+            return;
+        }
+
+//        List<ResourceAttributeDefinitionType> suggestedAttributes = loadNonExistingSuggestedMappings(suggestion,
+//                resourceObjectTypeDefinition);
+        List<ResourceAttributeDefinitionType> suggestedAttributes = suggestion.getAttributes();
+
+        Set<ItemPath> targetPaths = suggestedAttributes.stream()
+                .filter(Objects::nonNull)
+                .flatMap(attr -> {
+                    List<InboundMappingType> inbound = attr.getInbound();
+                    return inbound != null ? inbound.stream() : Stream.empty();
+                })
+                .filter(Objects::nonNull)
+                .map(MappingType::getTarget)
+                .filter(Objects::nonNull)
+                .map(VariableBindingDefinitionType::getPath)
+                .filter(Objects::nonNull)
+                .map(ItemPathType::getItemPath)
+                .collect(Collectors.toSet());
+
+        if (targetPaths.isEmpty()) {
+            return;
+        }
+
+        correlationItems.stream()
+                .filter(Objects::nonNull)
+                .forEach(item -> {
+                    ItemPath refPath = Optional.ofNullable(item.getRealValue())
+                            .map(CorrelationItemType::getRef)
+                            .map(ItemPathType::getItemPath)
+                            .orElse(null);
+
+                    if (refPath != null && targetPaths.stream().anyMatch(p -> p.equivalent(refPath))) {
+                        item.setStatus(ValueStatus.ADDED);
+                    }
+                });
+    }
+
+    /**
+     * Removes suggested attributes that already exist in the resource object type definition.
+     *
+     * @param suggestion correlation suggestion to load suggested attributes from
+     * @param resourceObjectTypeDefinition resource object type definition to check existing attributes against
+     * @return list of suggested attributes that do not exist in the resource object type definition
+     */
+    //TODO: decide whats if mapping with ref/target exist but with different additional properties (e.g. expression, strength, etc.)
+    public static @NotNull List<ResourceAttributeDefinitionType> loadNonExistingSuggestedMappings(
+            @NotNull CorrelationSuggestionType suggestion,
+            @NotNull ResourceObjectTypeDefinitionType resourceObjectTypeDefinition) {
+        List<ResourceAttributeDefinitionType> suggestedAttributes = new ArrayList<>(suggestion.getAttributes());
+
+        List<ResourceAttributeDefinitionType> existingAttribute = resourceObjectTypeDefinition.getAttribute();
+        if (existingAttribute != null && !existingAttribute.isEmpty()) {
+            List<ItemPath> existingMappingRefPaths = existingAttribute.stream()
+                    .map(ResourceAttributeDefinitionType::getRef)
+                    .filter(Objects::nonNull)
+                    .map(ItemPathType::getItemPath)
+                    .toList();
+
+            suggestedAttributes.removeIf(attr ->
+                    attr.getRef() != null &&
+                            existingMappingRefPaths.stream()
+                                    .anyMatch(p -> p.equivalent(attr.getRef().getItemPath()))
+            );
+        }
+        return suggestedAttributes;
     }
 
     public record ObjectTypeSuggestionProviderResult(
@@ -246,7 +345,7 @@ public class SmartIntegrationStatusInfoUtils {
     }
 
     /** Creates value wrappers for each suggested object type. */
-    public static @NotNull ObjectTypeSuggestionProviderResult loadSuggestionWrappers(
+    public static @NotNull ObjectTypeSuggestionProviderResult loadObjectTypeSuggestionWrappers(
             PageBase pageBase,
             String resourceOid,
             Task task,

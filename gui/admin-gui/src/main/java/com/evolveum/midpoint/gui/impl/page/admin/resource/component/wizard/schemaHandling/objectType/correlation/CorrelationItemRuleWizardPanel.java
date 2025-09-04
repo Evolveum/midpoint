@@ -50,7 +50,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "CorrelationItemRefsTableWizardPanel.headerLabel", icon = "fa fa-bars-progress"))
-public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardBasicPanel<ItemsSubCorrelatorType> {
+public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicPanel<ItemsSubCorrelatorType> {
 
     private static final String PANEL_TYPE = "rw-correlators";
 
@@ -63,12 +63,12 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
     private static final String ID_ALERT_DESCRIPTION = "descriptionAlert";
     private static final String ID_ALERT_BADGE = "badgeAlert";
 
-    IModel<StatusInfo<?>> statusInfoModel;
+    IModel<StatusInfo<CorrelationSuggestionType>> statusInfoModel;
 
-    public CorrelationItemRefsTableWizardPanel(
+    public CorrelationItemRuleWizardPanel(
             String id,
             WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> superHelper,
-            IModel<StatusInfo<?>> statusInfoModel) {
+            IModel<StatusInfo<CorrelationSuggestionType>> statusInfoModel) {
         super(id, superHelper);
         this.statusInfoModel = statusInfoModel;
     }

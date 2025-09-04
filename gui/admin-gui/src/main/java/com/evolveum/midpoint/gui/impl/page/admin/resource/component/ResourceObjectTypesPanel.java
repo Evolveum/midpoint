@@ -59,7 +59,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadSuggestionWrappers;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestionWrappers;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 @PanelType(name = "resourceObjectTypes")
@@ -328,7 +328,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
                             final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
 
-                            SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadSuggestionWrappers(
+                            SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadObjectTypeSuggestionWrappers(
                                     getPageBase(), resourceOid, task, result);
                             out.addAll(suggestions.wrappers());
                             suggestionByWrapper = suggestions.suggestionByWrapper();
@@ -592,7 +592,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
         final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
 
-        SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadSuggestionWrappers(
+        SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadObjectTypeSuggestionWrappers(
                 getPageBase(), resourceOid, task, result);
 
         return !suggestions.wrappers().isEmpty();

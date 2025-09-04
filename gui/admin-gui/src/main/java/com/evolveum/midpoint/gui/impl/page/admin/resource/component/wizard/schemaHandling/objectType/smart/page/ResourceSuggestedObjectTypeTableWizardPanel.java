@@ -45,6 +45,7 @@ import javax.xml.namespace.QName;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.createResourceObjectTypeDefinitionWrapper;
 
 @PanelType(name = "rw-suggested-object-type")
 @PanelInstance(identifier = "w-suggested-object-type",
@@ -174,20 +175,16 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         }
         ResourceObjectTypeDefinitionType realValue = selected.getRealValue().clone();
 
+        LoadableModel<PrismObjectWrapper<ResourceType>> objectWrapperModel = getAssignmentHolderDetailsModel().getObjectWrapperModel();
+
         @SuppressWarnings("unchecked")
         PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue =
                 (PrismContainerValue<ResourceObjectTypeDefinitionType>) realValue.asPrismContainerValue();
-        WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
-        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-        prismContainerValue.setParent(containerModel.getObject().getItem());
+        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createResourceObjectTypeDefinitionWrapper(
+                prismContainerValue,
+                objectWrapperModel);
 
         onContinueWithSelected(selectedModel, prismContainerValue, containerModel, target);
-    }
-
-    public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel() {
-        ItemPath itemPath = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE);
-        LoadableModel<PrismObjectWrapper<ResourceType>> objectWrapperModel = getAssignmentHolderDetailsModel().getObjectWrapperModel();
-        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel, itemPath);
     }
 
     @Override

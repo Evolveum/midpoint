@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExistingMappingTable<P extends Containerable> extends BasePanel<PrismContainerValueWrapper<P>> implements Popupable {
+public class CorrelationExistingMappingTable<P extends Containerable> extends BasePanel<PrismContainerValueWrapper<P>> implements Popupable {
 
     private static final String ID_TABLE = "table";
     private static final String ID_TEXT = "text";
@@ -53,7 +53,7 @@ public class ExistingMappingTable<P extends Containerable> extends BasePanel<Pri
 
     private Fragment footerFragment;
 
-    public ExistingMappingTable(String id, IModel<PrismContainerValueWrapper<P>> valueModel) {
+    public CorrelationExistingMappingTable(String id, IModel<PrismContainerValueWrapper<P>> valueModel) {
         super(id, valueModel);
     }
 
@@ -140,7 +140,7 @@ public class ExistingMappingTable<P extends Containerable> extends BasePanel<Pri
 
                     @Override
                     protected IModel<Boolean> getHeaderDisplayModel() {
-                        int selectedObjectsCount = ExistingMappingTable.this.getTable().getSelectedObjectsCount();
+                        int selectedObjectsCount = CorrelationExistingMappingTable.this.getTable().getSelectedObjectsCount();
                         boolean initialState = selectedObjectsCount == getDataProvider().size();
                         return new Model<>(initialState);
                     }
@@ -238,7 +238,12 @@ public class ExistingMappingTable<P extends Containerable> extends BasePanel<Pri
                     @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
                 MappingType realValue = rowModel.getObject().getRealValue();
                 VariableBindingDefinitionType target = realValue.getTarget();
-                ItemPathType path = target.getPath();
+
+                ItemPathType path = null;
+                if (target != null) {
+                    path = target.getPath();
+                }
+
                 Label label = new Label(componentId, path != null ? path.toString() : "");
                 cellItem.add(label);
             }
@@ -300,7 +305,7 @@ public class ExistingMappingTable<P extends Containerable> extends BasePanel<Pri
 
     @Override
     public int getWidth() {
-        return 70;
+        return 50;
     }
 
     @Override

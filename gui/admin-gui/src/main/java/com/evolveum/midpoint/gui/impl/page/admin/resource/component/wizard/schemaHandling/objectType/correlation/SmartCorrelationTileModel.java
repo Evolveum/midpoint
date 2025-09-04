@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemType;
@@ -17,13 +18,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorCompositionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadCorrelationTypeSuggestion;
 
 public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<ItemsSubCorrelatorType>> extends TemplateTile<T> {
 
@@ -72,11 +72,16 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         buildStateRecordList(efficiency);
     }
 
-    protected StatusInfo<CorrelationSuggestionType> getStatusInfo(PageBase pageBase, Task task, OperationResult result) {
-        if (statusInfoToken == null) {
-            return null;
+    protected StatusInfo<CorrelationSuggestionType> getStatusInfo(@NotNull PageBase pageBase, Task task, OperationResult result) {
+        SmartIntegrationService smartService = pageBase.getSmartIntegrationService();
+        if (statusInfoToken != null) {
+            try {
+                return smartService.getSuggestCorrelationOperationStatus(statusInfoToken, task, result);
+            } catch (Throwable e) {
+                pageBase.error("Couldn't get correlation suggestion status: " + e.getMessage());
+            }
         }
-        return loadCorrelationTypeSuggestion(pageBase, statusInfoToken, resourceOid, task, result);
+        return null;
     }
 
     private void buildStateRecordList(String efficiency) {
