@@ -75,7 +75,8 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     private SecurityPolicyType applicableSecurityPolicy;
 
     /** Delegations with privileges limitations; TODO better name */
-    @NotNull private final OtherPrivilegesLimitations otherPrivilegesLimitations = new OtherPrivilegesLimitations();
+    @NotNull private final AtomicReference<OtherPrivilegesLimitations> otherPrivilegesLimitations =
+            new AtomicReference<>(new OtherPrivilegesLimitations());
 
     private FocusType attorney;
     private MidPointPrincipal previousPrincipal;
@@ -294,7 +295,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
         clone.authorizations.get().addAll(authorizations.get());
         clone.effectiveActivationStatus = this.effectiveActivationStatus;
-        clone.otherPrivilegesLimitations.copyValuesFrom(this.otherPrivilegesLimitations);
+        clone.otherPrivilegesLimitations.get().copyValuesFrom(this.otherPrivilegesLimitations.get());
     }
 
     @Override
@@ -308,7 +309,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     protected void debugDumpInternal(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "Focus", focus.asPrismObject(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations.get(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "Other privilege limitations", otherPrivilegesLimitations, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Other privilege limitations", otherPrivilegesLimitations.get(), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Attorney", attorney == null ? null : attorney.asPrismObject(), indent + 1);
     }
 
@@ -377,7 +378,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     }
 
     public @NotNull OtherPrivilegesLimitations getOtherPrivilegesLimitations() {
-        return otherPrivilegesLimitations;
+        return otherPrivilegesLimitations.get();
     }
 
     /**
@@ -388,7 +389,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     public void addDelegationTarget(
             @NotNull PrismObject<? extends AssignmentHolderType> target,
             @NotNull OtherPrivilegesLimitations.Limitation limitation) {
-        otherPrivilegesLimitations.addDelegationTarget(target, limitation);
+        otherPrivilegesLimitations.get().addDelegationTarget(target, limitation);
     }
 
     /**
@@ -396,7 +397,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
      */
     public Set<String> getDelegatorsFor(
             @Nullable OtherPrivilegesLimitations.Type limitationType) {
-        return otherPrivilegesLimitations.getDelegatorsFor(limitationType);
+        return otherPrivilegesLimitations.get().getDelegatorsFor(limitationType);
     }
 
     /**
@@ -406,14 +407,14 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
      */
     public Set<String> getDelegatedMembershipFor(
             @Nullable OtherPrivilegesLimitations.Type limitationType) {
-        return otherPrivilegesLimitations.getDelegatedMembershipFor(limitationType);
+        return otherPrivilegesLimitations.get().getDelegatedMembershipFor(limitationType);
     }
 
     /**
      * Clear all registered "membership delegation".
      */
     public void clearOtherPrivilegesLimitations(){
-        this.otherPrivilegesLimitations.clear();
+        this.otherPrivilegesLimitations.get().clear();
     }
 
 
