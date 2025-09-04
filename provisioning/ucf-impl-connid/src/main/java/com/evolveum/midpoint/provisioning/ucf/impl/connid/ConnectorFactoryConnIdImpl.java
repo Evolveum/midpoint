@@ -913,7 +913,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         var connectors = localConnectorInfoManager.registerConnector(file);
         if (!connectors.isEmpty()) {
             notifyConnectorAdded();
-        };
+        }
         return connectors;
     }
 }

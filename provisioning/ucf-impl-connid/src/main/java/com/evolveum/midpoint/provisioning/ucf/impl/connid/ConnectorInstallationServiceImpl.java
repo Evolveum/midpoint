@@ -34,9 +34,9 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
 
     //private final WebClient webClient;
 
-    private static Attributes.Name MANIFEST_CONNECTOR_CLASS = new Attributes.Name("ConnectorBundle-ConnectorClass");
-    private static Attributes.Name MANIFEST_CONNECTOR_BUNDLE = new Attributes.Name("ConnectorBundle-Name");
-    private static Attributes.Name MANIFEST_CONNECTOR_VERSION = new Attributes.Name("ConnectorBundle-Version");
+    private static final Attributes.Name MANIFEST_CONNECTOR_CLASS = new Attributes.Name("ConnectorBundle-ConnectorClass");
+    private static final Attributes.Name MANIFEST_CONNECTOR_BUNDLE = new Attributes.Name("ConnectorBundle-Name");
+    private static final Attributes.Name MANIFEST_CONNECTOR_VERSION = new Attributes.Name("ConnectorBundle-Version");
 
     @Autowired private MidpointConfiguration configuration;
     @Autowired private ConnectorFactoryConnIdImpl factoryImpl;
