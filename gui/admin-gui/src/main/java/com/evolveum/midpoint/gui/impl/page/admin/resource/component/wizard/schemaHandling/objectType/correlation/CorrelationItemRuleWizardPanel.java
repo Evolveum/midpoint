@@ -63,12 +63,12 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
     private static final String ID_ALERT_DESCRIPTION = "descriptionAlert";
     private static final String ID_ALERT_BADGE = "badgeAlert";
 
-    IModel<StatusInfo<CorrelationSuggestionType>> statusInfoModel;
+    IModel<StatusInfo<CorrelationSuggestionsType>> statusInfoModel;
 
     public CorrelationItemRuleWizardPanel(
             String id,
             WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> superHelper,
-            IModel<StatusInfo<CorrelationSuggestionType>> statusInfoModel) {
+            IModel<StatusInfo<CorrelationSuggestionsType>> statusInfoModel) {
         super(id, superHelper);
         this.statusInfoModel = statusInfoModel;
     }

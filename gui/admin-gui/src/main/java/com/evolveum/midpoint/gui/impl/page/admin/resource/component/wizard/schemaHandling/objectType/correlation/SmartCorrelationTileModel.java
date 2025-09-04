@@ -13,10 +13,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorCompositionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,7 +69,7 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         buildStateRecordList(efficiency);
     }
 
-    protected StatusInfo<CorrelationSuggestionType> getStatusInfo(@NotNull PageBase pageBase, Task task, OperationResult result) {
+    protected StatusInfo<CorrelationSuggestionsType> getStatusInfo(@NotNull PageBase pageBase, Task task, OperationResult result) {
         SmartIntegrationService smartService = pageBase.getSmartIntegrationService();
         if (statusInfoToken != null) {
             try {

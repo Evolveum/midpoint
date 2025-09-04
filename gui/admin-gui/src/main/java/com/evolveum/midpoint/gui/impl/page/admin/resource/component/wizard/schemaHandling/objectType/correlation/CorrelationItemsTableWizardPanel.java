@@ -124,7 +124,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             @Override
             public void acceptItemPerformed(AjaxRequestTarget target,
                     @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
-                    StatusInfo<CorrelationSuggestionType> statusInfo) {
+                    StatusInfo<CorrelationSuggestionsType> statusInfo) {
                 if (rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
                     return;
                 }
@@ -141,7 +141,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     StatusInfo<?> statusInfo) {
                 PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(getPageBase(), value, target);
                 showTableForItemRefs(target, this::findResourceObjectTypeDefinition,
-                        () -> newValue, (StatusInfo<CorrelationSuggestionType>) statusInfo);
+                        () -> newValue, (StatusInfo<CorrelationSuggestionsType>) statusInfo);
             }
         };
 
@@ -193,7 +193,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             @NotNull AjaxRequestTarget target,
             @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
-            @Nullable StatusInfo<CorrelationSuggestionType> statusInfo);
+            @Nullable StatusInfo<CorrelationSuggestionsType> statusInfo);
 
     @Override
     protected String getSaveLabelKey() {

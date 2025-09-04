@@ -90,7 +90,7 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
         statusModel = new LoadableModel<>(true) {
             @Override
-            protected StatusInfo<CorrelationSuggestionType> load() {
+            protected StatusInfo<CorrelationSuggestionsType> load() {
                 Task task = getPageBase().createSimpleTask("Load generation status");
                 OperationResult result = task.getResult();
                 return getModelObject().getStatusInfo(getPageBase(), task, result);

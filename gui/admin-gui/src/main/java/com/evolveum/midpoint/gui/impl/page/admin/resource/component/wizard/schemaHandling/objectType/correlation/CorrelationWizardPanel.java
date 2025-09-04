@@ -45,7 +45,7 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                     @NotNull AjaxRequestTarget target,
                     @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
                     @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
-                    @Nullable StatusInfo<CorrelationSuggestionType> statusInfo) {
+                    @Nullable StatusInfo<CorrelationSuggestionsType> statusInfo) {
                 WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderDetailsModel(), rowModel) {
                     @Override
                     public void onExitPerformed(AjaxRequestTarget target) {
@@ -64,22 +64,24 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                             return;
                         }
 
-                        CorrelationSuggestionType result = statusInfo.getResult();
-                        List<ResourceAttributeDefinitionType> attributes = result.getAttributes();
+//TODO change to parent container
 
-                        if (attributes.isEmpty()) {
-                            performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
-                            return;
-                        }
-
-                        CorrelationAddMappingConfirmationPanel confirmationPanel = new CorrelationAddMappingConfirmationPanel(
-                                getPageBase().getMainPopupBodyId(), Model.of(), () -> attributes) {
-                            @Override
-                            public void yesPerformed(AjaxRequestTarget target) {
-                                performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
-                            }
-                        };
-                        getPageBase().showMainPopup(confirmationPanel, target);
+//                        CorrelationSuggestionsType result = statusInfo.getResult();
+//                        List<ResourceAttributeDefinitionType> attributes = result.getAttributes();
+//
+//                        if (attributes.isEmpty()) {
+//                            performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
+//                            return;
+//                        }
+//
+//                        CorrelationAddMappingConfirmationPanel confirmationPanel = new CorrelationAddMappingConfirmationPanel(
+//                                getPageBase().getMainPopupBodyId(), Model.of(), () -> attributes) {
+//                            @Override
+//                            public void yesPerformed(AjaxRequestTarget target) {
+//                                performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
+//                            }
+//                        };
+//                        getPageBase().showMainPopup(confirmationPanel, target);
                     }
 
                     private void performAddOperation(
