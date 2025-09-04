@@ -1,66 +1,72 @@
 :page-visibility: hidden
 :page-upkeep-status: green
+:experimental:
 
-This section describes the default configuration for the list view panels in the GUI.
-List view panels are widely used in the GUI to display the list of entities (e.g. a list of the objects or the list of the containers).
-Currently, midPoint supports default list view panel configuration for:
+This section describes the default configuration for the list view panels in midPoint GUI.
 
-* *object collection views* - the list view panels which are presented on the list pages accessible from the left menu (e.g. All users, All roles pages).
+List view panels are widely used in the GUI to display lists of entities (e.g. objects or containers).
+MidPoint supports default list view panel configuration for:
 
-* *object details pages* - the list view panels which are a part of the details page (e.g. Assignments -> Role panel on the User details page).
+* *Object collection views* - List view panels presented on the list pages accessible from the left-side menu (e.g. the icon:user[] *All users*, or icon:role[] *All roles* page).
 
-Depending on what part of the GUI you would like to configure, default settings can be configured in different parts of the adminGuiConfiguration.
+* *Object details pages* - List view panels which are a part of the details page (e.g. icon:assignment[] *Assignments* > icon:role[] *Role* panel on the User details page).
+
+Depending on what part of the GUI you want to configure, default settings can be configured in different parts of the xref:/midpoint/reference/admin-gui/admin-gui-config[Admin GUI Configuration].
 The location of the configuration defines the area where the configuration will be applied.
-E.g. default settings within object details set type will be applied to all list view panels which are a part of the details page.
-And default settings defined in the object collection views type will be applied to all collection views in the GUI.
+For example, the default settings within the object details set type will be applied to all list view panels which are a part of the details page.
+And the default settings defined in the object collection views type will be applied to all collection views in the GUI.
 
-For the moment, only '_paging_' and '_pagingOptions_' configuration is available within default settings.
-'_paging_' configuration is intended to be used while querying on the list view panels.
-'_pagingOptions_' configuration defines a set of the available page sizes for the list view panel.
-The configured set of the available page sizes will be displayed to the user so that they can choose one of the options.
+The default configuration settings include:
 
-Following table describes the possible configuration options.
+* `paging` - Intended to be used while querying in the list view panels.
+* `pagingOptions` - Defines the set of the available page sizes, i.e. the number of returned items, for the list view panel.
+This enables users to select the number of items to be displayed on a page in a drop-down menu, and thus define the length of the page.
+
+The following table describes the possible configuration options.
 [%autowidth]
 
 |===
 | Property | Mandatory | Type | Description
 
-| paging
+| `paging`
 | NO
-| PagingType
-| Parameters limiting the number of returned entries, offset, etc.
-Used in the web service operations such as list or search.
-Available parameters are:
+| `PagingType`
+a| Parameters limiting the number of returned entries, offset, etc.
+This is used in web service operations, such as list or search.
+The available parameters are:
 
-_orderBy_ Property by which the results should be sorted
+* `orderBy` - Defines the property by which the results should be sorted.
 
-_ascending_ Property by which the results should be sorted
+* `orderDirection` - Defines how items should be sorted.
+The valid values are:
 
-_offset_ The index of the first returned entry, starting with zero.
-Therefore, if 0 is specified, the resulting list will start with first entry.
-If 1 is specified, the resulting set will start with second entry.
-If not specified, value of zero (0) is assumed.
+    ** `ascending`
+    ** `descending`
 
-_maxSize_ The maximum number of entries returned.
-The operation may return specified number of entries or less.
+* `offset` - The index of the first returned entry, starting with zero.
+If set to `0`, the resulting list will start with the first entry.
+If set to `1`, the resulting set will start with the second entry.
+If not set, the value of `0` is assumed.
+
+* `maxSize` - The maximum number of entries returned.
 If not specified, unlimited maximum size is assumed.
-If configured for a list view, this value is taken as a default page size on the list view panel.
-If the configured value is not present in the set of the available page sizes (see pagingOptions), it will be added to this set as one of the options.
+If configured for a list view, this value is taken as the default page size on the list view panel.
+If the configured value is not present in the set of the available page sizes (see `pagingOptions` below), it will be added to this set as one of the options.
 
-| pagingOptions
+| `pagingOptions`
 | NO
-| PagingOptionsType
-| Paging options which can be applied to list view in GUI.
-Contains a multivalue element _availablePageSize_ (defines a set of available page size values which will be suggested to the user on the table panels).
+| `PagingOptionsType`
+a| Paging options which can be applied to list view in GUI.
+Contains a multi-value element `availablePageSize` which defines the set of available page size values that will be suggested to users on table panels.
 
 |===
 
-Default settings can be overridden or extended in the concrete list view configuration.
-Those setting which are single-valued by the definition, can be overridden in the deeper configuration (e.g. in the role).
-The multivalue settings can be extended e.g. in the role by adding new values to the set of the available page sizes.
+The default settings can be overridden or extended in a specific list view configuration.
+Single-valued settings can be overridden in a deeper nested configuration, e.g. in a role.
+Multi-value settings can be extended, e.g. in a role, by adding new values to the set of the available page sizes.
 
-The settings which are available for the configuration in the _defaultSettings_ element, also present in the collection view type.
-This means that _paging_ and _pagingOptions_ can be configured within concrete _objectCollectionView_ in object collection views configuration.
-Also, these options can be also configured within _listView_ element while configuring a concrete panel for some object details page.
+The settings that are available for the configuration in the `defaultSettings` element are also present in the collection view type.
+This means that `paging` and `pagingOptions` can be configured within a specific `objectCollectionView` in object collection views configuration.
+Also, these options can be configured within the `listView` element while configuring a specific panel for an object details page.
 
-You can see some examples of the paging settings configuration by the xref:/midpoint/reference/admin-gui/admin-gui-config/admin-gui-config-examples/#default-settings-for-object-details-pages[link].
+Refer to xref:/midpoint/reference/admin-gui/admin-gui-config/admin-gui-config-examples/#default-settings-for-object-details-pages[paging configuration examples].
