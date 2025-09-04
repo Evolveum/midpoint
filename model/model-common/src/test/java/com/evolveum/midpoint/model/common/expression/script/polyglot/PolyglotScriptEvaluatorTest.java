@@ -11,11 +11,13 @@ import java.util.function.Function;
 import org.graalvm.polyglot.Source;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 
 public class PolyglotScriptEvaluatorTest {
 
     private final static String SCRIPT = "param1 + param2";
+    private static final ScriptExpressionEvaluationContext CONTEXT = new ScriptExpressionEvaluationContext();
 
     @Test
     void scriptContainsSimpleConcatenation_compileScriptCalled_compiledScriptPoolShouldBeReturned()
@@ -41,7 +43,7 @@ public class PolyglotScriptEvaluatorTest {
         final PolyglotScriptPool scriptPool = new FakeScriptPool(scriptSource, false);
 
         final PolyglotScriptEvaluator evaluator = new PolyglotScriptEvaluator(null, null, null);
-        final Object result = evaluator.evaluateScript(scriptPool, null);
+        final Object result = evaluator.evaluateScript(scriptPool, CONTEXT);
 
         assertTrue(result instanceof String);
         assertEquals(result, "42");
@@ -55,7 +57,7 @@ public class PolyglotScriptEvaluatorTest {
         scriptPool.simulateTimeout();
 
         final PolyglotScriptEvaluator evaluator = new PolyglotScriptEvaluator(null, null, null);
-        final Object result = evaluator.evaluateScript(scriptPool, null);
+        final Object result = evaluator.evaluateScript(scriptPool, CONTEXT);
 
         assertEquals(result, "42");
     }
@@ -69,9 +71,49 @@ public class PolyglotScriptEvaluatorTest {
         scriptPool.simulateTimeout();
 
         final PolyglotScriptEvaluator evaluator = new PolyglotScriptEvaluator(null, null, null);
-        final Object result = evaluator.evaluateScript(scriptPool, null);
+        final Object result = evaluator.evaluateScript(scriptPool, CONTEXT);
 
         assertEquals(result, "42");
+    }
+
+    @Test
+    void scriptPoolContainsAvailableScript_evaluateScript_scriptShouldBeReleasedAfterEvaluation() throws Exception {
+        final Source scriptSource = Source.create("js", "42");
+        final FakeScriptPool scriptPool = new FakeScriptPool(scriptSource, false);
+
+        final PolyglotScriptEvaluator evaluator = new PolyglotScriptEvaluator(null, null, null);
+        evaluator.evaluateScript(scriptPool, CONTEXT);
+
+        assertEquals(scriptPool.numberOfReleaseCalls(), 1);
+    }
+
+    @Test
+    void scriptPoolIsDrained_evaluateScriptIsCalled_newScriptShouldBeCreatedThenAcquiredAndReleasedAfterEvaluation()
+            throws Exception {
+        final Source scriptSource = Source.create("js", "42");
+        final FakeScriptPool scriptPool = new FakeScriptPool(scriptSource, false);
+        scriptPool.simulateTimeout(); // Simulate that the pool is drained.
+
+        final PolyglotScriptEvaluator evaluator = new PolyglotScriptEvaluator(null, null, null);
+        evaluator.evaluateScript(scriptPool, CONTEXT);
+
+        assertEquals(scriptPool.numberOfReleaseCalls(), 1);
+    }
+
+    @Test
+    void scriptPoolIsDrainedAndAtFullCapacity_evaluateScriptIsCalled_scriptShouldBeReleasedAfterEvaluation()
+            throws Exception {
+        final Source scriptSource = Source.create("js", "42");
+        final FakeScriptPool scriptPool = new FakeScriptPool(scriptSource, true);
+        scriptPool.simulateTimeout(); // Simulate that the pool is drained.
+        // Because the pool is at full capacity, a new script will not be created. Instead, the acquire method should be
+        // called without a timeout. Our fake pool implementation will return immediately with a new script. We can
+        // pretend that it means some script was released to the pool before.
+
+        final PolyglotScriptEvaluator evaluator = new PolyglotScriptEvaluator(null, null, null);
+        evaluator.evaluateScript(scriptPool, CONTEXT);
+
+        assertEquals(scriptPool.numberOfReleaseCalls(), 1);
     }
 
     private static class FakeScriptPool implements PolyglotScriptPool {
@@ -79,14 +121,20 @@ public class PolyglotScriptEvaluatorTest {
         private final Source source;
         private final boolean isFull;
         private boolean simulateTimeout;
+        private int releaseCounter;
 
         private FakeScriptPool(Source source, boolean isFull) {
             this.source = source;
             this.isFull = isFull;
+            this.releaseCounter = 0;
         }
 
         private void simulateTimeout() {
             this.simulateTimeout = true;
+        }
+
+        private int numberOfReleaseCalls() {
+            return this.releaseCounter;
         }
 
         @Override
@@ -110,7 +158,7 @@ public class PolyglotScriptEvaluatorTest {
 
         @Override
         public void release(PolyglotScript script) {
-
+            this.releaseCounter++;
         }
 
         @Override

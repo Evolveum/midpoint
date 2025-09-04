@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.model.common.expression.script.polyglot;
 
-import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
@@ -107,7 +107,7 @@ public final class PolyglotScriptEvaluator extends AbstractCachingScriptEvaluato
             return new ContextPerScriptPool(parseScript(scriptSource), scriptSource);
         } catch (PolyglotException e) {
             if (e.isSyntaxError()) {
-                throw new ExpressionSyntaxException("Parsed script contain syntax errors.", e);
+                throw new ExpressionSyntaxException("Parsed script contains syntax errors.", e);
             }
             throw e;
         }
@@ -118,7 +118,7 @@ public final class PolyglotScriptEvaluator extends AbstractCachingScriptEvaluato
      *
      * This method attempts to retrieve a script from the provided script pool with a timeout. If a timeout occurs,
      * it attempts to create a new script if the pool has capacity. If no new script can be created, it tries to
-     * retrieve a script again without a timeout and then evaluates it.
+     * retrieve a script again without a timeout. When a script is acquired, then evaluates it.
      *
      * Note that the script pool has its own internal timeout, which will prevent the thread from waiting indefinitely.
      *
@@ -130,29 +130,36 @@ public final class PolyglotScriptEvaluator extends AbstractCachingScriptEvaluato
     @Override
     protected Object evaluateScript(PolyglotScriptPool scriptPool, ScriptExpressionEvaluationContext context)
             throws Exception {
+        final Map<String, Object> variables = prepareScriptVariablesValueMap(context);
         try {
             final PolyglotScript script = scriptPool.acquire(500);
-            return script.evaluate(Collections.emptyMap());
+            final Object result = script.evaluate(variables);
+            scriptPool.release(script);
+            return result;
         } catch (TimeoutException e) {
             final Optional<PolyglotScript> scriptOptional =
                     scriptPool.createIfHasCapacity(PolyglotScriptEvaluator::parseScript);
             // We cannot use the `orElseGet` method from optional, because the `acquire` method throws a checked
             // exception. Using the `isPresent` -> `get` pattern is in this case simpler than wrapping the exception.
             if (scriptOptional.isPresent()) {
-                return scriptOptional
-                        .get()
-                        .evaluate(Collections.emptyMap());
+                final PolyglotScript script = scriptOptional.get();
+                final Object result = script.evaluate(variables);
+                scriptPool.release(script);
+                return result;
             }
-            return scriptPool.acquire().evaluate(Collections.emptyMap());
+            final PolyglotScript script = scriptPool.acquire();
+            final Object result = script.evaluate(variables);
+            scriptPool.release(script);
+            return result;
         }
     }
 
-    private static @NotNull PolyglotScript parseScript(Source scriptSource) {
+    private static PolyglotScript parseScript(Source scriptSource) {
         // TODO: Configure context based on the script profile.
         final Context interpreter = Context.newBuilder("js")
                 .allowHostAccess(HostAccess.ALL)
                 .build();
         final Value parsedScript = interpreter.parse(scriptSource);
-        return new GraalPolyglotScript(parsedScript, interpreter);
+        return new MaterializingPolyglotScript(parsedScript);
     }
 }

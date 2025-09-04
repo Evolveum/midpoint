@@ -15,7 +15,7 @@ import org.graalvm.polyglot.Value;
  * variable bindings, translating the polyglot execution results into readable Java structures such as primitives,
  * instants, lists, and maps.
  */
-public class MaterializingPolyglotScript implements PolyglotScript {
+public final class MaterializingPolyglotScript implements PolyglotScript {
 
     private final Value script;
 
