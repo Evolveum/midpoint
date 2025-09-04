@@ -43,8 +43,8 @@
                     <xsd:element name="application" type="c:ConnDevApplicationInfoType" />
                     <xsd:element name="connector" type="c:ConnDevConnectorType" />
                     <xsd:element name="testing" type="c:ConnDevTestingType" />
-                    <xsd:element name="documentationSources" type="c:DocumentationSourceType" />
-                    <xsd:element name="processedDocumentation" type="c:ProcessedDocumentationType"/>
+                    <xsd:element name="documentationSource" type="c:DocumentationSourceType"  maxOccurs="unbounded" />
+                    <xsd:element name="processedDocumentation" type="c:ProcessedDocumentationType"  maxOccurs="unbounded"/>
 
                 </xsd:sequence>
             </xsd:extension>
@@ -206,7 +206,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectClass" type="tns:ConnDevObjectClassInfoType" />
+            <xsd:element name="objectClass" type="tns:ConnDevObjectClassInfoType" maxOccurs="unbounded" />
         </xsd:sequence>
     </xsd:complexType>
 
@@ -506,6 +506,47 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ON_PREMISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+    <xsd:simpleType name="ConnDevHttpAuthTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Supported authentication types.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="basic">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        HTTP Basic Authorization Type
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BASIC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="bearer">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Bearer Token Authorization
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BEARER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="apiKey">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        API Key Authorization
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="API_KEY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
