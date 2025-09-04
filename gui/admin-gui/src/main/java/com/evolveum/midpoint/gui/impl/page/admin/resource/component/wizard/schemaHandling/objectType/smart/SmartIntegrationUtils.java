@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -24,7 +23,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -357,35 +355,74 @@ public class SmartIntegrationUtils {
         }
     }
 
-    //TODO just dummy method (need to be implemented properly, generic, on service side)
-    public static void removeSuggestion(
+    @SuppressWarnings("unchecked")
+    public static void removeCorrelationTypeSuggestion(
             @NotNull PageBase pageBase,
             @NotNull StatusInfo<?> statusInfo,
+            @NotNull CorrelationSuggestionType suggestionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {
-
-        final String token = statusInfo.getToken();
-        PrismObject<TaskType> taskPo =
+        String token = statusInfo.getToken();
+        PrismObject<TaskType> taskObject =
                 WebModelServiceUtils.loadObject(TaskType.class, token, pageBase, task, result);
 
-        if (taskPo == null) {
+        if (taskObject == null) {
             result.recordFatalError("Task with token " + token + " not found");
             LOGGER.error("Task with token {} not found", token);
             return;
         }
 
-        ModelService modelService = pageBase.getModelService();
-        try {
-            ObjectDelta<TaskType> delta = PrismContext.get().deltaFactory().object()
-                    .createDeleteDelta(TaskType.class, token);
+        TaskActivityStateType activityState = taskObject.asObjectable().getActivityState();
+        if (activityState == null
+                || activityState.getActivity() == null
+                || activityState.getActivity().getWorkState() == null) {
+            result.recordWarning("Task has no activity/workState to update.");
+            LOGGER.warn("Task {} has no activity/workState", token);
+            return;
+        }
 
-            modelService.executeChanges(Collections.singletonList(delta), null, task, result);
+        AbstractActivityWorkStateType workState = activityState.getActivity().getWorkState();
+        AbstractActivityWorkStateType workStateClone = workState.clone();
+        PrismContainerValue<?> workStateValue = workStateClone.asPrismContainerValue();
+
+        CorrelationSuggestionsType suggestionsBean = workStateValue.getItems().stream()
+                .map(Item::getRealValue)
+                .filter(CorrelationSuggestionsType.class::isInstance)
+                .map(CorrelationSuggestionsType.class::cast)
+                .findFirst()
+                .orElse(null);
+
+        if (suggestionsBean == null || suggestionsBean.getSuggestion().isEmpty()) {
+            result.recordWarning("No CorrelationSuggestionsType found in workState. Removing task.");
+            LOGGER.warn("No CorrelationSuggestionsType found in workState for task {}", token);
+            deleteWholeTaskObject(pageBase, task, result, token);
+            return;
+        }
+
+        WebPrismUtil.cleanupEmptyContainerValue(suggestionToRemove.asPrismContainerValue());
+        boolean removed = suggestionsBean.getSuggestion().removeIf(s ->
+                s.cloneWithoutId().equals(suggestionToRemove.cloneWithoutId()));
+
+        if (!removed) {
+            LOGGER.info("Correlation suggestion id={} not found in suggestions for task {}",
+                    suggestionToRemove.getId(), token);
             result.recordSuccessIfUnknown();
-            LOGGER.info("Removed correlation suggestion for task {}", token);
+            return;
+        }
+
+        try {
+            ObjectDelta<TaskType> delta = PrismContext.get().deltaFor(TaskType.class)
+                    .item(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY, ActivityStateType.F_WORK_STATE)
+                    .replace(workStateClone)
+                    .asObjectDelta(token);
+
+            pageBase.getModelService().executeChanges(List.of(delta), null, task, result);
+            result.recordSuccessIfUnknown();
+            LOGGER.info("Removed correlation suggestion id={} from task {}", suggestionToRemove.getId(), token);
 
         } catch (CommonException e) {
-            result.recordFatalError("Couldn't remove suggestion: " + e.getMessage(), e);
-            LOGGER.error("Couldn't remove suggestion for task {}: {}", token, e.getMessage(), e);
+            result.recordFatalError("Couldn't remove correlation suggestion: " + e.getMessage(), e);
+            LOGGER.error("Couldn't remove correlation suggestion for task {}: {}", token, e.getMessage(), e);
         }
     }
 

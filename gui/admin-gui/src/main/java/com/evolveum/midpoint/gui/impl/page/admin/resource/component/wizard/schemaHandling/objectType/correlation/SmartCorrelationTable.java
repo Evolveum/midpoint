@@ -67,8 +67,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadCorrelationSuggestionWrappers;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiBadgeModel;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeSuggestion;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 /**
  * Multi-select tile table for correlation items.
@@ -647,7 +646,12 @@ public class SmartCorrelationTable
         toDelete.forEach(value -> {
             StatusInfo<CorrelationSuggestionsType> status = getStatusInfo(value);
             if (status != null) {
-                removeSuggestion(getPageBase(), status, task, task.getResult());
+                PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = value
+                        .getParentContainerValue(CorrelationSuggestionType.class);
+                if(parentContainerValue == null || parentContainerValue.getRealValue() == null) {
+                    return;
+                }
+                removeCorrelationTypeSuggestion(getPageBase(), status, parentContainerValue.getRealValue(), task, task.getResult());
             } else {
                 resolveDeletedItem(value);
             }

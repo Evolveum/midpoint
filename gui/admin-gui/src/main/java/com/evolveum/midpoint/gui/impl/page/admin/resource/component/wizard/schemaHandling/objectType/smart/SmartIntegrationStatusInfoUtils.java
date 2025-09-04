@@ -282,36 +282,6 @@ public class SmartIntegrationStatusInfoUtils {
                 });
     }
 
-    /**
-     * Removes suggested attributes that already exist in the resource object type definition.
-     *
-     * @param suggestion correlation suggestion to load suggested attributes from
-     * @param resourceObjectTypeDefinition resource object type definition to check existing attributes against
-     * @return list of suggested attributes that do not exist in the resource object type definition
-     */
-    //TODO: decide whats if mapping with ref/target exist but with different additional properties (e.g. expression, strength, etc.)
-    public static @NotNull List<ResourceAttributeDefinitionType> loadNonExistingSuggestedMappings(
-            @NotNull CorrelationSuggestionType suggestion,
-            @NotNull ResourceObjectTypeDefinitionType resourceObjectTypeDefinition) {
-        List<ResourceAttributeDefinitionType> suggestedAttributes = new ArrayList<>(suggestion.getAttributes());
-
-        List<ResourceAttributeDefinitionType> existingAttribute = resourceObjectTypeDefinition.getAttribute();
-        if (existingAttribute != null && !existingAttribute.isEmpty()) {
-            List<ItemPath> existingMappingRefPaths = existingAttribute.stream()
-                    .map(ResourceAttributeDefinitionType::getRef)
-                    .filter(Objects::nonNull)
-                    .map(ItemPathType::getItemPath)
-                    .toList();
-
-            suggestedAttributes.removeIf(attr ->
-                    attr.getRef() != null &&
-                            existingMappingRefPaths.stream()
-                                    .anyMatch(p -> p.equivalent(attr.getRef().getItemPath()))
-            );
-        }
-        return suggestedAttributes;
-    }
-
     public record ObjectTypeSuggestionProviderResult(
             @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> wrappers,
             @NotNull Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, StatusInfo<ObjectTypesSuggestionType>> suggestionByWrapper) {

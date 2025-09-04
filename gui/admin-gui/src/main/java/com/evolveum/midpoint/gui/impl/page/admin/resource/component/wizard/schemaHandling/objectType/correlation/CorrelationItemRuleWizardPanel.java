@@ -245,7 +245,13 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
     protected void performDiscard(AjaxRequestTarget target) {
         if (isSuggestionApplied()) {
             Task task = getPageBase().createSimpleTask("discardSuggestion");
-            removeSuggestion(getPageBase(), getStatusInfo(), task, task.getResult());
+            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel = getValueModel();
+            PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueModel.getObject().getParentContainerValue(CorrelationSuggestionType.class);
+            if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
+                CorrelationSuggestionType suggestionToDelete = parentContainerValue.getRealValue();
+                removeCorrelationTypeSuggestion(getPageBase(), getStatusInfo(), suggestionToDelete, task, task.getResult());
+
+            }
         }
         target.add(this);
     }
