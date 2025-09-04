@@ -390,7 +390,7 @@ use #selfRequestAssignments instead
 | Query playground
 |
 
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configAll
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configurationAll
 | Archetypes, Message templates, Object collections, Object templates, Actions, Import object, Repository objects, System, Internals configuration, Query playground, About
 |
 
