@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.ConnectorObjectReference;
+import org.identityconnectors.framework.common.objects.EmbeddedObject;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -54,7 +55,7 @@ class ConnIdTypeMapper {
         } else if (GuardedByteArray.class.equals(type) || Byte.class.equals(type) && isConfidential) {
             // GuardedByteArray is a special case. It is a ICF-specific type implementing Potemkin-like security.
             return ProtectedByteArrayType.COMPLEX_TYPE;
-        } else if (ConnectorObjectReference.class.equals(type)) {
+        } else if (ConnectorObjectReference.class.equals(type) || EmbeddedObject.class.equals(type)) {
             return typeNameInRi(Objects.requireNonNullElseGet(subtype, referenceTypeNameSupplier));
         } else {
             return XsdTypeMapper.toXsdType(type);

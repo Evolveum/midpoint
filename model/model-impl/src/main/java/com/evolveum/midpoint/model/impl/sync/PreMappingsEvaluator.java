@@ -45,16 +45,31 @@ public class PreMappingsEvaluator {
     }
 
     @VisibleForTesting
-    public static <F extends FocusType> @NotNull F computePreFocus(
+    public static <C extends FocusType> @NotNull C computePreFocus(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
             @NotNull ResourceType resource,
-            @NotNull Class<F> focusClass,
+            @NotNull Class<C> focusClass,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        return SingleShadowInboundsProcessing.evaluate(
+        var preFocus = PrismContext.get().createObjectable(focusClass);
+        computePreFocus(shadowedResourceObject, objectTypeDefinition, objectTypeDefinition, resource, preFocus, task, result);
+        return preFocus;
+    }
+
+    public static <C extends Containerable> void computePreFocus(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
+            @NotNull ResourceObjectInboundProcessingDefinition inboundProcessingDefinition,
+            @NotNull ResourceType resource,
+            @NotNull C focusValue,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        SingleShadowInboundsProcessing.evaluate(
                 new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         AbstractShadow.of(shadowedResourceObject),
                         resource,
@@ -64,11 +79,11 @@ public class PreMappingsEvaluator {
                                 objectTypeDefinition.getTypeIdentification(),
                                 null,
                                 shadowedResourceObject.getTag()),
-                        PrismContext.get().createObjectable(focusClass),
+                        focusValue,
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         task,
                         objectTypeDefinition,
-                        objectTypeDefinition,
+                        inboundProcessingDefinition,
                         true),
                 result);
     }

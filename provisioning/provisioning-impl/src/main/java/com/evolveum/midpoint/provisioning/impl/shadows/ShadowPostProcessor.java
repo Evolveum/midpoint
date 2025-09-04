@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectOperationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -168,22 +169,53 @@ class ShadowPostProcessor {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, EncryptionException {
         for (var refAttrValue : ShadowReferenceAttributesCollection.ofShadow(resourceObject.getBean()).getAllReferenceValues()) {
-            postProcessEmbeddedShadow(refAttrValue, result);
+            postProcessEmbeddedShadowIfPresent(refAttrValue, result);
         }
         for (var refAttrValue : ShadowReferenceAttributesCollection.ofObjectDelta(resourceObjectDelta).getAllReferenceValues()) {
-            postProcessEmbeddedShadow(refAttrValue, result);
+            postProcessEmbeddedShadowIfPresent(refAttrValue, result);
         }
     }
 
-    private void postProcessEmbeddedShadow(@NotNull ShadowReferenceAttributeValue refAttrValue, @NotNull OperationResult result)
+    private void postProcessEmbeddedShadowIfPresent(
+            @NotNull ShadowReferenceAttributeValue refAttrValue, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, EncryptionException, ObjectNotFoundException {
 
         var shadow = refAttrValue.getShadowIfPresent();
         if (shadow == null) {
-            return;
+            // nothing to do here
+        } else if (refAttrValue.getDefinitionRequired().getNativeDefinition().isComplexAttribute()) {
+            postProcessComplexAttributeValue(shadow, result);
+        } else {
+            postProcessEmbeddedShadow(shadow, refAttrValue, result);
         }
+    }
 
+    /**
+     * Shadow for a complex attribute value is a very special one - it can be completely without identifiers.
+     * So, normal processing is not possible. We just try to determine its type and apply the definition.
+     * TODO consider the performance of this approach: now we run the classifier for each value of each complex attribute
+     *  See MID-10833.
+     */
+    private void postProcessComplexAttributeValue(AbstractShadow shadow, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        var classification = b.classifier.classify(
+                shadow.getBean(), ctx.getResource(), null, ctx.getTask(), result);
+        if (classification.isKnown()) {
+            shadow.getBean().setKind(classification.getKind());
+            shadow.getBean().setIntent(classification.getIntent());
+            shadow.applyDefinition(classification.getDefinitionRequired());
+        }
+        // TODO should we provide empty policy here, or should we stop requiring policy for these shadows?
+        shadow.getBean().setEffectiveOperationPolicy(new ObjectOperationPolicyType());
+    }
+
+    /** For regular embedded shadows we do a full post-processing. */
+    private void postProcessEmbeddedShadow(
+            AbstractShadow shadow, ShadowReferenceAttributeValue refAttrValue, OperationResult result)
+            throws SchemaException, ConfigurationException, CommunicationException, ExpressionEvaluationException,
+            SecurityViolationException, EncryptionException, ObjectNotFoundException {
         var shadowCtx = ctx.spawnForShadow(shadow.getBean());
         var updatedShadow = acquireAndPostProcessEmbeddedShadow(shadow, shadowCtx, result);
         if (updatedShadow != null) {

@@ -744,11 +744,14 @@ public class DummyResource implements DebugDumpable {
         updateNormalizedHierarchicalName(objectToAdd);
         hierarchySupport.checkHasContainingOrg(objectToAdd.getName());
 
+        boolean isEmbedded = store.getObjectClass().isEmbeddedObject();
+        boolean nameLegallyNull = isEmbedded && objectToAdd.getName() == null;
+
         String mapKey;
-        if (enforceUniqueName) {
-            mapKey = normalizedName;
-        } else {
+        if (!enforceUniqueName || nameLegallyNull) {
             mapKey = objectToAdd.getId();
+        } else {
+            mapKey = normalizedName;
         }
 
         if (store.containsObject(mapKey)) {
@@ -911,11 +914,14 @@ public class DummyResource implements DebugDumpable {
 
         allObjects.remove(id);
 
+        boolean isEmbedded = store.getObjectClass().isEmbeddedObject();
+        boolean nameLegallyNull = isEmbedded && object.getName() == null;
+
         String mapKey;
-        if (enforceUniqueName) {
-            mapKey = normalName;
-        } else {
+        if (!enforceUniqueName || nameLegallyNull) {
             mapKey = id;
+        } else {
+            mapKey = normalName;
         }
 
         if (store.containsObject(mapKey)) {

@@ -13,6 +13,8 @@ package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -49,6 +51,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
     private static final String TEST_DIR = "src/test/resources/processor/";
 
     private static final String RESOURCE_SCHEMA_SIMPLE_FILENAME = TEST_DIR + "resource-schema-simple.xsd";
+    private static final File RESOURCE_FILE = new File("src/test/resources/common/xml/ns/resource-opendj.xml");
 
     @Test
     public void testParseSchema() throws Exception {
@@ -296,16 +299,56 @@ public class TestResourceSchema extends AbstractSchemaTest {
     @Test
     public void testParseResource() throws Exception {
         // WHEN
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml"));
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_FILE);
 
         // THEN
         assertCapabilities(resource.asObjectable());
     }
 
+    /** A delineation is created as part of the resource definition. It is extracted, cloned, and parsed. */
+    @Test
+    public void testParseExtractedDelineation() throws Exception {
+        given("resource with delineation");
+        var resource = (ResourceType) PrismTestUtil.parseObject(RESOURCE_FILE).asObjectable();
+        var delineationBean = resource.getSchemaHandling().getObjectType().get(0).getDelineation();
+        assertThat(delineationBean).isNotNull();
+        var typeDefinition = ResourceSchemaFactory
+                .getCompleteSchemaRequired(resource)
+                .getObjectTypeDefinitionRequired(ACCOUNT_DEFAULT);
+
+        when("delineation bean is cloned and parsed");
+        var clone = delineationBean.clone();
+        var parsed = ResourceObjectTypeDelineation.of(clone, typeDefinition.getObjectClassName(), List.of(), typeDefinition);
+
+        then("it is parsed correctly");
+        displayValue("re-parsed delineation", parsed.debugDump());
+        assertThat(parsed.getFilterClauses()).hasSize(1);
+    }
+
+    /** A filter is parsed, serialized, and re-parsed. */
+    @Test(enabled = false) // MID-10837
+    public void testSerializeAndParseFilter() throws Exception {
+        given("resource");
+        var resource = (ResourceType) PrismTestUtil.parseObject(RESOURCE_FILE).asObjectable();
+        var shadowDefinition = ResourceSchemaFactory
+                .getCompleteSchemaRequired(resource)
+                .getObjectTypeDefinitionRequired(ACCOUNT_DEFAULT)
+                .getPrismObjectDefinition();
+
+        when("a filter is parsed, serialized, and re-parsed");
+        var parsedFilter = PrismContext.get().createQueryParser().parseFilter(
+                shadowDefinition, "attributes/ri:description = 'abc'");
+        var serializedFilter = PrismContext.get().querySerializer().serialize(parsedFilter).toSearchFilterType();
+        var reparsedFilter = PrismContext.get().getQueryConverter().createObjectFilter(shadowDefinition, serializedFilter);
+
+        then("it is parsed correctly");
+        displayValue("re-parsed filter", reparsedFilter.debugDump());
+    }
+
     @Test
     public void testUnmarshallResource() throws Exception {
         // WHEN
-        ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml")).asObjectable();
+        ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(RESOURCE_FILE).asObjectable();
 
         // THEN
         assertCapabilities(resourceType);

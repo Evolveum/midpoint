@@ -32,6 +32,7 @@ public class ObjectTypesSuggestionActivityHandler
 
     private static final String ID_STATISTICS_COMPUTATION = "statisticsComputation";
     private static final String ID_OBJECT_TYPES_SUGGESTION = "objectTypesSuggestion";
+    private static final String ID_FOCUS_TYPE_SUGGESTION = "focusTypeSuggestion";
 
     @PostConstruct
     public void register() {
@@ -77,6 +78,13 @@ public class ObjectTypesSuggestionActivityHandler
                 (context, result) -> new RemoteServiceCallActivityRun(context),
                 null,
                 (i) -> ID_OBJECT_TYPES_SUGGESTION,
+                ActivityStateDefinition.normal(),
+                parentActivity));
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().cloneWithoutId(),
+                (context, result) -> new RemoteServiceCallFocusTypeActivityRun(context),
+                null,
+                (i) -> ID_FOCUS_TYPE_SUGGESTION,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         return children;

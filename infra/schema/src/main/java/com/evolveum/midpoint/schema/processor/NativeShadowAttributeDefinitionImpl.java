@@ -73,6 +73,9 @@ public class NativeShadowAttributeDefinitionImpl<T>
     private ShadowReferenceParticipantRole referenceParticipantRole;
     private QName referencedObjectClassName;
 
+    /** @see NativeShadowReferenceAttributeDefinition#isComplexAttribute() */
+    private boolean complexAttribute;
+
     NativeShadowAttributeDefinitionImpl(@NotNull ItemName itemName, @NotNull QName typeName) {
         this.prismItemBasicData = new PrismItemBasicDefinition.Data(itemName, typeName);
         this.prismItemMatching = new PrismItemMatchingDefinition.Data<>(typeName);
@@ -404,6 +407,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
 
     @Override
     public void setReferenceParticipantRole(ShadowReferenceParticipantRole value) {
+        checkMutable();
         this.referenceParticipantRole = value;
     }
 
@@ -412,7 +416,19 @@ public class NativeShadowAttributeDefinitionImpl<T>
     }
 
     public void setReferencedObjectClassName(QName value) {
+        checkMutable();
         this.referencedObjectClassName = value;
+    }
+
+    @Override
+    public boolean isComplexAttribute() {
+        return complexAttribute;
+    }
+
+    @Override
+    public void setComplexAttribute(boolean complexAttribute) {
+        checkMutable();
+        this.complexAttribute = complexAttribute;
     }
 
     public void setNativeDescription(String value) {
@@ -432,6 +448,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
                 ResourceDefinitionFeatures.ForItem.DF_RETURNED_BY_DEFAULT,
                 ResourceDefinitionFeatures.ForItem.DF_ROLE_IN_REFERENCE,
                 ResourceDefinitionFeatures.ForItem.DF_REFERENCED_OBJECT_CLASS_NAME,
+                ResourceDefinitionFeatures.ForItem.DF_COMPLEX_ATTRIBUTE,
                 ResourceDefinitionFeatures.ForItem.DF_DESCRIPTION_NAME);
     }
 
@@ -507,6 +524,9 @@ public class NativeShadowAttributeDefinitionImpl<T>
         }
         if (isReference()) {
             sb.append(", r=").append(referenceParticipantRole);
+        }
+        if (complexAttribute) {
+            sb.append(", complex-attribute");
         }
         return sb.toString();
     }

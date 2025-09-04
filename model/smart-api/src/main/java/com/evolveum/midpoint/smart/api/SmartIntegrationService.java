@@ -105,6 +105,12 @@ public interface SmartIntegrationService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 
+    /** Suggests a discrete focus type for the application (resource) object type which is not yet defined in the resource. */
+    FocusTypeSuggestionType suggestFocusType(
+            String resourceOid, ResourceObjectTypeDefinitionType typeDefBean, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
+
     /**
      * Suggests correlation rules for the given resource object type and focus type.
      * The method returns the correlation rules along with any missing mappings that are needed for the rules to work.
@@ -113,7 +119,7 @@ public interface SmartIntegrationService {
      *
      * . TODO
      */
-    CorrelationSuggestionType suggestCorrelation(
+    CorrelationSuggestionsType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable Object interactionMetadata,
@@ -135,12 +141,12 @@ public interface SmartIntegrationService {
      * List statuses of all relevant "suggest correlation" requests (for given resource OID).
      * They are sorted by finished time, then by started time.
      */
-    List<StatusInfo<CorrelationSuggestionType>> listSuggestCorrelationOperationStatuses(
+    List<StatusInfo<CorrelationSuggestionsType>> listSuggestCorrelationOperationStatuses(
             String resourceOid, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Checks the status of the "suggest correlation" request. */
-    StatusInfo<CorrelationSuggestionType> getSuggestCorrelationOperationStatus(
+    StatusInfo<CorrelationSuggestionsType> getSuggestCorrelationOperationStatus(
             String token, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 

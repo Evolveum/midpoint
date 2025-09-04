@@ -7,8 +7,11 @@
 
 package com.evolveum.midpoint.model.test.smart;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.Iterator;
 import java.util.List;
@@ -17,6 +20,8 @@ import java.util.List;
  * Smart integration service client to be used when there is no real service available.
  */
 public class MockServiceClientImpl implements ServiceClient {
+
+    private static final Trace LOGGER = TraceManager.getTrace(MockServiceClientImpl.class);
 
     private Object lastRequest;
     private final Iterator<Object> responses;
@@ -27,6 +32,8 @@ public class MockServiceClientImpl implements ServiceClient {
 
     @Override
     public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass) throws SchemaException {
+        LOGGER.debug("Invoking {} with request:\n{}",
+                method, PrismContext.get().jsonSerializer().serializeRealValueContent(request));
         lastRequest = request;
         //noinspection unchecked
         return (RESP) responses.next();

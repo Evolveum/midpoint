@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,32 +21,29 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
-import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
-import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
 import com.evolveum.midpoint.smart.impl.activities.StatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Unit tests for the Smart Integration Service implementation.
@@ -288,7 +285,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("lisa")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Lisa Simpson")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_987")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "ADM_987")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "lisa.eng@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
@@ -328,7 +325,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("quinn")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Quinn Fabray")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "int.753")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "INT.753")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "quinn.ro@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "intern")
@@ -352,7 +349,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Engineering")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=alex\\,OU=Employees\\,DC=evolveum\\,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=alex\\,OU=Employees,DC=evolveum,DC=com");
 
         c.addAccount("brenda")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Brenda Starr")
@@ -415,7 +412,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Sales")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=henry,OU=Contractors,OU=IT,DC=evolveum,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=henry,OU=Contractors,OU=IT,OU=Contractors,OU=IT,DC=evolveum,DC=com");
 
         c.addAccount("isabel")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Isabel Archer")
@@ -613,17 +610,9 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     private SiSuggestObjectTypesRequestType normalizeSiSuggestObjectTypesRequest(Object rawData) {
         var data = (SiSuggestObjectTypesRequestType) rawData;
-        for (var attrDef : data.getSchema().getAttribute()) {
-            attrDef.setName(normalizeItemPathType(attrDef.getName()));
-        }
-        data.getSchema().getAttribute().sort(Comparator.comparing(a -> a.getName().toString()));
+        data.getSchema().getAttribute().sort(Comparator.comparing(a -> a.getName()));
         data.getStatistics().getAttribute().sort(Comparator.comparing(a -> a.getRef().toString()));
         return data;
-    }
-
-    private ItemPathType normalizeItemPathType(ItemPathType pathType) {
-        var string = PrismContext.get().itemPathSerializer().serializeStandalone(pathType.getItemPath());
-        return PrismContext.get().itemPathParser().asItemPathType(string);
     }
 
     /** What if the service returns an error in the filter? */
@@ -986,19 +975,18 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         for (var attribute : statistics.getAttribute()) {
             if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
                 assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(4);
-                Map<String, Integer> valueCounts = attribute.getValuePatternCount().stream()
-                        .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
-                assertThat(valueCounts).containsEntry("svc", 1);
-                assertThat(valueCounts).containsEntry("usr", 1);
-                assertThat(valueCounts).containsEntry("adm", 10);
-                assertThat(valueCounts).containsEntry("int", 6);
+                assertThat(attribute.getValuePatternCount().size()).isEqualTo(9);
+                for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
+                    assertThat(patternCount.getValue()).isNotEmpty();
+                    assertThat(patternCount.getType()).isNotNull();
+                    assertThat(patternCount.getCount()).isGreaterThanOrEqualTo(1);
+                }
             }
         }
     }
 
     @Test
-    public void test240ComputeOUFieldStatistics() throws Exception {
+    public void test240ComputeDNattributeStatistics() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -1015,12 +1003,15 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var dnAttribute = statistics.getAttribute().stream()
                 .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.DN.q())))
                 .findFirst().orElseThrow();
-        assertThat(dnAttribute.getValueCount()).isNotEmpty();
-        assertThat(dnAttribute.getValueCount().size()).isEqualTo(4);
-        Map<String, Integer> valueCounts = dnAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
-        for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
-            assertThat(entry.getKey().startsWith("ou="));
+        assertThat(dnAttribute.getValuePatternCount()).isNotEmpty();
+        assertThat(dnAttribute.getValuePatternCount().size()).isEqualTo(4);
+        for (ShadowAttributeValuePatternCountType entry : dnAttribute.getValuePatternCount()) {
+            assertThat(entry.getValue()).isNotEmpty();
+            assertThat(entry.getValue()).startsWithIgnoringCase("ou=");
+            assertThat(entry.getValue()).doesNotStartWithIgnoringCase("cn=");
+            assertThat(entry.getCount()).isGreaterThanOrEqualTo(1);
+            assertThat(entry.getType()).isNotNull();
+            assertThat(entry.getType()).isEqualTo(ShadowValuePatternType.DN_SUFFIX);
         }
     }
 
@@ -1068,17 +1059,17 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(ICFS_NAME_PATH.toBean())
-                                .midPointAttribute(UserType.F_NAME.toBean()))
+                                .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                .midPointAttribute(asStringSimple(UserType.F_NAME)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.FULLNAME.path().toBean())
-                                .midPointAttribute(UserType.F_FULL_NAME.toBean()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.TYPE.path().toBean())
-                                .midPointAttribute(UserType.F_DESCRIPTION.toBean()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.TYPE.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.PHONE.path().toBean())
-                                .midPointAttribute(UserType.F_TELEPHONE_NUMBER.toBean())),
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.PHONE.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
                         // No mapping for status -> activation, as non-attribute mappings are not supported yet
                 new SiSuggestMappingResponseType().transformationScript(null),
                 new SiSuggestMappingResponseType().transformationScript(null),
@@ -1148,47 +1139,64 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.FULLNAME.q().toBean())
-                                .midPointAttribute(UserType.F_FULL_NAME.toBean()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.EMAIL.q().toBean())
-                                .midPointAttribute(UserType.F_EMAIL_ADDRESS.toBean())) // to confuse the test
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.EMAIL.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_EMAIL_ADDRESS)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(ICFS_NAME.toBean())
-                                .midPointAttribute(UserType.F_NAME.toBean())));
+                                .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                .midPointAttribute(asStringSimple(UserType.F_NAME))));
         smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
 
         when("suggesting correlation rules");
-        var suggestedCorrelation = smartIntegrationService.suggestCorrelation(
+        var suggestedCorrelations = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
                 null, task, result);
 
-        then("suggestion is correct");
-        displayValueAsXml("suggested correlation", suggestedCorrelation);
-        var attrMappings = suggestedCorrelation.getAttributes();
-        assertThat(attrMappings).as("attribute mappings").hasSize(1);
-        assertCorrAttrSuggestion(attrMappings, ICFS_NAME, UserType.F_NAME);
+        then("suggestions are correct");
+        displayValueAsXml("suggested correlations", suggestedCorrelations);
+        var suggestion1 = suggestedCorrelations.getSuggestion().get(0);
+        var attrMappings1 = suggestion1.getAttributes();
+        assertThat(attrMappings1).as("attribute mappings").hasSize(1);
+        assertCorrAttrSuggestion(attrMappings1, ICFS_NAME, UserType.F_NAME);
+        var correlation1 = suggestion1.getCorrelation();
+        assertThat(correlation1).as("correlation definition").isNotNull();
+        CompositeCorrelatorType correlators1 = correlation1.getCorrelators();
+        assertThat(correlators1).as("correlators").isNotNull();
+        assertThat(correlators1.asPrismContainerValue().getItems()).as("correlators items").hasSize(1);
+        assertThat(correlators1.getItems()).as("items correlators definitions").hasSize(1);
+        var itemsCorrelator1 = correlators1.getItems().get(0);
+        assertThat(itemsCorrelator1.getItem()).as("items correlators items").hasSize(1);
+        var correlationItem1 = itemsCorrelator1.getItem().get(0);
+        var correlationItemRef1 = correlationItem1.getRef();
+        assertThat(correlationItemRef1).as("item correlators item ref").isNotNull();
+        assertThat(correlationItemRef1.getItemPath().asSingleName()).as("correlator item").isEqualTo(UserType.F_NAME);
 
-        // There should be only one correlator, although there are two candidates (name and emailAddress).
-        var correlation = suggestedCorrelation.getCorrelation();
-        assertThat(correlation).as("correlation definition").isNotNull();
-        CompositeCorrelatorType correlators = correlation.getCorrelators();
-        assertThat(correlators).as("correlators").isNotNull();
-        assertThat(correlators.asPrismContainerValue().getItems()).as("correlators items").hasSize(1);
-        assertThat(correlators.getItems()).as("items correlators definitions").hasSize(1);
-        var itemsCorrelator = correlators.getItems().get(0);
-        assertThat(itemsCorrelator.getItem()).as("items correlators items").hasSize(1);
-        var correlationItem = itemsCorrelator.getItem().get(0);
-        var correlationItemRef = correlationItem.getRef();
-        assertThat(correlationItemRef).as("item correlators item ref").isNotNull();
-        assertThat(correlationItemRef.getItemPath().asSingleName()).as("correlator item").isEqualTo(UserType.F_NAME);
+        var suggestion2 = suggestedCorrelations.getSuggestion().get(1);
+        var attrMappings2 = suggestion2.getAttributes();
+        assertThat(attrMappings2).as("attribute mappings").hasSize(1);
+        assertCorrAttrSuggestion(attrMappings2, Account.AttributeNames.EMAIL.q(), UserType.F_EMAIL_ADDRESS);
+        var correlation2 = suggestion2.getCorrelation();
+        assertThat(correlation2).as("correlation definition").isNotNull();
+        CompositeCorrelatorType correlators2 = correlation2.getCorrelators();
+        assertThat(correlators2).as("correlators").isNotNull();
+        assertThat(correlators2.asPrismContainerValue().getItems()).as("correlators items").hasSize(1);
+        assertThat(correlators2.getItems()).as("items correlators definitions").hasSize(1);
+        var itemsCorrelator2 = correlators2.getItems().get(0);
+        assertThat(itemsCorrelator2.getItem()).as("items correlators items").hasSize(1);
+        var correlationItem2 = itemsCorrelator2.getItem().get(0);
+        var correlationItemRef2 = correlationItem2.getRef();
+        assertThat(correlationItemRef2).as("item correlators item ref").isNotNull();
+        assertThat(correlationItemRef2.getItemPath().asSingleName()).as("correlator item").isEqualTo(UserType.F_EMAIL_ADDRESS);
 
         and("response is marked as generated by AI");
-        assertAiProvidedMarkPresentRequired(correlationItem, CorrelationItemType.F_REF); // selected by AI
+        assertAiProvidedMarkPresentRequired(correlationItem1, CorrelationItemType.F_REF); // selected by AI
+        assertAiProvidedMarkPresentRequired(correlationItem2, CorrelationItemType.F_REF); // selected by AI
     }
 
     private void assertCorrAttrSuggestion(

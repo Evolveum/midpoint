@@ -37,6 +37,7 @@ public class MidPointConstants {
     public static final QName RA_EMBEDDED = new QName(NS_RA, "embedded");
     public static final QName RA_ROLE_IN_REFERENCE = new QName(NS_RA, "roleInReference");
     public static final QName RA_REFERENCED_OBJECT_CLASS_NAME = new QName(NS_RA, "referencedObjectClassName");
+    public static final QName RA_COMPLEX_ATTRIBUTE = new QName(NS_RA, "complexAttribute");
 
     public static final QName RA_DESCRIPTION = new QName(NS_RA, "description");
 
