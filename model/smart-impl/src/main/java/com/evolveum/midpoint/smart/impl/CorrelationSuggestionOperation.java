@@ -59,6 +59,14 @@ class CorrelationSuggestionOperation {
             var correlationDefinition = new CorrelationDefinitionType()
                     .correlators(new CompositeCorrelatorType()
                             .items(new ItemsSubCorrelatorType()
+                                    .name("Dummy name") //TODO change after (v2) correlation LLM integration
+                                    .description("Dummy description. Suggested based on matching of "
+                                            + suggestion.resourceAttrPath() + " to "
+                                            + suggestion.focusItemPath()) //TODO
+                                    .composition(new CorrelatorCompositionDefinitionType()
+                                            .weight(1.0) //TODO
+                                            .tier(1)     //TODO
+                                    )
                                     .item(new CorrelationItemType()
                                             .ref(suggestion.focusItemPath().toBean()))));
             AiUtil.markAsAiProvided(correlationDefinition);
