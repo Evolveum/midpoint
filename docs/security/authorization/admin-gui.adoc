@@ -375,11 +375,23 @@ use #selfRequestAssignments instead
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configAbout
-| About system, self tests for repository and provisioning
+| About
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configSyncAccounts
 | Accounts synchronization information
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configInternals
+| Internals configuration
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configRepositoryQuery
+| Query playground
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configAll
+| Archetypes, Message templates, Object collections, Object templates, Actions, Import object, Repository objects, System, Internals configuration, Query playground, About
 |
 
 |===
