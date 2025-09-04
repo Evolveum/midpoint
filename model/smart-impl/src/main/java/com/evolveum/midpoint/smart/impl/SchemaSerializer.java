@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DOMUtil;
@@ -53,6 +55,9 @@ class SchemaSerializer {
 
     /** Throws an exception if the path is unknown. */
     ItemPath getItemPath(String descriptivePath) {
-        throw new UnsupportedOperationException("MID-10840");
+        return MiscUtil.stateNonNull(
+                descriptiveToItemPath.get(descriptivePath),
+                "No ItemPath mapping for DescriptiveItemPath '%s'",
+                descriptivePath);
     }
 }

@@ -233,10 +233,10 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                     () -> new MockServiceClientImpl(
                             new SiMatchSchemaResponseType()
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(asStringSimple(ICFS_NAME))
+                                            .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
                                             .midPointAttribute(asStringSimple(UserType.F_NAME)))
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.q()))
+                                            .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
                                             .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER))))); // TODO other matches
         }
 

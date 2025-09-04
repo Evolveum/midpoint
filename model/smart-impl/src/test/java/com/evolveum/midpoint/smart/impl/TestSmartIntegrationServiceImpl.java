@@ -15,6 +15,9 @@ import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimpl
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -23,7 +26,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -431,6 +437,71 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Sales")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=jack,OU=Employees,OU=HR,DC=evolveum,DC=com");
+    }
+
+    @Test
+    public void test040DescriptiveItemPath() throws Exception {
+        QName Q_GIVEN_NAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "givenName", "c");
+        QName Q_EMAIL = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "email", "c");
+        QName Q_VALUE = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "value", "c");
+
+        // Test Empty
+        DescriptiveItemPath path = DescriptiveItemPath.empty();
+        assertThat(path).isNotNull();
+        assertThat(path.asString()).isEqualTo("");
+        assertThat(path.getItemPath().size()).isEqualTo(0);
+
+        // Test Append
+        path = path
+                .append(Q_GIVEN_NAME, false)
+                .append(Q_EMAIL, true)
+                .append(Q_VALUE, false);
+        assertThat(path).isNotNull();
+        String str = path.asString();
+        assertThat(str).contains("givenName");
+        assertThat(str).contains("value");
+        assertThat(str).contains("email[*]");
+
+        // Test getItemPath
+        ItemPath itemPath = path.getItemPath();
+        assertThat(itemPath.size()).isEqualTo(3);
+        assertThat(ItemPath.toName(itemPath.first())).isEqualTo(Q_GIVEN_NAME);
+        assertThat(ItemPath.toName(itemPath.last())).isEqualTo(Q_VALUE);
+
+        // Test asStringSimple
+        ItemPath ip = ItemPath.create(Q_EMAIL, Q_VALUE);
+        String s = DescriptiveItemPath.asStringSimple(ip);
+        assertThat(s).contains("email");
+        assertThat(s).contains("value");
+        assertThat(s).doesNotContain("[*]");
+
+        // Test without definition
+        ItemPath ip2 = ItemPath.create(Q_EMAIL, Q_GIVEN_NAME);
+        DescriptiveItemPath dip = DescriptiveItemPath.of(ip2, null);
+        String s2 = dip.asString();
+        assertThat(s2).contains("email");
+        assertThat(s2).contains("givenName");
+        assertThat(s2).doesNotContain("[*]");
+
+        // Test multivalued with definitions
+        ItemDefinition<?> root = Mockito.mock(ItemDefinition.class);
+        ItemDefinition<?> emailDef = Mockito.mock(ItemDefinition.class);
+        ItemDefinition<?> valueDef = Mockito.mock(ItemDefinition.class);
+
+        Mockito.when(root.findItemDefinition(eq(ItemName.fromQName(Q_EMAIL)), eq(ItemDefinition.class))).thenReturn(emailDef);
+        Mockito.when(emailDef.isMultiValue()).thenReturn(true);
+        Mockito.when(emailDef.findItemDefinition(eq(ItemName.fromQName(Q_VALUE)), eq(ItemDefinition.class))).thenReturn(valueDef);
+        Mockito.when(emailDef.isMultiValue()).thenReturn(true);
+        Mockito.when(valueDef.isMultiValue()).thenReturn(true);
+        Mockito.when(valueDef.findItemDefinition(any(), eq(ItemDefinition.class))).thenReturn(null);
+
+        ItemPath ip3 = ItemPath.create(Q_EMAIL, Q_VALUE);
+        DescriptiveItemPath dip3 = DescriptiveItemPath.of(ip3, root);
+        String s3 = dip3.asString();
+        assertThat(s3).contains("email[*]");
+        assertThat(s3).contains("value");
+        assertThat(s3).doesNotEndWith("[*]");
+        assertThat(dip3.getItemPath().size()).isEqualTo(2);
     }
 
     @Test
@@ -1139,13 +1210,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.q()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
                                 .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.EMAIL.q()))
+                                .applicationAttribute(asStringSimple(Account.AttributeNames.EMAIL.path()))
                                 .midPointAttribute(asStringSimple(UserType.F_EMAIL_ADDRESS))) // to confuse the test
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(ICFS_NAME))
+                                .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
                                 .midPointAttribute(asStringSimple(UserType.F_NAME))));
         smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 

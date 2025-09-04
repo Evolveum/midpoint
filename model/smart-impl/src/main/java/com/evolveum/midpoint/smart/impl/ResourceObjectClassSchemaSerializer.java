@@ -39,9 +39,12 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
                 .name(objectClassDef.getObjectClassName())
                 .description(objectClassDef.getDescription()); // TODO change to native description
         for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : objectClassDef.getAttributeDefinitions()) {
+            var path = attributeDefinition.getStandardPath();
+            var pathString = DescriptiveItemPath.of(path, shadowDefinition).asString();
+            registerPathMapping(pathString, path);
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
-                            .name(DescriptiveItemPath.of(attributeDefinition.getStandardPath(), shadowDefinition).asString())
+                            .name(pathString)
                             .type(fixTypeName(attributeDefinition.getTypeName()))
                             .description(attributeDefinition.getDescription()) // TODO change to native description
                             .minOccurs(attributeDefinition.getMinOccurs())
@@ -49,9 +52,12 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
         }
         var credentialsCapability = objectClassDef.getEnabledCapability(CredentialsCapabilityType.class, resource);
         if (credentialsCapability != null && CapabilityUtil.getEnabledPasswordCapability(credentialsCapability) != null) {
+            var path = PATH_CREDENTIALS_PASSWORD_VALUE;
+            var pathString = DescriptiveItemPath.of(path, shadowDefinition).asString();
+            registerPathMapping(pathString, path);
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
-                            .name(DescriptiveItemPath.of(PATH_CREDENTIALS_PASSWORD_VALUE, shadowDefinition).asString())
+                            .name(pathString)
                             .type(fixTypeName(ProtectedStringType.COMPLEX_TYPE))
                             .minOccurs(0)
                             .maxOccurs(1));
@@ -59,25 +65,34 @@ class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
         var activationCapability = objectClassDef.getEnabledCapability(ActivationCapabilityType.class, resource);
         if (activationCapability != null) {
             if (CapabilityUtil.getEnabledActivationStatus(activationCapability) != null) {
+                var path = PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
+                var pathString = DescriptiveItemPath.of(path, shadowDefinition).asString();
+                registerPathMapping(pathString, path);
                 schema.getAttribute().add(
                         new SiAttributeDefinitionType()
-                                .name(DescriptiveItemPath.of(PATH_ACTIVATION_ADMINISTRATIVE_STATUS, shadowDefinition).asString())
+                                .name(pathString)
                                 .type(fixTypeName(C_ACTIVATION_STATUS_TYPE))
                                 .minOccurs(0)
                                 .maxOccurs(1));
             }
             if (CapabilityUtil.getEnabledActivationValidFrom(activationCapability) != null) {
+                var path = PATH_ACTIVATION_VALID_FROM;
+                var pathString = DescriptiveItemPath.of(path, shadowDefinition).asString();
+                registerPathMapping(pathString, path);
                 schema.getAttribute().add(
                         new SiAttributeDefinitionType()
-                                .name(DescriptiveItemPath.of(PATH_ACTIVATION_VALID_FROM, shadowDefinition).asString())
+                                .name(pathString)
                                 .type(fixTypeName(DOMUtil.XSD_DATETIME))
                                 .minOccurs(0)
                                 .maxOccurs(1));
             }
             if (CapabilityUtil.getEnabledActivationValidTo(activationCapability) != null) {
+                var path = PATH_ACTIVATION_VALID_TO;
+                var pathString = DescriptiveItemPath.of(path, shadowDefinition).asString();
+                registerPathMapping(pathString, path);
                 schema.getAttribute().add(
                         new SiAttributeDefinitionType()
-                                .name(DescriptiveItemPath.of(PATH_ACTIVATION_VALID_TO, shadowDefinition).asString())
+                                .name(pathString)
                                 .type(fixTypeName(DOMUtil.XSD_DATETIME))
                                 .minOccurs(0)
                                 .maxOccurs(1));
