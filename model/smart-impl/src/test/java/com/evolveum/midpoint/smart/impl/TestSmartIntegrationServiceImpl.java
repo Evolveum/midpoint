@@ -1214,7 +1214,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
                                 .applicationAttribute(asStringSimple(Account.AttributeNames.EMAIL.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_EMAIL_ADDRESS))) // to confuse the test
+                                .midPointAttribute(asStringSimple(UserType.F_EMAIL_ADDRESS)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
                                 .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
                                 .midPointAttribute(asStringSimple(UserType.F_NAME))));
@@ -1224,33 +1224,50 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var result = task.getResult();
 
         when("suggesting correlation rules");
-        var suggestedCorrelation = smartIntegrationService.suggestCorrelation(
+        var suggestedCorrelations = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
                 null, task, result);
 
-        then("suggestion is correct");
-        displayValueAsXml("suggested correlation", suggestedCorrelation);
-        var attrMappings = suggestedCorrelation.getAttributes();
-        assertThat(attrMappings).as("attribute mappings").hasSize(1);
-        assertCorrAttrSuggestion(attrMappings, ICFS_NAME, UserType.F_NAME);
+        then("suggestions are correct");
+        displayValueAsXml("suggested correlations", suggestedCorrelations);
+        var suggestion1 = suggestedCorrelations.getSuggestion().get(0);
+        var attrMappings1 = suggestion1.getAttributes();
+        assertThat(attrMappings1).as("attribute mappings").hasSize(1);
+        assertCorrAttrSuggestion(attrMappings1, ICFS_NAME, UserType.F_NAME);
+        var correlation1 = suggestion1.getCorrelation();
+        assertThat(correlation1).as("correlation definition").isNotNull();
+        CompositeCorrelatorType correlators1 = correlation1.getCorrelators();
+        assertThat(correlators1).as("correlators").isNotNull();
+        assertThat(correlators1.asPrismContainerValue().getItems()).as("correlators items").hasSize(1);
+        assertThat(correlators1.getItems()).as("items correlators definitions").hasSize(1);
+        var itemsCorrelator1 = correlators1.getItems().get(0);
+        assertThat(itemsCorrelator1.getItem()).as("items correlators items").hasSize(1);
+        var correlationItem1 = itemsCorrelator1.getItem().get(0);
+        var correlationItemRef1 = correlationItem1.getRef();
+        assertThat(correlationItemRef1).as("item correlators item ref").isNotNull();
+        assertThat(correlationItemRef1.getItemPath().asSingleName()).as("correlator item").isEqualTo(UserType.F_NAME);
 
-        // There should be only one correlator, although there are two candidates (name and emailAddress).
-        var correlation = suggestedCorrelation.getCorrelation();
-        assertThat(correlation).as("correlation definition").isNotNull();
-        CompositeCorrelatorType correlators = correlation.getCorrelators();
-        assertThat(correlators).as("correlators").isNotNull();
-        assertThat(correlators.asPrismContainerValue().getItems()).as("correlators items").hasSize(1);
-        assertThat(correlators.getItems()).as("items correlators definitions").hasSize(1);
-        var itemsCorrelator = correlators.getItems().get(0);
-        assertThat(itemsCorrelator.getItem()).as("items correlators items").hasSize(1);
-        var correlationItem = itemsCorrelator.getItem().get(0);
-        var correlationItemRef = correlationItem.getRef();
-        assertThat(correlationItemRef).as("item correlators item ref").isNotNull();
-        assertThat(correlationItemRef.getItemPath().asSingleName()).as("correlator item").isEqualTo(UserType.F_NAME);
+        var suggestion2 = suggestedCorrelations.getSuggestion().get(1);
+        var attrMappings2 = suggestion2.getAttributes();
+        assertThat(attrMappings2).as("attribute mappings").hasSize(1);
+        assertCorrAttrSuggestion(attrMappings2, Account.AttributeNames.EMAIL.q(), UserType.F_EMAIL_ADDRESS);
+        var correlation2 = suggestion2.getCorrelation();
+        assertThat(correlation2).as("correlation definition").isNotNull();
+        CompositeCorrelatorType correlators2 = correlation2.getCorrelators();
+        assertThat(correlators2).as("correlators").isNotNull();
+        assertThat(correlators2.asPrismContainerValue().getItems()).as("correlators items").hasSize(1);
+        assertThat(correlators2.getItems()).as("items correlators definitions").hasSize(1);
+        var itemsCorrelator2 = correlators2.getItems().get(0);
+        assertThat(itemsCorrelator2.getItem()).as("items correlators items").hasSize(1);
+        var correlationItem2 = itemsCorrelator2.getItem().get(0);
+        var correlationItemRef2 = correlationItem2.getRef();
+        assertThat(correlationItemRef2).as("item correlators item ref").isNotNull();
+        assertThat(correlationItemRef2.getItemPath().asSingleName()).as("correlator item").isEqualTo(UserType.F_EMAIL_ADDRESS);
 
         and("response is marked as generated by AI");
-        assertAiProvidedMarkPresentRequired(correlationItem, CorrelationItemType.F_REF); // selected by AI
+        assertAiProvidedMarkPresentRequired(correlationItem1, CorrelationItemType.F_REF); // selected by AI
+        assertAiProvidedMarkPresentRequired(correlationItem2, CorrelationItemType.F_REF); // selected by AI
     }
 
     private void assertCorrAttrSuggestion(

@@ -10330,10 +10330,10 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:CorrelationSuggestionType" minOccurs="0">
+                    <xsd:element name="result" type="tns:CorrelationSuggestionsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Result of the operation: suggested correlation rules.
+                                Result of the operation: suggested correlation rules (possibly multiple versions).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

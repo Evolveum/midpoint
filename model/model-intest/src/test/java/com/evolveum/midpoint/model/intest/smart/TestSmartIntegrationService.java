@@ -258,8 +258,11 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         then("there is a suggested correlation and an attribute match");
         displayDumpable("response", response);
         assertThat(response).isNotNull();
-        assertThat(response.getCorrelation()).as("suggested correlation").isNotNull();
-        assertThat(response.getAttributes()).as("suggested attributes").hasSize(1);
+        var suggestions = response.getSuggestion();
+        assertThat(suggestions).as("suggestions").isNotEmpty();
+        var suggestion = suggestions.get(0);
+        assertThat(suggestion.getCorrelation()).as("suggested correlation").isNotNull();
+        assertThat(suggestion.getAttributes()).as("suggested attributes").hasSize(1);
     }
 
     /** Tests the "suggest mappings" operation (in an asynchronous way). */

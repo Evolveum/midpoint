@@ -119,7 +119,7 @@ public interface SmartIntegrationService {
      *
      * . TODO
      */
-    CorrelationSuggestionType suggestCorrelation(
+    CorrelationSuggestionsType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable Object interactionMetadata,
@@ -141,12 +141,12 @@ public interface SmartIntegrationService {
      * List statuses of all relevant "suggest correlation" requests (for given resource OID).
      * They are sorted by finished time, then by started time.
      */
-    List<StatusInfo<CorrelationSuggestionType>> listSuggestCorrelationOperationStatuses(
+    List<StatusInfo<CorrelationSuggestionsType>> listSuggestCorrelationOperationStatuses(
             String resourceOid, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Checks the status of the "suggest correlation" request. */
-    StatusInfo<CorrelationSuggestionType> getSuggestCorrelationOperationStatus(
+    StatusInfo<CorrelationSuggestionsType> getSuggestCorrelationOperationStatus(
             String token, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 

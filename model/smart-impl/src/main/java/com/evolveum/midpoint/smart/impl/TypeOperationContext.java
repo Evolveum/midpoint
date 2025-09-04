@@ -9,6 +9,7 @@ package com.evolveum.midpoint.smart.impl;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import java.util.Objects;
 
 /**
  * Holds all the data needed to execute an operation on a specific resource and object type.
@@ -80,5 +83,14 @@ class TypeOperationContext extends OperationContext {
 
     PrismObjectDefinition<ShadowType> getShadowDefinition() {
         return typeDefinition.getPrismObjectDefinition();
+    }
+
+    <F extends FocusType> Class<F> getFocusClass() {
+        //noinspection unchecked
+        return Objects.requireNonNull((Class <F>) getFocusTypeDefinition().getTypeClass());
+    }
+
+    public ResourceObjectTypeIdentification getTypeIdentification() {
+        return typeDefinition.getTypeIdentification();
     }
 }
