@@ -222,7 +222,7 @@ public class CorrelationAddMappingConfirmationPanel extends ConfirmationPanel {
      * @return Configured {@link Label} instance
      */
     private @NotNull Label createLabelComponent(StringResourceModel title) {
-        Label label = new Label(CorrelationAddMappingConfirmationPanel.ID_SUBTITLE, title);
+        Label label = new Label(ID_SUBTITLE, title);
         label.setOutputMarkupId(true);
         label.setOutputMarkupPlaceholderTag(true);
         return label;
