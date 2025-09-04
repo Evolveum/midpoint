@@ -39,7 +39,6 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
     protected CorrelationItemsTableWizardPanel createTablePanel() {
         return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
 
-
             @Override
             protected void showTableForItemRefs(
                     @NotNull AjaxRequestTarget target,
@@ -53,35 +52,37 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                         showChoiceFragment(target, createTablePanel());
                     }
                 };
+
                 showChoiceFragment(target, new CorrelationItemRuleWizardPanel(getIdOfChoicePanel(), helper, () -> statusInfo) {
                     @Override
                     protected void acceptSuggestionPerformed(
                             @NotNull AjaxRequestTarget target,
                             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
-                        if (statusInfo == null) {
+                        PrismContainerValueWrapper<CorrelationSuggestionType> parentSuggestionW = valueModel.getObject()
+                                .getParentContainerValue(CorrelationSuggestionType.class);
+
+                        if (statusInfo == null || parentSuggestionW == null || parentSuggestionW.getRealValue() == null) {
                             getPageBase().warn("Correlation suggestion is not available.");
                             target.add(getPageBase().getFeedbackPanel().getParent());
                             return;
                         }
 
-//TODO change to parent container
+                        CorrelationSuggestionType suggestion = parentSuggestionW.getRealValue();
+                        List<ResourceAttributeDefinitionType> attributes = suggestion.getAttributes();
 
-//                        CorrelationSuggestionsType result = statusInfo.getResult();
-//                        List<ResourceAttributeDefinitionType> attributes = result.getAttributes();
-//
-//                        if (attributes.isEmpty()) {
-//                            performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
-//                            return;
-//                        }
-//
-//                        CorrelationAddMappingConfirmationPanel confirmationPanel = new CorrelationAddMappingConfirmationPanel(
-//                                getPageBase().getMainPopupBodyId(), Model.of(), () -> attributes) {
-//                            @Override
-//                            public void yesPerformed(AjaxRequestTarget target) {
-//                                performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
-//                            }
-//                        };
-//                        getPageBase().showMainPopup(confirmationPanel, target);
+                        if (attributes.isEmpty()) {
+                            performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
+                            return;
+                        }
+
+                        CorrelationAddMappingConfirmationPanel confirmationPanel = new CorrelationAddMappingConfirmationPanel(
+                                getPageBase().getMainPopupBodyId(), Model.of(), () -> attributes) {
+                            @Override
+                            public void yesPerformed(AjaxRequestTarget target) {
+                                performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
+                            }
+                        };
+                        getPageBase().showMainPopup(confirmationPanel, target);
                     }
 
                     private void performAddOperation(
