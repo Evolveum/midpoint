@@ -19,6 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.repo.api.RepositoryService.LOGGER;
+
 /** Implements "suggest correlation" operation. Currently almost primitive algorithm; will be improved later. */
 class CorrelationSuggestionOperation {
 
@@ -39,7 +41,6 @@ class CorrelationSuggestionOperation {
      *
      * . when suggesting mappings to correlation-capable properties, LLM should take into account the information about
      * whether source attribute is unique or not
-     *
      */
     CorrelationSuggestionsType suggestCorrelation(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -80,8 +81,14 @@ class CorrelationSuggestionOperation {
         var response = new ArrayList<CorrelatorSuggestion>();
         for (ItemPath correlator : correlators) {
             for (var siAttributeMatch : siResponse.getAttributeMatch()) {
-                var focusItemPath = matchingOp.getFocusItemPath(siAttributeMatch.getMidPointAttribute());
-                if (correlator.equivalent(focusItemPath)) {
+                ItemPath focusItemPath = null;
+                try {
+                    focusItemPath = matchingOp.getFocusItemPath(siAttributeMatch.getMidPointAttribute());
+                } catch (IllegalStateException e) {
+                    LOGGER.warn("Could not resolve focus item path for attribute {}: {}",
+                            siAttributeMatch.getMidPointAttribute(), e.getMessage());
+                }
+                if (focusItemPath != null && correlator.equivalent(focusItemPath)) {
                     var resourceAttrPath = matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute());
                     var resourceAttrName = resourceAttrPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
                     var inbound = new InboundMappingType()
