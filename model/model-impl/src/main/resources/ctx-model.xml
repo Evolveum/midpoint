@@ -55,6 +55,13 @@
         <constructor-arg name="localizationService" ref="localizationService"/>
     </bean>
 
+    <bean id="graalJavascriptScriptEvaluator"
+          class="com.evolveum.midpoint.model.common.expression.script.polyglot.PolyglotScriptEvaluator">
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="localizationService" ref="localizationService"/>
+    </bean>
+
     <bean id="groovyScriptEvaluator"
             class="com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator">
         <constructor-arg name="prismContext" ref="prismContext"/>
@@ -90,6 +97,7 @@
         <constructor-arg name="evaluators">
             <list>
                 <ref bean="javascriptScriptEvaluator"/>
+                <ref bean="graalJavascriptScriptEvaluator"/>
                 <ref bean="groovyScriptEvaluator"/>
                 <ref bean="pythonScriptEvaluator"/>
                 <ref bean="velocityScriptEvaluator"/>
