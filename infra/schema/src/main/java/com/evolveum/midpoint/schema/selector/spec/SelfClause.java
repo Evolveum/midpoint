@@ -9,8 +9,6 @@ package com.evolveum.midpoint.schema.selector.spec;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.selector.eval.SubjectedEvaluationContext;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
@@ -49,16 +47,6 @@ public class SelfClause extends SelectorClause {
         return "self(%s)".formatted(matching);
     }
 
-    /**
-     * Returns true in case incoming value's OID matches at least one of the "self" OIDs
-     * (for "self" OIDs definition, look at {@link SubjectedEvaluationContext#getSelfOids}).
-     * In case of OBJECT matching type, there can be 2 types of the incoming prism value objects:
-     * 1. In case if AssigneeClause is defined as a "pure self" (meaning assignee can be "self" object only),
-     * we don't need to resolve assignee's prism object, and we send PrismReferenceValue type object
-     * to the SelfClause.matches method.
-     * 2. In other cases (than "pure self" AssigneeClause), referenced object is resolved to "full" object
-     * and sent to the SelfClause.matches method as PrismObjectValue type object.
-     */
     @Override
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -68,18 +56,12 @@ public class SelfClause extends SelectorClause {
         String objectOid;
         switch (matching) {
             case OBJECT -> {
-                if (value instanceof PrismReferenceValue) {
-                    //in case the (assignee) referenced object was not resolved (see AssigneeClause.matches)
-                    objectOid = ((PrismReferenceValue) value).getOid();
-                } else {
-                    //in case the (assignee) referenced object was resolved to a full object (see AssigneeClause.matches)
-                    var object = ObjectTypeUtil.asObjectTypeIfPossible(value);
-                    if (object == null) {
-                        traceNotApplicable(ctx, "Not an object");
-                        return false;
-                    }
-                    objectOid = object.getOid();
+                var object = ObjectTypeUtil.asObjectTypeIfPossible(value);
+                if (object == null) {
+                    traceNotApplicable(ctx, "Not an object");
+                    return false;
                 }
+                objectOid = object.getOid();
             }
             case DEPUTY_ASSIGNMENT -> {
                 var assignment = toAssignmentIfPossible(value);
