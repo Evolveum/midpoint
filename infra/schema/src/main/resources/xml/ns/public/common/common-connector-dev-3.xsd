@@ -1,23 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!--
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!--
   ~ Copyright (c) 2010-2025 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
-  -->
-
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="3.0">
+  --><xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified" jaxb:extensionBindingPrefixes="xjc" jaxb:version="3.0" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -26,10 +12,10 @@
     </xsd:annotation>
 
     <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" schemaLocation="../annotation-3.xsd"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" schemaLocation="../types-3.xsd"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+    <xsd:include schemaLocation="common-core-3.xsd"/>
 
     <xsd:complexType name="ConnectorDevelopmentType">
         <xsd:annotation>
@@ -40,76 +26,76 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
-                    <xsd:element name="application" type="c:ConnDevApplicationInfoType" />
-                    <xsd:element name="connector" type="c:ConnDevConnectorType" />
-                    <xsd:element name="testing" type="c:ConnDevTestingType" />
-                    <xsd:element name="documentationSource" type="c:DocumentationSourceType"  maxOccurs="unbounded" />
-                    <xsd:element name="processedDocumentation" type="c:ProcessedDocumentationType"  maxOccurs="unbounded"/>
+                    <xsd:element name="application" type="c:ConnDevApplicationInfoType"/>
+                    <xsd:element name="connector" type="c:ConnDevConnectorType"/>
+                    <xsd:element name="testing" type="c:ConnDevTestingType"/>
+                    <xsd:element maxOccurs="unbounded" name="documentationSource" type="c:DocumentationSourceType"/>
+                    <xsd:element maxOccurs="unbounded" name="processedDocumentation" type="c:ProcessedDocumentationType"/>
 
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="connectorDevelopment" type="tns:ConnectorDevelopmentType" />
+    <xsd:element name="connectorDevelopment" type="tns:ConnectorDevelopmentType"/>
 
     <xsd:complexType name="ConnDevApplicationInfoType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-                <xsd:sequence>
-                    <xsd:element name="applicationName" type="t:PolyStringType" minOccurs="1" >
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Name of application
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="description" type="t:PolyStringType" >
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Description of application
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="version" type="xsd:string" >
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Version of application
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="integrationType" type="tns:ConnDevIntegrationType" >
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Integration type of application.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="deploymentType" type="tns:ConnDevDeploymentType" >
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Application deployment type.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="auth" type="tns:ConnDevAuthInfoType" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Authorization types supported by application based on documentation.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="detectedSchema" type="tns:ConnDevSchemaType" >
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Schema of application derived from documentation.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
+        <xsd:sequence>
+            <xsd:element minOccurs="1" name="applicationName" type="t:PolyStringType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of application
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="t:PolyStringType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of application
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="version" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Version of application
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="integrationType" type="tns:ConnDevIntegrationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Integration type of application.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deploymentType" type="tns:ConnDevDeploymentType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Application deployment type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element maxOccurs="unbounded" name="auth" type="tns:ConnDevAuthInfoType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Authorization types supported by application based on documentation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="detectedSchema" type="tns:ConnDevSchemaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Schema of application derived from documentation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevTestingType">
@@ -119,7 +105,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="testingResource" type="tns:ObjectReferenceType" >
+            <xsd:element name="testingResource" type="tns:ObjectReferenceType">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>ResourceType</a:objectReferenceTargetType>
@@ -143,39 +129,39 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="artifactId" type="xsd:string" >
+            <xsd:element name="artifactId" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Artifact / Bundle Name of connector.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="displayName" type="t:PolyStringType" >
+            <xsd:element name="displayName" type="t:PolyStringType">
                 <xsd:annotation>
                     <xsd:documentation>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="description" type="t:PolyStringType" >
+            <xsd:element name="description" type="t:PolyStringType">
                 <xsd:annotation>
                     <xsd:documentation>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="version" type="xsd:string" >
+            <xsd:element name="version" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="integrationType" type="tns:ConnDevIntegrationType" >
+            <xsd:element name="integrationType" type="tns:ConnDevIntegrationType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Type of connector / integration.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="auth" type="tns:ConnDevAuthInfoType" maxOccurs="unbounded" >
+            <xsd:element maxOccurs="unbounded" name="auth" type="tns:ConnDevAuthInfoType">
                 <xsd:annotation>
                     <xsd:documentation>
                         List of authentications supported by connector. The configuration present here triggers generation
@@ -183,85 +169,85 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="schema" type="tns:ConnDevSchemaType" >
+            <!--xsd:element name="schema" type="tns:ConnDevSchemaType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Schema of application data as detected from documentation.
                     </xsd:documentation>
                 </xsd:annotation>
+            </xsd:element -->
+
+            <xsd:element name="objectClass" type="tns:ConnDevObjectClassInfoType" maxOccurs="unbounded">
             </xsd:element>
-            <xsd:element name="scripts" type="c:ConnectorDevelopmentScriptType" >
-                <xsd:annotation>
-                    <xsd:documentation>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+
+            <xsd:element name="testOperation" type="tns:ConnDevArtifactType" />
+            <xsd:element name="authenticationScript" type="tns:ConnDevArtifactType" />
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevSchemaType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectClass" type="tns:ConnDevObjectClassInfoType" maxOccurs="unbounded" />
+            <xsd:element maxOccurs="unbounded" name="objectClass" type="tns:ConnDevObjectClassInfoType"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="DocumentationSourceType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-            <xsd:sequence>
-                <xsd:element name="applicationName" type="t:PolyStringType" />
-                <xsd:element name="description" type="t:PolyStringType" />
-                <xsd:element name="version" type="xsd:string" />
-            </xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="applicationName" type="t:PolyStringType"/>
+            <xsd:element name="description" type="t:PolyStringType"/>
+            <xsd:element name="version" type="xsd:string"/>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ProcessedDocumentationType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-            <xsd:sequence>
-                <xsd:element name="name" type="xsd:string" />
-                <xsd:element name="contentType" type="xsd:string" />
-                <xsd:element name="content" type="xsd:string" />
-            </xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="contentType" type="xsd:string"/>
+            <xsd:element name="content" type="xsd:string"/>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ConnectorDevelopmentScriptType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-            <xsd:sequence>
-                <xsd:element name="name" type="xsd:string" />
-                <xsd:element name="contentType" type="xsd:string" />
-                <xsd:element name="content" type="xsd:string" />
-            </xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="contentType" type="xsd:string"/>
+            <xsd:element name="content" type="xsd:string"/>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevBasicObjectClassInfoType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="relevant" type="xsd:boolean" />
-            <xsd:element name="superclass" type="xsd:string" />
-            <xsd:element name="abstract" type="xsd:boolean" />
-            <xsd:element name="embedded" type="xsd:boolean" />
-            <xsd:element name="description" type="xsd:string" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="relevant" type="xsd:boolean"/>
+            <xsd:element name="superclass" type="xsd:string"/>
+            <xsd:element name="abstract" type="xsd:boolean"/>
+            <xsd:element name="embedded" type="xsd:boolean"/>
+            <xsd:element name="description" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -269,8 +255,11 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBasicObjectClassInfoType">
                 <xsd:sequence>
-                    <xsd:element name="endpoint" type="tns:ConnDevHttpEndpointType" maxOccurs="unbounded" />
-                    <xsd:element name="attribute" type="tns:ConnDevAttributeInfoType" maxOccurs="unbounded" />
+                    <xsd:element maxOccurs="unbounded" name="endpoint" type="tns:ConnDevHttpEndpointType"/>
+                    <xsd:element maxOccurs="unbounded" name="attribute" type="tns:ConnDevAttributeInfoType"/>
+                    <xsd:element name="getOperation" type="tns:ConnDevArtifactType" />
+                    <xsd:element name="searchAllOperation" type="tns:ConnDevArtifactType" />
+                    <xsd:element name="searchFilterOperation" type="tns:ConnDevArtifactType" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -279,62 +268,67 @@
     <xsd:complexType name="ConnDevAttributeInfoType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
+            <xsd:element name="name" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevAuthInfoType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="type" type="xsd:string" />
-            <xsd:element name="quirks" type="xsd:string" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="quirks" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevHttpEndpointType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="uri" type="xsd:string" />
-            <xsd:element name="operation" type="xsd:string" />
-            <xsd:element name="requestContentType" type="xsd:string" />
-            <xsd:element name="responseContentType" type="xsd:string" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="uri" type="xsd:string"/>
+            <xsd:element name="operation" type="xsd:string"/>
+            <xsd:element name="requestContentType" type="xsd:string"/>
+            <xsd:element name="responseContentType" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevDocumentationSourceType">
         <xsd:annotation>
             <xsd:appinfo>
-                <a:container />
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="description" type="xsd:string" />
-            <xsd:element name="contentType" type="xsd:string" />
-            <xsd:element name="uri" type="xsd:string" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="description" type="xsd:string"/>
+            <xsd:element name="contentType" type="xsd:string"/>
+            <xsd:element name="uri" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevArtifactType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="operation" type="xsd:string" />
-            <xsd:element name="intent" type="tns:ConnDevOperationType" />
-            <xsd:element name="objectClass" type="xsd:string" />
-            <xsd:element name="filename" type="xsd:string" />
+            <xsd:element name="operation" type="xsd:string"/>
+            <xsd:element name="intent" type="tns:ConnDevOperationType"/>
+            <xsd:element name="objectClass" type="xsd:string"/>
+            <xsd:element name="filename" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
