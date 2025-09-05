@@ -205,7 +205,8 @@ public class SmartCorrelationTable
                                     ItemPath.create(CorrelationDefinitionType.F_CORRELATORS, CompositeCorrelatorType.F_ITEMS));
 
                             suggestionsIndex.clear();
-                            List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> allValues = new ArrayList<>(container.getValues());
+                            List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> allValues = new ArrayList<>(container != null
+                                    ? container.getValues() : List.of());
                             if (Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
                                 Task task = getPageBase().createSimpleTask("Loading correlation type suggestions");
                                 OperationResult result = task.getResult();

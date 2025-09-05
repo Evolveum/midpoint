@@ -226,7 +226,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showCorrelationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CORRELATION), CorrelationWizardPanel.class);
+        showContainerCorrelationWizard(target, pathToValue, CorrelationWizardPanel.class);
     }
 
     public void showCapabilitiesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
@@ -281,10 +281,19 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return wizardPanel;
     }
 
+    private <P extends AbstractWizardPanel> P showContainerCorrelationWizard(
+            AjaxRequestTarget target, @NotNull ItemPath pathToValue, Class<P> wizardClass) {
+        pathToValue.append(ResourceObjectTypeDefinitionType.F_CORRELATION);
+        P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
+        addWizardBreadcrumbsResourceName(wizardPanel);
+        return wizardPanel;
+    }
+
     private <P extends AbstractWizardPanel> P showContainerWizardForObjectTypeSuggestion(
             AjaxRequestTarget target, ItemPath pathToValue, Class<P> wizardClass) {
         P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
-        addWizardBreadcrumbsForObjectTypeSuggestion(wizardPanel);
+        addWizardBreadcrumbsResourceName(wizardPanel);
+        addWizardBreadcrumbsForObjectType(wizardPanel, 1);
         return wizardPanel;
     }
 
@@ -305,7 +314,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         breadcrumbs.add(index, new Breadcrumb(breadcrumbLabelModel));
     }
 
-    private <C extends Containerable> void addWizardBreadcrumbsForObjectTypeSuggestion(
+    private <C extends Containerable> void addWizardBreadcrumbsResourceName(
             @NotNull AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel) {
         List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();
         PolyStringType resourceName = wizardPanel.getAssignmentHolderModel().getObjectType().getName();
@@ -313,7 +322,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                 ? Model.of(resourceName.getOrig())
                 : createStringResource("PageResource.resource.breadcrumb");
         breadcrumbs.add(0, new Breadcrumb(breadcrumbLabel));
-        addWizardBreadcrumbsForObjectType(wizardPanel, 1);
     }
 
     private void addWizardBreadcrumbsForAssociationType(ShadowAssociationTypeDefinitionType association, String mappingDirection) {
