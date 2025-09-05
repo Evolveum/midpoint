@@ -194,7 +194,10 @@ public class SmartIntegrationWrapperUtils {
 
             newValueWrapper.findProperty(MappingType.F_STRENGTH).getValue().setRealValue(MappingStrengthType.STRONG);
 
-            createVirtualItemInMapping(pageBase, newValueWrapper, null, null, containerValueWrapper);
+            PrismPropertyDefinition<Object> propertyDef = containerValueWrapper.getDefinition().findPropertyDefinition(
+                    ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF));
+
+            createVirtualItemInMapping(pageBase, newValueWrapper, null, propertyDef);
 
             return newValueWrapper;
 
@@ -205,47 +208,44 @@ public class SmartIntegrationWrapperUtils {
     }
 
     protected static void createVirtualItemInMapping(
-            PageBase pageBase,
-            @NotNull PrismContainerValueWrapper<MappingType> mapping,
+            @NotNull PageBase pageBase,
+            @NotNull PrismContainerValueWrapper<?> mapping,
             PrismContainerValueWrapper<ResourceAttributeDefinitionType> value,
-            ItemPathType attributeRefValue,
-            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> containerValueWrapper)
-            throws SchemaException {
-        if (mapping.findProperty(ItemRefinedDefinitionType.F_REF) == null) {
+            PrismPropertyDefinition<Object> propertyRefDef) {
+        try {
+            if (mapping.findProperty(ItemRefinedDefinitionType.F_REF) == null) {
 
-            PrismPropertyDefinition<Object> propertyDef = containerValueWrapper.getDefinition().findPropertyDefinition(
-                    ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF));
+                Task task = pageBase.createSimpleTask("Create virtual item");
+                OperationResult result = task.getResult();
 
-            Task task = pageBase.createSimpleTask("Create virtual item");
-            OperationResult result = task.getResult();
+                @NotNull PrismProperty<Object> refValue = propertyRefDef.instantiate();
 
-            @NotNull PrismProperty<Object> refValue = propertyDef.instantiate();
-            if (value != null && !ValueStatus.ADDED.equals(value.getStatus())) {
-                refValue.addRealValue(attributeRefValue);
+                ItemWrapper<?, ?> refItemWrapper = pageBase.createItemWrapper(
+                        refValue,
+                        mapping,
+                        ItemStatus.ADDED,
+                        new WrapperContext(task, result));
+
+                ((ItemWrapperImpl<?, ?>) refItemWrapper).setDisplayName(
+                        pageBase.getString(MappingDirection.INBOUND.name() + "." + ItemRefinedDefinitionType.F_REF));
+                ((ItemWrapperImpl<?, ?>) refItemWrapper).setDisplayOrder(1);
+
+                if (value != null && value.getRealValue() != null && value.getRealValue().getRef() != null) {
+                    //noinspection unchecked
+                    refItemWrapper.getValue().setRealValue(value.getRealValue().getRef().clone());
+                }
+
+                refItemWrapper.setVisibleOverwrite(UserInterfaceElementVisibilityType.HIDDEN);
+                mapping.addItem(refItemWrapper);
+                mapping.getNonContainers().clear();
             }
-
-            ItemWrapper<?, ?> refItemWrapper = pageBase.createItemWrapper(
-                    refValue,
-                    mapping,
-                    ItemStatus.ADDED,
-                    new WrapperContext(task, result));
-
-            ((ItemWrapperImpl<?, ?>) refItemWrapper).setDisplayName(
-                    pageBase.getString(MappingDirection.INBOUND.name() + "." + ItemRefinedDefinitionType.F_REF));
-            ((ItemWrapperImpl<?, ?>) refItemWrapper).setDisplayOrder(1);
-
-            if (value != null && value.getRealValue() != null && attributeRefValue != null) {
-                //noinspection unchecked
-                refItemWrapper.getValue().setRealValue(attributeRefValue.clone());
-            }
-
-            refItemWrapper.setVisibleOverwrite(UserInterfaceElementVisibilityType.HIDDEN);
-            mapping.addItem(refItemWrapper);
-            mapping.getNonContainers().clear();
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Couldn't create virtual item in mapping.", e);
         }
     }
 
     public static <C extends MappingType> @Nullable PrismContainerValueWrapper<C> findRelatedInboundMapping(
+            PageBase pageBase,
             @NotNull PrismContainerValueWrapper<CorrelationItemType> correlationItemWrapper) {
         ItemPathType correlationItemRef = correlationItemWrapper.getRealValue().getRef();
         List<PrismContainerValueWrapper<C>> allInboundMappings = new ArrayList<>();
@@ -284,8 +284,14 @@ public class SmartIntegrationWrapperUtils {
         return allInboundMappings.stream()
                 .filter(inboundMapping -> {
                     VariableBindingDefinitionType target = inboundMapping.getRealValue().getTarget();
-                    ItemPathType path = target.getPath();
-                    return correlationItemRef.equals(path);
+                    PrismContainerValueWrapper<ResourceAttributeDefinitionType> parentContainerValue = inboundMapping
+                            .getParentContainerValue(ResourceAttributeDefinitionType.class);
+
+                    PrismPropertyDefinition<Object> propertyRefDef = parentContainerValue.getDefinition()
+                            .findPropertyDefinition(ResourceAttributeDefinitionType.F_REF);
+                    createVirtualItemInMapping(pageBase, inboundMapping, parentContainerValue, propertyRefDef);
+
+                    return correlationItemRef.equals(target.getPath());
                 })
                 .findFirst()
                 .orElse(null);
