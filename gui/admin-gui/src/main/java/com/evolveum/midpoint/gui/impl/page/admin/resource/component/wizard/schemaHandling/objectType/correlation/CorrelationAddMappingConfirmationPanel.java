@@ -149,15 +149,12 @@ public class CorrelationAddMappingConfirmationPanel extends ConfirmationPanel {
                     return;
                 }
                 ExpressionType expression = singleInboundMapping.getExpression();
-                //TODO
-                ExpressionPanel expressionPanel = new ExpressionPanel(id, () -> expression != null ? expression : new ExpressionType());
-//                Label expressionPanel = new Label(id, () -> {
-//                    if (expression != null && expression.getName() != null) {
-//                        return expression.getName();
-//                    } else {
-//                        return "-";
-//                    }
-//                });
+                ExpressionPanel expressionPanel = new ExpressionPanel(id, () -> expression != null ? expression : new ExpressionType()){
+                    @Override
+                    protected boolean isReadOnly() {
+                        return true;
+                    }
+                };
                 expressionPanel.setOutputMarkupId(true);
                 item.add(expressionPanel);
             }
