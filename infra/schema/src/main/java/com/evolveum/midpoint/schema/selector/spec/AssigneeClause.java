@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.schema.selector.spec;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
@@ -53,22 +52,6 @@ public class AssigneeClause extends SelectorClause {
             traceNotApplicable(ctx, "has no real value");
             return false;
         }
-        //self assignee clause doesn't require resolving of the assignee referenced objects
-        //fixing #10811, #10812
-        if (selector.isPureSelf()) {
-            String[] selfOids = ctx.getSelfOidsArray(getDelegatorSelectionMode(realValue));
-            List<ObjectReferenceType> assigneeRefs = getAssigneesWithoutResolving(realValue);
-            if (selfOids != null) {
-                List<String> assigneesList = Arrays.asList(selfOids);
-                for (ObjectReferenceType assignee : assigneeRefs) {
-                    if (assignee.getOid() != null && assigneesList.contains(assignee.getOid())) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-
         var assignees = getAssignees(realValue, ctx);
         if (!assignees.isEmpty()) {
             // The assignees are always known "in full", as they are fetched from the repository via objectResolver.
@@ -85,8 +68,6 @@ public class AssigneeClause extends SelectorClause {
         return false;
     }
 
-
-
     static @NotNull DelegatorSelection getDelegatorSelectionMode(Object object) {
         if (object instanceof CaseType
                 || object instanceof CaseWorkItemType) {
@@ -100,20 +81,8 @@ public class AssigneeClause extends SelectorClause {
     }
 
     @NotNull
-    private List<ObjectReferenceType> getAssigneesWithoutResolving(Object object) {
-        if (object instanceof CaseType aCase) {
-            return CaseTypeUtil.getAllAssignees(aCase);
-        } else if (object instanceof AccessCertificationCaseType aCase) {
-            return CertCampaignTypeUtil.getAllAssignees(aCase);
-        } else if (object instanceof AbstractWorkItemType workItem) {
-            return workItem.getAssigneeRef();
-        }
-        return List.of();
-    }
-
-    @NotNull
     private List<PrismObject<? extends ObjectType>> getAssignees(Object object, @NotNull MatchingContext ctx) {
-        List<ObjectReferenceType> assigneeRefs = getAssigneesWithoutResolving(object);
+        List<ObjectReferenceType> assigneeRefs;
         if (object instanceof CaseType aCase) {
             assigneeRefs = CaseTypeUtil.getAllAssignees(aCase);
         } else if (object instanceof AccessCertificationCaseType aCase) {
