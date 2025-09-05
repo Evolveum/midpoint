@@ -58,7 +58,7 @@ public class AssigneeClause extends SelectorClause {
         if (selector.isPureSelf()) {
             String[] selfOids = ctx.getSelfOidsArray(getDelegatorSelectionMode(realValue));
             List<ObjectReferenceType> assigneeRefs = getAssigneesWithoutResolving(realValue);
-            if (selfOids.length > 0 && !assigneeRefs.isEmpty()) {
+            if (selfOids != null) {
                 List<String> assigneesList = Arrays.asList(selfOids);
                 for (ObjectReferenceType assignee : assigneeRefs) {
                     if (assignee.getOid() != null && assigneesList.contains(assignee.getOid())) {
