@@ -120,11 +120,11 @@ class ResourceCompletionOperation {
         try {
             expand(resource);
 
-            if (ResourceTypeUtil.isAbstract(resource)) {
-                // TODO or should we also try to apply connector schema and expressions?
-                LOGGER.trace("Not continuing with resource completion because it's abstract: {}", resource);
-                return resource;
-            }
+//            if (ResourceTypeUtil.isAbstract(resource)) {
+//                // TODO or should we also try to apply connector schema and expressions?
+//                LOGGER.trace("Not continuing with resource completion because it's abstract: {}", resource);
+//                return resource;
+//            }
 
             applyConnectorSchemaAndExpressions();
 
