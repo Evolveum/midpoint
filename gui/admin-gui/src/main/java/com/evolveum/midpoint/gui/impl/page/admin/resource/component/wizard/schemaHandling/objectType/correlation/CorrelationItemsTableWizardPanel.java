@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -38,6 +39,10 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestion;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.createMappingsValueIfRequired;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
 /**
@@ -122,13 +127,23 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             }
 
             @Override
-            public void acceptItemPerformed(AjaxRequestTarget target,
+            public void viewEditItemPerformed(AjaxRequestTarget target,
                     @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
                     StatusInfo<CorrelationSuggestionsType> statusInfo) {
                 if (rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
                     return;
                 }
                 showTableForItemRefs(target, this::findResourceObjectTypeDefinition, rowModel, statusInfo);
+            }
+
+            @Override
+            public void acceptSuggestionItemPerformed(AjaxRequestTarget target,
+                    @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
+                    StatusInfo<CorrelationSuggestionsType> statusInfo) {
+                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceObjectTypeDefinition =
+                        findResourceObjectTypeDefinition();
+                CorrelationItemsTableWizardPanel.this.acceptSuggestionItemPerformed(
+                        getPageBase(), target, rowModel, () -> resourceObjectTypeDefinition, statusInfo);
             }
 
             @SuppressWarnings("unchecked")
@@ -149,11 +164,75 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         return table;
     }
 
+    protected void acceptSuggestionItemPerformed(PageBase pageBase, AjaxRequestTarget target,
+            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
+            StatusInfo<CorrelationSuggestionsType> statusInfo) {
+        PrismContainerValueWrapper<CorrelationSuggestionType> parentSuggestionW = rowModel.getObject()
+                .getParentContainerValue(CorrelationSuggestionType.class);
+
+        if (statusInfo == null || parentSuggestionW == null || parentSuggestionW.getRealValue() == null) {
+            pageBase.warn("Correlation suggestion is not available.");
+            target.add(getPageBase().getFeedbackPanel().getParent());
+            return;
+        }
+
+        CorrelationSuggestionType suggestion = parentSuggestionW.getRealValue();
+        List<ResourceAttributeDefinitionType> attributes = suggestion.getAttributes();
+
+        if (attributes.isEmpty()) {
+            performAddOperation(pageBase, target, resourceObjectTypeDefinition, attributes, rowModel, statusInfo);
+            return;
+        }
+
+        CorrelationAddMappingConfirmationPanel confirmationPanel = new CorrelationAddMappingConfirmationPanel(
+                pageBase.getMainPopupBodyId(), Model.of(), () -> attributes) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                performAddOperation(pageBase, target, resourceObjectTypeDefinition, attributes, rowModel, statusInfo);
+            }
+        };
+        pageBase.showMainPopup(confirmationPanel, target);
+    }
+
+    protected void performAddOperation(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDef,
+            @Nullable List<ResourceAttributeDefinitionType> attributes,
+            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
+            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
+        createMappingsValueIfRequired(pageBase, target, resourceObjectTypeDef, attributes);
+        PrismContainerValueWrapper<ItemsSubCorrelatorType> object = valueModel.getObject();
+        createNewItemsSubCorrelatorValue(pageBase, object.getNewValue(), target);
+        performDiscard(pageBase, target, valueModel, statusInfo);
+        postProcessAddSuggestion(target);
+    }
+
+    protected void postProcessAddSuggestion(AjaxRequestTarget target){
+        getTable().refreshAndDetach(target);
+    }
+
+    protected void performDiscard(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
+            @NotNull StatusInfo<?> statusInfo) {
+        Task task = pageBase.createSimpleTask("discardSuggestion");
+        PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueModel.getObject()
+                .getParentContainerValue(CorrelationSuggestionType.class);
+        if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
+            CorrelationSuggestionType suggestionToDelete = parentContainerValue.getRealValue();
+            removeCorrelationTypeSuggestion(pageBase, statusInfo, suggestionToDelete, task, task.getResult());
+        }
+        target.add(this);
+    }
+
     protected PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewItemsSubCorrelatorValue(
             PageBase pageBase,
             PrismContainerValue<ItemsSubCorrelatorType> value,
-            AjaxRequestTarget target){
-       return SmartIntegrationWrapperUtils.createNewItemsSubCorrelatorValue(
+            AjaxRequestTarget target) {
+        return SmartIntegrationWrapperUtils.createNewItemsSubCorrelatorValue(
                 getValueModel(), pageBase, value, target);
     }
 
@@ -174,6 +253,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                                 continue;
                             }
 
+                            @SuppressWarnings("deprecation")
                             PrismContainer<? extends Containerable> cloneContainer = container.getItem().clone();
                             WebPrismUtil.cleanupEmptyContainers(cloneContainer);
                             if (!cloneContainer.isEmpty()) {
@@ -183,7 +263,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     }
                 }
             } catch (SchemaException e) {
-                LOGGER.debug("Couldn't find correlators container in " + objectType);
+                LOGGER.debug("Couldn't find correlators container in {}", objectType);
             }
         }
         return false;
@@ -217,11 +297,6 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     protected SmartCorrelationTable getTable() {
         return (SmartCorrelationTable) get(ID_TABLE);
-    }
-
-    @Override
-    protected boolean isValid(AjaxRequestTarget target) {
-        return true;
     }
 
     @Override

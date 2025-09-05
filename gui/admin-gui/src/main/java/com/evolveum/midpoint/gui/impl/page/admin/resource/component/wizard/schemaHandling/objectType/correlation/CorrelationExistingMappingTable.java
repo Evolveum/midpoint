@@ -2,11 +2,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundAttributeMappingsTable;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -19,8 +23,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -129,6 +131,7 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                 List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
                 columns.add(new CheckBoxHeaderColumn<>() {
+                    @SuppressWarnings("rawtypes")
                     @Override
                     protected void onUpdateRow(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem,
                             AjaxRequestTarget target, DataTable table, IModel<PrismContainerValueWrapper<MappingType>> rowModel,
@@ -145,6 +148,7 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                         return new Model<>(initialState);
                     }
 
+                    @SuppressWarnings("rawtypes")
                     @Override
                     protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
                         super.onUpdateHeader(target, selected, table);
@@ -178,12 +182,6 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                         return new Label(componentId, getPageBase().createStringResource(
                                 getRefColumnPrefix() + getMappingType().name() + "." + getItemNameOfRefAttribute()));
                     }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId,
-                            IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                        initMappingPathLabel(componentId, cellItem, rowModel);
-                    }
                 });
 
                 columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
@@ -196,10 +194,21 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                         return new Label(componentId, getPageBase().createStringResource("MappingTable.column.target"));
                     }
 
+                    @SuppressWarnings({ "unchecked", "rawtypes" })
                     @Override
-                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId,
-                            IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                        initMappingPathLabel(componentId, cellItem, rowModel);
+                    protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                        return new PrismPropertyWrapperColumnPanel<>(componentId,
+                                (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel, getColumnType()) {
+
+                            @Override
+                            protected String createLabel(PrismPropertyValueWrapper<VariableBindingDefinitionType> object) {
+                                VariableBindingDefinitionType value = object.getRealValue();
+                                return value == null || value.getPath() == null
+                                        ? null
+                                        : value.getPath().getItemPath().toString();
+
+                            }
+                        };
                     }
                 });
 
@@ -231,22 +240,6 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                 });
                 return columns;
             }
-
-            private static void initMappingPathLabel(
-                    @NotNull String componentId,
-                    @NotNull Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem,
-                    @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                MappingType realValue = rowModel.getObject().getRealValue();
-                VariableBindingDefinitionType target = realValue.getTarget();
-
-                ItemPathType path = null;
-                if (target != null) {
-                    path = target.getPath();
-                }
-
-                Label label = new Label(componentId, path != null ? path.toString() : "");
-                cellItem.add(label);
-            }
         };
         table.setOutputMarkupId(true);
         add(table);
@@ -268,6 +261,24 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
     private @NotNull Fragment initFooter() {
         Fragment footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
 
+        AjaxIconButton addSelectedMappingsButton = createAddMappingButton();
+        addSelectedMappingsButton.setOutputMarkupId(true);
+        footer.add(addSelectedMappingsButton);
+
+        footer.add(new AjaxLink<>(ID_CANCEL) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+            }
+        });
+
+        footer.setOutputMarkupId(true);
+        return footer;
+
+    }
+
+    private @NotNull AjaxIconButton createAddMappingButton() {
         AjaxIconButton addSelectedMappingsButton = new AjaxIconButton(ID_ADD_SELECTED_MAPPINGS,
                 Model.of("fa fas fa-link"),
                 () -> {
@@ -283,20 +294,7 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
             }
         };
         addSelectedMappingsButton.showTitleAsLabel(true);
-        addSelectedMappingsButton.setOutputMarkupId(true);
-        footer.add(addSelectedMappingsButton);
-
-        footer.add(new AjaxLink<>(ID_CANCEL) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                getPageBase().hideMainPopup(target);
-            }
-        });
-
-        footer.setOutputMarkupId(true);
-        return footer;
-
+        return addSelectedMappingsButton;
     }
 
     protected void onAddSelectedMappings(AjaxRequestTarget target, List<PrismContainerValueWrapper<MappingType>> selectedObjectsCount) {

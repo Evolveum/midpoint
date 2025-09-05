@@ -104,7 +104,6 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
     @Override
     protected String createLabel(PrismPropertyValueWrapper<T> object) {
         return object.toShortString();
-
     }
 
     @Override

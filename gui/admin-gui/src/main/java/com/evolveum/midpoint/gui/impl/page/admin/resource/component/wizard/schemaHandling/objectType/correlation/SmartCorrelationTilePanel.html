@@ -33,7 +33,7 @@
             </div>
         </div>
 
-        <div class="card-body">
+        <div class="card-body pb-2">
 
             <h5 wicket:id="title"></h5>
             <p class="text-muted mb-2 tile-three-line-description" style="min-height: 60px" wicket:id="description"></p>
@@ -43,8 +43,8 @@
             <p class="fs-5 mb-1 mt-3" wicket:id="statsLabel"></p>
 
             <div class="d-flex gap-2">
-                <div wicket:id="statsPanel" class="col badge badge-light p-2">
-                    <div class="flex flex-row no-wrap" wicket:id="statsPanelValue" role="tab"></div>
+                <div wicket:id="statsPanel" class="col badge badge-light p-3" style="font-weight: normal; font-size: 1rem;">
+                    <div class="flex flex-row no-wrap"  wicket:id="statsPanelValue" role="tab"></div>
                     <div class="fw-normal text-muted mt-1" wicket:id="statsPanelLabel"></div>
                 </div>
             </div>
@@ -64,7 +64,7 @@
     </wicket:fragment>
 
 
-    <div wicket:id="tileContent" class="h-100 d-flex flex-column"></div>
+    <div wicket:id="tileContent" class="h-100 d-flex flex-column p-1"></div>
 
 
 </wicket:panel>

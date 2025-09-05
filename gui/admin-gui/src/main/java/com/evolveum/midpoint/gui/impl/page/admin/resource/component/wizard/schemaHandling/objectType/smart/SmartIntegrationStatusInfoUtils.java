@@ -363,4 +363,15 @@ public class SmartIntegrationStatusInfoUtils {
     protected static IModel<String> buildProgressMessageModel(@NotNull PageBase pageBase, String operationKey) {
         return pageBase.createStringResource("Activity.explanation." + operationKey);
     }
+
+    public static @Nullable String extractEfficiencyFromSuggestedCorrelationItemWrapper(
+            @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> valueWrapper) {
+        PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueWrapper.getParentContainerValue(
+                CorrelationSuggestionType.class);
+        if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
+            CorrelationSuggestionType suggestionValue = parentContainerValue.getRealValue();
+            return suggestionValue.getQuality() != null ? (suggestionValue.getQuality() * 100) + "%" : null;
+        }
+        return null;
+    }
 }

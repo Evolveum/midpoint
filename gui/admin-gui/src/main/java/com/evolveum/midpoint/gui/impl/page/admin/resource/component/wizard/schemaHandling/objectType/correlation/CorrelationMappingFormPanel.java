@@ -18,6 +18,7 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
@@ -201,6 +202,8 @@ public class CorrelationMappingFormPanel<C extends MappingType> extends BasePane
                             || itemName.equivalent(MappingType.F_TARGET)
                             || itemName.equivalent(MappingType.F_EXPRESSION)
                             || itemName.equivalent(MappingType.F_LIFECYCLE_STATE)
+                            || itemName.equivalent(InboundMappingType.F_USE)
+                            || itemName.equivalent(ResourceAttributeDefinitionType.F_LIFECYCLE_STATE)
                             || itemName.equivalent(ResourceAttributeDefinitionType.F_REF)
                             ? ItemVisibility.AUTO
                             : ItemVisibility.HIDDEN;

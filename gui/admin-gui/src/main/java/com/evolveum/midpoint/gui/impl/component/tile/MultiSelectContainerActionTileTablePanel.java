@@ -404,11 +404,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             }
 
             @Override
-            public void setVisibilityChecker(VisibilityChecker visibilityChecker) {
-                super.setVisibilityChecker(visibilityChecker);
-            }
-
-            @Override
             public boolean isHeaderMenuItem() {
                 return false;
             }
@@ -597,7 +592,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     @Override
     protected String getTileCssStyle() {
-        return "min-height: 350px;";
+        return "min-height: 450px;";
     }
 
     @Override

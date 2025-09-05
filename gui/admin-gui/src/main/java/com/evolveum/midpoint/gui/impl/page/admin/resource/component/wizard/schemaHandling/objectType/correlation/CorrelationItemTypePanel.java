@@ -7,13 +7,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -29,9 +33,11 @@ import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeCorrelationStrategyMethod;
 
-public class CorrelationItemTypePanel extends BasePanel<List<CorrelationItemType>> implements Popupable {
+public class CorrelationItemTypePanel extends BasePanel<List<PrismContainerValueWrapper<CorrelationItemType>>> implements Popupable {
 
     private static final String ID_CORRELATION_ITEMS_PANEL = "correlationItemsPanel";
+
+    private static final String ID_CORRELATION_ITEMS_PANEL_ICON = "icon";
     private static final String ID_CORRELATION_ITEMS_PANEL_VALUE = "correlationItemsPanelValue";
     private static final String ID_CORRELATION_ITEMS_PANEL_LABEL = "correlationItemsPanelLabel";
 
@@ -39,7 +45,12 @@ public class CorrelationItemTypePanel extends BasePanel<List<CorrelationItemType
     List<CorrelationItemRecord> correlationItemTypes;
 
     private record CorrelationItemRecord(
-            @Nullable String path, @Nullable String strategy, boolean isHover) implements Serializable {
+            @Nullable String path, @Nullable String strategy, @Nullable String iconClass,
+            boolean isHover) implements Serializable {
+
+        public String iconClass() {
+            return iconClass;
+        }
 
         public String getPath() {
             return path;
@@ -54,7 +65,7 @@ public class CorrelationItemTypePanel extends BasePanel<List<CorrelationItemType
         }
     }
 
-    public CorrelationItemTypePanel(String id, IModel<List<CorrelationItemType>> model, Integer maxItems) {
+    public CorrelationItemTypePanel(String id, IModel<List<PrismContainerValueWrapper<CorrelationItemType>>> model, Integer maxItems) {
         super(id, model);
         this.maxItems = maxItems;
     }
@@ -71,13 +82,19 @@ public class CorrelationItemTypePanel extends BasePanel<List<CorrelationItemType
                 LoadableDetachableModel.of(
                         () -> buildCorrelationItemRecordList(getModelObject()));
 
-        List<CorrelationItemType> modelObject = getModelObject();
+        List<PrismContainerValueWrapper<CorrelationItemType>> modelObject = getModelObject();
         ListView<CorrelationItemRecord> correlationItemlistView =
                 new ListView<>(ID_CORRELATION_ITEMS_PANEL, recordsModel) {
                     @Override
                     protected void populateItem(@NotNull ListItem<CorrelationItemRecord> listItem) {
-
                         CorrelationItemRecord correlationItemRecord = listItem.getModelObject();
+
+                        WebMarkupContainer icon = new WebMarkupContainer(ID_CORRELATION_ITEMS_PANEL_ICON);
+                        icon.setOutputMarkupId(true);
+                        icon.add(AttributeAppender.append("class", correlationItemRecord.iconClass()));
+                        icon.add(new VisibleBehaviour(() -> correlationItemRecord.iconClass() != null && isIconStatusVisible()));
+                        listItem.add(icon);
+
                         Label stateValue = new Label(ID_CORRELATION_ITEMS_PANEL_VALUE, correlationItemRecord.getPath());
                         stateValue.setOutputMarkupId(true);
 
@@ -88,7 +105,12 @@ public class CorrelationItemTypePanel extends BasePanel<List<CorrelationItemType
                                     CorrelationItemTypePanel fullList = new CorrelationItemTypePanel(
                                             getPageBase().getMainPopupBodyId(),
                                             Model.ofList(modelObject),
-                                            null);
+                                            null){
+                                                @Override
+                                                protected boolean isIconStatusVisible() {
+                                                    return CorrelationItemTypePanel.this.isIconStatusVisible();
+                                                }
+                                    };
                                     getPageBase().showMainPopup(fullList, ajaxRequestTarget);
                                 }
                             });
@@ -105,7 +127,7 @@ public class CorrelationItemTypePanel extends BasePanel<List<CorrelationItemType
         add(correlationItemlistView);
     }
 
-    private List<CorrelationItemRecord> buildCorrelationItemRecordList(List<CorrelationItemType> items) {
+    private List<CorrelationItemRecord> buildCorrelationItemRecordList(List<PrismContainerValueWrapper<CorrelationItemType>> items) {
         this.correlationItemTypes = new ArrayList<>();
 
         if (items == null || items.isEmpty()) {
@@ -114,24 +136,33 @@ public class CorrelationItemTypePanel extends BasePanel<List<CorrelationItemType
 
         int count = 0;
 
-        for (CorrelationItemType correlationItemType : items) {
+        for (PrismContainerValueWrapper<CorrelationItemType> correlationItemType : items) {
+            ValueStatus status = correlationItemType.getStatus();
+            String iconClass = status == ValueStatus.ADDED
+                    ? "fa fa-plus-circle text-success" : null;
+
             if (maxItems != null && count >= maxItems) {
                 int missingCount = items.size() - count;
-                correlationItemTypes.add(new CorrelationItemRecord("+" + missingCount, "", true));
+                correlationItemTypes.add(new CorrelationItemRecord("+" + missingCount, "", iconClass, true));
                 break;
             }
 
-            String path = correlationItemType.getRef() != null
-                    ? correlationItemType.getRef().toString()
+            CorrelationItemType realValue = correlationItemType.getRealValue();
+            String path = realValue.getRef() != null
+                    ? realValue.getRef().toString()
                     : "(no path)";
 
-            String strategy = computeCorrelationStrategyMethod(correlationItemType);
+            String strategy = computeCorrelationStrategyMethod(realValue);
 
-            correlationItemTypes.add(new CorrelationItemRecord(path, strategy, false));
+            correlationItemTypes.add(new CorrelationItemRecord(path, strategy, iconClass, false));
             count++;
         }
 
         return correlationItemTypes;
+    }
+
+    protected boolean isIconStatusVisible() {
+        return true;
     }
 
     @Override

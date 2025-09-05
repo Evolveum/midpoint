@@ -36,6 +36,11 @@ public class VerticalFormCorrelationItemPanel extends VerticalFormDefaultContain
         return false;
     }
 
+    @Override
+    protected boolean isShowEmptyButtonContainerVisible() {
+        return isShowEmptyButtonVisible();
+    }
+
     protected String getCssClassForFormSubContainer() {
         return "m-0";
     }
@@ -46,7 +51,7 @@ public class VerticalFormCorrelationItemPanel extends VerticalFormDefaultContain
 
     @Override
     protected String getCssClassForFormContainer() {
-        return "card-body mb-0 px-3 pt-3 pb-0";
+        return "card-body mb-0 px-3 pt-3 pb-2";
     }
 
     @Override

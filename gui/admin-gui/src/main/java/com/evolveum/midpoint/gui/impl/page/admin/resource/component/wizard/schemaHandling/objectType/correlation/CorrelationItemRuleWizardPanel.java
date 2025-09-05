@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
@@ -15,7 +16,6 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormCorrelationItemPanel;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -115,7 +115,7 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
                 .visibilityHandler((wrapper) -> {
                     ItemName itemName = wrapper.getPath().lastName();
                     return itemName.equivalent(ItemsSubCorrelatorType.F_DESCRIPTION)
-                            || itemName.equivalent(ItemsSubCorrelatorType.F_DISPLAY_NAME)
+//                            || itemName.equivalent(ItemsSubCorrelatorType.F_DISPLAY_NAME)
                             || itemName.equivalent(ItemsSubCorrelatorType.F_NAME)
                             || itemName.equivalent(ItemsSubCorrelatorType.F_ENABLED)
                             || itemName.equivalent(ItemsSubCorrelatorType.F_COMPOSITION)
@@ -132,8 +132,14 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
             setReadOnlyRecursively(valueModel.getObject());
         }
 
+        valueModel.getObject().setShowEmpty(isShowEmptyField());
         VerticalFormCorrelationItemPanel panel =
-                new VerticalFormCorrelationItemPanel(ID_PANEL, valueModel, settings);
+                new VerticalFormCorrelationItemPanel(ID_PANEL, valueModel, settings){
+                    @Override
+                    protected boolean isShowEmptyButtonVisible() {
+                        return !isSuggestionApplied();
+                    }
+                };
         panel.setOutputMarkupId(true);
         add(panel);
         valueModel.getObject().getRealValue().asPrismContainerValue();
@@ -156,6 +162,10 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
         }
 
         onExitPerformed(target);
+    }
+
+    protected boolean isShowEmptyField(){
+        return false;
     }
 
     protected void acceptSuggestionPerformed(
@@ -228,7 +238,7 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
                 Model.of("Discard")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                performDiscard(target);
+                onDiscardButtonClick(getPageBase(),target, getValueModel(), getStatusInfo());
                 onExitPerformed(target);
             }
         };
@@ -242,18 +252,11 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
         return isSuggestionApplied();
     }
 
-    protected void performDiscard(AjaxRequestTarget target) {
-        if (isSuggestionApplied()) {
-            Task task = getPageBase().createSimpleTask("discardSuggestion");
-            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel = getValueModel();
-            PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueModel.getObject().getParentContainerValue(CorrelationSuggestionType.class);
-            if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
-                CorrelationSuggestionType suggestionToDelete = parentContainerValue.getRealValue();
-                removeCorrelationTypeSuggestion(getPageBase(), getStatusInfo(), suggestionToDelete, task, task.getResult());
-
-            }
-        }
-        target.add(this);
+    protected void onDiscardButtonClick(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
+            @NotNull StatusInfo<?> statusInfo) {
     }
 
 }

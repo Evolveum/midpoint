@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -15,13 +16,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.createMappingsValueIfRequired;
 
 /**
  * @author lskublik
@@ -40,12 +38,19 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
         return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
 
             @Override
+            protected void postProcessAddSuggestion(AjaxRequestTarget target) {
+                showUnsavedChangesToast(target);
+                showChoiceFragment(target, createTablePanel());
+            }
+
+            @Override
             protected void showTableForItemRefs(
                     @NotNull AjaxRequestTarget target,
                     @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
                     @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
                     @Nullable StatusInfo<CorrelationSuggestionsType> statusInfo) {
-                WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderDetailsModel(), rowModel) {
+                WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(
+                        getAssignmentHolderDetailsModel(), rowModel) {
                     @Override
                     public void onExitPerformed(AjaxRequestTarget target) {
                         showUnsavedChangesToast(target);
@@ -58,43 +63,21 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                     protected void acceptSuggestionPerformed(
                             @NotNull AjaxRequestTarget target,
                             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
-                        PrismContainerValueWrapper<CorrelationSuggestionType> parentSuggestionW = valueModel.getObject()
-                                .getParentContainerValue(CorrelationSuggestionType.class);
-
-                        if (statusInfo == null || parentSuggestionW == null || parentSuggestionW.getRealValue() == null) {
-                            getPageBase().warn("Correlation suggestion is not available.");
-                            target.add(getPageBase().getFeedbackPanel().getParent());
-                            return;
-                        }
-
-                        CorrelationSuggestionType suggestion = parentSuggestionW.getRealValue();
-                        List<ResourceAttributeDefinitionType> attributes = suggestion.getAttributes();
-
-                        if (attributes.isEmpty()) {
-                            performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
-                            return;
-                        }
-
-                        CorrelationAddMappingConfirmationPanel confirmationPanel = new CorrelationAddMappingConfirmationPanel(
-                                getPageBase().getMainPopupBodyId(), Model.of(), () -> attributes) {
-                            @Override
-                            public void yesPerformed(AjaxRequestTarget target) {
-                                performAddOperation(target, resourceObjectTypeDefinition, attributes, valueModel);
-                            }
-                        };
-                        getPageBase().showMainPopup(confirmationPanel, target);
+                        acceptSuggestionItemPerformed(getPageBase(), target, valueModel, resourceObjectTypeDefinition, statusInfo);
                     }
 
-                    private void performAddOperation(
+                    @Override
+                    protected void onDiscardButtonClick(
+                            @NotNull PageBase pageBase,
                             @NotNull AjaxRequestTarget target,
-                            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDef,
-                            @Nullable List<ResourceAttributeDefinitionType> attributes,
-                            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
-                        createMappingsValueIfRequired(getPageBase(), target, resourceObjectTypeDef, attributes);
-                        PrismContainerValueWrapper<ItemsSubCorrelatorType> object = valueModel.getObject();
-                        createNewItemsSubCorrelatorValue(getPageBase(), object.getNewValue(), target);
-//                        performDiscard(target);
-                        onExitPerformed(target);
+                            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
+                            @NotNull StatusInfo<?> statusInfo) {
+                        performDiscard(pageBase, target, valueModel, statusInfo);
+                    }
+
+                    @Override
+                    protected boolean isShowEmptyField() {
+                        return true;
                     }
 
                 });

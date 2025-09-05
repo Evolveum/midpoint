@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -80,7 +81,7 @@ public class SmartIntegrationUtils {
      */
     public static @NotNull String formatElapsedTime(StatusInfo<?> s) {
         if (s == null || s.getRealizationStartTimestamp() == null) {
-            return "Elapsed time: N/A";
+            return "Elapsed time: unknown";
         }
 
         long startMillis = s.getRealizationStartTimestamp().toGregorianCalendar().getTimeInMillis();
@@ -467,5 +468,17 @@ public class SmartIntegrationUtils {
             }
         }
         return strategy;
+    }
+
+    public static List<PrismContainerValueWrapper<CorrelationItemType>> extractCorrelationItemListWrapper(
+            @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> object) {
+        try {
+            PrismContainerWrapper<CorrelationItemType> container = object.findContainer(ItemsSubCorrelatorType.F_ITEM);
+            return container.getValues();
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't extract CorrelationItemType wrappers: {}", e.getMessage(), e);
+        }
+
+        return Collections.emptyList();
     }
 }

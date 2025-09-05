@@ -249,6 +249,10 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         return true;
     }
 
+    protected boolean isShowEmptyButtonContainerVisible() {
+        return true;
+    }
+
     public Component getFormContainer() {
         return get(createComponentPath(ID_PROPERTIES_LABEL, ID_FORM_CONTAINER));
     }
@@ -272,6 +276,11 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                     return getCssClassForFormSubContainer();
                 }
                 return super.getCssClassForFormContainer();
+            }
+
+            @Override
+            protected boolean isShowEmptyButtonVisible() {
+                return isShowEmptyButtonContainerVisible();
             }
 
             @Override

@@ -38,8 +38,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -139,7 +137,12 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     private void initCorrelationItemPanel(@NotNull Fragment fragment) {
         CorrelationItemTypePanel correlationItemTypePanel =
-                new CorrelationItemTypePanel(ID_CORRELATION_ITEMS_PANEL, () -> getModelObject().getCorrelationItems(), 2);
+                new CorrelationItemTypePanel(ID_CORRELATION_ITEMS_PANEL, () -> getModelObject().getCorrelationItems(), 2) {
+                    @Override
+                    protected boolean isIconStatusVisible() {
+                        return statusModel.getObject() != null;
+                    }
+                };
         correlationItemTypePanel.setOutputMarkupId(true);
         fragment.add(correlationItemTypePanel);
     }
@@ -154,13 +157,10 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     private void initFooterLinkButton(@NotNull Fragment fragment) {
         StatusInfo<?> statusInfo = statusModel.getObject();
-        StringResourceModel stringResource = createStringResource("SmartCorrelationTilePanel.editRuleLink");
-        if (statusInfo != null) {
-            stringResource = createStringResource("SmartCorrelationTilePanel.viewRuleLink");
-        }
+        boolean isEdit = statusInfo == null;
 
-        AjaxIconButton viewRuleLink = new AjaxIconButton(ID_VIEW_RULE_LINK, Model.of("fa fa-eye me-1"),
-                stringResource) {
+        AjaxIconButton viewRuleLink = new AjaxIconButton(ID_VIEW_RULE_LINK, () -> isEdit ? "fa fa-eye me-1" : "fa fa-edit me-1",
+                createStringResource("SmartCorrelationTilePanel." + (isEdit ? "editRuleLink" : "viewRuleLink"))) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onFooterButtonClick(target);

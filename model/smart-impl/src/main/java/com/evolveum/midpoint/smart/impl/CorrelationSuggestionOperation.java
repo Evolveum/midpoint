@@ -60,6 +60,7 @@ class CorrelationSuggestionOperation {
                     .correlators(new CompositeCorrelatorType()
                             .items(new ItemsSubCorrelatorType()
                                     .name("Dummy name") //TODO change after (v2) correlation LLM integration
+                                    .displayName("Dummy display name") //TODO
                                     .description("Dummy description. Suggested based on matching of "
                                             + suggestion.resourceAttrPath() + " to "
                                             + suggestion.focusItemPath()) //TODO

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public abstract class StatusAwareDataProvider<C extends Containerable>
+public class StatusAwareDataProvider<C extends Containerable>
         extends MultivalueContainerListDataProvider<C> {
 
     private final Map<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionByWrapper =
@@ -28,13 +28,16 @@ public abstract class StatusAwareDataProvider<C extends Containerable>
 
     private final SerializableFunction<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionResolver;
 
+    String resourceOid;
+
     public StatusAwareDataProvider(
             Component component,
+            String resourceOid,
             @NotNull IModel<Search<C>> search,
             IModel<List<PrismContainerValueWrapper<C>>> model,
             SerializableFunction<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionResolver) {
-
         super(component, search, model);
+        this.resourceOid = resourceOid;
         this.suggestionResolver = Objects.requireNonNull(suggestionResolver, "suggestionResolver must not be null");
     }
 
@@ -60,7 +63,9 @@ public abstract class StatusAwareDataProvider<C extends Containerable>
         return null;
     }
 
-    protected abstract String getResourceOid();
+    protected String getResourceOid(){
+        return resourceOid;
+    };
 
     @Override
     public void clearCache() {

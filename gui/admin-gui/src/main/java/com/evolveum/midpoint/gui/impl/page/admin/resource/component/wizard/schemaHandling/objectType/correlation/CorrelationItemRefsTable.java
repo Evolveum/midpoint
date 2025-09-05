@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -28,10 +29,12 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -182,7 +185,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                     return;
                 }
 
-                PrismContainerValueWrapper<InboundMappingType> relatedInboundMapping = findRelatedInboundMapping(row);
+                PrismContainerValueWrapper<InboundMappingType> relatedInboundMapping = findRelatedInboundMapping(getPageBase(), row);
                 if (relatedInboundMapping == null) {
                     LOGGER.warn("Cannot find related inbound mapping for correlation item: {}", row.getRealValue());
                     getPageBase().warn(getString("CorrelationItem.relatedMappingNotFound"));
@@ -214,6 +217,11 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                         return !isReadOnlyTable();
                     }
 
+                    @Override
+                    public IModel<String> getTitleIconClass() {
+                        return Model.of("fa fa-cogs");
+                    }
+
                     @Contract(" -> new")
                     @Override
                     protected @NotNull IModel<String> getConfirmButtonIcon() {
@@ -227,15 +235,17 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
 
                     @Override
                     protected void performCreateMapping(AjaxRequestTarget target) {
-                        PrismContainerValueWrapper<CorrelationItemType> object = getRowModel().getObject();
-                        CorrelationItemType itemRealValue = object.getRealValue();
                         InboundMappingType inboundRealValue = relatedInboundMapping.getRealValue();
-                        ItemPathType itemRef = itemRealValue.getRef();
                         ItemPathType mappingPath = inboundRealValue.getTarget().getPath();
-                        if(itemRef != null && mappingPath != null && !itemRef.equivalent(mappingPath)) {
-                            itemRealValue.setRef(mappingPath);
-                            itemRealValue.setName(inboundRealValue.getName());
+                        try {
+                            PrismPropertyWrapper<ItemPathType> propertyWrapper = getRowModel().getObject()
+                                    .findProperty(CorrelationItemType.F_REF);
+                            PrismPropertyValueWrapper<ItemPathType> value = propertyWrapper.getValue();
+                            value.setRealValue(mappingPath);
+                        } catch (SchemaException e) {
+                            throw new RuntimeException("Couldn't set new value to correlation item ref property.", e);
                         }
+
                         refreshTablePanel(target);
                     }
                 };
@@ -256,8 +266,25 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
     protected List<IColumn<PrismContainerValueWrapper<CorrelationItemType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<CorrelationItemType>, String>> columns = new ArrayList<>();
 
-        if (isCheckboxSelectionEnabled()) {
+        if (isCheckboxSelectionEnabled() && !isReadOnlyTable()) {
             columns.add(new CheckBoxHeaderColumn<>());
+        }
+
+        if (isReadOnlyTable()) {
+            columns.add(new IconColumn<>(Model.of()) {
+                @Override
+                protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<CorrelationItemType>> rowModel) {
+                    String iconCss = null;
+                    if (rowModel.getObject().getStatus() == ValueStatus.ADDED) {
+                        iconCss = GuiStyleConstants.CLASS_PLUS_CIRCLE + " text-success";
+                    } else if (rowModel.getObject().getStatus() == ValueStatus.DELETED) {
+                        iconCss = GuiStyleConstants.CLASS_MINUS_CIRCLE + " text-danger";
+                    } else if (rowModel.getObject().getStatus() == ValueStatus.MODIFIED) {
+                        iconCss = GuiStyleConstants.CLASS_EDIT_MENU_ITEM + " text-warning";
+                    }
+                    return new DisplayType().beginIcon().cssClass(iconCss).end();
+                }
+            });
         }
 
         IModel<PrismContainerDefinition<CorrelationItemType>> correlationDef = getCorrelationItemDefinition();
@@ -470,7 +497,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttons = new ArrayList<>();
         initAddExistingButton(idButton, buttons);
-        initNewObjectButton(idButton, buttons);
+//        initNewObjectButton(idButton, buttons);
         iniCreateMappingButton(idButton, buttons);
         return buttons;
     }
@@ -488,7 +515,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                 createMappingPerformed(target);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm ml-2"));
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
         buttons.add(newObjectButton);
@@ -538,8 +565,9 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                 addExistingMappingPerformed(target);
             }
         };
-        addExistingButton.add(AttributeAppender.append("class", "btn btn-default btn-sm mr-2"));
+        addExistingButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
         addExistingButton.showTitleAsLabel(true);
+        addExistingButton.add(new VisibleBehaviour(() -> !isReadOnlyTable()));
         buttons.add(addExistingButton);
     }
 
