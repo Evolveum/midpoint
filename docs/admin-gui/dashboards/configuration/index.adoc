@@ -3,95 +3,311 @@ midpoint-feature: dashboard
 doc-type: config
 ---
 
-= Dashboard Configuration
-:page-nav-title: Configuration
+= Create dashboards in midPoint
+:page-nav-title: Configure dashboards
 :page-wiki-name: Dashboard configuration
 :page-wiki-id: 36569129
 :page-wiki-metadata-create-user: lskublik
 :page-wiki-metadata-create-date: 2019-08-06T13:26:25.499+02:00
 :page-wiki-metadata-modify-user: katkav
 :page-wiki-metadata-modify-date: 2020-12-10T12:36:51.667+01:00
-:page-since: "4.2"
 :page-toc: top
 :page-keywords: [ 'dashboard', 'dashboards', 'configuration' ]
 :search-alias: "dashboard configuration"
 :page-upkeep-status: yellow
 :page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
-Documentation about dashboards can be found at multiple places in docs. To avoid confusion, please see
+This article guides you through the steps required to configure dashboards.
+Start with a simple dashboard showing one metric, such as number of active users, then continue adding more advanced pieces, such as percentage of failed resources or accounts violating segregation of duties.
 
-- xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards] page provides basic information about this feature.
-- Guide for initial configuration, together with example, is provided in xref:/midpoint/guides/dashboards-howto[Dashboards HOWTO].
-- Samples are at link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[samples/dashboard] on Github.
-- Design notes for development of dashboards and reports can be found xref:/midpoint/devel/design/dashboards-widgets-and-reports-design-notes/[here].
+From the data update perspective, dashboard widgets can be xref:../#async-dashboards-and-report[synchronous or asynchronous].
+In this guide, you first create a simple synchronous widget.
+After that, you will add an asynchronous widget to the dashboard.
 
-This document describes details of configuration of dashboard and report that is generated from the dashboard.
+[TIP]
+====
+We recommend using link:https://www.jetbrains.com/idea/[IntelliJ IDEA] with the xref:/midpoint/tools/studio/[midPoint Studio] plugin.
+Engineering midPoint with Studio is definitely much easier.
+====
 
-== Dashboard
+== Quick guides to create and deploy dashboards
 
-Dashboard is a configurable object in midPoint, providing basic information about state of midPoint.
-Dashboard contains name, display name with label and widget elements.
+Before we dive into details, here is a TL;DR version of this article.
+The points below summarize the steps to take when deploying dashboards.
+
+=== How to deploy standard dashboards
+
+. Prepare and xref:/midpoint/tools/studio/usage/index.adoc#uploading-midpoint-objects[upload] an object collection with an object filter definition.
+. Prepare and upload a dashboard.
+. Add a `<configurableUserDashboard>` element to `SystemConfiguration` and upload the configuration.
+. Check the configuration:
+.. Refresh the GUI (you may need to log out and back in) to apply the system configuration changes.
+.. Go to [.nowrap]#icon:tachometer-akt[] *Dashboards*# to see your new dashboard.
+
+=== How to deploy dashboards with asynchronous widgets
+
+. Prepare and xref:/midpoint/tools/studio/usage/index.adoc#uploading-midpoint-objects[upload] an object collection with an object filter definition.
+. Prepare and upload a dashboard.
+. Prepare and upload a dashboard report.
+. Prepare and upload a report task.
+. Add a `<configurableUserDashboard>` element to `SystemConfiguration` and upload the configuration.
+. Check the configuration:
+.. Refresh the GUI (you may need to log out and back in) to apply the system configuration changes.
+.. Go to [.nowrap]#icon:tachometer-akt[] *Dashboards*# to see your new dashboard.
+    The asynchronous widget cannot show data yet.
+.. Run the report task or wait until its scheduled run finishes.
+.. Go to [.nowrap]#icon:tachometer-akt[] *Dashboards*# again.
+    The asynchronous widget should now display correct data.
+
+When you upload dashboard with asynchronous widgets, it will display an _Unknown_ value until the report task runs for the first time and saves the computed data to the dashboard widgets.
+
+[TIP]
+====
+You can get inspiration in the midPoint configuration samples in the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard/howto[samples/dashboard/howto] directory.
+
+In the directory, you can find examples of:
+
+* `collection-enabled-users.xml`: Object collection filtering enabled users.
+* `collection-disabled-users.xml`: Object collection filtering disabled users.
+* `dashboard-howto-example.xml`: Dashboard definition.
+* `report-dashboard-howto-example.xml`: Dashboard report used to update the asynchronous dashboard widgets.
+* `task-report-dashboard-howto-example.xml`: Dashboard task used to run the report.
+====
+
+== Create your custom dashboard
+
+To create a dashboard, you need to create a dashboard object with an OID, name, label, and widgets.
+The name and label are used for the graphical user interface.
 
 [source,xml]
 ----
-<dashboard>
+<dashboard oid="8f9f3d5f-a890-452b-8d2b-57b8644c1f04">
      <name>system-status-dashboard</name>
      <display>
-         <label>System Status Dashboard</label>
+         <label>Number of active users</label>
      </display>
      <widget>
-         ...
+        <!--1-->
      </widget>
      <widget>
-         ...
+        <!--2-->
      </widget>
-     ...
 </dashboard>
 ----
+<1> The widget code from the link:#simple-widget[section on a simple widget] goes here.
+<2> The widget code from the link:#async-widget[section on an asynchronous widget] goes here.
 
-In 4.2 dashboards were shown automatically when defined.
-Since 4.3 there you have to define which dashboards should be shown in the left (sidebar) menu in system configuration.
-The configuration is show below:
+The dashboard with two widgets is ready but its widgets are not.
+Now is the time to create them.
 
-++++
-{% include since.html since="4.3" %}
-++++
+[[simple-widget]]
+=== Create a simple widget for the dashboard
 
-.Configuration to show dashboard in the menu
+Widgets are not separate objects, they go directly into their parent dashboard object.
+The first widget we create here is simple, the data it shows are calculated every time a user loads the screen with the dashboard.
+You will see how to create an asynchronous widget in the example for the second widget below.
+
+The first simple widget shows the number of users that are active; for example, active employees as opposed to those on long-term leave.
+The widget itself does not count the users.
+That is what the object collection is for (see the `collectionRef` element below).
+
 [source,xml]
 ----
-<adminGuiConfiguration>
-    ...
-    <configurableUserDashboard>
-        <identifier>admin-dashboard</identifier>
-        <display>
-            <label>Admin dashboard</label>
-        </display>
-        <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001"/>
-        <visibility>visible</visibility>
-    </configurableUserDashboard>
-</adminGuiConfiguration>
+<widget>
+    <identifier>active-users</identifier>
+    <display>
+        <label>Number of active users</label>
+        <color>#229911</color>
+        <icon>
+            <cssClass>fa fa-user</cssClass>
+        </icon>
+    </display>
+    <data>
+        <sourceType>objectCollection</sourceType>
+        <collection>
+            <collectionRef
+                oid="0ac5f62a-1d0c-4b0c-afbf-d19bfb1f6112" <!--1-->
+                type="ObjectCollectionType"
+            />
+        </collection>
+    </data>
+    <presentation>
+        <dataField>
+            <fieldType>value</fieldType>
+            <expression>
+                <proportional>
+                    <style>value-only</style>
+                </proportional>
+            </expression>
+        </dataField>
+        <dataField>
+            <fieldType>unit</fieldType>
+            <expression>
+                <value>active</value>
+            </expression>
+        </dataField>
+    </presentation>
+</widget>
+----
+<1> The object collection OID from the link:#create-collection[section below] goes here.
+
+The dashboard now has one widget.
+However, it still has no data to show, because we do not have the object collection yet.
+
+[[create-collection]]
+=== Define object collection to count objects of interest
+
+Object collections, as their name suggests, _collect_ or enumerate objects based on a query you define.
+Object collections are standalone midPoint objects.
+
+To go with the example of counting active users we use here, create a collection that enumerates objects of the `UserType` type (i.e., users) for which the `activation/effectiveStatus` equals to `enabled`.
+
+[source,xml]
+----
+<objectCollection oid="0ac5f62a-1d0c-4b0c-afbf-d19bfb1f6112">
+    <name>All enabled users</name>
+    <type>UserType</type>
+    <filter>
+        <q:text>activation/effectiveStatus = "enabled"</q:text>
+    </filter>
+</objectCollection>
 ----
 
-The example above shows how to configure dashboards to be shown in the left (sidebar) menu.
-Property _display_ defines the name of the link which is shown in the menu.
-If it isn't defined, the display property of referenced DashboardType is used.
-Property _configurableDashboardRef_ is used to reference specific DashboardType.
-If it isn't defined, midPoint ignores the whole configuration.
-For visibility settings, since 4.3 use _visibility_ property in _configurableUserDashboard_ instead of visibility in DashboardType.
+And this is it.
+Add the OID of the collection above to the `collectionRef` in the widget, move the widget code to the dashboard object, and upload both the collection and the dashboard objects to your midPoint instance.
 
-We have two kinds of widgets, widget for _objectCollection_ and widget for _objectType_.
+The only step that remains is to display the dashboard in the midPoint graphical user interface.
 
+=== Add the dashboard to the main menu
 
-=== Widget
+To have the new dashboard displayed in the main menu in midPoint, you need to add it to the system configuration:
 
-Widget contains three basic configuration attributes `display`,`data` and `presentation`.
+[source,xml]
+----
+<systemConfiguration ... >
+    ...
+    <adminGuiConfiguration>
+        <configurableUserDashboard id="999"> <!--1-->
+            <identifier>enabled-users-dashboard</identifier>
+            <configurableDashboardRef
+                oid="8f9f3d5f-a890-452b-8d2b-57b8644c1f04" <!--2-->
+                relation="org:default"
+                type="c:DashboardType"
+            >
+            </configurableDashboardRef>
+        </configurableUserDashboard>
+        <!--3-->
+    </adminGuiConfiguration>
+    ...
+</systemConfiguration>
+----
+<1> Unique integer ID.
+<2> The OID of your dashboard goes here.
+<3> More `configurableUserDashboard` elements can follow here, one for each dashboard.
 
+Now, you can refresh the GUI (you may need to log out and back in) and go to [.nowrap]#icon:tachometer-akt[] *Dashboards*# to see your new dashboard.
 
-==== `display`
+image::first-dashboard-active-users.webp["MidPoint GUI with the dashboards menu open and a dashboard with active users shown", title="The dashboards section featuring the custom dashboard from the configuration example provided here."]
 
-Attribute `display` contains configuration of the widget's visual side in the GUI.
-Possible configuration attributes of `display`:
+[[async-widget]]
+== Create asynchronous widget to reduce system load
+
+Simple widgets like the one above force midPoint to compute the data every time a user loads the dashboard screen.
+If you have a lot of users or a lot of computationally complex dashboards, this may needlessly overload the infrastructure your midPoint instance runs on.
+And that is where asynchronous widgets come in handy.
+
+An asynchronous widget uses a task to recompute the data at an interval of your choosing and holds the result in the widget object.
+You can use the same object collection as you do with the synchronous widget above.
+
+[NOTE]
+====
+Report tasks for asynchronous dashboard update are not to be confused with
+xref:/midpoint/reference/tasks/synchronization-tasks/asynchronous-update[asynchronous update tasks] which are used for updating data from resources.
+====
+
+=== Configure your widget for asynchronous loading
+
+To configure a widget as asynchronous, you need to adjust the widget data source and create two new pieces of configuration:
+
+* A report which takes the dashboard configuration, triggers the data computation, and saves the results into the dashboard widget objects.
+    ** Note that you always compute the data for all the widgets in the dashboard the report references.
+* A report task which runs the report at scheduled intervals to refresh the data.
+
+First, change the widget configuration by adding the `displaySourceType` element so that the report can save the computed data in the widget object:
+
+[source,xml]
+----
+<widget>
+    <identifier>active-users</identifier>
+    <display>
+        <label>Number of active users</label>
+        <color>#883399</color>
+        <icon>
+            <cssClass>fa fa-user</cssClass>
+        </icon>
+    </display>
+    <data>
+        <sourceType>objectCollection</sourceType>
+        <displaySourceType>widgetData</displaySourceType> <!--1-->
+        <collection>
+            <collectionRef
+                oid="0ac5f62a-1d0c-4b0c-afbf-d19bfb1f6112" <!--2-->
+                type="ObjectCollectionType"
+            />
+        </collection>
+    </data>
+    <presentation>
+        <dataField>
+            <fieldType>value</fieldType>
+            <expression>
+                <proportional>
+                    <style>value-only</style>
+                </proportional>
+            </expression>
+        </dataField>
+        <dataField>
+            <fieldType>unit</fieldType>
+            <expression>
+                <value>active</value>
+            </expression>
+        </dataField>
+    </presentation>
+</widget>
+----
+<1> Enable saving data into the widget object
+<2> The object collection OID goes here.
+
+=== Create a dashboard report connected to your dashboard
+
+Secondly, you need a dashboard report that "runs" the dashboard as if a user has visited it and makes midPoint compute the data in the dashboard.
+
+[NOTE]
+====
+If you display the dashboard with an asynchronous widget before you create and run the report for the first time,
+the widget will show _Unknown_ instead of a meaningful value because midPoint has not yet computed the data to show.
+====
+
+See xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[] for instructions on creating a dashboard report.
+
+When configuring the report, use your dashboard as the configuration basis of the report.
+After you create the report, you can run it manually to compute the data and verify your configuration.
+
+=== Create a scheduled recurring task to refresh dashboard data regularly
+
+To have the data on the dashboard refreshed regularly, you need a recurring task.
+
+See xref:/midpoint/reference/misc/reports/configuration/report-task-definition/#export-report[] for instructions on creating an export report task.
+
+When configuring the task, you need to use the _report export_ activity and use the OID of the dashboard report you want the task to run.
+In most cases, it makes sense to schedule this task to run in regular intervals in order to have the data in the dashboard updated automatically.
+
+== Dashboard widget configuration attributes
+
+The widget element contains three configuration attributes: `display`,`data`, and `presentation`.
+
+=== Display attribute
+
+The `display` attribute contains configuration of the widget visual side in the GUI.
 
 [%autowidth]
 |===
@@ -119,49 +335,47 @@ Possible configuration attributes of `display`:
 
 |===
 
-==== `data`
+=== Data attribute
 
-Attribute `data` represents the data source that the widget displays.
-We have two kinds of data:
+The `data` attribute represents the data source that the widget displays.
+There are two kinds of data in midpoint:
 
 * for _objectCollection_
 * for _objectType_
-
-Possible configuration attributes of `data`:
 
 [%autowidth]
 |===
 | Name | Type | Description
 
 | `sourceType`
-| DashboardWidgetSourceTypeType
+| `DashboardWidgetSourceTypeType`
 | Type of widget content data source.
 Specify type of input data, which midPoint uses for generating a message showed in the widget.
 This is an enumeration type and possible values are  _objectCollection_ (content of widget is based on object collection), _auditSearch_ (content of the widget will be based on data from object collection with filter for audit records) and _object_ (content of the widget will be based on data from a single object). We describe this using `sourceType` and `displaySourceType` in the example under table.
 
 | `displaySourceType`
-| DashboardWidgetSourceTypeType
+| `DashboardWidgetSourceTypeType`
 | This attribute is an identifier that overrides sourceType. We can use it for asynchronous widgets.
 This element is used only for number messages showed in a widget in the GUI. The widget in the GUI might contain a link for a redirect to a details page and the used sourceType. We describe the usage of `sourceType` and `displaySourceType` in an example under the table.
 
 
 | `collection`
-| CollectionRefSpecificationType
+| `CollectionRefSpecificationType`
 | Specification of an explicit or implicit object collection that will be used as data source for the view.
 Contains variable _collectionRef,_ which is a reference to the object collection which is displayed in the widget.
 
 
 | `objectRef`
-| ObjectReferenceType
+| `ObjectReferenceType`
 | Specification of a single object as a widget data source.
 
 | `storedData`
-| String
+| `String`
 | Specification of a string data as a widget data source. This data can be stored by a report task. A Widget will leverage it by the usage of an asynchronous widget.
 
 |===
 
-===== Using `sourceType` and `displaySourceType`
+===== Using sourceType and displaySourceType
 
 When we configure a simple widget, we can set the `sourceType` to either `objectCollection`, `auditSearch` or `object`.
 
@@ -225,7 +439,7 @@ Example of widget data source for widget data (asynchronous widget):
 </widget>
 ----
 
-==== Presentation of Widget Data
+=== Presentation of Widget Data
 
 There is and container attribute which is used to define how will be data presented.
 The name of the attribute is `presentation`.
@@ -389,7 +603,7 @@ The widget object collection can be accessed via the IU *"More info"* button.
 ----
 ====
 
-=== Object Collection
+=== Configuration details for object collections
 
 You can see basic configuration for objectCollection on xref:/midpoint/reference/admin-gui/collections-views/configuration/#object-collection[Object Collection].
 For dashboard, we can use policyRule with policyTreshold to define some policySituation.
@@ -418,7 +632,9 @@ highWaterMark is upper bound of the threshold. Highest value for which the polic
 
 Both variables are WaterMarkType type, which contains variables count and percentage.
 
-== Simple Example for "Enabled Users Widget"
+== More configuration examples
+
+=== Simple Example for "Enabled Users Widget"
 
 Now we show very simple example for widget of enabled users, that show only number of enabled users in mP.
 
@@ -451,7 +667,7 @@ After accessing the new dashboard in GUI you can see our new widget.
 image::enabled-users.png[]
 
 [#_asynchronous_widget]
-== Asynchronous widget
+=== Asynchronous widget
 
 To configure an asynchronous widget we have to use the `displaySourceType` attribute in the widget configuration and set it as `widgetData`.
 We set `sourceType` as `objectCollection` because of the redirects to a details page in case of clicking on the widget details.
@@ -513,6 +729,11 @@ Next screenshot is from the example dashboard link:https://github.com/Evolveum/m
 
 image::dashboard-screenshot.png[]
 
-* xref:/midpoint/reference/admin-gui/dashboards/[Dashboards]
-* xref:/midpoint/guides/dashboards-howto/[Dashboards How To]
-* xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Report]
+== See also
+
+* xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[]
+* xref:/midpoint/reference/misc/reports/examples/[]
+* xref:/midpoint/reference/admin-gui/collections-views/[]
+* xref:/midpoint/features/planned/compliance/[]
+* xref:/midpoint/reference/schema/archetypes/[]
+* xref:/midpoint/reference/misc/notifications/[]
