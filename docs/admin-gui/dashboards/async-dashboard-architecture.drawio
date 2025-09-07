@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0" version="28.2.0">
   <diagram name="Page-1" id="-UHMWZQYqAhrEeP4hBU8">
-    <mxGraphModel dx="626" dy="688" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="759" dy="834" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -84,7 +84,7 @@
           <mxGeometry x="210" y="525" width="50" height="50" as="geometry" />
         </mxCell>
         <mxCell id="p2tRuxkkve7TmPgGVvgQ-21" value="&lt;div&gt;Depends&lt;/div&gt;&lt;div&gt;on&amp;nbsp;the report&lt;/div&gt;&lt;div&gt;configuration.&lt;/div&gt;" style="text;html=1;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#265DA6;convertToSvg=1;" vertex="1" parent="1">
-          <mxGeometry x="50" y="525" width="160" height="45" as="geometry" />
+          <mxGeometry x="130" y="525" width="80" height="45" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
