@@ -38,7 +38,7 @@ The points below summarize the steps to take when deploying dashboards.
 === How to deploy standard dashboards
 
 . Prepare and xref:/midpoint/tools/studio/usage/index.adoc#uploading-midpoint-objects[upload] an object collection with an object filter definition.
-. Prepare and upload a dashboard.
+. Prepare and upload a dashboard with a widget using the object collection.
 . Add a `<configurableUserDashboard>` element to `SystemConfiguration` and upload the configuration.
 . Check the configuration:
 .. Refresh the GUI (you may need to log out and back in) to apply the system configuration changes.
@@ -47,7 +47,7 @@ The points below summarize the steps to take when deploying dashboards.
 === How to deploy dashboards with asynchronous widgets
 
 . Prepare and xref:/midpoint/tools/studio/usage/index.adoc#uploading-midpoint-objects[upload] an object collection with an object filter definition.
-. Prepare and upload a dashboard.
+. Prepare and upload a dashboard with a widget using the object collection.
 . Prepare and upload a dashboard report.
 . Prepare and upload a report task.
 . Add a `<configurableUserDashboard>` element to `SystemConfiguration` and upload the configuration.
@@ -59,25 +59,23 @@ The points below summarize the steps to take when deploying dashboards.
 .. Go to [.nowrap]#icon:tachometer-alt[] *Dashboards*# again.
     The asynchronous widget should now display correct data.
 
-When you upload dashboard with asynchronous widgets, it will display an _Unknown_ value until the report task runs for the first time and saves the computed data to the dashboard widgets.
+When you upload a dashboard with asynchronous widgets, it displays an _Unknown_ value until the report task runs for the first time and saves the computed data to the dashboard widgets.
 
 [TIP]
 ====
-You can get inspiration in the midPoint configuration samples in the link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard/howto[samples/dashboard/howto] directory.
-
-In the directory, you can find examples of:
+You can get inspiration from link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard/howto[midPoint configuration samples on GitHub]:
 
 * `collection-enabled-users.xml`: Object collection filtering enabled users.
 * `collection-disabled-users.xml`: Object collection filtering disabled users.
 * `dashboard-howto-example.xml`: Dashboard definition.
 * `report-dashboard-howto-example.xml`: Dashboard report used to update the asynchronous dashboard widgets.
-* `task-report-dashboard-howto-example.xml`: Dashboard task used to run the report.
+* `task-report-dashboard-howto-example.xml`: Report task used to run the report.
 ====
 
 == Create your custom dashboard
 
 To create a dashboard, you need to create a dashboard object with an OID, name, label, and widgets.
-The name and label are used for the graphical user interface.
+The name and label are used for the graphical user interface (GUI).
 
 [source,xml]
 ----
@@ -103,13 +101,14 @@ Now is the time to create them.
 [[simple-widget]]
 === Create a simple widget for the dashboard
 
-Widgets are not separate objects, they go directly into their parent dashboard object.
-The first widget we create here is simple, the data it shows are calculated every time a user loads the screen with the dashboard.
+Widgets are not separate configuration objects, they go directly into their parent dashboard object.
+The first widget we create here is a simple synchronous one;
+the data it shows are calculated every time a user loads the screen with the dashboard.
 You will see how to create an asynchronous widget in the example for the second widget below.
 
 The first simple widget shows the number of users that are active; for example, active employees as opposed to those on long-term leave.
-The widget itself does not count the users.
-That is what the object collection is for (see the `collectionRef` element below).
+The widget itself does not query the users.
+That is what the object collection is for (see the `collectionRef` element in the code below).
 
 [source,xml]
 ----
@@ -157,10 +156,10 @@ However, it still has no data to show, because we do not have the object collect
 [[create-collection]]
 === Define object collection to count objects of interest
 
-Object collections, as their name suggests, _collect_ or enumerate objects based on a query you define.
+xref:/midpoint/reference/admin-gui/collections-views/[Object collections], as their name suggests, _collect_ or enumerate objects based on a query you define.
 Object collections are standalone midPoint objects.
 
-To go with the example of counting active users we use here, create a collection that enumerates objects of the `UserType` type (i.e., users) for which the `activation/effectiveStatus` equals to `enabled`.
+To go with the example of counting active users, create a collection that enumerates objects of the `UserType` type (i.e., users) for which the `activation/effectiveStatus` equals to `enabled`.
 
 [source,xml]
 ----
@@ -174,17 +173,21 @@ To go with the example of counting active users we use here, create a collection
 ----
 
 And this is it.
-Add the OID of the collection above to the `collectionRef` in the widget, move the widget code to the dashboard object, and upload both the collection and the dashboard objects to your midPoint instance.
+You are getting closer to your goal:
+
+* Add the OID of the collection above to the `collectionRef` in the link:#simple-widget:[widget].
+* Move the widget code to the dashboard object.
+* Upload both the collection and the dashboard objects to your midPoint instance.
 
 The only step that remains is to display the dashboard in the midPoint graphical user interface.
 
 === Add the dashboard to the main menu
 
-To have the new dashboard displayed in the main menu in midPoint, you need to add it to the system configuration:
+To have the new dashboard displayed in the main midPoint menu, you need to add it to the system configuration:
 
 [source,xml]
 ----
-<systemConfiguration ... >
+<systemConfiguration>
     ...
     <adminGuiConfiguration>
         <configurableUserDashboard id="999"> <!--1-->
@@ -201,7 +204,7 @@ To have the new dashboard displayed in the main menu in midPoint, you need to ad
     ...
 </systemConfiguration>
 ----
-<1> Unique integer ID.
+<1> Create a unique integer ID.
 <2> The OID of your dashboard goes here.
 <3> More `configurableUserDashboard` elements can follow here, one for each dashboard.
 
@@ -212,9 +215,7 @@ image::first-dashboard-active-users.webp["MidPoint GUI with the dashboards menu 
 [[async-widget]]
 == Create asynchronous widget to reduce system load
 
-Simple widgets like the one above force midPoint to compute the data every time a user loads the dashboard screen.
-If you have a lot of users or a lot of computationally complex dashboards, this may needlessly overload the infrastructure your midPoint instance runs on.
-And that is where asynchronous widgets come in handy.
+Simple widgets like the one above are easy to deploy, but xref:../#asynchronous-dashboards[you may want to use asynchronous widgets] instead.
 
 An asynchronous widget uses a task to recompute the data at an interval of your choosing and holds the result in the widget object.
 You can use the same object collection as you do with the synchronous widget above.
@@ -230,7 +231,7 @@ xref:/midpoint/reference/tasks/synchronization-tasks/asynchronous-update[asynchr
 To configure a widget as asynchronous, you need to adjust the widget data source and create two new pieces of configuration:
 
 * A report which takes the dashboard configuration, triggers the data computation, and saves the results into the dashboard widget objects.
-    ** Note that you always compute the data for all the widgets in the dashboard the report references.
+    ** Note that a dashboard report always computes the data for all the widgets in the linked dashboard.
 * A report task which runs the report at scheduled intervals to refresh the data.
 
 First, change the widget configuration by adding the `displaySourceType` element so that the report can save the computed data in the widget object:
@@ -277,7 +278,7 @@ First, change the widget configuration by adding the `displaySourceType` element
 <1> Enable saving data into the widget object
 <2> The object collection OID goes here.
 
-=== Create a dashboard report connected to your dashboard
+=== Create a report connected to your dashboard
 
 Secondly, you need a dashboard report that "runs" the dashboard as if a user has visited it and makes midPoint compute the data in the dashboard.
 
@@ -299,9 +300,13 @@ To have the data on the dashboard refreshed regularly, you need a recurring task
 See xref:/midpoint/reference/misc/reports/configuration/report-task-definition/#export-report[] for instructions on creating an export report task.
 
 When configuring the task, you need to use the _report export_ activity and use the OID of the dashboard report you want the task to run.
-In most cases, it makes sense to schedule this task to run in regular intervals in order to have the data in the dashboard updated automatically.
+In most cases, it makes sense to schedule this task to run at regular intervals in order to have the data in the dashboard updated automatically.
+
+Once you have all the pieces in place, upload them to your midPoint instance, refresh the GUI (possibly log out and back in), and see the updated dashboard under [.nowrap]#icon:tachometer-alt[] *Dashboards*#.
 
 == Dashboard widget configuration attributes
+
+This section contains details on possible widget configuration options.
 
 The widget element contains three configuration attributes: `display`,`data`, and `presentation`.
 
@@ -314,78 +319,82 @@ The `display` attribute contains configuration of the widget visual side in the 
 | Name | Type | Description
 
 | `label`
-| String
-| Displayed name of Widget.
+| `String`
+| Displayed name of widget.
 
 
 | `color`
-| String
+| `String`
 | Default color of background for widget.
 
 
 | `icon/cssClass`
-| String
-| CssClass for widget icon for example "fa fa-user".
+| `String`
+| CSS class for widget icon; for example, `fa fa-user`.
 
 
 | `cssStyle`
-| String
-| CssStyle for widget for example "color: #444 !important" for change of font color.
-
+| `String`
+| CSS style for the widget; for example, `color: #444 !important` to change the font color.
 
 |===
 
 === Data attribute
 
 The `data` attribute represents the data source that the widget displays.
-There are two kinds of data in midpoint:
-
-* for _objectCollection_
-* for _objectType_
 
 [%autowidth]
 |===
 | Name | Type | Description
 
 | `sourceType`
-| `DashboardWidgetSourceTypeType`
+| `DashboardWidgetSourceType`
 | Type of widget content data source.
-Specify type of input data, which midPoint uses for generating a message showed in the widget.
-This is an enumeration type and possible values are  _objectCollection_ (content of widget is based on object collection), _auditSearch_ (content of the widget will be based on data from object collection with filter for audit records) and _object_ (content of the widget will be based on data from a single object). We describe this using `sourceType` and `displaySourceType` in the example under table.
+    Specify the type of input data, which midPoint uses for generating a message shown in the widget.
+    This is an enumeration type and possible values are:
+
+    * `objectCollection`: Content of the widget is based on object collection.
+    * `auditSearch`: Content of the widget is based on the data from an object collection with a filter for audit records.
+    * `object`: Content of the widget is based on the data from a single object.
+        We describe this using `sourceType` and `displaySourceType` in the example beneath the table.
 
 | `displaySourceType`
-| `DashboardWidgetSourceTypeType`
-| This attribute is an identifier that overrides sourceType. We can use it for asynchronous widgets.
-This element is used only for number messages showed in a widget in the GUI. The widget in the GUI might contain a link for a redirect to a details page and the used sourceType. We describe the usage of `sourceType` and `displaySourceType` in an example under the table.
-
+| `DashboardWidgetSourceType`
+| This attribute is an identifier that overrides `sourceType`.
+    You can use it for asynchronous widgets.
+    This element is used only for number messages shown in the widget in the GUI.
+    The widget in the GUI may contain a link for a redirect to a details page and the used `sourceType`.
+    We describe the usage of `sourceType` and `displaySourceType` in the example beneath the table.
 
 | `collection`
 | `CollectionRefSpecificationType`
-| Specification of an explicit or implicit object collection that will be used as data source for the view.
-Contains variable _collectionRef,_ which is a reference to the object collection which is displayed in the widget.
-
+| Specification of an explicit or implicit object collection that is used as a data source for the view.
+    Contains variable `collectionRef` which is a reference to the object collection enumerating objects for the widget.
 
 | `objectRef`
 | `ObjectReferenceType`
-| Specification of a single object as a widget data source.
+| Specifies a single object as a data source for the widget.
 
 | `storedData`
 | `String`
-| Specification of a string data as a widget data source. This data can be stored by a report task. A Widget will leverage it by the usage of an asynchronous widget.
+| Specifies a string data as a widget data source.
+    This data can be stored by a report task.
+    This configuration is used in asynchronous widgets.
 
 |===
 
 ===== Using sourceType and displaySourceType
 
-When we configure a simple widget, we can set the `sourceType` to either `objectCollection`, `auditSearch` or `object`.
+When you configure a simple widget, you can set the `sourceType` to either `objectCollection`, `auditSearch` or `object`.
 
 The `displaySourceType` is important for asynchronous widgets.
-In the case of async widgets we set `widgetData` as `displaySourceType` and as `sourceType` we will use `objectCollection`.
-This will mean that the widget will show stored data from the attribute `storedData` but when you click the widget the redirection for object details will use the `sourceType`. We can't forget, that `sourceType` will also use by Export report task for generation `storedData`.
+In the case of asynchronous widgets, you set `widgetData` as `displaySourceType` and use `objectCollection` as `sourceType`.
+This means that the widget shows stored data from the `storedData` attribute, but when you click the widgets, the redirection for object details uses `sourceType`.
+`sourceType` is also use by the export report task for generating content in `storedData`.
 
-When we use an `objectCollection` or `auditSearch` as source, midPoint will need a reference to the object collection which contains a filter for the reported data.
+When you use `objectCollection` or `auditSearch` as a source, midPoint needs a reference to the object collection which contains a filter for the reported data.
 
-The following is and example of widget data source for object collection:
+The following is an example of widget data source for an object collection:
 
 [source,xml]
 ----
@@ -400,10 +409,11 @@ The following is and example of widget data source for object collection:
 </widget>
 ----
 
-Another option is to define a specific `object` as source, in this case part of the configuration is a reference to the object, which will be used as a source.
-The configuration will contain a path to the attribute, which will be presented in the widget.
+Another option is to define a specific `object` as a source.
+In this case, a part of the configuration is a reference to the object which is used as a source.
+The configuration contains a path to the attribute which is presented in the widget.
 
-Example of widget data source for object type:
+An example of a widget data source for an object type:
 
 [source,xml]
 ----
@@ -416,13 +426,15 @@ Example of widget data source for object type:
 </widget>
 ----
 
-A widget in the GUI with `object` as source. In this case it is the Cleanup task with the path set to the `state` attribute:
+A widget in the GUI with an `object` as a source.
+In this case, it is a cleanup task with the path set to the `state` attribute:
 
 image::object.png[]
 
-In the case when we want to set up an asynchronous widget, we can use an `objectCollection`, `auditSearch` or `object` as source, but additionally we have to use the `widgetData` attribute value for the `displaySourceType` attribute.
+In the case when you want to set up an asynchronous widget, you can use an `objectCollection`, `auditSearch` or `object` as a source.
+However, you have to also use the `widgetData` attribute value for the `displaySourceType` attribute.
 
-Example of widget data source for widget data (asynchronous widget):
+An example of a widget data source for widget data (asynchronous widget):
 
 [source,xml]
 ----
@@ -439,12 +451,13 @@ Example of widget data source for widget data (asynchronous widget):
 </widget>
 ----
 
-=== Presentation of Widget Data
+=== Presentation of widget data
 
-There is and container attribute which is used to define how will be data presented.
-The name of the attribute is `presentation`.
+// TODO: add configuration examples to each presentation option @dakle 2025-09-07
 
-We define four basic kind of presentation:
+`presentation` is a container attribute used to define how to present the data.
+
+There are four presentation options:
 
 * percentage (50%)
 
@@ -462,106 +475,108 @@ image::of.png[]
 
 image::only-value.png[]
 
-Presentation contains three attributes: `dataField`, `variation` and `view`.
+The `presentation` container contains three attributes: `dataField`, `variation` and `view`.
 
 
-===== The Widget Data Field
+===== The widget data field
 
-The attribute `dataField`, describes the properties of a specific widget data field.
-Note that the order of dataField elements is NOT significant.
+The attribute `dataField` describes the properties of a specific widget data field.
+Note that the order in the `dataField` elements is _not_ significant.
 The field order is given by specific presentation style.
 
-Attributes for `dataField`:
+The attributes for `dataField`:
 
 [%autowidth]
 |===
 | Name | Type | Description
 
 | `fieldType`
-| DashboardWidgetDataFieldTypeType
+| `DashboardWidgetDataFieldType`
 | Type of the field.
-Currently, we support the following values `value` and `unit` of the `fieldType` attribute.
-`value` is the actual value of the data which is being displayed i.e. some number.
-`unit` defines the unit of the value.
-For example in message '5/9 up', where '5/9' is generated via configuration for `value` and 'up' is generated via configuration for `unit`.
+    MidPoint currently supports `value` and `unit` as the values for the `fieldType` attribute:
 
+    * `value` is the actual value displayed.
+    * `unit` defines the unit for the value.
+
+    For example, in a message _5/9 up_ is _5/9_ the `value` and _up_ the `unit`.
 
 | `expression`
-| ExpressionType
-| Expression that produces value to display in the widget.
-
+| `ExpressionType`
+| Expression that produces the value to display in the widget.
 
 |===
 
-For the `fieldType` attribute, when set to  `value`, we define a special type of expression, in it, we need to define the attribute `proportional` with an attribute `style`.
-The attribute `style` is a enumeration type with values `percentage` (for example 50%), `value-slash-domain` (for example 5/10), `value-of-domain` (for example 5 of 10) and `value-only` (for example 5).
+For the `fieldType` attribute, when set to `value`, a special type of expression is defined.
+In this expression, the attribute `proportional` must be defined along with the attribute `style`.
+The attribute `style` is an enumeration type with the following values:
+
+* `percentage` (for example, 50%)
+* `value-slash-domain` (for example, 5/10)
+* `value-of-domain` (for example, 5 of 10)
+* `value-only` (for example, 5)
 
 ===== Variation of Widget Data
 
-Next presentation attribute is `variation`. Conditional variation in the way how the widget is displayed.
-Variations may change colors or icons of the widget based on a condition.
-Attributes for `variation`:
+The next presentation attribute is `variation`.
+This attribute allows for conditional variation in how the widget is displayed.
+Variations may change the colors or icons of the widget based on specific conditions.
+The attributes for `variation` are as follows:
 
 [%autowidth]
 |===
 | Name | Type | Description
 
 | `condition`
-| ExpressionType
+| `ExpressionType`
 | Condition for the variation.
 The variation will be active if the condition evaluates to true.
 
 
 | `display`
-| DisplayType
-| Display properties to apply in case that the condition is true.
-Those display properties specify only those presentation aspects that are different from the usual presentation.
-This is supposed to be merged with the primary display properties of the widget.
-E.g. if the variation only changes widget color, only color needs to be specified here.
-Icon and other styles are taken from the primary widget display properties.
-
+| `DisplayType`
+| Display properties are applied when the condition evaluates to true.
+    These display properties specify only the presentation aspects that differ from the usual presentation.
+    For example, if the variation only changes the widget color, only the color needs to be specified here.
+    Icons and other styles are taken from the primary widget display properties.
 
 |===
 
-`condition` can get four variables:
+You can use four variables for `condition`:
 
 [%autowidth]
 |===
-| Name | Type | Description | sourceType in data of widget
+| Name | Type | Description | `sourceType` in data of widget
 
 | `proportional`
-| IntegerStatType
+| `IntegerStatType`
 | Integer stat (statistic) entry.
-This entry contains stat value, together with domain value.
-| objectCollection, auditSearch
-
+    This entry contains stat value, together with domain value.
+| `objectCollection`, `auditSearch`
 
 | `policySituations`
-| Collection<String>
+| `Collection <String>`
 | Collection of policy situations.
-| objectCollection
-
+| `objectCollection`
 
 | `object`
-| base on displayed object in widget
+| Based on the displayed object in the widget
 | Processed object.
-| object
-
+| `object`
 
 | `storedData`
-| String
-| Stored data from widget.
-| widgetData
-
+| `String`
+| Data stored in the widget.
+| `widgetData`
 
 |===
 
 // TODO no example, add ??
 ===== View
 
-Last variable of the presentation container is `view`, this variable is also processed in case we create reports.
-The main reason to configure a view would be the customization of the reported or presented object collection on which we based the dashboard widget.
-The widget object collection can be accessed via the IU *"More info"* button.
+The last variable of the presentation container is `view`.
+This variable is also processed when creating reports.
+The main reason to configure a view is to customize the reported or presented object collection that the dashboard widget is based on.
+The widget object collection can be accessed via the GUI btn:[More info] button.
 
 //TODO check after sampleRef is fully in prod
 .*Example of `presentation`*:
@@ -605,9 +620,9 @@ The widget object collection can be accessed via the IU *"More info"* button.
 
 === Configuration details for object collections
 
-You can see basic configuration for objectCollection on xref:/midpoint/reference/admin-gui/collections-views/configuration/#object-collection[Object Collection].
-For dashboard, we can use policyRule with policyTreshold to define some policySituation.
-Example of object collection for resource, which have status set to "UP":
+You can see the basic configuration for `objectCollection` in xref:/midpoint/reference/admin-gui/collections-views/configuration/#object-collection[].
+For the dashboard, you can use `policyRule` with `policyThreshold` to define a `policySituation`.
+Here is an example of `objectCollection` for a resource that has the status set to "UP":
 
 //TODO check after sampleRef is fully in prod
 .*Example Object Collection*
@@ -618,27 +633,32 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/object-collection-resource-up.xml[]
 ====
 
-Variable _domain_ is a set of object that represents "all the objects" used in this collection.
-For example collection of "up resources" will have a domain of "all resources".
-The domain is filtered out via the _filter_ to contain only the specific set of objects which we need.
+The variable (collection) _domain_ is a set of objects that represents "all the objects" used in a collection.
+For example, for a collection of "up resources", the domain is "all resources."
+The domain is filtered using the _filter_ to contain only the specific set of objects needed.
 
-In this example we use _policyRule_ with _policySituation_, which we can leverage in the variation of widget presentation.
-When policyTreshold is met policySituation from policyRule triggers the widget variation.
-The _policyThreshold_ has two important variables for us, lowWaterMark and highWaterMark.
+In this example, use _policyRule_ with _policySituation_, which can be leveraged in the variation of widget presentation.
+When the _policyThreshold_ is met, the _policySituation_ from _policyRule_ triggers the widget variation.
+The _policyThreshold_ has two important variables: _lowWaterMark_ and _highWaterMark_.
 
-lowWaterMark is lower bound of the threshold. Lowest value for which the policy rule is activated. The policy rule will be triggered for all values starting from this value up until the high water mark (closed interval). If no low water mark is specified then the policy rule will be activated for all values up to the high water mark. Policy rule with a threshold that does not have any water marks will never be activated.
+_lowWaterMark_ is the lower bound of the threshold, representing the lowest value for which the policy rule is activated.
+The policy rule will trigger for all values starting from this value up to the _highWaterMark_ (closed interval).
+If no _lowWaterMark_ is specified, the policy rule activates for all values up to the _highWaterMark_.
+A policy rule with a threshold that does not have any water marks will never activate.
 
-highWaterMark is upper bound of the threshold. Highest value for which the policy rule is activated. The policy rule will be triggered for all values starting from low water mark up until this value (closed interval). If no high water mark is specified then the policy rule will be activated for all values that are greater than or equal to high water mark.
+_highWaterMark_ is the upper bound of the threshold, representing the highest value for which the policy rule is activated.
+The policy rule will trigger for all values starting from the _lowWaterMark_ up to this value (closed interval).
+If no _highWaterMark_ is specified, the policy rule activates for all values greater than or equal to the _highWaterMark_.
 
-Both variables are WaterMarkType type, which contains variables count and percentage.
+Both variables are of the type _WaterMarkType_, which contains the variables _count_ and _percentage_.
 
 == More configuration examples
 
 === Simple Example for "Enabled Users Widget"
 
-Now we show very simple example for widget of enabled users, that show only number of enabled users in mP.
+This section presents a very simple example of an enabled users widget that displays the number of enabled users.
 
-As first, we create an object collection with filter for users with value `enabled` in attribute activation/effectiveStatus.
+First, create an object collection with a filter for users for which the attribute `activation/effectiveStatus` equals to `enabled`.
 
 //TODO check after sampleRef is fully in prod
 .*Example Object Collection*
@@ -649,7 +669,7 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/howto/collection-enabled-users.xml[]
 ====
 
-And next we create dashboard with one widget for enabled users.
+And next, create dashboard with one widget for enabled users.
 
 //TODO check after sampleRef is fully in prod
 .*Example Dashboard Configuration*
@@ -660,23 +680,22 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/dashboard-asynchronous-widget.xml[]
 ====
 
-Don't forget to add the new dashboard to admin gui in system configuration.
+Lastly, add the new dashboard to the GUI in system configuration.
 
-After accessing the new dashboard in GUI you can see our new widget.
+After accessing the new dashboard in GUI, you can see your new widget.
 
 image::enabled-users.png[]
 
 [#_asynchronous_widget]
 === Asynchronous widget
 
-To configure an asynchronous widget we have to use the `displaySourceType` attribute in the widget configuration and set it as `widgetData`.
-We set `sourceType` as `objectCollection` because of the redirects to a details page in case of clicking on the widget details.
+To configure an asynchronous widget, use the `displaySourceType` attribute in the widget configuration and set it to `widgetData`.
+Set `sourceType` to `objectCollection` to handle redirects to a details page when clicking on the widget details.
 
-Also, we need to configure a dashboard report task, which will generate and store data into the widget.
-For this we use a dashboard report with the element `storeExportedWidgetData`.
+Next, configure a dashboard report task to generate and store data in the widget.
+Use a dashboard report with the element `storeExportedWidgetData`.
 
-For example, we will use the same case as in the previous example for enabled users.
-We create the same object collection.
+You can use the same collection as in the previous example for enabled users.
 
 //TODO check after sampleRef is fully in prod
 
@@ -688,7 +707,8 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/howto/collection-enabled-users.xml[]
 ====
 
-Next, we have to create a dashboard. We also need to add the attribute `displaySourceType` with value `widgetData`.
+Next, create a dashboard.
+Add the attribute `displaySourceType` with the value `widgetData`.
 
 //TODO check after sampleRef is fully in prod
 
@@ -700,7 +720,7 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/dashboard-asynchronous-widget.xml[]
 ====
 
-Finally, we create a report for dashboard.
+Finally, create a report for the dashboard.
 
 //TODO check after sampleRef is fully in prod
 
@@ -712,20 +732,23 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/report-asynchronous-widget.xml[]
 ====
 
-Now we can run the report and midPoint processes the source data for the dashboard.
-The resulting data is written to the widget in the dashboard.
+Now run the report, and midPoint processes the source data for the dashboard.
+The resulting data are written to the widget in the dashboard.
 
 include::../raw/file-format.adoc[]
 
-Next time you open the widget in the GUI, midPoint doesn't need to process the source data, it shows the saved data present in the object xml.
+Next time you open the widget in the GUI, midPoint does not need to process the source data;
+it shows the saved data present in the widget object.
 
 image::enabled-users.png[]
 
 == Dashboard views
 
-A dashboard can provide additional info when someone clicks on the *"More info"* button, in this case if we use an "objectCollection" as data "sourceType" we will get tale of objects representing the collection.
-The table can be configured and customized. This is done via the "view" container.
-Next screenshot is from the example dashboard link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status].
+A dashboard can provide additional info when users click the btn:[More info] button.
+In this case, should you use an `objectCollection` as the data `sourceType`, you would see a table of objects in the collection.
+The table can be configured and customized.
+This is done via the `view` container.
+The screenshot below is from the example dashboard in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status.xml]:
 
 image::dashboard-screenshot.png[]
 
