@@ -42,7 +42,7 @@ The points below summarize the steps to take when deploying dashboards.
 . Add a `<configurableUserDashboard>` element to `SystemConfiguration` and upload the configuration.
 . Check the configuration:
 .. Refresh the GUI (you may need to log out and back in) to apply the system configuration changes.
-.. Go to [.nowrap]#icon:tachometer-akt[] *Dashboards*# to see your new dashboard.
+.. Go to [.nowrap]#icon:tachometer-alt[] *Dashboards*# to see your new dashboard.
 
 === How to deploy dashboards with asynchronous widgets
 
@@ -53,10 +53,10 @@ The points below summarize the steps to take when deploying dashboards.
 . Add a `<configurableUserDashboard>` element to `SystemConfiguration` and upload the configuration.
 . Check the configuration:
 .. Refresh the GUI (you may need to log out and back in) to apply the system configuration changes.
-.. Go to [.nowrap]#icon:tachometer-akt[] *Dashboards*# to see your new dashboard.
+.. Go to [.nowrap]#icon:tachometer-alt[] *Dashboards*# to see your new dashboard.
     The asynchronous widget cannot show data yet.
 .. Run the report task or wait until its scheduled run finishes.
-.. Go to [.nowrap]#icon:tachometer-akt[] *Dashboards*# again.
+.. Go to [.nowrap]#icon:tachometer-alt[] *Dashboards*# again.
     The asynchronous widget should now display correct data.
 
 When you upload dashboard with asynchronous widgets, it will display an _Unknown_ value until the report task runs for the first time and saves the computed data to the dashboard widgets.
@@ -205,7 +205,7 @@ To have the new dashboard displayed in the main menu in midPoint, you need to ad
 <2> The OID of your dashboard goes here.
 <3> More `configurableUserDashboard` elements can follow here, one for each dashboard.
 
-Now, you can refresh the GUI (you may need to log out and back in) and go to [.nowrap]#icon:tachometer-akt[] *Dashboards*# to see your new dashboard.
+Now, you can refresh the GUI (you may need to log out and back in) and go to [.nowrap]#icon:tachometer-alt[] *Dashboards*# to see your new dashboard.
 
 image::first-dashboard-active-users.webp["MidPoint GUI with the dashboards menu open and a dashboard with active users shown", title="The dashboards section featuring the custom dashboard from the configuration example provided here."]
 
