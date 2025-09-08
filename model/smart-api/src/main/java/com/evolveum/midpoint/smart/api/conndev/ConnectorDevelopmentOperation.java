@@ -33,6 +33,8 @@ public interface ConnectorDevelopmentOperation {
     // Midpoint local (+ download framework)
     String generateAuthenticationScript(Task task, OperationResult result);
 
+    String submitDiscoverObjectClasses(Task task, OperationResult result);
+
     // FIXME: Also add operation results
     // Midpoint local
     ResourceType testConnection(ConnectorConfigurationType type);
@@ -77,4 +79,5 @@ public interface ConnectorDevelopmentOperation {
     void saveGet(ConnDevArtifactType script, String body);
 
     void saveAuthenticationScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException;
+
 }

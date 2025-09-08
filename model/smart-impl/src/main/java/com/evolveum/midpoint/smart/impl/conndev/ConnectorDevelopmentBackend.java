@@ -135,5 +135,31 @@ public abstract class ConnectorDevelopmentBackend {
         }
         return path;
     }
-    ;
+
+    /**
+     * Discovers object classes using connector functionality.
+     *
+     * Ideal for connector frameworks with protocols which supports dynamic discovery of schema, such as SCIM or Database.
+     * @return
+     */
+    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingConnector() {
+        return List.of();
+    }
+
+    public void updateApplicationObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) throws CommonException {
+        List<ConnDevObjectClassInfoType> applicationClasses = discovered.stream().map(v -> new ConnDevObjectClassInfoType()
+                .name(v.getName())
+                .description(v.getDescription())
+                .embedded(v.getEmbedded())
+                ._abstract(v.isAbstract())
+                .superclass(v.getSuperclass())
+                .relevant(v.getRelevant())
+        ).toList();
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_DETECTED_SCHEMA, ConnDevSchemaType.F_OBJECT_CLASS).replaceRealValues(applicationClasses)
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+    }
+
 }

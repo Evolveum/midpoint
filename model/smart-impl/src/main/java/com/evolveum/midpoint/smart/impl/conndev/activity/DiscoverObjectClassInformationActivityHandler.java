@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -26,33 +27,29 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class DiscoverObjectClassInformationActivityHandler
-        extends ModelActivityHandler<DiscoverObjectClassInformationActivityHandler.WorkDefinition, DiscoverObjectClassInformationActivityHandler> {
+        extends AbstractConnDevActivityHandler<DiscoverObjectClassInformationActivityHandler.WorkDefinition, DiscoverObjectClassInformationActivityHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DiscoverObjectClassInformationActivityHandler.class);
 
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
 
-    @PostConstruct
-    public void register() {
-        handlerRegistry.register(
+    public DiscoverObjectClassInformationActivityHandler() {
+        super(
                 ConnDevDiscoverObjectClassInformationDefinitionType.COMPLEX_TYPE,
                 WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_INFORMATION,
+                ConnDevDiscoverObjectClassInformationWorkStateType.COMPLEX_TYPE,
                 DiscoverObjectClassInformationActivityHandler.WorkDefinition.class,
-                DiscoverObjectClassInformationActivityHandler.WorkDefinition::new,
-                this);
+                DiscoverObjectClassInformationActivityHandler.WorkDefinition::new);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
                 ConnDevCreateConnectorWorkDefinitionType.COMPLEX_TYPE, DiscoverObjectClassInformationActivityHandler.WorkDefinition.class);
-    }
-
-    @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
-        return ActivityStateDefinition.normal(ConnDevCreateConnectorWorkStateType.COMPLEX_TYPE);
     }
 
     @Override
@@ -75,26 +72,9 @@ public class DiscoverObjectClassInformationActivityHandler
 
     public static class WorkDefinition extends AbstractWorkDefinition {
 
-        final String connectorDevelopmentOid;
-        final String templateUrl;
-
         public WorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
-            var typedDefinition = (ConnDevCreateConnectorWorkDefinitionType) info.getBean();
-            connectorDevelopmentOid = MiscUtil.configNonNull(Referencable.getOid(typedDefinition.getConnectorDevelopmentRef()), "No resource OID specified");
-            templateUrl  = MiscUtil.configNonNull(typedDefinition.getBaseTemplateUrl(), "No Base template URL specified");
-        }
-
-        @Override
-        public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) throws SchemaException, ConfigurationException {
-            return AffectedObjectsInformation.ObjectSet.repository(new BasicObjectSetType()
-                    .objectRef(connectorDevelopmentOid, ConnectorDevelopmentType.COMPLEX_TYPE)
-            );
-        }
-
-        @Override
-        protected void debugDumpContent(StringBuilder sb, int indent) {
-
+            var typedDefinition = (ConnDevDiscoverObjectClassInformationDefinitionType) info.getBean();
         }
     }
 
@@ -117,42 +97,21 @@ public class DiscoverObjectClassInformationActivityHandler
             var beans = ConnDevBeans.get();
             //var developmentUri = getWorkDefinition().templateUrl;
 
-            var connDev = beans.repositoryService.getObject(ConnectorDevelopmentType.class, getWorkDefinition().connectorDevelopmentOid, null, result);
-            var connDef = connDev.asObjectable().getConnector();
+            var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
 
-            var targetDir = connDef.getGroupId() + "." + connDef.getArtifactId() + "." + connDef.getVersion();
+            var connectorDiscovered =  backend.discoverObjectClassesUsingConnector();
 
-            // Download template
-            var template = beans.connectorService.downloadConnector(getWorkDefinition().templateUrl, targetDir + ".template" ,result);
+            var discovered = backend.discoverObjectClassesUsingDocumentation(connectorDiscovered);
 
-            // Unpack template
-            var editable = template.unpack(targetDir, result);
+            backend.updateApplicationObjectClasses(discovered);
 
-            template.remove();
-            // Rename template to connector
-            editable.asEditable().renameBundle(connDef.getGroupId(), connDef.getArtifactId(), connDef.getVersion());
-
-            // Install template
-            var lookups = editable.install(result);
-
-            var lookup = lookups.get(0);
-
-            var query = PrismContext.get().queryFor(ConnectorType.class)
-                    .item(ConnectorType.F_CONNECTOR_BUNDLE).eq(lookup.getConnectorBundle())
-                    .and().item(ConnectorType.F_CONNECTOR_TYPE).eq(lookup.getConnectorType())
-                    .and().item(ConnectorType.F_CONNECTOR_VERSION).eq(lookup.getConnectorVersion())
-                    .build();
-
-
-            var connectors = beans.modelService.searchObjects(ConnectorType.class, query, null, task, result);
-            var connector = connectors.get(0);
 
             var state = getActivityState();
 
             // FIXME: Write connectorRef + connectorDirectory to ConnectorDevelopmentType
 
-            state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT,new ConnDevCreateConnectorResultType()
-                    .connectorRef(connector.getOid(), ConnectorType.COMPLEX_TYPE));
+            state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT,
+                    new ConnDevDiscoverObjectClassInformationResultType());
             state.flushPendingTaskModifications(result);
             return ActivityRunResult.success();
         }

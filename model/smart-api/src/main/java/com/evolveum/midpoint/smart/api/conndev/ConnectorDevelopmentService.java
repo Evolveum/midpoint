@@ -26,4 +26,6 @@ public interface ConnectorDevelopmentService {
     StatusInfo<ConnDevDiscoverDocumentationResultType> getDiscoverDocumentationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     StatusInfo<ConnDevGenerateGlobalArtifactResultType> getGenerateGlobalArtifactStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    StatusInfo<ConnDevDiscoverObjectClassInformationResultType> getDiscoverObjectClassInformationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 }

@@ -10595,7 +10595,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevCreateConnectorResultType" />
+                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassInformationResultType" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

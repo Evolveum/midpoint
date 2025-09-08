@@ -76,4 +76,17 @@ public class DummyBackend extends ConnectorDevelopmentBackend {
             default -> throw new IllegalStateException("Unexpected value: " + artifactSpec.getIntent());
         };
     }
+
+    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered) {
+        return List.of(
+                new ConnDevBasicObjectClassInfoType()
+                        .name("User")
+                        .description("User represents account on the system")
+                        ._abstract(false).embedded(false).relevant(true),
+                new ConnDevBasicObjectClassInfoType()
+                        .name("Group")
+                        .description("Group represents group on the system")
+                        ._abstract(false).embedded(false).relevant(true)
+        );
+    }
 }

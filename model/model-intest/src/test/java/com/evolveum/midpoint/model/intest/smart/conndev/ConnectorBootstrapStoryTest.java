@@ -166,7 +166,20 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
 
     @Test
     public void test300DiscoverObjectClasses() throws Exception {
+        var task = getTestTask();
+        var result = getTestOperationResult();
+        var development =  continueDevelopment(getTestTask(), getTestOperationResult());
 
+        var token = development.submitDiscoverObjectClasses(getTestTask(), getTestOperationResult());
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> connectorService.getDiscoverObjectClassInformationStatus(token, task, result),
+                TIMEOUT);
+
+        assertThat(response).isNotNull();
+
+        development = continueDevelopment(getTestTask(), getTestOperationResult());
+        assertThat(development.getObject().getApplication().getDetectedSchema().getObjectClass()).isNotEmpty();
     }
 
     @Test

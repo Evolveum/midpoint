@@ -35,7 +35,6 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.Duration;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 
 @Component
 public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentService {
@@ -86,8 +85,16 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         public String submitDiscoverDocumentation(Task task, OperationResult result) {
-            return submitTask("Discovering Docuemntation for " + stateObject.getOid(),
+            return submitTask("Discovering documentation for " + stateObject.getOid(),
                     new WorkDefinitionsType().discoverDocumentation(new ConnDevDiscoverDocumentationWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
+        @Override
+        public String submitDiscoverObjectClasses(Task task, OperationResult result) {
+            return submitTask("Discovering object classes for for " + stateObject.getOid(),
+                    new WorkDefinitionsType().discoverObjectClassInformation(new ConnDevDiscoverObjectClassInformationDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
         }
@@ -270,6 +277,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token,result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevGenerateGlobalArtifactResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevDiscoverObjectClassInformationResultType> getDiscoverObjectClassInformationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token,result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevDiscoverObjectClassInformationResultType.class
         );
     }
 }
