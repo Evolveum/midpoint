@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -8,6 +9,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.List;
 
+// FIXME: Rename to OfflineBackend in future
 public class DummyBackend extends ConnectorDevelopmentBackend {
 
     public DummyBackend(ConnDevBeans beans, ConnectorDevelopmentType connDev, Task task, OperationResult result) {
@@ -29,8 +31,12 @@ public class DummyBackend extends ConnectorDevelopmentBackend {
                 new ConnDevAuthInfoType()
                         .name("Basic Authorization")
                         .type("basic")
+                        .quirks(""),
+                new ConnDevAuthInfoType()
+                        .name("API Key Authorization")
+                        .type("apiKey")
                         .quirks("Username is `apiKey` and password is API Token.")
-        );
+                );
     }
 
     public List<ConnDevDocumentationSourceType> discoverDocumentation() {
@@ -46,5 +52,28 @@ public class DummyBackend extends ConnectorDevelopmentBackend {
                         .contentType("application/html")
                         .uri("https://community.openproject.org/api/v3")
         );
+    }
+
+    public ConnDevArtifactType generateGlobalArtifact(ConnDevArtifactType artifactSpec) {
+        var ret = artifactSpec.clone();
+        var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
+        return switch (classification) {
+            case AUTHENTICATION_CUSTOMIZATION -> ret.content("""
+                        authentication {
+                            apiKey {
+                                preventDefault true
+                                implementation {
+                                    request.basicAuth("apiKey", configuration.restTokenValue())
+                                }
+                            }
+                        }
+                        """);
+            case TEST_CONNECTION_DEFINITION -> ret.content("""
+                        test {
+                            endpoint "/api/v3/users"
+                        }
+                        """);
+            default -> throw new IllegalStateException("Unexpected value: " + artifactSpec.getIntent());
+        };
     }
 }

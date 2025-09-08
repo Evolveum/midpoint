@@ -1,12 +1,15 @@
 package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.io.IOException;
 import java.util.List;
 
 public abstract class ConnectorDevelopmentBackend {
@@ -102,4 +105,35 @@ public abstract class ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
     }
+
+    public void saveArtifact(ConnDevArtifactType artifact) throws IOException {
+        var modelProp = artifact.clone();
+        var itemPath = itemPathFor(artifact);
+
+        saveConnectorFile(artifact.getFilename(), artifact.getContent());
+
+    }
+
+    private void saveConnectorFile(String filename, String content) throws IOException {
+        beans.connectorService.editableConnectorFor(development.getConnector().getDirectory())
+                .saveFile(filename, content);
+    }
+
+    private ItemPath itemPathFor(ConnDevArtifactType artifact) {
+        ItemPath path = ConnectorDevelopmentType.F_CONNECTOR;
+        if (artifact.getObjectClass() != null) {
+            path = path.append(ConnDevConnectorType.F_OBJECT_CLASS);
+            var objClass = development.getConnector().getObjectClass().stream().filter(o -> o.getName().equals(artifact.getObjectClass())).findFirst().orElse(null);
+            if (objClass == null) {
+                throw new UnsupportedOperationException("No connector class found for object class " + artifact.getObjectClass());
+            }
+            path = path.append(objClass.getId());
+        }
+        var classification = ConnectorDevelopmentArtifacts.classify(artifact);
+        if (classification != null) {
+            path = path.append(classification.itemName);
+        }
+        return path;
+    }
+    ;
 }

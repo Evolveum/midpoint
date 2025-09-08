@@ -17,4 +17,7 @@ public interface ConnectorInstallationService {
 
     DownloadedConnector downloadConnector(String uri, String targetName, OperationResult result);
     EditableConnector editableConnectorFor(@NotNull ConnectorType objectable);
+
+    EditableConnector editableConnectorFor(String directory);
+
 }

@@ -7,15 +7,20 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.io.IOException;
+import java.util.List;
+
 public interface ConnectorDevelopmentOperation {
 
     ConnectorDevelopmentType getObject();
 
     // AI only
-    StatusInfo<PrismContainer<ConnDevDocumentationSourceType>> discoverDocumentation(ConnectorDevelopmentType type);
+    String submitDiscoverDocumentation(Task task, OperationResult result);
 
     // AI only
     StatusInfo<ConnectorDevelopmentType> processDocumentation(PrismContainer<ConnDevDocumentationSourceType> sources);
+
+    String submitDiscoverBasicInformation(Task task, OperationResult result);
 
     // Midpoint local (AI optional in background)
     void basicConnectorInfoUpdated(ConnectorDevelopmentType  updated);
@@ -23,11 +28,10 @@ public interface ConnectorDevelopmentOperation {
     // AI optional
     StatusInfo<PrismContainer<ConnDevAuthInfoType>>  selectBaseApiInformation(String basicInfo);
 
-
-    StatusInfo<ConnectorType> createConnectorType();
+    String submitCreateConnector(Task task, OperationResult result);
 
     // Midpoint local (+ download framework)
-    StatusInfo<ConnectorType> updateSupportedAuthTypes(PrismContainer<ConnDevAuthInfoType> basicInfo);
+    String generateAuthenticationScript(Task task, OperationResult result);
 
     // FIXME: Also add operation results
     // Midpoint local
@@ -72,7 +76,5 @@ public interface ConnectorDevelopmentOperation {
 
     void saveGet(ConnDevArtifactType script, String body);
 
-    String submitCreateConnector(Task task, OperationResult result);
-    String submitDiscoverBasicInformation(Task task, OperationResult result);
-    String submitDiscoverDocumentation(Task task, OperationResult result);
+    void saveAuthenticationScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException;
 }

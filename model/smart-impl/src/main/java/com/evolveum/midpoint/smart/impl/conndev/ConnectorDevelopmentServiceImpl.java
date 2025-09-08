@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 
@@ -32,7 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 @Component
 public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentService {
@@ -67,7 +70,6 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             return stateObject;
         }
 
-
         public String submitCreateConnector(Task task, OperationResult result) {
             return submitTask("Creating editable connector for " + stateObject.getOid(),
                     new WorkDefinitionsType().createConnector(new ConnDevCreateConnectorWorkDefinitionType()
@@ -91,11 +93,6 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public StatusInfo<PrismContainer<ConnDevDocumentationSourceType>> discoverDocumentation(ConnectorDevelopmentType type) {
-            return null;
-        }
-
-        @Override
         public StatusInfo<ConnectorDevelopmentType> processDocumentation(PrismContainer<ConnDevDocumentationSourceType> sources) {
             return null;
         }
@@ -111,13 +108,13 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public StatusInfo<ConnectorType> createConnectorType() {
-            return null;
-        }
-
-        @Override
-        public StatusInfo<ConnectorType> updateSupportedAuthTypes(PrismContainer<ConnDevAuthInfoType> basicInfo) {
-            return null;
+        public String generateAuthenticationScript(Task task, OperationResult result) {
+            return submitTask("Generating authentication script",
+                    new WorkDefinitionsType().generateConnectorGlobalArtifact(
+                        new ConnDevGenerateGlobalArtifactDefinitionType()
+                                .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                                .artifact(ConnectorDevelopmentArtifacts.authenticationScript())
+                    ), task, result);
         }
 
         @Override
@@ -198,6 +195,13 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         public void comfirmApplicationInformation(Task task, OperationResult result) {
             ConnectorDevelopmentBackend.backendFor(stateObject, task, result).suggestConnectorCoordinates();
         }
+
+        @Override
+        public void saveAuthenticationScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException {
+            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .saveArtifact(artifact);
+
+        }
     }
 
     private String submitTask(String name, WorkDefinitionsType work, Task task, OperationResult result) {
@@ -257,6 +261,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token,result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverDocumentationResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevGenerateGlobalArtifactResultType> getGenerateGlobalArtifactStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token,result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevGenerateGlobalArtifactResultType.class
         );
     }
 }

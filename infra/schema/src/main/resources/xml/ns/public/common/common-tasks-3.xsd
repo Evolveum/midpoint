@@ -10619,7 +10619,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                    <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -10629,13 +10629,18 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevCreateConnectorResultType" />
+                    <xsd:element name="result" type="tns:ConnDevGenerateGlobalArtifactResultType" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevGenerateGlobalArtifactResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
                 <xsd:annotation>
@@ -10644,6 +10649,7 @@
                     </xas:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
         </xsd:sequence>
     </xsd:complexType>
 
@@ -10653,7 +10659,8 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                    <xsd:element name="objectClass" type="xsd:string" />
+                    <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

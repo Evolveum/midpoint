@@ -7,13 +7,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
-import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopment;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevIntegrationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,8 +111,6 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
                         .version(MOCK_SNAPSHOT)
                         .integrationType(ConnDevIntegrationType.DUMMY))
                 .asObjectDeltas(developmentOid), null, getTestTask(), getTestOperationResult());
-        ;
-
         var devObj = continueDevelopment(getTestTask(), getTestOperationResult());
         var token = devObj.submitCreateConnector(task, result);
 
@@ -130,4 +124,60 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
 
         assertThat(response).isNotNull();
     }
+
+    @Test
+    public void test220ConfigureAuthentication() throws Exception {
+        var task = createTask("createConnector");
+        var result = createOperationResult();
+        var development =  continueDevelopment(getTestTask(), getTestOperationResult());
+
+        var availableAuths = development.getObject().getApplication().getAuth();
+
+        // Selected Authorizations are coppied to connector / auth
+        var selectedAuths = availableAuths.stream().filter(a -> a.getType().equals("apiKey"))
+                .map(ConnDevAuthInfoType::clone)
+                .map(ConnDevAuthInfoType::asPrismContainerValue).toList();
+        var delta = prismContext.deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH)
+                        .add(selectedAuths)
+                .<ConnectorDevelopmentType>asObjectDelta(developmentOid);
+
+        executeChanges(delta, null, task, result);
+        // FIXME: Select auths and copy to connector
+
+        // Lets refresh development type
+        development = continueDevelopment(getTestTask(), getTestOperationResult());
+        var token = development.generateAuthenticationScript(task, result);
+        var response = waitForFinish(() -> connectorService.getGenerateGlobalArtifactStatus(token, task, result),
+                TIMEOUT);
+        assertThat(response).isNotNull();
+        assertThat(response.getArtifact().getContent()).isNotEmpty();
+
+        // response for editation
+
+        development.saveAuthenticationScript(response.getArtifact(), task, result);
+
+    }
+
+    @Test
+    public void test230ConfigureTestConnection() throws Exception {
+
+    }
+
+    @Test
+    public void test300DiscoverObjectClasses() throws Exception {
+
+    }
+
+    @Test
+    public void test310GenerateUserSchema() throws Exception {
+
+    }
+
+    @Test
+    public void test320GenerateSearchScript() throws Exception {
+
+    }
+
+
 }

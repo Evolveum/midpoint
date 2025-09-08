@@ -264,6 +264,8 @@
                     <xsd:element name="getOperation" type="tns:ConnDevArtifactType" />
                     <xsd:element name="searchAllOperation" type="tns:ConnDevArtifactType" />
                     <xsd:element name="searchFilterOperation" type="tns:ConnDevArtifactType" />
+                    <xsd:element name="nativeSchemaScript" type="tns:ConnDevArtifactType" />
+                    <xsd:element name="connidSchemaScript" type="tns:ConnDevArtifactType" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -329,9 +331,9 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="operation" type="xsd:string"/>
-            <xsd:element name="intent" type="tns:ConnDevOperationType"/>
+            <xsd:element name="operation" type="tns:ConnDevOperationType"/>
             <xsd:element name="objectClass" type="xsd:string"/>
+            <xsd:element name="intent" type="tns:ConnDevScriptIntentType"/>
             <xsd:element name="filename" type="xsd:string"/>
             <xsd:element name="content" type="xsd:string" />
         </xsd:sequence>
