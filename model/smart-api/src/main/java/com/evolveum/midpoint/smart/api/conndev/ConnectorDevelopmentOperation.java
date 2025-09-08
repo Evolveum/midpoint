@@ -2,7 +2,9 @@ package com.evolveum.midpoint.smart.api.conndev;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public interface ConnectorDevelopmentOperation {
@@ -20,6 +22,9 @@ public interface ConnectorDevelopmentOperation {
 
     // AI optional
     StatusInfo<PrismContainer<ConnDevAuthInfoType>>  selectBaseApiInformation(String basicInfo);
+
+
+    StatusInfo<ConnectorType> createConnectorType();
 
     // Midpoint local (+ download framework)
     StatusInfo<ConnectorType> updateSupportedAuthTypes(PrismContainer<ConnDevAuthInfoType> basicInfo);
@@ -67,4 +72,7 @@ public interface ConnectorDevelopmentOperation {
 
     void saveGet(ConnDevArtifactType script, String body);
 
+    String submitCreateConnector(Task task, OperationResult result);
+    String submitDiscoverBasicInformation(Task task, OperationResult result);
+    String submitDiscoverDocumentation(Task task, OperationResult result);
 }

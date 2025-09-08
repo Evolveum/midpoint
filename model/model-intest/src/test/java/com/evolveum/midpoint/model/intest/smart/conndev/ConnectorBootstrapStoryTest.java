@@ -1,0 +1,133 @@
+package com.evolveum.midpoint.model.intest.smart.conndev;
+
+import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
+import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
+import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopment;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevIntegrationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTest {
+
+    private static final int TIMEOUT = 500_000;
+
+    private static final String COMMUNITY_CONNECTOR = "com.evolveum.community.conndev";
+    private static final String MOCK_CONNECTOR = "mock-connector";
+    private static final String MOCK_SNAPSHOT= "0.1-SNAPSHOT";
+
+    @Autowired
+    private ConnectorInstallationService installationService;
+
+    @Autowired
+    private ConnectorDevelopmentService connectorService;
+    @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
+    private String developmentOid;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        initTestObjects(initTask, initResult,
+                CommonInitialObjects.ARCHETYPE_UTILITY_TASK);
+        developmentOid = repositoryService.addObject(new ConnectorDevelopmentType()
+                .name("dummy")
+                        .application(new ConnDevApplicationInfoType()
+                                .applicationName("Test Dummy")
+                                .integrationType(ConnDevIntegrationType.DUMMY)
+                        ).asPrismObject()
+                , null, initResult);
+    }
+
+
+    private ConnectorDevelopmentType reloadDevelopment(@NotNull Task task, @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        return modelService.getObject(ConnectorDevelopmentType.class, developmentOid, null, task, result).asObjectable();
+    }
+
+    private ConnectorDevelopmentOperation continueDevelopment(@NotNull Task task, @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        return connectorService.continueFrom(reloadDevelopment(task, result));
+    }
+
+
+    @Test
+    public void test050DiscoverDocumentation() throws Exception {
+        when();
+        var development = continueDevelopment(getTestTask(), getTestOperationResult());
+        var token = development.submitDiscoverDocumentation(getTestTask(), getTestOperationResult());
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> connectorService.getDiscoverDocumentationStatus(token, getTestTask(), getTestOperationResult()),
+                TIMEOUT);
+        assertThat(response).isNotNull();
+    }
+
+
+    @Test
+    public void test100DiscoverBasicInformation() throws CommonException {
+        when();
+        var development = continueDevelopment(getTestTask(), getTestOperationResult());
+        var token = development.submitDiscoverBasicInformation(getTestTask(), getTestOperationResult());
+
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> connectorService.getDiscoverBasicInformationStatus(token, getTestTask(), getTestOperationResult()),
+                TIMEOUT);
+
+        assertThat(response).isNotNull();
+        development = continueDevelopment(getTestTask(), getTestOperationResult());
+        assertThat(development.getObject().getApplication().getAuth()).isNotEmpty();
+    }
+
+    @Test
+    public void test200CreateConnector() throws Exception {
+        var task = createTask("createConnector");
+        var result = createOperationResult();
+
+        modelService.executeChanges((List) prismContext.deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_CONNECTOR)
+                .add(new ConnDevConnectorType()
+                        .groupId(COMMUNITY_CONNECTOR)
+                        .artifactId(MOCK_CONNECTOR)
+                        .version(MOCK_SNAPSHOT)
+                        .integrationType(ConnDevIntegrationType.DUMMY))
+                .asObjectDeltas(developmentOid), null, getTestTask(), getTestOperationResult());
+        ;
+
+        var devObj = continueDevelopment(getTestTask(), getTestOperationResult());
+        var token = devObj.submitCreateConnector(task, result);
+
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> connectorService.getCreateConnectorStatus(token, task, result),
+                TIMEOUT);
+
+        assertThat(response).isNotNull();
+    }
+}

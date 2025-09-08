@@ -12,10 +12,10 @@
     </xsd:annotation>
 
     <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" schemaLocation="../annotation-3.xsd"/>
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" schemaLocation="../types-3.xsd"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
-    <xsd:include schemaLocation="common-core-3.xsd"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
     <xsd:complexType name="ConnectorDevelopmentType">
         <xsd:annotation>
@@ -154,6 +154,9 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="directory" type="xsd:string" />
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType" />
+
             <xsd:element name="integrationType" type="tns:ConnDevIntegrationType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -169,6 +172,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+
             <!--xsd:element name="schema" type="tns:ConnDevSchemaType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -329,6 +333,7 @@
             <xsd:element name="intent" type="tns:ConnDevOperationType"/>
             <xsd:element name="objectClass" type="xsd:string"/>
             <xsd:element name="filename" type="xsd:string"/>
+            <xsd:element name="content" type="xsd:string" />
         </xsd:sequence>
     </xsd:complexType>
 
@@ -459,7 +464,7 @@
                         Integration using SCIM 2.0 Protocol
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ALL"/>
+                        <jaxb:typesafeEnumMember name="SCIM"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -469,7 +474,17 @@
                         Integration using REST Protocol
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="FILTER"/>
+                        <jaxb:typesafeEnumMember name="REST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="dummy">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Integration using Dummy Protocols
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DUMMY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -546,5 +561,7 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+
 
 </xsd:schema>
