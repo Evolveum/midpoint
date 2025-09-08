@@ -304,11 +304,10 @@ class MappingsSuggestionOperation {
         }
 
         private Collection<String> stringify(Collection<?> values) {
-            var stringified = values.stream()
+            return values.stream()
                     .filter(Objects::nonNull)
                     .map(Object::toString)
                     .toList();
-            return stringified.isEmpty() ? List.of("") : stringified;
         }
     }
 }
