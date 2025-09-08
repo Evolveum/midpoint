@@ -74,7 +74,12 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     private SecurityPolicyType applicableSecurityPolicy;
 
-    /** Delegations with privileges limitations; TODO better name */
+    /** Delegations with privileges limitations; TODO better name
+     *  Contains the information about "membership delegations",
+     *  i.e. that this principal is a delegate of given user(s)
+     *  or - indirectly - it obtains a delegated abstract role membership.
+     *  The information on other privileges limitations is attached as well.
+    */
     @NotNull private final AtomicReference<OtherPrivilegesLimitations> otherPrivilegesLimitations =
             new AtomicReference<>(new OtherPrivilegesLimitations());
 
@@ -381,15 +386,8 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
         return otherPrivilegesLimitations.get();
     }
 
-    /**
-     * Registers an information about "membership delegation", i.e. that this principal is a delegate of given user(s)
-     * or - indirectly - it obtains a delegated abstract role membership. The information on other privileges limitations
-     * is attached as well.
-     */
-    public void addDelegationTarget(
-            @NotNull PrismObject<? extends AssignmentHolderType> target,
-            @NotNull OtherPrivilegesLimitations.Limitation limitation) {
-        otherPrivilegesLimitations.get().addDelegationTarget(target, limitation);
+    public void resetOtherPrivilegesLimitations(@NotNull OtherPrivilegesLimitations newLimitations) {
+        otherPrivilegesLimitations.set(newLimitations);
     }
 
     /**
@@ -409,14 +407,6 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
             @Nullable OtherPrivilegesLimitations.Type limitationType) {
         return otherPrivilegesLimitations.get().getDelegatedMembershipFor(limitationType);
     }
-
-    /**
-     * Clear all registered "membership delegation".
-     */
-    public void clearOtherPrivilegesLimitations(){
-        this.otherPrivilegesLimitations.get().clear();
-    }
-
 
     /**
      * Checks if the midPoint object behind this principal is enabled. The method is placed here to be easily accessible

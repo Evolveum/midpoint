@@ -50,14 +50,18 @@ public class SelfClause extends SelectorClause {
     }
 
     /**
-     * Returns true in case incoming value's OID matches at least one of the "self" OIDs
+     * Returns {@code true} in case incoming value's OID matches at least one of the "self" OIDs
      * (for "self" OIDs definition, look at {@link SubjectedEvaluationContext#getSelfOids}).
-     * In case of OBJECT matching type, there can be 2 types of the incoming prism value objects:
-     * 1. In case if AssigneeClause is defined as a "pure self" (meaning assignee can be "self" object only),
-     * we don't need to resolve assignee's prism object, and we send PrismReferenceValue type object
-     * to the SelfClause.matches method.
-     * 2. In other cases (than "pure self" AssigneeClause), referenced object is resolved to "full" object
-     * and sent to the SelfClause.matches method as PrismObjectValue type object.
+     *
+     * In case of `OBJECT` matching type, there can be 2 types of the incoming prism value objects:
+     * either a reference value ({@link PrismReferenceValue}) or a full object ({@link PrismObjectValue}
+     * or {@link PrismContainerValue} holding an {@link ObjectType}, see {@link ObjectTypeUtil#asObjectTypeIfPossible(PrismValue)}).
+     *
+     * The former is used as a performance optimization, currently in case of "pure self"
+     * {@link AssigneeClause#matches(PrismValue, MatchingContext)}, see #10811/#10812.
+     *
+     * In case of `DEPUTY_ASSIGNMENT` matching type, the incoming value must be an assignment;
+     * in case of `DEPUTY_REFERENCE`, the incoming value must be a reference value.
      */
     @Override
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
