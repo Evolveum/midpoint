@@ -100,7 +100,7 @@ If the object collection they are interested in is defined for a dashboard alrea
 A xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] can use the dashboard object as a configuration and periodically generate a static report with the same data overview as the dashboard presents.
 System administrators can then conveniently receive this report, for example, via e-mail in an HTML or CSV format.
 
-== See Also
+== See also
 
 * xref:configuration/[]
 * xref:/midpoint/reference/admin-gui/collections-views/[]
