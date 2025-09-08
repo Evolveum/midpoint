@@ -148,7 +148,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         // Lets refresh development type
         development = continueDevelopment(getTestTask(), getTestOperationResult());
         var token = development.generateAuthenticationScript(task, result);
-        var response = waitForFinish(() -> connectorService.getGenerateGlobalArtifactStatus(token, task, result),
+        var response = waitForFinish(() -> connectorService.getGenerateArtifactStatus(token, task, result),
                 TIMEOUT);
         assertThat(response).isNotNull();
         assertThat(response.getArtifact().getContent()).isNotEmpty();

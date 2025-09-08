@@ -2605,15 +2605,7 @@
                     </xsd:annotation>
                 </xsd:element>
 
-                <xsd:element name="generateConnectorGlobalArtifact" type="tns:ConnDevGenerateGlobalArtifactDefinitionType">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <a:since>4.11</a:since>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-
-                <xsd:element name="generateConnectorObjectClassArtifact" type="tns:ConnDevGenerateObjectClassArtifactDefinitionType">
+                <xsd:element name="generateConnectorArtifact" type="tns:ConnDevGenerateArtifactDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
                             <a:since>4.11</a:since>
@@ -10615,7 +10607,7 @@
 
     <!-- Generate Global Artifact -->
 
-    <xsd:complexType name="ConnDevGenerateGlobalArtifactDefinitionType">
+    <xsd:complexType name="ConnDevGenerateArtifactDefinitionType">
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
@@ -10625,17 +10617,17 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ConnDevGenerateGlobalArtifactWorkStateType">
+    <xsd:complexType name="ConnDevGenerateArtifactWorkStateType">
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevGenerateGlobalArtifactResultType" />
+                    <xsd:element name="result" type="tns:ConnDevGenerateArtifactResultType" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ConnDevGenerateGlobalArtifactResultType">
+    <xsd:complexType name="ConnDevGenerateArtifactResultType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
@@ -10650,36 +10642,6 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <!-- Generate Object Class Specific Artifact -->
-
-    <xsd:complexType name="ConnDevGenerateObjectClassArtifactDefinitionType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
-                <xsd:sequence>
-                    <xsd:element name="objectClass" type="xsd:string" />
-                    <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="ConnDevGenerateObjectClassArtifactWorkStateType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractActivityWorkStateType">
-                <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevCreateConnectorResultType" />
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="ConnDevGenerateObjectClassArtifactResultType">
-        <xsd:sequence>
-            <xsd:element name="artifact" type="tns:ConnDevArtifactType">
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

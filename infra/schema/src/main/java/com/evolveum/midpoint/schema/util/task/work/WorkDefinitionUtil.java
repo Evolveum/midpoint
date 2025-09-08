@@ -76,8 +76,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getProcessDocumentation());
         addTypedParameters(values, definitions.getDiscoverGlobalInformation());
         addTypedParameters(values, definitions.getDiscoverObjectClassInformation());
-        addTypedParameters(values, definitions.getGenerateConnectorGlobalArtifact());
-        addTypedParameters(values, definitions.getGenerateConnectorObjectClassArtifact());
+        addTypedParameters(values, definitions.getGenerateConnectorArtifact());
 
         addUntypedParameters(values, definitions.getExtension());
         return values;

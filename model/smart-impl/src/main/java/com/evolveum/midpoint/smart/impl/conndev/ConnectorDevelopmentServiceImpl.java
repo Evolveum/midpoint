@@ -117,8 +117,8 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         @Override
         public String generateAuthenticationScript(Task task, OperationResult result) {
             return submitTask("Generating authentication script",
-                    new WorkDefinitionsType().generateConnectorGlobalArtifact(
-                        new ConnDevGenerateGlobalArtifactDefinitionType()
+                    new WorkDefinitionsType().generateConnectorArtifact(
+                        new ConnDevGenerateArtifactDefinitionType()
                                 .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                                 .artifact(ConnectorDevelopmentArtifacts.authenticationScript())
                     ), task, result);
@@ -272,11 +272,11 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     }
 
     @Override
-    public StatusInfo<ConnDevGenerateGlobalArtifactResultType> getGenerateGlobalArtifactStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevGenerateArtifactResultType> getGenerateArtifactStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return new StatusInfoImpl<>(
                 getTask(token,result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
-                ConnDevGenerateGlobalArtifactResultType.class
+                ConnDevGenerateArtifactResultType.class
         );
     }
 
