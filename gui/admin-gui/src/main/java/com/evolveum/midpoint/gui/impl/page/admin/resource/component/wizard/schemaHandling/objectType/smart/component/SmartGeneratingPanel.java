@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
@@ -51,7 +54,11 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
     private static final String ID_BUTTONS = "buttons";
 
+    private static final Trace LOGGER = TraceManager.getTrace(SmartGeneratingPanel.class);
+
     boolean isWizardPanel;
+
+    private AbstractAjaxTimerBehavior timerBehavior;
 
     public SmartGeneratingPanel(String id, IModel<SmartGeneratingDto> model, boolean isWizardPanel) {
         super(id, model);
@@ -75,30 +82,42 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
         initCorePart(bodyContainer);
 
-        addAjaxTimerBehavior(bodyContainer);
+        timerBehavior = createSuggestionAjaxTimerBehavior(bodyContainer, getRefreshInterval(), getModel(), this::onFinishActionPerform);
+        bodyContainer.add(timerBehavior);
     }
 
-    private void addAjaxTimerBehavior(@NotNull WebMarkupContainer bodyContainer) {
-        bodyContainer.add(new AbstractAjaxTimerBehavior(getRefreshInterval()) {
+    @Contract("_, _, _, _ -> new")
+    public static @NotNull AbstractAjaxTimerBehavior createSuggestionAjaxTimerBehavior(
+            @NotNull WebMarkupContainer bodyContainer,
+            Duration refreshDuration,
+            IModel<SmartGeneratingDto> model,
+            @NotNull SerializableConsumer<AjaxRequestTarget> onFinishAction) {
+
+        return new AbstractAjaxTimerBehavior(refreshDuration) {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
-                getModelObject().getStatusInfo().reset();
-                SmartGeneratingDto dto = getModelObject();
+                SmartGeneratingDto dto = model.getObject();
                 if (dto == null) {
                     stop(target);
                     target.add(bodyContainer);
                     return;
                 }
 
+                dto.getStatusInfo().reset();
+
                 if (dto.isFinished() || dto.isFailed()) {
                     stop(target);
                 }
-                if (dto.isFinished() && !dto.isFailed()) {
-                    onFinishActionPerform(target);
+                if (dto.isFinished() && !dto.isFailed() && !dto.isSuspended()) {
+                    try {
+                        onFinishAction.accept(target);
+                    } catch (Exception e) {
+                        LOGGER.error("Error during finishing action after generating suggestions: {}", e.getMessage(), e);
+                    }
                 }
                 target.add(bodyContainer);
             }
-        });
+        };
     }
 
     private void initCorePart(@NotNull WebMarkupContainer bodyContainer) {
@@ -238,7 +257,12 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                 switch (executionState) {
                     case RUNNING, RUNNABLE, WAITING ->
                             TaskOperationUtils.suspendTasks(Collections.singletonList(taskObject), getPageBase());
-                    case SUSPENDED -> TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
+                    case SUSPENDED -> {
+                        TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
+                        if (timerBehavior != null) {
+                            timerBehavior.restart(target);
+                        }
+                    }
                     default -> {
                         return;
                     }

@@ -109,7 +109,24 @@ public class SmartGeneratingDto implements Serializable {
             return false;
         }
 
+        if (isSuspended()) {
+            return true;
+        }
+
         return statusInfo.getObject().isComplete();
+    }
+
+    public boolean isSuspended() {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return false;
+        }
+
+        TaskExecutionStateType state = getTaskExecutionState();
+        if (state == TaskExecutionStateType.SUSPENDED) {
+            return true;
+        }
+
+        return statusInfo.getObject().isHalted();
     }
 
     public boolean isFailed() {
