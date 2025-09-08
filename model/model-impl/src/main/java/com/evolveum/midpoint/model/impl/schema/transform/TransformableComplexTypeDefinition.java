@@ -181,8 +181,8 @@ public class TransformableComplexTypeDefinition
 
 
     @Override
-    public @NotNull ComplexTypeDefinition clone() {
-        throw new UnsupportedOperationException();
+    public @NotNull TransformableComplexTypeDefinition clone() {
+        return copy();
     }
 
     public void setDefaultItemTypeName(QName value) {
