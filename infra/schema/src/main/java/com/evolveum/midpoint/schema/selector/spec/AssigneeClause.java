@@ -86,9 +86,7 @@ public class AssigneeClause extends SelectorClause {
         }
         traceNotApplicable(ctx, "no assignee matches (assignees=%s)", assignees);
         return false;
-
     }
-
 
     static @NotNull DelegatorSelection getDelegatorSelectionMode(Object object) {
         if (object instanceof CaseType
