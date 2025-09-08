@@ -14,7 +14,6 @@ doc-type: intro
 :search-alias: "dashboards"
 :page-upkeep-status: green
 :page-toc: top
-:page-moved-from: /midpoint/guides/dashboards-howto/
 
 Dashboards are a fundamental tool for efficient identity governance and administration (IGA) in your organization.
 They provide centralized overview of critical metrics, enabling managers to monitor compliance, track operational efficiency, and respond to risks proactively.
