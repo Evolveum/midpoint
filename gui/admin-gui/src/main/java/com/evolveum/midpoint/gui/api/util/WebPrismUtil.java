@@ -288,6 +288,15 @@ public class WebPrismUtil {
         return value;
     }
 
+    public static void cleanupEmptyValue(Collection<? extends PrismValue> values) {
+        if (values == null || values.isEmpty()) return;
+        for (PrismValue v : values) {
+            if (v != null) {
+                WebPrismUtil.cleanupValueMetadata(v);
+            }
+        }
+    }
+
     public static void cleanupValueMetadata(PrismValue value) {
         if (value.hasValueMetadata()) {
             cleanupEmptyValues(value.getValueMetadata());
