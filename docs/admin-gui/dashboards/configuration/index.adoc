@@ -16,6 +16,7 @@ doc-type: config
 :search-alias: "dashboard configuration"
 :page-upkeep-status: yellow
 :page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
+:page-moved-from: /midpoint/guides/dashboards-howto/
 
 This article guides you through the steps required to configure dashboards.
 Start with a simple dashboard showing one metric, such as number of active users, then continue adding more advanced pieces, such as percentage of failed resources or accounts violating segregation of duties.
