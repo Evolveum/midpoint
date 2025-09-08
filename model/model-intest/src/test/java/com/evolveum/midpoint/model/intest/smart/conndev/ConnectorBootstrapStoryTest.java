@@ -184,11 +184,17 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
 
     @Test
     public void test310GenerateUserSchema() throws Exception {
+        var task = getTestTask();
+        var result = getTestOperationResult();
+        var development =  continueDevelopment(getTestTask(), getTestOperationResult());
 
     }
 
     @Test
     public void test320GenerateSearchScript() throws Exception {
+        var task = getTestTask();
+        var result = getTestOperationResult();
+        var development =  continueDevelopment(getTestTask(), getTestOperationResult());
 
     }
 
