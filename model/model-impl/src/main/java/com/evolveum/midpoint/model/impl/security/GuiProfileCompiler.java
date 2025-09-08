@@ -157,7 +157,7 @@ public class GuiProfileCompiler {
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
 
         List<Authorization> collectedAuthorizationList = new ArrayList<>();
-        Map<PrismObject<? extends AssignmentHolderType>, OtherPrivilegesLimitations.Limitation> delegationTargetMap = new HashMap<>();
+        OtherPrivilegesLimitations collectedOtherPrivilegesLimitations = new OtherPrivilegesLimitations();
 
         if(!options.isRunAsRunner() && channel != null) {
             @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
@@ -184,7 +184,7 @@ public class GuiProfileCompiler {
 
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // TODO see MID-6403
                 if (target.isValid() && target.getAssignmentPath().containsDelegation()) {
-                    delegationTargetMap.put(target.getTarget(),
+                    collectedOtherPrivilegesLimitations.addDelegationTarget(target.getTarget(),
                             target.getAssignmentPath().getOtherPrivilegesLimitation());
                 }
             }
@@ -192,9 +192,7 @@ public class GuiProfileCompiler {
         List<Authorization> newAuthList = cloneOrTransformAuthorizations(principal, collectedAuthorizationList,
                 authorizationTransformer);
         principal.resetAuthorizationsList(newAuthList);
-
-        principal.clearOtherPrivilegesLimitations();
-        delegationTargetMap.forEach(principal::addDelegationTarget);
+        principal.resetOtherPrivilegesLimitations(collectedOtherPrivilegesLimitations);
         //end of code restructuring due to #10781
 
         if (!options.isCompileGuiAdminConfiguration()) {
