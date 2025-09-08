@@ -34,7 +34,7 @@ public enum ObjectTypes {
             ConnectorType.class, ObjectManager.PROVISIONING, "connectors"),
 
     CONNECTOR_DEVELOPMENT(SchemaConstants.C_CONNECTOR_DEVELOPMENT_TYPE, SchemaConstants.C_CONNECTOR_DEVELOPMENT,
-            ConnectorDevelopmentType.class, ObjectManager.MODEL, "connectors"),
+            ConnectorDevelopmentType.class, ObjectManager.MODEL, "connectorDevelopments"),
 
     CONNECTOR_HOST(SchemaConstants.C_CONNECTOR_HOST_TYPE,
             SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, ObjectManager.PROVISIONING, "connectorHosts"),
