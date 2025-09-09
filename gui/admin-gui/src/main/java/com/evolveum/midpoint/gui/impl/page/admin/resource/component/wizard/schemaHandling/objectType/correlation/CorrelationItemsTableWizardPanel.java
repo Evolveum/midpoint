@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestion;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.createMappingsValueIfRequired;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.*;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
 /**
@@ -204,7 +204,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
         createMappingsValueIfRequired(pageBase, target, resourceObjectTypeDef, attributes);
         PrismContainerValueWrapper<ItemsSubCorrelatorType> object = valueModel.getObject();
-        createNewItemsSubCorrelatorValue(pageBase, object.getNewValue(), target);
+        createNewItemsSubCorrelatorValue(pageBase, object.getNewValue().clone(), target);
         performDiscard(pageBase, target, valueModel, statusInfo);
         postProcessAddSuggestion(target);
     }
@@ -233,7 +233,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             PrismContainerValue<ItemsSubCorrelatorType> value,
             AjaxRequestTarget target) {
         return SmartIntegrationWrapperUtils.createNewItemsSubCorrelatorValue(
-                getValueModel(), pageBase, value, target);
+                pageBase, getValueModel(), value, target);
     }
 
     private @NotNull Boolean isNotShownContainerInfo() {

@@ -103,6 +103,10 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
                 onExitPerformed(target);
             }
 
+            @Override
+            protected void onDiscardPerform(AjaxRequestTarget target) {
+                onExitPerformed(target);
+            }
         };
     }
 

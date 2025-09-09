@@ -64,8 +64,15 @@ public class SmartGeneratingDto implements Serializable {
         return statusInfo;
     }
 
+    public String getToken() {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return null;
+        }
+        return statusInfo.getObject().getToken();
+    }
+
     /**
-     * Builds a list of status rows for display in the UI.
+     * Builds a list of statusInfo rows for display in the UI.
      * Each row has a label and a done/in-progress flag.
      */
     public List<StatusRow> getStatusRows(PageBase pageBase) {
@@ -76,16 +83,28 @@ public class SmartGeneratingDto implements Serializable {
     }
 
     /**
-     * Simple inner DTO for rendering one status line.
+     * Simple inner DTO for rendering one statusInfo line.
      */
     public record StatusRow(IModel<String> text, ActivityProgressInformation.RealizationState done,
-                            StatusInfo<?> status) implements Serializable {
+                            StatusInfo<?> statusInfo) implements Serializable {
+
+        public StatusInfo<?> getStatusInfo() {
+            return statusInfo;
+        }
+
+        public boolean isFailed() {
+            return statusInfo != null && statusInfo.getStatus() == OperationResultStatusType.FATAL_ERROR;
+        }
 
         @Contract(pure = true)
         public @NotNull String getIconCss() {
-            OperationResultStatusType statusResult = status.getStatus();
+            OperationResultStatusType statusResult = statusInfo.getStatus();
             boolean isFatalError = statusResult == OperationResultStatusType.FATAL_ERROR;
-            boolean executing = status.isExecuting();
+            boolean executing = statusInfo.isExecuting();
+
+            if (isFatalError) {
+                return "fa fa-exclamation-triangle text-danger";
+            }
 
             if (done == null || done == ActivityProgressInformation.RealizationState.UNKNOWN) {
                 return "fa fa-question-circle";
@@ -95,8 +114,6 @@ public class SmartGeneratingDto implements Serializable {
                 assert done == ActivityProgressInformation.RealizationState.IN_PROGRESS;
                 if (executing) {
                     return "fa fa-spinner fa-spin";
-                } else if (isFatalError) {
-                    return "fa fa-exclamation-triangle text-danger";
                 } else {
                     return GuiStyleConstants.CLASS_TASK_SUSPENDED_ICON + " text-info";
                 }

@@ -39,6 +39,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 
 import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 /**
@@ -94,10 +95,12 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
         infoPanel.add(new Label(ID_ALERT_DESCRIPTION,
                 createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.description")));
 
+        Double efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(getValueModel().getObject());
+
         BadgePanel badge = new BadgePanel(ID_ALERT_BADGE,
                 getAiEfficiencyBadgeModel(
-                        createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.efficiency", "?")
-                                .getString()));
+                        createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.efficiency",
+                                efficiency != null ? efficiency : "-").getString()));
         badge.setOutputMarkupId(true);
         infoPanel.add(badge);
         add(infoPanel);
@@ -134,7 +137,7 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
 
         valueModel.getObject().setShowEmpty(isShowEmptyField());
         VerticalFormCorrelationItemPanel panel =
-                new VerticalFormCorrelationItemPanel(ID_PANEL, valueModel, settings){
+                new VerticalFormCorrelationItemPanel(ID_PANEL, valueModel, settings) {
                     @Override
                     protected boolean isShowEmptyButtonVisible() {
                         return !isSuggestionApplied();
@@ -164,7 +167,7 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
         onExitPerformed(target);
     }
 
-    protected boolean isShowEmptyField(){
+    protected boolean isShowEmptyField() {
         return false;
     }
 
@@ -238,7 +241,7 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
                 Model.of("Discard")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onDiscardButtonClick(getPageBase(),target, getValueModel(), getStatusInfo());
+                onDiscardButtonClick(getPageBase(), target, getValueModel(), getStatusInfo());
                 onExitPerformed(target);
             }
         };

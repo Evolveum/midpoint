@@ -105,9 +105,10 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                 return initSearch(headerId);
             }
 
+            @Contract(pure = true)
             @Override
-            protected MappingUsedFor getSelectedTypeOfMappings() {
-                return MappingUsedFor.ALL;
+            protected @Nullable MappingUsedFor getSelectedTypeOfMappings() {
+                return null;
             }
 
             @Override

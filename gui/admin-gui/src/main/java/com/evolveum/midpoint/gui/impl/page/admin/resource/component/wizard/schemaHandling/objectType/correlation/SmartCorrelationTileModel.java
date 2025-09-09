@@ -32,7 +32,7 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
     String description;
     Double weight;
     Integer tier;
-    String efficiency;
+    Double efficiency;
     Boolean enabled;
 
     String resourceOid;
@@ -79,7 +79,7 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
             try {
                 return smartService.getSuggestCorrelationOperationStatus(statusInfoToken, task, result);
             } catch (Throwable e) {
-                pageBase.error("Couldn't get correlation suggestion status: " + e.getMessage());
+                pageBase.error("Couldn't get correlation suggestion statusInfo: " + e.getMessage());
             }
         }
         return null;
@@ -92,7 +92,7 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         statesRecordList.add(new StateRecord(tierLabel, "Tier"));
 
         if (this.efficiency != null) {
-            statesRecordList.add(new StateRecord(efficiency, "Efficiency"));
+            statesRecordList.add(new StateRecord(efficiency + "%", "Efficiency"));
         }
     }
 
@@ -146,11 +146,11 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         this.enabled = enabled;
     }
 
-    public String getEfficiency() {
+    public Double getEfficiency() {
         return efficiency;
     }
 
-    public void setEfficiency(String efficiency) {
+    public void setEfficiency(Double efficiency) {
         this.efficiency = efficiency;
     }
 

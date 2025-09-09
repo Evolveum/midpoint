@@ -96,7 +96,8 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
         };
 
         StatusInfo<?> statusInfo = statusModel.getObject();
-        if (statusInfo != null && statusInfo.isExecuting()) {
+        if (statusInfo != null && statusInfo.getStatus() != null
+                && (statusInfo.isExecuting() || statusInfo.getStatus() == OperationResultStatusType.FATAL_ERROR)) {
             add(createGeneratingFragment());
         } else {
             add(createBasicFragment());
@@ -291,7 +292,7 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     protected Component createGeneratingPanelComponent() {
         return new SmartGeneratingPanel("generationPanel", () -> {
-            Task task = getPageBase().createSimpleTask("Load generation status");
+            Task task = getPageBase().createSimpleTask("Load generation statusInfo");
             OperationResult result = task.getResult();
 
             String token = statusModel.getObject().getToken();
@@ -302,11 +303,7 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
             @Override
             protected void createButtons(@NotNull RepeatingView buttonsView) {
                 initActionButton(buttonsView);
-            }
-
-            @Override
-            protected boolean isListViewVisible() {
-                return false;
+                initDiscardButton(buttonsView);
             }
 
             @Override

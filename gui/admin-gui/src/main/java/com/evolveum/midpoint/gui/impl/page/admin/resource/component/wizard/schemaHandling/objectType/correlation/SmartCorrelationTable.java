@@ -202,7 +202,8 @@ public class SmartCorrelationTable
                             }
 
                             PrismContainerWrapper<ItemsSubCorrelatorType> container = object.findContainer(
-                                    ItemPath.create(CorrelationDefinitionType.F_CORRELATORS, CompositeCorrelatorType.F_ITEMS));
+                                    ItemPath.create(ResourceObjectTypeDefinitionType.F_CORRELATION,
+                                            CorrelationDefinitionType.F_CORRELATORS, CompositeCorrelatorType.F_ITEMS));
 
                             suggestionsIndex.clear();
                             List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> allValues = new ArrayList<>(container != null
@@ -213,8 +214,7 @@ public class SmartCorrelationTable
 
                                 PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
                                 ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
-
-                                SmartIntegrationStatusInfoUtils.@NotNull CorrelationSuggestionProviderResult suggestionWrappers =
+                                @NotNull SmartIntegrationStatusInfoUtils.CorrelationSuggestionProviderResult suggestionWrappers =
                                         loadCorrelationSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition, task, result);
 
                                 allValues.addAll(suggestionWrappers.wrappers());
@@ -302,8 +302,8 @@ public class SmartCorrelationTable
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> item, String s,
                     IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> iModel) {
-                String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(iModel.getObject());
-                Label label = new Label(s, () -> efficiency != null ? efficiency : " - ");
+                Double efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(iModel.getObject());
+                Label label = new Label(s, () -> efficiency != null ? efficiency + "%" : " - ");
                 label.setOutputMarkupId(true);
                 item.add(label);
             }
@@ -620,8 +620,8 @@ public class SmartCorrelationTable
                     service.submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, task, result);
                     target.add(this);
                 });
-
         super.refreshAndDetach(target);
+        target.add(getFeedbackPanel().getParent());
     }
 
     @Override
@@ -688,7 +688,11 @@ public class SmartCorrelationTable
             PrismContainerValueWrapper<?> wrapper = (PrismContainerValueWrapper<?>) rowModel.getObject();
             StatusInfo<CorrelationSuggestionsType> statusInfo = getStatusInfo(wrapper);
 
-            boolean present = statusInfo != null && statusInfo.getStatus() == OperationResultStatusType.SUCCESS;
+            boolean present = statusInfo != null;
+
+            if (present && statusInfo.getStatus() != OperationResultStatusType.SUCCESS) {
+                return false;
+            }
             return present == showWhenPresent;
         });
     }
