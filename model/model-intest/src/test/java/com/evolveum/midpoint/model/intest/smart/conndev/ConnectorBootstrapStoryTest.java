@@ -47,13 +47,13 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         super.initSystem(initTask, initResult);
         initTestObjects(initTask, initResult,
                 CommonInitialObjects.ARCHETYPE_UTILITY_TASK);
-        developmentOid = repositoryService.addObject(new ConnectorDevelopmentType()
+        developmentOid = addObject(new ConnectorDevelopmentType()
                 .name("dummy")
                         .application(new ConnDevApplicationInfoType()
                                 .applicationName("Test Dummy")
                                 .integrationType(ConnDevIntegrationType.DUMMY)
                         ).asPrismObject()
-                , null, initResult);
+                , initTask, initResult);
     }
 
 
