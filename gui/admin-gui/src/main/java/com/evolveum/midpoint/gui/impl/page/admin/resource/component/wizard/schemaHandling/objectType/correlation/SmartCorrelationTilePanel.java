@@ -138,7 +138,7 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     private void initCorrelationItemPanel(@NotNull Fragment fragment) {
         CorrelationItemTypePanel correlationItemTypePanel =
-                new CorrelationItemTypePanel(ID_CORRELATION_ITEMS_PANEL, () -> getModelObject().getCorrelationItems(), 2) {
+                new CorrelationItemTypePanel(ID_CORRELATION_ITEMS_PANEL, () -> getModelObject().getCorrelationItems(), 1) {
                     @Override
                     protected boolean isIconStatusVisible() {
                         return statusModel.getObject() != null;
