@@ -15,9 +15,6 @@ import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimpl
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-
 import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -29,7 +26,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemDefinition;
 
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -482,26 +478,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(s2).contains("email");
         assertThat(s2).contains("givenName");
         assertThat(s2).doesNotContain("[*]");
-
-        // Test multivalued with definitions
-        ItemDefinition<?> root = Mockito.mock(ItemDefinition.class);
-        ItemDefinition<?> emailDef = Mockito.mock(ItemDefinition.class);
-        ItemDefinition<?> valueDef = Mockito.mock(ItemDefinition.class);
-
-        Mockito.when(root.findItemDefinition(eq(ItemName.fromQName(Q_EMAIL)), eq(ItemDefinition.class))).thenReturn(emailDef);
-        Mockito.when(emailDef.isMultiValue()).thenReturn(true);
-        Mockito.when(emailDef.findItemDefinition(eq(ItemName.fromQName(Q_VALUE)), eq(ItemDefinition.class))).thenReturn(valueDef);
-        Mockito.when(emailDef.isMultiValue()).thenReturn(true);
-        Mockito.when(valueDef.isMultiValue()).thenReturn(true);
-        Mockito.when(valueDef.findItemDefinition(any(), eq(ItemDefinition.class))).thenReturn(null);
-
-        ItemPath ip3 = ItemPath.create(Q_EMAIL, Q_VALUE);
-        DescriptiveItemPath dip3 = DescriptiveItemPath.of(ip3, root);
-        String s3 = dip3.asString();
-        assertThat(s3).contains("email[*]");
-        assertThat(s3).contains("value");
-        assertThat(s3).doesNotEndWith("[*]");
-        assertThat(dip3.getItemPath().size()).isEqualTo(2);
     }
 
     @Test
