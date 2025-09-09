@@ -107,8 +107,17 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
 
             @Contract(pure = true)
             @Override
-            protected @Nullable MappingUsedFor getSelectedTypeOfMappings() {
-                return null;
+            protected @NotNull MappingUsedFor getSelectedTypeOfMappings() {
+                return MappingUsedFor.ALL;
+            }
+
+            @Override
+            protected void excludeMappings(@NotNull List<PrismContainerValueWrapper<MappingType>> list, MappingUsedFor usedFor) {
+                list.removeIf(valueWrapper -> {
+                    InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
+                    InboundMappingUseType valueUse = realValue.getUse();
+                    return valueUse != null && MappingUsedFor.valueOf(valueUse.name()) == MappingUsedFor.SYNCHRONIZATION;
+                });
             }
 
             @Override

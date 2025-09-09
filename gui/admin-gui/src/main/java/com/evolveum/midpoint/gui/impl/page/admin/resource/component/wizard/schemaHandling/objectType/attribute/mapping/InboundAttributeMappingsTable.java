@@ -35,6 +35,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -201,19 +202,23 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                     return list;
                 }
 
-                list.removeIf(valueWrapper -> {
-                    InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
-                    InboundMappingUseType valueUse = realValue.getUse();
-                    if (valueUse == null) {
-                        valueUse = InboundMappingUseType.ALL;
-                    }
-                    MappingUsedFor valueUsedFor = MappingUsedFor.valueOf(valueUse.name());
-
-                    return !usedFor.equals(valueUsedFor);
-                });
+                excludeMappings(list, usedFor);
                 return list;
             }
         };
+    }
+
+    protected void excludeMappings(@NotNull List<PrismContainerValueWrapper<MappingType>> list, MappingUsedFor usedFor) {
+        list.removeIf(valueWrapper -> {
+            InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
+            InboundMappingUseType valueUse = realValue.getUse();
+            if (valueUse == null) {
+                valueUse = InboundMappingUseType.ALL;
+            }
+            MappingUsedFor valueUsedFor = MappingUsedFor.valueOf(valueUse.name());
+
+            return !usedFor.equals(valueUsedFor);
+        });
     }
 
     protected MappingUsedFor getSelectedTypeOfMappings() {
