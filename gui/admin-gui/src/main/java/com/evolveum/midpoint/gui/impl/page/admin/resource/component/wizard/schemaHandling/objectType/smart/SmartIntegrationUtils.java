@@ -427,7 +427,7 @@ public class SmartIntegrationUtils {
         }
     }
 
-    private static void deleteWholeTaskObject(@NotNull PageBase pageBase, @NotNull Task task, @NotNull OperationResult result, String token) {
+    public static void deleteWholeTaskObject(@NotNull PageBase pageBase, @NotNull Task task, @NotNull OperationResult result, String token) {
         try {
             ObjectDelta<TaskType> deleteDelta =
                     PrismContext.get().deltaFactory().object().createDeleteDelta(TaskType.class, token);

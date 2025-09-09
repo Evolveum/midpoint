@@ -155,6 +155,10 @@ public class SmartIntegrationStatusInfoUtils {
                 PrismContainer<CorrelationSuggestionType> container = suggestionParent.asPrismContainerValue()
                         .findContainer(CorrelationSuggestionsType.F_SUGGESTION);
 
+                if(container == null) {
+                    continue;
+                }
+
                 PrismContainerWrapper<CorrelationSuggestionType> corrSuggestionW =
                         pageBase.createItemWrapper(container, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
 
@@ -338,6 +342,14 @@ public class SmartIntegrationStatusInfoUtils {
     /** Builds display rows depending on the suggestion status. */
     public static @NotNull List<SmartGeneratingDto.StatusRow> buildStatusRows(PageBase pageBase, StatusInfo<?> suggestion) {
         List<SmartGeneratingDto.StatusRow> rows = new ArrayList<>();
+        if(suggestion != null && suggestion.getStatus() == OperationResultStatusType.FATAL_ERROR) {
+            rows.add(new SmartGeneratingDto.StatusRow(pageBase.createStringResource(
+                    "SmartGeneratingDto.status.failed"),
+                    ActivityProgressInformation.RealizationState.UNKNOWN,
+                    suggestion));
+            return rows;
+        }
+
         if (suggestion == null
                 || suggestion.getProgressInformation() == null
                 || suggestion.getProgressInformation().getChildren().isEmpty()) {
@@ -364,13 +376,13 @@ public class SmartIntegrationStatusInfoUtils {
         return pageBase.createStringResource("Activity.explanation." + operationKey);
     }
 
-    public static @Nullable String extractEfficiencyFromSuggestedCorrelationItemWrapper(
+    public static Double extractEfficiencyFromSuggestedCorrelationItemWrapper(
             @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> valueWrapper) {
         PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueWrapper.getParentContainerValue(
                 CorrelationSuggestionType.class);
         if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
             CorrelationSuggestionType suggestionValue = parentContainerValue.getRealValue();
-            return suggestionValue.getQuality() != null ? (suggestionValue.getQuality() * 100) + "%" : null;
+            return suggestionValue.getQuality() != null ? (suggestionValue.getQuality() * 100) : null;
         }
         return null;
     }

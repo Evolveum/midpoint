@@ -18,10 +18,7 @@ import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperImpl;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -67,7 +64,7 @@ public class SmartIntegrationWrapperUtils {
      * Purpose: smart integration support only one mapping for inbound direction.
      * Returns {@code null} if the complex type definition cannot be resolved.
      */
-    public static InboundMappingType getSingleInboundMapping(ResourceAttributeDefinitionType attributeDefinition) {
+    public static InboundMappingType getSingleInboundMapping(@Nullable ResourceAttributeDefinitionType attributeDefinition) {
         if (attributeDefinition == null || attributeDefinition.getInbound() == null) {
             return null;
         }
@@ -80,30 +77,56 @@ public class SmartIntegrationWrapperUtils {
 
     @Contract("_, _ -> new")
     public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> createContainerModel(
-            IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model, ItemPath path) {
+            @NotNull IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model, @Nullable ItemPath path) {
         return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
     }
 
     public static <C extends Containerable> PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
-            PageBase pageBase, PrismContainerValue<?> newItem,
-            PrismContainerWrapper<C> model, AjaxRequestTarget target) {
+            @NotNull PageBase pageBase, @NotNull PrismContainerValue<?> newItem,
+            @NotNull PrismContainerWrapper<C> model, @NotNull AjaxRequestTarget target) {
         return WebPrismUtil.createNewValueWrapper(model, newItem, pageBase, target);
     }
 
-    public static PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewItemsSubCorrelatorValue(
-            IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model,
-            PageBase pageBase, PrismContainerValue<ItemsSubCorrelatorType> value,
-            AjaxRequestTarget target) {
-        IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createContainerModel(model, ItemPath.create(
-                CorrelationDefinitionType.F_CORRELATORS,
-                CompositeCorrelatorType.F_ITEMS));
-        PrismContainerWrapper<ItemsSubCorrelatorType> container = containerModel.getObject();
+    public static @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewItemsSubCorrelatorValue(
+            @NotNull PageBase pageBase,
+            @NotNull IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model,
+            @Nullable PrismContainerValue<ItemsSubCorrelatorType> value,
+            @NotNull AjaxRequestTarget target) {
 
-        PrismContainerValue<ItemsSubCorrelatorType> newValue = value;
-        if (newValue == null) {
-            newValue = container.getItem().createNewValue();
+        IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createContainerModel(
+                model,
+                ItemPath.create(
+                        ResourceObjectTypeDefinitionType.F_CORRELATION,
+                        CorrelationDefinitionType.F_CORRELATORS,
+                        CompositeCorrelatorType.F_ITEMS));
+
+        PrismContainerWrapper<ItemsSubCorrelatorType> containerWrapper = containerModel.getObject();
+        PrismContainer<ItemsSubCorrelatorType> container = containerWrapper.getItem();
+
+        PrismContainerValue<ItemsSubCorrelatorType> newValue;
+
+        if (value == null) {
+            newValue = container.createNewValue();
+        } else {
+            try {
+                value.setParent(container);
+                if (!container.getValues().contains(value)) {
+                    container.add(value);
+                }
+            } catch (SchemaException e) {
+                throw new RuntimeException("Couldn't add new value to the container.", e);
+            }
+            newValue = value;
         }
-        return createNewItemContainerValueWrapper(pageBase, newValue, container, target);
+
+        PrismContainerValueWrapper<ItemsSubCorrelatorType> wrapper =
+                createNewItemContainerValueWrapper(pageBase, newValue, containerWrapper, target);
+
+        if (wrapper.getStatus() == null) {
+            wrapper.setStatus(ValueStatus.ADDED);
+        }
+
+        return wrapper;
     }
 
     //TODO
@@ -115,14 +138,20 @@ public class SmartIntegrationWrapperUtils {
             @Nullable List<ResourceAttributeDefinitionType> attributes) {
         if (attributes != null && !attributes.isEmpty()) {
             try {
-                PrismContainerWrapper<ResourceAttributeDefinitionType> container = resourceObjectTypeDefinition
-                        .getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
-                for (ResourceAttributeDefinitionType attribute : attributes) {
-                    PrismContainerValue<ResourceAttributeDefinitionType> prismContainerValue =
-                            (PrismContainerValue<ResourceAttributeDefinitionType>) attribute.cloneWithoutId().asPrismContainerValue();
-                    WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
-                    WebPrismUtil.createNewValueWrapper(container, prismContainerValue,
-                            pageBase, target);
+                PrismContainerWrapper<ResourceAttributeDefinitionType> container =
+                        resourceObjectTypeDefinition.getObject()
+                                .findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+
+                for (ResourceAttributeDefinitionType attr : attributes) {
+                    PrismContainerValue<ResourceAttributeDefinitionType> pcv =
+                            (PrismContainerValue<ResourceAttributeDefinitionType>)
+                                    attr.clone().asPrismContainerValue(); // or keep cloneWithoutId()
+
+                    pcv.setId(null);
+                    pcv.setParent(container.getItem());
+                    WebPrismUtil.cleanupEmptyContainerValue(pcv);
+
+                    WebPrismUtil.createNewValueWrapper(container, pcv, pageBase, target); // will create ADD without ID
                 }
             } catch (SchemaException e) {
                 throw new RuntimeException(e);
@@ -135,7 +164,7 @@ public class SmartIntegrationWrapperUtils {
             @NotNull PageBase pageBase,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
             @NotNull PrismContainerValueWrapper<MappingType> mappingWrapper,
-            AjaxRequestTarget target) {
+            @NotNull AjaxRequestTarget target) {
         MappingType realValueMapping = mappingWrapper.getRealValue();
 
         IModel<PrismContainerWrapper<CorrelationItemType>> containerModel = createCorrelationItemContainerModel(valueModel, ItemPath.create(
@@ -154,7 +183,7 @@ public class SmartIntegrationWrapperUtils {
 
     @Contract("_, _ -> new")
     public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> createCorrelationItemContainerModel(
-            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> model, ItemPath path) {
+            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> model, @Nullable ItemPath path) {
         return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
     }
 
@@ -210,8 +239,8 @@ public class SmartIntegrationWrapperUtils {
     protected static void createVirtualItemInMapping(
             @NotNull PageBase pageBase,
             @NotNull PrismContainerValueWrapper<?> mapping,
-            PrismContainerValueWrapper<ResourceAttributeDefinitionType> value,
-            PrismPropertyDefinition<Object> propertyRefDef) {
+            @Nullable PrismContainerValueWrapper<ResourceAttributeDefinitionType> value,
+            @NotNull PrismPropertyDefinition<Object> propertyRefDef) {
         try {
             if (mapping.findProperty(ItemRefinedDefinitionType.F_REF) == null) {
 
@@ -245,7 +274,7 @@ public class SmartIntegrationWrapperUtils {
     }
 
     public static <C extends MappingType> @Nullable PrismContainerValueWrapper<C> findRelatedInboundMapping(
-            PageBase pageBase,
+            @NotNull PageBase pageBase,
             @NotNull PrismContainerValueWrapper<CorrelationItemType> correlationItemWrapper) {
         ItemPathType correlationItemRef = correlationItemWrapper.getRealValue().getRef();
         List<PrismContainerValueWrapper<C>> allInboundMappings = new ArrayList<>();
