@@ -278,7 +278,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     }
 
     protected boolean isListViewVisible() {
-        return !getSafeRows().isEmpty() && getModelObject().isFailed();
+        return !getSafeRows().isEmpty();
     }
 
     /** Null-safe accessor for rows. */

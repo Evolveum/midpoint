@@ -307,6 +307,11 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
             }
 
             @Override
+            protected boolean isListViewVisible() {
+                return super.isListViewVisible() && getModelObject().isFailed();
+            }
+
+            @Override
             protected IModel<String> getSubTitleModel() {
                 return createStringResource(
                         "SmartGeneratingSuggestionStep.generating.correlation.suggestion.action.subText");
