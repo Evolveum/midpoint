@@ -29,7 +29,7 @@ class SchemaSerializer {
      * It is here because we cannot accurately convert text representation of {@link DescriptiveItemPath}
      * to {@link ItemPath} without knowing the exact extension namespaces.
      */
-    private final Map<String, ItemPath> descriptiveToItemPath = new HashMap<>();
+    protected Map<String, ItemPath> descriptiveToItemPath = new HashMap<>();
 
     private static final List<QName> SUPPORTED_TYPE_NAMES = List.of(
             DOMUtil.XSD_STRING,

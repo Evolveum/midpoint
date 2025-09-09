@@ -68,38 +68,24 @@ class ApplicabilityEvaluator {
             throws ConfigurationException {
         List<InboundMappingConfigItem> applicableMappings = new ArrayList<>();
         for (var mapping : mappings) {
-            if (isApplicable(mapping.value())) {
+            if (isApplicable(mapping)) {
                 applicableMappings.add(mapping);
             }
         }
         return applicableMappings;
     }
 
-    private boolean isApplicable(@NotNull InboundMappingType mappingBean) throws ConfigurationException {
-        InboundMappingEvaluationPhasesType mappingPhases = mappingBean.getEvaluationPhases();
-        InboundMappingUseType use = mappingBean.getUse();
-        configCheck(mappingPhases == null || use == null,
-                "Both 'evaluationPhases' and 'use' items present in %s",
-                lazy(() -> ConfigErrorReporter.describe(mappingBean)));
-        if (mappingPhases != null) {
-            if (mappingPhases.getExclude().contains(currentPhase)) {
-                return false;
-            } else if (mappingPhases.getInclude().contains(currentPhase)) {
-                return true;
-            }
-        } else if (use != null) {
-            // The "use" information is definite, if present. Default phases nor correlation usage are not taken into account.
-            return switch (currentPhase) {
-                case BEFORE_CORRELATION -> use == CORRELATION || use == ALL;
-                case CLOCKWORK -> use == SYNCHRONIZATION || use == ALL;
-            };
+    private boolean isApplicable(@NotNull InboundMappingConfigItem mappingCI) throws ConfigurationException {
+        var explicitApplicability = mappingCI.determineApplicability(currentPhase);
+        if (explicitApplicability != null) {
+            return explicitApplicability;
         }
 
         if (defaultPhases.contains(currentPhase)) {
             return true;
         }
 
-        if (currentPhase == BEFORE_CORRELATION && targetIsUsedForCorrelation(mappingBean)) {
+        if (currentPhase == BEFORE_CORRELATION && targetIsUsedForCorrelation(mappingCI.value())) {
             LOGGER.trace("Mapping is applicable because its target is a correlation item");
             return true;
         }

@@ -1,8 +1,11 @@
 package com.evolveum.midpoint.smart.impl;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +29,12 @@ class PrismComplexTypeDefinitionSerializer extends SchemaSerializer {
         this.ignoredPaths = ignoredPaths;
         this.prefix = prefix;
         this.typesSeen = typesSeen;
+    }
+
+    private PrismComplexTypeDefinitionSerializer(
+            ComplexTypeDefinition complexTypeDefinition, PathSet ignoredPaths, DescriptiveItemPath prefix, Set<QName> typesSeen, Map<String, ItemPath> descriptiveToItemPath) {
+        this(complexTypeDefinition, ignoredPaths, prefix, typesSeen);
+        this.descriptiveToItemPath = descriptiveToItemPath;
     }
 
     static SiObjectSchemaType serialize(PrismObjectDefinition<?> objectDef) {
@@ -102,7 +111,8 @@ class PrismComplexTypeDefinitionSerializer extends SchemaSerializer {
                             ctd,
                             ignoredPaths.remainder(itemName),
                             itemPath,
-                            newTypesSeen)
+                            newTypesSeen,
+                            this.descriptiveToItemPath)
                             .addItemDefinitions(schema);
                 }
             }
