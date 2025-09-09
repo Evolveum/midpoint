@@ -6,8 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
@@ -20,11 +25,13 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -32,17 +39,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
-
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final String ID_TABLE = "table";
     private static final String ID_FORM = "form";
+
+    private final IModel<Boolean> switchSuggestion = Model.of(Boolean.TRUE);
 
     public SchemaHandlingObjectsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -50,17 +68,47 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
     protected void initLayout() {
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
+        form.setOutputMarkupId(true);
         add(form);
 
-        MultivalueContainerListPanel<C> objectTypesPanel = new MultivalueContainerListPanel<C>(ID_TABLE, getSchemaHandlingObjectsType()) {
+        WebMarkupContainer objectTypesPanel = createMultiValueListPanel();
+        objectTypesPanel.setOutputMarkupId(true);
+        form.add(objectTypesPanel);
+    }
+
+    public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel() {
+        return PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
+    }
+
+    private @NotNull MultivalueContainerListPanel<C> createMultiValueListPanel() {
+        return new MultivalueContainerListPanel<C>(ID_TABLE, getSchemaHandlingObjectsType()) {
             @Override
             protected boolean isCreateNewObjectVisible() {
                 return SchemaHandlingObjectsPanel.this.isCreateNewObjectVisible();
             }
 
             @Override
+            public String getAdditionalBoxCssClasses() {
+                return "table-td-middle";
+            }
+
+            @Override
+            protected ISelectableDataProvider<PrismContainerValueWrapper<C>> createProvider() {
+                if (SchemaHandlingObjectsPanel.this.createProvider() != null) {
+                    return SchemaHandlingObjectsPanel.this.createProvider();
+                }
+                return super.createProvider();
+            }
+
+            @Override
+            protected void customProcessNewRowItem(Item<PrismContainerValueWrapper<C>> item, IModel<PrismContainerValueWrapper<C>> model) {
+                super.customProcessNewRowItem(item, model);
+                customizeNewRowItem(item, model);
+            }
+
+            @Override
             protected IModel<PrismContainerWrapper<C>> getContainerModel() {
-                return PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
+                return createContainerModel();
             }
 
             @Override
@@ -74,10 +122,36 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
+            protected IColumn<PrismContainerValueWrapper<C>, String> createActionsColumn() {
+                return super.createActionsColumn();
+            }
+
+            @Override
+            public @NotNull List<InlineMenuItem> getInlineMenuItems() {
+                List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
+                customizeInlineMenuItems(inlineMenuItems);
+                return inlineMenuItems;
+            }
+
+            @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> actions = getDefaultMenuActions();
                 actions.add(createShowLifecycleStatesInlineMenu());
                 return actions;
+            }
+
+            @Override
+            protected @Nullable String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
+                String customCssClass = customInlineMenuItemCssClass(rowModel);
+                if (customCssClass != null) {
+                    return customCssClass;
+                }
+                return super.getInlineMenuItemCssClass(rowModel);
+            }
+
+            @Override
+            protected boolean isDuplicationSupported() {
+                return super.isDuplicationSupported();
             }
 
             @Override
@@ -87,14 +161,81 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected List<Component> createToolbarButtonsList(String idButton) {
-                List<Component> buttons = super.createToolbarButtonsList(idButton);
-                buttons.stream()
-                        .filter(component -> component instanceof AjaxIconButton)
-                        .forEach(button -> {
-                            ((AjaxIconButton) button).showTitleAsLabel(true);
-                            button.add(AttributeAppender.replace("class", "btn btn-primary btn-sm"));
-                        });
-                return buttons;
+                List<Component> bar = new ArrayList<>();
+                createNewObjectPerformButton(idButton, bar);
+                createSuggestObjectButton(idButton, bar);
+                createToggleSuggestionButton(idButton, bar);
+                return bar;
+            }
+
+            @Override
+            public boolean displayNoValuePanel() {
+                return allowNoValuePanel() && hasNoValues();
+            }
+
+            private void createToggleSuggestionButton(String idButton, @NotNull List<Component> bar) {
+                ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton,
+                        switchSuggestion) {
+                    @Override
+                    public @NotNull Component getTitleComponent(String id) {
+                        Label label = new Label(id, createStringResource("SchemaHandlingObjectsPanel.show.suggestion.label"));
+                        label.add(AttributeAppender.append("class", "m-0 font-weight-normal text-body"));
+                        label.setOutputMarkupId(true);
+                        return label;
+                    }
+
+                    @Override
+                    protected void onToggle(@NotNull AjaxRequestTarget target) {
+                        refreshForm(target);
+                        target.add(SchemaHandlingObjectsPanel.this);
+                    }
+
+                    @Contract(pure = true)
+                    @Override
+                    public @NotNull String getContainerCssClass() {
+                        return "d-flex flex-row-reverse align-items-center gap-1";
+                    }
+                };
+                togglePanel.setOutputMarkupId(true);
+                togglePanel.add(new VisibleBehaviour(() -> isToggleSuggestionVisible()));
+                bar.add(togglePanel);
+            }
+
+            private void createSuggestObjectButton(String idButton, @NotNull List<Component> bar) {
+                AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton,
+                        Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
+                        createStringResource("SchemaHandlingObjectsPanel.suggestNew")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        showSuggestConfirmDialog(getPageBase(),
+                                createStringResource("SchemaHandlingObjectsPanel.suggestNew"), target);
+                    }
+                };
+                suggestObjectButton.showTitleAsLabel(true);
+                suggestObjectButton.add(AttributeAppender.replace("class", "btn btn-default btn-sm mr-2"));
+                suggestObjectButton.add(new VisibleBehaviour(() -> isSuggestButtonVisible()));
+                bar.add(suggestObjectButton);
+            }
+
+            private void createNewObjectPerformButton(String idButton, @NotNull List<Component> bar) {
+                AjaxIconButton newObjectButton = new AjaxIconButton(idButton,
+                        new Model<>(getIconForNewObjectButton()),
+                        createStringResource(getKeyOfTitleForNewObjectButton())) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        newItemPerformed(target, null);
+                    }
+                };
+                newObjectButton.showTitleAsLabel(true);
+                newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm mr-2"));
+                newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
+                bar.add(newObjectButton);
             }
 
             @Override
@@ -115,6 +256,18 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             @Override
             protected IColumn<PrismContainerValueWrapper<C>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
                 return new PrismPropertyWrapperColumn<>(getContainerModel(), getPathForDisplayName(), AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<C>> rowModel) {
+
+                        Component component = onNameColumnPopulateItem(cellItem, componentId, rowModel);
+                        if (component != null) {
+                            cellItem.add(component);
+                            return;
+                        }
+
+                        super.populateItem(cellItem, componentId, rowModel);
+                    }
 
                     @Override
                     protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> model) {
@@ -151,18 +304,43 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
                 onNewValue(value, getContainerModel(), target, isDuplicate);
             }
+
         };
-        form.add(objectTypesPanel);
+    }
+
+    protected ISelectableDataProvider<PrismContainerValueWrapper<C>> createProvider() {
+        return null;
+    }
+
+    protected void customizeNewRowItem(
+            Item<PrismContainerValueWrapper<C>> item, IModel<PrismContainerValueWrapper<C>> model) {
+        // Default implementation does nothing. Override if needed.
+    }
+
+    /**
+     * This method is called when the name column is populated.
+     * It allows for custom behavior or additional components to be added
+     * to the name column item.
+     *
+     * @param cellItem The item being populated.
+     * @param componentId The ID of the component being populated.
+     * @param rowModel The model for the row being populated.
+     * @return A component to be added to the cell, or null if no custom component is needed.
+     */
+    protected @Nullable Component onNameColumnPopulateItem(
+            Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<C>> rowModel) {
+        // Default implementation does nothing. Override if needed.
+        return null;
     }
 
     private InlineMenuItem createShowLifecycleStatesInlineMenu() {
         return new InlineMenuItem(createStringResource("SchemaHandlingObjectsPanel.button.showLifecycleStates")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -213,13 +391,109 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     protected abstract void onNewValue(
             PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> newWrapperModel, AjaxRequestTarget target, boolean isDuplicate);
 
+    protected abstract void onSuggestValue(
+            PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> newWrapperModel, AjaxRequestTarget target);
+
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<C>> valueModel, AjaxRequestTarget target);
 
     protected boolean isCreateNewObjectVisible() {
         return true;
     }
 
+    @SuppressWarnings("rawtypes")
     public MultivalueContainerListPanel getTable() {
-        return (MultivalueContainerListPanel) get(getPageBase().createComponentPath(ID_FORM, ID_TABLE));
+        Component component = get(getPageBase().createComponentPath(ID_FORM, ID_TABLE));
+        if (component instanceof MultivalueContainerListPanel) {
+            return (MultivalueContainerListPanel) component;
+        } else {
+            return null;
+        }
     }
+
+    /**
+     * Determines whether the panel should display a special UI component
+     * (e.g. {@link NoValuePanel}) when there are no values
+     * present in the container.
+     */
+    protected boolean allowNoValuePanel() {
+        return false;
+    }
+
+    /**
+     * Checks whether the container at the specified path has any values.
+     * <p>
+     * This method inspects the {@link PrismObjectWrapper} associated with the current resource
+     * and attempts to retrieve the {@link PrismContainerWrapper} at the path defined by
+     * {@link #getTypesContainerPath()}. If the container does not exist or contains no values,
+     * the method returns {@code true}.
+     * </p>
+     *
+     * <p>This is typically used to decide whether to display the "no values" fallback panel.</p>
+     *
+     * @return {@code true} if the container is null or contains no values; {@code false} otherwise.
+     * @throws IllegalStateException if the container cannot be found due to schema issues.
+     */
+    protected boolean hasNoValues() {
+        PrismObjectWrapper<ResourceType> object = getObjectWrapperModel().getObject();
+        if (object == null) {
+            return true;
+        }
+
+        PrismContainerWrapper<C> typesContainer;
+        try {
+            typesContainer = object.findContainer(getTypesContainerPath());
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Cannot find container for path: " + getTypesContainerPath(), e);
+        }
+        if (typesContainer == null) {
+            return true;
+        }
+
+        return typesContainer.getValues() == null || typesContainer.getValues().isEmpty();
+    }
+
+    protected void showSuggestConfirmDialog(
+            @NotNull PageBase pageBase,
+            StringResourceModel confirmModel, AjaxRequestTarget target) {
+        SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(pageBase.getMainPopupBodyId(), confirmModel) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                onSuggestValue(
+                        null, createContainerModel(), target);
+            }
+        };
+        pageBase.showMainPopup(dialog, target);
+    }
+
+    protected boolean isSuggestButtonVisible() {
+        return true;
+    }
+
+    protected void customizeInlineMenuItems(List<InlineMenuItem> inlineMenuItems) {
+        // Default implementation does nothing. Override if needed.
+    }
+
+    protected @Nullable String customInlineMenuItemCssClass(@Nullable IModel<PrismContainerValueWrapper<C>> rowModel) {
+        return null;
+    }
+
+    protected IModel<Boolean> getSwitchSuggestionModel() {
+        return switchSuggestion;
+    }
+
+    protected void refreshForm(@NotNull AjaxRequestTarget target) {
+        WebMarkupContainer form = (WebMarkupContainer) get(ID_FORM);
+
+        MultivalueContainerListPanel<?> fresh = createMultiValueListPanel();
+        fresh.setOutputMarkupId(true);
+
+        form.addOrReplace(fresh);
+        target.add(fresh);
+    }
+
+    protected boolean isToggleSuggestionVisible() {
+        return isSuggestButtonVisible() && !hasNoValues();
+    }
+
 }

@@ -25,11 +25,12 @@
     <div wicket:id="table"/>
 </wicket:panel>
 <wicket:fragment wicket:id="headerFragment">
-    <div class="d-flex">
+    <div class="d-flex" wicket:id="headerContainer">
         <div class="mr-auto pr-4">
-            <div wicket:id="viewToggle"/>
+            <div wicket:id="viewToggle"></div>
         </div>
-        <div class="ml-auto flex-grow-1" wicket:id="panelHeader"/>
+        <div class="mr-2 gap-2" wicket:id="toolbarButtons"></div>
+        <div class="ml-auto flex-grow-1" wicket:id="panelHeader"></div>
     </div>
 </wicket:fragment>
 <wicket:fragment wicket:id="tilesFragment">

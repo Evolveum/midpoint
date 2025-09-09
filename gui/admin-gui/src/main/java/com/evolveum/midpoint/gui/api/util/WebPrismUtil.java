@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -53,7 +52,6 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -288,6 +286,15 @@ public class WebPrismUtil {
         }
 
         return value;
+    }
+
+    public static void cleanupEmptyValue(Collection<? extends PrismValue> values) {
+        if (values == null || values.isEmpty()) return;
+        for (PrismValue v : values) {
+            if (v != null) {
+                WebPrismUtil.cleanupValueMetadata(v);
+            }
+        }
     }
 
     public static void cleanupValueMetadata(PrismValue value) {
@@ -701,4 +708,28 @@ public class WebPrismUtil {
         }
         return numberOfSameRef;
     }
+
+    /**
+     * Set read-only all items in the container and its sub-containers.
+     * Force to use LabelPanelFactory for all items.
+     * @param wrapper container value to be set read-only
+     */
+    public static void setReadOnlyRecursively(@NotNull PrismContainerValueWrapper<?> wrapper) {
+        wrapper.getItems().forEach(item -> {
+            item.setReadOnly(true);
+            if (item instanceof PrismContainerWrapper<?> containerWrapper) {
+                setReadOnlyRecursively(containerWrapper);
+            }
+        });
+    }
+
+    /**
+     * Set read-only all items in the container and its sub-containers.
+     * Force to use LabelPanelFactory for all items.
+     * @param wrapper container to be set read-only
+     */
+    public static void setReadOnlyRecursively(@NotNull PrismContainerWrapper<?> wrapper) {
+        wrapper.getValues().forEach(WebPrismUtil::setReadOnlyRecursively);
+    }
+
 }

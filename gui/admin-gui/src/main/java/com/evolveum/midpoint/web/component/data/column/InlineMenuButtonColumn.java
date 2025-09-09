@@ -34,12 +34,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * @author honchar
  * @author Viliam Repan (lazyman)
  * <p>
- *
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
@@ -57,7 +55,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
     @Override
     public void populateItem(final Item<ICellPopulator<T>> cellItem, String componentId,
-                             final IModel<T> rowModel) {
+            final IModel<T> rowModel) {
         Component panel = getPanel(componentId, rowModel, getNumberOfButtons(false), false);
         panel.add(new VisibleBehaviour(() -> isPanelVisible(false)));
         cellItem.add(panel);
@@ -72,14 +70,14 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     }
 
     private Component getPanel(String componentId, IModel<T> rowModel,
-                               int numberOfButtons, boolean isHeaderPanel) {
+            int numberOfButtons, boolean isHeaderPanel) {
         List<InlineMenuItem> filteredMenuItems = new ArrayList<>();
         for (InlineMenuItem menuItem : menuItems) {
 
-            if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
+            if (isHeaderPanel && !menuItem.isHeaderMenuItem()) {
                 continue;
             }
-            if (rowModel != null && menuItem.getAction() != null && menuItem.getAction() instanceof ColumnMenuAction){
+            if (rowModel != null && menuItem.getAction() != null && menuItem.getAction() instanceof ColumnMenuAction) {
                 ((ColumnMenuAction) menuItem.getAction()).setRowModel(rowModel);
             }
 
@@ -92,7 +90,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
         List<ButtonInlineMenuItem> buttonMenuItems = new ArrayList<>();
         menuItems.forEach(menuItem -> {
-            if (menuItem instanceof ButtonInlineMenuItem){
+            if (menuItem instanceof ButtonInlineMenuItem) {
                 if (isHeaderPanel && !menuItem.isHeaderMenuItem() || !menuItem.getVisible().getObject()) {
                     return;
                 }
@@ -135,12 +133,30 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                     }
                 };
 
-                btn.add(AttributeAppender.append("class", getInlineMenuItemCssClass()));
+                btn.add(AttributeAppender.append("class", getInlineMenuItemCssClass(rowModel)));
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
                 btn.titleAsLabel(showButtonLabel(index, buttonMenuItems));
                 btn.add(AttributeAppender.append("aria-label", getButtonTitle(index, buttonMenuItems)));
                 btn.add(AttributeAppender.append("aria-pressed", "false"));
                 return btn;
+            }
+
+            @Override
+            protected String getAdditionalMultiButtonPanelCssClass() {
+                return InlineMenuButtonColumn.this.getAdditionalMultiButtonPanelCssClass();
+            }
+
+            @Override
+            protected String getDropDownButtonIcon() {
+                return InlineMenuButtonColumn.this.getDropDownButtonIcon();
+            }
+
+            @Override
+            protected String getSpecialButtonClass() {
+                if (InlineMenuButtonColumn.this.getSpecialButtonClass() != null) {
+                    return InlineMenuButtonColumn.this.getSpecialButtonClass();
+                }
+                return super.getSpecialButtonClass();
             }
 
             @Override
@@ -156,7 +172,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         };
     }
 
-    protected boolean isButtonMenuItemEnabled(IModel<T> rowModel){
+    protected String getAdditionalMultiButtonPanelCssClass() {
+        return null;
+    }
+
+    protected boolean isButtonMenuItemEnabled(IModel<T> rowModel) {
         return true;
     }
 
@@ -169,7 +189,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     }
 
     private void buttonMenuItemClickPerformed(int id, List<ButtonInlineMenuItem> buttonMenuItems, AjaxRequestTarget target) {
-        if (id >= buttonMenuItems.size()){
+        if (id >= buttonMenuItems.size()) {
             return;
         }
 
@@ -186,7 +206,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             return;
         }
 
-        if (menuItem.isSubmit()){
+        if (menuItem.isSubmit()) {
             action.onSubmit(target);
         } else {
             action.onClick(target);
@@ -216,14 +236,14 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     }
 
     private CompositedIconBuilder getIconCompositedBuilder(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
-        if (id >= buttonMenuItems.size()){
+        if (id >= buttonMenuItems.size()) {
             return null;
         }
         return buttonMenuItems.get(id).getIconCompositedBuilder(); // + " fa-fw";
     }
 
     private String getButtonTitle(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
-        if (id >= buttonMenuItems.size()){
+        if (id >= buttonMenuItems.size()) {
             return null;
         }
         IModel<String> label = buttonMenuItems.get(id).getLabel();
@@ -233,23 +253,23 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
     protected int getNumberOfButtons(boolean isHeaderPanel) {
         int numberOfHeaderButtons = 0;
-        for (InlineMenuItem inlineMenuItem : menuItems){
-            if (isHeaderPanel && !inlineMenuItem.isHeaderMenuItem()){
+        for (InlineMenuItem inlineMenuItem : menuItems) {
+            if (isHeaderPanel && !inlineMenuItem.isHeaderMenuItem()) {
                 continue;
             }
-            if (inlineMenuItem instanceof ButtonInlineMenuItem){
+            if (inlineMenuItem instanceof ButtonInlineMenuItem) {
                 numberOfHeaderButtons++;
             }
         }
         return numberOfHeaderButtons;
     }
 
-    private boolean isPanelVisible(boolean isHeaderPanel){
-        for (InlineMenuItem item : menuItems){
-            if (isHeaderPanel && (item.isHeaderMenuItem() || item.getAction() instanceof HeaderMenuAction)){
+    private boolean isPanelVisible(boolean isHeaderPanel) {
+        for (InlineMenuItem item : menuItems) {
+            if (isHeaderPanel && (item.isHeaderMenuItem() || item.getAction() instanceof HeaderMenuAction)) {
                 return true;
             }
-            if (!isHeaderPanel && !(item.getAction() instanceof HeaderMenuAction)){
+            if (!isHeaderPanel && !(item.getAction() instanceof HeaderMenuAction)) {
                 return true;
             }
 
@@ -258,13 +278,21 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     }
 
     private boolean showButtonLabel(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
-        if (id >= buttonMenuItems.size()){
+        if (id >= buttonMenuItems.size()) {
             return false;
         }
         return buttonMenuItems.get(id).isLabelVisible();
     }
 
-    protected String getInlineMenuItemCssClass() {
+    protected String getInlineMenuItemCssClass(IModel<T> rowModel) {
         return "btn btn-default btn-xs";
+    }
+
+    protected String getDropDownButtonIcon() {
+        return null;
+    }
+
+    protected String getSpecialButtonClass() {
+        return null;
     }
 }

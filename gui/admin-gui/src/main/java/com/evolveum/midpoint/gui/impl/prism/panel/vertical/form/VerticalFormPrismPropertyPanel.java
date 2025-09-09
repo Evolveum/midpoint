@@ -14,13 +14,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -52,6 +50,10 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
 
     @Override
     protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item) {
+        return createPrismPropertyValuePanel(item);
+    }
+
+    private @NotNull PrismPropertyValuePanel<T> createPrismPropertyValuePanel(ListItem<PrismPropertyValueWrapper<T>> item) {
         PrismPropertyValuePanel<T> panel = new VerticalFormPrismPropertyValuePanel<T>(ID_VALUE, item.getModel(), getSettings()) {
 
             @Override

@@ -191,6 +191,16 @@ class ResourceDefinitionFeatures {
                         NativeShadowAttributeDefinition::getReferencedObjectClassName,
                         XsdSerializers.qName(MidPointConstants.RA_REFERENCED_OBJECT_CLASS_NAME));
 
+        static final DefinitionFeature<Boolean, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_COMPLEX_ATTRIBUTE =
+                DefinitionFeature.of(
+                        Boolean.class,
+                        NativeShadowAttributeDefinitionBuilder.class,
+                        NativeShadowAttributeDefinitionBuilder::setComplexAttribute,
+                        XsomParsers.marker(MidPointConstants.RA_COMPLEX_ATTRIBUTE),
+                        NativeShadowAttributeDefinition.class,
+                        NativeShadowAttributeDefinition::isComplexAttribute,
+                        XsdSerializers.aBooleanDefaultFalse(MidPointConstants.RA_COMPLEX_ATTRIBUTE));
+
         static final DefinitionFeature<String, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_DESCRIPTION_NAME =
                 DefinitionFeature.of(
                         String.class,

@@ -61,6 +61,11 @@ public class Breadcrumb implements Serializable, DebugDumpable {
         setLabel(labelModel);
     }
 
+    public Breadcrumb(IModel<String> labelModel, IModel<String> iconModel) {
+        setLabel(labelModel);
+        setIcon(iconModel);
+    }
+
     public Breadcrumb(IModel<String> label, Class<? extends WebPage> pageClass, PageParameters parameters) {
         this(label, null, pageClass, parameters);
     }

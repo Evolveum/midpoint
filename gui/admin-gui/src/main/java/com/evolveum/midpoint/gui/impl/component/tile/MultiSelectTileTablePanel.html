@@ -7,6 +7,9 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+
+    <div wicket:id="noValuePanel"></div>
+
     <div class="d-flex flex-column flex-grow-1" wicket:id="tileView">
         <div wicket:id="header"/>
         <div class="d-flex flex-wrap pt-3 mx-0 justify-content-center" wicket:id="tilesContainer"/>
@@ -24,13 +27,14 @@
 
 <wicket:fragment wicket:id="headerFragment">
     <div class="d-flex flex-column">
-        <div class="card-header d-flex">
+        <div class="card-header d-flex" wicket:id="headerContainer">
             <wicket:enclosure child="viewToggle">
                 <div class="mr-auto pr-4">
                     <div wicket:id="viewToggle"/>
                 </div>
             </wicket:enclosure>
-            <div class="ml-auto flex-grow-1" wicket:id="panelHeader"/>
+            <div class="mr-2 gap-2" wicket:id="toolbarButtons"></div>
+            <div class="ml-auto flex-grow-1" wicket:id="panelHeader"></div>
         </div>
         <div class="card-header d-flex flex-column" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
                 <span>
@@ -52,6 +56,11 @@
 <wicket:fragment wicket:id="tilesFragment">
     <div wicket:id="tiles" style="min-height: 250px;">
         <div wicket:id="tile"/>
+    </div>
+</wicket:fragment>
+<wicket:fragment wicket:id="buttonBar">
+    <div class="btn-group" wicket:id="buttonsRepeater">
+        <a wicket:id="button"></a>
     </div>
 </wicket:fragment>
 </html>

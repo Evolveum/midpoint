@@ -6,15 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
-import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +26,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author katka
@@ -82,8 +81,32 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
             return ProvisioningObjectsUtil.getPendingOperationLabel((PendingOperationType) realValue, this);
         }
 
+        if (FuzzySearchDefinitionType.class.isAssignableFrom(realValue.getClass())) {
+            return getCorrelationStrategyLabel(object);
+        }
+
         return realValue.toString();
 
+    }
+
+    private String getCorrelationStrategyLabel(@NotNull PrismContainerValueWrapper<C> object) {
+        List<PrismContainerWrapper<? extends Containerable>> containers = object.getContainers();
+        if (CollectionUtils.isEmpty(containers)) {
+            return getString("CorrelationItemRefsTable.column.fuzzy.nullValue");
+        }
+        for (PrismContainerWrapper<? extends Containerable> container : containers) {
+            if (container == null || WebPrismUtil.isEmptyContainer(container.getItem())) {
+                continue;
+            }
+            if (validateChildContainer(container.getItem().getDefinition())) {
+                return container.getItemName().getLocalPart();
+            }
+        }
+        return getString("CorrelationItemRefsTable.column.fuzzy.nullValue");
+    }
+
+    private boolean validateChildContainer(ItemDefinition<?> definition) {
+        return true;
     }
 
     private String getActivationLabelLabel(ActivationType activation) {

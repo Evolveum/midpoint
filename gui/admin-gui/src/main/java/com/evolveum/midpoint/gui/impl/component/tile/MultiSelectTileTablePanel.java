@@ -7,8 +7,11 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.ButtonBar;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 
 import org.apache.wicket.Component;
@@ -23,7 +26,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -35,6 +37,10 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
     private static final String ID_SELECTED_ITEM_CONTAINER = "selectedItemContainer";
     private static final String ID_SELECTED_ITEM = "selectedItem";
     private static final String ID_DESELECT_BUTTON = "deselectButton";
+
+    private static final String ID_BUTTON_BAR = "buttonBar";
+    private static final String ID_BUTTON = "button";
+
 
     public MultiSelectTileTablePanel(
             String id,
@@ -50,6 +56,15 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
     }
 
     @Override
+    protected Component createToolbarButtons(String id) {
+        ButtonBar<Containerable, SelectableRow<?>> buttonBar = new ButtonBar<>(id, ID_BUTTON_BAR,
+                MultiSelectTileTablePanel.this, createToolbarButtonsList(ID_BUTTON));
+        buttonBar.setOutputMarkupId(true);
+        buttonBar.add(new VisibleBehaviour(this::idToolbarButtonsVisible));
+        return buttonBar;
+    }
+
+    @Override
     protected Fragment createHeaderFragment(String id) {
         Fragment headerFragment = super.createHeaderFragment(id);
 
@@ -57,7 +72,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
 
         WebMarkupContainer selectedItemsContainer = new WebMarkupContainer(ID_SELECTED_ITEMS_CONTAINER);
         selectedItemsContainer.setOutputMarkupId(true);
-        selectedItemsContainer.add(new VisibleBehaviour(() -> isSelectedItemsPanelVisible()));
+        selectedItemsContainer.add(new VisibleBehaviour(this::isSelectedItemsPanelVisible));
         headerFragment.add(selectedItemsContainer);
 
         ListView<E> selectedContainer = new ListView<>(
@@ -119,5 +134,13 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
     }
 
     protected void processSelectOrDeselectItem(O value, ISortableDataProvider<O, String> provider, AjaxRequestTarget target) {
+    }
+
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        return new ArrayList<>();
+    }
+
+    protected boolean idToolbarButtonsVisible() {
+        return true;
     }
 }

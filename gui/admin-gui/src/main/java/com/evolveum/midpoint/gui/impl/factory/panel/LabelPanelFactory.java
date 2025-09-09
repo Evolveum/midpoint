@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import jakarta.annotation.PostConstruct;
@@ -61,6 +63,9 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
             } else {
                 return new Label(panelCtx.getComponentId(), Model.of());
             }
+        } else if (object instanceof VariableBindingDefinitionType variableBindingDefinition) {
+            ItemPathType path = variableBindingDefinition.getPath();
+            return new Label(panelCtx.getComponentId(), Model.of(path != null ? path.toString() : ""));
         }
 
         return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());

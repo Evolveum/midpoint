@@ -6,23 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-
-import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -41,15 +36,49 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
         return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
 
             @Override
-            protected void showTableForItemRefs(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
-                WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderDetailsModel(), rowModel) {
+            protected void postProcessAddSuggestion(AjaxRequestTarget target) {
+                showUnsavedChangesToast(target);
+                showChoiceFragment(target, createTablePanel());
+            }
+
+            @Override
+            protected void showTableForItemRefs(
+                    @NotNull AjaxRequestTarget target,
+                    @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
+                    @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
+                    @Nullable StatusInfo<CorrelationSuggestionsType> statusInfo) {
+                WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(
+                        getAssignmentHolderDetailsModel(), rowModel) {
                     @Override
                     public void onExitPerformed(AjaxRequestTarget target) {
                         showUnsavedChangesToast(target);
                         showChoiceFragment(target, createTablePanel());
                     }
                 };
-                showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), helper));
+
+                showChoiceFragment(target, new CorrelationItemRuleWizardPanel(getIdOfChoicePanel(), helper, () -> statusInfo) {
+                    @Override
+                    protected void acceptSuggestionPerformed(
+                            @NotNull AjaxRequestTarget target,
+                            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
+                        acceptSuggestionItemPerformed(getPageBase(), target, valueModel, resourceObjectTypeDefinition, statusInfo);
+                    }
+
+                    @Override
+                    protected void onDiscardButtonClick(
+                            @NotNull PageBase pageBase,
+                            @NotNull AjaxRequestTarget target,
+                            @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
+                            @NotNull StatusInfo<?> statusInfo) {
+                        performDiscard(pageBase, target, valueModel, statusInfo);
+                    }
+
+                    @Override
+                    protected boolean isShowEmptyField() {
+                        return true;
+                    }
+
+                });
             }
         };
     }

@@ -26,6 +26,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,7 +118,7 @@ public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serial
             }
 
             @Override
-            protected void customizeNewRowItem(SelectableBean<O> value) {
+            protected void customizeNewRowItem(SelectableBean<O> value, Item<SelectableBean<O>> item) {
                 MultiSelectObjectTypeTileWizardStepPanel.this.customizeTile(value, null);
             }
 

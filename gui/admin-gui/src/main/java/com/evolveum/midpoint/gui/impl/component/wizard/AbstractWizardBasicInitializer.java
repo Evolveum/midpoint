@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 public abstract class AbstractWizardBasicInitializer extends BasePanel {
 
+    private static final String ID_TITLE_ICON = "titleIcon";
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
@@ -45,6 +47,11 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
 
     private void initLayout() {
 
+        WebMarkupContainer titleIcon = new WebMarkupContainer(ID_TITLE_ICON);
+        titleIcon.add(new VisibleBehaviour(() -> getTitleIconModel() != null && getTitleIconModel().getObject() != null));
+        titleIcon.add(AttributeModifier.replace("class", getTitleIconModel()));
+        add(titleIcon);
+
         Label mainText = new Label(ID_TEXT, getTextModel());
         mainText.add(new VisibleBehaviour(() -> getTextModel() != null && getTextModel().getObject() != null));
         add(mainText);
@@ -57,6 +64,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
         feedbackContainer.setOutputMarkupId(true);
         feedbackContainer.setOutputMarkupPlaceholderTag(true);
         add(feedbackContainer);
+        feedbackContainer.add(new VisibleBehaviour(this::isFeedbackContainerVisible));
         feedbackContainer.add(AttributeAppender.append("class", getCssForWidthOfFeedbackPanel()));
 
         FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
@@ -172,6 +180,14 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
 
     protected IModel<String> getTextModel(){
         return getPageBase().createStringResource(getClass().getSimpleName() + ".subText");
+    }
+
+    protected IModel<String> getTitleIconModel() {
+        return null;
+    }
+
+    protected boolean isFeedbackContainerVisible() {
+        return true;
     }
 
     protected WebMarkupContainer getFeedback() {

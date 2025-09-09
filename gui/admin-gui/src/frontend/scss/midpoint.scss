@@ -36,30 +36,33 @@
 
 @import "autocomplete";
 
+@import "form-validation";
+@import "smart-int";
+
 body.custom-hold-transition {
-	.content-wrapper,
-	.right-side,
-	.main-footer,
-	.main-sidebar,
-	.left-side,
-	.main-header .navbar,
-	.main-header .logo {
-		-webkit-transition: none !important;
-		-moz-transition: none !important;
-		-ms-transition: none !important;
-		-o-transition: none !important;
-	}
+  .content-wrapper,
+  .right-side,
+  .main-footer,
+  .main-sidebar,
+  .left-side,
+  .main-header .navbar,
+  .main-header .logo {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+  }
 }
 
 //Fix when hovering collapsed sidemenu to use bigger default logo
 .sidebar-mini-xs.sidebar-collapse .main-sidebar:not(.sidebar-no-expand):hover > a.logo > span {
-      &:before {
-        opacity: 1;
-      }
+  &:before {
+    opacity: 1;
+  }
 
-      &:after {
-          opacity: 0;
-        }
+  &:after {
+    opacity: 0;
+  }
 }
 
 //Change default midPoint logo when sidemenu is collapsed
@@ -70,8 +73,8 @@ body.sidebar-collapse .main-sidebar > a.logo > span {
   }
 
   &:after {
-      opacity: 1;
-    }
+    opacity: 1;
+  }
 }
 
 .main-sidebar {
@@ -87,12 +90,14 @@ body.sidebar-collapse .main-sidebar > a.logo > span {
       content: '';
       transition: opacity 0.3s;
     }
+
     & > span:before {
       background: url("../img/midpoint_logo_white_250x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
       z-index: -101;
       background-size: contain;
       background-position: 50%;
     }
+
     & > span:after {
       background: url("../img/midpoint_logo_white_56x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
       z-index: -100;
@@ -157,8 +162,9 @@ li.dropdown.user.user-menu {
 .sidebar-menu .treeview-menu > li > span > .fe {
   width: 20px;
 }
+
 .sidebar-menu > li > a > .fe {
-	width: 20px;
+  width: 20px;
 }
 
 .nav-sidebar {
@@ -174,11 +180,12 @@ li.dropdown.user.user-menu {
 
     &.closed {
       & span > i.fa-chevron-down {
-          @include rotate(90deg);
+        @include rotate(90deg);
       }
     }
   }
 }
+
 // end sidebar styles extension
 
 .user-thumbnail-helper {
@@ -232,49 +239,49 @@ li.dropdown.user.user-menu {
 }
 
 .icon-style-disabled {
-	color: #909090;
+  color: #909090;
 }
 
 .icon-style-archived {
-	color: #c0c0c0;
+  color: #c0c0c0;
 }
 
 .icon-style-privileged {
-	color: #da0000;
+  color: #da0000;
 }
 
 .icon-style-end-user {
-	color: #357ca5;
+  color: #357ca5;
 }
 
 .icon-style-manager {
-	color: $object-org-color;
+  color: $object-org-color;
 }
 
 .icon-style-warning {
-	color: #8a6d3b;
+  color: #8a6d3b;
 }
 
 .icon-style-up {
-	color: #00a65a;
+  color: #00a65a;
 }
 
 .icon-style-down {
-	color: #a94442;
+  color: #a94442;
 }
 
 .icon-style-broken {
-	color: #f39c12;
+  color: #f39c12;
 }
 
 .icon-style-maintenance {
-	color: #828282;
+  color: #828282;
 }
 
 // Classes that can be added to color icons, info boxes and other widgets for particular object types
 
 .object-user-color {
-	color: $object-user-color;
+  color: $object-user-color;
 }
 
 .object-application-color {
@@ -282,15 +289,15 @@ li.dropdown.user.user-menu {
 }
 
 .object-role-color {
-	color: $object-role-color;
+  color: $object-role-color;
 }
 
 .object-org-color {
-	color: $object-org-color;
+  color: $object-org-color;
 }
 
 .object-service-color {
-	color: $object-service-color;
+  color: $object-service-color;
 }
 
 .object-policy-color {
@@ -298,47 +305,47 @@ li.dropdown.user.user-menu {
 }
 
 .object-resource-color {
-	color: $object-resource-color;
+  color: $object-resource-color;
 }
 
 .object-task-color {
-	color: $object-task-color;
+  color: $object-task-color;
 }
 
 .object-shadow-color {
-	color: $object-shadow-color;
+  color: $object-shadow-color;
 }
 
 .object-mining-color {
-	color: $object-mining-color;
+  color: $object-mining-color;
 }
 
 .object-outlier-color {
-	color: $object-outlier-color;
+  color: $object-outlier-color;
 }
 
 .object-cluster-color {
-	color: $object-cluster-color;
+  color: $object-cluster-color;
 }
 
 .object-user-bg {
-	background-color: $object-user-color !important;
-	color: #fff !important;
+  background-color: $object-user-color !important;
+  color: #fff !important;
 }
 
 .object-role-bg {
-	background-color: $object-role-color !important;
-	color: #fff !important;
+  background-color: $object-role-color !important;
+  color: #fff !important;
 }
 
 .object-org-bg {
-	background-color: $object-org-color !important;
-	color: #fff !important;
+  background-color: $object-org-color !important;
+  color: #fff !important;
 }
 
 .object-service-bg {
-	background-color: $object-service-color !important;
-	color: #fff !important;
+  background-color: $object-service-color !important;
+  color: #fff !important;
 }
 
 .object-policy-bg {
@@ -347,46 +354,46 @@ li.dropdown.user.user-menu {
 }
 
 .object-resource-bg {
-	background-color: $object-resource-color !important;
-	color: #fff !important;
+  background-color: $object-resource-color !important;
+  color: #fff !important;
 }
 
 .object-task-bg {
-	background-color: $object-task-color !important;
-	color: #fff !important;
+  background-color: $object-task-color !important;
+  color: #fff !important;
 }
 
 .object-task-bg-gray {
-	background-color: #646464 !important;
-	color: #fff !important;
+  background-color: #646464 !important;
+  color: #fff !important;
 }
 
 .object-shadow-bg {
-	background-color: $object-shadow-color !important;
-	color: #fff !important;
+  background-color: $object-shadow-color !important;
+  color: #fff !important;
 }
 
 .object-disabled-bg {
-	background-color: $object-disabled-color !important;
-	color: #fff !important;
+  background-color: $object-disabled-color !important;
+  color: #fff !important;
 }
 
 .object-access-bg {
-	background-color: $object-access-color !important;
-	color: #fff !important;
+  background-color: $object-access-color !important;
+  color: #fff !important;
 }
 
 .object-failed-bg {
-	background-color: $object-failed-color !important;
-	color: #fff !important;
+  background-color: $object-failed-color !important;
+  color: #fff !important;
 }
 
 .object-access-only-bg {
-	background-color: $object-access-color !important;
+  background-color: $object-access-color !important;
 }
 
 .object-failed-only-bg {
-	background-color: $object-failed-color !important;
+  background-color: $object-failed-color !important;
 }
 
 // Colored boxes for each object type
@@ -409,7 +416,7 @@ li.dropdown.user.user-menu {
 }
 
 .object-user-box {
-	@include box-object($object-user-color);
+  @include box-object($object-user-color);
 }
 
 .object-role-box {
@@ -441,11 +448,11 @@ li.dropdown.user.user-menu {
 }
 
 @mixin box-thin-object($color) {
-	border: 1px solid $color;
+  border: 1px solid $color;
 
-	.box-header {
-		border-bottom: 1px solid $color;
-	}
+  .box-header {
+    border-bottom: 1px solid $color;
+  }
 }
 
 .object-user-box-thin {
@@ -481,9 +488,9 @@ li.dropdown.user.user-menu {
 }
 
 // Summary panel (panel above the edit user/role/org forms)
-@mixin info-box-icon-summary-panel($color){
-	color: #FFF !important;
-	background-color: $color;
+@mixin info-box-icon-summary-panel($color) {
+  color: #FFF !important;
+  background-color: $color;
 }
 
 .info-box-icon.summary-panel-user {
@@ -542,17 +549,17 @@ li.dropdown.user.user-menu {
 }
 
 .info-box-icon-ethereal {
-	background-color: transparent;
+  background-color: transparent;
 }
 
 .info-box-icon-ethereal-image {
-	font-size: 56px;
+  font-size: 56px;
 }
 
 .info-box-description {
-    display: block;
-    font-weight: normal;
-    font-size: 14px;
+  display: block;
+  font-weight: normal;
+  font-size: 14px;
 }
 
 .relation-label {
@@ -567,18 +574,18 @@ li.dropdown.user.user-menu {
 // assignments dashboard panel
 .dash-assignment-header {
 
-	.target-name {
-		font-weight: bold;
-		margin-right: 5px;
-	}
+  .target-name {
+    font-weight: bold;
+    margin-right: 5px;
+  }
 
-	.target-display-name {
+  .target-display-name {
 
-	}
+  }
 
-	.target-relation {
-		margin-left: 10px;
-	}
+  .target-relation {
+    margin-left: 10px;
+  }
 }
 
 .info-box {
@@ -589,41 +596,42 @@ li.dropdown.user.user-menu {
   &.info-box-link {
     cursor: pointer;
 
-      &.active {
-        background-color: #dee9f0;
-      }
+    &.active {
+      background-color: #dee9f0;
+    }
   }
 }
 
 // Capability resource view grid
 .evo-grid.grid {
-  display:grid;
+  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 // Capability buttons in resource details page
 .btn-resource-capability {
-	//min-width: 150px !important;
-	aspect-ratio: 4/3!important;
-	height: auto;
-	max-height:120px;
-	font-size: 14px;
+  //min-width: 150px !important;
+  aspect-ratio: 4/3 !important;
+  height: auto;
+  max-height: 120px;
+  font-size: 14px;
 
-	.icon-background {
-	  color: rgba(60, 141, 188, 0.1);
-	}
+  .icon-background {
+    color: rgba(60, 141, 188, 0.1);
+  }
 
-	& i.fa-stack-2x {
-	  font-size:3.5rem;
-	}
+  & i.fa-stack-2x {
+    font-size: 3.5rem;
+  }
+
   & i.fa-stack-1x {
     font-size: 1.35rem;
   }
 }
 
 .btn-resource-capability:hover {
-	background: $light;
-	border-color: darken($light, 3%);
+  background: $light;
+  border-color: darken($light, 3%);
 }
 
 // Feedback messages
@@ -652,38 +660,38 @@ li.dropdown.user.user-menu {
 }
 
 .summary-panel-display-name {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    display: inline;
-    max-width: 800px;
-  }
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline;
+  max-width: 800px;
+}
 
 .summary-panel-navigation-button {
-	display: inline;
-	margin-left: 10px;
-	color: $text-dimmed-color;
+  display: inline;
+  margin-left: 10px;
+  color: $text-dimmed-color;
 }
 
 .summary-panel-navigation-button:hover {
-	display: inline;
-	margin-left: 10px;
-	color: $text-dark-dimmed-color;
+  display: inline;
+  margin-left: 10px;
+  color: $text-dark-dimmed-color;
 }
 
 .summary-panel-identifier {
-	color: $text-dimmed-color;
-	font-weight: normal;
+  color: $text-dimmed-color;
+  font-weight: normal;
 }
 
 .summary-panel-title {
-	white-space: pre-wrap;
+  white-space: pre-wrap;
 }
 
 .summary-panel-organization {
-	font-size: 16px;
-	display: block;
-	white-space: pre-wrap;
+  font-size: 16px;
+  display: block;
+  white-space: pre-wrap;
 }
 
 .summary-tag-box {
@@ -700,30 +708,29 @@ li.dropdown.user.user-menu {
 }
 
 .summary-tag-icon {
-	width: 20px;
+  width: 20px;
 }
 
 // form input for binary data upload (used e.g. for photo)
 
 .form-object-value-binary-box {
-	width: 100%;
-	padding: 0px;
+  width: 100%;
+  padding: 0px;
 }
 
 .form-object-value-binary-file-input {
-	width: 65%;
-	vertical-align: middle;
-	display: inline !important;
+  width: 65%;
+  vertical-align: middle;
+  display: inline !important;
 }
-
 
 
 // top navigation bar: page title
 
 .navbar-title {
-	float: left;
-	background-color: transparent;
-	margin-top: 3px;
+  float: left;
+  background-color: transparent;
+  margin-top: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -749,8 +756,8 @@ li.dropdown.user.user-menu {
 }
 
 .page-title {
-	background-color: transparent;
-	font-size: 22px;
+  background-color: transparent;
+  font-size: 22px;
 }
 
 .nav-item > .breadcrumb {
@@ -790,82 +797,82 @@ li.dropdown.user.user-menu {
 // Prism containers and attributes
 
 .prism-object {
-	& > div.prism-header {
-		padding-left: 15px; // to match container header padding
-	}
+  & > div.prism-header {
+    padding-left: 15px; // to match container header padding
+  }
 }
 
 .prism-multivalue-container {
-    margin-left: 15px; // aligning multivalue container with superior container
+  margin-left: 15px; // aligning multivalue container with superior container
 }
 
 .check-table-header {
-	padding-left: 20px;
+  padding-left: 20px;
 
-	& > input[type="checkbox"] {
-		position: absolute;
-		margin-left: -20px;
-		margin-top: 6px;
+  & > input[type="checkbox"] {
+    position: absolute;
+    margin-left: -20px;
+    margin-top: 6px;
+  }
+
+  .check-table-label {
+
+    .check-table-header-icon {
+      margin-left: 4px;
+      position: relative;
+      bottom: 1px;
     }
 
-    .check-table-label {
-
-	    .check-table-header-icon {
-		    margin-left: 4px;
-		    position: relative;
-		    bottom: 1px;
-	    }
-
-	    .check-table-header-name {
-	    	margin-left: 5px;
-	    	font-size: 18px;
-	    	color: $text-label-color !important;
-	    }
-
-	    .check-table-header-description {
-	    	margin-left: 10px;
-	    }
-
-	    .check-table-header-status {
-	    	margin-left: 10px;
-	    	position: relative;
-			bottom: 2px;
-	    }
-
-    	.check-table-header-show-more {
-	    	color: $text-dimmed-color !important;
-	    }
-
-	    .delegation-arrow-icon {
-	    	font-size: 24px;
-	    	margin-left: 5px;
-	    	margin-right: 5px;
-	    	position: relative;
-	    	top: 3px;
-	    }
+    .check-table-header-name {
+      margin-left: 5px;
+      font-size: 18px;
+      color: $text-label-color !important;
     }
+
+    .check-table-header-description {
+      margin-left: 10px;
+    }
+
+    .check-table-header-status {
+      margin-left: 10px;
+      position: relative;
+      bottom: 2px;
+    }
+
+    .check-table-header-show-more {
+      color: $text-dimmed-color !important;
+    }
+
+    .delegation-arrow-icon {
+      font-size: 24px;
+      margin-left: 5px;
+      margin-right: 5px;
+      position: relative;
+      top: 3px;
+    }
+  }
 }
 
 .tab-label {
-	& > small {
-		margin-left: 6px;
-		position: relative;
-		top: -1px;
-	}
+  & > small {
+    margin-left: 6px;
+    position: relative;
+    top: -1px;
+  }
 }
 
 .box-header.add {
-	background-color: #caffca;
+  background-color: #caffca;
 }
 
 .box-header.delete {
-	background-color: #ffcaca;
+  background-color: #ffcaca;
 }
 
 .main-form-panel { // Used on pages where there is just one main panel and it does not
-                   // provide formatting by itself. E.g. pages that are both object lists
-                   // and forms (such as workitems, requests).
-	margin-bottom: 20px;
+  // provide formatting by itself. E.g. pages that are both object lists
+  // and forms (such as workitems, requests).
+  margin-bottom: 20px;
 }
 
 .options-container {
@@ -873,12 +880,12 @@ li.dropdown.user.user-menu {
 }
 
 .option-checkbox {
-	float: left;
-	border: 1px solid $table-divider-color;
-	margin-right: 10px;
-	padding-bottom: 5px;
-	padding-left: 6px;
-	padding-right: 6px;
+  float: left;
+  border: 1px solid $table-divider-color;
+  margin-right: 10px;
+  padding-bottom: 5px;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 
 // todo remove + remove all occurrences [lazyman]
@@ -889,12 +896,12 @@ li.dropdown.user.user-menu {
 // Badge colors used in object details tabs (and maybe elsewhere)
 
 .badge-active {
-	background-color: #3c8dbc !important;
+  background-color: #3c8dbc !important;
 }
 
 .badge-passive {
-	color: #fff;
-	background-color: #d2d6de !important;
+  color: #fff;
+  background-color: #d2d6de !important;
 }
 
 // Projections tab (focus pages)
@@ -908,19 +915,19 @@ li.dropdown.user.user-menu {
 }
 
 .projection {
-	margin-bottom: 10px;
-	@include box-thin-object($object-shadow-color);
+  margin-bottom: 10px;
+  @include box-thin-object($object-shadow-color);
 
-	.box-header {
+  .box-header {
 
-		.box-tools {
-			margin-top: 5px;
-		}
-	}
+    .box-tools {
+      margin-top: 5px;
+    }
+  }
 }
 
 .check-table-header-pending-operation {
-	margin-left: 10px;
+  margin-left: 10px;
 }
 
 // Assignments tab (focus pages)
@@ -930,14 +937,14 @@ li.dropdown.user.user-menu {
 }
 
 .assignment {
-	margin-bottom: 10px;
+  margin-bottom: 10px;
 
-	.box-header {
+  .box-header {
 
-		.box-tools {
-			margin-top: 5px;
-		}
-	}
+    .box-tools {
+      margin-top: 5px;
+    }
+  }
 }
 
 // Orgtree (OrgMemberPanel)
@@ -957,7 +964,7 @@ span.tree-content > table tr td:first-child {
   vertical-align: top;
 }
 
-.tree-theme-windows > div > .tree-branch > .tree-node.success, .tree-subtree > .tree-branch > .tree-node.success{
+.tree-theme-windows > div > .tree-branch > .tree-node.success, .tree-subtree > .tree-branch > .tree-node.success {
   background-color: #dff0d8;
 }
 
@@ -974,8 +981,8 @@ span.tree-content > table tr td:first-child {
 }
 
 .org-members-additional-search {
-	text-align: right;
-	margin-right: 20px !important;
+  text-align: right;
+  margin-right: 20px !important;
 }
 
 .modal-dialog-content {
@@ -985,40 +992,40 @@ span.tree-content > table tr td:first-child {
 }
 
 .modal-dialog-title {
-    text-align: center;
-    border-bottom: inset;
-    border-bottom-width: thin;
-    padding-bottom: 5px;
-    margin-top: 5px;
-    font-size: 18px;
+  text-align: center;
+  border-bottom: inset;
+  border-bottom-width: thin;
+  padding-bottom: 5px;
+  margin-top: 5px;
+  font-size: 18px;
 }
 
 .manager-tools { // org tree manager buttons: HACK, need to figure out something better
-	float: right;
-	width: 42px;
-	padding-left: 10px;
-	padding-top: 7px;
+  float: right;
+  width: 42px;
+  padding-left: 10px;
+  padding-top: 7px;
 }
 
 .manager-btn { // org tree manager buttons: HACK, need to figure out something better
-	margin: 3px;
-	border-style: solid;
-	border-width: 1px;
-	border-radius: 3px;
-	padding: 3px;
-	width: 23px;
-	text-align: center;
+  margin: 3px;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 3px;
+  padding: 3px;
+  width: 23px;
+  text-align: center;
 }
 
 .box-solid > .box-header > .box-tools > .cog > ul > li > a > i {
-	color: #fff;
+  color: #fff;
 }
 
 
 // Request role page
 
 .request-role-col-available {
-	padding-right: 0px;
+  padding-right: 0px;
 }
 
 .request-role-col-control {
@@ -1026,57 +1033,57 @@ span.tree-content > table tr td:first-child {
 }
 
 .request-role-col-current {
-	padding-left: 0px;
+  padding-left: 0px;
 }
 
 .request-role-box {
-	.box-body {
-		padding-bottom: 0px;
-	}
+  .box-body {
+    padding-bottom: 0px;
+  }
 }
 
 .multiple-assignment-selector {
 
-	.multiple-assignment-selector-section:first-child {
-		border-top-width: 0px;
-		padding-top: 0px;
-		min-height: 36px;
-	}
+  .multiple-assignment-selector-section:first-child {
+    border-top-width: 0px;
+    padding-top: 0px;
+    min-height: 36px;
+  }
 
-	.multiple-assignment-selector-section:last-child {
-		padding-bottom: 0px;
-	}
+  .multiple-assignment-selector-section:last-child {
+    padding-bottom: 0px;
+  }
 }
 
 .multiple-assignment-selector-section {
-	min-height: 48px;
-	padding-top: 8px;
-	padding-bottom: 8px;
-	border-top: 2px solid $table-divider-color;
+  min-height: 48px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-top: 2px solid $table-divider-color;
 }
 
 .multiple-assignment-selector-section-table {
-	.box {
-		border-width: 0px;
-	}
+  .box {
+    border-width: 0px;
+  }
 }
 
 .multiple-assignment-selector-table-container {
-	min-height: 415px;
+  min-height: 415px;
 }
 
 .multiple-assignment-selector-table {
-	width: 100%;
+  width: 100%;
 }
 
 .multiple-assignment-selector-table-footer {
-	float: left;
+  float: left;
 }
 
 .request-role-control-button {
-	&.btn-primary > i {
-		font-size: 32px;
-	}
+  &.btn-primary > i {
+    font-size: 32px;
+  }
 }
 
 // Password change dialog (ChangePasswordPanel, PasswordPanel)
@@ -1085,194 +1092,196 @@ span.tree-content > table tr td:first-child {
 }
 
 .password-propagation {
-	margin-top: 5px;
+  margin-top: 5px;
 }
 
 .password-propagation-legend {
-	padding-bottom: 10px;
-	border-bottom: 1px solid $table-divider-color;
-	margin-bottom: 10px;
-	margin-left: 0px;
-	margin-right: 0px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid $table-divider-color;
+  margin-bottom: 10px;
+  margin-left: 0px;
+  margin-right: 0px;
 }
 
 // operation result
 
 .paramtable {
-	border: 0px;
+  border: 0px;
 
-	.paramtable-row {
+  .paramtable-row {
 
-		.paramtable-name {
-			vertical-align: top;
-		}
+    .paramtable-name {
+      vertical-align: top;
+    }
 
-		.paramtable-name::after {
-			content: ':';
-		}
+    .paramtable-name::after {
+      content: ':';
+    }
 
-		.paramtable-value {
-			padding-left: 5px;
-			padding-right: 20px;
-		    white-space: pre-wrap;
-		    word-break: break-all;
-		}
-	}
+    .paramtable-value {
+      padding-left: 5px;
+      padding-right: 20px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  }
 }
 
 .stacktrace {
-    font-family: $font-family-monospace !important;
-    font-size: $font-size-sm !important;
-    white-space: pre-wrap;
+  font-family: $font-family-monospace !important;
+  font-size: $font-size-sm !important;
+  white-space: pre-wrap;
 }
 
 // Shopping cart
 
 .shopping-cart-item-table {
-	margin-top: 10px;
-	margin-left: 0px;
-	margin-right: 0px;
-	min-height: 460px;
+  margin-top: 10px;
+  margin-left: 0px;
+  margin-right: 0px;
+  min-height: 460px;
 }
 
 .shopping-cart-icon {
-	color: #f4f4f4;
-	margin-top: 10px;
-	margin-right: 5px;
+  color: #f4f4f4;
+  margin-top: 10px;
+  margin-right: 5px;
 }
 
 .shopping-cart-item-box {
 
-	.inner {
-		height: 120px;
-		cursor: pointer;
-	}
+  .inner {
+    height: 120px;
+    cursor: pointer;
+  }
 
-    .inner-label {
-      font-size: 18px;
-      padding-top: 10px;
-      padding-left: 12px;
-      padding-right: 12px;
-      padding-bottom: 10px;
-		max-width: 80%;
-		overflow: hidden;
-		text-overflow: ellipsis
-	}
-    .inner-description {
-      font-size: 11px;
-      padding-left: 12px;
-      padding-right: 12px;
-  		max-width: 70%;
-		max-height: 50%;
-		overflow: hidden;
-		text-overflow: ellipsis
-	}
+  .inner-label {
+    font-size: 18px;
+    padding-top: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 10px;
+    max-width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis
+  }
+
+  .inner-description {
+    font-size: 11px;
+    padding-left: 12px;
+    padding-right: 12px;
+    max-width: 70%;
+    max-height: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis
+  }
 }
 
 .shopping-cart-item-box-footer {
-	padding: 3px;
-	padding-left: 8px;
-	padding-right: 8px;
-	color: rgba(255, 255, 255, 0.8);
-	display: block;
-	z-index: 10;
-	overflow-y: auto;
-	background: rgba(0, 0, 0, 0.1);
+  padding: 3px;
+  padding-left: 8px;
+  padding-right: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  display: block;
+  z-index: 10;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.1);
 
-	.shopping-cart-item-button-details {
-		cursor: pointer;
-	}
+  .shopping-cart-item-button-details {
+    cursor: pointer;
+  }
 
-	.shopping-cart-item-button-details-disabled {
-		cursor: default;
-		color: darkgrey;
-	}
+  .shopping-cart-item-button-details-disabled {
+    cursor: default;
+    color: darkgrey;
+  }
 
-	.shopping-cart-item-button-add {
-		cursor: pointer;
-		float: right;
-	}
+  .shopping-cart-item-button-add {
+    cursor: pointer;
+    float: right;
+  }
 
-	.shopping-cart-item-button-add-disabled {
-		cursor: default;
-		float: right;
-		color: darkgrey;
-	}
+  .shopping-cart-item-button-add-disabled {
+    cursor: default;
+    float: right;
+    color: darkgrey;
+  }
 }
 
 // Object merge dialog
 
 .object-merge-panel {
-	padding-top: 10px;
-	padding-bottom: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .object-merge-equation-panel {
-	padding-top: 10px;
+  padding-top: 10px;
 }
 
 .object-merge-sign {
-	font-size: 80px;
-	padding-top: 15px;
+  font-size: 80px;
+  padding-top: 15px;
 }
 
 .object-merge-switch-direction-col {
-	padding-left: 0px;
+  padding-left: 0px;
 }
 
 // Consent, mostly self-service pages
 
 .consent-info-box-icon {
-	background: none;
+  background: none;
 }
 
 .consent-buttons { // maybe figure out something better, something really reusable
-	float: right;
-	width: 200px;
-	padding-left: 10px;
-	padding-top: 7px;
+  float: right;
+  width: 200px;
+  padding-left: 10px;
+  padding-top: 7px;
 }
 
 // Process (workflow) diagrams
 
 .process-box {
-	border: 1px solid;
-	border-radius: 5px;
-	padding: 0px;
-	margin: 10px;
+  border: 1px solid;
+  border-radius: 5px;
+  padding: 0px;
+  margin: 10px;
 
-	.box-label {
-        display: flex;
-        align-items: baseline;
-        gap: .5rem;
-        padding: .5rem;
+  .box-label {
+    display: flex;
+    align-items: baseline;
+    gap: .5rem;
+    padding: .5rem;
 
-        border-bottom: 1px solid;
-		font-weight: bold;
+    border-bottom: 1px solid;
+    font-weight: bold;
 
-    	.process-label {
-          flex-grow: 1;
-    	}
+    .process-label {
+      flex-grow: 1;
+    }
 
-    	.process-outcome {
+    .process-outcome {
 
-    	}
-	}
+    }
+  }
 
-	.box-content {
-		padding: 1.25rem;
-	}
+  .box-content {
+    padding: 1.25rem;
+  }
 }
 
 .expand-collapse-button, .expand-collapse-button:hover, .expand-collapse-button:focus { //class for expand-collapse button next to title
-	color: $text-label-color;
+  color: $text-label-color;
 }
 
-.show-empty-button, .show-empty-button:hover .show-empty-button:focus{ //class for show-empty fields button under properties
-	color: $text-label-color;
-	font-size: 14px;
-	padding-bottom: 5px;
+.show-empty-button, .show-empty-button:hover .show-empty-button:focus { //class for show-empty fields button under properties
+  color: $text-label-color;
+  font-size: 14px;
+  padding-bottom: 5px;
 }
+
 /*.show-empty-button {
   text-align:center;
   background-color:none;
@@ -1298,99 +1307,101 @@ span.tree-content > table tr td:first-child {
 }
 
 .table-striped {
-	table-layout: fixed; // fix for text in cells
+  table-layout: fixed; // fix for text in cells
 }
 
 .shopping-cart-icon > .badge {
-    margin-left: -10px !important;
+  margin-left: -10px !important;
 }
 
-.role-catalog > .object-org-box > .org-tree-container{
-	max-height: 50vh;
+.role-catalog > .object-org-box > .org-tree-container {
+  max-height: 50vh;
 }
 
 .skin-red > .wrapper > .main-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge,
-.skin-red-light > .wrapper > .main-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge{
-	border-style: solid;
-	padding: 2px 5px;
-	border-color: #f4f4f4;
+.skin-red-light > .wrapper > .main-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge {
+  border-style: solid;
+  padding: 2px 5px;
+  border-color: #f4f4f4;
 }
 
-.small-box-footer>div{
-	display: inline-block;
+.small-box-footer > div {
+  display: inline-block;
 }
 
-.small-box-default-icon{
+.small-box-default-icon {
   font-size: 50px !important;
 }
 
-.small-box{
-	cursor: default;
+.small-box {
+  cursor: default;
 }
 
-.cursor-pointer{
-	cursor: pointer;
+.cursor-pointer {
+  cursor: pointer;
 }
 
-.small-box h3{
-	white-space: normal;
-	font-size: 28px;
+.small-box h3 {
+  white-space: normal;
+  font-size: 28px;
 }
 
-.tbody-nth-of-type-even>tr:nth-of-type(even) {
+.tbody-nth-of-type-even > tr:nth-of-type(even) {
   background-color: #f9f9f9 !important;
 }
-.tbody-nth-of-type-even>tr:nth-of-type(odd) {
+
+.tbody-nth-of-type-even > tr:nth-of-type(odd) {
   background-color: inherit !important;
 }
 
-@media (min-width: 1550px){
-	.small-box h3 {
-		font-size: 35px;
-	}
+@media (min-width: 1550px) {
+  .small-box h3 {
+    font-size: 35px;
+  }
 }
 
 .dashboard-info-box > .small-box {
-	height:100%;
+  height: 100%;
 }
 
 .dashboard-info-box > .small-box > .small-box-footer {
-	position: absolute;
-    bottom: 0px;
-    width: 100%;
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
 }
 
-.dashboard-info-box{
-	height: 100%;
+.dashboard-info-box {
+  height: 100%;
 }
 
 .padding-bottom-20 {
-	padding-bottom: 20px;
+  padding-bottom: 20px;
 }
-.checkbox-without-margin-bottom .checkbox{
-	margin-bottom: 0px !important;
-	margin-top: 5px !important;
+
+.checkbox-without-margin-bottom .checkbox {
+  margin-bottom: 0px !important;
+  margin-top: 5px !important;
 }
 
 // todo probably delete? why is this here?
 th > div > .sortableLabel .row {
-	margin: 0px;
+  margin: 0px;
 }
 
 td .prism-property-value {
-	width: 100% !important;
+  width: 100% !important;
 }
 
 .small-box > .small-box-footer {
-	color: inherit !important;
+  color: inherit !important;
 }
 
-.pagination-xs>li>a {
-    padding: 0px 5px !important;
+.pagination-xs > li > a {
+  padding: 0px 5px !important;
 }
 
 .cog-xs {
-	width: 38px;
+  width: 38px;
 }
 
 .card.card-outline,
@@ -1403,6 +1414,7 @@ td .prism-property-value {
 
 .btn.btn-tool {
   color: #8e95a0;
+
   &:hover {
     color: inherit;
   }
@@ -1521,64 +1533,64 @@ td .prism-property-value {
 }
 
 .popover {
-    .form-control {
-      width: 100% !important;
-    }
+  .form-control {
+    width: 100% !important;
+  }
 
-    .form-control-sized {
-      width: auto !important;
-    }
+  .form-control-sized {
+    width: auto !important;
+  }
 }
 
 .password-progress-bar {
-    .progress {
-      height: 15px;
-      margin-bottom: 10px;
+  .progress {
+    height: 15px;
+    margin-bottom: 10px;
 
-      .progress-bar{
-        line-height: 15px;
-      }
+    .progress-bar {
+      line-height: 15px;
     }
+  }
 }
 
 .password-validator-popover {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  min-width: 300px;
+
+  .arrow-up {
+    left: 19px;
     position: absolute;
-    z-index: 1000;
-    display: none;
-    min-width: 300px;
+    top: 0px;
+    background-color: white;
+    border-left: 1px solid rgb(210, 214, 222);
+    border-top: 1px solid rgb(210, 214, 222);
+    //transform: translate(50%, -50%) rotate(45deg);
+    height: 15px;
+    width: 15px;
+  }
 
-    .arrow-up {
-        left: 19px;
-        position: absolute;
-        top: 0px;
-        background-color: white;
-        border-left: 1px solid rgb(210,214,222);
-        border-top: 1px solid rgb(210,214,222);
-        //transform: translate(50%, -50%) rotate(45deg);
-        height: 15px;
-        width: 15px;
-    }
+  .popover-inner {
+    -webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    background-color: white;
+    border: 1px solid #d2d6de;
+    white-space: nowrap;
+  }
 
-    .popover-inner {
-        -webkit-box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        -moz-box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        -webkit-border-radius: 2px;
-        -moz-border-radius: 2px;
-        border-radius: 2px;
-        background-color: white;
-        border: 1px solid #d2d6de;
-        white-space: nowrap;
-    }
+  .list-group {
+    margin-bottom: 0px;
+  }
 
-    .list-group {
-        margin-bottom: 0px;
-    }
-
-    .list-group-item {
-        border: none;
-        padding: 5px 5px;
-    }
+  .list-group-item {
+    border: none;
+    padding: 5px 5px;
+  }
 }
 
 .task-info-box {
@@ -1607,11 +1619,13 @@ td .prism-property-value {
   font-size: 30px;
   display: block;
 }
+
 .btn-arch:hover {
   background: #f4f4f4;
   color: #444;
   border-color: #aaa;
 }
+
 .btn-arch:active,
 .btn-arch:focus {
   -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
@@ -1665,12 +1679,14 @@ td .prism-property-value {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .compositedButton > .compositedButtonIcon {
   //background-color: #f1f1f1;
   text-align: center;
   font-size: 50px;
   width: 115px;
 }
+
 .compositedButton > .compositedButtonDescription {
   //background-color: #f1f1f1;
   text-align: center;
@@ -1727,7 +1743,7 @@ fieldset.objectButtons {
   align-items: stretch;
   background-color: $white;
   border-radius: 0.25rem;
-  box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+  box-shadow: 0 0 1px rgba(0, 0, 0, .125), 0 1px 3px rgba(0, 0, 0, .2);
 }
 
 .details-panel-navigation {
@@ -1769,7 +1785,7 @@ fieldset.objectButtons {
     &.icon:first-of-type,
     &.composited-icon:first-of-type,
     &.icon:last-of-type,
-    &.composited-icon:last-of-type,{
+    &.composited-icon:last-of-type, {
       width: 52px !important;
     }
   }
@@ -1804,11 +1820,11 @@ div.search-popover legend {
 }
 
 div.search-popover > fieldset {
-    height: 150px;
-    max-height: 150px;
-    overflow: auto;
-    white-space: nowrap;
-    padding-right: 18px;
+  height: 150px;
+  max-height: 150px;
+  overflow: auto;
+  white-space: nowrap;
+  padding-right: 18px;
 }
 
 div.search-popover > dl {
@@ -1876,7 +1892,7 @@ span.yui-skin-sam {
   height: 100%;
   margin-bottom: 0;
 
-  &> .info-box-content {
+  & > .info-box-content {
     justify-content: start !important;
   }
 }
@@ -1889,6 +1905,7 @@ span.yui-skin-sam {
 
 .login-footer {
   font-size: 13px;
+
   a {
     text-decoration: underline;
   }
@@ -1909,27 +1926,27 @@ span.yui-skin-sam {
 
 @media (min-width: 577px) {
   .register-box {
-    max-width: calc(480px + 1rem)!important;
-    width:100%;
-    }
+    max-width: calc(480px + 1rem) !important;
+    width: 100%;
+  }
   .login-box {
-    max-width: calc(360px + 1rem)!important;
-    width:100%;
+    max-width: calc(360px + 1rem) !important;
+    width: 100%;
   }
 }
 
 .login-box {
 
   & .login-card-body .spacer hr {
-    border-color:#cbcbcb;
+    border-color: #cbcbcb;
   }
 
   & .login-card-body .spacer span {
-    color:#757575;
+    color: #757575;
   }
 
   & .login-card-body .user-panel.info-box .image img {
-    width:2.4rem;
+    width: 2.4rem;
   }
 }
 
@@ -1988,11 +2005,13 @@ th.debug-list-buttons {
     width: 220px;
     height: 220px;
   }
+
   & .simple-tile.vertical {
     width: 100%;
     height: auto;
     padding: 0.65rem 1rem;
   }
+
   & .role-catalog-tiles-table .catalog-tile-panel {
     height: 376px;
     margin-bottom: $grid-gutter-width;
@@ -2000,7 +2019,7 @@ th.debug-list-buttons {
 }
 
 .flex-basis-0 {
-  flex-basis: 0px!important;
+  flex-basis: 0px !important;
 }
 
 .paging-size {
@@ -2086,11 +2105,11 @@ th.debug-list-buttons {
     color: mix($black, $value, 5%);
     background-color: mix($white, $value, 94%);
     border-color: $value;
-    border:1px solid;
+    border: 1px solid;
 
     option {
-    background: $white;
-    color: $dark;
+      background: $white;
+      color: $dark;
     }
   }
   .form-item-parent .colored-form-#{$color} ~ i.form-item-dropdown {
@@ -2099,7 +2118,7 @@ th.debug-list-buttons {
 }
 
 #toastsContainerTopRight.toasts-top-right {
-  top:3.5rem;
+  top: 3.5rem;
 }
 
 #toastsContainerTopRight .toast {
@@ -2115,10 +2134,9 @@ th.debug-list-buttons {
 }
 
 //When sidebar link is active make icon white to match contrast
-.sidebar-dark-lightblue .nav-sidebar>.nav-item>.nav-link.active .nav-icon,
-.sidebar-light-lightblue .nav-sidebar>.nav-item>.nav-link.active .nav-icon
-{
-  color:white;
+.sidebar-dark-lightblue .nav-sidebar > .nav-item > .nav-link.active .nav-icon,
+.sidebar-light-lightblue .nav-sidebar > .nav-item > .nav-link.active .nav-icon {
+  color: white;
 }
 
 
@@ -2127,8 +2145,7 @@ th.debug-list-buttons {
 .details-menu a:hover,
 .nav-sidebar .nav-item > .nav-link,
 .nav-sidebar .nav-item > .nav-link:hover,
-div > a > div > i.fas
-{
+div > a > div > i.fas {
   @include smooth-transition(0.08s);
 }
 
@@ -2143,8 +2160,7 @@ div[role="option"].simple-tile:focus-visible,
 div[role="region"]:focus-visible,
 div[role="heading"]:focus-visible,
 input:focus-visible,
-select:focus-visible
-{
+select:focus-visible {
   outline: 2px #ffa836;
   outline-style: auto;
   outline-offset: 3px;
@@ -2161,6 +2177,7 @@ select:focus-visible
   text-align: center;
   z-index: 1040;
 }
+
 #skip-link a {
   position: absolute;
   left: -99999px;
@@ -2168,6 +2185,7 @@ select:focus-visible
   -webkit-transition: top .2s ease-out;
   transition: top .2s ease-out;
 }
+
 #skip-link a:focus, #skip-link a:active {
   position: relative;
   top: 0;
@@ -2181,30 +2199,34 @@ select:focus-visible
 }
 
 *:focus:not(:focus-visible) {
-  outline:none !important;
+  outline: none !important;
 }
 
 .navbar-dark .navbar-nav .nav-link {
-  color:hsla(0,0%,100%,.85);
+  color: hsla(0, 0%, 100%, .85);
 }
+
 .navbar-dark .navbar-nav .nav-item.dropdown .nav-link {
-  opacity:0.75;
+  opacity: 0.75;
   transition: all ease 0.08s !important;
   -webkit-transition: all ease 0.08s !important;
 }
+
 .navbar-dark .navbar-nav .nav-item.dropdown .nav-link {
 
   &:hover, &:focus, &:active {
-    opacity:1;
+    opacity: 1;
     transition: all ease 0.08s !important;
     -webkit-transition: all ease 0.08s !important;
   }
 }
+
 //:focus pseudo attribute fix for accessibility intentions
 .btn-default:focus {
   background-color: #e9ecef;
   color: #2b2b2b;
 }
+
 //End of accessibility classes and overrides
 
 div.show > a > div > i.fas {
@@ -2216,15 +2238,15 @@ div.show > a > div > i.fas {
   $backgroundValue: color-yiq($value);
 
   .btn-#{$color}-hover:hover {
-      color: $value;
-      background-color: mix(#ffffff, $value, 85%);
-      border-color: $value;
-      border:1px solid;
+    color: $value;
+    background-color: mix(#ffffff, $value, 85%);
+    border-color: $value;
+    border: 1px solid;
 
-      option {
-        background: $white;
-        color: $dark;
-      }
+    option {
+      background: $white;
+      color: $dark;
+    }
   }
 }
 
@@ -2234,8 +2256,8 @@ div.show > a > div > i.fas {
 
 .vertical-navigation-panel {
   /* width: 20%; */
-  width:100%;
-  max-width:340px;
+  width: 100%;
+  max-width: 340px;
   @media (min-width: 769px) and (max-width: 991px) {
     & {
       max-width: 300px;
@@ -2266,16 +2288,16 @@ div.show > a > div > i.fas {
     word-break: break-word;
   }
 
-& > .description {
+  & > .description {
     -webkit-line-clamp: 2;
   }
 
-& > .title {
+  & > .title {
     -webkit-line-clamp: 1;
   }
 
-& > .details-item {
-  height: 35px;
+  & > .details-item {
+    height: 35px;
   }
 }
 
@@ -2292,12 +2314,12 @@ div.show > a > div > i.fas {
   }
 }
 
-.input-group-prepend .form-control, .input-group-prepend .select2-selection{
+.input-group-prepend .form-control, .input-group-prepend .select2-selection {
   border-bottom-right-radius: 0;
   border-top-right-radius: 0;
 }
 
-.input-group-append .form-control, .input-group-append .select2-selection{
+.input-group-append .form-control, .input-group-append .select2-selection {
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
 }
@@ -2363,7 +2385,7 @@ div.show > a > div > i.fas {
 
 @media (min-width: 2721px) {
   .choice-tiles-container-8 {
-    flex:0 0 50%;
+    flex: 0 0 50%;
     max-width: 50%;
   }
   .choice-tiles-container-11 {
@@ -2374,7 +2396,7 @@ div.show > a > div > i.fas {
 
 @media (min-width: 3126px) {
   .choice-tiles-container-8 {
-    flex:0 0 41.66666667%;
+    flex: 0 0 41.66666667%;
     max-width: 41.66666667%;
   }
   .choice-tiles-container-11 {
@@ -2385,7 +2407,7 @@ div.show > a > div > i.fas {
 
 @media (min-width: 3692px) {
   .choice-tiles-container-8 {
-    flex:0 0 33.33333333%;
+    flex: 0 0 33.33333333%;
     max-width: 33.33333333%;
   }
   .choice-tiles-container-11 {
@@ -2404,7 +2426,7 @@ footer.main-footer a {
 
 // based on current navigation bar 56px
 .navbar-nav .dropdown-menu {
-  max-height:calc(100vh - 64px);
+  max-height: calc(100vh - 64px);
   overflow-y: auto;
 }
 
@@ -2417,6 +2439,7 @@ footer.main-footer a {
 .modal-backdrop {
   z-index: 1040 !important;
 }
+
 // End of MID-10513 fix
 
 .changed-item-panel-value > p {
@@ -2429,8 +2452,8 @@ footer.main-footer a {
 }
 
 .select2-selection__choice:focus {
-    outline: 2px solid #2684FF;
-    outline-offset: 2px;
+  outline: 2px solid #2684FF;
+  outline-offset: 2px;
 }
 
 .btn.btn-tool > i {
@@ -2438,4 +2461,20 @@ footer.main-footer a {
   align-items: center;
   min-width: 24px;
   min-height: 24px;
+}
+
+.bg-light-purple {
+  background-color: #f9f2ff;
+}
+
+.bg-light-danger {
+  background-color: #fff7f7;
+}
+
+.bg-light-info {
+  background-color: #f4f8fa;
+}
+
+.bg-light-secondary {
+  background-color: #f4f4f4;
 }

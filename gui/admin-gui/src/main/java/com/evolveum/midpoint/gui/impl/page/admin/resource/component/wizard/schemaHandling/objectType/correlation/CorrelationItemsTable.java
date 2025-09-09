@@ -70,6 +70,22 @@ public abstract class CorrelationItemsTable extends AbstractWizardTable<ItemsSub
     }
 
     @Override
+    public boolean displayNoValuePanel() {
+        PrismContainerValueWrapper<CorrelationDefinitionType> wrapper = getValueModel().getObject();
+        if (wrapper == null || wrapper.getRealValue() == null) {
+            return true;
+        }
+
+        CompositeCorrelatorType correlators = wrapper.getRealValue().getCorrelators();
+        if (correlators == null) {
+            return true;
+        }
+
+        List<?> items = correlators.getItems();
+        return items == null || items.isEmpty();
+    }
+
+    @Override
     protected List<IColumn<PrismContainerValueWrapper<ItemsSubCorrelatorType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<ItemsSubCorrelatorType>, String>> columns = new ArrayList<>();
 

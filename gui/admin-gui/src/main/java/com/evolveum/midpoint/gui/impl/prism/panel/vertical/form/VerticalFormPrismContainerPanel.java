@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -38,6 +39,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
 
     protected void initLayout() {
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
+        container.add(AttributeModifier.replace("class", getCssClassForFormContainer()));
         container.setOutputMarkupId(true);
         add(container);
 
@@ -146,6 +148,10 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
         panel.add(AttributeAppender.append("class", getClassForPrismContainerValuePanel()));
         item.add(panel);
         return panel;
+    }
+
+    protected String getCssClassForFormContainer() {
+        return null;
     }
 
     protected String getCssClassForFormContainerOfValuePanel() {

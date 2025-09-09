@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div wicket:id="panelContainer" class="d-flex flex-column align-items-center">
+        <i class="text-center text-primary mb-2 font-weight-bold fa-2x" wicket:id="titleIcon"></i>
+        <div class="text-center mb-0" wicket:id="text"></div>
+        <div class="text-center text-secondary mb-2 col-10 lh-2" wicket:id="subText"></div>
+
+        <div wicket:id="bodyContainer" class="d-flex flex-column align-items-center w-100 text-center">
+            <span class="text-muted" wicket:id="elapsedTime"></span>
+
+            <div wicket:id="listViewContainer"
+                    class="w-100 mt-3 p-3 bg-white rounded d-flex flex-column align-items-start border-left border-3 border-primary"
+                    style="max-height: 300px; overflow-y: auto;">
+
+                <div wicket:id="listView" class="d-flex flex-column gap-2 w-100">
+                    <div class="d-flex align-items-center gap-2 py-1">
+                        <i wicket:id="icon"></i>
+                        <span wicket:id="text" class="text-start"></span>
+                        <div wicket:id="info" class="btn btn-link btn-sm ml-auto"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column mt-3 gap-2 justify-content-center" wicket:id="buttonsContainer">
+                <a wicket:id="buttons"></a>
+            </div>
+        </div>
+
+    </div>
+
+
+</wicket:panel>
+</html>

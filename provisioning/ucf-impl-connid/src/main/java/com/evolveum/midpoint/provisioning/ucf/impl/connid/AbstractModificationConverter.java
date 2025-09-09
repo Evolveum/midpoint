@@ -293,7 +293,8 @@ abstract class AbstractModificationConverter implements DebugDumpable {
     private <V extends PrismValue> Object covertAttributeValueToConnId(V prismValue, QName midPointAttributeName)
             throws SchemaException {
         if (prismValue instanceof ShadowReferenceAttributeValue referenceValue) {
-            return objectConvertor.convertReferenceAttributeValueToConnId(referenceValue);
+            // FIXME support embedded objects here MID-10738
+            return objectConvertor.convertReferenceAttributeValueToConnId(referenceValue, false);
         } else {
             return ConnIdUtil.convertValueToConnId(prismValue, protector, midPointAttributeName);
         }

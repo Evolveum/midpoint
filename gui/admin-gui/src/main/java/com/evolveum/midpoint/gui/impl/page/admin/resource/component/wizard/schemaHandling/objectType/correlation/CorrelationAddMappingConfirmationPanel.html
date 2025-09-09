@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <div class="d-flex align-items-start gap-3">
+        <div>
+            <p class="text-muted mb-3" wicket:id="subtitle"></p>
+        </div>
+    </div>
+
+    <div wicket:id="table"></div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex justify-content-between align-items-center flex-wrap w-100">
+            <a class="btn btn-link" wicket:id="no"></a>
+            <div class="btn btn-primary" wicket:id="yes"></div>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+
+

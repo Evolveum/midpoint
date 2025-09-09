@@ -191,7 +191,7 @@ public class PageOutliers extends PageAdmin {
 
             @Contract(pure = true)
             @Override
-            protected @NotNull String getInlineMenuItemCssClass() {
+            protected @NotNull String getInlineMenuItemCssClass(IModel<SelectableBean<RoleAnalysisOutlierType>> rowModel) {
                 return "btn btn-default btn-sm";
             }
 

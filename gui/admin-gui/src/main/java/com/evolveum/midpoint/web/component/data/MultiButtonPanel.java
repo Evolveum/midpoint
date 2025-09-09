@@ -41,7 +41,7 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "d-flex gap-1 flex-wrap"));
+        initDefaultCssStyle();
 
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
         add(buttons);
@@ -52,6 +52,11 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
                 buttons.add(button);
             }
         }
+    }
+
+    private void initDefaultCssStyle() {
+        add(AttributeAppender.append("class", "d-flex gap-1 flex-wrap"));
+        add(AttributeAppender.append("class", getAdditionalMultiButtonPanelCssClass()));
     }
 
     protected Component createButton(int index, String componentId, IModel<T> model) {
@@ -76,5 +81,9 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         }
 
         return btn;
+    }
+
+    protected String getAdditionalMultiButtonPanelCssClass() {
+        return null;
     }
 }

@@ -5,8 +5,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.state.VirtualActivityState;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
@@ -22,13 +21,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
-/** A smart integration operation, knowing a resource and an object class on it. */
-class Operation {
+/** Context of a smart integration operation, knowing a resource and an object class on it. */
+class OperationContext {
 
     final ResourceType resource;
-    private final ResourceSchema resourceSchema;
-    private final ResourceObjectClassDefinition objectClassDefinition;
-    final ServiceAdapter serviceAdapter;
+    final ResourceSchema resourceSchema;
+    final ResourceObjectClassDefinition objectClassDefinition;
+    final ServiceClient serviceClient;
 
     /** State of the activity that is executing this operation, if the operation runs in the background. */
     @Nullable private final CurrentActivityState<?> activityState;
@@ -37,40 +36,31 @@ class Operation {
     final SmartIntegrationBeans b = SmartIntegrationBeans.get();
     final StateHolderFactory stateHolderFactory = new StateHolderFactory();
 
-    public Operation(
+    OperationContext(
             ResourceType resource,
             ResourceSchema resourceSchema,
             ResourceObjectClassDefinition objectClassDefinition,
-            ServiceAdapter serviceAdapter,
+            ServiceClient serviceClient,
             @Nullable CurrentActivityState<?> activityState,
             Task task) {
         this.resource = resource;
         this.resourceSchema = resourceSchema;
         this.objectClassDefinition = objectClassDefinition;
-        this.serviceAdapter = serviceAdapter;
+        this.serviceClient = serviceClient;
         this.activityState = activityState;
         this.task = task;
     }
 
-    static Operation init(
+    static OperationContext init(
             ServiceClient serviceClient, String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        var serviceAdapter = ServiceAdapter.create(serviceClient);
-        var resource = b().modelService
+        var resource = SmartIntegrationBeans.get().modelService
                 .getObject(ResourceType.class, resourceOid, null, task, result)
                 .asObjectable();
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
         var objectClassDefinition = resourceSchema.findObjectClassDefinitionRequired(objectClassName);
-        return new Operation(resource, resourceSchema, objectClassDefinition, serviceAdapter, null, task);
-    }
-
-    static SmartIntegrationBeans b() {
-        return SmartIntegrationBeans.get();
-    }
-
-    ObjectTypesSuggestionType suggestObjectTypes(ShadowObjectClassStatisticsType statistics) throws SchemaException {
-        return serviceAdapter.suggestObjectTypes(objectClassDefinition, statistics, resourceSchema, resource);
+        return new OperationContext(resource, resourceSchema, objectClassDefinition, serviceClient, null, task);
     }
 
     void checkIfCanRun() throws ActivityInterruptedException {

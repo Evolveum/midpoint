@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="col-12 d-flex flex-row">
+
+        <div class="d-flex align-items-center justify-content-center p-3">
+            <input wicket:id="selectRadio" type="radio" class="form-check-input mt-1 radio-lg"/>
+        </div>
+
+        <div class="d-flex flex-column h-100 justify-content-between ">
+            <h5 class="card-title mb-2 fw-bold me-1" wicket:id="title"></h5>
+
+            <p class="text-muted mb-2 tile-three-line-description" wicket:id="description"></p>
+
+            <div class="d-flex flex-row align-items-center  mb-2 gap-2">
+                <div class="chips" wicket:id="chips">
+                    <span wicket:id="chip" class="rounded border px-2"></span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="d-flex  align-items-center gap-2  ml-auto p-2">
+            <div href="#" class="text-primary text-decoration-none d-inline-flex align-items-center gap-2" wicket:id="toggleFilter"></div>
+            <i wicket:id="toggleIcon" class="fa fa-angle-right"></i>
+            <a href="#" class="text-muted text-decoration-none fs-5" wicket:id="moreActions">
+
+            </a>
+        </div>
+    </div>
+
+
+    <div class="col-12 ml-4" wicket:id="filterContainer">
+
+        <hr class="mt-2 mb-3">
+
+        <div class="w-100">
+            <div wicket:id="aceEditorFilter"></div>
+        </div>
+    </div>
+
+    <style>
+        .radio-lg {
+            transform: scale(1.5);
+        }
+    </style>
+</wicket:panel>
+</html>

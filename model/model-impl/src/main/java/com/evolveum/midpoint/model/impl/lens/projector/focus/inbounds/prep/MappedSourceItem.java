@@ -30,6 +30,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -254,6 +256,15 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                     .mappingSpecification(inboundsSource.createMappingSpec(mappingCI.getName(), itemDefinition))
                     .now(inboundsContext.env.now);
 
+            if (isComplexAttribute(defaultSource)) {
+                // "<asIs>" won't work for complex attributes -> the reasonable default is "<complexAttributeSynchronization>"
+                builder.defaultExpressionSupplier(
+                        () -> new ExpressionType()
+                                .expressionEvaluator(
+                                        new ObjectFactory().createComplexAttributeSynchronization(
+                                                new ComplexAttributeSynchronizationExpressionEvaluatorType())));
+            }
+
             if (!inboundsTarget.isFocusBeingDeleted()) {
                 builder.originalTargetValues(
                         ExpressionUtil.computeTargetValues(
@@ -282,6 +293,29 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
             ItemPath realTargetPath = mapping.getOutputPath();
             evaluationRequestsBeingCollected.add(realTargetPath, inboundsSource.createMappingRequest(mapping));
         }
+    }
+
+    /**
+     * HACK. After complex attributes are distinguished from genuine reference attributes and complex associations
+     * right at the level of definition, we will remove this hack.
+     */
+    private boolean isComplexAttribute(Source<V, D> defaultSource) {
+        if (!(itemDefinition instanceof ShadowReferenceAttributeDefinition)) {
+            return false;
+        }
+        var item = defaultSource.getAnyItem();
+        var itemValue = item != null ? item.getAnyValue() : null;
+        if (!(itemValue instanceof ShadowReferenceAttributeValue refAttrValue)) {
+            return false;
+        }
+        var shadow = refAttrValue.getShadowIfPresent();
+        if (shadow == null) {
+            return false;
+        }
+        var identification = shadow.getTypeIdentification();
+        // This may be the case for association definition. But in that case, the item definition would be
+        // ShadowAssociationDefinition, not ShadowReferenceAttributeDefinition.
+        return identification != null && identification.getKind() == ShadowKindType.ASSOCIATION;
     }
 
     // FIXME brutal hack

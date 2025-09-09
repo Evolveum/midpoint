@@ -223,7 +223,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
 
             @Contract(pure = true)
             @Override
-            protected @NotNull String getInlineMenuItemCssClass() {
+            protected @NotNull String getInlineMenuItemCssClass(IModel<SelectableBean<RoleAnalysisClusterType>> rowModel) {
                 return "btn btn-default btn-sm";
             }
 

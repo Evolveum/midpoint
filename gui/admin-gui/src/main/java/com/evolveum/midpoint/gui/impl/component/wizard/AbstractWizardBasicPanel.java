@@ -13,19 +13,23 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetailsModel> extends AbstractWizardBasicInitializer {
 
     private static final String ID_BREADCRUMB = "breadcrumb";
+    private static final String ID_BC_ICON = "bcIcon";
     private static final String ID_BC_NAME = "bcName";
 
     private final AHD detailsModel;
@@ -47,25 +51,32 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
     private void addBreadcrumb() {
         List<Breadcrumb> breadcrumbs = getBreadcrumb();
         IModel<String> breadcrumbLabelModel = getBreadcrumbLabel();
+        IModel<String> breadcrumbIcon = getBreadcrumbIcon();
         String breadcrumbLabel = breadcrumbLabelModel.getObject();
         if (StringUtils.isEmpty(breadcrumbLabel)) {
             return;
         }
 
         if (breadcrumbs.isEmpty() && StringUtils.isNotEmpty(breadcrumbLabel)) {
-            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel));
-        return;
+            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel, breadcrumbIcon));
+            return;
         }
 
         String lastBreadcrumbLabel = breadcrumbs.get(breadcrumbs.size() - 1).getLabel().getObject();
         if (StringUtils.isNotEmpty(lastBreadcrumbLabel)
                 && StringUtils.isNotEmpty(breadcrumbLabel)
                 && !lastBreadcrumbLabel.equals(breadcrumbLabel)) {
-            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel));
+            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel, breadcrumbIcon));
         }
     }
 
-    @NotNull protected abstract IModel<String> getBreadcrumbLabel();
+    @NotNull
+    protected abstract IModel<String> getBreadcrumbLabel();
+
+    @Nullable
+    protected IModel<String> getBreadcrumbIcon() {
+        return null;
+    }
 
     protected void removeLastBreadcrumb() {
         if (!getBreadcrumb().isEmpty()) {
@@ -87,6 +98,11 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
                 if (index == getList().size()) {
                     item.add(AttributeAppender.append("class", "text-primary"));
                 }
+
+                WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
+                bcIcon.add(new VisibleBehaviour(() -> item.getModelObject().getIcon() != null && item.getModelObject().getIcon().getObject() != null));
+                bcIcon.add(AttributeModifier.replace("class", item.getModelObject().getIcon()));
+                item.add(bcIcon);
 
                 Label bcName = new Label(ID_BC_NAME, item.getModelObject().getLabel());
                 item.add(bcName);

@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,10 +34,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
@@ -119,6 +117,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
+
+    private static final String ID_NO_VALUE_PANEL = "noValuePanel";
 
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
@@ -303,6 +303,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     private void initLayout() {
+
+        Component panelForNoValue = createPanelForNoValue();
+        add(panelForNoValue);
+
         Component table;
 
         if (isCollapsableTable()) {
@@ -313,9 +317,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
         table.setOutputMarkupId(true);
         table.setOutputMarkupPlaceholderTag(true);
+
         add(table);
 
-        table.add(new VisibleBehaviour(this::isListPanelVisible));
+        table.add(new VisibleBehaviour(() ->
+                !displayNoValuePanel() && isListPanelVisible()));
+
         setOutputMarkupId(true);
     }
 
@@ -377,7 +384,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
-            protected org.apache.wicket.markup.repeater.Item<PO> customizeNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
+            protected String getAdditionalFooterCssClasses() {
+                return ContainerableListPanel.this.getAdditionalFooterCssClasses();
+            }
+
+            @Override
+            protected Item<PO> customizeNewRowItem(Item<PO> item, IModel<PO> model) {
                 item.add(AttributeModifier.append("class", () -> GuiImplUtil.getObjectStatus(model.getObject())));
 
                 customProcessNewRowItem(item, model);
@@ -658,6 +670,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     /**
      * Returns the paging max size for the query
+     *
      * @return
      */
     private @Nullable Integer getPagingMaxSize() {
@@ -676,6 +689,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     /**
      * Returns configured default page size from view configuration or default settings.
+     *
      * @return
      */
     private @Nullable Integer getConfiguredDefaultPageSize() {
@@ -848,13 +862,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected IColumn<PO, String> createActionsColumn() {
-        List<InlineMenuItem> allItems = new ArrayList<>();
-        List<InlineMenuItem> menuItems = createInlineMenu();
-        if (menuItems != null) {
-            allItems.addAll(menuItems);
-        }
-        addBasicActions(allItems);
-        addCustomActions(allItems, this::getSelectedRealObjects);
+        List<InlineMenuItem> allItems = getInlineMenuItems();
 
         if (!allItems.isEmpty()) {
             InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
@@ -864,8 +872,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 }
 
                 @Override
-                protected String getInlineMenuItemCssClass() {
-                    return ContainerableListPanel.this.getInlineMenuItemCssClass();
+                protected String getInlineMenuItemCssClass(IModel<PO> rowModel) {
+                    return ContainerableListPanel.this.getInlineMenuItemCssClass(rowModel);
                 }
 
                 @Override
@@ -882,6 +890,17 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             return actionsColumn;
         }
         return null;
+    }
+
+    public @NotNull List<InlineMenuItem> getInlineMenuItems() {
+        List<InlineMenuItem> allItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = createInlineMenu();
+        if (menuItems != null) {
+            allItems.addAll(menuItems);
+        }
+        addBasicActions(allItems);
+        addCustomActions(allItems, this::getSelectedRealObjects);
+        return allItems;
     }
 
     /**
@@ -984,8 +1003,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
                 if (ObjectType.F_NAME.equivalent(columnPath) || (customColumns.indexOf(customColumn) == 0 && shouldCheckForNameColumn)) {
                     column = createNameColumn(columnDisplayModel, customColumn, expression);
-                }
-                else if (AbstractRoleType.F_DISPLAY_NAME.equivalent(columnPath)) {
+                } else if (AbstractRoleType.F_DISPLAY_NAME.equivalent(columnPath)) {
                     column = new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase()) {
                         @Override
                         public void populateItem(Item item, String componentId, IModel rowModel) {
@@ -993,8 +1011,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                             item.add(AttributeAppender.append("class", "name-min-width"));
                         }
                     };
-                }
-                else {
+                } else {
                     column = createCustomExportableColumn(columnDisplayModel, customColumn, expression);
                 }
 
@@ -1441,7 +1458,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.anyClassToQName(getPrismContext(), getType()), null);
     }
 
-    protected ISelectableDataProvider getDataProvider() {
+    public ISelectableDataProvider getDataProvider() {
         Component tableComponent = getTableComponent();
         if (tableComponent instanceof BoxedTablePanel) {
             return (ISelectableDataProvider) getTable().getDataTable().getDataProvider();
@@ -1746,7 +1763,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return null;
     }
 
-    protected String getInlineMenuItemCssClass() {
+    protected String getInlineMenuItemCssClass(@Nullable IModel<PO> rowModel) {
         return "btn btn-default btn-xs";
     }
 
@@ -1754,4 +1771,43 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return findParent(AbstractPageObjectDetails.class) != null;
     }
 
+    protected String getAdditionalFooterCssClasses() {
+        return null;
+    }
+    /**
+     * Determines whether the panel should display a special UI component
+     * (e.g. {@link NoValuePanel}) when there are no values
+     * present in the container.
+     */
+    public boolean displayNoValuePanel() {
+        return false;
+    }
+
+    /**
+     * Creates a fallback UI panel to be displayed when the container model has no values.
+     * <p>
+     * This method constructs a {@link NoValuePanel} that visually indicates the
+     * absence of configured resource object types and provides a set of actionable toolbar buttons
+     * (e.g., create new or suggest type).
+     * </p>
+     *
+     * @return A {@link Component} instance to be used as the panel when no values are present.
+     */
+    protected Component createPanelForNoValue() {
+        NoValuePanel components = new NoValuePanel(ID_NO_VALUE_PANEL, () -> new NoValuePanelDto(
+                defaultType.getSimpleName())) {
+
+            @Override
+            protected List<Component> createToolbarButtons(String buttonsId) {
+                return createToolbarButtonsList(ID_BUTTON);
+            }
+        };
+        components.setOutputMarkupId(true);
+        components.add(new VisibleBehaviour(this::displayNoValuePanel));
+        return components;
+    }
+
+    protected Component getNoValuePanel() {
+        return get(ID_NO_VALUE_PANEL);
+    }
 }

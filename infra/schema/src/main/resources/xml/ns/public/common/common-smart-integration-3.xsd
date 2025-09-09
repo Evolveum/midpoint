@@ -480,6 +480,28 @@
 
     <!-- suggestCorrelation method -->
 
+    <xsd:complexType name="CorrelationSuggestionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of correlation rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="suggestion" type="tns:CorrelationSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        One or more suggestions for correlation rules.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="correlationSuggestions" type="tns:CorrelationSuggestionsType"/>
+
     <xsd:complexType name="CorrelationSuggestionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -506,6 +528,13 @@
                     <xsd:documentation>
                         Suggested attribute(s) definition. Each of them must contain at least "ref", pointing to the attribute
                         name. It should contain one inbound mapping definition. Other items should be left empty.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="quality" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Estimated quality of this suggestion.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -925,17 +954,29 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="t:ItemPathType">
+            <xsd:element name="name" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Path to the attribute (item). Examples:
+                        Path to the attribute (item).
+
+                        It resembles the midPoint notation, however, with some specialties related to multivalued complex items.
+
+                        Examples:
 
                         - c:givenName
                         - c:attributes/icfs:name
                         - c:attributes/ri:login
                         - c:activation/c:validFrom
+                        - c:extension/ext1:shoeSize
+                        - c:email[*]/c:value
+
+                        The last example means that "c:email" is a multivalued container and this definition refers to its
+                        "c:value" property.
+
+                        See DescriptiveItemPath class.
 
                         Individual segments may include an XML namespace prefix, typically "ri:", "icfs:", or "c:".
+                        These prefixes are either well-known, or their exact value is not important ("ext1:", "ext2:", and so on).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1116,17 +1157,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="applicationAttribute" type="t:ItemPathType">
+            <xsd:element name="applicationAttribute" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Path the of application-side attribute, like "c:attributes/ri:login".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="midPointAttribute" type="t:ItemPathType">
+            <xsd:element name="midPointAttribute" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Path the of midPoint-side attribute, like "c:name".
+                        Path the of midPoint-side attribute, like "c:name" or "c:email[*]/c:type".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1218,7 +1259,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="t:ItemPathType">
+            <xsd:element name="name" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Attribute path, like "c:attributes/ri:login" or "c:activation/c:administrativeStatus".

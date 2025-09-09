@@ -95,7 +95,7 @@ public class LimitedInboundsSource extends InboundsSource {
 
     @Override
     void getEntitlementVariableProducer(
-            com.evolveum.midpoint.repo.common.expression.@NotNull Source<?, ?> source,
+            @NotNull com.evolveum.midpoint.repo.common.expression.Source<?, ?> source,
             @Nullable PrismValue value,
             @NotNull VariablesMap variables) {
         // Associations are not yet supported in limited processing

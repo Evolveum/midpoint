@@ -69,3 +69,12 @@ th.countLabel{
 td.rounded-icon-column div.img-circle {
   background-color: #f5f5f5;
 }
+
+.table td,
+.table th {
+  vertical-align: top;
+}
+
+.table-td-middle td {
+  vertical-align: middle;
+}

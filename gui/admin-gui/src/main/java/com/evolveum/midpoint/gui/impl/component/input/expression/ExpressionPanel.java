@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
+import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -49,9 +50,11 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.ExpressionUtil.ExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class ExpressionPanel extends BasePanel<ExpressionType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TYPE_CHOICE = "typeChoice";
     private static final String ID_TYPE_BUTTON = "typeButton";
@@ -186,8 +189,8 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     private boolean useAsIsForNull() {
         return parent != null && parent.getObject() instanceof ExpressionWrapper &&
-                (((ExpressionWrapper)parent.getObject()).isAttributeExpression()
-                        || ((ExpressionWrapper)parent.getObject()).isFocusMappingExpression());
+                (((ExpressionWrapper) parent.getObject()).isAttributeExpression()
+                        || ((ExpressionWrapper) parent.getObject()).isFocusMappingExpression());
     }
 
     private void initLayout() {
@@ -201,6 +204,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         Label infoLabel = new Label(ID_INFO_LABEL, infoLabelModel);
         infoLabel.setOutputMarkupId(true);
         infoLabel.add(new VisibleBehaviour(() -> !isExpressionEmpty() && isInfoLabelNotEmpty()));
+        infoContainer.add(AttributeModifier.append("class", "text-info"));
         infoContainer.add(infoLabel);
 
         Label infoIcon = new Label(ID_INFO_ICON);
@@ -231,14 +235,18 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             }
         };
         resetButton.setOutputMarkupId(true);
-        resetButton.add(new VisibleBehaviour(this::isResetButtonVisible));
+        resetButton.add(new VisibleBehaviour(() -> isResetButtonVisible() && !isReadOnly()));
         infoContainer.add(resetButton);
 
         if (isExpressionEmpty() || typeModel.getObject() != null) {
 
             updateLabelForExistingEvaluator();
 
-            add(createTypeChoice());
+            if (isReadOnly()) {
+                add(createTypeChoiceLabel());
+            } else {
+                add(createTypeChoice());
+            }
             add(createEvaluatorPanel());
             add(createTypeButton());
 
@@ -287,7 +295,19 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return StringUtils.isEmpty(ExpressionUtil.loadExpression(getModelObject(), PrismContext.get(), LOGGER));
     }
 
-    private DropDownChoicePanel<RecognizedEvaluator> createTypeChoice() {
+    protected boolean isReadOnly() {
+        return false;
+    }
+
+    private @NotNull Label createTypeChoiceLabel() {
+        Label typeLabel = new Label(ID_TYPE_CHOICE, () -> typeModel.getObject() != null
+                ? getPageBase().createStringResource(typeModel.getObject().type).getString()
+                : ExpressionPanel.this.getString(RecognizedEvaluator.AS_IS.type));
+        typeLabel.setOutputMarkupId(true);
+        return typeLabel;
+    }
+
+    private @NotNull DropDownChoicePanel<RecognizedEvaluator> createTypeChoice() {
         DropDownChoicePanel<RecognizedEvaluator> dropDown = new DropDownChoicePanel<>(ID_TYPE_CHOICE,
                 typeModel,
                 Model.ofList(getChoices()),
@@ -297,6 +317,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                         if (object == null) {
                             return super.getDisplayValue(object);
                         }
+
                         return getPageBase().createStringResource(object.type).getString();
                     }
                 },
@@ -401,21 +422,24 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
             }
         };
-        typeButton.add(new VisibleBehaviour(this::isButtonShow));
+        typeButton.add(new VisibleBehaviour(() -> isButtonShow() && !isReadOnly()));
         typeButton.setOutputMarkupId(true);
         return typeButton;
     }
 
     private WebMarkupContainer createEvaluatorPanel() {
-        return createEvaluatorPanel(ExpressionPanel.ID_EVALUATOR_PANEL, false);
+        WebMarkupContainer evaluatorPanel = createEvaluatorPanel(ExpressionPanel.ID_EVALUATOR_PANEL, false);
+        evaluatorPanel.setOutputMarkupId(true);
+        evaluatorPanel.add(new VisibleBehaviour(this::isReadOnly));
+        return evaluatorPanel;
     }
 
     private WebMarkupContainer createEvaluatorPanel(String id, boolean isInPopup) {
         RecognizedEvaluator type = typeModel.getObject();
         if (type != null && type.evaluatorPanel != null) {
             try {
-                Constructor<? extends BasePanel> constructor = type.evaluatorPanel.getConstructor(String.class, IModel.class);
-                BasePanel evaluatorPanel = constructor.newInstance(id, getModel());
+                Constructor<? extends BasePanel<?>> constructor = type.evaluatorPanel.getConstructor(String.class, IModel.class);
+                BasePanel<?> evaluatorPanel = constructor.newInstance(id, getModel());
                 evaluatorPanel.setOutputMarkupId(true);
                 evaluatorPanel.add(new VisibleBehaviour(() -> isInPopup || isEvaluatorPanelExpanded()));
                 if (!isInColumn) {

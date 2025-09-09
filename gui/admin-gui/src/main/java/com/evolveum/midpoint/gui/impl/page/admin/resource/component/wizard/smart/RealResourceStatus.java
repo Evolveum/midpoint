@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
@@ -30,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class RealResourceStatus implements ResourceStatus {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -38,7 +39,7 @@ public class RealResourceStatus implements ResourceStatus {
     private final Map<QName, ObjectClassInfo> objectClassInfoMap = new HashMap<>();
     private final List<StatusInfo<ObjectTypesSuggestionType>> statuses = new ArrayList<>();
 
-    RealResourceStatus(PrismObject<ResourceType> resource) {
+    public RealResourceStatus(PrismObject<ResourceType> resource) {
         this.resource = resource;
     }
 
@@ -58,6 +59,14 @@ public class RealResourceStatus implements ResourceStatus {
                     objectClassDefinition, typeDefs, sizeEstimation, stats));
         }
 
+        statuses.addAll(
+                sis.listSuggestObjectTypesOperationStatuses(resourceOid, task, result));
+    }
+
+    public void initializeSuggestObjectTypesOnly(@NotNull SmartIntegrationService sis, Task task, OperationResult result)
+            throws CommonException {
+
+        var resourceOid = resource.getOid();
         statuses.addAll(
                 sis.listSuggestObjectTypesOperationStatuses(resourceOid, task, result));
     }
@@ -119,15 +128,25 @@ public class RealResourceStatus implements ResourceStatus {
         return null;
     }
 
-    private List<StatusInfo<ObjectTypesSuggestionType>> getSuccessfulStatuses() {
+    public List<StatusInfo<ObjectTypesSuggestionType>> getSuccessfulStatuses() {
         return statuses.stream()
                 .filter(s -> s.getStatus() == OperationResultStatusType.SUCCESS)
                 .toList();
     }
 
+    public List<StatusInfo<ObjectTypesSuggestionType>> getAllSuggestionsStatuses() {
+        return statuses;
+    }
+
     @Override
     public List<StatusInfo<ObjectTypesSuggestionType>> getObjectTypesSuggestions() {
         return getSuccessfulStatuses();
+    }
+
+    public List<StatusInfo<ObjectTypesSuggestionType>> getObjectTypesSuggestions(QName objectClassName) {
+        return statuses.stream()
+                .filter(s -> s.getObjectClassName() != null && s.getObjectClassName().equals(objectClassName))
+                .toList();
     }
 
     @Override

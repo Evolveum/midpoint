@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.intest.smart;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 
+import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
@@ -138,14 +140,18 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
-            smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl(
-                            new SiSuggestObjectTypesResponseType()
-                                    .objectType(new SiSuggestedObjectTypeType()
-                                            .kind("account")
-                                            .intent("default")
-                                            .displayName("Default Account")
-                                            .description("Catch-all rule for ri:account objects with no specific attribute values available."))));
+            //noinspection resource
+            var serviceClient = new MockServiceClientImpl(
+                    new SiSuggestObjectTypesResponseType()
+                            .objectType(new SiSuggestedObjectTypeType()
+                                    .kind("account")
+                                    .intent("default")
+                                    .filter("attributes/ri:type = 'abc'")
+                                    .displayName("Default Account")
+                                    .description("Catch-all rule for ri:account objects with no specific attribute values available.")),
+                    new SiSuggestFocusTypeResponseType()
+                            .focusTypeName(UserType.COMPLEX_TYPE));
+            smartIntegrationService.setServiceClientSupplier(() -> serviceClient);
         }
 
         var task = getTestTask();
@@ -153,7 +159,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest object types' operation request");
         var token = smartIntegrationService.submitSuggestObjectTypesOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -227,11 +233,11 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                     () -> new MockServiceClientImpl(
                             new SiMatchSchemaResponseType()
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(ICFS_NAME.toBean())
-                                            .midPointAttribute(UserType.F_NAME.toBean()))
+                                            .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                            .midPointAttribute(asStringSimple(UserType.F_NAME)))
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.q().toBean())
-                                            .midPointAttribute(UserType.F_PERSONAL_NUMBER.toBean())))); // TODO other matches
+                                            .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
+                                            .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER))))); // TODO other matches
         }
 
         var task = getTestTask();
@@ -252,8 +258,11 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         then("there is a suggested correlation and an attribute match");
         displayDumpable("response", response);
         assertThat(response).isNotNull();
-        assertThat(response.getCorrelation()).as("suggested correlation").isNotNull();
-        assertThat(response.getAttributes()).as("suggested attributes").hasSize(1);
+        var suggestions = response.getSuggestion();
+        assertThat(suggestions).as("suggestions").isNotEmpty();
+        var suggestion = suggestions.get(0);
+        assertThat(suggestion.getCorrelation()).as("suggested correlation").isNotNull();
+        assertThat(suggestion.getAttributes()).as("suggested attributes").hasSize(1);
     }
 
     /** Tests the "suggest mappings" operation (in an asynchronous way). */
@@ -266,11 +275,11 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                     () -> new MockServiceClientImpl(
                             new SiMatchSchemaResponseType()
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(ICFS_NAME_PATH.toBean())
-                                            .midPointAttribute(UserType.F_NAME.toBean()))
+                                            .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                            .midPointAttribute(asStringSimple(UserType.F_NAME)))
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path().toBean())
-                                            .midPointAttribute(UserType.F_PERSONAL_NUMBER.toBean())),
+                                            .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
+                                            .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER))),
                             new SiSuggestMappingResponseType().transformationScript(null),
                             new SiSuggestMappingResponseType().transformationScript(null))); // TODO other matches
         }

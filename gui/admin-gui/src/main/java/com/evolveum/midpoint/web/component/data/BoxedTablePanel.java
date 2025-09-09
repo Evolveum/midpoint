@@ -133,6 +133,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
         };
         table.setOutputMarkupId(true);
+        table.add(AttributeAppender.append("class", this::getTableAdditionalCssClasses));
         table.add(new VisibleBehaviour(this::isDataTableVisible));
         tableContainer.add(table);
         add(tableContainer);
@@ -161,8 +162,13 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         add(header);
         add(AttributeAppender.append("aria-labelledby", () -> header.isVisible() ? header.getMarkupId() : null));
         WebMarkupContainer footer = createFooter(ID_FOOTER);
+        footer.add(AttributeAppender.append("class", getAdditionalFooterCssClasses()));
         footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
         add(footer);
+    }
+
+    protected String getAdditionalFooterCssClasses() {
+        return null;
     }
 
     //used only for debug pages, to refresh search properly when type is changed.
@@ -199,6 +205,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         Integer size = safeLongToInteger(itemsPerPage);
 
         return getPrismContext().queryFactory().createPaging(o * size, size);
+    }
+
+    public String getTableAdditionalCssClasses() {
+        return null;
     }
 
     public int getAutoRefreshInterval() {
@@ -308,6 +318,16 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
 
             @Override
+            protected boolean isNavigatorPanelVisible() {
+                return BoxedTablePanel.this.isNavigatorPanelVisible();
+            }
+
+            @Override
+            protected boolean isPagingSizePanelVisible() {
+                return BoxedTablePanel.this.isPagingSizePanelVisible();
+            }
+
+            @Override
             protected List<Integer> getPagingSizes() {
                 return BoxedTablePanel.this.getPagingSizes();
             }
@@ -325,6 +345,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     protected boolean isPagingVisible() {
+        return true;
+    }
+
+    protected boolean isNavigatorPanelVisible(){
+        return true;
+    }
+
+    protected boolean isPagingSizePanelVisible(){
         return true;
     }
 
@@ -421,6 +449,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                     return PagingFooter.this.getPaginationCssClass();
                 }
             };
+            nb2.add(new VisibleBehaviour(() -> isNavigatorPanelVisible()));
             footerContainer.add(nb2);
 
             Form form = new MidpointForm(ID_FORM);
@@ -452,6 +481,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             };
             // todo nasty hack, we should decide whether paging should be normal or "small"
             menu.setSmall(getPaginationCssClass() != null);
+            menu.add(new VisibleBehaviour(() -> isPagingSizePanelVisible()));
             form.add(menu);
             add(footerContainer);
         }
@@ -477,6 +507,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         }
 
         protected boolean isPagingVisible() {
+            return true;
+        }
+
+        protected boolean isNavigatorPanelVisible(){
+            return true;
+        }
+
+        protected boolean isPagingSizePanelVisible(){
             return true;
         }
 

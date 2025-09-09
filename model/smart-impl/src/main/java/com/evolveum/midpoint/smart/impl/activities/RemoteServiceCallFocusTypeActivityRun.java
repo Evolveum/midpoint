@@ -41,18 +41,19 @@ class RemoteServiceCallFocusTypeActivityRun
     }
 
     @Override
-    protected @NotNull ActivityRunResult runLocally(OperationResult result) throws ActivityRunException, CommonException {
+    protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
         var task = getRunningTask();
         var parentState = Util.getParentState(this, result);
         var resourceOid = getWorkDefinition().getResourceOid();
 
-        var suggestedObjectTypesClone = parentState.getWorkStateItemRealValueClone(ObjectTypesSuggestionWorkStateType.F_RESULT, ObjectTypesSuggestionType.class);
+        var suggestedObjectTypesClone = parentState.getWorkStateItemRealValueClone(
+                ObjectTypesSuggestionWorkStateType.F_RESULT, ObjectTypesSuggestionType.class);
 
         for (var objectType : suggestedObjectTypesClone.getObjectType()) {
-            LOGGER.debug("Going to suggest focus type for resource {} and object type {}",
-                    resourceOid, objectType);
-            ResourceObjectTypeIdentification typeId = ResourceObjectTypeIdentification.of(objectType.getKind(), objectType.getIntent());
-            var focusType = SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(resourceOid, typeId, task, result);
+            LOGGER.debug("Going to suggest focus type for resource {} and object type:\n{}",
+                    resourceOid, objectType.debugDumpLazily(1));
+            var focusType =
+                    SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(resourceOid, objectType, task, result);
             objectType.setFocus(
                     new ResourceObjectFocusSpecificationType()
                             .type(focusType.getFocusType())
@@ -60,9 +61,7 @@ class RemoteServiceCallFocusTypeActivityRun
         }
         parentState.setWorkStateItemRealValues(ObjectTypesSuggestionWorkStateType.F_RESULT, suggestedObjectTypesClone);
         parentState.flushPendingTaskModifications(result);
-        LOGGER.debug("Suggestions written to the work state:\n{}",
-                suggestedObjectTypesClone.debugDump(1));
-
+        LOGGER.debug("Suggestions written to the work state:\n{}", suggestedObjectTypesClone.debugDump(1));
 
         return ActivityRunResult.success();
     }

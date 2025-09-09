@@ -80,14 +80,29 @@ public class AbstractDummyScenario {
 
         /** Creates a new object. Does *not* add it to the resource. */
         public DummyObject create(String name) {
-            var object = controller.getDummyResource().newObject(getObjectClassName().local());
+            var object = create();
             object.setName(name);
             return object;
         }
 
+        /** Creates a new object. Does *not* add it to the resource. */
+        public DummyObject create() {
+            return controller.getDummyResource().newObject(getObjectClassName().local());
+        }
+
         /** Creates and adds a new object to the resource. Does not expect any exceptions (break mode should not be set here). */
         public DummyObject add(String name) {
-            var object = create(name);
+            return addObject(
+                    create(name));
+        }
+
+        /** As {@link #add(String)} but creating object without a name. */
+        public DummyObject addUnnamed() {
+            return addObject(
+                    create());
+        }
+
+        private DummyObject addObject(DummyObject object) {
             try {
                 controller.getDummyResource().addObject(object);
             } catch (Exception e) {

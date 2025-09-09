@@ -622,7 +622,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                                         ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
                                                 .append(selectedObjectType.asPrismContainerValue().getPath()));
                             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                                LOGGER.error("Couldn't invoke method " + methodName + " in PageResource class");
+                                LOGGER.error("Couldn't invoke method " + methodName + " in PageResource class", e);
                             }
                         }
                     }

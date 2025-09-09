@@ -63,12 +63,12 @@ public class ResourceObjectTypeDelineation
             @NotNull ResourceObjectTypeDelineationType bean,
             @NotNull QName objectClassName,
             @NotNull List<QName> auxiliaryObjectClassNames,
-            @NotNull ResourceObjectDefinition objectDefinition)
+            @NotNull ResourceObjectDefinition objectDefinitionForFilterParsing)
             throws ConfigurationException {
 
         List<ObjectFilter> filterClauses;
         try {
-            filterClauses = ShadowQueryConversionUtil.parseFilters(bean.getFilter(), objectDefinition);
+            filterClauses = ShadowQueryConversionUtil.parseFilters(bean.getFilter(), objectDefinitionForFilterParsing);
             filterClauses.forEach(f -> f.freeze()); // just to be sure
         } catch (SchemaException e) {
             throw new ConfigurationException("Couldn't parse filter clauses: " + e.getMessage(), e);

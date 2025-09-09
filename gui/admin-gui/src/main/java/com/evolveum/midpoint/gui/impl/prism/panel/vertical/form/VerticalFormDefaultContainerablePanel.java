@@ -249,6 +249,10 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         return true;
     }
 
+    protected boolean isShowEmptyButtonContainerVisible() {
+        return true;
+    }
+
     public Component getFormContainer() {
         return get(createComponentPath(ID_PROPERTIES_LABEL, ID_FORM_CONTAINER));
     }
@@ -260,6 +264,32 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
             return new VerticalFormAnalysisAttributesPanel("container", (IModel) wrapperModel, settings);
         }
         return new VerticalFormPrismContainerPanel<>("container", (IModel) wrapperModel, settings) {
+
+            @Override
+            protected boolean isHeaderVisible() {
+                return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainerHeader(wrapperModel.getObject());
+            }
+
+            @Override
+            protected String getCssClassForFormContainer() {
+                if(getCssClassForFormSubContainer() != null){
+                    return getCssClassForFormSubContainer();
+                }
+                return super.getCssClassForFormContainer();
+            }
+
+            @Override
+            protected boolean isShowEmptyButtonVisible() {
+                return isShowEmptyButtonContainerVisible();
+            }
+
+            @Override
+            protected String getCssClassForFormContainerOfValuePanel() {
+                if(getCssClassForFormSubContainerOfValuePanel() != null){
+                    return getCssClassForFormSubContainerOfValuePanel();
+                }
+                return super.getCssClassForFormContainerOfValuePanel();
+            }
 
             @Override
             protected IModel<String> getTitleModel() {
@@ -290,5 +320,15 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainer(c);
             }
         };
+    }
+
+    protected boolean isVisibleSubContainerHeader(PrismContainerWrapper<? extends Containerable> c) {return true;}
+
+    protected String getCssClassForFormSubContainer() {
+        return null;
+    }
+
+    protected String getCssClassForFormSubContainerOfValuePanel() {
+        return null;
     }
 }

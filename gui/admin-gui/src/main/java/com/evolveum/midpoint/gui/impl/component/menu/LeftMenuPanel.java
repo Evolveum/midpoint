@@ -390,7 +390,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         createBasicAssignmentHolderMenuItems(applicationMenu, PageTypes.APPLICATION);
 
         MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
-                GuiStyleConstants.AI_MAGIC_WAND, PageConnectorDevelopment.class);
+                GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
         applicationMenu.addMenuItem(connectorGenerator);
 
         return applicationMenu;

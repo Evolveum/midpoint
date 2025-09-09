@@ -90,7 +90,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             }
         };
         newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible()));
+        newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
         bar.add(newObjectButton);
         return bar;
     }

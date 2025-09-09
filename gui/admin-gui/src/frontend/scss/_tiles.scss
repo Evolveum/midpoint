@@ -146,6 +146,15 @@
     word-break: break-word;
   }
 
+.tile-three-line-description {
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
 @include dark-mode() {
   .catalog-tile-panel.selectable {
     @include tile-dark-mode();
