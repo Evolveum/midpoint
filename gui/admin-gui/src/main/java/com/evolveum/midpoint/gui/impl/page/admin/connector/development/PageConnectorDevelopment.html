@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+
+    <wicket:fragment wicket:id="wizardFragment">
+        <form class="col-lg-12" wicket:id="mainForm">
+            <div class="d-flex flex-column">
+                <div wicket:id="header"></div>
+                <div wicket:id="wizardPanel"></div>
+            </div>
+        </form>
+    </wicket:fragment>
+    <wicket:child/>
+    <wicket:fragment wicket:id="saveFragment">
+        <i class="fa fa-plus-circle text-success"></i>
+        <div class="text-success">
+            <wicket:message key="PageConnectorDevelopment.header.save"/>
+        </div>
+    </wicket:fragment>
+</wicket:extend>
+</body>
+</html>

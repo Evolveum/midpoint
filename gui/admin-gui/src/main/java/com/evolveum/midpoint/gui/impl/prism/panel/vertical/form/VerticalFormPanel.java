@@ -201,4 +201,8 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
     protected String getIcon() {
         return "";
     }
+
+    public final SingleContainerPanel getSingleContainerPanel(){
+        return (SingleContainerPanel) get(ID_SINGLE_CONTAINER);
+    }
 }

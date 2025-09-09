@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -26,9 +28,19 @@ public abstract class AbstractWizardStepPanel<ODM extends ObjectDetailsModels>
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
 
-    private final ODM detailsModel;
+    private ODM detailsModel;
+    private WizardPanelHelper<? extends Containerable, ODM> helper;
+
+    public AbstractWizardStepPanel(){
+    }
+
     public AbstractWizardStepPanel(ODM model){
         this.detailsModel = model;
+    }
+
+    public AbstractWizardStepPanel(WizardPanelHelper<? extends Containerable, ODM> helper) {
+        this.helper = helper;
+
     }
 
     @Override
@@ -50,7 +62,14 @@ public abstract class AbstractWizardStepPanel<ODM extends ObjectDetailsModels>
     }
 
     public ODM getDetailsModel() {
+        if (helper != null) {
+            return helper.getDetailsModel();
+        }
         return detailsModel;
+    }
+
+    public WizardPanelHelper<? extends Containerable, ODM> getHelper() {
+        return helper;
     }
 
     protected void onSubmitPerformed(AjaxRequestTarget target) {

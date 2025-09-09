@@ -335,4 +335,6 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ICON_RECYCLE = "fa fa-recycle";
     public static final String CLASS_MIGRATION_ICON = "fa fa-wrench";
+
+    public static final String AI_MAGIC_WAND = "fa fa-wand-magic-sparkles";
 }

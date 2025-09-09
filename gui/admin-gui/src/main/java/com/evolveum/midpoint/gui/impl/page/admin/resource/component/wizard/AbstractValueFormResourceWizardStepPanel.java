@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
@@ -68,6 +69,16 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
         }
     }
 
+    public AbstractValueFormResourceWizardStepPanel(WizardPanelHelper<? extends Containerable, ODM> helper, IModel<PrismContainerValueWrapper<C>> newValueModel){
+        super(helper);
+        this.newValueModel = newValueModel;
+        this.parentModelForAllSteps = null;
+        if (newValueModel != null) {
+            newValueModel.getObject().setExpanded(true);
+            newValueModel.getObject().setShowEmpty(true);
+        }
+    }
+
     protected <Con extends Containerable, T extends Containerable> IModel<PrismContainerValueWrapper<Con>> createNewValueModel(
             IModel<PrismContainerValueWrapper<T>> parentValue, ItemPath itempath) {
         return new LoadableDetachableModel<>() {
@@ -117,7 +128,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
                 = new VerticalFormPrismContainerValuePanel(ID_VALUE, getValueModel(), settings){
 
             @Override
-            protected LoadableDetachableModel<String> getLabelModel() {
+            protected IModel<String> getLabelModel() {
                 return AbstractValueFormResourceWizardStepPanel.this.createLabelModel();
             }
 
@@ -138,8 +149,8 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
         return false;
     }
 
-    protected LoadableDetachableModel<String> createLabelModel() {
-        return (LoadableDetachableModel<String>) getTitle();
+    protected IModel<String> createLabelModel() {
+        return getTitle();
     }
 
     protected ItemMandatoryHandler getMandatoryHandler() {

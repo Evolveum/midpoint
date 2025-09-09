@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -23,6 +25,8 @@ public enum ObjectTypeGuiDescriptor {
     ROLE_ANALYSIS_SESSION(ObjectTypes.ROLE_ANALYSIS_SESSION, "ObjectTypeGuiDescriptor.parent.cluster", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
 
     CONNECTOR(ObjectTypes.CONNECTOR, "ObjectTypeGuiDescriptor.connector", "silk-link", "silk-link"),
+
+    CONNECTOR_DEVELOPMENT(ObjectTypes.CONNECTOR_DEVELOPMENT, "ObjectTypeGuiDescriptor.connectorDevelopment", "silk-link", "silk-link"),
 
     CONNECTOR_HOST(ObjectTypes.CONNECTOR_HOST, "ObjectTypeGuiDescriptor.connectorHost", "silk-driver_link", "silk-driver_link"),
 

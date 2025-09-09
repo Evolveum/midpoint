@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.wizard;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,32 +26,32 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-public abstract class WizardPanelHelper<C extends Containerable, AHD extends AssignmentHolderDetailsModel> implements Serializable {
+public abstract class WizardPanelHelper<C extends Containerable, ODM extends ObjectDetailsModels> implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(WizardPanelHelper.class);
 
     private IModel<PrismContainerValueWrapper<C>> valueModel;
 
-    private AHD detailsModel;
+    private ODM detailsModel;
     private IModel<String> exitLabel;
 
     public WizardPanelHelper(
-            @NotNull AHD resourceModel) {
+            @NotNull ODM resourceModel) {
         this.detailsModel = resourceModel;
     }
 
     public WizardPanelHelper(
-            @NotNull AHD resourceModel,
+            @NotNull ODM resourceModel,
             IModel<PrismContainerValueWrapper<C>> valueModel) {
         this.detailsModel = resourceModel;
         this.valueModel = valueModel;
     }
 
-    public AHD getDetailsModel() {
+    public ODM getDetailsModel() {
         return detailsModel;
     }
 
-    public final void updateDetailsModel(AHD newModel) {
+    public final void updateDetailsModel(ODM newModel) {
         this.detailsModel = newModel;
     }
 

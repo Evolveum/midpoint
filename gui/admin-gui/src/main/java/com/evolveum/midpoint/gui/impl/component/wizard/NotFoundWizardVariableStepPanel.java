@@ -18,7 +18,7 @@ public class NotFoundWizardVariableStepPanel
     private static final String ID_CALLOUT = "callout";
 
     public NotFoundWizardVariableStepPanel() {
-        super(null);
+        super();
     }
 
     @Override

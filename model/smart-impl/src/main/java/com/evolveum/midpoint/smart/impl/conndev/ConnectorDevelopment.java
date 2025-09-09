@@ -20,9 +20,9 @@ public class ConnectorDevelopment {
         return connectorObject != null;
     }
 
-    public ProcessedDocumentation processedDocumentation() {
-        return null;
-    }
+//    public ProcessedDocumentation processedDocumentation() {
+//        return null;
+//    }
 
     public PrismObject<ResourceType> createTestResource() {
         return null;
