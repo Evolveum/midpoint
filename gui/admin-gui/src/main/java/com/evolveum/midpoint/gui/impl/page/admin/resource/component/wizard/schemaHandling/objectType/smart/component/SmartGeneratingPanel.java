@@ -8,9 +8,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
@@ -18,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -28,6 +33,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +42,23 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.deleteWholeTaskObject;
+
+/**
+ * Panel for monitoring and controlling a "smart generating" task.
+ * <p>
+ * Shows progress (elapsed time, status rows) and provides actions
+ * to run in background, suspend/resume, or discard the task. Uses
+ * an {@link AbstractAjaxTimerBehavior} to poll until the task
+ * finishes, fails, or is suspended.
+ * <p>
+ * Subclasses may override hooks like
+ * {@link #onFinishActionPerform(AjaxRequestTarget)},
+ * {@link #onDiscardPerform(AjaxRequestTarget)},
+ * {@link #onRunInBackgroundPerform(AjaxRequestTarget)} or
+ * {@link #createButtons(org.apache.wicket.markup.repeater.RepeatingView)}
+ * to customize behavior and appearance.
+ */
 public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
     private static final String ID_PANEL_CONTAINER = "panelContainer";
@@ -50,6 +73,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     private static final String ID_LIST_VIEW = "listView";
     private static final String ID_LIST_ITEM_ICON = "icon";
     private static final String ID_LIST_ITEM_TEXT = "text";
+    private static final String ID_LIST_INFO = "info";
 
     private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
     private static final String ID_BUTTONS = "buttons";
@@ -82,6 +106,10 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
         initCorePart(bodyContainer);
 
+        initAjaxTimeBehaviour(bodyContainer);
+    }
+
+    private void initAjaxTimeBehaviour(WebMarkupContainer bodyContainer) {
         timerBehavior = createSuggestionAjaxTimerBehavior(bodyContainer, getRefreshInterval(), getModel(), this::onFinishActionPerform);
         bodyContainer.add(timerBehavior);
     }
@@ -89,33 +117,48 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     @Contract("_, _, _, _ -> new")
     public static @NotNull AbstractAjaxTimerBehavior createSuggestionAjaxTimerBehavior(
             @NotNull WebMarkupContainer bodyContainer,
-            Duration refreshDuration,
-            IModel<SmartGeneratingDto> model,
+            @NotNull Duration refreshDuration,
+            @NotNull IModel<SmartGeneratingDto> model,
             @NotNull SerializableConsumer<AjaxRequestTarget> onFinishAction) {
 
         return new AbstractAjaxTimerBehavior(refreshDuration) {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
-                SmartGeneratingDto dto = model.getObject();
-                if (dto == null) {
-                    stop(target);
-                    target.add(bodyContainer);
-                    return;
-                }
+                try {
+                    final SmartGeneratingDto dto = model.getObject();
 
-                dto.getStatusInfo().reset();
-
-                if (dto.isFinished() || dto.isFailed()) {
-                    stop(target);
-                }
-                if (dto.isFinished() && !dto.isFailed() && !dto.isSuspended()) {
-                    try {
-                        onFinishAction.accept(target);
-                    } catch (Exception e) {
-                        LOGGER.error("Error during finishing action after generating suggestions: {}", e.getMessage(), e);
+                    if (dto == null) {
+                        stop(target);
+                        return;
                     }
+
+                    final boolean finished = dto.isFinished();
+                    final boolean failed = dto.isFailed();
+                    final boolean suspended = dto.isSuspended();
+
+                    if (!finished && !failed && !suspended) {
+                        if (dto.getStatusInfo() != null) {
+                            dto.getStatusInfo().reset();
+                        } else {
+                            LOGGER.debug("StatusInfo is null for DTO {}", dto);
+                        }
+                    }
+
+                    if (finished && !failed && !suspended) {
+                        try {
+                            onFinishAction.accept(target);
+                        } catch (Exception e) {
+                            LOGGER.error("Error during finishing action after generating suggestions", e);
+                        } finally {
+                            stop(target);
+                        }
+                    } else if (failed || suspended) {
+                        stop(target);
+                    }
+
+                } finally {
+                    target.add(bodyContainer);
                 }
-                target.add(bodyContainer);
             }
         };
     }
@@ -177,16 +220,65 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                 icon.add(AttributeModifier.replace("class", row.getIconCss()));
                 item.add(icon);
 
-                item.add(AttributeModifier.append("class", "status-row"));
+                item.add(AttributeModifier.append("class", "statusInfo-row"));
+
+                initInfoButton(item, row);
+            }
+
+            private void initInfoButton(
+                    @NotNull ListItem<SmartGeneratingDto.StatusRow> item,
+                    SmartGeneratingDto.@NotNull StatusRow row) {
+                AjaxIconButton info = new AjaxIconButton(ID_LIST_INFO, Model.of("fa fa-info-circle"),
+                        createStringResource("SmartGeneratingPanel.button.info")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(@NotNull AjaxRequestTarget target) {
+                        StatusInfo<?> statusInfo = row.getStatusInfo();
+
+                        HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
+                                getPageBase().getMainPopupBodyId(),
+                                statusInfo::getLocalizedMessage) {
+                            @Override
+                            public StringResourceModel getTitle() {
+                                return createStringResource("SmartGeneratingPanel.suggestion.details.title");
+                            }
+
+                            @Override
+                            protected @NotNull Label initLabel(IModel<String> messageModel) {
+                                Label label = super.initLabel(messageModel);
+                                label.add(AttributeModifier.append("class", "alert alert-danger"));
+                                return label;
+                            }
+
+                            @Override
+                            public @NotNull Component getFooter() {
+                                Component footer = super.getFooter();
+                                footer.add(new VisibleBehaviour(() -> false));
+                                return footer;
+                            }
+                        };
+
+                        target.add(getPageBase().getMainPopup());
+
+                        getPageBase().showMainPopup(
+                                helpInfoPanel, target);
+                    }
+                };
+                info.setOutputMarkupId(true);
+                info.showTitleAsLabel(true);
+                info.add(new VisibleBehaviour(row::isFailed));
+                item.add(info);
             }
         };
+
         listView.setOutputMarkupId(true);
         listView.add(new VisibleBehaviour(this::isListViewVisible));
         return listView;
     }
 
     protected boolean isListViewVisible() {
-        return !getSafeRows().isEmpty();
+        return !getSafeRows().isEmpty() && getModelObject().isFailed();
     }
 
     /** Null-safe accessor for rows. */
@@ -208,6 +300,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     protected void createButtons(@NotNull RepeatingView buttonsView) {
         initRunInBackgroundButton(buttonsView);
         initActionButton(buttonsView);
+        initDiscardButton(buttonsView);
     }
 
     private void initRunInBackgroundButton(@NotNull RepeatingView buttonsView) {
@@ -228,6 +321,43 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         runInBackgroundButton.showTitleAsLabel(true);
         runInBackgroundButton.add(AttributeModifier.append("class", "btn btn-default"));
         buttonsView.add(runInBackgroundButton);
+    }
+
+    public void initDiscardButton(@NotNull RepeatingView buttonsView) {
+        AjaxIconButton discardButton = new AjaxIconButton(
+                buttonsView.newChildId(),
+                Model.of("fa fa-times"),
+                createStringResource("SmartGeneratingPanel.button.discard")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                discardSuggestion(target);
+                onDiscardPerform(target);
+            }
+        };
+
+        discardButton.setOutputMarkupId(true);
+        discardButton.showTitleAsLabel(true);
+        discardButton.add(AttributeModifier.append("class", "btn btn-link text-danger"));
+        discardButton.add(new VisibleBehaviour(() -> {
+            SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
+            return dto != null && (dto.isFailed() || dto.isSuspended());
+        }));
+        buttonsView.add(discardButton);
+    }
+
+    private void discardSuggestion(AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask("Discard smart generating task");
+        OperationResult result = task.getResult();
+        SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
+        String token = dto.getToken();
+        if (token == null) {
+            return;
+        }
+        deleteWholeTaskObject(getPageBase(), task, result, token);
+        onFinishActionPerform(target);
     }
 
     public void initActionButton(@NotNull RepeatingView buttonsView) {
@@ -274,6 +404,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
         actionButton.setOutputMarkupId(true);
         actionButton.showTitleAsLabel(true);
+        actionButton.add(new VisibleBehaviour(() -> getModelObject() != null && !getModelObject().isFailed()));
         actionButton.add(AttributeModifier.append("class", "btn btn-link"));
         buttonsView.add(actionButton);
     }
@@ -303,6 +434,14 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             case SUSPENDED -> createStringResource("SmartGeneratingPanel.button.resume").getString();
             case CLOSED -> createStringResource("SmartGeneratingPanel.button.closed").getString();
         };
+    }
+
+    /**
+     * Action handlers - override as needed
+     * Post-discard action.
+     */
+    protected void onDiscardPerform(AjaxRequestTarget target) {
+        onFinishActionPerform(target);
     }
 
     protected void onFinishActionPerform(AjaxRequestTarget target) {
