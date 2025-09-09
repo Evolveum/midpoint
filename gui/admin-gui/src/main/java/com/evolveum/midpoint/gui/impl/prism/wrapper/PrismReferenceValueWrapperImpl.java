@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.form.CreateObjectForReferencePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
@@ -54,6 +55,13 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 
     private boolean editEnabled = true;
     private boolean isLink = false;
+
+    @Override
+    protected <V extends PrismValue> V getNewValueWithMetadataApplied() throws SchemaException {
+        V value = super.getNewValueWithMetadataApplied();
+        WebPrismUtil.cleanupValueMetadata(value);
+        return value;
+    }
 
     @Override
     public void setRealValue(T realValueReferencable) {

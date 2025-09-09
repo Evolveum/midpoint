@@ -213,11 +213,11 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
         delta = objectWrapper.getObjectDelta();
 
-        delta.getModifications().forEach(mod -> {
-            cleanupEmptyValue(mod.getValuesToAdd());
-            cleanupEmptyValue(mod.getValuesToReplace());
-            cleanupEmptyValue(mod.getValuesToDelete());
-        });
+//        delta.getModifications().forEach(mod -> {
+//            cleanupEmptyValue(mod.getValuesToAdd());
+//            cleanupEmptyValue(mod.getValuesToReplace());
+//            cleanupEmptyValue(mod.getValuesToDelete());
+//        });
 
         WebComponentUtil.encryptCredentials(delta, true, modelServiceLocator);
         switch (objectWrapper.getStatus()) {

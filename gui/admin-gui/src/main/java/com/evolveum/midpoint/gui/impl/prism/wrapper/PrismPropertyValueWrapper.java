@@ -9,7 +9,11 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.DebugUtil;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -22,6 +26,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
+import java.io.Serial;
 
 /**
  * @author katka
@@ -37,7 +43,14 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
         super(parent, value, status);
     }
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
+
+    @Override
+    protected <V extends PrismValue> V getNewValueWithMetadataApplied() throws SchemaException {
+        V value = super.getNewValueWithMetadataApplied();
+        WebPrismUtil.cleanupValueMetadata(value);
+        return value;
+    }
 
     @Override
     public void setRealValue(T newRealValue) {
