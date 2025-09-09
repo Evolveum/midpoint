@@ -278,7 +278,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="name" type="xsd:string" />
+            <xsd:element name="type" type="xsd:string" />
+            <xsd:element name="format" type="xsd:string" />
+            <xsd:element name="description"  type="xsd:string" />
+            <xsd:element name="mandatory" type="xsd:boolean" />
+            <xsd:element name="updatable" type="xsd:boolean" />
+            <xsd:element name="creatable" type="xsd:boolean" />
+            <xsd:element name="readable" type="xsd:boolean" />
+            <xsd:element name="multivalue"  type="xsd:boolean" />
+            <xsd:element name="returnedByDefault" type="xsd:boolean" />
+            <xsd:element name="connIdAttribute" type="xsd:string" />
         </xsd:sequence>
     </xsd:complexType>
 
@@ -290,8 +300,8 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
-            <xsd:element name="description" type="xsd:string"/>
-            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="type" type="tns:ConnDevHttpAuthTypeType"/>
+            <xsd:element name="description" type="xsd:string" />
             <xsd:element name="quirks" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -306,9 +316,10 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
             <xsd:element name="uri" type="xsd:string"/>
-            <xsd:element name="operation" type="xsd:string"/>
+            <xsd:element name="operation" type="tns:ConnDevHttpOperationType" />
             <xsd:element name="requestContentType" type="xsd:string"/>
             <xsd:element name="responseContentType" type="xsd:string"/>
+            <xsd:element name="suggestedUse" type="tns:ConnDevHttpEndpointIntentType" maxOccurs="unbounded" />
         </xsd:sequence>
     </xsd:complexType>
 
@@ -567,5 +578,73 @@
     </xsd:simpleType>
 
 
+    <xsd:simpleType name="ConnDevHttpOperationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Supported authentication types.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="get">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GET"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="post">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="POST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="put">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PUT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="delete">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ConnDevHttpEndpointIntentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Supported endpoint intent types
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="getById">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GET_BY_ID"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="getAll">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GET_ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="search">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SEARCH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>

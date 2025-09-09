@@ -74,10 +74,10 @@ public class DiscoverGlobalInformationActivityHandler
             var beans = ConnDevBeans.get();
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
 
-            ConnDevApplicationInfoType type = backend.discoverBasicInformation(task, result);
+            ConnDevApplicationInfoType type = backend.discoverBasicInformation();
             backend.populateBasicApplicationInformation(type);
 
-            List<ConnDevAuthInfoType> authInfo = backend.discoverAuthorizationInformation(task, result);
+            List<ConnDevAuthInfoType> authInfo = backend.discoverAuthorizationInformation();
             backend.populateApplicationAuthInfo(authInfo);
 
             var state = getActivityState();

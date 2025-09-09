@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevAuthInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -42,9 +42,6 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
@@ -98,16 +95,16 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
 
                 List<PrismContainerValueWrapper<ConnDevAuthInfoType>> list = new ArrayList<>();
                 try {
-                    ConnDevAuthInfoType value = new ConnDevAuthInfoType().name("Bearer Token").type("Type1").description("Used in APIs that require a simple token in the Authorization header");
+                    ConnDevAuthInfoType value = new ConnDevAuthInfoType().name("Bearer Token").type(ConnDevHttpAuthTypeType.BEARER).description("Used in APIs that require a simple token in the Authorization header");
                     list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
 
-                    value = new ConnDevAuthInfoType().name("Basic Auth").type("Type2").description("Username and password encoded in the request header");
+                    value = new ConnDevAuthInfoType().name("Basic Auth").type(ConnDevHttpAuthTypeType.BASIC).description("Username and password encoded in the request header");
                     list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
 
-                    value = new ConnDevAuthInfoType().name("OAuth 2.0 Client Credentials").type("Type3").description("Token-based authentication using client ID and secret");
+                    value = new ConnDevAuthInfoType().name("OAuth 2.0 Client Credentials").type(null).description("Token-based authentication using client ID and secret");
                     list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
 
-                    value = new ConnDevAuthInfoType().name("API Key in Header or Query").type("Type4").description("Single static key passed as a header or URL parameter");
+                    value = new ConnDevAuthInfoType().name("API Key in Header or Query").type(ConnDevHttpAuthTypeType.API_KEY).description("Single static key passed as a header or URL parameter");
                     list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
                 } catch (SchemaException e) {
                     throw new RuntimeException(e);

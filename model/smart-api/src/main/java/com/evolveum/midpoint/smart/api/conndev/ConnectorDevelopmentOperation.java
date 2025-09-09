@@ -5,8 +5,10 @@ import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts.KnownArtifactType.*;
 import java.io.IOException;
 import java.util.List;
 
@@ -31,9 +33,28 @@ public interface ConnectorDevelopmentOperation {
     String submitCreateConnector(Task task, OperationResult result);
 
     // Midpoint local (+ download framework)
-    String generateAuthenticationScript(Task task, OperationResult result);
 
     String submitDiscoverObjectClasses(Task task, OperationResult result);
+
+    String submitDiscoverObjectClassDetails(String user, Task testTask, OperationResult testOperationResult);
+
+    String submitGenerateArtifact(ConnDevArtifactType artifact, Task testTask, OperationResult testOperationResult);
+
+    default String submitGenerateNativeSchema(String objectClass, Task task, OperationResult result) {
+        return submitGenerateArtifact(NATIVE_SCHEMA_DEFINITION.create(objectClass), task, result);
+    }
+
+    default String submitGenerateConnIdSchema(String objectClass, Task testTask, OperationResult testOperationResult) {
+        return submitGenerateArtifact(CONNID_SCHEMA_DEFINITION.create(objectClass), testTask, testOperationResult);
+    }
+
+    default String submitGenerateAuthenticationScript(Task task, OperationResult result) {
+        return submitGenerateArtifact(AUTHENTICATION_CUSTOMIZATION.create(), task, result);
+    }
+
+    default String submitGenerateSearchScript(String objectClass, Task task, OperationResult result) {
+        return submitGenerateArtifact(SEARCH_ALL_DEFINITION.create(objectClass), task, result);
+    }
 
     // FIXME: Also add operation results
     // Midpoint local
@@ -49,11 +70,7 @@ public interface ConnectorDevelopmentOperation {
     StatusInfo<ConnDevArtifactType> generateNativeSchemaScript(PrismContainer<ConnDevAttributeInfoType> type);
 
     // local
-    String getArtifactContent(ConnDevArtifactType type);
-
-    // local
-    void saveNativeSchemaScript(ConnDevArtifactType type, String updated);
-
+    String getArtifactContent(ConnDevArtifactType type, Task task, OperationResult result) throws IOException;
     // local
     BareResourceSchema testSchema(ConnDevArtifactType type);
 
@@ -66,18 +83,27 @@ public interface ConnectorDevelopmentOperation {
     // local
     void testSearchAll(String objectClass, ConnDevArtifactType script);
 
-    // local
-    void saveSearchAll(ConnDevArtifactType script, String body);
 
-    // local
-    void saveArtifact(String objectClass, ConnDevArtifactType endpoint);
+    void saveArtifact(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException;
 
-    StatusInfo<ConnDevArtifactType> generateGet(String objectClass, ConnDevHttpEndpointType endpoint);
 
-    void testGet(String objectClass, ConnDevArtifactType script);
+    default void  saveNativeSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
+        saveArtifact(artifact, task, result);
+    }
 
-    void saveGet(ConnDevArtifactType script, String body);
 
-    void saveAuthenticationScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException;
+    default void saveAuthenticationScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
+        saveArtifact(artifact, task, result);
+    }
+
+    default void saveConnIdSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
+        saveArtifact(artifact, task, result);
+    };
+
+    default void saveSearchAllScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
+        saveArtifact(artifact, task, result);
+    }
+
+    List<ConnDevHttpEndpointType> suggestedEndpointsFor(String objectClass, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType);
 
 }
