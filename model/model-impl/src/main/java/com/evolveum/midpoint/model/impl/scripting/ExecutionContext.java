@@ -174,4 +174,8 @@ public class ExecutionContext {
             return null;
         }
     }
+
+    public boolean isRunPrivileged() {
+        return executionOptions.privileged();
+    }
 }

@@ -10,10 +10,15 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 import static com.evolveum.midpoint.schema.util.ExecuteScriptUtil.createInputCloned;
 
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionPrivilegesSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExecutionPolicyActionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -51,9 +56,8 @@ class SynchronousScriptExecutor {
         try {
             var updatedScriptCI = addInputIfNeeded(configuredScriptCI, result);
             VariablesMap initialVariables = createInitialVariables();
-            //todo parse from initialVariables and create (BulkAction)ExecutionOptions here? e.g. parse runPrivileged?
             actx.beans.bulkActionsExecutor.execute(
-                    updatedScriptCI, initialVariables, BulkActionExecutionOptions.create(), actx.task, result);
+                    updatedScriptCI, initialVariables, createBulkActionExecutionOptions(), actx.task, result);
         } catch (Throwable t) {
             result.recordException("Couldn't execute script policy action: " + t.getMessage(), t);
             LoggingUtils.logUnexpectedException(
@@ -62,6 +66,16 @@ class SynchronousScriptExecutor {
         } finally {
             result.close();
         }
+    }
+
+    private BulkActionExecutionOptions createBulkActionExecutionOptions() throws ConfigurationException {
+        ExecutionPrivilegesSpecificationType privileges = actx.actionCI.getPrivileges();
+        var defaultBulkActionExecutionOptions = BulkActionExecutionOptions.create();
+        if (privileges == null) {
+            return defaultBulkActionExecutionOptions;
+        }
+        return privileges.isRunPrivileged() ?
+                BulkActionExecutionOptions.create().withPrivileged() : defaultBulkActionExecutionOptions;
     }
 
     private ExecuteScriptConfigItem addInputIfNeeded(ExecuteScriptConfigItem specifiedExecuteScriptCI, OperationResult result)

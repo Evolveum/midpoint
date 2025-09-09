@@ -226,6 +226,12 @@ public abstract class BaseActionExecutor implements ActionExecutor {
                                     scriptingProfile.getIdentifier()));
         }
 
+        //todo is this condition enough to authorize action execution?
+        //is it on the correct place?
+        if (context.isRunPrivileged()) {
+            return;
+        }
+
         bulkActionsExecutor.authorizeBulkActionExecution(
                 actionType,
                 context.getExecutionPhase(),
