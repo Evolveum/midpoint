@@ -300,7 +300,8 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
-            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="type" type="tns:ConnDevHttpAuthTypeType"/>
+            <xsd:element name="description" type="xsd:string" />
             <xsd:element name="quirks" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
