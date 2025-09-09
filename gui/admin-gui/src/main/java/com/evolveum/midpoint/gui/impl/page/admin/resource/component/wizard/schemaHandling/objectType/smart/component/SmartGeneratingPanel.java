@@ -298,9 +298,15 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
      */
     // TODO: we don't want to access task in GUI (needs moving to service layer)
     protected void createButtons(@NotNull RepeatingView buttonsView) {
-        initRunInBackgroundButton(buttonsView);
+        if (allowShowInBackground()) {
+            initRunInBackgroundButton(buttonsView);
+        }
         initActionButton(buttonsView);
         initDiscardButton(buttonsView);
+    }
+
+    protected boolean allowShowInBackground() {
+        return true;
     }
 
     private void initRunInBackgroundButton(@NotNull RepeatingView buttonsView) {

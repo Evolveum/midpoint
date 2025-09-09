@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPris
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -181,6 +182,12 @@ public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWiz
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        try {
+            getDetailsModel().getObjectType().setName(
+                    ((ConnDevApplicationInfoType)getContainerFormModel().getObject().getValue().getNewValue()).getApplicationName());
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {

@@ -194,6 +194,7 @@ public class BasicInformationConnectorStepPanel extends AbstractFormWizardStepPa
     public List<WizardStep> createChildrenSteps() {
         return List.of(
                 new ApplicationIdentificationConnectorStepPanel(getHelper()),
-                new ConnectorIdentificationConnectorStepPanel(getHelper()));
+                new ConnectorIdentificationConnectorStepPanel(getHelper()),
+                new WaitingForDocumentationConnectorStepPanel(getHelper()));
     }
 }
