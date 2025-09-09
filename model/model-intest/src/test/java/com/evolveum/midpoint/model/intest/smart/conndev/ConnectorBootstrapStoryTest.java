@@ -4,6 +4,7 @@ import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -30,6 +32,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
     private static final String COMMUNITY_CONNECTOR = "com.evolveum.community.conndev";
     private static final String MOCK_CONNECTOR = "mock-connector";
     private static final String MOCK_SNAPSHOT= "0.1-SNAPSHOT";
+    private static final String CONNECTOR_DIRECTORY = "com.evolveum.community.conndev.mock-connector.0.1-SNAPSHOT";
 
     @Autowired
     private ConnectorInstallationService installationService;
@@ -147,7 +150,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
 
         // Lets refresh development type
         development = continueDevelopment(getTestTask(), getTestOperationResult());
-        var token = development.generateAuthenticationScript(task, result);
+        var token = development.submitGenerateAuthenticationScript(task, result);
         var response = waitForFinish(() -> connectorService.getGenerateArtifactStatus(token, task, result),
                 TIMEOUT);
         assertThat(response).isNotNull();
@@ -186,8 +189,50 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
     public void test310GenerateUserSchema() throws Exception {
         var task = getTestTask();
         var result = getTestOperationResult();
+
         var development =  continueDevelopment(getTestTask(), getTestOperationResult());
 
+        var detailsToken = development.submitDiscoverObjectClassDetails("User",getTestTask(), getTestOperationResult());
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> connectorService.getDiscoverObjectClassDetailsStatus(detailsToken, task, result),
+                TIMEOUT);
+
+        assertThat(response).isNotNull();
+
+        development = continueDevelopment(getTestTask(), getTestOperationResult());
+        var appObjectClass = development.getObject().getConnector().getObjectClass().stream().filter(o -> o.getName().equals("User")).findFirst().orElse(
+                        null);
+
+        assertThat(appObjectClass).isNotNull();
+        assertThat(appObjectClass.getAttribute()).isNotEmpty();
+
+        var scriptToken = development.submitGenerateNativeSchema("User", task, result);
+        var scriptResponse = waitForFinish(
+                () -> connectorService.getGenerateArtifactStatus(scriptToken, task, result),
+                TIMEOUT);
+
+        assertThat(scriptResponse.getArtifact()).isNotNull();
+        // Here script should be displayed and provided to the user for checking
+        development.saveNativeSchemaScript(scriptResponse.getArtifact(), task, result);
+
+        var connidToken = development.submitGenerateConnIdSchema("User",getTestTask(), getTestOperationResult());
+        var connidResponse = waitForFinish(
+                () -> connectorService.getGenerateArtifactStatus(connidToken, task, result),
+                TIMEOUT);
+
+        assertThat(connidResponse.getArtifact()).isNotNull();
+
+        development.saveConnIdSchemaScript(connidResponse.getArtifact(), task, result);
+        assertThat(development.getObject().getApplication().getDetectedSchema().getObjectClass()).isNotEmpty();
+
+    }
+
+    @Test
+    public void test325TestResourceSchema() throws Exception {
+        // Test schema
+        throw new SkipException("Skipped");
     }
 
     @Test
@@ -196,6 +241,30 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         var result = getTestOperationResult();
         var development =  continueDevelopment(getTestTask(), getTestOperationResult());
 
+        assertThat(development.getObject().getApplication().getDetectedSchema().getObjectClass()).isNotEmpty();
+
+        List<ConnDevHttpEndpointType> suggested = development.suggestedEndpointsFor("User", ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION);
+        assertThat(suggested).isNotEmpty();
+
+        var token = development.submitGenerateSearchScript("User", task, result);
+
+        var response = waitForFinish(
+                () -> connectorService.getGenerateArtifactStatus(token, task, result),
+                TIMEOUT);
+
+        assertThat(response.getArtifact()).isNotNull();
+
+        development.saveSearchAllScript(response.getArtifact(), task, result);
+        assertThat(development.getObject().getApplication().getDetectedSchema().getObjectClass()).isNotEmpty();
+
+    }
+
+    @Test
+    public void test330TestSearchScript() throws Exception {
+        var task = getTestTask();
+        var result = getTestOperationResult();
+        var development =  continueDevelopment(getTestTask(), getTestOperationResult());
+        throw new SkipException("Skipped");
     }
 
 

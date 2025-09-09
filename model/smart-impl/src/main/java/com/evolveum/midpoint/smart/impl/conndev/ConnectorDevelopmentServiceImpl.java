@@ -23,6 +23,7 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.impl.StatusInfoImpl;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.Duration;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 @Component
 public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentService {
@@ -100,6 +102,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
+        public String submitDiscoverObjectClassDetails(String objectClass, Task task, OperationResult result) {
+            return submitTask("Discovering '" + objectClass +"'object classe details for " + stateObject.getOid(),
+                    new WorkDefinitionsType().discoverObjectClassDetails(new ConnDevDiscoverObjectClassDetailsDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                            .objectClass(objectClass)
+                    ), task, result);
+        }
+
+        @Override
         public StatusInfo<ConnectorDevelopmentType> processDocumentation(PrismContainer<ConnDevDocumentationSourceType> sources) {
             return null;
         }
@@ -115,12 +126,12 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public String generateAuthenticationScript(Task task, OperationResult result) {
-            return submitTask("Generating authentication script",
+        public String submitGenerateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
+            return submitTask("Generating script",
                     new WorkDefinitionsType().generateConnectorArtifact(
-                        new ConnDevGenerateArtifactDefinitionType()
-                                .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
-                                .artifact(ConnectorDevelopmentArtifacts.authenticationScript())
+                            new ConnDevGenerateArtifactDefinitionType()
+                                    .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                                    .artifact(artifact.clone())
                     ), task, result);
         }
 
@@ -145,13 +156,9 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public String getArtifactContent(ConnDevArtifactType type) {
-            return "";
-        }
-
-        @Override
-        public void saveNativeSchemaScript(ConnDevArtifactType type, String updated) {
-
+        public String getArtifactContent(ConnDevArtifactType type, Task task, OperationResult result) throws IOException {
+            var artifact = ConnectorDevelopmentBackend.backendFor(stateObject, task, result).getArtifactContent(type);
+            return artifact.getContent();
         }
 
         @Override
@@ -175,28 +182,9 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public void saveSearchAll(ConnDevArtifactType script, String body) {
-
-        }
-
-        @Override
-        public void saveArtifact(String objectClass, ConnDevArtifactType endpoint) {
-
-        }
-
-        @Override
-        public StatusInfo<ConnDevArtifactType> generateGet(String objectClass, ConnDevHttpEndpointType endpoint) {
-            return null;
-        }
-
-        @Override
-        public void testGet(String objectClass, ConnDevArtifactType script) {
-
-        }
-
-        @Override
-        public void saveGet(ConnDevArtifactType script, String body) {
-
+        public void saveArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
+            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .saveArtifact(artifact);
         }
 
         public void comfirmApplicationInformation(Task task, OperationResult result) {
@@ -204,10 +192,8 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public void saveAuthenticationScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException {
-            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
-                    .saveArtifact(artifact);
-
+        public List<ConnDevHttpEndpointType> suggestedEndpointsFor(String user, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType) {
+            return List.of();
         }
     }
 
@@ -286,6 +272,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token,result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverObjectClassInformationResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevDiscoverObjectClassDetailsResultType> getDiscoverObjectClassDetailsStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token,result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevDiscoverObjectClassDetailsResultType.class
         );
     }
 }

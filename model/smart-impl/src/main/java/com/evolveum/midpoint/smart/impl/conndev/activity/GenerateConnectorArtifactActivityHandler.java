@@ -76,7 +76,7 @@ public class GenerateConnectorArtifactActivityHandler
             //var developmentUri = getWorkDefinition().templateUrl;
 
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
-            ConnDevArtifactType script = backend.generateGlobalArtifact(getWorkDefinition().artifactSpec);
+            ConnDevArtifactType script = backend.generateArtifact(getWorkDefinition().artifactSpec);
             if (script.getContent() != null) {
                 // Mark as AI
                 AiUtil.markAsAiProvided(script.asPrismContainerValue().findItem(ConnDevArtifactType.F_CONTENT).getValue());

@@ -24,9 +24,9 @@ public class ConnectorDevelopmentArtifacts {
         GET_BY_UID_DEFINITION(true, ConnDevOperationType.GET, null,
                 "get.op.groovy", ConnDevObjectClassInfoType.F_GET_OPERATION),
         NATIVE_SCHEMA_DEFINITION(true, ConnDevOperationType.SCHEMA, ConnDevScriptIntentType.NATIVE,
-                ".native.schema.groovy", ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT),
-        CONNID_SCHEMA_DEFINITION(true, ConnDevOperationType.SCHEMA, ConnDevScriptIntentType.NATIVE,
-                ".connid.schema.groovy", ConnDevObjectClassInfoType.F_CONNID_SCHEMA_SCRIPT),
+                "native.schema.groovy", ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT),
+        CONNID_SCHEMA_DEFINITION(true, ConnDevOperationType.SCHEMA, ConnDevScriptIntentType.CONNID,
+                "connid.schema.groovy", ConnDevObjectClassInfoType.F_CONNID_SCHEMA_SCRIPT),
         TEST_CONNECTION_DEFINITION(true, ConnDevOperationType.TEST_CONNECTION, null,
                 "testConnection.groovy", ConnDevConnectorType.F_TEST_OPERATION),
         ;
@@ -48,9 +48,17 @@ public class ConnectorDevelopmentArtifacts {
         public ConnDevArtifactType create(String objectClass) {
             var filename = objectClassSpecific ? objectClass + "." + filenameSuffix : filenameSuffix;
             return new ConnDevArtifactType()
+                    .objectClass(objectClass)
                     .filename(filename)
                     .intent(scriptIntent)
                     .operation(operation);
+        }
+
+        public ConnDevArtifactType create() {
+            if (objectClassSpecific) {
+                throw new IllegalStateException("Cannot create an object class for an object class specifc");
+            }
+            return create(null);
         }
     }
 

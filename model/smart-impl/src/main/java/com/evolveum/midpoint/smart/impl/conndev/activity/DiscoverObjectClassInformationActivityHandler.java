@@ -40,7 +40,7 @@ public class DiscoverObjectClassInformationActivityHandler
     public DiscoverObjectClassInformationActivityHandler() {
         super(
                 ConnDevDiscoverObjectClassInformationDefinitionType.COMPLEX_TYPE,
-                WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_INFORMATION,
+                WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_DETAILS,
                 ConnDevDiscoverObjectClassInformationWorkStateType.COMPLEX_TYPE,
                 DiscoverObjectClassInformationActivityHandler.WorkDefinition.class,
                 DiscoverObjectClassInformationActivityHandler.WorkDefinition::new);
@@ -58,17 +58,6 @@ public class DiscoverObjectClassInformationActivityHandler
             @NotNull OperationResult result) {
         return new MyActivityRun(context);
     }
-
-    @Override
-    public String getIdentifierPrefix() {
-        return "create-connector";
-    }
-
-    @Override
-    public String getDefaultArchetypeOid() {
-        return ARCHETYPE_OID;
-    }
-
 
     public static class WorkDefinition extends AbstractWorkDefinition {
 

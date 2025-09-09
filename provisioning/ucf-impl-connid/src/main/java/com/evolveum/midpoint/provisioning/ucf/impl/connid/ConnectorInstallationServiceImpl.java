@@ -21,6 +21,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -245,6 +246,12 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
             //}
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write(content);
+        }
+
+        @Override
+        public String readFile(String filename) throws IOException {
+            var file = newFile(connectorFile, filename);
+            return Files.readString(file.toPath());
         }
     }
 

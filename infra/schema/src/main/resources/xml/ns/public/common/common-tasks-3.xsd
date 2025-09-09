@@ -2605,6 +2605,14 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="discoverObjectClassDetails" type="tns:ConnDevDiscoverObjectClassDetailsDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="generateConnectorArtifact" type="tns:ConnDevGenerateArtifactDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -10594,6 +10602,39 @@
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevDiscoverObjectClassInformationResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover Object-Class specific information -->
+    <xsd:complexType name="ConnDevDiscoverObjectClassDetailsDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objectClass" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassDetailsWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassDetailsResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassDetailsResultType">
         <xsd:sequence>
             <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
                 <xsd:annotation>
