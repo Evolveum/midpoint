@@ -1,0 +1,124 @@
+#!/bin/bash
+
+DIR=`dirname "$0"`
+source $DIR/common.bash
+if [[ -n "$1" ]]; then
+  MP_VERSION=$1
+else
+  MP_VERSION=$tag
+fi
+
+fileName=${2:-"midpoint-dist-${MP_VERSION}.tar.gz"}
+dry_run=${3:-0}
+groupId="com.evolveum.midpoint"
+artifactId="dist"
+classifier="-dist"
+type="tar.gz"
+baseURL="https://nexus.evolveum.com/nexus"
+base="${baseURL}/repository"
+groupIdUrl="${groupId//.//}"
+
+latestDevel="devel"
+latestStable="latest"
+
+MP_VER=""
+l_MP_VER=""
+URL=""
+
+# check "known" versions from map_midpoint-docker.csv file
+MP_VER=$(grep "^${MP_VERSION}," $DIR/map_midpoint-docker.csv | cut -d "," -f 2)
+repo=$(grep "^${MP_VERSION}," $DIR/map_midpoint-docker.csv | cut -d "," -f 3)
+
+
+if [ "${MP_VER}" != "" ]
+then
+	echo "Found in map_midpoint-docker.csv - ${MP_VER} @ ${repo}"
+else
+	l_repo="releases"
+	repoList="$(curl -s ${base}/${l_repo}/${groupIdUrl}/${artifactId}/maven-metadata.xml | grep "<version>" | sed "s/[^>]*>\([^<]*\)<.*/\1/" | sort -V)"
+# Alternative sort command:
+#repoList="$(curl -s ${base}/${l_repo}/${groupIdUrl}/${artifactId}/maven-metadata.xml | grep "<version>" | sed "s/[^>]*>\([^<]*\)<.*/\1/" | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n)"
+	if [ "${MP_VERSION}" == "${latestStable}" ]
+	then
+		repo="${l_repo}"
+		MP_VER="$( echo "${repoList}" | grep "^[0-9\.]*$" | tail -n 1)"
+		echo "Last stable release has been selected - ${MP_VER} @ ${repo}"
+	else
+		if [ $( echo "${repoList}" | grep "^${MP_VERSION}\$" | wc -l ) -eq 1 ]
+		then
+			MP_VER="${MP_VERSION}"
+			repo="${l_repo}"
+			echo "Found in the list of releases on nexus - ${MP_VER} @ ${repo}"
+		fi
+	fi
+fi
+
+if [ "${repo}" == "releases" -a "${MP_VER}" != "" ] ; then
+    URL="${base}/${repo}/${groupIdUrl}/${artifactId}/${MP_VER}/${artifactId}-${MP_VER}${classifier}.${type}"
+
+    echo "Nexus: ${MP_VER} (${repo} / ${artifactId}-${MP_VER}${classifier}.${type} )" | tee $DIR/${fileName}.info
+fi
+
+if [ "${URL}" == "" ] ; then
+  l_repo="${repo:-snapshots}"
+  repoList="$(curl -s ${base}/${l_repo}/${groupIdUrl}/${artifactId}/maven-metadata.xml | grep "<version>" | sed "s/[^>]*>\([^<]*\)<.*/\1/" | sort -V)"
+  if [[ "${MP_VERSION}" == "${latestDevel}" ]] && [[ "${MP_VER}" == "" ]] ; then
+	  l_MP_VER="$( echo "${repoList}" | tail -1 )"
+  else
+	  if [[ "${MP_VER}" != "" ]] ; then
+		  l_MP_VER="${MP_VER}"
+	  else
+		  if [ $( echo "${repoList}" | grep "^${MP_VERSION}\$" | wc -l ) -eq 1 ]
+		  then
+			l_MP_VER="${MP_VERSION}"
+			echo "Found in the list of snapshots on nexus - ${l_MP_VER} @ ${l_repo}"
+		  else
+			if [ "${MP_VERSION: -8}" == "-support" ]
+			then
+				temp_version="${MP_VERSION:0:$(( ${#MP_VERSION} - 8 ))}"
+				if [ $( echo "${repoList}" | grep "^${temp_version}.*SNAPSHOT\$" | wc -l ) -gt 0 ]
+				then
+					l_MP_VER="$( echo "${repoList}" | grep "^${temp_version}.*SNAPSHOT\$" | tail -1 )"
+					echo "Found related snapshot on nexus - ${l_MP_VER} @ ${l_repo}"
+				fi
+			else
+				echo "The artifact cannot be found..."
+				exit 1
+			fi
+		  fi
+  	  fi
+  fi
+  if [ "${l_MP_VER}" != "" ] ; then
+	  metadata="$(curl -k -s "${base}/${l_repo}/${groupIdUrl}/${artifactId}/${l_MP_VER}/maven-metadata.xml")"
+	  timestamp="$(echo "${metadata}" | grep "<timestamp>" | sed "s|[^>]*>\([^<]*\)<.*|\1|")"
+	  buildnumber="$(echo "${metadata}" | grep "<buildNumber>" | sed "s|[^>]*>\([^<]*\)<.*|\1|")"
+	  URL="${base}/${l_repo}/${groupIdUrl}/${artifactId}/${l_MP_VER}/${artifactId}-${l_MP_VER%-SNAPSHOT}-${timestamp}-${buildnumber}${classifier}.${type}"
+
+	  echo "Nexus: ${l_MP_VER} (${l_repo} / ${artifactId}-${l_MP_VER%-SNAPSHOT}-${timestamp}-${buildnumber}${classifier}.${type} )" | tee $DIR/${fileName}.info
+  fi
+fi
+
+if [[ "${URL}" == "" ]] ; then
+  echo "Unknown tag"
+  exit 1
+fi
+
+echo "Downloading midPoint $MP_VERSION (${fileName}) from $URL"
+echo "--------------------------------------------------------------------"
+[ ${dry_run} -eq 1 ] && exit 0
+if [ -e $DIR/${fileName} ]
+then
+	curl -k -R --output $DIR/${fileName} --time-cond $DIR/${fileName} "$URL"
+else
+	curl -k -R --output $DIR/${fileName} "$URL"
+fi
+echo "-----------------------------------------"
+echo "Checking the download..."
+if tar -tf $DIR/${fileName} >/dev/null; then
+  echo "OK"
+  exit 0
+else
+  rm $DIR/${fileName}
+  echo "The file was not downloaded correctly - downloaded data has been removed"
+  exit 1
+fi

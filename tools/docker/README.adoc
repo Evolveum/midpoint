@@ -1,0 +1,110 @@
+= MidPoint Docker Integration
+
+This directory contains Docker configuration files for building and running MidPoint containers.
+
+== Quick Start
+
+[source,bash]
+----
+# Build latest version with Alpine base
+docker build -t evolveum/midpoint:latest-alpine --build-arg base_image=alpine .
+
+# Run with Docker Compose (includes PostgreSQL)
+docker-compose up -d
+----
+
+== Build Arguments
+
+* `MP_VERSION`: MidPoint version to build (default: devel)
+* `base_image`: Base OS image - ubuntu, alpine, or rockylinux (default: alpine)
+* `base_image_tag`: Tag for base OS image
+* `JAVA_VERSION`: Java version - 17 or 21 (default: 21)
+* `SKIP_DOWNLOAD`: Use local distribution file instead of downloading (default: 0)
+* `MP_DIST_FILE`: Distribution file name (default: midpoint-dist.tar.gz)
+
+== Base Images
+
+* **Alpine** (default): `alpine:latest` - Minimal size
+* **Ubuntu**: `ubuntu:22.04` - Wide compatibility  
+* **Rocky Linux**: `rockylinux:9.3` - Enterprise focused
+
+== Build Examples
+
+[source,bash]
+----
+# Build specific version with Ubuntu
+docker build -t evolveum/midpoint:4.8 --build-arg MP_VERSION=4.8 --build-arg base_image=ubuntu .
+
+# Build with local distribution file
+docker build -t evolveum/midpoint:custom --build-arg SKIP_DOWNLOAD=1 --build-arg MP_DIST_FILE=midpoint-dist.tar.gz .
+
+# Build with Java 17
+docker build -t evolveum/midpoint:java17 --build-arg JAVA_VERSION=17 .
+----
+
+== Docker Compose
+
+The included `docker-compose.yml` provides a complete stack with PostgreSQL database:
+
+[source,bash]
+----
+# Start complete stack
+docker-compose up -d
+
+# Use specific MidPoint version
+MP_VER=4.8 docker-compose up -d
+
+# View logs
+docker-compose logs -f midpoint_server
+----
+
+== Security
+
+This Docker configuration implements security best practices:
+
+* Runs as non-privileged `midpoint` user (not root)
+* Minimal base images to reduce attack surface
+* Health checks for container monitoring
+* Proper file ownership and permissions
+
+== Environment Configuration
+
+MidPoint configuration uses `MP_SET_*` environment variables:
+
+* `MP_SET_midpoint_repository_*`: Database connection settings
+* `MP_MEM_MAX`, `MP_MEM_INIT`: Memory settings  
+* `MP_SET_file_encoding`: Character encoding
+* `TZ`: Timezone setting
+
+== Files Structure
+
+* `Dockerfile`: Multi-stage build with Java version support
+* `docker-compose.yml`: Complete stack with PostgreSQL
+* `container_files/usr-local-bin/`: Container scripts
+  ** `midpoint.sh`: MidPoint startup script
+  ** `healthcheck.sh`: Health check endpoint
+* `download-midpoint`: Script to download MidPoint distributions
+* `common.bash`: Common variables and settings
+* `map_midpoint-docker.csv`: Version mapping file
+
+== Volumes
+
+* `/opt/midpoint/var`: MidPoint home directory (persistent storage)
+
+== Ports
+
+* `8080`: MidPoint web interface
+
+== Testing
+
+[source,bash]
+----
+# Test build
+docker build -t test/midpoint:latest .
+
+# Test run
+docker run -d -p 8080:8080 test/midpoint:latest
+
+# Check health
+curl http://localhost:8080/midpoint/actuator/health
+----
