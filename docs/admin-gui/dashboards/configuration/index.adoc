@@ -277,7 +277,7 @@ First, modify the widget configuration to include the `displaySourceType` elemen
     </presentation>
 </widget>
 ----
-<1> Enable saving data into the widget object
+<1> Enable the widget to utilize the data that the report has stored in it.
 <2> The object collection OID goes here.
 
 === Create a report connected to your dashboard
