@@ -205,13 +205,14 @@ To have the new dashboard displayed in the main midPoint menu, you need to add i
     ...
 </systemConfiguration>
 ----
-<1> Create a unique integer ID.
+<1> Create a unique integer ID. If you leave out the ID, midPoint generates it automatically for you.
 <2> The OID of your dashboard goes here.
 <3> More `configurableUserDashboard` elements can follow here, one for each dashboard.
 
 Now, you can refresh the GUI (you may need to log out and back in) and go to [.nowrap]#icon:tachometer-alt[] *Dashboards*# to see your new dashboard.
 
-image::first-dashboard-active-users.webp["MidPoint GUI with the dashboards menu open and a dashboard with active users shown", title="The dashboards section featuring the custom dashboard from the configuration example provided here."]
+.The dashboards section featuring the custom dashboard from the configuration example provided here.
+image::first-dashboard-active-users.webp["MidPoint GUI with the dashboards menu open and a dashboard with active users shown"]
 
 [[async-widget]]
 == Create asynchronous widget to reduce system load
@@ -315,6 +316,7 @@ The widget element contains three configuration attributes: `display`,`data`, an
 
 The `display` attribute contains configuration of the widget visual side in the GUI.
 
+.Configuration options for the `display` attribute
 [%autowidth]
 |===
 | Name | Type | Description
@@ -344,6 +346,7 @@ The `display` attribute contains configuration of the widget visual side in the 
 
 The `data` attribute represents the data source that the widget displays.
 
+.Configuration options for the `data` attribute
 [%autowidth]
 |===
 | Name | Type | Description
@@ -384,7 +387,7 @@ The `data` attribute represents the data source that the widget displays.
 
 |===
 
-===== Using sourceType and displaySourceType
+==== Using sourceType and displaySourceType
 
 When you configure a simple widget, you can set the `sourceType` to either `objectCollection`, `auditSearch` or `object`.
 
@@ -430,7 +433,8 @@ An example of a widget data source for an object type:
 A widget in the GUI with an `object` as a source.
 In this case, it is a cleanup task with the path set to the `state` attribute:
 
-image::object.png[]
+.Dashboard widget showing the status of the task selected by an OID.
+image::object.png["Dashboard widget showing the status of the task selected by an OID"]
 
 In the case when you want to set up an asynchronous widget, you can use an `objectCollection`, `auditSearch` or `object` as a source.
 However, you have to also use the `widgetData` attribute value for the `displaySourceType` attribute.
@@ -479,7 +483,7 @@ image::only-value.png[]
 The `presentation` container contains three attributes: `dataField`, `variation` and `view`.
 
 
-===== The widget data field
+==== The widget data field
 
 The attribute `dataField` describes the properties of a specific widget data field.
 Note that the order in the `dataField` elements is _not_ significant.
@@ -487,6 +491,7 @@ The field order is given by specific presentation style.
 
 The attributes for `dataField`:
 
+.Configuration options for the `dataField` attribute
 [%autowidth]
 |===
 | Name | Type | Description
@@ -516,13 +521,14 @@ The attribute `style` is an enumeration type with the following values:
 * `value-of-domain` (for example, 5 of 10)
 * `value-only` (for example, 5)
 
-===== Variation of Widget Data
+==== Variation of Widget Data
 
 The next presentation attribute is `variation`.
 This attribute allows for conditional variation in how the widget is displayed.
 Variations may change the colors or icons of the widget based on specific conditions.
 The attributes for `variation` are as follows:
 
+.Configuration attributes to define a widget display variation based on a condition
 [%autowidth]
 |===
 | Name | Type | Description
@@ -544,6 +550,7 @@ The variation will be active if the condition evaluates to true.
 
 You can use four variables for `condition`:
 
+.Variables on which you can base the variation condition
 [%autowidth]
 |===
 | Name | Type | Description | `sourceType` in data of widget
@@ -572,7 +579,7 @@ You can use four variables for `condition`:
 |===
 
 // TODO no example, add ??
-===== View
+==== View
 
 The last variable of the presentation container is `view`.
 This variable is also processed when creating reports.
@@ -685,7 +692,8 @@ Lastly, add the new dashboard to the GUI in system configuration.
 
 After accessing the new dashboard in GUI, you can see your new widget.
 
-image::enabled-users.png[]
+.Dashboard widget showing the number of users for which `effectiveStatus` is `enabled`.
+image::enabled-users.png["Dashboard widget showing the number of users for which the effective status is enabled"]
 
 [#_asynchronous_widget]
 === Asynchronous widget
@@ -741,7 +749,8 @@ include::../raw/file-format.adoc[]
 Next time you open the widget in the GUI, midPoint does not need to process the source data;
 it shows the saved data present in the widget object.
 
-image::enabled-users.png[]
+.Asynchronous widget showing the number of users for which `effectiveStatus` is `enabled`.
+image::enabled-users.png["Asynchronous widget showing the number of users for which the effective status is enabled"]
 
 == Dashboard views
 
@@ -751,7 +760,8 @@ The table can be configured and customized.
 This is done via the `view` container.
 The screenshot below is from the example dashboard in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status.xml]:
 
-image::dashboard-screenshot.png[]
+.System status dashboard with widgets showing recent errors, the percentage of resources that are up, and the state of a cleanup task.
+image::dashboard-screenshot.png["System status dashboard with widgets showing percentage of resources that are up, recent errors, and the state of a cleanup task"]
 
 == See also
 

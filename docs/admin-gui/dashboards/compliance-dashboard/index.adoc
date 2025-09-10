@@ -12,7 +12,8 @@ doc-type: intro
 Compliance dashboard provides aggregated overview of information and metrics related to regulatory compliance of organization.
 MidPoint contains a pre-configured dashboard, which provides overview of basic compliance metrics, based on pre-configured policies and policy rules.
 
-image::compliance-dashboard-screenshot.png[Compliance dashboard screenshot]
+.Example of a compliance dashboard informing about the numbers of unclassified applications, users violating separation of duties (SoD), or suspicious roles.
+image::compliance-dashboard-screenshot.png["Example of a compliance dashboard informing about the numbers of unclassified applications, users violating separation of duties (SoD), or suspicious roles."]
 
 Compliance dashboard is a pre-configured object (a.k.a. xref:/midpoint/reference/deployment/ninja/command/initial-objects/[initial object]) in midPoint.
 The dashboard can be further extended and customized as needed.
