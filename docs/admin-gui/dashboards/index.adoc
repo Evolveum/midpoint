@@ -57,7 +57,8 @@ Dashboards consist of widgets which do the actual job of showing you the data.
 One dashboard may contain multiple widgets, such as active, suspended, and archived user accounts in three separate widgets.
 Widgets are connected to xref:/midpoint/reference/admin-gui/collections-views/[object collections] from which they aggregate the data to show.
 
-image::basic-dashboard-architecture.svg[title="Dashboard architecture.","dashboard architecture diagram"]
+.Dashboard architecture
+image::basic-dashboard-architecture.svg["Dashboard architecture diagram"]
 
 An object collection contains a query to enumerate the objects counted in the dashboard widget.
 Those are, for instance, all employees who are on a long-term leave.
@@ -79,7 +80,8 @@ but unlike interactive dashboards, reports are static (as in printable).
 However, they are used together in a xref:/midpoint/features/synergy/[synergy] for two use cases:
 Asynchronously updated dashboards and static reports created from regular dashboards.
 
-image::async-dashboard-architecture.svg[title="Architecture of dashboards with asynchronous widgets.","Architecture diagram of dashboards with asynchronous widgets"]
+.Architecture of dashboards with asynchronous widgets
+image::async-dashboard-architecture.svg["Architecture diagram of dashboards with asynchronous widgets"]
 
 === Asynchronous dashboards
 
