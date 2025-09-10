@@ -75,7 +75,6 @@ public class DiscoverDocumentationActivityHandler
 
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
             var documentation = backend.discoverDocumentation();
-            backend.populateApplicationDocumentation(documentation);
 
             var ret = new ConnDevDiscoverDocumentationResultType();
             documentation.stream().map(ConnDevDocumentationSourceType::clone).forEach(ret::documentation);

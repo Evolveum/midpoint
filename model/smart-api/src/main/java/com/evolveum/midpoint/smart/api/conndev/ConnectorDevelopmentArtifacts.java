@@ -18,7 +18,7 @@ public class ConnectorDevelopmentArtifacts {
         CONFIGURATION_VISIBILITY(false, null, null,
                 "configuration-override.properties", null),
         AUTHENTICATION_CUSTOMIZATION(false, null, ConnDevScriptIntentType.AUTH,
-                "authentication.groovy", ConnDevConnectorType.F_AUTHENTICATION_SCRIPT),
+                "authentication.op.groovy", ConnDevConnectorType.F_AUTHENTICATION_SCRIPT),
         SEARCH_ALL_DEFINITION(true, ConnDevOperationType.SEARCH, ConnDevScriptIntentType.ALL,
                 "search.all.op.groovy", ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION),
         GET_BY_UID_DEFINITION(true, ConnDevOperationType.GET, null,
@@ -28,7 +28,7 @@ public class ConnectorDevelopmentArtifacts {
         CONNID_SCHEMA_DEFINITION(true, ConnDevOperationType.SCHEMA, ConnDevScriptIntentType.CONNID,
                 "connid.schema.groovy", ConnDevObjectClassInfoType.F_CONNID_SCHEMA_SCRIPT),
         TEST_CONNECTION_DEFINITION(true, ConnDevOperationType.TEST_CONNECTION, null,
-                "testConnection.groovy", ConnDevConnectorType.F_TEST_OPERATION),
+                "test.op.groovy", ConnDevConnectorType.F_TEST_OPERATION),
         ;
 
         public final ConnDevOperationType operation;

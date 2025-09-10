@@ -8,7 +8,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.List;
 
-// FIXME: Rename to OfflineBackend in future
 public class OfflineBackend extends ConnectorDevelopmentBackend {
 
     public OfflineBackend(ConnDevBeans beans, ConnectorDevelopmentType connDev, Task task, OperationResult result) {
@@ -173,8 +172,24 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                             .connIdAttribute("NAME")
             );
             case "Group" -> List.of(
-                    new ConnDevAttributeInfoType().name("id"),
+                    new ConnDevAttributeInfoType().name("id")
+                            .type("integer")
+                            .format("int64")
+                            .description("Group ID")
+                            .mandatory(true)
+                            .readable(true)
+                            .multivalue(false)
+                            .returnedByDefault(true)
+                            .connIdAttribute("UID"),
                     new ConnDevAttributeInfoType().name("name")
+                            .type("string")
+                            .description("The name of the group")
+                            .mandatory(true)
+                            .creatable(true)
+                            .readable(true)
+                            .multivalue(false)
+                            .returnedByDefault(true)
+                            .connIdAttribute("NAME")
             );
             default -> List.of();
         };
