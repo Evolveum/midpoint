@@ -29,7 +29,7 @@
                     <xsd:element name="application" type="c:ConnDevApplicationInfoType"/>
                     <xsd:element name="connector" type="c:ConnDevConnectorType"/>
                     <xsd:element name="testing" type="c:ConnDevTestingType"/>
-                    <xsd:element maxOccurs="unbounded" name="documentationSource" type="c:DocumentationSourceType"/>
+                    <xsd:element maxOccurs="unbounded" name="documentationSource" type="c:ConnDevDocumentationSourceType"/>
                     <xsd:element maxOccurs="unbounded" name="processedDocumentation" type="c:ProcessedDocumentationType"/>
 
                 </xsd:sequence>
