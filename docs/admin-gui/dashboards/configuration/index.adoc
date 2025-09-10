@@ -205,7 +205,7 @@ To have the new dashboard displayed in the main midPoint menu, you need to add i
     ...
 </systemConfiguration>
 ----
-<1> Create a unique integer ID.
+<1> Create a unique integer ID. If you leave out the ID, midPoint generates it automatically for you.
 <2> The OID of your dashboard goes here.
 <3> More `configurableUserDashboard` elements can follow here, one for each dashboard.
 
@@ -315,6 +315,7 @@ The widget element contains three configuration attributes: `display`,`data`, an
 
 The `display` attribute contains configuration of the widget visual side in the GUI.
 
+.Configuration options for the `display` attribute
 [%autowidth]
 |===
 | Name | Type | Description
@@ -344,6 +345,7 @@ The `display` attribute contains configuration of the widget visual side in the 
 
 The `data` attribute represents the data source that the widget displays.
 
+.Configuration options for the `data` attribute
 [%autowidth]
 |===
 | Name | Type | Description
@@ -384,7 +386,7 @@ The `data` attribute represents the data source that the widget displays.
 
 |===
 
-===== Using sourceType and displaySourceType
+==== Using sourceType and displaySourceType
 
 When you configure a simple widget, you can set the `sourceType` to either `objectCollection`, `auditSearch` or `object`.
 
@@ -479,7 +481,7 @@ image::only-value.png[]
 The `presentation` container contains three attributes: `dataField`, `variation` and `view`.
 
 
-===== The widget data field
+==== The widget data field
 
 The attribute `dataField` describes the properties of a specific widget data field.
 Note that the order in the `dataField` elements is _not_ significant.
@@ -487,6 +489,7 @@ The field order is given by specific presentation style.
 
 The attributes for `dataField`:
 
+.Configuration options for the `dataField` attribute
 [%autowidth]
 |===
 | Name | Type | Description
@@ -516,13 +519,14 @@ The attribute `style` is an enumeration type with the following values:
 * `value-of-domain` (for example, 5 of 10)
 * `value-only` (for example, 5)
 
-===== Variation of Widget Data
+==== Variation of Widget Data
 
 The next presentation attribute is `variation`.
 This attribute allows for conditional variation in how the widget is displayed.
 Variations may change the colors or icons of the widget based on specific conditions.
 The attributes for `variation` are as follows:
 
+.Configuration attributes to define a widget display variation based on a condition
 [%autowidth]
 |===
 | Name | Type | Description
@@ -544,6 +548,7 @@ The variation will be active if the condition evaluates to true.
 
 You can use four variables for `condition`:
 
+.Variables on which you can base the variation condition
 [%autowidth]
 |===
 | Name | Type | Description | `sourceType` in data of widget
@@ -572,7 +577,7 @@ You can use four variables for `condition`:
 |===
 
 // TODO no example, add ??
-===== View
+==== View
 
 The last variable of the presentation container is `view`.
 This variable is also processed when creating reports.
