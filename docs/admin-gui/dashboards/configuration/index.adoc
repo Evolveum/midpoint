@@ -433,8 +433,8 @@ An example of a widget data source for an object type:
 A widget in the GUI with an `object` as a source.
 In this case, it is a cleanup task with the path set to the `state` attribute:
 
-.Dashboard widget showing the state of the task selected by an object OID.
-image::object.png[Dashboard widget showing the state of the task selected by an object OID]
+.Dashboard widget showing the status of the task selected by an OID.
+image::object.png[Dashboard widget showing the status of the task selected by an OID]
 
 In the case when you want to set up an asynchronous widget, you can use an `objectCollection`, `auditSearch` or `object` as a source.
 However, you have to also use the `widgetData` attribute value for the `displaySourceType` attribute.
@@ -760,7 +760,7 @@ The table can be configured and customized.
 This is done via the `view` container.
 The screenshot below is from the example dashboard in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status.xml]:
 
-.System status dashboard with widgets showing percentage of resources that are up, recent errors, and the state of a cleanup task.
+.System status dashboard with widgets showing recent errors, the percentage of resources that are up, and the state of a cleanup task.
 image::dashboard-screenshot.png[System status dashboard with widgets showing percentage of resources that are up, recent errors, and the state of a cleanup task]
 
 == See also
