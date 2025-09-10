@@ -236,7 +236,7 @@ To configure a widget as asynchronous, you need to adjust the widget data source
     ** Note that a dashboard report always computes the data for all the widgets in the linked dashboard.
 * A report task which runs the report at scheduled intervals to refresh the data.
 
-First, change the widget configuration by adding the `displaySourceType` element so that the report can save the computed data in the widget object:
+First, modify the widget configuration to include the `displaySourceType` element, allowing the widget to utilize the data that the report has stored in it.
 
 [source,xml]
 ----
