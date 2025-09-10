@@ -211,7 +211,8 @@ To have the new dashboard displayed in the main midPoint menu, you need to add i
 
 Now, you can refresh the GUI (you may need to log out and back in) and go to [.nowrap]#icon:tachometer-alt[] *Dashboards*# to see your new dashboard.
 
-image::first-dashboard-active-users.webp["MidPoint GUI with the dashboards menu open and a dashboard with active users shown", title="The dashboards section featuring the custom dashboard from the configuration example provided here."]
+.The dashboards section featuring the custom dashboard from the configuration example provided here.
+image::first-dashboard-active-users.webp[MidPoint GUI with the dashboards menu open and a dashboard with active users shown]
 
 [[async-widget]]
 == Create asynchronous widget to reduce system load
@@ -432,7 +433,8 @@ An example of a widget data source for an object type:
 A widget in the GUI with an `object` as a source.
 In this case, it is a cleanup task with the path set to the `state` attribute:
 
-image::object.png[]
+.Dashboard widget showing the state of the task selected by an object OID.
+image::object.png[Dashboard widget showing the state of the task selected by an object OID]
 
 In the case when you want to set up an asynchronous widget, you can use an `objectCollection`, `auditSearch` or `object` as a source.
 However, you have to also use the `widgetData` attribute value for the `displaySourceType` attribute.
@@ -690,7 +692,8 @@ Lastly, add the new dashboard to the GUI in system configuration.
 
 After accessing the new dashboard in GUI, you can see your new widget.
 
-image::enabled-users.png[]
+.Dashboard widget showing the number of users for which `effectiveStatus` is `enabled`.
+image::enabled-users.png[Dashboard widget showing the number of users for which the effective status is enabled]
 
 [#_asynchronous_widget]
 === Asynchronous widget
@@ -746,7 +749,8 @@ include::../raw/file-format.adoc[]
 Next time you open the widget in the GUI, midPoint does not need to process the source data;
 it shows the saved data present in the widget object.
 
-image::enabled-users.png[]
+.Asynchronous widget showing the number of users for which `effectiveStatus` is `enabled`.
+image::enabled-users.png[Asynchronous widget showing the number of users for which the effective status is enabled]
 
 == Dashboard views
 
@@ -756,7 +760,8 @@ The table can be configured and customized.
 This is done via the `view` container.
 The screenshot below is from the example dashboard in link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status.xml]:
 
-image::dashboard-screenshot.png[]
+.System status dashboard with widgets showing percentage of resources that are up, recent errors, and the state of a cleanup task.
+image::dashboard-screenshot.png[System status dashboard with widgets showing percentage of resources that are up, recent errors, and the state of a cleanup task]
 
 == See also
 
