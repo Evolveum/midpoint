@@ -84,6 +84,7 @@ Configuration parameters:
                     <strength>$mappingStrength</strength>
                     <expression>
                         <script>
+                            <language>$scriptingLanguage</language>
                             <code>input</code>
                         </script>
                     </expression>
@@ -100,6 +101,7 @@ Configuration parameters:
                     <strength>$mappingStrength</strength>
                     <expression>
                         <script>
+                            <language>$scriptingLanguage</language>
                             <code>'$resourceInstance:' + input</code>
                         </script>
                     </expression>
@@ -109,6 +111,7 @@ Configuration parameters:
                         <set>
                             <condition>
                                 <script>
+                                    <language>$scriptingLanguage</language>
                                     <code>input.startsWith('$resourceInstance:')</code>
                                 </script>
                             </condition>
@@ -132,6 +135,7 @@ Configuration parameters:
                                     <q:path>c:name</q:path>
                                     <expression>
                                         <script>
+                                            <language>$scriptingLanguage</language>
                                             <code>
                                                 input
                                             </code>
@@ -150,7 +154,14 @@ Configuration parameters:
                             #if(!$defaultRange)
                             <condition>
                                 <script>
-                                    <code>input.subtype.contains('auto-business-role')</code>
+                                    <language>$scriptingLanguage</language>
+                                    <code>
+#if($scriptingLanguage == 'Groovy')
+                                        input.subtype.contains('auto-business-role')
+#elseif($scriptingLanguage == 'GraalJs')
+                                        input.getSubtype().contains('auto-business-role')
+#end
+                                    </code>
                                 </script>
                             </condition>
                             #end

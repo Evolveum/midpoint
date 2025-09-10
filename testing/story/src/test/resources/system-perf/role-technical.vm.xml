@@ -45,9 +45,15 @@ Parameters:
                     <strength>$mappingStrength</strength>
                     <expression>
                         <script>
+                            <language>$scriptingLanguage</language>
                             <code>
+#if($scriptingLanguage == 'Groovy')
                                 // assuming user -> business -> technical role assignment path
                                 assignmentPath[0].target.name + '-' + assignmentPath[1].target.name
+#elseif($scriptingLanguage == 'GraalJs')
+                                // assuming user -> business -> technical role assignment path
+                                assignmentPath.getSegment(0).getTarget().getName() + '-' + assignmentPath.getSegment(1).getTarget().getName()
+#end
                             </code>
                         </script>
                     </expression>

@@ -100,9 +100,6 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     private static final TestObject<ArchetypeType> ARCHETYPE_BASIC_USER =
             TestObject.file(TEST_DIR, "archetype-basic-user.xml", "463e21c5-9959-48e9-bc2a-5356eafb0589");
 
-    private static final TestObject<RoleType> METAROLE_TECHNICAL =
-            TestObject.file(TEST_DIR, "metarole-technical.xml", "7c359aa0-d798-4781-a58b-d6336cb9b1ee");
-
     static final TestObject<RoleType> ROLE_TARGETS = TestObject.file(TARGET_DIR, "generated-role-targets.xml", "3b65aad7-7d6b-412e-bfc7-2cee44d22c32");
     private static final TestObject<RoleType> TEMPLATE_USER = TestObject.file(TEST_DIR, "template-user.xml", "0c77fde5-4ad5-49ce-8ee9-14f330660d8e");
 
@@ -133,10 +130,11 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     private long lastProgress;
 
     static {
+        final ScriptingConfiguration scriptingConfiguration = ScriptingConfiguration.setup();
         SCHEMA_CONFIGURATION = SchemaConfiguration.setup();
-        SOURCES_CONFIGURATION = SourcesConfiguration.setup();
-        TARGETS_CONFIGURATION = TargetsConfiguration.setup();
-        ROLES_CONFIGURATION = RolesConfiguration.setup();
+        SOURCES_CONFIGURATION = SourcesConfiguration.setup(scriptingConfiguration);
+        TARGETS_CONFIGURATION = TargetsConfiguration.setup(scriptingConfiguration);
+        ROLES_CONFIGURATION = RolesConfiguration.setup(scriptingConfiguration);
         IMPORTS_CONFIGURATION = ImportConfiguration.setup();
         RECONCILIATION_WITH_SOURCE_CONFIGURATION = ReconciliationWithSourceConfiguration.setup();
         RECONCILIATION_WITH_TARGET_CONFIGURATION = ReconciliationWithTargetConfiguration.setup();
@@ -193,7 +191,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         repoAdd(ROLE_TARGETS, initResult);
         repoAdd(TEMPLATE_USER, initResult);
         if (ROLES_CONFIGURATION.isMemberOfComputation()) {
-            repoAdd(METAROLE_TECHNICAL, initResult);
+            repoAdd(ROLES_CONFIGURATION.getGeneratedTechnicalMetaRole(), initResult);
         }
 
         for (TestObject<?> resource : TECHNICAL_ROLE_LIST) {

@@ -48,14 +48,15 @@ class SourcesConfiguration {
     private final int singleValuedMappings;
     private final int multiValuedMappings;
     private final int attributeValues;
+    private final ScriptingConfiguration scriptingConfiguration;
     final boolean defaultRange;
     private final String mappingStrength;
 
     @NotNull private final OperationDelay operationDelay;
 
-    private final List<DummyTestResource> generatedResources;
+    private List<DummyTestResource> generatedResources;
 
-    private SourcesConfiguration() {
+    private SourcesConfiguration(ScriptingConfiguration scriptingConfiguration) {
         numberOfResources = Integer.parseInt(System.getProperty(PROP_RESOURCES, "1"));
         numberOfAccounts = Integer.parseInt(System.getProperty(PROP_ACCOUNTS, "10"));
         singleValuedMappings = Integer.parseInt(System.getProperty(PROP_SINGLE_MAPPINGS, "1"));
@@ -64,8 +65,7 @@ class SourcesConfiguration {
         defaultRange = Boolean.parseBoolean(System.getProperty(PROP_DEFAULT_RANGE, "false"));
         mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.NORMAL.value());
         operationDelay = OperationDelay.fromSystemProperties(PROP);
-
-        generatedResources = generateDummyTestResources();
+        this.scriptingConfiguration = scriptingConfiguration;
     }
 
     int getNumberOfResources() {
@@ -110,19 +110,23 @@ class SourcesConfiguration {
                 '}';
     }
 
-    public static SourcesConfiguration setup() {
-        SourcesConfiguration configuration = new SourcesConfiguration();
+    public static SourcesConfiguration setup(ScriptingConfiguration scriptingConfiguration) {
+        SourcesConfiguration configuration = new SourcesConfiguration(scriptingConfiguration);
+        configuration.generateDummyTestResources();
         System.out.println("Sources: " + configuration);
         return configuration;
     }
 
-    private List<DummyTestResource> generateDummyTestResources() {
-        List<DummyTestResource> resources = new ArrayList<>();
+    private void generateDummyTestResources() {
+        if (generatedResources != null) {
+            return;
+        }
+        generatedResources = new ArrayList<>();
         for (int i = 0; i < numberOfResources; i++) {
             boolean primary = i == 0;
             String oid = RandomSource.randomUUID().toString();
             String resourceDefinitionFile = createResourceDefinition(i, oid, primary);
-            resources.add(new DummyTestResource(TARGET_DIR, resourceDefinitionFile, oid, getResourceInstance(i),
+            generatedResources.add(new DummyTestResource(TARGET_DIR, resourceDefinitionFile, oid, getResourceInstance(i),
                     controller -> {
                         if (primary) {
                             createAttributes(controller, A_SINGLE_NAME, singleValuedMappings, false);
@@ -132,7 +136,6 @@ class SourcesConfiguration {
                         createAttributes(controller, A_MULTI_NAME, multiValuedMappings, true);
                     }));
         }
-        return resources;
     }
 
     private String createResourceDefinition(int index, String oid, boolean primary) {
@@ -147,7 +150,8 @@ class SourcesConfiguration {
                                 Util.createIndexList(singleValuedMappings) : emptyList(),
                         "primary", primary,
                         "defaultRange", defaultRange,
-                        "mappingStrength", mappingStrength));
+                        "mappingStrength", mappingStrength,
+                        "scriptingLanguage", scriptingConfiguration.language()));
         return generatedFileName;
     }
 

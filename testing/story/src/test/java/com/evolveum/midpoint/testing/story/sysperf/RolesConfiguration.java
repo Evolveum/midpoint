@@ -40,6 +40,7 @@ class RolesConfiguration {
 
     private static final File BUSINESS_ROLE_TEMPLATE_FILE = new File(TEST_DIR, "role-business.vm.xml");
     private static final File TECHNICAL_ROLE_TEMPLATE_FILE = new File(TEST_DIR, "role-technical.vm.xml");
+    private static final File TECHNICAL_METAROLE_TEMPLATE_FILE = new File(TEST_DIR, "metarole-technical.vm.xml");
 
     private final int numberOfBusinessRoles;
     private final int numberOfTechnicalRoles;
@@ -49,11 +50,13 @@ class RolesConfiguration {
     private final int numberOfInducementsMax;
 
     private final boolean memberOfComputation;
+    private final ScriptingConfiguration scriptingConfiguration;
 
-    private final List<TestObject<RoleType>> generatedBusinessRoles;
-    private final List<TestObject<RoleType>> generatedTechnicalRoles;
+    private List<TestObject<RoleType>> generatedBusinessRoles;
+    private List<TestObject<RoleType>> generatedTechnicalRoles;
+    private TestObject<RoleType> generatedTechnicalMetaRole;
 
-    private RolesConfiguration() {
+    private RolesConfiguration(ScriptingConfiguration scriptingConfiguration) {
         numberOfBusinessRoles = Integer.parseInt(System.getProperty(PROP_BUSINESS_COUNT, "2"));
         numberOfTechnicalRoles = Integer.parseInt(System.getProperty(PROP_TECHNICAL_COUNT, "2"));
         String assignmentsCount = System.getProperty(PROP_ASSIGNMENTS_COUNT);
@@ -71,9 +74,7 @@ class RolesConfiguration {
             numberOfInducementsMax = Integer.parseInt(System.getProperty(PROP_INDUCEMENTS_MAX, String.valueOf(numberOfInducementsMin)));
         }
         memberOfComputation = Boolean.parseBoolean(System.getProperty(PROP_MEMBER_OF_COMPUTATION, "false"));
-
-        generatedTechnicalRoles = generateTechnicalRoles();
-        generatedBusinessRoles = generateBusinessRoles();
+        this.scriptingConfiguration = scriptingConfiguration;
     }
 
     int getNumberOfBusinessRoles() {
@@ -108,6 +109,10 @@ class RolesConfiguration {
         return generatedTechnicalRoles;
     }
 
+    public TestObject<RoleType> getGeneratedTechnicalMetaRole() {
+        return generatedTechnicalMetaRole;
+    }
+
     boolean isMemberOfComputation() {
         return memberOfComputation;
     }
@@ -125,20 +130,25 @@ class RolesConfiguration {
                 '}';
     }
 
-    public static RolesConfiguration setup() {
-        RolesConfiguration configuration = new RolesConfiguration();
+    public static RolesConfiguration setup(ScriptingConfiguration scriptingConfiguration) {
+        RolesConfiguration configuration = new RolesConfiguration(scriptingConfiguration);
+        configuration.generateTechnicalRoles();
+        configuration.generateBusinessRoles();
+        configuration.generateTechnicalMetaRole();
         System.out.println("Roles: " + configuration);
         return configuration;
     }
 
-    private List<TestObject<RoleType>> generateTechnicalRoles() {
-        List<TestObject<RoleType>> roles = new ArrayList<>();
+    private void generateTechnicalRoles() {
+        if (generatedTechnicalRoles != null) {
+            return;
+        }
+        generatedTechnicalRoles = new ArrayList<>();
         for (int i = 0; i < numberOfTechnicalRoles; i++) {
             String oid = RandomSource.randomUUID().toString();
             String fileName = createTechnicalRoleDefinition(i, oid);
-            roles.add(TestObject.file(TARGET_DIR, fileName, oid));
+            generatedTechnicalRoles.add(TestObject.file(TARGET_DIR, fileName, oid));
         }
-        return roles;
     }
 
     private String createTechnicalRoleDefinition(int index, String oid) {
@@ -158,20 +168,38 @@ class RolesConfiguration {
                         "index", String.format("%04d", index),
                         "resourceOid", resourceOid,
                         "metarole", memberOfComputation,
-                        "mappingStrength", TARGETS_CONFIGURATION.getMappingStrength()));
+                        "mappingStrength", TARGETS_CONFIGURATION.getMappingStrength(),
+                        "scriptingLanguage", scriptingConfiguration.language()));
 
         return fileName;
     }
 
-    private List<TestObject<RoleType>> generateBusinessRoles() {
-        List<TestObject<RoleType>> roles = new ArrayList<>();
+    private void generateTechnicalMetaRole() {
+        if (generatedTechnicalMetaRole != null) {
+            return;
+        }
+        generatedTechnicalMetaRole = TestObject.file(TARGET_DIR, createTechnicalMetaRoleDefinition());
+    }
+
+    private String createTechnicalMetaRoleDefinition() {
+        final String fileName = "generated-technical-metarole.xml";
+        File generated = new File(TARGET_DIR, fileName);
+        VelocityGenerator.generate(TECHNICAL_METAROLE_TEMPLATE_FILE, generated,
+                Map.of("scriptingLanguage", scriptingConfiguration.language()));
+        return fileName;
+    }
+
+    private void generateBusinessRoles() {
+        if (generatedBusinessRoles != null) {
+            return;
+        }
+        generatedBusinessRoles = new ArrayList<>();
         for (int i = 0; i < numberOfBusinessRoles; i++) {
             String oid = RandomSource.randomUUID().toString();
             List<String> inducedOidList = createInducedOidList();
             String fileName = createBusinessRoleDefinition(i, oid, inducedOidList);
-            roles.add(TestObject.file(TARGET_DIR, fileName, oid));
+            generatedBusinessRoles.add(TestObject.file(TARGET_DIR, fileName, oid));
         }
-        return roles;
     }
 
     private List<String> createInducedOidList() {
@@ -206,7 +234,8 @@ class RolesConfiguration {
         VelocityGenerator.generate(BUSINESS_ROLE_TEMPLATE_FILE, generated,
                 Map.of("oid", oid,
                         "name", getBusinessRoleName(index),
-                        "inducedOidList", inducedOidList));
+                        "inducedOidList", inducedOidList,
+                        "scriptingLanguage", scriptingConfiguration.language()));
 
         return fileName;
     }

@@ -18,8 +18,13 @@
                 <strength>strong</strength>
                 <expression>
                     <script>
+                        <language>$scriptingLanguage</language>
                         <code>
+#if($scriptingLanguage == 'Groovy')
                             'R:' + assignmentPath[0].target.name + '-' + assignmentPath[1].target.name
+#elseif($scriptingLanguage == 'GraalJs')
+                            'R:' + assignmentPath.getSegment(0).getTarget().getName() + '-' + assignmentPath.getSegment(1).getTarget().getName()
+#end
                         </code>
                     </script>
                 </expression>
@@ -28,8 +33,13 @@
                     <set>
                         <condition>
                             <script>
+                                <language>$scriptingLanguage</language>
                                 <code>
+#if($scriptingLanguage == 'Groovy')
                                     input?.startsWith("R:")
+#elseif($scriptingLanguage == 'GraalJs')
+                                    input?.startsWith("R:") ?? false
+#end
                                 </code>
                             </script>
                         </condition>
