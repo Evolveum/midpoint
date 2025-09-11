@@ -17,10 +17,10 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.wicket.model.IModel;
@@ -30,18 +30,16 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> extends TemplateTile<T> {
 
     private String icon;
     private String name;
     private String description;
-    private final String filter;
     private String kind;
     private String intent;
     private final String resourceOid;
+    QName focusType;
 
     public SmartObjectTypeSuggestionTileModel(T valueWrapper, String resourceOid) {
         super(valueWrapper);
@@ -51,23 +49,13 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
 
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
         this.description = suggestion.getDescription();
-        this.filter = buildFilterString(suggestion.getDelineation());
         this.kind = suggestion.getKind().value();
         this.intent = suggestion.getIntent();
         this.name = suggestion.getDisplayName();
         this.resourceOid = resourceOid;
-    }
 
-    private static String buildFilterString(ResourceObjectTypeDelineationType delineation) {
-        if (delineation == null || delineation.getFilter() == null) {
-            return "";
-        }
-        return delineation.getFilter().stream()
-                .map(SearchFilterType::getText)
-                .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.joining(" and "));
+        ResourceObjectFocusSpecificationType focus = suggestion.getFocus();
+        this.focusType = focus != null && focus.getType() != null ? focus.getType() : null;
     }
 
     protected List<IModel<String>> buildChipsData(PageBase pageBase) {
@@ -89,8 +77,10 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
             addChip(pageBase, chips, SmartObjectTypeSuggestionTileModel.Keys.OBJECT_CLASS, del.getObjectClass().getLocalPart());
         }
 
-        //TODO until you have a real focusType value to pass.
-        addChip(pageBase, chips, SmartObjectTypeSuggestionTileModel.Keys.FOCUS_TYPE, "TODO");
+        addChip(pageBase, chips, SmartObjectTypeSuggestionTileModel.Keys.FOCUS_TYPE,
+                focusType.getLocalPart() != null
+                        ? focusType.getLocalPart()
+                        : "-");
 
         return Collections.unmodifiableList(chips);
     }
@@ -113,10 +103,6 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
 
         private Keys() {
         }
-    }
-
-    public String getFilter() {
-        return filter;
     }
 
     private String extractName(@NotNull SelectableBean<ObjectClassWrapper> wrapper) {
