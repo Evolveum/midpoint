@@ -1,0 +1,7 @@
+:page-visibility: hidden
+
+[TIP]
+====
+We recommend using link:https://www.jetbrains.com/idea/[IntelliJ IDEA] with the xref:/midpoint/tools/studio/[midPoint Studio] plugin.
+Engineering midPoint with Studio is definitely much easier.
+====
