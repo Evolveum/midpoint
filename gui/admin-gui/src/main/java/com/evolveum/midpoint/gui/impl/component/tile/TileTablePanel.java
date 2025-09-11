@@ -161,7 +161,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         initTable(table);
     }
 
-    protected void initTable(@NotNull BoxedTablePanel<?> table) {
+    protected void initTable(@NotNull WebMarkupContainer table) {
         add(table);
     }
 
@@ -224,7 +224,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return tableId;
     }
 
-    protected BoxedTablePanel<?> createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
+    protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
         return new BoxedTablePanel<>(idTable, provider, createColumns(), tableId) {
 
             @Override
