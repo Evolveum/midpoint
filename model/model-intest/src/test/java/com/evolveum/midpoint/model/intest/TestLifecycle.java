@@ -69,7 +69,10 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
             "resource-dummy-10813.xml",
             "d9c71b78-6d25-11f0-bff2-0050568cc7f8",
             "resource-dummy-10813",
-            DummyResourceContoller::populateWithDefaultSchema);
+            controller -> {
+                controller.addAttrDef(
+                        controller.getDummyResource().getAccountObjectClass(), "active", Boolean.class, false, false);
+            });
 
     private DummyResourceContoller dummyResourceCtl;
 
@@ -342,29 +345,34 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * todo not finished yet
-     *
      * MID-10813
      */
     @Test(enabled = false)
     public void test200LifecycleArchived() throws Exception {
-        UserType userA = new UserType();
-        userA.setOid("64da8f2e-78b1-11f0-850f-0050568cc7f8");
-        userA.setName(PolyStringType.fromOrig("user-a"));
-        userA.setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
-        userA.beginAssignment()
-                .targetRef(ROLE_A.oid, RoleType.COMPLEX_TYPE);
+        assumeAssignmentPolicy(null);
 
-        testUserLifecycleChange(userA);
+        try {
+            UserType userA = new UserType();
+            userA.setOid("64da8f2e-78b1-11f0-850f-0050568cc7f8");
+            userA.setName(PolyStringType.fromOrig("user-a"));
+            userA.setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
+            userA.beginAssignment()
+                    .targetRef(ROLE_A.oid, RoleType.COMPLEX_TYPE);
 
-        UserType userB = new UserType();
-        userB.setOid("ba1a9fb8-78b3-11f0-b929-0050568cc7f8");
-        userB.setName(PolyStringType.fromOrig("user-b"));
-        userB.setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
-        userA.beginAssignment()
-                .targetRef(ROLE_B.oid, RoleType.COMPLEX_TYPE);
+            testUserLifecycleChange(userA);
 
-        testUserLifecycleChange(userB);
+            UserType userB = new UserType();
+            userB.setOid("ba1a9fb8-78b3-11f0-b929-0050568cc7f8");
+            userB.setName(PolyStringType.fromOrig("user-b"));
+            userB.setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
+            userB.beginAssignment()
+                    .targetRef(ROLE_B.oid, RoleType.COMPLEX_TYPE);
+
+            testUserLifecycleChange(userB);
+        } finally {
+            // same as during test class initialization
+            assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        }
     }
 
     private void testUserLifecycleChange(UserType user) throws Exception {
