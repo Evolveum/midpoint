@@ -20,87 +20,87 @@
         in midPoint samples.
     </description>
     <row id="1">
-        <key>arb</key>
-        <label>عربي</label>
-    </row>
-	<row id="2">
         <key>cs</key>
         <label>Čeština</label>
     </row>
-    <row id="3">
+    <row id="2">
         <key>de</key>
         <label>Deutsch</label>
     </row>
-    <row id="4">
+    <row id="3">
         <key>et</key>
         <label>Eesti</label>
     </row>
-    <row id="5">
+    <row id="4">
         <key>en</key>
         <label>English</label>
     </row>
-    <row id="6">
+    <row id="5">
         <key>es</key>
         <label>Español</label>
     </row>
-    <row id="7">
+    <row id="6">
         <key>fi</key>
         <label>Suomi</label>
     </row>
-    <row id="8">
+    <row id="7">
         <key>fr</key>
         <label>Français</label>
     </row>
-    <row id="9">
+    <row id="8">
         <key>hu</key>
         <label>Magyar</label>
     </row>
-    <row id="10">
+    <row id="9">
         <key>it</key>
         <label>Italiano</label>
     </row>
-    <row id="11">
+    <row id="10">
         <key>ja</key>
         <label>日本語</label>
     </row>
-	<row id="12">
-        <key>ko</key>
-        <label>한국인</label>
-    </row>
-    <row id="13">
+    <row id="11">
         <key>lt</key>
         <label>Lietuviškai</label>
     </row>
-	<row id="14">
-        <key>nl</key>
-        <label>Nederlands</label>
-    </row>
-    <row id="15">
+    <row id="12">
         <key>pl</key>
         <label>Polski</label>
     </row>
-    <row id="16">
+    <row id="13">
         <key>pt_BR</key>
         <label>Português (Brasil)</label>
     </row>
-    <row id="17">
+    <row id="14">
         <key>ru</key>
         <label>Русский</label>
     </row>
-    <row id="18">
+    <row id="15">
         <key>sk</key>
         <label>Slovenčina</label>
     </row>
-    <row id="19">
+    <row id="16">
         <key>tr</key>
         <label>Türkçe</label>
     </row>
-	<row id="20">
+    <row id="17">
+        <key>zh_CN</key>
+        <label>中文</label>
+    </row>
+    <row id="18">
+        <key>arb</key>
+        <label>عربي</label>
+    </row>
+    <row id="19">
         <key>tr</key>
         <label>Yкраїнська</label>
     </row>
+    <row id="20">
+        <key>ko</key>
+        <label>한국인</label>
+    </row>
     <row id="21">
-        <key>zh_CN</key>
-        <label>中文</label>
+        <key>nl</key>
+        <label>Nederlands</label>
     </row>
 </lookupTable>
