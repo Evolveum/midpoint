@@ -17,9 +17,8 @@ docker-compose up -d
 
 * `MP_VERSION`: MidPoint version to build (default: devel)
 * `base_image`: Base OS image - ubuntu, alpine, or rockylinux (default: alpine)
-* `base_image_tag`: Tag for base OS image
+* `base_image_tag`: Tag for base OS image (default: latest)
 * `JAVA_VERSION`: Java version - 17 or 21 (default: 21)
-* `SKIP_DOWNLOAD`: Use local distribution file instead of downloading (default: 0)
 * `MP_DIST_FILE`: Distribution file name (default: midpoint-dist.tar.gz)
 
 == Base Images
@@ -35,11 +34,11 @@ docker-compose up -d
 # Build specific version with Ubuntu
 docker build -t evolveum/midpoint:4.8 --build-arg MP_VERSION=4.8 --build-arg base_image=ubuntu .
 
-# Build with local distribution file
-docker build -t evolveum/midpoint:custom --build-arg SKIP_DOWNLOAD=1 --build-arg MP_DIST_FILE=midpoint-dist.tar.gz .
-
 # Build with Java 17
 docker build -t evolveum/midpoint:java17 --build-arg JAVA_VERSION=17 .
+
+# Build with custom distribution file
+docker build -t evolveum/midpoint:custom --build-arg MP_DIST_FILE=my-midpoint-dist.tar.gz .
 ----
 
 == Docker Compose
@@ -83,9 +82,7 @@ MidPoint configuration uses `MP_SET_*` environment variables:
 * `container_files/usr-local-bin/`: Container scripts
   ** `midpoint.sh`: MidPoint startup script
   ** `healthcheck.sh`: Health check endpoint
-* `download-midpoint`: Script to download MidPoint distributions
-* `common.bash`: Common variables and settings
-* `map_midpoint-docker.csv`: Version mapping file
+* `README.adoc`: This documentation
 
 == Volumes
 
