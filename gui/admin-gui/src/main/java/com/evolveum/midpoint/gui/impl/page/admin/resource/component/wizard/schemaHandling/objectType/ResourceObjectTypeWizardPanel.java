@@ -21,9 +21,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.synchronization.SynchronizationWizardPanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -72,6 +75,11 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                         showPoliciesWizard(target);
                         break;
                 }
+            }
+
+            @Override
+            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                showChoiceFragment(target, buildSimulationWizard());
             }
 
             @Override
@@ -158,5 +166,14 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                 showTypePreviewFragment(target);
             }
         });
+    }
+
+    private @NotNull SimulationWizardPanel<?> buildSimulationWizard() {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper()) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTypePreview());
+            }
+        };
     }
 }
