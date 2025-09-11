@@ -151,12 +151,15 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     /** Obtains suggestions for object types for HR persons. */
     @Test
     public void test100SuggestObjectTypesForHrPerson() throws CommonException {
-        smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl(
-                        new SiSuggestObjectTypesResponseType()
-                                .objectType(new SiSuggestedObjectTypeType()
-                                        .kind(HR_PERSON.getKind().value())
-                                        .intent(HR_PERSON.getIntent()))));
+        //noinspection resource
+        var mockServiceClient = new MockServiceClientImpl(
+                new SiSuggestObjectTypesResponseType()
+                        .objectType(new SiSuggestedObjectTypeType()
+                                .kind(HR_PERSON.getKind().value())
+                                .intent(HR_PERSON.getIntent())),
+                new SiSuggestFocusTypeResponseType()
+                        .focusTypeName(UserType.COMPLEX_TYPE));
+        smartIntegrationService.setServiceClientSupplier(() -> mockServiceClient);
 
         when("submitting 'suggest object types' operation request and waiting for the result");
         var task = getTestTask();
@@ -191,12 +194,15 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     /** Obtains suggestions for object types for HR departments. */
     @Test
     public void test110SuggestObjectTypesForHrDepartments() throws CommonException {
-        smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl(
-                        new SiSuggestObjectTypesResponseType()
-                                .objectType(new SiSuggestedObjectTypeType()
-                                        .kind(HR_DEPARTMENT.getKind().value())
-                                        .intent(HR_DEPARTMENT.getIntent()))));
+        //noinspection resource
+        var mockServiceClient = new MockServiceClientImpl(
+                new SiSuggestObjectTypesResponseType()
+                        .objectType(new SiSuggestedObjectTypeType()
+                                .kind(HR_DEPARTMENT.getKind().value())
+                                .intent(HR_DEPARTMENT.getIntent())),
+                new SiSuggestFocusTypeResponseType()
+                        .focusTypeName(OrgType.COMPLEX_TYPE));
+        smartIntegrationService.setServiceClientSupplier(() -> mockServiceClient);
 
         when("submitting 'suggest object types' operation request and waiting for the result");
         var task = getTestTask();
