@@ -156,6 +156,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
         BoxedTablePanel<?> table = createTablePanel(ID_TABLE, provider, tableId);
         table.add(new VisibleBehaviour(() -> isTableVisible() && !displayNoValuePanel()));
+        table.setOutputMarkupPlaceholderTag(true);
         table.setOutputMarkupId(true);
         initTable(table);
     }
@@ -361,13 +362,13 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     public void refresh(AjaxRequestTarget target) {
         target.add(getPageBase().getFeedbackPanel());
 
+        target.add(get(ID_NO_VALUE_PANEL));
+
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
             target.add(getTable());
         } else {
             target.add(get(ID_TILE_VIEW));
         }
-
-        target.add(get(ID_NO_VALUE_PANEL));
     }
 
     public BoxedTablePanel<?> getTable() {
