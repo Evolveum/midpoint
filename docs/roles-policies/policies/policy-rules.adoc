@@ -137,16 +137,33 @@ For more examples of policy constraints, see xref:/midpoint/reference/roles-poli
 
 ==== Using Multiple Policy Rule Constraints
 
-If you specify multiple constraints within one policy rule, the AND operator is assumed between them.
+To support more complex logic, midPoint enables you to specify multiple constraints in a policy rule using the following operators:
 
-This means that all such constraints must be satisfied for the rule to be triggered.
-This is a convenient way to cover overlapping time intervals, modifications of several properties at the same time and so on.
-However, this may be counter-intuitive for some cases, such as exclusion constraints (see an xref:/midpoint/reference/roles-policies/policies/policy-rule-examples.adoc#prevent-role-assignment[exclusion example]), even though this approach makes complete sense even in those situations.
-
+* AND - All individual constraints must be satisfied for the rule to be triggered. This is a convenient way to cover overlapping time intervals, modifications of several properties at the same time and so on. +
 The logical AND operator between exclusions may be used to implement a "triangular" exclusion and other advanced exclusions schemes.
 
-If you want to use the OR operator instead, you need to put your individual constraints into separate policy rules.
-As policy rules are triggered individually, your constraints will then be processed as if there was an OR operator between them.
+* OR - Either of the individual constraints must be satisfied for the rule to be triggered.
+
+If you place your individual constraints into separate policy rules, your constraints will then be processed as if there was an OR operator between them because policy rules are triggered individually.
+
+In addition to using the AND, and OR logical operators, policy rule constraints also support the NOT operator for negation. This can contain multiple constraints chained by the AND, or OR operators.
+
+.Multiple constraints logic example
+[source,xml]
+----
+<policyConstraints>
+    <and>
+        <hasAssignment>
+        ...
+        </hasAssignment>
+        <modification>
+        ...
+        </modification>
+    </and>
+</policyConstraints>
+----
+
+See a xref:/midpoint/reference/roles-policies/policies/policy-rules-examples[full example] of how logical operators are used in policy rule constraints.
 
 
 [[object_marks]]
