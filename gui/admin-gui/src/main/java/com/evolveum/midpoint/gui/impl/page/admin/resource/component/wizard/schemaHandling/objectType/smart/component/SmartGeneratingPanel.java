@@ -357,7 +357,6 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             return;
         }
         deleteWholeTaskObject(getPageBase(), task, result, token);
-        onFinishActionPerform(target);
     }
 
     public void initActionButton(@NotNull RepeatingView buttonsView) {
