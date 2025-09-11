@@ -17,8 +17,8 @@ doc-type: config
 :page-upkeep-status: yellow
 
 This article contains advanced configuration options for dashboards and dashboard widgets in particular.
-You can use the options to select the data sources of widgets or adjust the appearance of your dashboard widgets,
-including conditioning the appearance so that you get a visual warning when there are users with too many high-privilege roles, for example.
+You can use the options to select the data sources for your widgets or adjust the appearance of your dashboard widgets,
+including conditioning the appearance so that you get a visual warning when there are, for example, users with too many high-privilege roles.
 
 include::use-idea-for-midpoint-engineering.adoc[]
 
