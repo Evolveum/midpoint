@@ -2,7 +2,7 @@
 midpoint-feature: dashboard
 doc-type: intro
 ---
-= Visualize custom IGA metrics with dashboards
+= Introduction to dashboards in midPoint
 :page-wiki-name: Customizable Dashboards
 :page-wiki-id: 27361691
 :page-wiki-metadata-create-user: semancik
