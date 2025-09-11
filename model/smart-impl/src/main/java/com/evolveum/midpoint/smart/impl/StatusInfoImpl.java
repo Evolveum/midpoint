@@ -112,10 +112,8 @@ public class StatusInfoImpl<T> implements StatusInfo<T> {
         return taskInformation.isExecuting();
     }
 
-    //Temporary helper
-    public boolean isSuspended() {
-    	return taskInformation.getTask().getExecutionState() == TaskExecutionStateType.SUSPENDED;
-    }
+    // Temporary helper
+    public boolean isSuspended() {return taskInformation.getTask().getExecutionState() == TaskExecutionStateType.SUSPENDED;}
 
     @Override
     public @Nullable LocalizableMessage getMessage() {
