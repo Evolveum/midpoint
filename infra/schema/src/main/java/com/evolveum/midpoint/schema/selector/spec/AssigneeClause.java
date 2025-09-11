@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.schema.selector.spec;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -53,29 +53,32 @@ public class AssigneeClause extends SelectorClause {
             traceNotApplicable(ctx, "has no real value");
             return false;
         }
-        //self assignee clause doesn't require resolving of the assignee referenced objects
-        //fixing #10811, #10812
+        List<? extends PrismValue> assignees;
         if (selector.isPureSelf()) {
-            String[] selfOids = ctx.getSelfOidsArray(getDelegatorSelectionMode(realValue));
-            List<ObjectReferenceType> assigneeRefs = getAssigneesWithoutResolving(realValue);
-            if (selfOids.length > 0 && !assigneeRefs.isEmpty()) {
-                List<String> assigneesList = Arrays.asList(selfOids);
-                for (ObjectReferenceType assignee : assigneeRefs) {
-                    if (assignee.getOid() != null && assigneesList.contains(assignee.getOid())) {
-                        return true;
-                    }
-                }
-                return false;
-            }
+            //self assignee clause doesn't require resolving of the assignee referenced objects
+            //fixing #10811, #10812
+            assignees = getAssigneesWithoutResolving(realValue)
+                    .stream()
+                    .map(AbstractReferencable::asReferenceValue)
+                    .toList();
+        } else {
+            // The assignees are known "in full", as they are fetched from the repository via objectResolver.
+            assignees = getAssignees(realValue, ctx)
+                    .stream()
+                    .map(PrismObject::getValue)
+                    .toList();
         }
+        return assigneesMatch(realValue, assignees, ctx);
+    }
 
-        var assignees = getAssignees(realValue, ctx);
+    private boolean assigneesMatch(@NotNull Object realValue, @NotNull List<? extends PrismValue> assignees,
+            @NotNull MatchingContext ctx) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         if (!assignees.isEmpty()) {
-            // The assignees are always known "in full", as they are fetched from the repository via objectResolver.
             var childCtx = ctx.next(getDelegatorSelectionMode(realValue), "a", "assignee", true);
-            for (PrismObject<? extends ObjectType> assignee : assignees) {
+            for (PrismValue assignee : assignees) {
                 assert assignee != null;
-                if (selector.matches(assignee.getValue(), childCtx)) {
+                if (selector.matches(assignee, childCtx)) {
                     traceApplicable(ctx, "assignee matches: %s", assignee);
                     return true;
                 }
@@ -84,8 +87,6 @@ public class AssigneeClause extends SelectorClause {
         traceNotApplicable(ctx, "no assignee matches (assignees=%s)", assignees);
         return false;
     }
-
-
 
     static @NotNull DelegatorSelection getDelegatorSelectionMode(Object object) {
         if (object instanceof CaseType
@@ -114,16 +115,6 @@ public class AssigneeClause extends SelectorClause {
     @NotNull
     private List<PrismObject<? extends ObjectType>> getAssignees(Object object, @NotNull MatchingContext ctx) {
         List<ObjectReferenceType> assigneeRefs = getAssigneesWithoutResolving(object);
-        if (object instanceof CaseType aCase) {
-            assigneeRefs = CaseTypeUtil.getAllAssignees(aCase);
-        } else if (object instanceof AccessCertificationCaseType aCase) {
-            assigneeRefs = CertCampaignTypeUtil.getAllAssignees(aCase);
-        } else if (object instanceof AbstractWorkItemType workItem) {
-            assigneeRefs = workItem.getAssigneeRef();
-        } else {
-            assigneeRefs = List.of();
-        }
-
         List<PrismObject<? extends ObjectType>> assignees = new ArrayList<>();
         for (ObjectReferenceType assigneeRef : assigneeRefs) {
             CollectionUtils.addIgnoreNull(

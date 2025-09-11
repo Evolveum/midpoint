@@ -212,6 +212,15 @@ See bug:MID-10781[].
 * Fixed filter configuration panel on the Object collection details page.
 The behavior of the filter configuration panel was changed to switch automatically to midPoint query (from xml query if was defined before) after filter configuration popup was used and configuration changes were confirmed there.
 See bug:MID-10800[].
+* Fixed the icon and missing description for object mark icons assignments. See bug:MID-10255[].
+* Fixed resolving of the object reference while report preview. See bug:MID-9632[].
+* Improved displaying of the container header while delta visualization. See bug:MID-10630[].
+* Fixed mouse hover tooltip in object reference selection menu. See bug:MID-10807[].
+* Fixed authorization check for the objects displayed in GUI during approval process. See bug:MID-10232[].
+* Removed unnecessary blank row from Certification items export dialog. See bug:MID-10809[].
+* Fixed name and display name columns' values on the Certification items page. See bug:MID-10806[].
+* Fixed full-text search in the role catalog. See bug:MID-10819[].
+* Fixed case-insensitive search for shadow association definitions. See bug:MID-10477[].
 
 === Releases Of Other Components
 

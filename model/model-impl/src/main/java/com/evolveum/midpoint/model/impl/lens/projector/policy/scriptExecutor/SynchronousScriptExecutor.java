@@ -51,6 +51,7 @@ class SynchronousScriptExecutor {
         try {
             var updatedScriptCI = addInputIfNeeded(configuredScriptCI, result);
             VariablesMap initialVariables = createInitialVariables();
+            //todo parse from initialVariables and create (BulkAction)ExecutionOptions here? e.g. parse runPrivileged?
             actx.beans.bulkActionsExecutor.execute(
                     updatedScriptCI, initialVariables, BulkActionExecutionOptions.create(), actx.task, result);
         } catch (Throwable t) {

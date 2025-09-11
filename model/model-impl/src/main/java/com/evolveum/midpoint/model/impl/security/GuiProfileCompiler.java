@@ -173,7 +173,7 @@ public class GuiProfileCompiler {
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
 
         List<Authorization> collectedAuthorizationList = new ArrayList<>();
-        Map<PrismObject<? extends AssignmentHolderType>, OtherPrivilegesLimitations.Limitation> delegationTargetMap = new HashMap<>();
+        OtherPrivilegesLimitations collectedOtherPrivilegesLimitations = new OtherPrivilegesLimitations();
 
         if (!options.isRunAsRunner() && channel != null) {
             @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
@@ -200,20 +200,15 @@ public class GuiProfileCompiler {
 
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // TODO see MID-6403
                 if (target.isValid() && target.getAssignmentPath().containsDelegation()) {
-                    delegationTargetMap.put(target.getTarget(),
+                    collectedOtherPrivilegesLimitations.addDelegationTarget(target.getTarget(),
                             target.getAssignmentPath().getOtherPrivilegesLimitation());
                 }
             }
         }
-        //giving here the code to clear the authorizations and other privileges limitations due to the ticket #10781
-        //not fixing the core of the problem but trying to improve the situation by decreasing the time period when
-        //authorizations are already cleared but not filled in yet
-        principal.clearAuthorizations();
-        collectedAuthorizationList
-                .forEach(authToAdd -> addAuthorizationToPrincipal(principal, authToAdd, authorizationTransformer));
-
-        principal.clearOtherPrivilegesLimitations();
-        delegationTargetMap.forEach(principal::addDelegationTarget);
+        List<Authorization> newAuthList = cloneOrTransformAuthorizations(principal, collectedAuthorizationList,
+                authorizationTransformer);
+        principal.resetAuthorizationsList(newAuthList);
+        principal.resetOtherPrivilegesLimitations(collectedOtherPrivilegesLimitations);
         //end of code restructuring due to #10781
 
         if (!options.isCompileGuiAdminConfiguration()) {
@@ -247,15 +242,17 @@ public class GuiProfileCompiler {
         return collectedAssignments;
     }
 
-    private void addAuthorizationToPrincipal(
-            MidPointPrincipal principal, Authorization autz, AuthorizationTransformer authorizationTransformer) {
-        if (authorizationTransformer == null) {
-            principal.addAuthorization(autz.clone());
-        } else {
-            for (Authorization transformedAutz : emptyIfNull(authorizationTransformer.transform(autz))) {
-                principal.addAuthorization(transformedAutz);
+    private List<Authorization> cloneOrTransformAuthorizations(
+            MidPointPrincipal principal, List<Authorization> authorizationList, AuthorizationTransformer authorizationTransformer) {
+        List<Authorization> authorizationRes = new ArrayList<>();
+        authorizationList.forEach(autz -> {
+            if (authorizationTransformer == null) {
+                authorizationRes.add(autz.clone());
+            } else {
+                authorizationRes.addAll(emptyIfNull(authorizationTransformer.transform(autz)));
             }
-        }
+        });
+        return authorizationRes;
     }
 
     @NotNull

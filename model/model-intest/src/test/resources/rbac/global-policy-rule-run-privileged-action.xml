@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <globalPolicyRule>
+        <name>Repeated recompute policy</name>
+        <policyConstraints>
+            <modification>
+                <item>credentials</item>
+                <presentation>
+                    <hidden>true</hidden>
+                </presentation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <scriptExecution>
+                <privileges>
+                    <runPrivileged>true</runPrivileged>
+                </privileges>
+                <executeScript>
+                    <recompute/>
+                </executeScript>
+            </scriptExecution>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+    </globalPolicyRule>
+</systemConfiguration>
