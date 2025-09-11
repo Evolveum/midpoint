@@ -1,26 +1,12 @@
 ARG MP_VERSION=devel
 ARG MP_DIR=/opt/midpoint
 ARG MP_DIST_FILE=midpoint-dist.tar.gz
-ARG MP_DIST_INFO=N/A
-ARG SKIP_DOWNLOAD=0
 ARG maintainer=evolveum
 ARG imagename=midpoint
 ARG JAVA_VERSION=21
 
-### values for Ubuntu based image ###
-#ARG base_image=ubuntu
-#ARG base_image_tag=22.04
-####################################
-
-### values for Rocky linux based image ###
-#ARG base_image=rockylinux
-#ARG base_image_tag=9.3
-#####################################
-
-### values for Alpine based image ###
 ARG base_image=alpine
 ARG base_image_tag=latest
-#####################################
 
 FROM ${base_image}:${base_image_tag}
 
@@ -28,28 +14,19 @@ ARG base_image
 ARG MP_VERSION
 ARG MP_DIR
 ARG MP_DIST_FILE
-ARG SKIP_DOWNLOAD
 
 RUN if [ "${base_image}" = "ubuntu" ]; \
-  then apt-get update -y && apt-get install -y curl libxml2-utils ; \
+  then apt-get update -y && apt-get install -y libxml2-utils ; \
   else if [ "${base_image}" = "alpine" ]; \
-  then apk --update add --no-cache libxml2-utils curl bash ; \
+  then apk --update add --no-cache libxml2-utils bash ; \
   fi ; fi
 
-COPY download-midpoint map_midpoint-docker.csv common.bash ${MP_DIST_FILE}* ${MP_DIR}/
+COPY ${MP_DIST_FILE} ${MP_DIR}/
 
-RUN if [ "${SKIP_DOWNLOAD}" = "0" ]; \
-  then chmod 755 ${MP_DIR}/download-midpoint && \
-       ${MP_DIR}/download-midpoint ${MP_VERSION} ${MP_DIST_FILE} ; \
-  fi ; \
-  tar -xzC ${MP_DIR} -f ${MP_DIR}/${MP_DIST_FILE} --strip-components=1 ; \
-  rm -f ${MP_DIR}/${MP_DIST_FILE}* ${MP_DIR}/download-midpoint ${MP_DIR}/map_midpoint-docker.csv ${MP_DIR}/common.bash
+RUN tar -xzC ${MP_DIR} -f ${MP_DIR}/${MP_DIST_FILE} --strip-components=1 && \
+    rm -f ${MP_DIR}/${MP_DIST_FILE}
 
-##### 2022/05/02 - "reaction" to adding jar package to dist archive ######
-# Once both jar and war is present the only jar is needed. During transition perion the
-# symlink is created to prevent the fails because of not updated starting script
-# ... docker related file have a little bit different lifecycle than midpoint files ...
-##########################################################################
+# Create JAR/WAR symlink if needed for compatibility
 RUN if [ -e ${MP_DIR}/lib/midpoint.jar ]; \
   then ln -sf midpoint.jar ${MP_DIR}/lib/midpoint.war ; fi
 
@@ -75,7 +52,6 @@ FROM java-${JAVA_VERSION}
 
 ARG MP_DIR
 ARG MP_VERSION
-ARG MP_DIST_INFO
 ARG base_image
 ARG base_image_tag
 ARG maintainer
@@ -87,7 +63,6 @@ LABEL ImageType="base"
 LABEL ImageName="${imagename}"
 LABEL ImageOS="${base_image}:${base_image_tag}"
 LABEL Version="${MP_VERSION}"
-LABEL AppBuildID="${MP_DIST_INFO}"
 LABEL org.opencontainers.image.authors="info@evolveum.com"
 
 ENV MP_SET_file_encoding=UTF8 \
@@ -102,7 +77,7 @@ ENV MP_SET_file_encoding=UTF8 \
 
 COPY container_files/usr-local-bin/* /usr/local/bin/
 
-# Create midpoint user and group for security (PR #10 improvements)
+# Create midpoint user and group for security
 RUN if [ "${base_image}" = "ubuntu" ]; \
   then sed 's/main$/main universe/' -i /etc/apt/sources.list && \
        apt-get update -y && \
@@ -127,7 +102,7 @@ RUN if [ "${base_image}" = "ubuntu" ]; \
 
 COPY --from=0 ${MP_DIR} ${MP_DIR}/
 
-# Set proper ownership for midpoint user and switch to non-privileged user (PR #10 improvements)
+# Set proper ownership for midpoint user
 RUN chown -R midpoint:midpoint ${MP_DIR}
 
 # Fix for starting midpoint around release 4.2...
@@ -147,7 +122,7 @@ HEALTHCHECK --interval=1m --timeout=30s --start-period=2m CMD /usr/local/bin/hea
 
 EXPOSE 8080
 
-# Switch to non-privileged user (PR #10 improvements)
+# Switch to non-privileged user
 USER midpoint
 
 CMD [ "/opt/midpoint/bin/midpoint.sh", "container" ]
