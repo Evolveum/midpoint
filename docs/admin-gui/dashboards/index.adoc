@@ -19,7 +19,7 @@ Dashboards are a fundamental tool for efficient identity governance and administ
 They provide centralized overview of critical metrics, enabling managers to monitor compliance, track operational efficiency, and respond to risks proactively.
 You can configure dashboards based on the metrics that are important for you and your stakeholders.
 
-The key motivations for using dashboards:
+== Key motivations for using dashboards
 
 * Dashboards reduce operational overhead by automating data aggregation and presentation.
 * They help you spot potential risks more easily because they can highlight unwanted or non-compliant situations (e.g., users with accumulated high-risk access permissions)
