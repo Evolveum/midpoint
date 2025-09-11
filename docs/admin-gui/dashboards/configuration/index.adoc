@@ -11,8 +11,7 @@
 
 Documentation about dashboards can be found at multiple places in docs. To avoid confusion, please see
 
-- xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards] page provides basic information about this feature.
-- Guide for initial configuration, together with example, is provided in xref:/midpoint/guides/dashboards-howto[Dashboards HOWTO].
+- xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards] page provides configuration options information about this feature.
 - Samples are at link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[samples/dashboard] on Github.
 - Design notes for development of dashboards and reports can be found xref:/midpoint/devel/design/dashboards-widgets-and-reports-design-notes/[here].
 
