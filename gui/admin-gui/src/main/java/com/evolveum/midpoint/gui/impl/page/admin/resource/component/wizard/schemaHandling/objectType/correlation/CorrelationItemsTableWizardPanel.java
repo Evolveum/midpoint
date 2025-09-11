@@ -6,48 +6,29 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.panel.SplitButtonWithDropdownMenu;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItemWithCount;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -55,13 +36,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObjectTypeSimulationTasks;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.*;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
@@ -307,185 +286,24 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        SplitButtonWithDropdownMenu simulationMenuButton = createSimulationMenuButton(buttons.newChildId());
-        simulationMenuButton.setRenderBodyOnly(true);
-        buttons.add(simulationMenuButton);
+        SimulationActionTaskButton simulationActionTaskButton = createSimulationMenuButton(buttons);
+        buttons.add(simulationActionTaskButton);
     }
 
-    protected final @NotNull SplitButtonWithDropdownMenu createSimulationMenuButton(String id) {
-        List<InlineMenuItem> items = List.of(createSimulationTaskViewMenuItem());
-        DropdownButtonDto model = new DropdownButtonDto(
-                null, "fa fa-flask", getString("CorrelationItemsTableWizardPanel.simulate.title"), items);
-        SplitButtonWithDropdownMenu simulationButton = new SplitButtonWithDropdownMenu(id, () -> model) {
-            @Override
-            protected void performPrimaryButtonAction(AjaxRequestTarget target) {
-                showPredefinedConfigPopup(target);
-            }
+    private @NotNull SimulationActionTaskButton createSimulationMenuButton(@NotNull RepeatingView buttons) {
+        SimulationActionTaskButton simulationActionTaskButton = new SimulationActionTaskButton(
+                buttons.newChildId(),
+                this::getResourceObjectDefinition,
+                () -> getAssignmentHolderDetailsModel().getObjectType()) {
 
             @Override
-            protected boolean showIcon() {
-                return true;
-            }
-        };
-        simulationButton.setOutputMarkupId(true);
-        return simulationButton;
-    }
-
-    protected void showPredefinedConfigPopup(AjaxRequestTarget target) {
-        List<Tile<PredefinedConfigurationType>> tiles = Arrays.stream(PredefinedConfigurationType.values())
-                .map(cfg -> {
-                    String icon = cfg == PredefinedConfigurationType.PRODUCTION
-                            ? "fa-solid fa-industry"
-                            : "fa-solid fa-flask";
-
-                    Tile<PredefinedConfigurationType> tile = new Tile<>(icon,
-                            getString("PredefinedConfigurationType." + cfg.name()));
-                    tile.setValue(cfg);
-                    tile.setDescription(getString(
-                            "PredefinedConfigurationType." + cfg.name() + ".description"));
-                    return tile;
-                })
-                .toList();
-
-        TileChoicePopup<PredefinedConfigurationType> popup = new TileChoicePopup<>(getPageBase().getMainPopupBodyId(), () -> tiles) {
-
-            @Override
-            protected IModel<String> getText() {
-                return createStringResource("CorrelationItemsTableWizardPanel.simulate.text");
-            }
-
-            @Override
-            protected IModel<String> getSubText() {
-
-                return createStringResource("CorrelationItemsTableWizardPanel.simulate.subText");
-            }
-
-            @Override
-            protected IModel<String> getAcceptButtonLabel() {
-                return createStringResource("CorrelationItemsTableWizardPanel.simulate.save.and.execute");
-            }
-
-            @Override
-            protected void performAction(AjaxRequestTarget target, PredefinedConfigurationType value) {
-                createNewTaskPerformed(target, value);
+            public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                CorrelationItemsTableWizardPanel.this.redirectToSimulationTasksWizard(target);
             }
         };
 
-        getPageBase().showMainPopup(popup, target);
-    }
-
-    protected void createNewTaskPerformed(AjaxRequestTarget target, PredefinedConfigurationType value) {
-        TaskType newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
-                .hideSuccessfulStatus()
-                .run((task, result) -> {
-
-                    @Nullable ResourceObjectTypeDefinitionType resourceObjectTypeDef = getResourceObjectDefinition();
-                    if (resourceObjectTypeDef == null) {
-                        result.recordWarning("No resource object definition.");
-                        return null;
-                    }
-                    ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
-                    ResourceTaskCreator creator =
-                            ResourceTaskCreator.forResource(resource, getPageBase())
-                                    .ofFlavor(SynchronizationTaskFlavor.RECONCILIATION)
-                                    .ownedByCurrentUser()
-                                    .withCoordinates(
-                                            resourceObjectTypeDef.getKind(),
-                                            resourceObjectTypeDef.getIntent(),
-                                            resourceObjectTypeDef.getObjectClass());
-
-                    creator = creator
-                            .withExecutionMode(ExecutionModeType.PREVIEW)
-                            .withPredefinedConfiguration(value)
-                            .withSimulationResultDefinition(
-                                    new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false));
-
-                    return creator.create(task, result);
-                });
-
-        saveAndPerformSimulation(target, newTask);
-    }
-
-    /**
-     * Persists the newly created task immediately:
-     * - Wraps it into a PrismObjectWrapper
-     * - Prepares delta and executes it via ObjectChangesExecutor
-     * - Ensures task is saved to repository before continuing
-     */
-    private void saveAndPerformSimulation(AjaxRequestTarget target, TaskType newTask) {
-        if (newTask != null) {
-            Task task = getPageBase().createSimpleTask(OP_CREATE_TASK);
-            OperationResult result = task.getResult();
-
-            PrismObject<TaskType> object = newTask.asPrismObject();
-            PrismObjectWrapperFactory<TaskType> factory = getPageBase().findObjectWrapperFactory(object.getDefinition());
-            WrapperContext ctx = new WrapperContext(task, result);
-            ctx.setCreateIfEmpty(true);
-
-            try {
-                PrismObjectWrapper<TaskType> wrapper = factory.createObjectWrapper(object, ItemStatus.ADDED, ctx);
-                WebComponentUtil.setTaskStateBeforeSave(wrapper, true, getPageBase(), target);
-                ObjectDelta<TaskType> objectDelta = wrapper.getObjectDelta();
-                ObjectChangeExecutor changeExecutor = new ObjectChangesExecutorImpl();
-                changeExecutor.executeChanges(Collections.singleton(objectDelta), false, task, result, target);
-            } catch (CommonException e) {
-                LOGGER.error("Couldn't create task wrapper", e);
-                getPageBase().error("Couldn't create task wrapper: " + e.getMessage());
-                target.add(getPageBase().getFeedbackPanel().getParent());
-            } finally {
-                result.computeStatusIfUnknown();
-                getPageBase().showResult(result);
-                target.add(getPageBase().getFeedbackPanel().getParent());
-            }
-        }
-    }
-
-    @Contract(" -> new")
-    protected final @NotNull InlineMenuItem createSimulationTaskViewMenuItem() {
-        return new ButtonInlineMenuItemWithCount(createStringResource("ResourceObjectsPanel.button.viewSimulatedTasks")) {
-            @Override
-            protected boolean isBadgeVisible() {
-                if (!getPageBase().isNativeRepo()) {
-                    return false;
-                }
-
-                return super.isBadgeVisible();
-            }
-
-            @Override
-            public int getCount() {
-                String resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
-                ObjectQuery query = createQueryForObjectTypeSimulationTasks(getResourceObjectDefinition(), resourceOid);
-                Task task = getPageBase().createSimpleTask(OP_COUNT_TASKS);
-                Integer count = null;
-                try {
-                    count = getPageBase().getModelService().countObjects(
-                            TaskType.class, query, null, task, task.getResult());
-                } catch (CommonException e) {
-                    LOGGER.error("Couldn't count tasks");
-                    getPageBase().showResult(task.getResult());
-                }
-
-                return Objects.requireNonNullElse(count, 0);
-            }
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa fa-eye");
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        redirectToSimulationTasksWizard(target);
-                    }
-
-                };
-            }
-
-        };
+        simulationActionTaskButton.setRenderBodyOnly(true);
+        return simulationActionTaskButton;
     }
 
     protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
