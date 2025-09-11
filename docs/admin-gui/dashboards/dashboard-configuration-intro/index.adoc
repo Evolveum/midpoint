@@ -6,6 +6,7 @@ doc-type: config
 = Dashboards configuration introduction
 :page-nav-title: Configuration intro
 :page-toc: top
+:page-display-order: 20
 :page-keywords: [ 'dashboard', 'dashboards', 'configuration' ]
 :search-alias: "dashboard configuration"
 :page-upkeep-status: green

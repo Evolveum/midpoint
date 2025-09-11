@@ -12,6 +12,7 @@ doc-type: config
 :page-wiki-metadata-modify-user: katkav
 :page-wiki-metadata-modify-date: 2020-12-10T12:36:51.667+01:00
 :page-toc: top
+:page-display-order: 30
 :page-keywords: [ 'dashboard', 'dashboards', 'configuration' ]
 :search-alias: "dashboard configuration"
 :page-upkeep-status: yellow
