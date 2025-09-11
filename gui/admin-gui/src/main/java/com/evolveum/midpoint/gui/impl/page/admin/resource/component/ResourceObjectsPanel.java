@@ -824,16 +824,6 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                     false,
                     ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
             filter = filter.endBlock();
-        } else {
-            filter = addSimulationRule(
-                    filter.and(),
-                    true,
-                    ExecutionModeType.PREVIEW);
-            filter = addSimulationRule(
-                    filter.and(),
-                    true,
-                    ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
-
         }
 
         return filter.build();

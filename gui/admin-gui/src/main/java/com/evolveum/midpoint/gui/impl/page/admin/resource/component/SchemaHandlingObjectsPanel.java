@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
@@ -483,13 +484,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     }
 
     protected void refreshForm(@NotNull AjaxRequestTarget target) {
-        WebMarkupContainer form = (WebMarkupContainer) get(ID_FORM);
-
-        MultivalueContainerListPanel<?> fresh = createMultiValueListPanel();
-        fresh.setOutputMarkupId(true);
-
-        form.addOrReplace(fresh);
-        target.add(fresh);
+        if (getTable().getDataProvider() instanceof MultivalueContainerListDataProvider<?> provider) {
+            provider.getModel().detach();
+        }
+        getTable().refreshTable(target);
+        target.add(get(ID_FORM));
     }
 
     protected boolean isToggleSuggestionVisible() {

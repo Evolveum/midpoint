@@ -506,7 +506,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     protected String getTileContainerCssClass() {
-        return "row justify-content-left pt-2 ";
+        return "h-100 justify-content-left pt-2 ";
     }
 
     @Override

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -57,6 +58,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestionWrappers;
@@ -113,7 +115,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                     Item<ICellPopulator<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> cellItem,
                     String componentId,
                     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
-                StatusInfo<ObjectTypesSuggestionType> statusInfo = suggestionByWrapper.get(rowModel.getObject());
+                StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(rowModel.getObject());
                 if (statusInfo != null) {
                     QName objectClassName = statusInfo.getObjectClassName();
                     if (objectClassName != null) {
@@ -200,9 +202,6 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return true;
     }
 
-    private Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>,
-            StatusInfo<ObjectTypesSuggestionType>> suggestionByWrapper = new HashMap<>();
-
     protected <C extends Containerable> boolean isSuggestionRow(@Nullable IModel<PrismContainerValueWrapper<C>> rowModel) {
         if (rowModel == null || rowModel.getObject() == null) {
             return false;
@@ -230,7 +229,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
             });
         }
 
-        inlineMenuItems.add(createSuggestionStopInlineMenu());
+        inlineMenuItems.add(createSuggestionOperationInlineMenu());
         inlineMenuItems.add(createSuggestionDetailsInlineMenu());
         inlineMenuItems.add(createSuggestionReviewInlineMenu());
         inlineMenuItems.add(createDeleteSuggestionInlineMenu());
@@ -242,7 +241,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
             String componentId,
             @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = rowModel.getObject();
-        StatusInfo<ObjectTypesSuggestionType> suggestionTypeStatusInfo = suggestionByWrapper.get(object);
+        StatusInfo<ObjectTypesSuggestionType> suggestionTypeStatusInfo = getStatusInfo(object);
 
         ResourceObjectTypeDefinitionType realValue = object.getRealValue();
 
@@ -269,7 +268,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                 @Contract(pure = true)
                 @Override
                 protected @NotNull String getIconCss() {
-                    return GuiStyleConstants.ICON_FA_SPINNER + " text-info";
+                    return GuiStyleConstants.ICON_FA_SPINNER + " fa-spin  text-info";
                 }
 
                 @Contract(pure = true)
@@ -295,7 +294,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
     private @Nullable OperationResultStatusType statusFor(
             PrismContainerValueWrapper<?> wrapper) {
-        StatusInfo<ObjectTypesSuggestionType> info = suggestionByWrapper.get(wrapper);
+        StatusInfo<ObjectTypesSuggestionType> info = getStatusInfo(wrapper);
         return info != null ? info.getStatus() : null;
     }
 
@@ -309,6 +308,33 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
             return;
         }
         item.add(AttributeModifier.append("class", SmartIntegrationUtils.SuggestionUiStyle.from(status).rowClass));
+        addAjaxTimeBehaviorIfRequested(model.getObject(), item);
+    }
+
+    private void addAjaxTimeBehaviorIfRequested(
+            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> value,
+            Item<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> item) {
+        StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(value);
+        if (statusInfo != null && statusInfo.getStatus() != null) {
+            item.add(AttributeModifier.append("class", SuggestionUiStyle.from(statusInfo).rowClass));
+
+            boolean executing = statusInfo.isExecuting() && !statusInfo.isSuspended();
+            if (executing) {
+                AbstractAjaxTimerBehavior timer = new AbstractAjaxTimerBehavior(Duration.ofSeconds(3)) {
+                    @Override
+                    protected void onTimer(@NotNull AjaxRequestTarget target) {
+                        target.add(item);
+                        StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(value);
+                        if (statusInfo == null || !statusInfo.isExecuting() || statusInfo.isSuspended()) {
+                            stop(target);
+                            refreshForm(target);
+                            target.add(item);
+                        }
+                    }
+                };
+                item.add(timer);
+            }
+        }
     }
 
     @Override
@@ -316,12 +342,15 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         PrismContainerWrapperModel<ResourceType, ResourceObjectTypeDefinitionType> resourceDefWrapper =
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
 
+        final Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, StatusInfo<ObjectTypesSuggestionType>> suggestionsIndex = new HashMap<>();
+
         LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> containerModel =
                 new LoadableModel<>() {
                     @Override
                     protected @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> load() {
                         List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> out = new ArrayList<>();
 
+                        suggestionsIndex.clear();
                         if (Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
                             final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
                             final OperationResult result = task.getResult();
@@ -331,7 +360,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                             SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadObjectTypeSuggestionWrappers(
                                     getPageBase(), resourceOid, task, result);
                             out.addAll(suggestions.wrappers());
-                            suggestionByWrapper = suggestions.suggestionByWrapper();
+                            suggestionsIndex.putAll(suggestions.suggestionByWrapper());
                         }
 
                         List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resource = resourceDefWrapper
@@ -343,8 +372,24 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                     }
                 };
 
-        return new MultivalueContainerListDataProvider<>(ResourceObjectTypesPanel.this, Model.of(), containerModel);
+        String resourceOid = getObjectWrapperObject().getOid();
+        return new StatusAwareDataProvider<>(this, resourceOid, Model.of(), containerModel, suggestionsIndex::get);
     }
+
+    @SuppressWarnings("unchecked")
+    private @Nullable StatusAwareDataProvider<ResourceObjectTypeDefinitionType> getStatusAwareProvider() {
+        var dp = getTable().getDataProvider();
+        return (dp instanceof StatusAwareDataProvider<?> sap)
+                ? (StatusAwareDataProvider<ResourceObjectTypeDefinitionType>) sap
+                : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected @Nullable StatusInfo<ObjectTypesSuggestionType> getStatusInfo(PrismContainerValueWrapper<?> value) {
+        var provider = getStatusAwareProvider();
+        return provider != null ? (StatusInfo<ObjectTypesSuggestionType>) provider.getSuggestionInfo((PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) value) : null;
+    }
+
 
     protected ButtonInlineMenuItem createSuggestionDetailsInlineMenu() {
         return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.details.suggestion.inlineMenu")) {
@@ -362,9 +407,11 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                         return false;
                     }
 
-                    @SuppressWarnings("SuspiciousMethodCalls")
-                    StatusInfo<ObjectTypesSuggestionType> suggestionStatus = suggestionByWrapper.get(rowModel.getObject());
-                    return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.FATAL_ERROR;
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                        StatusInfo<ObjectTypesSuggestionType> suggestionStatus = getStatusInfo(valueWrapper);
+                        return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.FATAL_ERROR;
+                    }
+                    return false;
                 };
             }
 
@@ -377,7 +424,10 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                     public void onClick(AjaxRequestTarget target) {
                         IModel<Serializable> rowModel = getRowModel();
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            StatusInfo<ObjectTypesSuggestionType> statusInfo = suggestionByWrapper.get(valueWrapper);
+                            StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(valueWrapper);
+                            if (statusInfo == null) {
+                                return;
+                            }
 
                             HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
                                     getPageBase().getMainPopupBodyId(),
@@ -434,9 +484,11 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                         return false;
                     }
 
-                    @SuppressWarnings("SuspiciousMethodCalls")
-                    StatusInfo<ObjectTypesSuggestionType> suggestionStatus = suggestionByWrapper.get(rowModel.getObject());
-                    return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.SUCCESS;
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                        StatusInfo<ObjectTypesSuggestionType> suggestionStatus = getStatusInfo(valueWrapper);
+                        return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.SUCCESS;
+                    }
+                    return false;
                 };
             }
 
@@ -474,9 +526,22 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         };
     }
 
-    protected ButtonInlineMenuItem createSuggestionStopInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.stop.generating.inlineMenu")) {
+    protected ButtonInlineMenuItem createSuggestionOperationInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.suspend.generating.inlineMenu")) {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> getLabel() {
+                ColumnMenuAction<?> action = (ColumnMenuAction<?>) getAction();
+                IModel<?> rowModel = action.getRowModel();
+                if (rowModel != null && rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
+                    StatusInfo<ObjectTypesSuggestionType> suggestionStatus = getStatusInfo(wrapper);
+                    if (suggestionStatus != null && suggestionStatus.isSuspended()) {
+                        return createStringResource("ResourceObjectTypesPanel.resume.generating.inlineMenu");
+                    }
+                }
+                return super.getLabel();
+            }
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -490,9 +555,16 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                         return false;
                     }
 
-                    @SuppressWarnings("SuspiciousMethodCalls")
-                    StatusInfo<ObjectTypesSuggestionType> suggestionStatus = suggestionByWrapper.get(rowModel.getObject());
-                    return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.IN_PROGRESS;
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
+                        StatusInfo<ObjectTypesSuggestionType> suggestionStatus = getStatusInfo(wrapper);
+                        if (suggestionStatus == null) {
+                            return false;
+                        }
+                        OperationResultStatusType status = suggestionStatus.getStatus();
+                        return !suggestionStatus.isComplete() && status != OperationResultStatusType.FATAL_ERROR;
+                    }
+
+                    return false;
                 };
             }
 
@@ -503,15 +575,20 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
+                        Task task = getPageBase().getPageTask();
                         OperationResult result = task.getResult();
 
                         IModel<Serializable> rowModel = getRowModel();
-                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            StatusInfo<ObjectTypesSuggestionType> statusInfo = suggestionByWrapper.get(valueWrapper);
-                            SmartIntegrationUtils.suspendSuggestionTask(
-                                    getPageBase(), statusInfo, task, result);
-
+                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
+                            StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(wrapper);
+                            if (statusInfo != null) {
+                                if (statusInfo.isSuspended() && statusInfo.getStatus() != OperationResultStatusType.FATAL_ERROR) {
+                                    resumeSuggestionTask(getPageBase(), statusInfo, task, result);
+                                } else {
+                                    suspendSuggestionTask(getPageBase(), statusInfo, task, result);
+                                }
+                                refreshForm(target);
+                            }
                         }
                     }
                 };
@@ -540,9 +617,11 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                         return false;
                     }
 
-                    @SuppressWarnings("SuspiciousMethodCalls")
-                    StatusInfo<ObjectTypesSuggestionType> suggestionStatus = suggestionByWrapper.get(rowModel.getObject());
-                    return suggestionStatus != null;
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                        StatusInfo<ObjectTypesSuggestionType> suggestionStatus = getStatusInfo(valueWrapper);
+                        return suggestionStatus != null;
+                    }
+                    return false;
                 };
             }
 
@@ -558,7 +637,10 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
                         IModel<Serializable> rowModel = getRowModel();
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            StatusInfo<ObjectTypesSuggestionType> statusInfo = suggestionByWrapper.get(valueWrapper);
+                            StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(valueWrapper);
+                            if (statusInfo == null) {
+                                return;
+                            }
                             //noinspection unchecked
                             SmartIntegrationUtils.removeObjectTypeSuggestion(
                                     getPageBase(),
@@ -577,7 +659,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
     @Override
     protected boolean hasNoValues() {
-        return createProvider().size() == 0;
+        return Objects.requireNonNull(getStatusAwareProvider()).size() == 0;
     }
 
     @Override

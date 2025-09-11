@@ -92,7 +92,7 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         statesRecordList.add(new StateRecord(tierLabel, "Tier"));
 
         if (this.efficiency != null) {
-            statesRecordList.add(new StateRecord(efficiency + "%", "Efficiency"));
+            statesRecordList.add(new StateRecord(String.format("%.2f%%", efficiency), "Efficiency"));
         }
     }
 

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -240,10 +241,25 @@ public class SmartIntegrationUtils {
         String token = statusInfo.getToken();
         SmartIntegrationService smartIntegrationService = pageBase.getSmartIntegrationService();
         try {
-            smartIntegrationService.cancelRequest(token, 5000L, task, result);
+            smartIntegrationService.cancelRequest(token, 2000L, task, result);
         } catch (CommonException e) {
             result.recordFatalError("Couldn't suspend suggestion task: " + e.getMessage(), e);
             LOGGER.error("Couldn't suspend suggestion task for token {}: {}", token, e.getMessage(), e);
+        }
+    }
+
+    public static void resumeSuggestionTask(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<?> statusInfo,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        String token = statusInfo.getToken();
+        try {
+            TaskService taskService = pageBase.getTaskService();
+            taskService.resumeTask(token, task, result);
+        } catch (CommonException e) {
+            result.recordFatalError("Couldn't resume suggestion task: " + e.getMessage(), e);
+            LOGGER.error("Couldn't resume suggestion task for token {}: {}", token, e.getMessage(), e);
         }
     }
 
