@@ -218,7 +218,7 @@ tailoring:
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 
 * xref:/midpoint/architecture/concepts/task/[Task]
 

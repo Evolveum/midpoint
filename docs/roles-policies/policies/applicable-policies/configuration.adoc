@@ -1,0 +1,144 @@
+= Applicable Policy Configuration
+:page-nav-title: Configuration
+:page-wiki-name: Applicable Policy Configuration
+:page-wiki-id: 24676635
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-03-09T15:04:30.547+01:00
+:page-wiki-metadata-modify-user: michael
+:page-wiki-metadata-modify-date: 2020-02-21T14:24:26.071+01:00
+:page-upkeep-status: yellow
+:page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/applicable-policies/configuration/
+
+This describes the configuration needed to be able to apply policies directly to individual roles and users in the application user interface.
+
+This configuration is a prerequisite for xref:index.adoc[].
+
+
+== Configuration
+
+Applicable policies are defined as meta-roles.
+If a policy is applied (e.g. by xref:index.adoc#user_interface[selecting a check-box in the application interface]), the corresponding policy is assigned.
+Policies are sorted into policy groups.
+Policy groups are, in fact, xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Orgs].
+Any meta-role which is a member of an org is considered to be a part of the policy group.
+Policy groups (orgs) need to be referred to from the system configuration.
+
+Therefore, to make sure policies are accessible in the Applicable Policies section of roles and users in the midPoint user interface, you need to configure the following:
+
+. Create a system configuration that includes policy groups that you will be displaying.
+. Set up the groups that you will use to classify policies.
+. Add your policies to the created groups.
+
+See examples of how you can implement such a configuration below.
+
+== Examples
+
+=== System Configuration
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <defaultObjectPolicyConfiguration>
+        <type>RoleType</type>
+        <applicablePolicies>
+            <policyGroupRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0"/>
+            <policyGroupRef oid="b7e2f6f0-23a2-11e8-983a-b315ed2c30b3"/>
+        </applicablePolicies>
+    </defaultObjectPolicyConfiguration>
+</systemConfiguration>
+----
+
+=== Policy Groups
+
+.Policy group for approval
+[source,xml]
+----
+<org oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0">
+    <name>policy-meta-approval</name>
+    <displayName>Approval policies</displayName>
+</org>
+----
+
+.Policy group for security
+[source,xml]
+----
+<org oid="b7e2f6f0-23a2-11e8-983a-b315ed2c30b3">
+    <name>policy-meta-security</name>
+    <displayName>Security policies</displayName>
+</org>
+----
+
+
+=== Individual Policies
+
+.Policy for manager approval
+[source,xml]
+----
+<policy oid="4798bd8e-23a3-11e8-a502-e32261e4ecff">
+    <name>policy-approval-manager</name>
+    <displayName>Approval by manager</displayName>
+    <assignment>
+        <!-- Assignment so this meta-role is part of the policy group -->
+        <targetRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0" type="OrgType"/>
+    </assignment>
+    <!-- inducements with policy rules for actual approval policy will be here -->
+</policy>
+----
+
+
+.Policy for owner approval
+[source,xml]
+----
+<policy oid="a38b7eec-23a3-11e8-9f81-f7fb91a9d52a">
+    <name>policy-approval-role-owner</name>
+    <displayName>Approval by role owner</displayName>
+    <assignment>
+        <!-- Assignment so this meta-role is part of the policy group -->
+        <targetRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0" type="OrgType"/>
+    </assignment>
+    <!-- inducements with policy rules for actual approval policy will be here -->
+</policy>
+----
+
+.Policy for SoD
+[source,xml]
+----
+<policy oid="d5d76b9a-23a3-11e8-be88-bb290240045b">
+    <name>policy-sod</name>
+    <displayName>Segregation of Duties Policy</displayName>
+    <assignment>
+        <!-- Assignment so this meta-role is part of the policy group -->
+        <targetRef oid="b7e2f6f0-23a2-11e8-983a-b315ed2c30b3" type="OrgType"/>
+    </assignment>
+    <!-- inducements with policy rules for actual SoD policy will be here -->
+</policy>
+----
+
+See xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Using Metaroles for Policy Configuration] for more specific examples of an approval policy specification in a metarole.
+
+[TIP]
+.Display names
+====
+Display names of roles and orgs are used by midPoint user interface whenever possible.
+In case that display names are not available, ordinary object names are used.
+So midPoint always has something to display to the user.
+However, it is recommended to use display names.
+Firstly, ordinary object names are required to be unique.
+This requirement usually leads to a very complex naming convention for roles that is not entirely user-friendly.
+There is no such requirement for display names.
+Therefore display names can be used almost freely to provide a meaningful information to the user.
+====
+
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/policies/applicable-policies/[User-Friendly Policy Selection]
+
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
+
+* xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

@@ -5,7 +5,7 @@ Role mining export is an anonymized export of relationships between roles, users
 organizations. The goal of the export is to obtain a map of relations between objects, which could
 be helpful in the development of new features such as "Role mining".
 For detailed information regarding role mining export, please refer to the
-xref:/midpoint/reference/roles-policies/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data].
+xref:/midpoint/reference/roles-policies/roles/mining/anonymous-data-export/#anonymous-export-of-role-mining-data[Anonymous Export of Role Mining Data].
 
 .Example: role mining export to a `zipped` file, `overwriting` any existing file. `SEQUENTIAL` name mode and `ADVANCED` security by default. For exporting in JSON format, rename the exported file extension to `-o role-mining-export.json`.
 [source,bash]

@@ -34,7 +34,7 @@ E.g. a mapping is used to reflect a value of user's family name to the `sn` LDAP
 It can also be used together with expressions for form complex transformations, combine a value from several sources, set a value based on a condition, or it can do almost any imaginable action.
 Mappings are very flexible.
 There are options for specifying fixed values, point to other attributes using path or even using script expressions.
-Mappings are the "brain" of all xref:/midpoint/reference/synchronization/[synchronization functions], they are used in xref:/midpoint/reference/roles-policies/rbac/[role structures] and xref:/midpoint/reference/expressions/object-template/[object templates], they are everywhere.
+Mappings are the "brain" of all xref:/midpoint/reference/synchronization/[synchronization functions], they are used in xref:/midpoint/reference/roles-policies/roles/rbac/[role structures] and xref:/midpoint/reference/expressions/object-template/[object templates], they are everywhere.
 
 .Mapping structure overview
 image::synchronization-mapping.png[]
@@ -44,7 +44,7 @@ Mappings are not only aware of the source values, but they also know how the sou
 Therefore maintaining the xref:/midpoint/reference/concepts/relativity/[relative change model] through the entire midPoint system.
 The mapping also knows what are its sources and targets and therefore also compensates for correct data type conversions.
 Mapping is the best tool to customize midPoint behavior.
-It is used e.g. in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings], xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings], xref:/midpoint/reference/roles-policies/assignment/[assignments], xref:/midpoint/reference/roles-policies/rbac/[roles],
+It is used e.g. in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings], xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings], xref:/midpoint/reference/roles-policies/roles/assignment/[assignments], xref:/midpoint/reference/roles-policies/roles/rbac/[roles],
   xref:/midpoint/reference/expressions/object-template/[object templates] and so on.
 
 See xref:/midpoint/reference/expressions/mappings/[Mapping] page for more details.

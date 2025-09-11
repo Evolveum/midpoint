@@ -27,7 +27,7 @@ I.e. each useful resource object has a *kind* and an *intent*. Kind defines what
 MidPoint supports several *kinds* of resource objects:
 
 * *Account* resource objects represent identity of a person, either physical such as computer user or virtual such as _administrator_, _root_, _daemon_ or similar special-purpose identities.
-Accounts can be _xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[linked]_ to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User] objects.
+Accounts can be _xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[linked]_ to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[User] objects.
 
 * xref:/midpoint/reference/resources/entitlements/[Entitlement] resource objects represent groupings or privileges of an *account*. Entitlement resource objects represent groups, resource-specific roles, access permissions or even organizational unit membership.
 Entitlements are *associated* to an *account*.

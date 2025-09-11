@@ -1,0 +1,118 @@
+= Access Certification Reports
+:page-nav-title: Certification Reports
+:page-wiki-name: Access Certification Reports
+:page-wiki-id: 22282416
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-02-03T21:58:53.027+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-02-09T08:31:14.273+01:00
+:page-upkeep-status: green
+:page-alias: { "parent" : "/midpoint/reference/misc/reports/", "slug" : "certification",  "title" : "Access Certification" }
+:page-moved-from: /midpoint/reference/roles-policies/certification/reports/
+:page-description: This page describes the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
+:page-keywords: access certification reports, certification definitions report, certification campaigns report, certification cases report, certification work items report
+:page-toc: top
+
+
+This page describes the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
+
+Each of the provided reports provides a different level of detail, from high-level campaign overviews to individual reviewer decisions.
+You can export reports and use them for auditing and certification tracking.
+
+== Access Certification Reports
+
+The following pre-configured certification-related reports are available in the midPoint distribution package:
+
+[%autowidth]
+|===
+| Report name | Content
+
+| Certification definitions report
+| All certification definitions with basic information on related campaigns (the number of campaigns, the date when a campaign of a particular type was last started and closed).
+See <<certification_definitions_report,an example>>.
+
+
+| Certification campaigns report
+| All certification campaigns along with their states.
+See <<certification_campaigns_report,an example>>.
+
+
+| Certification cases report
+| Cases within a given certification campaign.
+See <<certification_cases_report,an example>>.
+
+
+| Certification work items report
+| Decisions of individual reviewers for a certification campaign as a whole or for a given campaign stage.
+This is the most detailed report.
+See <<certification_work_items_report,an example>>.
+
+
+|===
+
+The default export format for object collection based reports is CSV.
+For details, see xref:/midpoint/reference/misc/reports/report-formats/[].
+
+== Examples
+
+[[certification_definitions_report]]
+=== Certification definitions report
+
+.*Certification definitions report*
+image::cert-definition-report.png[]
+
+[NOTE]
+====
+"Last closed" is not updated if a campaign is deleted without being properly closed.
+====
+
+[[certification_campaigns_report]]
+=== Certification campaigns report
+
+.*Certification campaigns report*
+image::cert-campaign-report.png[]
+
+[NOTE]
+====
+* "Stage cases" shows how many cases are open in the current review stage, or were open in the review stage that was last open.
+
+* "% complete" is computed based on the percentage of cases that are missing one or more reviewers' responses.
+So if there are, for example, 10 cases in total, out of which 8 are open in the current stage, and out of which 6 are completed (i.e. all assigned reviewers have provided their answers), the % complete is shown as 80% (because there are 2 incomplete cases out of 10).
+====
+
+[[certification_cases_report]]
+=== Certification cases report
+
+.*Certification cases report*
+image::cert-case-report.png[]
+
+[NOTE]
+====
+* "In stage" displays the stage that the case was last considered in.
+Depending on the xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[review strategy], some cases might be "stopped": they do not advance to the next stage after being e.g. revoked in a previous stage.
+
+* "Reviewers" represent the reviewers who are currently assigned, or who were assigned for a review stage in which this case was last considered in.
+
+* "Reviewed by" is a list of all reviewers for all stages up until now.
+
+* "Outcome" is a preliminarily computed result for the case for the whole campaign.
+
+* "Comments" are joined comments from all reviewers that have provided them.
+====
+
+
+[[certification_work_items_report]]
+=== Certification work items report
+
+.*Certification work items report*
+image::cert-work-item.png[]
+
+
+== See Also
+
+- xref:/midpoint/reference/misc/reports/examples/[Report Examples]
+- xref:/midpoint/reference/misc/reports/configuration/[Report Configuration]
+- xref:/midpoint/reference/misc/reports/configuration/collection-report.adoc[Collection Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/dashboard-report.adoc[Dashboard Based Reports]
+- xref:/midpoint/reference/misc/reports/configuration/report-security.adoc[Report Security]
+- xref:/midpoint/reference/misc/reports/configuration/report-task-definition.adoc[Report Task Definition]

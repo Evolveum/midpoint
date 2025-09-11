@@ -1,0 +1,38 @@
+= parentOrgRef and assignments
+:page-wiki-name: parentOrgRef and assignments
+:page-wiki-id: 21528602
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2015-10-20T15:15:32.427+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-09-23T12:00:45.076+02:00
+:page-upkeep-status: orange
+:page-moved-from: /midpoint/reference/roles-policies/assignment/parentorgref-and-assignments/
+
+The correct way to create organizational structure is by using assignments.
+The sub-org should have assignment for super-org.
+
+The *parentOrgRef* property reflects the state of the assignment.
+The assignment can be disabled, conditional, may have validity contraints, etc.
+If the assignment is valid, then parentOrgRef should exist.
+If the assignment is invalid the parentOrgRef should not exist.
+
+The "rights" of super-org are not automatically applied to users that belong to the sub-org.
+Assignment does *not* do that, inducement does (see xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[Assignment vs Inducement]). So, org-to-org assignments are only applying "rights" to sub-org itself, not to users in the sub-org.
+If such "rights inheritance" is desired then an org-to-org inducements has to be created together with an assignment.
+
+[NOTE]
+====
+MidPoint will normally apply the inducement to all objects that are assigned to the org, regardless of the object type.
+Therefore be careful about the inducement of the super-org that are designed to apply to users as these same inducements will also be applied to sub-orgs.
+There is a way how to limit inducement applicability using the `focusType` property.
+e.g.:
+
+[source]
+----
+<inducement>
+  ...
+  <focusType>UserType</focusType>
+</inducement>
+----
+
+====

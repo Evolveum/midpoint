@@ -304,7 +304,7 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
                         super.onInitialize();
                         Component parent = get(
                                 createComponentPath(
-                                        ID_VALUE_FORM,
+                                        ID_MAIN_CONTAINER,
                                         ID_VALUE_CONTAINER,
                                         ID_INPUT,
                                         VerticalFormDefaultContainerablePanel.ID_PROPERTIES_LABEL,
@@ -312,7 +312,7 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
                         if (parent != null) {
                             parent.add(AttributeAppender.replace("class", "mb-0 p-3"));
                         }
-                        get(ID_VALUE_FORM).add(AttributeAppender.remove("class"));
+                        get(ID_MAIN_CONTAINER).add(AttributeAppender.remove("class"));
                     }
                 };
                 panel.setOutputMarkupId(true);

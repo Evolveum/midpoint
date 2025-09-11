@@ -581,6 +581,22 @@
             </xsd:element>
             <xsd:element name="collectionIdentifier" type="xsd:string" minOccurs="0"/>
             <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0"/>
+            <xsd:element name="preferCollectionView" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Since Role catalog has several sources of the object collection configuration (e.g.
+                        RoleCollectionViewType.collectionRef or RoleCatalogType.viewConfiguration), it's possible to
+                        prioritize the configuration of the current collection (taken from Object collection object
+                        referenced in collectionRef) by setting preferCollectionView to true. If it is not specified,
+                        the default false value is used, which means that RoleCatalogType.viewConfiguration configuration will
+                        be used if it is defined.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                        <a:displayName>RoleCollectionViewType.preferCollectionView</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -634,6 +650,18 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="collection" type="tns:RoleCollectionViewType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="viewConfiguration" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of an object collection that will be used for presentation data in the role catalog
+                        (for all available collection views including Roles of teammate and Role catalog).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                        <a:displayName>RoleCatalogType.viewConfiguration</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

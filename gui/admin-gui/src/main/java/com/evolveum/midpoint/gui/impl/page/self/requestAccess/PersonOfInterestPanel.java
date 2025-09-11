@@ -13,10 +13,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
-
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +29,7 @@ import org.apache.wicket.model.IModel;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutocompleteConfigurationMixin;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
@@ -42,8 +39,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -56,8 +55,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -642,11 +643,19 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     @Override
+    protected IModel<String> getBackLabelModel() {
+        return createStringResource("PersonOfInterestPanel.button.back");
+    }
+
+    @Override
     public boolean onBackPerformed(AjaxRequestTarget target) {
         if (selectionState.getObject() == SelectionState.TILES) {
             boolean executeDefaultBehaviour = super.onBackPerformed(target);
             if (!executeDefaultBehaviour) {
-                getPageBase().redirectBack();
+                if (AuthUtil.isPostAuthenticationEnabled(getPageBase().getTaskManager(), getPageBase().getModelInteractionService())) {
+                    setResponsePage(PagePostAuthentication.class);
+                }
+                setResponsePage(PageSelfDashboard.class);
             }
             return executeDefaultBehaviour;
         }

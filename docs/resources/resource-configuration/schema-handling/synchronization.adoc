@@ -34,7 +34,7 @@ However, if an exception to this rule is needed, it can be configured e.g. by us
 
 When midPoint detects a synchronization event, it is categorized into one of the _situations_.
 The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
-MidPoint is using xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[links] and xref:/midpoint/reference/correlation/[correlation] to determine the situation.
+MidPoint is using xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[links] and xref:/midpoint/reference/correlation/[correlation] to determine the situation.
 The xref:/midpoint/reference/synchronization/situations/[Synchronization Situations] page describes the details.
 
 == Channels

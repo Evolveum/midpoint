@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.selector.spec;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,13 +53,32 @@ public class AssigneeClause extends SelectorClause {
             traceNotApplicable(ctx, "has no real value");
             return false;
         }
-        var assignees = getAssignees(realValue, ctx);
+        List<? extends PrismValue> assignees;
+        if (selector.isPureSelf()) {
+            //self assignee clause doesn't require resolving of the assignee referenced objects
+            //fixing #10811, #10812
+            assignees = getAssigneesWithoutResolving(realValue)
+                    .stream()
+                    .map(AbstractReferencable::asReferenceValue)
+                    .toList();
+        } else {
+            // The assignees are known "in full", as they are fetched from the repository via objectResolver.
+            assignees = getAssignees(realValue, ctx)
+                    .stream()
+                    .map(PrismObject::getValue)
+                    .toList();
+        }
+        return assigneesMatch(realValue, assignees, ctx);
+    }
+
+    private boolean assigneesMatch(@NotNull Object realValue, @NotNull List<? extends PrismValue> assignees,
+            @NotNull MatchingContext ctx) throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         if (!assignees.isEmpty()) {
-            // The assignees are always known "in full", as they are fetched from the repository via objectResolver.
             var childCtx = ctx.next(getDelegatorSelectionMode(realValue), "a", "assignee", true);
-            for (PrismObject<? extends ObjectType> assignee : assignees) {
+            for (PrismValue assignee : assignees) {
                 assert assignee != null;
-                if (selector.matches(assignee.getValue(), childCtx)) {
+                if (selector.matches(assignee, childCtx)) {
                     traceApplicable(ctx, "assignee matches: %s", assignee);
                     return true;
                 }
@@ -81,18 +101,20 @@ public class AssigneeClause extends SelectorClause {
     }
 
     @NotNull
-    private List<PrismObject<? extends ObjectType>> getAssignees(Object object, @NotNull MatchingContext ctx) {
-        List<ObjectReferenceType> assigneeRefs;
+    private List<ObjectReferenceType> getAssigneesWithoutResolving(Object object) {
         if (object instanceof CaseType aCase) {
-            assigneeRefs = CaseTypeUtil.getAllAssignees(aCase);
+            return CaseTypeUtil.getAllAssignees(aCase);
         } else if (object instanceof AccessCertificationCaseType aCase) {
-            assigneeRefs = CertCampaignTypeUtil.getAllAssignees(aCase);
+            return CertCampaignTypeUtil.getAllAssignees(aCase);
         } else if (object instanceof AbstractWorkItemType workItem) {
-            assigneeRefs = workItem.getAssigneeRef();
-        } else {
-            assigneeRefs = List.of();
+            return workItem.getAssigneeRef();
         }
+        return List.of();
+    }
 
+    @NotNull
+    private List<PrismObject<? extends ObjectType>> getAssignees(Object object, @NotNull MatchingContext ctx) {
+        List<ObjectReferenceType> assigneeRefs = getAssigneesWithoutResolving(object);
         List<PrismObject<? extends ObjectType>> assignees = new ArrayList<>();
         for (ObjectReferenceType assigneeRef : assigneeRefs) {
             CollectionUtils.addIgnoreNull(

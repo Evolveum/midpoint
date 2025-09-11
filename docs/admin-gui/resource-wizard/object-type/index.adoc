@@ -105,7 +105,7 @@ Define the midPoint-specific configuration of focus objects for this object type
 	The focus archetype defines the type of resource objects and must be applied to all linked focus objects.
 	If a focus object lacks the required archetype, it is added.
 	If a different archetype is present, an error occurs.
-	This enforcement applies to all projections, but the order in which projections are added can affect how archetype xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement[inducements] are processed.
+	This enforcement applies to all projections, but the order in which projections are added can affect how archetype xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement[inducements] are processed.
 
 	** If unsure, select *No archetype*.
 		You can edit the object type later.

@@ -73,6 +73,7 @@ public class BulkActionsExecutor {
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         var executeScriptBean = executeScript.value();
         try {
+            //todo should we parse from initialVariables and create BulkActionExecutionOptions here? e.g. parse runPrivileged?
             var expressionProfile =
                     expressionProfileManager.determineBulkActionsProfile(
                             executeScript.origin(), options.privileged(), task, result);

@@ -88,7 +88,7 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
     }
 
     @Override
-    protected void createMetadataPanel(MidpointForm form) {
+    protected void createMetadataPanel(WebMarkupContainer mainContainer) {
 
     }
 

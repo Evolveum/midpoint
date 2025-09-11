@@ -18,7 +18,7 @@ doc-type: config
 
 _Mapping_ is a mechanism that is used at many places through midPoint to map value of a source property (or properties) to a target property.
 It is a very flexible mechanism that allows to use expressions (including scripting), direct variable references, value generators and other _evaluators_ for the value.
-It is used for example in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mapping], xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping], xref:/midpoint/reference/roles-policies/assignment/[assignments], xref:/midpoint/reference/roles-policies/rbac/[roles] and so on.
+It is used for example in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mapping], xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping], xref:/midpoint/reference/roles-policies/roles/assignment/[assignments], xref:/midpoint/reference/roles-policies/roles/rbac/[roles] and so on.
 
 .Reference documentation
 NOTE: This is a reference documentation, explaining all the details and complexities.
@@ -285,7 +285,7 @@ Domain is also useful if we want to provide output values only for some input va
 This cannot be easily achieved by using mapping condition, as the condition will activate or deactivate entire mapping, it applies to all the values processed by a mapping.
 The condition does not work for individual values.
 
-The domain is very useful especially for automatic xref:/midpoint/reference/roles-policies/assignment/[assignment] expressions in xref:/midpoint/reference/expressions/object-template/[object template].
+The domain is very useful especially for automatic xref:/midpoint/reference/roles-policies/roles/assignment/[assignment] expressions in xref:/midpoint/reference/expressions/object-template/[object template].
 
 
 == Target

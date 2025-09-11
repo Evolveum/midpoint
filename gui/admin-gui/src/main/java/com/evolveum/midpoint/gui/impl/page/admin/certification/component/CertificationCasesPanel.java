@@ -22,10 +22,9 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -33,9 +32,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -52,8 +54,8 @@ public class CertificationCasesPanel extends
 
     private static final String DOT_CLASS = CertificationCasesPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_CAMPAIGN = DOT_CLASS + "loadCampaign";
-    private String campaignOid;
-    private int stageNumber;
+    private final String campaignOid;
+    private final int stageNumber;
     IModel<AccessCertificationCampaignType> campaignModel;
 
     public CertificationCasesPanel(String id, String campaignOid, int stageNumber) {
@@ -92,28 +94,31 @@ public class CertificationCasesPanel extends
         return initColumns();
     }
 
+    protected IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String> createActionsColumn() {
+        return createShowDetailsColumn();
+    }
+
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> initColumns() {
-        List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns =
-                ColumnUtils.getDefaultCertCaseColumns(stageNumber, getPageBase());
-        columns.add(createShowDetailsColumn());
-        return columns;
+        return ColumnUtils.getDefaultCertCaseColumns(stageNumber, getPageBase());
     }
 
     private IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String> createShowDetailsColumn() {
-        return new AjaxLinkColumn<>(Model.of("")) {
+        return new AbstractColumn<>(Model.of("")) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                return createStringResource("CertificationItemsPanel.showDetails");
-            }
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationCaseType>>> cellItem,
+                    String componentId, final IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
 
+                cellItem.add(new AjaxLinkPanel(componentId, createStringResource("CertificationItemsPanel.showDetails")) {
+                    @Serial private static final long serialVersionUID = 1L;
 
-            @Override
-            public void onClick(AjaxRequestTarget target,
-                    IModel<PrismContainerValueWrapper<AccessCertificationCaseType>> rowModel) {
-                showResponseDetailsPopup(target, rowModel);
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        showResponseDetailsPopup(target, rowModel);
+                    }
+                });
             }
 
         };

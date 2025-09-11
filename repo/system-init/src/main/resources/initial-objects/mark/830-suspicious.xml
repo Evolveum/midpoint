@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2024 Evolveum and contributors
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -9,6 +9,7 @@
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"  oid="00000000-0000-0000-0000-000000000830" >
     <name>Suspicious</name>
     <description>Mark for Suspicious object. It should be (manually) investigated.</description>
+    <documentation>(ISO27001/A.5.27,ISO27001/A.5.28,ISO27001/A.5.29,ISO27001/A.6.8)</documentation>
     <display>
         <icon>
             <cssClass>fa fa-handcuffs</cssClass>

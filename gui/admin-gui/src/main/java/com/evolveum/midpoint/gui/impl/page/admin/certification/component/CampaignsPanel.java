@@ -164,7 +164,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                             @Override
                             protected List<AccessCertificationCampaignType> load() {
                                 List<SelectableBean<AccessCertificationCampaignType>> selected =
-                                        TableUtil.getSelectedModels(getTable().getDataTable());
+                                        TableUtil.getSelectedModels(getBoxedTablePanelComponent().getDataTable());
                                 return selected.stream().map(SelectableBean::getValue).toList();
                             }
                         };

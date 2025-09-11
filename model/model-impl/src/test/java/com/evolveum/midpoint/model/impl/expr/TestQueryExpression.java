@@ -7,26 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.expr;
 
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.query.PreparedQuery;
-import com.evolveum.midpoint.schema.query.TypedQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.IOException;
+
+import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,9 +20,26 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import java.io.IOException;
-
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.query.PreparedQuery;
+import com.evolveum.midpoint.schema.query.TypedQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -61,7 +64,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         var query = TypedQuery.parse(UserType.class, "givenName = 'Elaine'");
         var objects = modelService.searchObjects(query, task, result);
         assertEquals("Only one user should be found", 1, objects.size());
-        assertEquals("User should be Elaine",userTypeElaine.getOid(),objects.get(0).getOid());
+        assertEquals("User should be Elaine", userTypeElaine.getOid(), objects.get(0).getOid());
     }
 
     @Test
@@ -77,7 +80,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         var objects = modelService.searchObjects(query, task, result);
         assertEquals("Only one user should be found", 1, objects.size());
         var only = objects.get(0);
-        assertEquals("User should be Elaine",userTypeElaine.getOid(),only.getOid());
+        assertEquals("User should be Elaine", userTypeElaine.getOid(), only.getOid());
 
         // FIXME: Investigate why readOnly option does not work
         //assertTrue("Object should be frozen", userTypeElaine.isImmutable());
@@ -100,7 +103,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         var objects = modelService.searchObjects(query, task, result);
         assertEquals("Only one user should be found", 1, objects.size());
         var only = objects.get(0);
-        assertEquals("User should be Elaine",userTypeElaine.getOid(),only.getOid());
+        assertEquals("User should be Elaine", userTypeElaine.getOid(), only.getOid());
 
         // FIXME: Investigate why readOnly option does not work
         //assertTrue("Object should be frozen", userTypeElaine.isImmutable());
@@ -115,7 +118,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         prepared.operationOptionsBuilder().distinct();
         // Search all
         var query = prepared.toTypedQuery();
-        var list = modelService.searchObjects(prepared.toTypedQuery(),task, result);
+        var list = modelService.searchObjects(prepared.toTypedQuery(), task, result);
         assertEquals("Wrong number of results", 2, list.size());
         // Default order is barbarossa, elaine
 
@@ -147,7 +150,6 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
 
         // Alternative with separate value bindings
 
-
         // Lets change offset on result query (and verify prepared is unchanged
         var list = modelService.searchObjects(typedQuery, task, result);
         assertEquals("Wrong number of results", 1, list.size());
@@ -161,7 +163,7 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         assertEquals(list, otherList);
     }
 
-        @Test(enabled = false)
+    @Test(enabled = false)
     public void test200EvaluateAxiomGivenNameMidpointFunctions() throws Exception {
         // FIXME: Requires Script evaluation context
         Task task = getTestTask();
@@ -193,7 +195,6 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
 
     }
 
-
     private void executeFilter(ObjectFilter filter, int expectedNumberOfResults, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ObjectQuery query = prismContext.queryFactory().createQuery(filter);
         SearchResultList<PrismObject<UserType>> objects = modelService.searchObjects(UserType.class, query, null, task, result);
@@ -201,4 +202,24 @@ public class TestQueryExpression extends AbstractInternalModelIntegrationTest {
         assertEquals("Wrong number of results (found: " + objects + ")", expectedNumberOfResults, objects.size());
     }
 
+    /**
+     * MID-10458
+     */
+    @Test
+    public void test310PrepareInOrgQuery() throws Exception {
+        final String oidParameter = "82229984-42fa-4554-a868-c54341f2add1";
+
+        PreparedQuery<OrgType> query = PreparedQuery.parse(OrgType.class, ". inOrg :child");
+        query.set("child", oidParameter);
+        TypedQuery result = query.build();
+        ObjectQuery real = result.toObjectQuery();
+
+        ObjectQuery expected = PrismTestUtil.getPrismContext().queryFor(OrgType.class)
+                .isChildOf(oidParameter)
+                .build();
+
+        Assertions.assertThat(expected.equivalent(real))
+                .withFailMessage("Unexpected query result: " + real.debugDump())
+                .isTrue();
+    }
 }

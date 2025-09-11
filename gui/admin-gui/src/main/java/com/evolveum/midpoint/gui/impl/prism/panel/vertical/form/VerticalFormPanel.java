@@ -141,6 +141,12 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                     protected String getCssClassForFormContainerOfValuePanel() {
                         return VerticalFormPanel.this.getCssClassForFormContainerOfValuePanel();
                     }
+
+                    @Override
+                    protected boolean isExpandedButtonVisible() {
+                        return VerticalFormPanel.this.isExpandedButtonVisible();
+
+                    }
                 };
             }
 
@@ -183,6 +189,10 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
     }
 
     protected boolean isShowEmptyButtonVisible() {
+        return true;
+    }
+
+    protected boolean isExpandedButtonVisible() {
         return true;
     }
 

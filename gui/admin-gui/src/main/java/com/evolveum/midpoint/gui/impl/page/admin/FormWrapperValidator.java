@@ -16,6 +16,9 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.DefaultContainerablePanel;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.Form;
@@ -94,7 +97,7 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
 
             @Override
             public Serializable getValue() {
-                return value.getNewValue().getRealValue();
+                return getValidatableValue(value);
             }
 
             @Override
@@ -151,4 +154,16 @@ public abstract class FormWrapperValidator<O extends ObjectType> implements IFor
     }
 
     protected abstract PrismObjectWrapper<O> getObjectWrapper();
+
+    private Serializable getValidatableValue(PrismValueWrapper value) {
+        Serializable realValue = value.getNewValue().getRealValue();
+        // fix for 10773
+        //todo unify validatable values between input panel and value wrapper
+        if (realValue instanceof PolyStringType polyStringRealValue) {
+            return polyStringRealValue.toString();
+        } else if (realValue instanceof PolyString polyStringRealValue) {
+            return polyStringRealValue.toString();
+        }
+        return realValue;
+    }
 }

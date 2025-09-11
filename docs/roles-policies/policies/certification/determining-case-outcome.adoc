@@ -1,0 +1,379 @@
+= Determining Certification Case Outcome
+:page-nav-title: Determining Case Outcome
+:page-wiki-name: Determining Certification Case Outcome
+:page-wiki-id: 22282427
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-02-04T15:35:26.459+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-04-21T16:57:58.966+02:00
+:page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/certification/determining-case-outcome/
+:page-description: This page explains how midPoint determines the outcome of certification campaigns.
+:page-keywords: certification campaign, certification outcome, determine certification, case outcome, outcome strategy, outcomeStrategy, reviewStrategy
+:page-toc: top
+
+This page explains how midPoint determines the outcome of certification campaigns. 
+
+== Introduction
+
+Each case is reviewed in one or more stages, by one or more reviewers.
+
+When determining the outcome of a certification campaign, midPoint has to consider several factors:
+
+* How to evaluate varying responses from individual reviewers.
+* How to evaluate cases in which no reviewers are assigned (e.g. if a reviewer is defined as the target role owner, but a particular role has no owner), or when reviewers fail to provide any answers during a stage.
+* Which of the following cases should be considered.
+    ** Those that were explicitly accepted during a previous phase.
+    ** Those that were not rejected.
+    ** All cases.
+* How should results from individual stages be combined.
+
+There are two parameters that address the factors above:
+
+* Stage-level-defined `*outcomeStrategy*` - Determines how decisions of reviewers within a stage are combined into "stage decision".
+* Campaign-level-defined `*reviewStrategy*` - Controls how decisions taken at individual stages combine into the final decision.
+It also determines if a case that was rejected (or not approved) at stage N continues in stage N+1 or not.
+
+== Outcome determination strategies
+
+=== Stage level
+
+The following strategies control how outcome is determined:
+
+[%autowidth]
+|===
+| Strategy | Description
+
+| <<OneAcceptAccepts,`oneAcceptAccepts`>>
+| If at least one reviewer accepts, the result is "Accept" regardless of the other votes.
+This is the default strategy.
+
+
+| <<AllMustAccept,`allMustAccept`>>
+| All reviewers must accept.
+No reviewers means No response.
+
+
+| <<OneDenyDenies,`oneDenyDenies`>>
+| If at least one reviewer denies (either via revoke or reduce), the result is not approved.
+However, for a case to be approved, at least one approval must be present.
+
+
+| <<AcceptedIfNotDenied,`acceptedIfNotDenied`>>
+| Approved if none of the reviewers denies (either via revoke or reduce).
+For example, if nobody acts, the case is approved.
+
+
+|===
+
+You can define the default response that is used when no reviewers are available.
+This does not apply to cases when reviewers do not respond, but rather to situations such as when reviewers are defined as target role owners but a particular role has no owners.
+
+In the decision tables shown below, these symbols are used:
+
+[%autowidth]
+|===
+| Symbol | Meaning
+
+| present
+| One or more answers of this kind are present.
+
+
+| -
+| No answers of this kind are present.
+
+
+| *
+| Answers of this kind are ignored, i.e. there may be zero, one or more such answers.
+
+
+|===
+
+"No response" can be represented in the following ways:
+
+* An explicit NO_RESPONSE decision is provided.
+
+* A decision with a response = null is provided.
+
+* No decision for a reviewer is provided.
+
+"Delegate" is currently not supported and is treated as No response.
+The plan is to treat delegate as a "forward pointer" to another reviewer so that their answer can be used as the answer we are looking for.
+
+[[OneAcceptAccepts]]
+==== OneAcceptAccepts
+
+[%autowidth]
+|===
+| Revoke | Reduce | Not decided | No response | Accept | Result
+
+| *
+| *
+| *
+| *
+| present
+| *Accept*
+
+
+| present
+| *
+| *
+| *
+| -
+| *Revoke*
+
+
+| -
+| present
+| *
+| *
+| -
+| *Reduce*
+
+
+| -
+| -
+| present
+| *
+| -
+| *Not decided*
+
+
+| -
+| -
+| -
+| present
+| -
+| *No response*
+
+
+| -
+| -
+| -
+| -
+| -
+| *<default>*
+
+
+|===
+
+[[AllMustAccept]]
+==== AllMustAccept
+
+[%autowidth]
+|===
+| Revoke | Reduce | Not decided | No response | Accept | Result
+
+| present
+| *
+| *
+| *
+| *
+| *Revoke*
+
+
+| -
+| present
+| *
+| *
+| *
+| *Reduce*
+
+
+| -
+| -
+| present
+| *
+| *
+| *Not decided*
+
+
+| -
+| -
+| -
+| present
+| *
+| *No response*
+
+
+| -
+| -
+| -
+| -
+| present
+| *Accept*
+
+
+| -
+| -
+| -
+| -
+| -
+| *<default>*
+
+
+|===
+
+[[OneDenyDenies]]
+==== OneDenyDenies
+
+[%autowidth]
+|===
+| Revoke | Reduce | Not decided | No response | Accept | Result
+
+| present
+| *
+| *
+| *
+| -
+| *Revoke*
+
+
+| -
+| present
+| *
+| *
+| -
+| *Reduce*
+
+
+| -
+| -
+| *
+| *
+| present
+| *Accept*
+
+
+| -
+| -
+| present
+| *
+| -
+| *Not decided*
+
+
+| -
+| -
+| -
+| present
+| -
+| *No response*
+
+
+| -
+| -
+| -
+| -
+| -
+| *<default>*
+
+
+|===
+
+[[AcceptedIfNotDenied]]
+==== AcceptedIfNotDenied
+
+[%autowidth]
+|===
+| Revoke | Reduce | Not decided | No response | Accept | Result
+
+| present
+| *
+| *
+| *
+| *
+| *Revoke*
+
+
+| -
+| present
+| *
+| *
+| *
+| *Reduce*
+
+
+| -
+| -
+| present
+| *
+| *
+| *Accept*
+
+
+| -
+| -
+| -
+| present
+| *
+| *Accept*
+
+
+| -
+| -
+| -
+| -
+| present
+| *Accept*
+
+
+| -
+| -
+| -
+| -
+| -
+| *<default>* (it is reasonable to use Accept as the default)
+
+|===
+
+
+=== Campaign level
+
+The campaign level uses the same strategies as the stage level (the default is `allMustAccept`).
+However, you need to define when to advance to the next stage.
+
+Advancing to the next stage is defined by the following multi-valued properties:
+
+* `*stopReviewOn*`
+* `*advanceToNextStageOn*`
+
+These can be defined both at the stage level, and for the whole campaign.
+They follow this logic:
+
+* If you only define one of the properties, the other one is then computed as its complement.
+* If both are specified, `stopReviewOn` takes precedence.
+* If neither one is specified, the default values are derived from the outcome strategy used, as shown in the following table.
+
+NOTE: Stage-level values are not _added_ to campaign-level values, they replace them.
+
+
+[%autowidth]
+|===
+| Strategy | Description | Default `stopReviewOn` value
+
+| `oneAcceptAccepts`
+| If at least one reviewer accepts, the result is "Accept" regardless of the other votes.
+| accept
+
+
+| `allMustAccept`
+| All reviewers must accept.
+No reviewers mean No response.
+| revoke, reduce
+
+
+| `oneDenyDenies`
+| If at least one reviewer denies (either via revoke or reduce), the result is not approved.
+However, for a case to be approved, at least one approval must be present.
+This is the default strategy.
+| revoke, reduce
+
+
+| `acceptedIfNotDenied`
+| Approved if none of the reviewers denies (either via revoke or reduce).
+So, for example, if nobody responds, the case is approved.
+| revoke, reduce
+
+
+|===

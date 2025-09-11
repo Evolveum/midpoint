@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -103,6 +105,18 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
 
             @Override
+            protected String getDefaultSortParam() {
+                var defaultSortParam = ObjectListPanel.this.getDefaultSortParam();
+                return StringUtils.isNotEmpty(defaultSortParam) ? defaultSortParam : super.getDefaultSortParam();
+            }
+
+            @Override
+            protected SortOrder getDefaultSortOrder() {
+                var defaultSortOrder = ObjectListPanel.this.getDefaultSortOrder();
+                return defaultSortOrder != null ? defaultSortOrder : super.getDefaultSortOrder();
+            }
+
+            @Override
             public Set<O> getSelected() {
                 List<O> preselectedObjects = getPreselectedObjectList();
                 return preselectedObjects == null ? new HashSet<>() : new HashSet<>(preselectedObjects);
@@ -138,5 +152,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     @Override
     public List<O> getSelectedRealObjects() {
         return getSelectedObjects().stream().map(SelectableBean::getValue).collect(Collectors.toList());
+    }
+
+    protected String getDefaultSortParam() {
+        return null;
+    }
+
+    protected SortOrder getDefaultSortOrder() {
+        return null;
     }
 }

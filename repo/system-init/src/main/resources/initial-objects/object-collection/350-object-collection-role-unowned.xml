@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectCollection oid="6d9d98f5-9182-4d2d-89e8-32ab23704199"
+                  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Unowned roles</name>
+    <documentation>(ISO27001/A.5.16,ISO27001/A.5.36)</documentation>
+    <type>RoleType</type>
+    <filter>
+        <q:text>effectiveMarkRef matches ( oid = "5508aca4-2aef-47a6-ad50-892389823c91" )</q:text>
+    </filter>
+    <defaultView>
+        <display>
+            <label>
+                <orig>Unowned role</orig>
+                <translation>
+                    <key>unownedRole.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Unowned roles</orig>
+                <translation>
+                    <key>unownedRole.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+    </defaultView>
+</objectCollection>

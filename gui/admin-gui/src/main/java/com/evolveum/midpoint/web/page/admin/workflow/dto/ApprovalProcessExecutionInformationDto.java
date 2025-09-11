@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecut
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.List;
  */
 public class ApprovalProcessExecutionInformationDto implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String F_PROCESS_NAME = "processName";
     public static final String F_TARGET_NAME = "targetName";
@@ -57,11 +58,10 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 
     @NotNull
     public static ApprovalProcessExecutionInformationDto createFrom(ApprovalSchemaExecutionInformationType info,
-            ObjectResolver resolver, boolean wholeProcess, Task opTask,
-            OperationResult result) {
+            boolean wholeProcess, Task opTask,
+            OperationResult result, PageAdminLTE parentPage) {
         int currentStageNumber = info.getCurrentStageNumber() != null ? info.getCurrentStageNumber() : 0;
         int numberOfStages = info.getStage().size();
-        ObjectResolver.Session session = resolver.openResolutionSession(null);
         String processName = ApprovalContextUtil.getProcessName(info);
         String targetName = ApprovalContextUtil.getTargetName(info);
         CaseType aCase = ApprovalContextUtil.getCase(info);
@@ -73,7 +73,8 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
         int startingStageNumber = wholeProcess ? 1 : currentStageNumber;
         boolean reachable = true;
         for (int i = startingStageNumber; i <= numberOfStages; i++) {
-            ApprovalStageExecutionInformationDto stage = ApprovalStageExecutionInformationDto.createFrom(info, i, resolver, session, opTask, result);
+            ApprovalStageExecutionInformationDto stage =
+                    ApprovalStageExecutionInformationDto.createFrom(info, i, opTask, result, parentPage);
             stage.setReachable(reachable);
             rv.stages.add(stage);
             if (stage.getOutcome() == ApprovalLevelOutcomeType.REJECT) {

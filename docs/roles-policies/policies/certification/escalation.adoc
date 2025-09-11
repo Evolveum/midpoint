@@ -1,0 +1,112 @@
+= Escalation in Certification Campaigns
+:page-wiki-name: Escalation in certification campaigns HOWTO
+:page-wiki-id: 24085861
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2017-04-19T11:57:52.623+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2017-04-19T12:03:10.715+02:00
+:page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/certification/escalation/
+:page-description: This page describes how escalations can be used in certification campaigns. You can use escalations to avoid stalled certifications, to enforce accountability, or to ensure higher scrutiny for risky items.
+:page-keywords: escalation, certification campaign, escalate, timed action
+:page-toc: top
+
+This page describes how escalations can be used in certification campaigns.
+
+You can use escalations to avoid stalled certifications, to enforce accountability, or to ensure higher scrutiny for risky items.
+
+Escalations were originally developed for xref:/midpoint/reference/cases/escalation/[approvals], and they are implemented through *_timed actions_*.
+
+== Timed actions
+
+While the implementation of escalations is similar in certification campaigns and in approvals, there are some differences.
+The main differences are captured in the following table:
+
+[cols="3*", options="header"]
+|===
+|  | Approvals | Certification campaigns
+
+| *Actions*
+| The following actions are supported: completion, notification, delegation, escalation.    
+| Only escalation is currently implemented.
+
+| *Deadline*
+| Optional, and potentially different for all work items created in a particular approval stage.
+It is usually changed in escalations. 
+| Obligatory, and identical for all work items for all active cases in a campaign stage, i.e. the certification work item deadline is fixed and it cannot be changed as part of an escalation timed action.
+
+| *Escalation configuration*    
+| Each level in an approval process can have a different escalation configuration. 
+| One configuration is shared by all work items for all active cases in a certification campaign stage.
+
+|===
+
+
+== Example
+
+See a sample campaign definition with an automatic escalation:
+
+.Certification campaign with escalations
+[source,xml]
+----
+<accessCertificationDefinition
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>All user assignments</name>
+    <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>UserType</objectType>
+    </scopeDefinition>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"><!-- administrator --></ownerRef>
+    <remediationDefinition>
+        <style>automated</style>
+    </remediationDefinition>
+    <stageDefinition>
+        <number>1</number>
+        <name>Administrator's review</name>
+        <description>In this stage, the administrator has to review all the assignments of all users.</description>
+        <duration>P14D</duration>   <!-- 14 days -->
+        <notifyBeforeDeadline>PT48H</notifyBeforeDeadline> <!-- 48 hours -->
+        <notifyBeforeDeadline>PT12H</notifyBeforeDeadline>
+        <notifyOnlyWhenNoDecision>true</notifyOnlyWhenNoDecision>  <!-- this is the default -->
+        <reviewerSpecification>
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
+        </reviewerSpecification>
+        <timedActions>
+            <time>
+                <value>P7D</value>
+            </time>
+            <actions>
+                <escalate>
+                    <approverRef oid="018fe48d-4952-4f4b-8c0a-b8670ec1748e" type="UserType" />  <!-- some other user -->
+                    <delegationMethod>addAssignees</delegationMethod>
+                    <escalationLevelName>Level1</escalationLevelName>
+                </escalate>
+            </actions>
+        </timedActions>
+        <timedActions>
+            <time>
+                <value>P10D</value>
+            </time>
+            <actions>
+                <escalate>
+                    <approverRef oid="42b48a07-e167-4fdc-baca-8eaa13d4eaad" type="UserType" />  <!-- yet another user -->
+                    <delegationMethod>replaceAssignees</delegationMethod>
+                    <escalationLevelName>Level2</escalationLevelName>
+                </escalate>
+            </actions>
+            <escalationLevelFrom>1</escalationLevelFrom>
+            <escalationLevelTo>1</escalationLevelTo>
+        </timedActions>
+    </stageDefinition>
+</accessCertificationDefinition>
+----
+
+The actual escalations are defined on lines 25-50 (`<timedActions>...</timedActions>`).
+As defined on line 27, the first escalation takes place seven days after the campaign stage opening (`P7D`).
+The new escalation level is named `Level1`, and its effect is that a reviewer of `018fe48d-4952-4f4b-8c0a-b8670ec1748e` (line 31) is added (`addAssignees` - line 32) to the current certification work item.
+
+Then, as defined on line 39, ten days after the campaign stage opening (`P10D`), i.e. three days after the first escalation, another escalation takes place.
+It is named `Level2`, and it replaces all existing reviewers (`replaceAssignees` - line 44) with `42b48a07-e167-4fdc-baca-8eaa13d4eaad` (line 43).
+Same as in xref:/midpoint/reference/cases/escalation/[approvals], chaining of escalation levels is done by constraining timed actions to levels using the `escalationLevelFrom`/`escalationLevelTo` clauses (lines 48-49).
