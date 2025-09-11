@@ -15,7 +15,6 @@ doc-type: config
 :page-keywords: [ 'dashboard', 'dashboards', 'configuration' ]
 :search-alias: "dashboard configuration"
 :page-upkeep-status: yellow
-:page-upkeep-note: check TODO's after sampleRef is fully in prod remove links
 
 This article contains advanced configuration options for dashboards and dashboard widgets in particular.
 You can use the options to select the data sources of widgets or adjust the appearance of your dashboard widgets,
