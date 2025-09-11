@@ -5,12 +5,15 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.simulation;
+package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.*;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObjects;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -46,16 +49,20 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.createResultDurationText;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.createTaskStateLabel;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class SimulationResultsPanel extends MainObjectListPanel<SimulationResultType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SimulationResultsPanel.class);
 
@@ -267,12 +274,12 @@ public class SimulationResultsPanel extends MainObjectListPanel<SimulationResult
     @Override
     protected List<IColumn<SelectableBean<SimulationResultType>, String>> createDefaultColumns() {
         List<IColumn<SelectableBean<SimulationResultType>, String>> columns = super.createDefaultColumns();
-        columns.add(new LambdaColumn<>(createStringResource("ProcessedObjectsPanel.duration"), row -> PageSimulationResult.createResultDurationText(row.getValue(), this)));
+        columns.add(new LambdaColumn<>(createStringResource("ProcessedObjectsPanel.duration"), row -> createResultDurationText(row.getValue(), this)));
         columns.add(new AbstractColumn<>(createStringResource("ProcessedObjectsPanel.executionState")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<SimulationResultType>>> item, String id, IModel<SelectableBean<SimulationResultType>> model) {
-                Component label = PageSimulationResult.createTaskStateLabel(id, () -> model.getObject().getValue(), null, getPageBase());
+                Component label = createTaskStateLabel(id, () -> model.getObject().getValue(), null, getPageBase());
                 item.add(label);
             }
         });

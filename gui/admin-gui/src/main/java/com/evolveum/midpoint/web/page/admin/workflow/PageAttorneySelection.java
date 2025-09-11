@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -111,7 +112,7 @@ public class PageAttorneySelection extends PageBase {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void onClick(IModel<SelectableBean<UserType>> rowModel) {
+                    public void onClick(IModel<SelectableBean<UserType>> rowModel, AjaxRequestTarget target) {
                         UserType object = rowModel.getObject().getValue();
                         selectUserPerformed(object.getOid());
                     }

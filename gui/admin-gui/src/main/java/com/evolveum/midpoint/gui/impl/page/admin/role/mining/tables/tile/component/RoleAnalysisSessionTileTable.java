@@ -647,7 +647,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
         ObjectNameColumn<RoleAnalysisSessionType> objectNameColumn = new ObjectNameColumn<>(
                 createStringResource("ObjectType.name")) {
             @Override
-            protected void onClick(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+            protected void onClick(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> rowModel, AjaxRequestTarget target) {
                 dispatchToObjectDetailsPage(RoleAnalysisSessionType.class, rowModel.getObject().getValue().getOid(),
                         RoleAnalysisSessionTileTable.this.getPageBase(), true);
             }

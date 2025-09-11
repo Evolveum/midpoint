@@ -8,18 +8,29 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.web.page.error.PageError404;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -340,5 +351,118 @@ public class SimulationsGuiUtil {
             default:
                 return null;
         }
+    }
+
+    public static @Nullable String createResultDurationText(@NotNull SimulationResultType result, Component panel) {
+        XMLGregorianCalendar start = result.getStartTimestamp();
+        if (start == null) {
+            return panel.getString("SimulationResultsPanel.notStartedYet");
+        }
+
+        XMLGregorianCalendar end = result.getEndTimestamp();
+        if (end == null) {
+            end = MiscUtil.asXMLGregorianCalendar(new Date());
+        }
+
+        long duration = (end != null ? end.toGregorianCalendar().getTimeInMillis() : 0) - start.toGregorianCalendar().getTimeInMillis();
+        if (duration < 0) {
+            return null;
+        }
+
+        return DurationFormatUtils.formatDurationWords(duration, true, true);
+    }
+
+    public static @NotNull Component createTaskStateLabel(
+            String id, IModel<SimulationResultType> model, IModel<TaskType> taskModel, PageBase page) {
+        IModel<TaskExecutionStateType> stateModel = () -> {
+            TaskType task;
+            if (taskModel != null) {
+                task = taskModel.getObject();
+            } else {
+                SimulationResultType result = model.getObject();
+                if (result == null || result.getRootTaskRef() == null) {
+                    return null;
+                }
+
+                PrismObject<TaskType> obj = WebModelServiceUtils.loadObject(result.getRootTaskRef(), page);
+                task = obj != null ? obj.asObjectable() : null;
+            }
+
+            return task != null ? task.getExecutionState() : null;
+        };
+
+        Label label = new Label(id, () -> {
+            if (model.getObject().getEndTimestamp() != null) {
+                return page.getString("PageSimulationResult.finished");
+            }
+
+            TaskExecutionStateType state = stateModel.getObject();
+            if (state == null) {
+                return null;
+            }
+
+            return page.getString(state);
+        });
+        label.add(AttributeAppender.replace("class", () -> {
+            TaskExecutionStateType state = stateModel.getObject();
+            if (state == TaskExecutionStateType.RUNNABLE || state == TaskExecutionStateType.RUNNING) {
+                return Badge.State.SUCCESS.getCss();
+            }
+
+            return Badge.State.SECONDARY.getCss();
+        }));
+
+        return label;
+    }
+
+    public static @NotNull SimulationResultType loadSimulationResult(PageBase page, String resultOid) {
+
+        if (!Utils.isPrismObjectOidValid(resultOid)) {
+            throw new RestartResponseException(PageError404.class);
+        }
+
+        Task task = page.getPageTask();
+
+        PrismObject<SimulationResultType> object = WebModelServiceUtils.loadObject(
+                SimulationResultType.class, resultOid, page, task, task.getResult());
+        if (object == null) {
+            throw new RestartResponseException(PageError404.class);
+        }
+
+        return object.asObjectable();
+    }
+
+    public static @NotNull LoadableDetachableModel<SimulationResultProcessedObjectType> loadSimulationResultProcessedObjectModel(
+            @NotNull PageBase pageBase,
+            @NotNull String simulationResultOid,
+            @Nullable Long simulationResultProcessedObjectId) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected SimulationResultProcessedObjectType load() {
+                Task task = pageBase.getPageTask();
+
+
+                if (simulationResultProcessedObjectId == null) {
+                    throw new RestartResponseException(PageError404.class);
+                }
+
+                ObjectQuery query = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                        .ownedBy(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT)
+                        .ownerId(simulationResultOid)
+                        .and()
+                        .id(simulationResultProcessedObjectId)
+                        .build();
+
+                List<SimulationResultProcessedObjectType> result = WebModelServiceUtils.searchContainers(SimulationResultProcessedObjectType.class,
+                        query, null, task.getResult(), pageBase);
+
+                if (result.isEmpty()) {
+                    throw new RestartResponseException(PageError404.class);
+                }
+
+                return result.get(0);
+            }
+        };
     }
 }

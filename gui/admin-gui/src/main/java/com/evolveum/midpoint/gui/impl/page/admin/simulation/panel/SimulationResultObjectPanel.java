@@ -1,20 +1,23 @@
 /*
- * Copyright (c) 2010-2023 Evolveum and contributors
+ * Copyright (c) 2010-2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.simulation;
+package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -28,25 +31,19 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.*;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.CountToolbar;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkWithBadgesColumn;
@@ -55,35 +52,14 @@ import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * Created by Viliam Repan (lazyman).
- */
-@PageDescriptor(
-        urls = {
-                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/object/${CONTAINER_ID}",
-                        matchUrlForSecurity = "/admin/simulations/result/?*/object/?*"),
-                @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/mark/${MARK_OID}/object/${CONTAINER_ID}",
-                        matchUrlForSecurity = "/admin/simulations/result/?*/mark/?*/object/?*")
-        },
-        action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,
-                        label = "PageSimulationResults.auth.simulationsAll.label",
-                        description = "PageSimulationResults.auth.simulationsAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATION_PROCESSED_OBJECT_URL,
-                        label = "PageSimulationResultObject.auth.simulationProcessedObject.label",
-                        description = "PageSimulationResultObject.auth.simulationProcessedObject.description")
-        }
-)
-public class PageSimulationResultObject extends PageAdmin implements SimulationPage {
+import org.jetbrains.annotations.Nullable;
 
-    private static final long serialVersionUID = 1L;
+public abstract class SimulationResultObjectPanel extends BasePanel<SimulationResultType> {
 
-    private static final String ID_NAVIGATION = "navigation";
+    @Serial private static final long serialVersionUID = 1L;
+
     private static final String ID_DETAILS = "details";
     private static final String ID_RELATED_OBJECTS = "relatedObjects";
     private static final String ID_CHANGES = "changes";
@@ -91,64 +67,27 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     private static final String ID_FOOTER = "footer";
     private static final String ID_COUNT = "count";
 
-    private IModel<SimulationResultType> resultModel;
-
-    private IModel<SimulationResultProcessedObjectType> objectModel;
-
+    private final IModel<SimulationResultProcessedObjectType> objectModel;
     private IModel<ProcessedObject<?>> processedObjectModel;
-
     private IModel<List<DetailsTableItem>> detailsModel;
 
-    public PageSimulationResultObject() {
-        this(new PageParameters());
+    public SimulationResultObjectPanel(String id, IModel<SimulationResultType> model, IModel<SimulationResultProcessedObjectType> objectModel) {
+        super(id, model);
+        this.objectModel = objectModel;
     }
 
-    public PageSimulationResultObject(PageParameters parameters) {
-        super(parameters);
-
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initModels();
         initLayout();
     }
 
+    protected IModel<SimulationResultProcessedObjectType> getObjectModel() {
+        return objectModel;
+    }
+
     private void initModels() {
-        resultModel = new LoadableDetachableModel<>() {
-
-            @Override
-            protected SimulationResultType load() {
-                return loadSimulationResult(PageSimulationResultObject.this);
-            }
-        };
-
-        objectModel = new LoadableDetachableModel<>() {
-
-            @Override
-            protected SimulationResultProcessedObjectType load() {
-                Task task = getPageTask();
-
-                Long id = getPageParameterContainerId();
-
-                if (id == null) {
-                    throw new RestartResponseException(PageError404.class);
-                }
-
-                ObjectQuery query = getPrismContext().queryFor(SimulationResultProcessedObjectType.class)
-                        .ownedBy(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT)
-                        .ownerId(resultModel.getObject().getOid())
-                        .and()
-                        .id(id)
-                        .build();
-
-                List<SimulationResultProcessedObjectType> result = WebModelServiceUtils.searchContainers(SimulationResultProcessedObjectType.class,
-                        query, null, task.getResult(), PageSimulationResultObject.this);
-
-                if (result.isEmpty()) {
-                    throw new RestartResponseException(PageError404.class);
-                }
-
-                return result.get(0);
-            }
-        };
-
         processedObjectModel = new LoadableDetachableModel<>() {
 
             @Override
@@ -158,7 +97,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                     return null;
                 }
 
-                return SimulationsGuiUtil.parseProcessedObject(object, PageSimulationResultObject.this);
+                return SimulationsGuiUtil.parseProcessedObject(object, getPageBase());
             }
         };
 
@@ -185,7 +124,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                             return null;
                         }
 
-                        PrismObject<ResourceType> resourceObject = WebModelServiceUtils.loadObject(resourceRef, PageSimulationResultObject.this);
+                        PrismObject<ResourceType> resourceObject = WebModelServiceUtils.loadObject(resourceRef, getPageBase());
                         if (resourceObject == null) {
                             return null;
                         }
@@ -242,7 +181,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                                     return null;
                                 }
 
-                                PrismObject<ArchetypeType> archetype = WebModelServiceUtils.loadObject(archetypeRef, PageSimulationResultObject.this);
+                                PrismObject<ArchetypeType> archetype = WebModelServiceUtils.loadObject(archetypeRef, getPageBase());
                                 if (archetype == null) {
                                     return WebComponentUtil.getName(archetypeRef);
                                 }
@@ -268,7 +207,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                                 SimulationResultProcessedObjectType object = objectModel.getObject();
 
                                 Object[] names = object.getEventMarkRef().stream()
-                                        .map(ref -> WebModelServiceUtils.resolveReferenceName(ref, PageSimulationResultObject.this))
+                                        .map(ref -> WebModelServiceUtils.resolveReferenceName(ref, getPageBase()))
                                         .filter(Objects::nonNull)
                                         .sorted()
                                         .toArray();
@@ -293,47 +232,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     }
 
     private void initLayout() {
-        NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
-
-            @Override
-            protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
-                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-            }
-
-            @Override
-            protected IModel<String> createTitleModel() {
-                return PageSimulationResultObject.this.createTitleModel();
-            }
-
-            @Override
-            protected void onBackPerformed(AjaxRequestTarget target) {
-                PageSimulationResultObject.this.onBackPerformed();
-            }
-        };
-        add(navigation);
-
-        IModel<Search<SimulationResultProcessedObjectType>> searchModel = new LoadableDetachableModel<>() {
-
-            @Override
-            protected Search<SimulationResultProcessedObjectType> load() {
-                return new SearchBuilder<>(SimulationResultProcessedObjectType.class)
-                        .modelServiceLocator(PageSimulationResultObject.this)
-                        .build();
-            }
-        };
-
-        CombinedRelatedObjectsProvider provider = new CombinedRelatedObjectsProvider(this, searchModel, objectModel) {
-
-            @Override
-            protected @NotNull String getSimulationResultOid() {
-                return PageSimulationResultObject.this.getPageParameterResultOid();
-            }
-
-            @Override
-            protected @NotNull Long getProcessedObjectId() {
-                return PageSimulationResultObject.this.getPageParameterContainerId();
-            }
-        };
+        CombinedRelatedObjectsProvider provider = getCombinedRelatedObjectsProvider();
 
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = createColumns();
 
@@ -341,7 +240,8 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 new SelectableDataTable<>(ID_RELATED_OBJECTS, columns, provider, 10) {
 
                     @Override
-                    protected Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> newCellItem(String id, int index, IModel<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> model) {
+                    protected @NotNull Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> newCellItem(
+                            String id, int index, IModel<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> model) {
                         Item<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> item = super.newCellItem(id, index, model);
                         if (index == 1) {
                             item.add(AttributeAppender.append("style", "word-break:break-all"));
@@ -372,8 +272,9 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
         final NavigatorPanel paging = new NavigatorPanel(ID_PAGING, relatedObjects, true) {
 
+            @Contract(pure = true)
             @Override
-            protected String getPaginationCssClass() {
+            protected @Nullable String getPaginationCssClass() {
                 return null;
             }
         };
@@ -387,6 +288,36 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                 detailsModel);
         add(details);
 
+        ChangesPanel changesNew = buildChangePanel();
+        add(changesNew);
+    }
+
+    private @NotNull CombinedRelatedObjectsProvider getCombinedRelatedObjectsProvider() {
+        IModel<Search<SimulationResultProcessedObjectType>> searchModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected Search<SimulationResultProcessedObjectType> load() {
+                return new SearchBuilder<>(SimulationResultProcessedObjectType.class)
+                        .modelServiceLocator(getPageBase())
+                        .build();
+            }
+        };
+
+        return new CombinedRelatedObjectsProvider(SimulationResultObjectPanel.this, searchModel, objectModel) {
+
+            @Override
+            protected @NotNull String getSimulationResultOid() {
+                return SimulationResultObjectPanel.this.getModelObject().getOid();
+            }
+
+            @Override
+            protected @NotNull Long getProcessedObjectId() {
+                return SimulationResultObjectPanel.this.getObjectModel().getObject().getId();
+            }
+        };
+    }
+
+    private @NotNull ChangesPanel buildChangePanel() {
         IModel<List<VisualizationDto>> visualizations = new LoadableDetachableModel<>() {
 
             @Override
@@ -399,7 +330,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
                     object.fixEstimatedOldValuesInDelta();
 
-                    Visualization visualization = SimulationsGuiUtil.createVisualization(object.getDelta(), PageSimulationResultObject.this);
+                    Visualization visualization = SimulationsGuiUtil.createVisualization(object.getDelta(), getPageBase());
                     if (visualization == null) {
                         return Collections.emptyList();
                     }
@@ -415,17 +346,17 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
 
         ChangesPanel changesNew = new ChangesPanel(ID_CHANGES, visualizations);
         changesNew.setShowOperationalItems(true);
-        add(changesNew);
+        return changesNew;
     }
 
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = new ArrayList<>();
-        columns.add(SimulationsGuiUtil.createProcessedObjectIconColumn(PageSimulationResultObject.this));
+        columns.add(SimulationsGuiUtil.createProcessedObjectIconColumn(getPageBase()));
         columns.add(new AjaxLinkWithBadgesColumn<>(createStringResource("ProcessedObjectsPanel.nameColumn")) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-                onRelatedObjectClicked(rowModel.getObject());
+                onRelatedObjectClicked(rowModel.getObject(), target);
             }
 
             @Override
@@ -437,15 +368,15 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                         return null;
                     }
 
-                    ProcessedObject<?> obj = SimulationsGuiUtil.parseProcessedObject(object, PageSimulationResultObject.this);
+                    ProcessedObject<?> obj = SimulationsGuiUtil.parseProcessedObject(object, getPageBase());
 
-                    return SimulationsGuiUtil.getProcessedObjectName(obj, PageSimulationResultObject.this);
+                    return SimulationsGuiUtil.getProcessedObjectName(obj, getPageBase());
                 };
             }
 
             @Override
             protected IModel<List<Badge>> createBadgesModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-                return PageSimulationResultObject.this.createBadgesModel(rowModel);
+                return SimulationResultObjectPanel.this.createBadgesModel(rowModel);
             }
         });
         columns.add(new LambdaColumn<>(null, row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue)));
@@ -453,7 +384,8 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         return columns;
     }
 
-    private IModel<List<Badge>> createBadgesModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+    @Contract(value = "_ -> new", pure = true)
+    private @NotNull IModel<List<Badge>> createBadgesModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
         return new LoadableDetachableModel<>() {
 
             @Override
@@ -476,48 +408,31 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
         };
     }
 
-    private void onRelatedObjectClicked(SelectableBean<SimulationResultProcessedObjectType> bean) {
+    private void onRelatedObjectClicked(@NotNull SelectableBean<SimulationResultProcessedObjectType> bean, AjaxRequestTarget target) {
         SimulationResultProcessedObjectType object = bean.getValue();
         if (object == null) {
             return;
         }
 
+        String markOid = getMarkOid();
+        String simulationResultOid = getModelObject().getOid();
+        navigateToSimulationResultObject(simulationResultOid, markOid, object, target);
+    }
+
+    protected abstract String getMarkOid();
+
+    protected void navigateToSimulationResultObject(
+            @NotNull String simulationResultOid,
+            @Nullable String markOid,
+            @NotNull SimulationResultProcessedObjectType object,
+            @NotNull AjaxRequestTarget target) {
         PageParameters params = new PageParameters();
-        params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, getPageParameterResultOid());
-        String markOid = getPageParameterMarkOid();
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, simulationResultOid);
         if (markOid != null) {
             params.set(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID, markOid);
         }
         params.set(PageSimulationResultObject.PAGE_PARAMETER_CONTAINER_ID, object.getId());
-
-        navigateToNext(PageSimulationResultObject.class, params);
+        getPageBase().navigateToNext(PageSimulationResultObject.class, params);
     }
 
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return () -> null;
-    }
-
-    private void onBackPerformed() {
-        redirectBack();
-    }
-
-    private IModel<String> createTitleModel() {
-        return () -> {
-            String name = WebComponentUtil.getOrigStringFromPoly(objectModel.getObject().getName());
-
-            if (StringUtils.isEmpty(name)) {
-                SimulationResultProcessedObjectType object = objectModel.getObject();
-                ProcessedObject<?> processedObject = SimulationsGuiUtil.parseProcessedObject(object, PageSimulationResultObject.this);
-                name = SimulationsGuiUtil.getShadowNameFromAttribute(processedObject);
-            }
-
-            return name + " (" + WebComponentUtil.getDisplayNameOrName(resultModel.getObject().asPrismObject()) + ")";
-        };
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        addBreadcrumb(new Breadcrumb(createTitleModel(), this.getClass(), getPageParameters()));
-    }
 }

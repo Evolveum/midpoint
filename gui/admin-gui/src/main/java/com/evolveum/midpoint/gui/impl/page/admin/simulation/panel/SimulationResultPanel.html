@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2021 Evolveum
+  ~ Copyright (c) 2025 Evolveum
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -7,26 +7,24 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:extend>
-    <div wicket:id="navigation"/>
-
+<wicket:panel>
     <div class="row">
         <div class="col-12 col-xl-4 col-xxl-3">
-            <div wicket:id="details"/>
+            <div wicket:id="details"></div>
         </div>
         <div class="col-12 col-xl-8 col-xxl-9 d-flex flex-column">
             <div wicket:id="marksContainer">
                 <div class="col-6 col-xl-4 col-xxl-3 mb-3" wicket:id="marks">
-                    <div wicket:id="mark"/>
+                    <div wicket:id="mark"></div>
                 </div>
             </div>
             <div wicket:id="metricsContainer">
                 <div class="col-6 col-xl-4 col-xxl-3 mb-3" wicket:id="metrics">
-                    <div wicket:id="metric"/>
+                    <div wicket:id="metric"></div>
                 </div>
             </div>
         </div>
     </div>
-</wicket:extend>
+</wicket:panel>
 </body>
 </html>
