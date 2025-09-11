@@ -6,6 +6,7 @@ doc-type: intro
 = Dashboards architecture
 :page-nav-title: Architecture
 :page-toc: top
+:page-display-order: 10
 :page-keywords: [ 'dashboard', 'dashboards', 'architecture' ]
 :page-upkeep-status: green
 
