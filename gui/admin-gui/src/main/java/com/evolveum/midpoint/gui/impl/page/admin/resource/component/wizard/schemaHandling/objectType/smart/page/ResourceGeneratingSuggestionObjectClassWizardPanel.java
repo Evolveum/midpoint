@@ -144,7 +144,7 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
 
     @Override
     protected @Nullable IModel<String> getBreadcrumbIcon() {
-        return Model.of(GuiStyleConstants.CLASS_ICON_WIZARD);
+        return Model.of("fa-solid fa-wand-magic-sparkles");
     }
 
     @Override

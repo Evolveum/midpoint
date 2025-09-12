@@ -156,7 +156,7 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
 
     @Override
     protected @Nullable IModel<String> getBreadcrumbIcon() {
-        return Model.of(GuiStyleConstants.CLASS_ICON_WIZARD);
+        return Model.of("fa-solid fa-wand-magic-sparkles");
     }
 
     @Override

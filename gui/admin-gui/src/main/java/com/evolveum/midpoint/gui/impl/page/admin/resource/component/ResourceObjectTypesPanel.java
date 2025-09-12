@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -497,23 +498,31 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                 return new ColumnMenuAction<>() {
                     @Serial private static final long serialVersionUID = 1L;
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         IModel<Serializable> rowModel = getRowModel();
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            ResourceObjectTypeDefinitionType realValue =
-                                    ((ResourceObjectTypeDefinitionType) valueWrapper.getRealValue()).clone();
 
-                            @SuppressWarnings("unchecked")
                             PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue =
-                                    (PrismContainerValue<ResourceObjectTypeDefinitionType>) realValue.asPrismContainerValue();
+                                    (PrismContainerValue<ResourceObjectTypeDefinitionType>)
+                                            PrismValueCollectionsUtil.cloneCollectionComplex(
+                                            CloneStrategy.REUSE,
+                                            Collections.singletonList(valueWrapper.getOldValue()))
+                                    .iterator().next();
+
                             WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
                             IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
                             prismContainerValue.setParent(containerModel.getObject().getItem());
 
-                            onNewValue(
-                                    prismContainerValue, createContainerModel(),
-                                    target, false);
+                            try {
+                                containerModel.getObject().getItem().add(prismContainerValue);
+                            } catch (SchemaException e) {
+                                throw new RuntimeException("Couldn't add object type suggestion to the container: "
+                                        + e.getMessage(), e);
+                            }
+
+                            onNewValue(prismContainerValue, containerModel, target, false);
                         }
                     }
                 };
@@ -525,6 +534,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
             }
         };
     }
+
 
     protected ButtonInlineMenuItem createSuggestionOperationInlineMenu() {
         return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.suspend.generating.inlineMenu")) {

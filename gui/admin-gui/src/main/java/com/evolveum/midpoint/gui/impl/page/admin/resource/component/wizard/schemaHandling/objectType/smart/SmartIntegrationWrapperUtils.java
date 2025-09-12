@@ -10,12 +10,10 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperImpl;
 import com.evolveum.midpoint.prism.*;
@@ -39,17 +37,35 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SmartIntegrationWrapperUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationWrapperUtils.class);
 
     public static @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> createResourceObjectTypeDefinitionWrapper(
-            @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue,
+            @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> value,
             @NotNull LoadableModel<PrismObjectWrapper<ResourceType>> objectWrapperModel) {
-        WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
+        WebPrismUtil.cleanupEmptyContainerValue(value);
+
         IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createObjectTypeContainerModel(objectWrapperModel);
-        prismContainerValue.setParent(containerModel.getObject().getItem());
+
+        if (containerModel.getObject() == null || containerModel.getObject().getItem() == null) {
+            throw new IllegalStateException("Couldn't find object type definition container.");
+        }
+
+        PrismContainer<ResourceObjectTypeDefinitionType> container = containerModel.getObject().getItem();
+
+        try {
+            value.setParent(container);
+            if (!container.getValues().contains(value)) {
+                container.add(value);
+            }
+        } catch (SchemaException e) {
+            throw new RuntimeException("Couldn't add new value to the container.", e);
+        }
+
         return containerModel;
     }
 
@@ -87,12 +103,11 @@ public class SmartIntegrationWrapperUtils {
         return WebPrismUtil.createNewValueWrapper(model, newItem, pageBase, target);
     }
 
-    public static @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewItemsSubCorrelatorValue(
+    public static @Nullable PrismContainerValueWrapper<ItemsSubCorrelatorType> createNewItemsSubCorrelatorValue(
             @NotNull PageBase pageBase,
             @NotNull IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model,
             @Nullable PrismContainerValue<ItemsSubCorrelatorType> value,
             @NotNull AjaxRequestTarget target) {
-
         IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createContainerModel(
                 model,
                 ItemPath.create(
@@ -102,12 +117,17 @@ public class SmartIntegrationWrapperUtils {
 
         PrismContainerWrapper<ItemsSubCorrelatorType> containerWrapper = containerModel.getObject();
         PrismContainer<ItemsSubCorrelatorType> container = containerWrapper.getItem();
-
         PrismContainerValue<ItemsSubCorrelatorType> newValue;
 
         if (value == null) {
             newValue = container.createNewValue();
         } else {
+            boolean correlationRulePresent = isCorrelationRulePresent(container, value);
+            if (correlationRulePresent) {
+                pageBase.warn("Correlation rule already present.");
+                target.add(pageBase.getFeedbackPanel().getParent());
+                return null;
+            }
             try {
                 value.setParent(container);
                 if (!container.getValues().contains(value)) {
@@ -129,13 +149,25 @@ public class SmartIntegrationWrapperUtils {
         return wrapper;
     }
 
+    protected static boolean isCorrelationRulePresent(
+            @NotNull PrismContainer<ItemsSubCorrelatorType> container,
+            PrismContainerValue<ItemsSubCorrelatorType> newValue) {
+        List<PrismContainerValue<ItemsSubCorrelatorType>> values = container.getValues();
+        Set<ItemsSubCorrelatorType> valueSet = values.stream().<ItemsSubCorrelatorType>map(PrismValue::getRealValue)
+                .collect(Collectors.toSet());
+        ItemsSubCorrelatorType v = newValue.getRealValue();
+        return valueSet.contains(v);
+    }
+
     //TODO
     @SuppressWarnings("unchecked")
     public static void createMappingsValueIfRequired(
             @NotNull PageBase pageBase,
             @NotNull AjaxRequestTarget target,
             @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
-            @Nullable List<ResourceAttributeDefinitionType> attributes) {
+            @Nullable List<ResourceAttributeDefinitionType> attributes,
+            @NotNull ResourceDetailsModel assignmentHolderDetailsModel) {
+
         if (attributes != null && !attributes.isEmpty()) {
             try {
                 PrismContainerWrapper<ResourceAttributeDefinitionType> container =
@@ -145,13 +177,36 @@ public class SmartIntegrationWrapperUtils {
                 for (ResourceAttributeDefinitionType attr : attributes) {
                     PrismContainerValue<ResourceAttributeDefinitionType> pcv =
                             (PrismContainerValue<ResourceAttributeDefinitionType>)
-                                    attr.clone().asPrismContainerValue(); // or keep cloneWithoutId()
+                                    attr.clone().asPrismContainerValue();
 
                     pcv.setId(null);
                     pcv.setParent(container.getItem());
                     WebPrismUtil.cleanupEmptyContainerValue(pcv);
 
-                    WebPrismUtil.createNewValueWrapper(container, pcv, pageBase, target); // will create ADD without ID
+                    container.getItem().add(pcv);
+                    WrapperContext context = assignmentHolderDetailsModel.createWrapperContext();
+                    context.setAttributeMappingType(MappingDirection.INBOUND);
+
+
+                    PrismPropertyDefinition<Object> propertyDef = container.findPropertyDefinition(
+                            ItemPath.create(ResourceAttributeDefinitionType.F_REF));
+
+                    PrismContainerValueWrapper<ResourceAttributeDefinitionType> newValueWrapper = WebPrismUtil
+                            .createNewValueWrapper(container, pcv, pageBase, context);
+
+                    PrismContainerWrapper<InboundMappingType> mappings = newValueWrapper.findContainer(ResourceAttributeDefinitionType.F_INBOUND);
+                    List<PrismContainerValueWrapper<InboundMappingType>> values = mappings.getValues();
+                    for (PrismContainerValueWrapper<InboundMappingType> value : values) {
+                        createVirtualItemInMapping(pageBase, value, newValueWrapper, propertyDef);
+                    }
+
+
+                    container.getValues().add(newValueWrapper);
+                    newValueWrapper.findProperty(ResourceAttributeDefinitionType.F_REF)
+                            .getValue().setRealValue(null);
+                    pcv.findProperty(ResourceAttributeDefinitionType.F_REF).getValue().setValue(null);
+                    pcv.getValue().setRef(null);
+
                 }
             } catch (SchemaException e) {
                 throw new RuntimeException(e);

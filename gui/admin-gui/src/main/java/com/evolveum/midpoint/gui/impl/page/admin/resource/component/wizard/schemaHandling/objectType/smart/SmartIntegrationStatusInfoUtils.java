@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -155,7 +156,7 @@ public class SmartIntegrationStatusInfoUtils {
                 PrismContainer<CorrelationSuggestionType> container = suggestionParent.asPrismContainerValue()
                         .findContainer(CorrelationSuggestionsType.F_SUGGESTION);
 
-                if(container == null) {
+                if (container == null) {
                     continue;
                 }
 
@@ -181,7 +182,7 @@ public class SmartIntegrationStatusInfoUtils {
                         for (PrismContainerValueWrapper<ItemsSubCorrelatorType> correlatorItemWrapper : itemsW.getValues()) {
                             PrismContainerWrapper<CorrelationItemType> correlationItemWrapper = correlatorItemWrapper
                                     .findContainer(ItemsSubCorrelatorType.F_ITEM);
-                            setupStatusIfRequiredNewMapping(correlationItemWrapper, suggestion.getRealValue());
+                            setupStatusIfRequiredNewMapping(correlationItemWrapper, suggestion, rotDef);
                             wrappers.add(correlatorItemWrapper);
                             byWrapper.put(correlatorItemWrapper, suggestionStatusInfo);
                         }
@@ -242,19 +243,107 @@ public class SmartIntegrationStatusInfoUtils {
      *
      * @param container the container wrapper holding correlation items
      * @param suggestion the correlation suggestion containing suggested attributes
+     * @param rotDef the resource object type definition to check existing mappings
      */
     private static void setupStatusIfRequiredNewMapping(
             @NotNull PrismContainerWrapper<CorrelationItemType> container,
-            CorrelationSuggestionType suggestion) {
+            PrismContainerValueWrapper<CorrelationSuggestionType> suggestion,
+            @NotNull ResourceObjectTypeDefinitionType rotDef) {
 
         List<PrismContainerValueWrapper<CorrelationItemType>> correlationItems = container.getValues();
         if (correlationItems == null) {
             return;
         }
 
-        List<ResourceAttributeDefinitionType> suggestedAttributes = suggestion.getAttributes();
+        PrismContainerWrapper<ResourceAttributeDefinitionType> attributeDefW;
+        try {
+            attributeDefW = suggestion.findContainer(
+                    CorrelationSuggestionType.F_ATTRIBUTES);
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't find attributes in correlation suggestion {}", e, suggestion);
+            return;
+        }
 
-        Set<ItemPath> targetPaths = suggestedAttributes.stream()
+        List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> suggestedAttributesW = attributeDefW.getValues();
+
+        List<ResourceAttributeDefinitionType> suggestedAttributes = suggestedAttributesW.stream()
+                .map(PrismContainerValueWrapper::getRealValue)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (suggestedAttributes.isEmpty()) {
+            return;
+        }
+
+
+        Set<ItemPath> rotDefAttributePaths = collectMappingTargets(rotDef.getAttribute());
+        Set<ItemPath> suggestionMappingTargetPaths = collectMappingTargets(suggestedAttributes);
+        // We are interested only in those paths that are not already mapped in the object type definition
+        suggestionMappingTargetPaths.removeIf(
+                s -> rotDefAttributePaths.stream().anyMatch(s::equivalent)
+        );
+
+        // Mark all suggested attributes that correspond to the new mapping targets as ADDED (at least one mapping should be new)
+        suggestedAttributesW.forEach(valueWrapper -> {
+            ResourceAttributeDefinitionType realValue = valueWrapper.getRealValue();
+            Set<ItemPath> itemPaths = collectMappingTargets(Collections.singletonList(realValue));
+            if (itemPaths.isEmpty()) {
+                return;
+            }
+            if (itemPaths.stream().anyMatch(suggestionMappingTargetPaths::contains)) {
+                valueWrapper.setStatus(ValueStatus.ADDED);
+            }
+        });
+
+        if (suggestionMappingTargetPaths.isEmpty()) {
+            return;
+        }
+
+        correlationItems.stream()
+                .filter(Objects::nonNull)
+                .forEach(item -> {
+                    ItemPath refPath = Optional.ofNullable(item.getRealValue())
+                            .map(CorrelationItemType::getRef)
+                            .map(ItemPathType::getItemPath)
+                            .orElse(null);
+
+                    if (refPath != null && suggestionMappingTargetPaths.stream().anyMatch(p -> p.equivalent(refPath))) {
+                        item.setStatus(ValueStatus.ADDED);
+                    }
+                });
+    }
+
+    public static @NotNull List<ResourceAttributeDefinitionType> collectRequiredResourceAttributeDefs(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @NotNull PrismContainerValueWrapper<CorrelationSuggestionType> parentSuggestionW) {
+        List<ResourceAttributeDefinitionType> attributes = new ArrayList<>();
+        try {
+            PrismContainerWrapper<ResourceAttributeDefinitionType> wrapper =
+                    parentSuggestionW.findContainer(CorrelationSuggestionType.F_ATTRIBUTES);
+
+            if (wrapper != null && wrapper.getValues() != null && !wrapper.getValues().isEmpty()) {
+                for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> val : wrapper.getValues()) {
+                    if (val != null && val.getRealValue() != null && val.getStatus() == ValueStatus.ADDED) {
+                        attributes.add(val.getRealValue());
+                    }
+                }
+            }
+
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find attributes container in {}", parentSuggestionW, e);
+            pageBase.error("Couldn't process correlation suggestion.");
+            target.add(pageBase.getFeedbackPanel().getParent());
+        }
+        return attributes;
+    }
+
+    private static @NotNull Set<ItemPath> collectMappingTargets(@Nullable List<ResourceAttributeDefinitionType> attributes) {
+        if (attributes == null || attributes.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return attributes.stream()
                 .filter(Objects::nonNull)
                 .flatMap(attr -> {
                     List<InboundMappingType> inbound = attr.getInbound();
@@ -267,23 +356,6 @@ public class SmartIntegrationStatusInfoUtils {
                 .filter(Objects::nonNull)
                 .map(ItemPathType::getItemPath)
                 .collect(Collectors.toSet());
-
-        if (targetPaths.isEmpty()) {
-            return;
-        }
-
-        correlationItems.stream()
-                .filter(Objects::nonNull)
-                .forEach(item -> {
-                    ItemPath refPath = Optional.ofNullable(item.getRealValue())
-                            .map(CorrelationItemType::getRef)
-                            .map(ItemPathType::getItemPath)
-                            .orElse(null);
-
-                    if (refPath != null && targetPaths.stream().anyMatch(p -> p.equivalent(refPath))) {
-                        item.setStatus(ValueStatus.ADDED);
-                    }
-                });
     }
 
     public record ObjectTypeSuggestionProviderResult(
@@ -342,7 +414,7 @@ public class SmartIntegrationStatusInfoUtils {
     /** Builds display rows depending on the suggestion status. */
     public static @NotNull List<SmartGeneratingDto.StatusRow> buildStatusRows(PageBase pageBase, StatusInfo<?> suggestion) {
         List<SmartGeneratingDto.StatusRow> rows = new ArrayList<>();
-        if(suggestion != null && suggestion.getStatus() == OperationResultStatusType.FATAL_ERROR) {
+        if (suggestion != null && suggestion.getStatus() == OperationResultStatusType.FATAL_ERROR) {
             rows.add(new SmartGeneratingDto.StatusRow(pageBase.createStringResource(
                     "SmartGeneratingDto.status.failed"),
                     ActivityProgressInformation.RealizationState.UNKNOWN,

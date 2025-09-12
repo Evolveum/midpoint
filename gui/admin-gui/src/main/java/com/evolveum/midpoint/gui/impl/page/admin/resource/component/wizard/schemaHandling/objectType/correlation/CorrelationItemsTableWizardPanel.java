@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.collectRequiredResourceAttributeDefs;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.*;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
@@ -181,8 +182,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             return;
         }
 
-        CorrelationSuggestionType suggestion = parentSuggestionW.getRealValue();
-        List<ResourceAttributeDefinitionType> attributes = suggestion.getAttributes();
+        List<ResourceAttributeDefinitionType> attributes = collectRequiredResourceAttributeDefs(pageBase, target, parentSuggestionW);
 
         if (attributes.isEmpty()) {
             performAddOperation(pageBase, target, resourceObjectTypeDefinition, attributes, rowModel, statusInfo);
@@ -206,7 +206,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             @Nullable List<ResourceAttributeDefinitionType> attributes,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
             @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
-        createMappingsValueIfRequired(pageBase, target, resourceObjectTypeDef, attributes);
+        createMappingsValueIfRequired(pageBase, target, resourceObjectTypeDef, attributes, getAssignmentHolderDetailsModel());
         PrismContainerValueWrapper<ItemsSubCorrelatorType> object = valueModel.getObject();
         createNewItemsSubCorrelatorValue(pageBase, object.getNewValue().clone(), target);
         performDiscard(pageBase, target, valueModel, statusInfo);

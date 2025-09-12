@@ -29,13 +29,13 @@ import javax.xml.namespace.QName;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.runSuggestionAction;
 
-public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable> extends AbstractWizardPanel<P, ResourceDetailsModel> {
+public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable> extends AbstractWizardPanel<P, ResourceDetailsModel> {
 
-    private static final String CLASS_DOT = SmartSuggestionWizardPanel.class.getName() + ".";
+    private static final String CLASS_DOT = SmartObjectTypeSuggestionWizardPanel.class.getName() + ".";
     private static final String OP_DEFINE_TYPES = CLASS_DOT + "defineTypes";
     private static final String OP_DETERMINE_STATUS = CLASS_DOT + "determineStatus";
 
-    public SmartSuggestionWizardPanel(String id, WizardPanelHelper<P, ResourceDetailsModel> helper) {
+    public SmartObjectTypeSuggestionWizardPanel(String id, WizardPanelHelper<P, ResourceDetailsModel> helper) {
         super(id, helper);
     }
 
@@ -79,7 +79,7 @@ public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionTy
                         if (!result.isSuccess()) {
                             getPageBase().showResult(result);
                             target.add(getPageBase().getFeedbackPanel());
-                            target.add(SmartSuggestionWizardPanel.this);
+                            target.add(SmartObjectTypeSuggestionWizardPanel.this);
                         }
                     } else {
                         getSession().getFeedbackMessages().clear();

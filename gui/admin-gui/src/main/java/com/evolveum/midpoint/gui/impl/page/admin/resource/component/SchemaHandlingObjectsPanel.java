@@ -204,7 +204,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             private void createSuggestObjectButton(String idButton, @NotNull List<Component> bar) {
                 AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton,
-                        Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
+                        Model.of("fa-solid fa-wand-magic-sparkles"),
                         createStringResource("SchemaHandlingObjectsPanel.suggestNew")) {
 
                     @Serial private static final long serialVersionUID = 1L;
