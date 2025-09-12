@@ -16,21 +16,142 @@ doc-type: config
 :page-keywords: [ 'dashboard', 'dashboards', 'configuration' ]
 :search-alias: "dashboard configuration"
 :page-upkeep-status: yellow
+:experimental:
 
 This article contains advanced configuration options for dashboards and dashboard widgets in particular.
 You can use the options to select the data sources for your widgets or adjust the appearance of your dashboard widgets,
 including conditioning the appearance so that you get a visual warning when there are, for example, users with too many high-privilege roles.
 
+The widget element can contain three configuration elements: `display`,`data`, and `presentation` which you can use to configure what the widget looks like, whence it takes the data, and how it presents the data to users.
+
 include::use-idea-for-midpoint-engineering.adoc[]
 
+== Define data sources for widgets
 
-== Dashboard widget configuration attributes
+The `data` element defines the source of the data that the widget displays.
 
-This section contains details on possible widget configuration options.
+To take off lightly, here is the simplest possible example of a widget with an object collection as its data source:
 
-The widget element contains three configuration attributes: `display`,`data`, and `presentation`.
+[source,xml]
+----
+<widget>
+    ...
+    <data>
+        <sourceType>objectCollection</sourceType>
+        <collection>
+            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/>
+        </collection>
+    </data>
+</widget>
+----
 
-=== Display attribute
+The table below contains more details about the configuration options you have regarding the data sources.
+
+.Configuration options for the `data` element
+[%autowidth]
+|===
+| Name | Type | Description
+
+| `sourceType`
+| `DashboardWidgetSourceType`
+a| Specify the type of input data for generating a message shown in the widget.
+    Possible options are:
+
+    * `objectCollection`: Content of the widget is based on an object collection.
+    * `auditSearch`: Content of the widget is based on the data from an object collection with a filter for xref:/midpoint/reference/security/audit/[audit records].
+        See also xref:/midpoint/reference/misc/reports/examples/audit-report-with-changed-attributes/[].
+    * `object`: Content of the widget is based on the data from a single object.
+        We describe this using `sourceType` and `displaySourceType` in the example beneath the table.
+
+| `displaySourceType`
+| `DashboardWidgetSourceType`
+| Use this element in asynchronous widgets to select the data source the widget uses for displaying data.
+
+    For asynchronous widgets, set this to `widgetData`.
+    Although the widget data source (`sourceType`) may be, e.g., an object collection,
+    a report can save the computed data into the widget object
+    and the widget can then display the saved data without querying midPoint objects through the collection anew.
+
+    The widget in the GUI usually contains a btn:[More info] button which takes users to a details page with objects queried using the `sourceType` element configuration.
+
+    Refer to the simple example of `sourceType` and `displaySourceType` elements usage beneath the table.
+    See also xref:/midpoint/reference/admin-gui/dashboards/dashboard-configuration-intro/#async-widget[] for a full tutorial on the topic.
+
+| `collection`
+| `CollectionRefSpecificationType`
+| Specify which object collection should the widget use to query midPoint objects.
+    The element contains a `collectionRef` element with a reference to the particular collection.
+
+| `objectRef`
+| `ObjectReferenceType`
+| Specifies a single object as a data source for the widget.
+
+| `storedData`
+| `String`
+| Specifies a string as a widget data source.
+    The string can be stored by a report task.
+    Use this configuration for asynchronous widgets.
+
+|===
+
+.An example of a simple asynchronous widget
+[source,xml]
+----
+<widget>
+    ...
+    <data>
+        <sourceType>objectCollection</sourceType> <!--1-->
+        <displaySourceType>widgetData</displaySourceType> <!-2-->
+        <collection>
+            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/> <!--3-->
+        </collection>
+        <storedData>25/25 runnable</storedData>
+    </data>
+</widget>
+----
+<1> The source from which the data for the widget to display are computed.
+<2> The instruction for the widget to display the data it has saved in itself. These data have been saved to the widget by a report.
+<3> The object collection used as the primary source of the widget data.
+
+You can use an `objectCollection`, `auditSearch` or `object` as a data source for asynchronous widgets.
+Regardless the widget data source, for asynchronous widgets, you need to use the `displaySourceType` element with the `widgetData` value.
+
+=== Use specific object as a widget data source
+
+Another option is to define a specific `object` as a source.
+In this case, a part of the configuration is a reference to the object which is used as a source.
+The configuration contains a path to the attribute which is presented in the widget.
+
+.An example of a widget data source for an object type
+[source,xml]
+----
+<widget>
+    <c:identifier>report-task-status</c:identifier>
+    <data>
+        <sourceType>object</sourceType>
+        <objectRef oid="ed05a4ae-e39f-465a-bd56-35c41fb97bd1" type="c:TaskType"/>
+    </data>
+    <presentation>
+        <dataField>
+            <fieldType>value</fieldType>
+            <expression>
+                <c:path xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="t:ItemPathType">$object/executionState</c:path>
+            </expression>
+        </dataField>
+    </presentation>
+</widget>
+----
+
+In the example above, the selected object is a report task.
+The path is set to query the execution status of the task.
+The widget may render as follows, for example:
+
+.Dashboard widget showing the execution status of an explicitly selected task.
+image::object.png["Dashboard widget showing the execution status of task"]
+
+== Define widget visual and presentation attributes
+
+=== Visual configuration
 
 The `display` attribute contains configuration of the widget visual side in the GUI.
 
@@ -46,133 +167,19 @@ The `display` attribute contains configuration of the widget visual side in the 
 
 | `color`
 | `String`
-| Default color of background for widget.
+| Default background color of the widget.
 
 
 | `icon/cssClass`
 | `String`
-| CSS class for widget icon; for example, `fa fa-user`.
+| CSS class for widget icon; e.g., `fa fa-user`.
 
 
 | `cssStyle`
 | `String`
-| CSS style for the widget; for example, `color: #444 !important` to change the font color.
+| CSS style for the widget; e.g., `color: #444 !important`.
 
 |===
-
-=== Data attribute
-
-The `data` attribute represents the data source that the widget displays.
-
-.Configuration options for the `data` attribute
-[%autowidth]
-|===
-| Name | Type | Description
-
-| `sourceType`
-| `DashboardWidgetSourceType`
-| Type of widget content data source.
-    Specify the type of input data, which midPoint uses for generating a message shown in the widget.
-    This is an enumeration type and possible values are:
-
-    * `objectCollection`: Content of the widget is based on object collection.
-    * `auditSearch`: Content of the widget is based on the data from an object collection with a filter for audit records.
-    * `object`: Content of the widget is based on the data from a single object.
-        We describe this using `sourceType` and `displaySourceType` in the example beneath the table.
-
-| `displaySourceType`
-| `DashboardWidgetSourceType`
-| This attribute is an identifier that overrides `sourceType`.
-    You can use it for asynchronous widgets.
-    This element is used only for number messages shown in the widget in the GUI.
-    The widget in the GUI may contain a link for a redirect to a details page and the used `sourceType`.
-    We describe the usage of `sourceType` and `displaySourceType` in the example beneath the table.
-
-| `collection`
-| `CollectionRefSpecificationType`
-| Specification of an explicit or implicit object collection that is used as a data source for the view.
-    Contains variable `collectionRef` which is a reference to the object collection enumerating objects for the widget.
-
-| `objectRef`
-| `ObjectReferenceType`
-| Specifies a single object as a data source for the widget.
-
-| `storedData`
-| `String`
-| Specifies a string data as a widget data source.
-    This data can be stored by a report task.
-    This configuration is used in asynchronous widgets.
-
-|===
-
-==== Using sourceType and displaySourceType
-
-When you configure a simple widget, you can set the `sourceType` to either `objectCollection`, `auditSearch` or `object`.
-
-The `displaySourceType` is important for asynchronous widgets.
-In the case of asynchronous widgets, you set `widgetData` as `displaySourceType` and use `objectCollection` as `sourceType`.
-This means that the widget shows stored data from the `storedData` attribute, but when you click the widgets, the redirection for object details uses `sourceType`.
-`sourceType` is also use by the export report task for generating content in `storedData`.
-
-When you use `objectCollection` or `auditSearch` as a source, midPoint needs a reference to the object collection which contains a filter for the reported data.
-
-The following is an example of widget data source for an object collection:
-
-[source,xml]
-----
-<widget>
-    ...
-    <data>
-        <sourceType>objectCollection</sourceType>
-        <collection>
-            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/>
-        </collection>
-    </data>
-</widget>
-----
-
-Another option is to define a specific `object` as a source.
-In this case, a part of the configuration is a reference to the object which is used as a source.
-The configuration contains a path to the attribute which is presented in the widget.
-
-An example of a widget data source for an object type:
-
-[source,xml]
-----
-<widget>
-    ...
-    <data>
-        <sourceType>object</sourceType>
-        <objectRef oid="00000000-0000-0000-0000-000000000005" type="c:TaskType"/>
-    </data>
-</widget>
-----
-
-A widget in the GUI with an `object` as a source.
-In this case, it is a cleanup task with the path set to the `state` attribute:
-
-.Dashboard widget showing the status of the task selected by an OID.
-image::object.png["Dashboard widget showing the status of the task selected by an OID"]
-
-In the case when you want to set up an asynchronous widget, you can use an `objectCollection`, `auditSearch` or `object` as a source.
-However, you have to also use the `widgetData` attribute value for the `displaySourceType` attribute.
-
-An example of a widget data source for widget data (asynchronous widget):
-
-[source,xml]
-----
-<widget>
-    ...
-    <data>
-        <sourceType>objectCollection</sourceType>
-        <displaySourceType>widgetData</displaySourceType>
-        <collection>
-            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/>
-        </collection>
-        <storedData>25/25 runnable</storedData>
-    </data>
-</widget>
-----
 
 === Presentation of widget data
 
