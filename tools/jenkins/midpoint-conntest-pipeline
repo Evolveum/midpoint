@@ -9,6 +9,7 @@ podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 7200,
         idleMinutes: 1,
+        volumes: [ persistentVolumeClaim(claimName: "${JOB_NAME}-m2repo", mountPath: "/root/.m2/repository")],
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
@@ -38,6 +39,10 @@ podTemplate(
             }
             stage("build") {
                 container('maven') {
+                    if (params.CLEAN_M2_REPOSITORY) {
+                        sh "rm -rf ~/.m2/repository/*"
+                    }
+
                     sh """#!/bin/bash -ex
                         if [ '${VERBOSE}' = '1' ]
                         then
