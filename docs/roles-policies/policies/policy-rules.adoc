@@ -163,7 +163,7 @@ In addition to using the AND, and OR logical operators, policy rule constraints 
 </policyConstraints>
 ----
 
-See a xref:/midpoint/reference/roles-policies/policies/policy-rules-examples[full example] of how logical operators are used in policy rule constraints.
+See a xref:/midpoint/reference/roles-policies/policies/policy-rule-examples[full example] of how logical operators are used in policy rule constraints.
 
 
 [[object_marks]]
