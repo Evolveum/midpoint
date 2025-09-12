@@ -45,7 +45,7 @@ podTemplate(
                 """
                 checkout([
                   $class: 'GitSCM',
-                  branches: [[name: params.BRANCH ?: 'main']],
+                  branches: [[name: params.BRANCH ?: 'master']],
                   userRemoteConfigs: scm.userRemoteConfigs
                 ])
             }
