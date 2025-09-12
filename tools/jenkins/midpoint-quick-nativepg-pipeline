@@ -58,10 +58,11 @@ podTemplate(
                         df -h
                     fi
                 """
-                retry(3) {
-                    git branch: params.BRANCH ?: 'master',
-                            url: 'https://github.com/Evolveum/midpoint.git'
-                }
+                checkout([
+                  $class: 'GitSCM',
+                  branches: [[name: params.BRANCH ?: 'main']],
+                  userRemoteConfigs: scm.userRemoteConfigs
+                ])
             }
             stage("db-init") {
                 container('postgres') {
