@@ -246,7 +246,9 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         List<ConnDevHttpEndpointType> suggested = development.suggestedEndpointsFor("User", ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION);
         //assertThat(suggested).isNotEmpty();
 
-        var token = development.submitGenerateSearchScript("User", task, result);
+        var token = development.submitGenerateSearchScript("User", suggested.get(0), task, result);
+
+        // save to /connector/objectClass/endpoint
 
         var response = waitForFinish(
                 () -> connectorService.getGenerateArtifactStatus(token, task, result),

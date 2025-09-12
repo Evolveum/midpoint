@@ -174,8 +174,8 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
-    public void updateConnectorObjectClassEndpoints(String objectClass, List<ConnDevHttpEndpointType> endpoints) throws CommonException {
-        var target = connectorObjectClass(objectClass);
+    public void updateApplicationObjectClassEndpoints(String objectClass, List<ConnDevHttpEndpointType> endpoints) throws CommonException {
+        var target = applicationObjectClass(objectClass);
         var path = target.asPrismContainerValue().getPath();
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(path.append(ConnDevObjectClassInfoType.F_ENDPOINT)).replaceRealValues(endpoints)
@@ -187,7 +187,12 @@ public abstract class ConnectorDevelopmentBackend {
     private ConnDevObjectClassInfoType connectorObjectClass(String objectClass) {
         return development.getConnector()
                 .getObjectClass().stream().filter(o -> o.getName().equals(objectClass)).findFirst().orElse(null);
-        }
+    }
+
+    private ConnDevObjectClassInfoType applicationObjectClass(String objectClass) {
+        return development.getApplication().getDetectedSchema()
+                .getObjectClass().stream().filter(o -> o.getName().equals(objectClass)).findFirst().orElse(null);
+    }
 
     public void updateConnectorObjectClassAttributes(String objectClass, List<ConnDevAttributeInfoType> attributes) throws CommonException {
         var target = connectorObjectClass(objectClass);

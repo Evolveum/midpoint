@@ -83,7 +83,7 @@ public class DiscoverObjectClassDetailsActivityHandler
 
             backend.ensureObjectClass(objectClass);
             var endpoints = backend.discoverObjectClassEndpoints(objectClass);
-            backend.updateConnectorObjectClassEndpoints(objectClass, endpoints);
+            backend.updateApplicationObjectClassEndpoints(objectClass, endpoints);
 
             var attributes = backend.discoverObjectClassAttributes(objectClass);
             backend.updateConnectorObjectClassAttributes(objectClass, attributes);

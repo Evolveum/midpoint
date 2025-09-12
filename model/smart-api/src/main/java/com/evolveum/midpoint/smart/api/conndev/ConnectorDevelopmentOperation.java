@@ -52,7 +52,7 @@ public interface ConnectorDevelopmentOperation {
         return submitGenerateArtifact(AUTHENTICATION_CUSTOMIZATION.create(), task, result);
     }
 
-    default String submitGenerateSearchScript(String objectClass, Task task, OperationResult result) {
+    default String submitGenerateSearchScript(String objectClass, ConnDevHttpEndpointType endpoint, Task task, OperationResult result) {
         return submitGenerateArtifact(SEARCH_ALL_DEFINITION.create(objectClass), task, result);
     }
 

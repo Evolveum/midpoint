@@ -193,7 +193,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public List<ConnDevHttpEndpointType> suggestedEndpointsFor(String user, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType) {
-            return List.of();
+            var obj = stateObject.getApplication().getDetectedSchema().getObjectClass().stream()
+                    .filter(o -> o.getName().equals(user)).findFirst().orElse(null);
+
+            var use = switch (knownArtifactType.scriptIntent) {
+                case ALL -> ConnDevHttpEndpointIntentType.GET_ALL;
+                default -> throw new IllegalArgumentException();
+            };
+
+            return obj.getEndpoint().stream().filter(e -> e.getSuggestedUse().contains(use)).toList();
         }
     }
 
