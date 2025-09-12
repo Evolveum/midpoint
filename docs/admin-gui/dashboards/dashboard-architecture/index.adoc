@@ -34,8 +34,8 @@ Refer to the xref:/midpoint/reference/admin-gui/dashboards/configuration/#data-a
 Since dashboards serve for _showing_ data, they need to be accessible in the midPoint graphical user interface (GUI).
 When you create a dashboard, you need to add it to the midPoint system configuration so that GUI users can find it under the [.nowrap]#icon:tachometer-alt[] *Dashboards*# menu.
 
-[[async-dashboards-and-report]]
-== Reports and asynchronous dashboards
+[[reports-and-async-widgets]]
+== Reports and asynchronous widgets
 
 xref:/midpoint/reference/misc/reports/[Reports] and dashboards are separate but related features.
 They both show data enumerated by object collections,
@@ -58,6 +58,8 @@ That's what asynchronous dashboards are about.
 In addition to the dashboard and object collection, you also define a xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] and make it "run" the dashboard in regular intervals using a scheduled xref:/midpoint/reference/misc/reports/configuration/report-task-definition/#export-report[report task].
 This way, you make the dashboard calculate the data for all the widgets in the dashboard on a frequency that is manageable for your systems.
 Unlike other reports, a dashboard report saves the resulting data in the widgets of the particular dashboard.
+
+See xref:/midpoint/reference/admin-gui/dashboards/dashboard-configuration-intro#configure-async-widgets[how to configure asynchronous widgets].
 
 === Static reports created from dashboards
 
