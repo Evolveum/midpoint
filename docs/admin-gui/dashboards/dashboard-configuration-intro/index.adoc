@@ -15,9 +15,11 @@ doc-type: config
 This article guides you through the steps required to configure dashboards.
 Start with a simple dashboard showing one metric, such as number of active users, then continue adding more advanced pieces, such as percentage of failed resources or accounts violating segregation of duties.
 
-From the data update perspective, dashboard widgets can be xref:../#async-dashboards-and-report[synchronous or asynchronous].
+From the data update perspective, dashboard widgets can be synchronous or asynchronous.
 In this guide, you first create a simple synchronous widget.
 After that, you will add an asynchronous widget to the dashboard.
+
+Refer to xref:/midpoint/reference/admin-gui/dashboards/dashboard-architecture/#reports-and-async-widgets[] for more details on asynchronous dashboards architecture.
 
 include::use-idea-for-midpoint-engineering.adoc[]
 
@@ -207,10 +209,17 @@ image::first-dashboard-active-users.webp["MidPoint GUI with the dashboards menu 
 [[async-widget]]
 == Create asynchronous widget to reduce system load
 
-Simple widgets like the one above are easy to deploy, but xref:../#asynchronous-dashboards[you may want to use asynchronous widgets] instead.
+Simple widgets like the one above are easy to deploy,
+but you may want to use xref:/midpoint/reference/admin-gui/dashboards/dashboard-architecture/#reports-and-async-widgets[asynchronous widgets] instead.
 
-An asynchronous widget uses a task to recompute the data at an interval of your choosing and holds the result in the widget object.
-You can use the same object collection as you do with the synchronous widget above.
+An asynchronous widget uses a report to recompute the data for the dashboard widgets.
+The *report saves the resulting data to the widget object*
+which then displays the data without having midPoint enumerate the objects again,
+thus *saving the computational resources*.
+The report can be run at an interval of your choosing.
+
+When configuring an asynchronous widget,
+you can use the same object collection as you do with the synchronous widget above.
 
 [NOTE]
 ====
@@ -218,9 +227,10 @@ Report tasks for asynchronous dashboard update are not to be confused with
 xref:/midpoint/reference/tasks/synchronization-tasks/asynchronous-update[asynchronous update tasks] which are used for updating data from resources.
 ====
 
+[[configure-async-widgets]]
 === Configure your widget for asynchronous loading
 
-To configure a widget as asynchronous, you need to adjust the widget data source and create two new pieces of configuration:
+To configure a widget as asynchronous, you need to adjust the synchronous widget data source and create two new pieces of configuration:
 
 * A report which takes the dashboard configuration, triggers the data computation, and saves the results into the dashboard widget objects.
     ** Note that a dashboard report always computes the data for all the widgets in the linked dashboard.
