@@ -101,7 +101,7 @@ a| Specify the type of input data for generating a message shown in the widget.
     ...
     <data>
         <sourceType>objectCollection</sourceType> <!--1-->
-        <displaySourceType>widgetData</displaySourceType> <!-2-->
+        <displaySourceType>widgetData</displaySourceType> <!--2-->
         <collection>
             <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/> <!--3-->
         </collection>
@@ -229,7 +229,7 @@ The other element in `dataField` elements is `expression`:
 There are four *presentation style options*:
 
 .Four dashboard widgets showing various available data presentation styles
-image::dashboard-presentation-styles.webp["MidPoint Dashboard showing various widget data presentation styles: total number, percentage, X/Y, and X out of Y."
+image::dashboard-presentation-styles.webp["MidPoint Dashboard showing various widget data presentation styles: total number, percentage, X/Y, and X out of Y."]
 
 The available presentation styles are:
 
@@ -251,6 +251,8 @@ You can see the configuration for the dashboard in the image above in the code b
 .Presentation style configurations
 [%collapsible]
 ====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/howto/dashboard-widget-data-presentation-styles.xml[Git]
+
 sampleRef::samples/dashboard/howto/dashboard-widget-data-presentation-styles.xml[]
 ====
 
