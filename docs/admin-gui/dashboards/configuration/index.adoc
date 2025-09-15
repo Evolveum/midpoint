@@ -151,6 +151,12 @@ image::object.png["Dashboard widget showing the execution status of task"]
 
 == Define widget visual and presentation attributes
 
+There are two elements for visual configuration of widgets:
+
+* The `display` element: Use to adjust the appearance of your widgets, such as the default color and icon.
+* The `presentation` element: Use to select the data presentation style or condition the appearance based on the data.
+    Furthermore, the `view` element within the `presentation` element serves to configure the report that can be created from the dashboard configuration.
+
 === Visual configuration
 
 The `display` attribute contains configuration of the widget visual side in the GUI.
@@ -183,77 +189,79 @@ The `display` attribute contains configuration of the widget visual side in the 
 
 === Presentation of widget data
 
-// TODO: add configuration examples to each presentation option @dakle 2025-09-07
+The `presentation` element contains options to define how the widget presents the data.
+It consists of `dataField` elements using which you adjust the displayed data.
 
-`presentation` is a container attribute used to define how to present the data.
+Each `dataField` element has one `fieldType` element that states of what type the field is.
+There are two field types currently supported:
 
-There are four presentation options:
+* `value`: Use to specify the presentation style of the widget data.
+* `unit`: Use to specify the unit for the data.
 
-* percentage (50%)
+The other element in `dataField` elements is `expression`:
 
-image::percentage.png[]
+* In the case of `value`-type field, the `value` of the expression element holds the `proportional` element with the presentation `style` element.
+* In the case of `unit`-type field, the `value` of the expression element specifies the literal shown after the number (e.g., _users_, _tasks_, _roles_).
 
-* separated with slash (5/10)
+.Data presentation configuration skeleton - two `dataField` elements, one for the value, one for the unit
+[source,xml]
+----
+<presentation>
+    <dataField>
+        <fieldType>value</fieldType>
+        <expression>
+            <proportional>
+                <style><!-- your chosen presentation style --></style>
+            </proportional>
+        </expression>
+    </dataField>
+    <dataField> <!--1-->
+        <fieldType>unit</fieldType>
+        <expression>
+            <value><!-- your custom unit string --></value>
+        </expression>
+    </dataField>
+</presentation>
+----
+<1> The order of the `dataField` elements is _not_ significant.
+    The presentation style dictates how the data is presented.
 
-image::slash.png[]
+There are four *presentation style options*:
 
-* separated with "of" (5 of 10)
+.Four dashboard widgets showing various available data presentation styles
+image::dashboard-presentation-styles.webp["MidPoint Dashboard showing various widget data presentation styles: total number, percentage, X/Y, and X out of Y."
 
-image::of.png[]
+The available presentation styles are:
 
-* only value (5)
+* A number of objects in the collection and no information about the collection domain
+    ** For example, _8_
+    ** `<style>value-only</style>`
+* Percentage of objects in the collection as compared with the collection domain
+    ** For example, _25%_
+    ** `<style>percentage</style>`
+* A number of objects in the collection shown with the number of objects in the domain, delimited by the slash (`/`) character
+    ** For example, _8/32_
+    ** `<style>value-slash-domain</style>`
+* A number of objects in the collection shown with the number of objects in the domain, delimited by _of_
+    ** For example, _8 of 32_
+    ** `<style>value-of-domain</style>`
 
-image::only-value.png[]
+You can see the configuration for the dashboard in the image above in the code below.
 
-The `presentation` container contains three attributes: `dataField`, `variation` and `view`.
+.Presentation style configurations
+[%collapsible]
+====
+sampleRef::samples/dashboard/howto/dashboard-widget-data-presentation-styles.xml[]
+====
 
-
-==== The widget data field
-
-The attribute `dataField` describes the properties of a specific widget data field.
-Note that the order in the `dataField` elements is _not_ significant.
-The field order is given by specific presentation style.
-
-The attributes for `dataField`:
-
-.Configuration options for the `dataField` attribute
-[%autowidth]
-|===
-| Name | Type | Description
-
-| `fieldType`
-| `DashboardWidgetDataFieldType`
-| Type of the field.
-    MidPoint currently supports `value` and `unit` as the values for the `fieldType` attribute:
-
-    * `value` is the actual value displayed.
-    * `unit` defines the unit for the value.
-
-    For example, in a message _5/9 up_ is _5/9_ the `value` and _up_ the `unit`.
-
-| `expression`
-| `ExpressionType`
-| Expression that produces the value to display in the widget.
-
-|===
-
-For the `fieldType` attribute, when set to `value`, a special type of expression is defined.
-In this expression, the attribute `proportional` must be defined along with the attribute `style`.
-The attribute `style` is an enumeration type with the following values:
-
-* `percentage` (for example, 50%)
-* `value-slash-domain` (for example, 5/10)
-* `value-of-domain` (for example, 5 of 10)
-* `value-only` (for example, 5)
 
 ==== Variation of Widget Data
 
-The next presentation attribute is `variation`.
-This attribute allows for conditional variation in how the widget is displayed.
+The next presentation element is `variation`.
+This element allows for conditional variation of the widget appearance.
 Variations may change the colors or icons of the widget based on specific conditions.
-The attributes for `variation` are as follows:
 
-.Configuration attributes to define a widget display variation based on a condition
+.Configuration options to define a widget display variation based on a condition
 [%autowidth]
 |===
 | Name | Type | Description
@@ -261,15 +269,15 @@ The attributes for `variation` are as follows:
 | `condition`
 | `ExpressionType`
 | Condition for the variation.
-The variation will be active if the condition evaluates to true.
+The variation activates when the condition evaluates to true.
 
 
 | `display`
 | `DisplayType`
 | Display properties are applied when the condition evaluates to true.
-    These display properties specify only the presentation aspects that differ from the usual presentation.
+    These display properties specify only the presentation aspects that differ from the default presentation.
     For example, if the variation only changes the widget color, only the color needs to be specified here.
-    Icons and other styles are taken from the primary widget display properties.
+    Icons and other visual attributes are taken from the primary widget display properties.
 
 |===
 
@@ -288,31 +296,22 @@ You can use four variables for `condition`:
 
 | `policySituations`
 | `Collection <String>`
-| Collection of policy situations.
+| Collection of policy situations
 | `objectCollection`
 
 | `object`
 | Based on the displayed object in the widget
-| Processed object.
+| Processed object
 | `object`
 
 | `storedData`
 | `String`
-| Data stored in the widget.
+| Data stored in the widget
 | `widgetData`
 
 |===
 
-// TODO no example, add ??
-==== View
-
-The last variable of the presentation container is `view`.
-This variable is also processed when creating reports.
-The main reason to configure a view is to customize the reported or presented object collection that the dashboard widget is based on.
-The widget object collection can be accessed via the GUI btn:[More info] button.
-
-//TODO check after sampleRef is fully in prod
-.*Example of `presentation`*:
+.Example of a variation based on policy situation conditions
 [%collapsible]
 ====
 [source,xml]
@@ -351,11 +350,24 @@ The widget object collection can be accessed via the GUI btn:[More info] button.
 ----
 ====
 
-=== Configuration details for object collections
+// TODO some simplified example instead of linking the code would be beneficial @dakle 2025-09-15
+==== Configure the collection objects overview
 
-You can see the basic configuration for `objectCollection` in xref:/midpoint/reference/admin-gui/collections-views/configuration/#object-collection[].
-For the dashboard, you can use `policyRule` with `policyThreshold` to define a `policySituation`.
-Here is an example of `objectCollection` for a resource that has the status set to "UP":
+The last element of the presentation container is `view`.
+This element is processed when creating reports.
+The main reason to configure the `view` element is to customize the reported or presented object collection that the dashboard widget is based on.
+
+In the graphical user interface, the object collection can be accessed using the btn:[More info] button on the dashboard widget tile .
+
+Refer to this link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/unchanged-accounts.xml[example of the `view` element usage].
+
+=== Configure policy rules in object collections
+
+You can see the basic configuration for object collections in xref:/midpoint/reference/admin-gui/collections-views/configuration/#object-collection[].
+For dashboards, use `policyRule` with `policyThreshold` to define a `policySituation`.
+
+Below is an object collection for resources that are `up`.
+The collection contains a policy rule that triggers when the ratio of resources that are `up` drops below 99.9%.
 
 //TODO check after sampleRef is fully in prod
 .*Example Object Collection*
