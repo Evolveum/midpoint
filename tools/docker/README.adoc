@@ -6,8 +6,8 @@ This directory contains Docker configuration files for building and running MidP
 
 [source,bash]
 ----
-# Build latest version with Alpine base
-docker build -t evolveum/midpoint:latest-alpine --build-arg base_image=alpine .
+# Build latest version with Alpine 3.19 base
+docker build -t evolveum/midpoint:latest-alpine --build-arg base_image=alpine --build-arg base_image_tag=3.19 .
 
 # Run with Docker Compose (includes PostgreSQL)
 docker-compose up -d
@@ -17,25 +17,28 @@ docker-compose up -d
 
 * `MP_VERSION`: MidPoint version to build (default: devel)
 * `base_image`: Base OS image - ubuntu, alpine, or rockylinux (default: alpine)
-* `base_image_tag`: Tag for base OS image (default: latest)
+* `base_image_tag`: Pinned version tag for base OS image (default: 3.19)
 * `JAVA_VERSION`: Java version - 17 or 21 (default: 21)
 * `MP_DIST_FILE`: Distribution file name (default: midpoint-dist.tar.gz)
 
-== Base Images
+== Supported Base Images
 
-* **Alpine** (default): `alpine:latest` - Minimal size
-* **Ubuntu**: `ubuntu:22.04` - Wide compatibility  
-* **Rocky Linux**: `rockylinux:9.3` - Enterprise focused
+* **Alpine 3.19** (default): `alpine:3.19` - Minimal size, latest stable
+* **Ubuntu 24.04 LTS**: `ubuntu:24.04` - Wide compatibility, long-term support  
+* **Rocky Linux 9**: `rockylinux:9` - Enterprise focused, RHEL-compatible
 
 == Build Examples
 
 [source,bash]
 ----
-# Build specific version with Ubuntu
-docker build -t evolveum/midpoint:4.8 --build-arg MP_VERSION=4.8 --build-arg base_image=ubuntu .
+# Build specific version with Ubuntu 24.04
+docker build -t evolveum/midpoint:4.8-ubuntu --build-arg MP_VERSION=4.8 --build-arg base_image=ubuntu --build-arg base_image_tag=24.04 .
 
-# Build with Java 17
-docker build -t evolveum/midpoint:java17 --build-arg JAVA_VERSION=17 .
+# Build with Java 17 on Alpine
+docker build -t evolveum/midpoint:java17-alpine --build-arg JAVA_VERSION=17 --build-arg base_image=alpine --build-arg base_image_tag=3.19 .
+
+# Build with Rocky Linux 9
+docker build -t evolveum/midpoint:devel-rocky --build-arg base_image=rockylinux --build-arg base_image_tag=9 .
 
 # Build with custom distribution file
 docker build -t evolveum/midpoint:custom --build-arg MP_DIST_FILE=my-midpoint-dist.tar.gz .
@@ -61,10 +64,13 @@ docker-compose logs -f midpoint_server
 
 This Docker configuration implements security best practices:
 
-* Runs as non-privileged `midpoint` user (not root)
-* Minimal base images to reduce attack surface
+* Runs as non-privileged `midpoint` user (UID/GID 1000)
+* Pinned base image versions for reproducible builds
+* Minimal package installation with `--no-install-recommends`
+* Multi-stage builds to reduce final image size
 * Health checks for container monitoring
 * Proper file ownership and permissions
+* No privileged capabilities required
 
 == Environment Configuration
 
@@ -77,12 +83,23 @@ MidPoint configuration uses `MP_SET_*` environment variables:
 
 == Files Structure
 
-* `Dockerfile`: Multi-stage build with Java version support
+* `Dockerfile`: Multi-stage build with pinned base image versions
 * `docker-compose.yml`: Complete stack with PostgreSQL
 * `container_files/usr-local-bin/`: Container scripts
-  ** `midpoint.sh`: MidPoint startup script
+  ** `midpoint.sh`: MidPoint startup script for containers
   ** `healthcheck.sh`: Health check endpoint
 * `README.adoc`: This documentation
+
+== Production Deployment
+
+For production use, consider:
+
+* Use specific version tags instead of `latest`
+* Pin base image versions for security and reproducibility
+* Configure proper resource limits in Kubernetes/Docker Compose
+* Use external database instead of containerized PostgreSQL
+* Enable proper monitoring and logging
+* Regular security scanning of built images
 
 == Volumes
 
