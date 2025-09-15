@@ -21,7 +21,7 @@ After that, you will add an asynchronous widget to the dashboard.
 
 Refer to xref:/midpoint/reference/admin-gui/dashboards/dashboard-architecture/#reports-and-async-widgets[] for more details on asynchronous dashboards architecture.
 
-include::use-idea-for-midpoint-engineering.adoc[]
+include::../use-idea-for-midpoint-engineering.adoc[]
 
 == Quick guides to create and deploy dashboards
 
