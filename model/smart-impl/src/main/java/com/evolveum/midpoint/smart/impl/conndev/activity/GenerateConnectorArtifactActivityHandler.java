@@ -43,14 +43,13 @@ public class GenerateConnectorArtifactActivityHandler
         return new MyActivityRun(context);
     }
 
-    public static class WorkDefinition extends AbstractWorkDefinition {
+    public static class WorkDefinition extends AbstractWorkDefinition<ConnDevGenerateArtifactDefinitionType> {
 
         final String connectorDevelopmentOid;
         final ConnDevArtifactType artifactSpec;
 
         public WorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
-            var typedDefinition = (ConnDevGenerateArtifactDefinitionType) info.getBean();
             connectorDevelopmentOid = MiscUtil.configNonNull(Referencable.getOid(typedDefinition.getConnectorDevelopmentRef()), "No resource OID specified");
             artifactSpec = MiscUtil.configNonNull(typedDefinition.getArtifact(), "Artifact must be specified");
         }

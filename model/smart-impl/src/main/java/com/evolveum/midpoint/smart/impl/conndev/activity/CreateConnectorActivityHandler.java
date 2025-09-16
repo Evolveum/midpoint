@@ -55,13 +55,12 @@ public class CreateConnectorActivityHandler
         return new MyActivityRun(context);
     }
 
-    public static class WorkDefinition extends AbstractWorkDefinition {
+    public static class WorkDefinition extends AbstractWorkDefinition<ConnDevCreateConnectorWorkDefinitionType> {
 
         final String templateUrl;
 
         public WorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
-            var typedDefinition = (ConnDevCreateConnectorWorkDefinitionType) info.getBean();
             templateUrl  = MiscUtil.configNonNull(typedDefinition.getBaseTemplateUrl(), "No Base template URL specified");
         }
     }

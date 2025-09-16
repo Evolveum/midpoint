@@ -49,7 +49,7 @@ public class DiscoverGlobalInformationActivityHandler
         return new MyActivityRun(context);
     }
 
-    public static class WorkDefinition extends AbstractWorkDefinition {
+    public static class WorkDefinition extends AbstractWorkDefinition<ConnDevDiscoverGlobalInformationWorkDefinitionType> {
 
         public WorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);

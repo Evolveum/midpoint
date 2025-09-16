@@ -59,11 +59,10 @@ public class DiscoverObjectClassInformationActivityHandler
         return new MyActivityRun(context);
     }
 
-    public static class WorkDefinition extends AbstractWorkDefinition {
+    public static class WorkDefinition extends AbstractWorkDefinition<ConnDevDiscoverObjectClassInformationDefinitionType> {
 
         public WorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
-            var typedDefinition = (ConnDevDiscoverObjectClassInformationDefinitionType) info.getBean();
         }
     }
 
