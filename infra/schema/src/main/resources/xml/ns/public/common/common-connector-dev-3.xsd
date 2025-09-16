@@ -95,6 +95,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="baseApiEndpoint" type="xsd:string" />
         </xsd:sequence>
     </xsd:complexType>
 
@@ -220,7 +221,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="uri" type="xsd:string"/>
+            <xsd:element name="uuid" type="xsd:string" />
             <xsd:element name="contentType" type="xsd:string"/>
             <xsd:element name="content" type="xsd:string"/>
         </xsd:sequence>

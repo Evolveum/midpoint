@@ -10506,6 +10506,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevDiscoverDocumentationResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="documentation" type="tns:ConnDevDocumentationSourceType" maxOccurs="unbounded">
             </xsd:element>
@@ -10569,6 +10574,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevDiscoverGlobalInformationResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
                 <xsd:annotation>
@@ -10635,6 +10645,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevDiscoverObjectClassDetailsResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
                 <xsd:annotation>
