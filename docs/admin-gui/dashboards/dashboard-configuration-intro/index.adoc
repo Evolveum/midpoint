@@ -307,3 +307,11 @@ In most cases, it makes sense to schedule this task to run at regular intervals 
 include::../dashboards-reports-and-recurring-tasks-config-limitation.adoc[]
 
 Once you have all the pieces in place, upload them to your midPoint instance, refresh the GUI (possibly log out and back in), and see the updated dashboard under [.nowrap]#icon:tachometer-alt[] *Dashboards*#.
+
+== See also
+
+* xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[]
+* xref:/midpoint/reference/misc/reports/examples/[]
+* xref:/midpoint/reference/admin-gui/collections-views/[]
+* xref:/midpoint/reference/schema/archetypes/[]
+* xref:/midpoint/reference/misc/notifications/[]

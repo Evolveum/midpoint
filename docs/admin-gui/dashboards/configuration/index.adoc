@@ -3,7 +3,7 @@ midpoint-feature: dashboard
 doc-type: config
 ---
 
-= Advanced midPoint dashboard configuration options
+= Advanced dashboard configuration options
 :page-nav-title: Advanced configuration
 :page-wiki-name: Dashboard configuration
 :page-wiki-id: 36569129
@@ -408,6 +408,5 @@ Both watermark objects are of the `WaterMarkType` type and can contain the varia
 * xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[]
 * xref:/midpoint/reference/misc/reports/examples/[]
 * xref:/midpoint/reference/admin-gui/collections-views/[]
-* xref:/midpoint/features/planned/compliance/[]
 * xref:/midpoint/reference/schema/archetypes/[]
 * xref:/midpoint/reference/misc/notifications/[]
