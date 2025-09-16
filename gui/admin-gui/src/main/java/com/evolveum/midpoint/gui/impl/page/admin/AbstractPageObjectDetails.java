@@ -12,15 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.util.SerializableConsumer;
-import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
@@ -105,7 +97,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private final boolean isAdd;
     private boolean isShowedByWizard;
     private boolean isDetailsNavigationPanelVisible = true;
-    private List<Breadcrumb> wizardBreadcrumbs = new ArrayList<>();
 
     public AbstractPageObjectDetails() {
         this(null, null);
@@ -1006,134 +997,5 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     public void toggleDetailsNavigationPanelVisibility(@NotNull AjaxRequestTarget target) {
         isDetailsNavigationPanelVisible = !isDetailsNavigationPanelVisible;
         target.add(getMainForm());
-    }
-
-    protected  <C extends Containerable> WizardPanelHelper<C, ODM> createContainerWizardHelper(
-            IModel<PrismContainerValueWrapper<C>> valueModel) {
-        return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
-
-            @Override
-            public void onExitPerformed(AjaxRequestTarget target) {
-                SerializableConsumer<AjaxRequestTarget> consumer = consumerTarget -> {
-                    setShowedByWizard(false);
-                    PrismObject<O> oldObject = getObjectDetailsModels().getObjectWrapper().getObjectOld();
-                    getObjectDetailsModels().reset();
-                    getObjectDetailsModels().reloadPrismObjectModel(oldObject);
-                    backToDetailsFromWizard(consumerTarget);
-                    getWizardBreadcrumbs().clear();
-                };
-
-                checkDeltasExitPerformed(consumer, target);
-
-            }
-
-            @Override
-            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                OperationResult result = new OperationResult(OPERATION_SAVE);
-                saveOrPreviewPerformed(target, result, false);
-                if (!result.isError()) {
-                    if (!isEditObject()) {
-                        removeLastBreadcrumb();
-                        String oid = getPrismObject().getOid();
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                        Class<? extends PageBase> page = DetailsPageUtil.getObjectDetailsPage(getType());
-                        navigateToNext(page, parameters);
-                        WebComponentUtil.createToastForCreateObject(target, getType());
-                    } else {
-                        WebComponentUtil.createToastForUpdateObject(target, getType());
-                    }
-                }
-                return result;
-            }
-        };
-    }
-
-    protected  <C extends Containerable> WizardPanelHelper<C, ODM> createContainerWizardHelperWithoutSave(
-            IModel<PrismContainerValueWrapper<C>> valueModel) {
-        return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
-
-            @Override
-            public void onExitPerformed(AjaxRequestTarget target) {
-                setShowedByWizard(false);
-                backToDetailsFromWizard(target);
-                getWizardBreadcrumbs().clear();
-                WebComponentUtil.showToastForRecordedButUnsavedChanges(target, valueModel.getObject());
-            }
-
-            @Override
-            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                return new OperationResult(OPERATION_SAVE);
-            }
-        };
-    }
-
-    protected WizardPanelHelper<O, ODM> createObjectWizardPanelHelper() {
-        return new WizardPanelHelper<>(getObjectDetailsModels()) {
-
-            @Override
-            public void onExitPerformed(AjaxRequestTarget target) {
-                SerializableConsumer<AjaxRequestTarget> consumer =
-                        consumerTarget -> exitFromWizard();
-                checkDeltasExitPerformed(consumer, target);
-            }
-
-            @Override
-            public IModel<PrismContainerValueWrapper<O>> getDefaultValueModel() {
-                return PrismContainerValueWrapperModel.fromContainerWrapper(
-                        getDetailsModel().getObjectWrapperModel(), ItemPath.EMPTY_PATH);
-            }
-
-            @Override
-            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                boolean isCreated = getPrismObject() == null || getPrismObject().getOid() == null;
-                OperationResult result = new OperationResult(OPERATION_SAVE);
-                saveOrPreviewPerformed(target, result, false);
-                if (!result.isError()) {
-                    if (isCreated) {
-                        WebComponentUtil.createToastForCreateObject(target, getType());
-                    } else {
-                        WebComponentUtil.createToastForUpdateObject(target, getType());
-                    }
-                }
-                return result;
-            }
-        };
-    }
-
-    private void backToDetailsFromWizard(AjaxRequestTarget target) {
-        DetailsFragment detailsFragment = createDetailsFragment();
-        AbstractPageObjectDetails.this.addOrReplace(detailsFragment);
-        target.add(detailsFragment);
-
-        getFeedbackPanel().setVisible(true);
-    }
-
-    public List<Breadcrumb> getWizardBreadcrumbs() {
-        return wizardBreadcrumbs;
-    }
-
-    public void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {
-
-        if (!hasUnsavedChangesInWizard(target)) {
-            consumer.accept(target);
-            return;
-        }
-        ConfirmationPanel confirmationPanel = new ConfirmationPanel(getMainPopupBodyId(),
-                createStringResource("OperationalButtonsPanel.confirmBack")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                consumer.accept(target);
-            }
-        };
-
-        showMainPopup(confirmationPanel, target);
-    }
-
-    protected void exitFromWizard() {
-        navigateToNext(DetailsPageUtil.getObjectListPage(getType()));
     }
 }

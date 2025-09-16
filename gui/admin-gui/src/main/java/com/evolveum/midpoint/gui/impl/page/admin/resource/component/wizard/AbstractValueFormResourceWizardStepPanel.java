@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.*;
@@ -39,8 +40,8 @@ import java.util.Collection;
 /**
  * @author lskublik
  */
-public abstract class AbstractValueFormResourceWizardStepPanel<C extends Containerable, ODM extends ObjectDetailsModels>
-        extends AbstractWizardStepPanel<ODM> {
+public abstract class AbstractValueFormResourceWizardStepPanel<C extends Containerable, AHDM extends AssignmentHolderDetailsModel>
+        extends AbstractWizardStepPanel<AHDM> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractValueFormResourceWizardStepPanel.class);
 
@@ -51,13 +52,13 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
     private final IModel<? extends PrismContainerValueWrapper<?>> parentModelForAllSteps;
 
     public AbstractValueFormResourceWizardStepPanel(
-            ODM model,
+            AHDM model,
             IModel<PrismContainerValueWrapper<C>> newValueModel) {
         this(model, newValueModel, newValueModel);
     }
 
     public <P extends Containerable> AbstractValueFormResourceWizardStepPanel(
-            ODM model,
+            AHDM model,
             IModel<PrismContainerValueWrapper<C>> newValueModel,
             IModel<PrismContainerValueWrapper<P>> parentModelForAllSteps) {
         super(model);
@@ -69,7 +70,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
         }
     }
 
-    public AbstractValueFormResourceWizardStepPanel(WizardPanelHelper<? extends Containerable, ODM> helper, IModel<PrismContainerValueWrapper<C>> newValueModel){
+    public AbstractValueFormResourceWizardStepPanel(WizardPanelHelper<? extends Containerable, AHDM> helper, IModel<PrismContainerValueWrapper<C>> newValueModel){
         super(helper);
         this.newValueModel = newValueModel;
         this.parentModelForAllSteps = null;

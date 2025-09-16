@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopment
 
 import org.apache.wicket.model.LoadableDetachableModel;
 
-public class ConnectorDevelopmentDetailsModel extends ObjectDetailsModels<ConnectorDevelopmentType> {
+public class ConnectorDevelopmentDetailsModel extends AssignmentHolderDetailsModel<ConnectorDevelopmentType> {
 
     private LoadableDetachableModel<ConnectorDevelopmentOperation> developmentOperationModel;
 
@@ -37,6 +37,12 @@ public class ConnectorDevelopmentDetailsModel extends ObjectDetailsModels<Connec
 
     public ConnectorDevelopmentOperation getConnectorDevelopmentOperation() {
         return developmentOperationModel.getObject();
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        developmentOperationModel.detach();
     }
 
     public ModelServiceLocator getServiceLocator() {

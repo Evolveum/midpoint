@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -85,32 +86,30 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
         valuesModel = new LoadableModel<>() {
             @Override
             protected List<PrismContainerValueWrapper<ConnDevAuthInfoType>> load() {
-                PrismContainerWrapper<ConnDevAuthInfoType> container;
                 try {
-                    container = getDetailsModel().getObjectWrapper().findContainer(
+                    PrismContainerWrapper<ConnDevAuthInfoType> container = getDetailsModel().getObjectWrapper().findContainer(
                             ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH));
+                    return container.getValues();
                 } catch (SchemaException e) {
                     throw new RuntimeException(e);
                 }
 
-                List<PrismContainerValueWrapper<ConnDevAuthInfoType>> list = new ArrayList<>();
-                try {
-                    ConnDevAuthInfoType value = new ConnDevAuthInfoType().name("Bearer Token").type(ConnDevHttpAuthTypeType.BEARER).description("Used in APIs that require a simple token in the Authorization header");
-                    list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
-
-                    value = new ConnDevAuthInfoType().name("Basic Auth").type(ConnDevHttpAuthTypeType.BASIC).description("Username and password encoded in the request header");
-                    list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
-
-                    value = new ConnDevAuthInfoType().name("OAuth 2.0 Client Credentials").type(null).description("Token-based authentication using client ID and secret");
-                    list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
-
-                    value = new ConnDevAuthInfoType().name("API Key in Header or Query").type(ConnDevHttpAuthTypeType.API_KEY).description("Single static key passed as a header or URL parameter");
-                    list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e);
-                }
-
-                return list;
+//                List<PrismContainerValueWrapper<ConnDevAuthInfoType>> list = new ArrayList<>();
+//                try {
+//                    ConnDevAuthInfoType value = new ConnDevAuthInfoType().name("Bearer Token").type(ConnDevHttpAuthTypeType.BEARER).description("Used in APIs that require a simple token in the Authorization header");
+//                    list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
+//
+//                    value = new ConnDevAuthInfoType().name("Basic Auth").type(ConnDevHttpAuthTypeType.BASIC).description("Username and password encoded in the request header");
+//                    list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
+//
+//                    value = new ConnDevAuthInfoType().name("OAuth 2.0 Client Credentials").type(null).description("Token-based authentication using client ID and secret");
+//                    list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
+//
+//                    value = new ConnDevAuthInfoType().name("API Key in Header or Query").type(ConnDevHttpAuthTypeType.API_KEY).description("Single static key passed as a header or URL parameter");
+//                    list.add(WebPrismUtil.createNewValueWrapper(container, value.asPrismContainerValue(), getPageBase()));
+//                } catch (SchemaException e) {
+//                    throw new RuntimeException(e);
+//                }
             }
         };
     }
@@ -138,7 +137,7 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                 name.setOutputMarkupId(true);
                 listItem.add(name);
 
-                Label type = new Label(ID_TYPE, () -> listItem.getModelObject().getRealValue().getType());
+                Label type = new Label(ID_TYPE, createStringResource(listItem.getModelObject().getRealValue().getType()));
                 type.setOutputMarkupId(true);
                 listItem.add(type);
 
@@ -199,28 +198,37 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
-        if (getWizard().hasNext()) {
-            try {
-                PrismContainerWrapper<ConnDevAuthInfoType> container =
-                        getDetailsModel().getObjectWrapper().findContainer(
-                                ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH));
+        try {
+            PrismContainerWrapper<ConnDevAuthInfoType> container =
+                    getDetailsModel().getObjectWrapper().findContainer(
+                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH));
 
-                valuesModel.getObject().forEach(value -> {
-                    try {
-                        if (value.isSelected()) {
-                            container.getItem().add(value.getRealValue().asPrismContainerValue());
-                            container.getValues().add(value);
+            valuesModel.getObject()
+                    .stream().filter(PrismContainerValueWrapper::isSelected)
+                    .map(value -> {
+                        try {
+                            //noinspection unchecked
+                            return (PrismContainerValueWrapper<ConnDevAuthInfoType>) getPageBase().createValueWrapper(
+                                    container, value.getRealValue().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
                         }
-                        value.setSelected(false);
-                    } catch (SchemaException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                    })
+                    .forEach(value -> {
+                        try {
+                            if (value.isSelected()) {
 
-            } catch (SchemaException e) {
-                throw new RuntimeException(e);
-            }
+                                container.getItem().add(value.getRealValue().asPrismContainerValue());
+                                container.getValues().add(value);
+                            }
+                            value.setSelected(false);
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
         }
         return super.onNextPerformed(target);
     }

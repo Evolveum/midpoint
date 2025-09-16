@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectObjectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -35,10 +36,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serializable, O extends ObjectType, ODM extends ObjectDetailsModels>
-        extends SelectTileWizardStepPanel<SelectableBean<O>, ODM> {
+public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serializable, O extends ObjectType, AHDM extends AssignmentHolderDetailsModel>
+        extends SelectTileWizardStepPanel<SelectableBean<O>, AHDM> {
 
-    public MultiSelectObjectTypeTileWizardStepPanel(ODM model) {
+    public MultiSelectObjectTypeTileWizardStepPanel(AHDM model) {
         super(model);
     }
 

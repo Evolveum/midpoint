@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -37,10 +38,10 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.Containerable;
 
-public abstract class MultiSelectContainerTileWizardStepPanel<E extends Serializable, C extends Containerable, ODM extends ObjectDetailsModels>
-        extends SelectTileWizardStepPanel<PrismContainerValueWrapper<C>, ODM> {
+public abstract class MultiSelectContainerTileWizardStepPanel<E extends Serializable, C extends Containerable, AHDM extends AssignmentHolderDetailsModel>
+        extends SelectTileWizardStepPanel<PrismContainerValueWrapper<C>, AHDM> {
 
-    public MultiSelectContainerTileWizardStepPanel(ODM model) {
+    public MultiSelectContainerTileWizardStepPanel(AHDM model) {
         super(model);
     }
 

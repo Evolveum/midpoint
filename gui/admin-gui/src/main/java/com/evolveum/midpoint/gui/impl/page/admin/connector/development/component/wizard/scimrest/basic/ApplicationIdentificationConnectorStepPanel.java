@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -183,8 +184,11 @@ public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWiz
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         try {
-            getDetailsModel().getObjectType().setName(
-                    ((ConnDevApplicationInfoType)getContainerFormModel().getObject().getValue().getNewValue()).getApplicationName());
+            PrismPropertyWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_NAME)
+                    .getObject().getValue().setRealValue(
+                            PrismPropertyWrapperModel.fromContainerWrapper((IModel<PrismContainerWrapper<ConnDevApplicationInfoType>>) getContainerFormModel(), ConnDevApplicationInfoType.F_APPLICATION_NAME)
+                                    .getObject().getValue().getRealValue()
+                    );
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }

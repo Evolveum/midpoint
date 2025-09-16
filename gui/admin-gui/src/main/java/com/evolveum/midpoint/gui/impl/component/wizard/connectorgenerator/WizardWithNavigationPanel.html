@@ -8,43 +8,47 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
-    <div class="d-flex flex-row card w-100 h-100" style="min-height: 78vh;">
-        <div class="wizard-navigation-menu p-3" wicket:id="navigation">
-            <div class="pb-2">
-                <wicket:message key="WizardWithNavigationPanel.navigation.title"/>
-            </div>
-            <div class="d-flex flex-column">
-                <div wicket:id="card" class="d-flex flex-column card p-2">
-                    <div class="pb-2" wicket:id="stepLabel"></div>
-                    <div>
-                        <span wicket:id="stepBadge"></span>
+    <form class="col-lg-12" wicket:id="mainForm">
+        <div class="d-flex flex-column">
+            <div wicket:id="header"></div>
+            <div class="d-flex flex-row card w-100 h-100" style="min-height: 78vh;">
+                <div class="wizard-navigation-menu p-3" wicket:id="navigation">
+                    <div class="pb-2">
+                        <wicket:message key="WizardWithNavigationPanel.navigation.title"/>
                     </div>
-                </div>
-            </div>
-            <div wicket:id="stepInProgress" class="d-flex flex-column">
-                <div class="d-flex flex-row">
-                    <div>
+                    <div class="d-flex flex-column">
+                        <div wicket:id="card" class="d-flex flex-column card p-2">
+                            <div class="pb-2" wicket:id="stepLabel"></div>
+                            <div>
+                                <span wicket:id="stepBadge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div wicket:id="stepInProgress" class="d-flex flex-column">
+                        <div class="d-flex flex-row">
+                            <div>
                         <span class="rounded-circle bg-info text-center mr-1 d-block" style="width: 24px;">
                             <i class="fa-sm fa fa-spinner"></i>
                         </span>
-                    </div>
-                    <div wicket:id="parentStepLabel"></div>
-                </div>
-                <div class="d-flex flex-column pl-3 border-left" style="margin-left: 12px;">
-                    <div wicket:id="card" class="d-flex flex-column card m-0 mt-2 p-2">
-                        <div class="pb-2" wicket:id="stepLabel"></div>
-                        <div>
-                            <span wicket:id="stepBadge"></span>
+                            </div>
+                            <div wicket:id="parentStepLabel"></div>
+                        </div>
+                        <div class="d-flex flex-column pl-3 border-left" style="margin-left: 12px;">
+                            <div wicket:id="card" class="d-flex flex-column card m-0 mt-2 p-2">
+                                <div class="pb-2" wicket:id="stepLabel"></div>
+                                <div>
+                                    <span wicket:id="stepBadge"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="bg-gray-200 p-4 w-100">
+                    <div wicket:id="contentBody"></div>
+                </div>
             </div>
         </div>
-        <div class="bg-gray-200 p-4 w-100">
-            <div wicket:id="contentBody"></div>
-        </div>
-    </div>
+    </form>
 
     <!--    <div class="bs-stepper-header flex-column overflow-auto justify-content-around" role="tablist" wicket:id="header">-->
     <!--        <div wicket:id="stepStatus" class="sr-only" aria-live="polite"/>-->
@@ -53,5 +57,11 @@
     <!--            <div class="line" wicket:id="line"/>-->
     <!--        </wicket:container>-->
     <!--    </div>-->
+    <wicket:fragment wicket:id="saveFragment">
+        <i class="fa fa-plus-circle text-success"></i>
+        <div class="text-success">
+            <wicket:message key="PageConnectorDevelopment.header.save"/>
+        </div>
+    </wicket:fragment>
 </wicket:panel>
 </html>

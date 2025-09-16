@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassConnectorStepPanel;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
@@ -234,5 +236,16 @@ public class WizardModel implements IClusterable {
 
     protected void initNewStep(WizardStep newStep) {
         newStep.init(this);
+    }
+
+    public void addStepBefore(WizardStep newStep, Class<?> objectClassConnectorStepPanelClass) {
+        for (WizardStep step : steps) {
+            if (objectClassConnectorStepPanelClass.equals(step.getClass())) {
+                initNewStep(newStep);
+                steps.add(steps.indexOf(step), newStep);
+                return;
+            }
+        }
+        steps.add(newStep);
     }
 }

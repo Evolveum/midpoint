@@ -7,9 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 
@@ -19,13 +24,18 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class WizardWithNavigationPanel extends WizardPanel {
 
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_HEADER = "header";
+    private static final String ID_SAVE_FRAGMENT = "saveFragment";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_CARD = "card";
     private static final String ID_STEP_LABEL = "stepLabel";
@@ -44,9 +54,39 @@ public class WizardWithNavigationPanel extends WizardPanel {
 
     @Override
     protected void initLayout() {
+        MidpointForm form = new MidpointForm<>(ID_MAIN_FORM);
+        add(form);
+
+        NavigationPanel header = new NavigationPanel(ID_HEADER) {
+            @Override
+            protected AjaxLink createBackButton(String id) {
+                AjaxLink back = super.createBackButton(id);
+                back.add(AttributeAppender.replace("class", "btn btn-link"));
+                return back;
+            }
+
+            @Override
+            protected void onBackPerformed(AjaxRequestTarget target) {
+                onBackRedirect();
+            }
+
+            @Override
+            protected IModel<String> createTitleModel() {
+                return getTitleModel();
+            }
+
+            @Override
+            protected Component createNextButton(String id, IModel<String> nextTitle) {
+                Fragment next = new Fragment(id, ID_SAVE_FRAGMENT, WizardWithNavigationPanel.this);
+                next.setRenderBodyOnly(true);
+                return next;
+            }
+        };
+        form.add(header);
+
         WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
         navigation.setOutputMarkupId(true);
-        add(navigation);
+        form.add(navigation);
 
         IModel<List<WizardParentStep>> modelParentsView = () -> {
             List list = new ArrayList<>(getWizardModel().getSteps());
@@ -78,7 +118,15 @@ public class WizardWithNavigationPanel extends WizardPanel {
             }
         };
         stepInProgress.add(stepsView);
-        add(new WebMarkupContainer(ID_CONTENT_BODY));
+        form.add(new WebMarkupContainer(ID_CONTENT_BODY));
+    }
+
+    protected IModel<String> getTitleModel() {
+        return Model.of();
+    }
+
+    protected void onBackRedirect() {
+        getPageBase().redirectBack();
     }
 
     private void populateCard(ListItem<? extends WizardStep> listItem, int lastShowedIndex, boolean acceptEquals) {
@@ -107,5 +155,13 @@ public class WizardWithNavigationPanel extends WizardPanel {
     @Override
     public WizardModelWithParentSteps getWizardModel() {
         return (WizardModelWithParentSteps) super.getWizardModel();
+    }
+
+    @Override
+    public void onStepChanged(WizardStep newStep) {
+        WizardStep step = getActiveStep();
+        ((Component)step).add(AttributeAppender.append("class", () -> getActiveStep().appendCssToWizard()));
+
+        ((MidpointForm)get(ID_MAIN_FORM)).addOrReplace((Component) step);
     }
 }

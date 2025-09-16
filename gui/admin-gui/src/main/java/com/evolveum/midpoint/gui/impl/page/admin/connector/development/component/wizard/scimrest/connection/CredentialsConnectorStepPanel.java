@@ -29,10 +29,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevAuthInfoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -87,7 +84,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
             protected List<PrismContainerValueWrapper<ConnDevAuthInfoType>> load() {
                 try {
                     PrismContainerWrapper<ConnDevAuthInfoType> container = getDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH));
+                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH));
 
                     return container.getValues();
                 } catch (SchemaException e) {
@@ -200,7 +197,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
     }
 
     private ItemVisibilityHandler getVisibilityHandler(String name) {
-        if (StringUtils.equals("Bearer Token", name)) {
+        if (StringUtils.equals("Basic Authorization", name)) {
             return wrapper -> {
                 if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_APPLICATION_NAME)) {
                 return ItemVisibility.AUTO;
@@ -208,7 +205,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
                 return ItemVisibility.HIDDEN;
             };
         }
-        if (StringUtils.equals("Basic Auth", name)) {
+        if (StringUtils.equals("API Key Authorization", name)) {
             return wrapper -> {
                 if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_DESCRIPTION)) {
                     return ItemVisibility.AUTO;
@@ -217,23 +214,23 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
             };
         }
 
-        if (StringUtils.equals("OAuth 2.0 Client Credentials", name)) {
-            return wrapper -> {
-                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_DEPLOYMENT_TYPE)) {
-                    return ItemVisibility.AUTO;
-                }
-                return ItemVisibility.HIDDEN;
-            };
-        }
-
-        if (StringUtils.equals("API Key in Header or Query", name)) {
-            return wrapper -> {
-                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_INTEGRATION_TYPE)) {
-                    return ItemVisibility.AUTO;
-                }
-                return ItemVisibility.HIDDEN;
-            };
-        }
+//        if (StringUtils.equals("OAuth 2.0 Client Credentials", name)) {
+//            return wrapper -> {
+//                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_DEPLOYMENT_TYPE)) {
+//                    return ItemVisibility.AUTO;
+//                }
+//                return ItemVisibility.HIDDEN;
+//            };
+//        }
+//
+//        if (StringUtils.equals("API Key in Header or Query", name)) {
+//            return wrapper -> {
+//                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_INTEGRATION_TYPE)) {
+//                    return ItemVisibility.AUTO;
+//                }
+//                return ItemVisibility.HIDDEN;
+//            };
+//        }
         return null;
     }
 

@@ -10506,6 +10506,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevDiscoverDocumentationResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="documentation" type="tns:ConnDevDocumentationSourceType" maxOccurs="unbounded">
             </xsd:element>

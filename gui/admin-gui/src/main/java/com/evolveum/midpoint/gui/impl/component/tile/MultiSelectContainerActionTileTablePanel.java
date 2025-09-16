@@ -63,8 +63,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.jetbrains.annotations.Nullable;
 
-public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable>
-        extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, TemplateTile<PrismContainerValueWrapper<C>>> {
+public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable, T extends TemplateTile<PrismContainerValueWrapper<C>>>
+        extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, T> {
 
     private final IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
 
@@ -82,7 +82,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     @Override
-    protected void customizeTileItemCss(Component tile, @NotNull TemplateTile<PrismContainerValueWrapper<C>> item) {
+    protected void customizeTileItemCss(Component tile, @NotNull T item) {
         updateRowCssBasedValueStatus(tile, item.getValue(), true);
     }
 

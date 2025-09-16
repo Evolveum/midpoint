@@ -223,7 +223,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
     private String connectorTemplateFor(ConnDevIntegrationType integrationType) {
         // FIXME: Dispatch to IntegrationType specific handler
-        return "file:///home/tony/.m2/repository/com/evolveum/polygon/scimrest/connector-sample-scimdev-noclass/0.1-SNAPSHOT/connector-sample-scimdev-noclass-0.1-SNAPSHOT.jar";
+        return "file:///home/lskublik/.m2/repository/com/evolveum/polygon/scimrest/connector-sample-scimdev-noclass/0.1-SNAPSHOT/connector-sample-scimdev-noclass-0.1-SNAPSHOT.jar";
     }
 
     private static @NotNull Collection<SelectorOptions<GetOperationOptions>> taskRetrievalOptions() {

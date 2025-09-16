@@ -17,8 +17,13 @@ import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.Wizard
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.SchemaScriptConnectorStepPanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.WaitingConnIdSchemaConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.WaitingNativeSchemaConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.WaitingObjectClassDetailsConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.EndpointsConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllScriptConnectorStepPanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchAllConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -78,13 +83,18 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
         valueModel = new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerValueWrapper<ConnDevObjectClassInfoType> load() {
+                if (objectClass == null) {
+                    objectClass = getHelper().getVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME);
+                    getHelper().removeVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME);
+                }
+
                 PrismContainerWrapperModel<ConnectorDevelopmentType, ConnDevObjectClassInfoType> model
                         = PrismContainerWrapperModel.fromContainerWrapper(
                         getDetailsModel().getObjectWrapperModel(),
                         ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
 
                 if (model.getObject().getValues().isEmpty()
-                        || ( objectClass == null && model.getObject().getValues().stream().noneMatch(
+                        || (objectClass == null && model.getObject().getValues().stream().noneMatch(
                                 value -> value.getStatus() ==  ValueStatus.ADDED && StringUtils.isEmpty(value.getRealValue().getName())))) {
                     try {
                         PrismContainerValue<ConnDevObjectClassInfoType> newItem = model.getObject().getItem().createNewValue();
@@ -260,9 +270,16 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
     @Override
     public List<WizardStep> createChildrenSteps() {
         return List.of(
-                new ObjectClassBasicConnectorStepPanel(getHelper(), valueModel),
+//                new ObjectClassBasicConnectorStepPanel(getHelper(), valueModel),
+                new WaitingObjectClassConnectorStepPanel(getHelper()),
+                new ObjectClassSelectConnectorStepPanel(getHelper()),
+                new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), valueModel),
+                new WaitingNativeSchemaConnectorStepPanel(getHelper(), valueModel),
+                new WaitingConnIdSchemaConnectorStepPanel(getHelper(), valueModel),
                 new SchemaScriptConnectorStepPanel(getHelper()),
-                new SearchScriptConnectorStepPanel(getHelper()));
+                new EndpointsConnectorStepPanel(getHelper(), valueModel),
+                new WaitingSearchAllConnectorStepPanel(getHelper(), valueModel),
+                new SearchAllScriptConnectorStepPanel(getHelper()));
     }
 
     @Override

@@ -4,13 +4,24 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
+package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.DocumentationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
-
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -25,63 +36,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopment
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.prism.Containerable;
-
-import org.apache.wicket.model.Model;
-
 /**
  * @author lskublik
  */
-@PanelType(name = "cdw-connector-waiting-documentation")
-@PanelInstance(identifier = "cdw-connector-waiting-documentation",
+@PanelType(name = "cdw-connector-waiting-object-class")
+@PanelInstance(identifier = "cdw-connector-waiting-object-class",
         applicableForType = ConnectorDevelopmentType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingDocumentation", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingObjectClass", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class WaitingForDocumentationConnectorStepPanel extends WaitingConnectorStepPanel {
+public class WaitingObjectClassConnectorStepPanel extends WaitingConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-connector-waiting-documentation";
+    private static final String PANEL_TYPE = "cdw-connector-waiting-object-class";
 
-    public WaitingForDocumentationConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    public WaitingObjectClassConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
 
     @Override
     protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getDetailsModel().getServiceLocator().getConnectorService().getDiscoverDocumentationStatus(token, task, result);
+        return getDetailsModel().getServiceLocator().getConnectorService().getDiscoverObjectClassInformationStatus(token, task, result);
     }
 
     @Override
     protected String getTaskToken(Task task, OperationResult result) {
-        return getDetailsModel().getConnectorDevelopmentOperation().submitDiscoverDocumentation(task, result);
-    }
-
-    @Override
-    protected String getKeyForStoringToken() {
-        return DocumentationConnectorStepPanel.TASK_DOCUMENTATION_KEY;
-    }
-
-    @Override
-    public IModel<String> getTitle() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingDocumentation");
-    }
-
-    @Override
-    protected IModel<String> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingDocumentation.text");
-    }
-
-    @Override
-    protected IModel<String> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingDocumentation.subText");
+        return getDetailsModel().getConnectorDevelopmentOperation().submitDiscoverObjectClasses(task, result);
     }
 
     @Override
@@ -89,4 +68,18 @@ public class WaitingForDocumentationConnectorStepPanel extends WaitingConnectorS
         return PANEL_TYPE;
     }
 
+    @Override
+    public IModel<String> getTitle() {
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingObjectClass");
+    }
+
+    @Override
+    protected IModel<String> getTextModel() {
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingObjectClass.text");
+    }
+
+    @Override
+    protected IModel<String> getSubTextModel() {
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingObjectClass.subText");
+    }
 }

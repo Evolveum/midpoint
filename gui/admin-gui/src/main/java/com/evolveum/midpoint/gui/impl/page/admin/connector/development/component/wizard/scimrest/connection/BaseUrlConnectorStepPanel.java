@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -19,14 +20,16 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -50,7 +53,18 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     @Override
     protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
-        return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_APPLICATION);
+        try {
+            PrismReferenceWrapper<Referencable> resource = getDetailsModel().getObjectWrapper().findReference(
+                    ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
+
+            ObjectDetailsModels<ResourceType> objectDetailsModel =
+                    resource.getValue().getNewObjectModel(getContainerConfiguration(PANEL_TYPE), getPageBase(), new OperationResult("getResourceModel"));
+
+            ItemPath path = ItemPath.create("connectorConfiguration", "configurationProperties");
+            return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), path);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -22,23 +23,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author lskublik
  */
-public abstract class AbstractWizardStepPanel<ODM extends ObjectDetailsModels>
+public abstract class AbstractWizardStepPanel<AHDM extends AssignmentHolderDetailsModel>
         extends BasicWizardStepPanel {
 
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
 
-    private ODM detailsModel;
-    private WizardPanelHelper<? extends Containerable, ODM> helper;
+    private AHDM detailsModel;
+    private WizardPanelHelper<? extends Containerable, AHDM> helper;
 
     public AbstractWizardStepPanel(){
     }
 
-    public AbstractWizardStepPanel(ODM model){
+    public AbstractWizardStepPanel(AHDM model){
         this.detailsModel = model;
     }
 
-    public AbstractWizardStepPanel(WizardPanelHelper<? extends Containerable, ODM> helper) {
+    public AbstractWizardStepPanel(WizardPanelHelper<? extends Containerable, AHDM> helper) {
         this.helper = helper;
 
     }
@@ -61,14 +62,14 @@ public abstract class AbstractWizardStepPanel<ODM extends ObjectDetailsModels>
         feedbackContainer.add(feedbackList);
     }
 
-    public ODM getDetailsModel() {
+    public AHDM getDetailsModel() {
         if (helper != null) {
             return helper.getDetailsModel();
         }
         return detailsModel;
     }
 
-    public WizardPanelHelper<? extends Containerable, ODM> getHelper() {
+    public WizardPanelHelper<? extends Containerable, AHDM> getHelper() {
         return helper;
     }
 

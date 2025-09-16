@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardWithNavigationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.NextStepsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.BasicInformationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.ConnectionConnectorStepPanel;
@@ -51,56 +52,28 @@ import java.util.List;
                         label = "PageAdminUsers.auth.connectorGenerator.label",
                         description = "PageAdminUsers.auth.connectorGenerator.description")
         })
-public class PageConnectorDevelopment extends AbstractPageObjectDetails<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
-
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
-    private static final String ID_HEADER = "header";
-    private static final String ID_SAVE_FRAGMENT = "saveFragment";
-    private static final String ID_WIZARD_PANEL = "wizardPanel";
+public class PageConnectorDevelopment extends PageAssignmentHolderDetails<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
 
     @Override
-    protected DetailsFragment createDetailsFragment() {
+    protected DetailsFragment createWizardFragment() {
         getObjectDetailsModels().reset();
         DetailsFragment fragment = new DetailsFragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageConnectorDevelopment.this) {
 
             @Override
             protected void initFragmentLayout() {
-
-                MidpointForm form = new MidpointForm<>(ID_MAIN_FORM);
-                add(form);
-
-                NavigationPanel header = new NavigationPanel(ID_HEADER) {
+                WizardWithNavigationPanel wizardPanel = new WizardWithNavigationPanel(ID_WIZARD, new WizardModelWithParentSteps(createSteps())){
                     @Override
-                    protected AjaxLink createBackButton(String id) {
-                        AjaxLink back = super.createBackButton(id);
-                        back.add(AttributeAppender.replace("class", "btn btn-link"));
-                        return back;
-                    }
-
-                    @Override
-                    protected void onBackPerformed(AjaxRequestTarget target) {
+                    protected void onBackRedirect() {
                         redirectBack();
                     }
 
                     @Override
-                    protected IModel<String> createTitleModel() {
-                        return getPageTitleModel();
-                    }
-
-                    @Override
-                    protected Component createNextButton(String id, IModel<String> nextTitle) {
-                        Fragment next = new Fragment(id, ID_SAVE_FRAGMENT, PageConnectorDevelopment.this);
-                        next.setRenderBodyOnly(true);
-                        return next;
+                    protected IModel<String> getTitleModel() {
+                        return createPageTitleModel();
                     }
                 };
-                form.add(header);
-
-                WizardWithNavigationPanel wizardPanel = new WizardWithNavigationPanel(ID_WIZARD_PANEL, new WizardModelWithParentSteps(createSteps()));
                 wizardPanel.setOutputMarkupId(true);
-                form.add(wizardPanel);
-
+                add(wizardPanel);
             }
 
         };
@@ -139,5 +112,8 @@ public class PageConnectorDevelopment extends AbstractPageObjectDetails<Connecto
         return new ConnectorDevelopmentDetailsModel(createPrismObjectModel(object), this);
     }
 
-
+    @Override
+    protected boolean canShowWizard() {
+        return true;
+    }
 }
