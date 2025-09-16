@@ -115,7 +115,7 @@ class CorrelatorEvaluator {
         for (CorrelatorSuggestion suggestion : suggestions) {
             double eval = computeScore(suggestion);
             results.add(eval);
-            LOGGER.info("Suggestion: {} | Score: {}", suggestion, eval);
+            LOGGER.debug("Suggestion: {} | Score: {}", suggestion, eval);
         }
         return results;
     }
@@ -172,12 +172,12 @@ class CorrelatorEvaluator {
         try {
             var focusDef = ctx.getFocusTypeDefinition().findItemDefinition(path);
             if (focusDef != null && focusDef.isMultiValue()) {
-                LOGGER.info("Focus path {} is multi-valued", path);
+                LOGGER.debug("Focus path {} is multi-valued", path);
                 return true;
             }
             var shadowDef = ctx.getShadowDefinition().findItemDefinition(path);
             if (shadowDef != null && shadowDef.isMultiValue()) {
-                LOGGER.info("Shadow path {} is multi-valued", path);
+                LOGGER.debug("Shadow path {} is multi-valued", path);
                 return true;
             }
             return false;
@@ -203,7 +203,7 @@ class CorrelatorEvaluator {
         boolean focusMulti = isMultiValued(focusPath) && focusStatistics.isPathMultiValued(focusPath);
         boolean resourceMulti = isMultiValued(resourcePath) && resourceStatistics.isPathMultiValued(resourcePath);
         if (focusMulti || resourceMulti) {
-            LOGGER.info("Excluded correlator {} - {}: multi-valued path(s) found. Focus: {}, Resource: {}",
+            LOGGER.debug("Excluded correlator {} - {}: multi-valued path(s) found. Focus: {}, Resource: {}",
                     suggestion.focusItemPath(), suggestion.resourceAttrPath(), focusMulti, resourceMulti);
             return 0.0;
         }
@@ -211,7 +211,7 @@ class CorrelatorEvaluator {
         Double focusScore = focusStatistics.getScore(focusPath);
         Double resourceScore = resourceStatistics.getScore(resourcePath);
         if (focusScore == 0 || resourceScore == 0) {
-            LOGGER.info("Excluded correlator {} - {}: either focus score or resource score is 0. Focus score: {}, Resource score: {}",
+            LOGGER.debug("Excluded correlator {} - {}: either focus score or resource score is 0. Focus score: {}, Resource score: {}",
                     suggestion.focusItemPath(), suggestion.resourceAttrPath(), focusScore, resourceScore);
             return 0.0;
         }
