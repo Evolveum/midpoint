@@ -304,4 +304,6 @@ See xref:/midpoint/reference/misc/reports/configuration/report-task-definition/#
 When configuring the task, you need to use the _report export_ activity and use the OID of the dashboard report you want the task to run.
 In most cases, it makes sense to schedule this task to run at regular intervals in order to have the data in the dashboard updated automatically.
 
+include::../dashboards-reports-and-recurring-tasks-config-limitation.adoc[]
+
 Once you have all the pieces in place, upload them to your midPoint instance, refresh the GUI (possibly log out and back in), and see the updated dashboard under [.nowrap]#icon:tachometer-alt[] *Dashboards*#.
