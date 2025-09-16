@@ -382,7 +382,7 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/object-collection-resource-up.xml[]
 ====
 
-The example above contains an specification definition of the xref:/midpoint/reference/admin-gui/collections-views/#collection-domain[collection domain].
+The example above contains an specification definition of the xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-domain[collection domain].
 In the case here, the domain contains all the resources in the environment, and the `filter` clause specifies that only those that are `up` should be counted.
 The policy rule then computes the ratio of `up` resources vs. all resources and fires a situation in case the ratio drops beneath the `highWaterMark` value.
 
