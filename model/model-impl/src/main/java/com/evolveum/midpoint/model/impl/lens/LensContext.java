@@ -272,6 +272,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     private transient ModelBeans modelBeans;
 
+    // TODO think about making this non-transient, it's not serializable now (MagicAssignment/Holder classes, etc.)
+    @NotNull private transient final Map<String, EvaluatedPolicyRuleImpl> triggeredObjectPolicyRules = new HashMap<>();
+
     public LensContext(@NotNull TaskExecutionMode taskExecutionMode) {
         this(null, taskExecutionMode);
     }
@@ -2041,6 +2044,18 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public boolean areAccessesMetadataEnabled() {
         return SystemConfigurationTypeUtil.isAccessesMetadataEnabled(getSystemConfigurationBean());
+    }
+
+    public Collection<EvaluatedPolicyRuleImpl> getTriggeredObjectPolicyRules() {
+        return triggeredObjectPolicyRules.values();
+    }
+
+    public boolean hasTriggeredObjectPolicyRule(String identifier) {
+        return triggeredObjectPolicyRules.containsKey(identifier);
+    }
+
+    public void addTriggeredObjectPolicyRule(EvaluatedPolicyRuleImpl triggeredPolicyRule) {
+        triggeredObjectPolicyRules.put(triggeredPolicyRule.getPolicyRuleIdentifier(), triggeredPolicyRule);
     }
 
     public enum ExportType {
