@@ -2,15 +2,21 @@ package com.evolveum.midpoint.model.intest.smart.conndev;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
+import com.evolveum.midpoint.smart.api.conndev.ScimRestConfigurationProperties;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +43,10 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
     @Autowired
     private ConnectorInstallationService installationService;
 
-    @Autowired
-    private ConnectorDevelopmentService connectorService;
+    @Autowired protected ConnectorDevelopmentService connectorService;
     @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
-    private String developmentOid;
+    protected String developmentOid;
+    private String resourceOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -50,12 +56,27 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         developmentOid = addObject(new ConnectorDevelopmentType()
                 .name("dummy")
                         .application(new ConnDevApplicationInfoType()
-                                .applicationName("Test Dummy")
-                                .integrationType(ConnDevIntegrationType.DUMMY)
+                                .applicationName(applicationName())
+                                .integrationType(targetConnectorIntegration())
                         ).asPrismObject()
                 , initTask, initResult);
     }
 
+    protected String applicationName() {
+        return "Dummy Application";
+    }
+
+    protected ConnDevIntegrationType targetConnectorIntegration() {
+        return ConnDevIntegrationType.DUMMY;
+    }
+
+    protected String targetConnectorVersion() {
+        return MOCK_SNAPSHOT;
+    }
+
+    protected String targetConnectorName() {
+        return MOCK_CONNECTOR;
+    }
 
     private ConnectorDevelopmentType reloadDevelopment(@NotNull Task task, @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         return modelService.getObject(ConnectorDevelopmentType.class, developmentOid, null, task, result).asObjectable();
@@ -63,6 +84,10 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
 
     private ConnectorDevelopmentOperation continueDevelopment(@NotNull Task task, @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         return connectorService.continueFrom(reloadDevelopment(task, result));
+    }
+
+    protected ConnectorDevelopmentOperation continueDevelopment() throws CommonException {
+        return continueDevelopment(getTestTask(), getTestOperationResult());
     }
 
 
@@ -79,8 +104,15 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
                 () -> connectorService.getDiscoverDocumentationStatus(token, getTestTask(), getTestOperationResult()),
                 TIMEOUT);
         assertThat(response).isNotNull();
-    }
+        display("Discovered Links", response);
 
+        var delta = deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE).add(new ConnDevDocumentationSourceType()
+                        .name("OpenProject OpenAPI Specification")
+                        .uri("https://www.openproject.org/docs/api/v3/spec.yml")
+                ).<ConnectorDevelopmentType>asObjectDelta(developmentOid);
+        executeChanges(List.of(delta), null, getTestTask(),getTestOperationResult());
+    }
 
     @Test
     public void test100DiscoverBasicInformation() throws CommonException {
@@ -110,9 +142,9 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
                 .item(ConnectorDevelopmentType.F_CONNECTOR)
                 .add(new ConnDevConnectorType()
                         .groupId(COMMUNITY_CONNECTOR)
-                        .artifactId(MOCK_CONNECTOR)
-                        .version(MOCK_SNAPSHOT)
-                        .integrationType(ConnDevIntegrationType.DUMMY))
+                        .artifactId(targetConnectorName())
+                        .version(targetConnectorVersion())
+                        .integrationType(targetConnectorIntegration()))
                 .asObjectDeltas(developmentOid), null, getTestTask(), getTestOperationResult());
         var devObj = continueDevelopment(getTestTask(), getTestOperationResult());
         var token = devObj.submitCreateConnector(task, result);
@@ -146,7 +178,12 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
                 .<ConnectorDevelopmentType>asObjectDelta(developmentOid);
 
         executeChanges(delta, null, task, result);
+
         // FIXME: Select auths and copy to connector
+        development = continueDevelopment(getTestTask(), getTestOperationResult());
+
+        development.authenticationSelectionUpdated(getTestTask(), getTestOperationResult());
+
 
         // Lets refresh development type
         development = continueDevelopment(getTestTask(), getTestOperationResult());
@@ -164,7 +201,43 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
 
     @Test
     public void test230ConfigureTestConnection() throws Exception {
+        var development = continueDevelopment();
+        var resource = new ResourceType()
+                .name("development-test-resource")
+                .connectorRef(development.getObject().getConnector().getConnectorRef().clone())
+                .connectorConfiguration(new ConnectorConfigurationType())
+                .asPrismObject();
 
+        provisioningService.applyDefinition(resource, getTestTask(), getTestOperationResult());
+
+        var connectorCfg = resource.findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+        var propCfg = connectorCfg.findOrCreateContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
+
+
+
+        propCfg.findOrCreateProperty(ScimRestConfigurationProperties.BASE_ADDRESS).setRealValue("http://127.0.0.0");
+        propCfg.findOrCreateProperty(ScimRestConfigurationProperties.REST_API_KEY).setRealValue(ProtectedStringType.fromClearValue("random"));
+
+        resourceOid = addObject(resource);
+
+        var resourceRef = new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE);
+
+        executeChanges(deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE).add(resourceRef)
+                .asObjectDelta(developmentOid), null, getTestTask(), getTestOperationResult());
+
+        resource = getObject(ResourceType.class, resourceOid );
+        var connCfg = resource.asObjectable().getConnectorConfiguration().asPrismContainerValue();
+
+        assertThat(connCfg).isNotNull();
+
+        // Set base Address
+
+        // Set credentials
+
+        // Save configuration
+
+        testResource(resourceOid, getTestTask(), getTestOperationResult());
     }
 
     @Test
@@ -230,9 +303,14 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
     }
 
     @Test
-    public void test325TestResourceSchema() throws Exception {
+    public void test315TestResourceSchema() throws Exception {
         // Test schema
-        throw new SkipException("Skipped");
+        var development = continueDevelopment();
+
+        testResource(resourceOid, getTestTask(), getTestOperationResult());
+        var schema = provisioningService.fetchSchema(getObject(ResourceType.class, resourceOid), getTestOperationResult());
+        var userClass = schema.findDefinitionForObjectClass(ItemName.from(SchemaConstants.NS_RI, "User"));
+        assertThat(userClass).isNotNull();
     }
 
     @Test
@@ -259,14 +337,6 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         development.saveSearchAllScript(response.getArtifact(), task, result);
         assertThat(development.getObject().getApplication().getDetectedSchema().getObjectClass()).isNotEmpty();
 
-    }
-
-    @Test
-    public void test330TestSearchScript() throws Exception {
-        var task = getTestTask();
-        var result = getTestOperationResult();
-        var development =  continueDevelopment(getTestTask(), getTestOperationResult());
-        throw new SkipException("Skipped");
     }
 
 

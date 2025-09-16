@@ -5,7 +5,7 @@ import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts.KnownArtifactType.*;
@@ -18,6 +18,10 @@ public interface ConnectorDevelopmentOperation {
 
     // AI only
     String submitDiscoverDocumentation(Task task, OperationResult result);
+
+    // AI only
+    String submitProcessDocumentation(Task task, OperationResult result);
+
 
     // AI only
     StatusInfo<ConnectorDevelopmentType> processDocumentation(PrismContainer<ConnDevDocumentationSourceType> sources);
@@ -89,6 +93,7 @@ public interface ConnectorDevelopmentOperation {
 
     default void  saveNativeSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);
+        resetResourceSchema(task, result);
     }
 
 
@@ -98,7 +103,9 @@ public interface ConnectorDevelopmentOperation {
 
     default void saveConnIdSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);
-    };
+        resetResourceSchema(task, result);
+    }
+    void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
 
     default void saveSearchAllScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);
@@ -106,4 +113,5 @@ public interface ConnectorDevelopmentOperation {
 
     List<ConnDevHttpEndpointType> suggestedEndpointsFor(String objectClass, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType);
 
+    void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
 }

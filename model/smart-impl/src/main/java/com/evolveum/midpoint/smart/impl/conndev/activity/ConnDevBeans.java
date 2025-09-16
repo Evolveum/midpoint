@@ -7,6 +7,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
+import com.evolveum.midpoint.smart.impl.conndev.ServiceClient;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +23,14 @@ public class ConnDevBeans {
     @Autowired public RepositoryService repositoryService;
     @Autowired public ConnectorInstallationService connectorService;
     @Autowired public ProvisioningService provisioningService;
+    public ServiceClient client;
 
     @PostConstruct
     public void init() {
         instance = this;
+        client = new ServiceClient();
+
+
     }
 
     @PreDestroy

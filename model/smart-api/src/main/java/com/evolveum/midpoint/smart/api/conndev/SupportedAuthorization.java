@@ -29,6 +29,16 @@ public enum SupportedAuthorization {
 
     private final ConnDevAuthInfoType baseAuthInfo;
 
+    public static ConnDevAuthInfoType fromAiType(String type) {
+        return switch (type) {
+            case "basic" -> HTTP_BASIC.crateBasicInformation();
+            case "bearer" -> HTTP_BEARER.crateBasicInformation();
+            case "apikey" -> HTTP_APIKEY.crateBasicInformation();
+            default -> null;
+        };
+    }
+
+
     public ConnDevAuthInfoType crateBasicInformation() {
         return baseAuthInfo.clone();
     }
@@ -38,13 +48,17 @@ public enum SupportedAuthorization {
         if (auth == null) {
             return List.of();
         }
+        return auth.attributesFor(integration);
+    }
+
+    public List<ItemName> attributesFor(ConnDevIntegrationType integration) {
         return (List) switch (integration) {
-            case SCIM -> auth.scimProperties;
-            case DUMMY, REST -> auth.restProperties;
+            case SCIM -> scimProperties;
+            case DUMMY, REST -> restProperties;
         };
     }
 
-    private static SupportedAuthorization forAuthorizationType(ConnDevHttpAuthTypeType authorizationType) {
+    public static SupportedAuthorization forAuthorizationType(ConnDevHttpAuthTypeType authorizationType) {
         return Arrays.stream(SupportedAuthorization.values()).filter(v -> v.baseAuthInfo.getType().equals(authorizationType))
                 .findFirst().orElse(null);
     }

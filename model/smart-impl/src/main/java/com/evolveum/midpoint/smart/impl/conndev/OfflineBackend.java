@@ -83,6 +83,7 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
         };
     }
 
+    @Override
     public ConnDevArtifactType generateObjectClassArtifact(ConnDevArtifactType artifactSpec) {
         var objectClass = artifactSpec.getObjectClass();
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
@@ -193,5 +194,10 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
             );
             default -> List.of();
         };
+    }
+
+    @Override
+    public void processDocumentation() {
+        // NOOP
     }
 }
