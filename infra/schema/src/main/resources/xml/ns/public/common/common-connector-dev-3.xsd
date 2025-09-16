@@ -26,12 +26,11 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="application" type="c:ConnDevApplicationInfoType"/>
-                    <xsd:element name="connector" type="c:ConnDevConnectorType"/>
-                    <xsd:element name="testing" type="c:ConnDevTestingType"/>
-                    <xsd:element maxOccurs="unbounded" name="documentationSource" type="c:ConnDevDocumentationSourceType"/>
-                    <xsd:element maxOccurs="unbounded" name="processedDocumentation" type="c:ProcessedDocumentationType"/>
-
+                    <xsd:element name="application" type="c:ConnDevApplicationInfoType" minOccurs="0"/>
+                    <xsd:element name="connector" type="c:ConnDevConnectorType" minOccurs="0"/>
+                    <xsd:element name="testing" type="c:ConnDevTestingType" minOccurs="0"/>
+                    <xsd:element name="documentationSource"  type="c:ConnDevDocumentationSourceType" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="processedDocumentation" type="c:ProcessedDocumentationType" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -53,14 +52,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="description" type="t:PolyStringType">
+            <xsd:element name="description" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Description of application
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="version" type="xsd:string">
+            <xsd:element name="version" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Version of application
@@ -95,7 +94,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="baseApiEndpoint" type="xsd:string" />
+            <xsd:element name="baseApiEndpoint" type="xsd:string"  minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
 
