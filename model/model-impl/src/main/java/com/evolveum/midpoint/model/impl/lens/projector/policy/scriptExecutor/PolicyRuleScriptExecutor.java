@@ -84,24 +84,12 @@ public class PolicyRuleScriptExecutor {
 
     private List<EvaluatedPolicyRuleImpl> collectRelevantPolicyRules(LensContext<?> context) {
         List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
-        collectFromFocus(rules, context);
-        collectFromAssignments(rules, context);
-        return rules;
-    }
 
-    private void collectFromFocus(List<EvaluatedPolicyRuleImpl> rules, LensContext<?> context) {
-        for (EvaluatedPolicyRuleImpl rule : context.getFocusContext().getObjectPolicyRules()) {
+        for (EvaluatedPolicyRuleImpl rule : context.getTriggeredObjectPolicyRules()) {
             collectRule(rules, rule);
         }
-    }
 
-    private <O extends ObjectType> void collectFromAssignments(List<EvaluatedPolicyRuleImpl> rules, LensContext<O> context) {
-        // We need to apply rules from all the assignments - even those that were deleted.
-        for (EvaluatedAssignmentImpl<?> assignment : context.getAllEvaluatedAssignments()) {
-            for (EvaluatedPolicyRuleImpl rule : assignment.getAllTargetsPolicyRules()) {
-                collectRule(rules, rule);
-            }
-        }
+        return rules;
     }
 
     private void collectRule(List<EvaluatedPolicyRuleImpl> rules, EvaluatedPolicyRuleImpl rule) {
