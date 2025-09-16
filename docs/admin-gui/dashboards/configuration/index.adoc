@@ -353,15 +353,18 @@ You can use four variables for `condition`:
 ====
 
 // TODO some simplified example instead of linking the code would be beneficial @dakle 2025-09-15
-==== Configure the collection objects overview
+==== Configure the object collection overview
 
 The last element of the presentation container is `view`.
 This element is processed when creating reports.
-The main reason to configure the `view` element is to customize the reported or presented object collection that the dashboard widget is based on.
+The main reason to configure the `view` element is to customize the report that is based on the dashboard widget or adjust the object collection screen
 
-In the graphical user interface, the object collection can be accessed using the btn:[More info] button on the dashboard widget tile .
+In the graphical user interface, the object collection screen is accessible using the btn:[More info] button on the dashboard widget tile .
 
-Refer to this link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/unchanged-accounts.xml[example of the `view` element usage].
+Refer to these examples of the `view` element usage:
+
+* link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/reports/unchanged-accounts.xml[unchanged-accounts.xml].
+* link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/dashboard-system-status.xml[dashboard-system-status.xml]
 
 === Configure policy rules in object collections
 
@@ -369,10 +372,9 @@ You can see the basic configuration for object collections in xref:/midpoint/ref
 For dashboards, use `policyRule` with `policyThreshold` to define a `policySituation`.
 
 Below is an object collection for resources that are `up`.
-The collection contains a policy rule that triggers when the ratio of resources that are `up` drops below 99.9%.
+The collection contains a policy rule that is triggered by a situation when the amount of resources that are `up` drops below 99.9% of all resources.
 
-//TODO check after sampleRef is fully in prod
-.*Example Object Collection*
+.Example Object Collection
 [%collapsible]
 ====
 link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/object-collection-resource-up.xml[Git]
@@ -380,24 +382,26 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/object-collection-resource-up.xml[]
 ====
 
-The variable (collection) _domain_ is a set of objects that represents "all the objects" used in a collection.
-For example, for a collection of "up resources", the domain is "all resources."
-The domain is filtered using the _filter_ to contain only the specific set of objects needed.
+The example above contains an specification definition of the xref:/midpoint/reference/admin-gui/collections-views/#collection-domain[collection domain].
+In the case here, the domain contains all the resources in the environment, and the `filter` clause specifies that only those that are `up` should be counted.
+The policy rule then computes the ratio of `up` resources vs. all resources and fires a situation in case the ratio drops beneath the `highWaterMark` value.
 
-In this example, use _policyRule_ with _policySituation_, which can be leveraged in the variation of widget presentation.
-When the _policyThreshold_ is met, the _policySituation_ from _policyRule_ triggers the widget variation.
-The _policyThreshold_ has two important variables: _lowWaterMark_ and _highWaterMark_.
+This example uses `policyRule` with `policySituation` which can be leveraged for the variation of widget presentation.
+When the `policyThreshold` is met, the `policySituation` from `policyRule` triggers the widget variation.
 
-_lowWaterMark_ is the lower bound of the threshold, representing the lowest value for which the policy rule is activated.
-The policy rule will trigger for all values starting from this value up to the _highWaterMark_ (closed interval).
-If no _lowWaterMark_ is specified, the policy rule activates for all values up to the _highWaterMark_.
+The `policyThreshold` has two important variables: `lowWaterMark` and `highWaterMark`.
+
+* `lowWaterMark` is the lower bound of the threshold, representing the lowest value for which the policy rule is activated.
+    The policy rule will trigger for all values starting from this value up to the `highWaterMark` (closed interval).
+    ** If no `lowWaterMark` is specified, the policy rule activates for all values up to the `highWaterMark`.
+
+* `highWaterMark` is the upper bound of the threshold, representing the highest value for which the policy rule is activated.
+    The policy rule will trigger for all values starting from the `lowWaterMark` up to this value (closed interval).
+    ** If no `highWaterMark` is specified, the policy rule activates for all values greater than or equal to the `highWaterMark`.
+
 A policy rule with a threshold that does not have any water marks will never activate.
 
-_highWaterMark_ is the upper bound of the threshold, representing the highest value for which the policy rule is activated.
-The policy rule will trigger for all values starting from the _lowWaterMark_ up to this value (closed interval).
-If no _highWaterMark_ is specified, the policy rule activates for all values greater than or equal to the _highWaterMark_.
-
-Both variables are of the type _WaterMarkType_, which contains the variables _count_ and _percentage_.
+Both watermark objects are of the `WaterMarkType` type and can contain the variables `count` and `percentage`.
 
 == More configuration examples
 
