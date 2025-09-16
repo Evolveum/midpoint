@@ -87,14 +87,15 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
                     resource.getValue().getNewObjectModel(getContainerConfiguration(PANEL_TYPE), getPageBase(), new OperationResult("getResourceModel"));
             ResourceDetailsModel resourceDetailsModel = (ResourceDetailsModel) objectDetailsModel;
 
-            PrismReferenceWrapper<Referencable> connectorRef = getDetailsModel().getObjectWrapper().findReference(
+            PrismReferenceWrapper<Referencable> connectorRefProperty = getDetailsModel().getObjectWrapper().findReference(
                     ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_CONNECTOR_REF));
 
+            ConnDevCreateConnectorResultType connectorRefResult = (ConnDevCreateConnectorResultType) getResult();
             resourceDetailsModel.getObjectWrapper().findProperty(ResourceType.F_NAME).getValue().setRealValue(PolyString.fromOrig(
                     "Resource - " + getDetailsModel().getObjectWrapper().getObject().getName().getOrig()));
 
             resourceDetailsModel.getObjectWrapper().findReference(ResourceType.F_CONNECTOR_REF).getValue().setRealValue(
-                    connectorRef.getValue().getRealValue().clone());
+                    connectorRefResult.getConnectorRef().clone());
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }

@@ -27,10 +27,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,14 +70,14 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
             PrismPropertyWrapper<String> groupIdProperty =
                     getContainerFormModel().getObject().findProperty(ConnDevConnectorType.F_GROUP_ID);
             if (StringUtils.isEmpty(groupIdProperty.getValue().getRealValue())) {
-                groupIdProperty.getValue().setRealValue(StringUtils.normalizeSpace(containerBean.getApplicationName().getNorm()));
+                groupIdProperty.getValue().setRealValue(
+                        "com.evolveum." + StringUtils.normalizeSpace(containerBean.getApplicationName().getNorm()));
             }
 
             PrismPropertyWrapper<String> artifactIdProperty =
                     getContainerFormModel().getObject().findProperty(ConnDevConnectorType.F_ARTIFACT_ID);
             if (StringUtils.isEmpty(artifactIdProperty.getValue().getRealValue())) {
-                artifactIdProperty.getValue().setRealValue("com.evolveum." +
-                        StringUtils.normalizeSpace(containerBean.getApplicationName().getNorm()));
+                artifactIdProperty.getValue().setRealValue(StringUtils.normalizeSpace(containerBean.getApplicationName().getNorm()));
             }
 
             PrismPropertyWrapper<String> versionProperty =
@@ -88,6 +85,13 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
             if (StringUtils.isEmpty(versionProperty.getValue().getRealValue())) {
                 versionProperty.getValue().setRealValue("1.0");
             }
+
+            PrismPropertyWrapper<ConnDevIntegrationType> integrationTypeProperty =
+                    getContainerFormModel().getObject().findProperty(ConnDevConnectorType.F_INTEGRATION_TYPE);
+            if (integrationTypeProperty.getValue().getRealValue() == null) {
+                integrationTypeProperty.getValue().setRealValue(containerBean.getIntegrationType());
+            }
+
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
