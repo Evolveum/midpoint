@@ -71,6 +71,7 @@ import java.util.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadCorrelationSuggestionWrappers;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
 
 /**
  * Multi-select tile table for correlation items.
@@ -98,7 +99,7 @@ public class SmartCorrelationTable
         super(id, tableId, toggleView);
         this.resourceOid = resourceOid;
         this.correlationWrapper = correlationWrapper;
-        setDefaultPagingSize(tableId);
+        setDefaultPagingSize(tableId, MAX_TILE_COUNT);
         this.setOutputMarkupId(true);
     }
 
@@ -198,7 +199,7 @@ public class SmartCorrelationTable
             }
 
             @Override
-            protected void initActionButton(@NotNull RepeatingView buttonsView) {
+            protected void initSuggestionActionButton(@NotNull RepeatingView buttonsView) {
                 buttonsView.add(createDiscardButton(buttonsView.newChildId(), () -> value));
                 buttonsView.add(createAcceptButton(buttonsView.newChildId(), () -> value));
             }
@@ -220,37 +221,27 @@ public class SmartCorrelationTable
         LoadableDetachableModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> containerModel =
                 new LoadableDetachableModel<>() {
                     @Override
-                    protected List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> load() {
-                        try {
-                            IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> object = correlationWrapper;
-                            if (object == null || object.getObject() == null) {
-                                return List.of();
-                            }
+                    protected @NotNull List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> load() {
+                        IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = getContainerModel();
+                        PrismContainerWrapper<ItemsSubCorrelatorType> container = containerModel.getObject();
 
-                            PrismContainerWrapper<ItemsSubCorrelatorType> container = object.getObject().findContainer(
-                                    ItemPath.create(ResourceObjectTypeDefinitionType.F_CORRELATION,
-                                            CorrelationDefinitionType.F_CORRELATORS, CompositeCorrelatorType.F_ITEMS));
+                        suggestionsIndex.clear();
+                        List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> allValues = new ArrayList<>(container != null
+                                ? container.getValues() : List.of());
+                        if (Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
+                            Task task = getPageBase().createSimpleTask("Loading correlation type suggestions");
+                            OperationResult result = task.getResult();
 
-                            suggestionsIndex.clear();
-                            List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> allValues = new ArrayList<>(container != null
-                                    ? container.getValues() : List.of());
-                            if (Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
-                                Task task = getPageBase().createSimpleTask("Loading correlation type suggestions");
-                                OperationResult result = task.getResult();
+                            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
+                            ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
+                            @NotNull SmartIntegrationStatusInfoUtils.CorrelationSuggestionProviderResult suggestionWrappers =
+                                    loadCorrelationSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition, task, result);
 
-                                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
-                                ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
-                                @NotNull SmartIntegrationStatusInfoUtils.CorrelationSuggestionProviderResult suggestionWrappers =
-                                        loadCorrelationSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition, task, result);
-
-                                allValues.addAll(suggestionWrappers.wrappers());
-                                suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
-                            }
-
-                            return allValues;
-                        } catch (SchemaException e) {
-                            throw new RuntimeException("Error while loading items sub-correlator types", e);
+                            allValues.addAll(suggestionWrappers.wrappers());
+                            suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
                         }
+
+                        return allValues;
                     }
                 };
 
@@ -678,6 +669,30 @@ public class SmartCorrelationTable
     }
 
     @Override
+    protected IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> getContainerModel() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected PrismContainerWrapper<ItemsSubCorrelatorType> load() {
+                IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> object = correlationWrapper;
+                if (object == null || object.getObject() == null) {
+                    return null;
+                }
+
+                PrismContainerWrapper<ItemsSubCorrelatorType> container = null;
+                try {
+                    container = object.getObject().findContainer(
+                            ItemPath.create(ResourceObjectTypeDefinitionType.F_CORRELATION,
+                                    CorrelationDefinitionType.F_CORRELATORS, CompositeCorrelatorType.F_ITEMS));
+                } catch (SchemaException e) {
+                    //TODO
+                    return null;
+                }
+                return container;
+            }
+        };
+    }
+
+    @Override
     public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> toDelete) {
         if (noSelectedItemsWarn(getPageBase(), target, toDelete)) {return;}
 
@@ -690,7 +705,7 @@ public class SmartCorrelationTable
                 if (parentContainerValue == null || parentContainerValue.getRealValue() == null) {
                     return;
                 }
-                removeCorrelationTypeSuggestion(getPageBase(), status, parentContainerValue.getRealValue(), task, task.getResult());
+                removeCorrelationTypeSuggestionNew(getPageBase(), status, parentContainerValue.getRealValue(), task, task.getResult());
             } else {
                 resolveDeletedItem(value);
             }
@@ -710,12 +725,6 @@ public class SmartCorrelationTable
                 return searchBuilder.build();
             }
         };
-    }
-
-    protected void setDefaultPagingSize(UserProfileStorage.@NotNull TableId tableId) {
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
-        userProfile.setPagingSize(tableId, MAX_TILE_COUNT);
     }
 
     @Override
@@ -757,6 +766,11 @@ public class SmartCorrelationTable
         }
         ResourceObjectTypeDefinitionType realValue = parentWrapper.getRealValue();
         return ResourceObjectTypeIdentification.of(realValue.getKind(), realValue.getIntent());
+    }
+
+    @Override
+    protected void onCreateNewObjectPerform(AjaxRequestTarget target) {
+        editItemPerformed(target, null, false);
     }
 
     protected PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> findResourceObjectTypeDefinition() {

@@ -76,7 +76,7 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                             @NotNull PageBase pageBase,
                             @NotNull AjaxRequestTarget target,
                             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
-                            @NotNull StatusInfo<?> statusInfo) {
+                            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
                         performDiscard(pageBase, target, valueModel, statusInfo);
                     }
 

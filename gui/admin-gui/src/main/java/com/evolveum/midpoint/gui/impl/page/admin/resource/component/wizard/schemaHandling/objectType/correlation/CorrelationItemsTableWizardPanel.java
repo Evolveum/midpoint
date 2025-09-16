@@ -41,9 +41,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createMappingsValueIfRequired;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.collectRequiredResourceAttributeDefs;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestion;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestionNew;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
 /**
@@ -206,7 +206,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             @Nullable List<ResourceAttributeDefinitionType> attributes,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
             @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
-        createMappingsValueIfRequired(pageBase, target, resourceObjectTypeDef, attributes, getAssignmentHolderDetailsModel());
+        createMappingsValueIfRequired(pageBase, resourceObjectTypeDef, attributes, getAssignmentHolderDetailsModel());
         PrismContainerValueWrapper<ItemsSubCorrelatorType> object = valueModel.getObject();
         createNewItemsSubCorrelatorValue(pageBase, object.getNewValue().clone(), target);
         performDiscard(pageBase, target, valueModel, statusInfo);
@@ -221,13 +221,13 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             @NotNull PageBase pageBase,
             @NotNull AjaxRequestTarget target,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
-            @NotNull StatusInfo<?> statusInfo) {
+            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
         Task task = pageBase.createSimpleTask("discardSuggestion");
         PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueModel.getObject()
                 .getParentContainerValue(CorrelationSuggestionType.class);
         if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
             CorrelationSuggestionType suggestionToDelete = parentContainerValue.getRealValue();
-            removeCorrelationTypeSuggestion(pageBase, statusInfo, suggestionToDelete, task, task.getResult());
+            removeCorrelationTypeSuggestionNew(pageBase, statusInfo, suggestionToDelete, task, task.getResult());
         }
         target.add(this);
     }

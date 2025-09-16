@@ -391,7 +391,6 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return provider != null ? (StatusInfo<ObjectTypesSuggestionType>) provider.getSuggestionInfo((PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) value) : null;
     }
 
-
     protected ButtonInlineMenuItem createSuggestionDetailsInlineMenu() {
         return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.details.suggestion.inlineMenu")) {
             @Serial private static final long serialVersionUID = 1L;
@@ -507,9 +506,9 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                             PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue =
                                     (PrismContainerValue<ResourceObjectTypeDefinitionType>)
                                             PrismValueCollectionsUtil.cloneCollectionComplex(
-                                            CloneStrategy.REUSE,
-                                            Collections.singletonList(valueWrapper.getOldValue()))
-                                    .iterator().next();
+                                                            CloneStrategy.REUSE,
+                                                            Collections.singletonList(valueWrapper.getOldValue()))
+                                                    .iterator().next();
 
                             WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
                             IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
@@ -534,7 +533,6 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
             }
         };
     }
-
 
     protected ButtonInlineMenuItem createSuggestionOperationInlineMenu() {
         return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.suspend.generating.inlineMenu")) {
@@ -651,11 +649,10 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                             if (statusInfo == null) {
                                 return;
                             }
-                            //noinspection unchecked
-                            SmartIntegrationUtils.removeObjectTypeSuggestion(
+                            SmartIntegrationUtils.removeObjectTypeSuggestionNew(
                                     getPageBase(),
                                     statusInfo,
-                                    (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) valueWrapper,
+                                    (ResourceObjectTypeDefinitionType) valueWrapper.getRealValue(),
                                     task,
                                     result);
                             target.add(getPageBase().getFeedbackPanel());

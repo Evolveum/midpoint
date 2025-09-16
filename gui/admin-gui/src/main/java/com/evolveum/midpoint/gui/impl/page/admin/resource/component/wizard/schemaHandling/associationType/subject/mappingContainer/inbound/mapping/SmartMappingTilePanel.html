@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div wicket:id="tileContent" class="card-body" style="min-height: 95px"></div>
+
+    <wicket:fragment wicket:id="generatingTileFragment">
+        <div class="col-12 text-nowrap" wicket:id="generationPanel"></div>
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="basicTileFragment">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+
+            <input type="checkbox" wicket:id="checkbox" class="" style="transform: scale(1.2)"/>
+
+            <div class="col-2 d-flex align-items-center gap-2">
+                <i class="mr-2 fa-solid fa-wand-magic-sparkles text-purple"  wicket:id="mappingIcon"></i>
+                <span class="d-flex flex-wrap text-break" wicket:id="mappingName"></span>
+            </div>
+
+            <div class="col-auto text-nowrap" wicket:id="mappingVirtualRef"></div>
+            <div class="col-2 text-nowrap" wicket:id="mappingExpression"></div>
+            <div class="col-1 text-nowrap" wicket:id="mappingTarget"></div>
+
+            <div class="col-auto d-flex align-items-center ml-auto">
+                <div class="text-nowrap d-flex align-items-center" wicket:id="mappingLifecycleState"></div>
+            </div>
+
+            <div class="col-auto d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center" wicket:id="actions"></div>
+            </div>
+        </div>
+    </wicket:fragment>
+
+</wicket:panel>
+</html>

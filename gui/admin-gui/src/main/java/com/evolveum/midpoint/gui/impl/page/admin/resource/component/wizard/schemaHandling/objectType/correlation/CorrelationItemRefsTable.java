@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -185,7 +187,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                     return;
                 }
 
-                PrismContainerValueWrapper<InboundMappingType> relatedInboundMapping = findRelatedInboundMapping(getPageBase(), row);
+                PrismContainerValueWrapper<MappingType> relatedInboundMapping = findRelatedInboundMapping(getPageBase(), row);
                 if (relatedInboundMapping == null) {
                     LOGGER.warn("Cannot find related inbound mapping for correlation item: {}", row.getRealValue());
                     getPageBase().warn(getString("CorrelationItem.relatedMappingNotFound"));
@@ -193,7 +195,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                     return;
                 }
 
-                var panel = new CorrelationMappingFormPanel<InboundMappingType>(
+                var panel = new CorrelationMappingFormPanel<MappingType>(
                         getPageBase().getMainPopupBodyId(),
                         () -> relatedInboundMapping) {
 
@@ -235,7 +237,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
 
                     @Override
                     protected void performCreateMapping(AjaxRequestTarget target) {
-                        InboundMappingType inboundRealValue = relatedInboundMapping.getRealValue();
+                        MappingType inboundRealValue = relatedInboundMapping.getRealValue();
                         ItemPathType mappingPath = inboundRealValue.getTarget().getPath();
                         try {
                             PrismPropertyWrapper<ItemPathType> propertyWrapper = getRowModel().getObject()
@@ -525,8 +527,17 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentContainerValue = getValueModel().getObject()
                 .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
 
-        PrismContainerValueWrapper<MappingType> newMappingValue = createNewMappingValue(
-                getPageBase(), null, parentContainerValue, target);
+        PrismContainerValueWrapper<MappingType> newMappingValue =
+                MappingUtils.createNewVirtualMappingValue(
+                        null,
+                        () -> parentContainerValue,
+                        MappingDirection.INBOUND,
+                        ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
+                        ResourceAttributeDefinitionType.F_REF,
+                        getPageBase(),
+                        target
+                );
+
         CorrelationMappingFormPanel<MappingType> formCorrelationMappingPanel = new CorrelationMappingFormPanel<>(
                 getPageBase().getMainPopupBodyId(),
                 () -> newMappingValue) {

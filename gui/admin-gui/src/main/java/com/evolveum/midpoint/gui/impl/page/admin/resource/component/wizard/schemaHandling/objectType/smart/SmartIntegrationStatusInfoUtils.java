@@ -11,8 +11,11 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
@@ -150,7 +153,7 @@ public class SmartIntegrationStatusInfoUtils {
             for (StatusInfo<CorrelationSuggestionsType> suggestionStatusInfo : statuses) {
                 if (!isCorrelationSuggestionEligible(suggestionStatusInfo, rotDef)) {continue;}
 
-                CorrelationSuggestionsType suggestionParent = ensureSuggestionsPresent(suggestionStatusInfo);
+                CorrelationSuggestionsType suggestionParent = ensureCorrelationSuggestionsPresent(suggestionStatusInfo);
 
                 @SuppressWarnings("unchecked")
                 PrismContainer<CorrelationSuggestionType> container = suggestionParent.asPrismContainerValue()
@@ -200,6 +203,115 @@ public class SmartIntegrationStatusInfoUtils {
         }
     }
 
+    public static List<StatusInfo<MappingsSuggestionType>> loadMappingTypeSuggestions(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        var smart = pageBase.getSmartIntegrationService();
+
+        try {
+            return smart.listSuggestMappingsOperationStatuses(resourceOid, task, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            LoggingUtils.logException(LOGGER, "Couldn't load correlation status for {}", t, resourceOid);
+            return null;
+        } finally {
+            result.close();
+        }
+    }
+
+    public record MappingSuggestionProviderResult(
+            @NotNull List<PrismContainerValueWrapper<MappingType>> wrappers,
+            @NotNull Map<PrismContainerValueWrapper<MappingType>, StatusInfo<MappingsSuggestionType>> suggestionByWrapper) {
+
+    }
+
+    public static @NotNull MappingSuggestionProviderResult loadMappingSuggestionWrappers(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull ResourceObjectTypeDefinitionType rotDef,
+            @NotNull MappingDirection mappingDirection,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Map<PrismContainerValueWrapper<MappingType>, StatusInfo<MappingsSuggestionType>> byWrapper = new HashMap<>();
+        List<PrismContainerValueWrapper<MappingType>> wrappers = new ArrayList<>();
+
+        try {
+            List<StatusInfo<MappingsSuggestionType>> statuses =
+                    loadMappingTypeSuggestions(pageBase, resourceOid, task, result);
+            if (statuses == null || statuses.isEmpty()) {
+                return new MappingSuggestionProviderResult(Collections.emptyList(), byWrapper);
+            }
+
+            for (StatusInfo<MappingsSuggestionType> suggestionStatusInfo : statuses) {
+                if (!isMappingSuggestionEligible(suggestionStatusInfo, rotDef)) {
+                    continue;
+                }
+
+                MappingsSuggestionType suggestionParent = ensureMappingsSuggestionsPresent(suggestionStatusInfo, mappingDirection);
+
+                @SuppressWarnings("unchecked") PrismContainer<AttributeMappingsSuggestionType> attrMappingsContainer =
+                        (PrismContainer<AttributeMappingsSuggestionType>) suggestionParent.asPrismContainerValue()
+                                .findContainer(MappingsSuggestionType.F_ATTRIBUTE_MAPPINGS);
+                if (attrMappingsContainer == null) {
+                    continue;
+                }
+
+                PrismContainerWrapper<AttributeMappingsSuggestionType> attrMappingsWrapper =
+                        pageBase.createItemWrapper(attrMappingsContainer, ItemStatus.NOT_CHANGED,
+                                new WrapperContext(task, result));
+
+                for (PrismContainerValueWrapper<AttributeMappingsSuggestionType> suggestion : attrMappingsWrapper.getValues()) {
+                    try {
+                        PrismContainerWrapper<ResourceAttributeDefinitionType> defWrapper =
+                                suggestion.findContainer(AttributeMappingsSuggestionType.F_DEFINITION);
+                        if (defWrapper == null || defWrapper.getValues().isEmpty()) {
+                            result.recordWarning("Suggestion without resource attribute definition skipped");
+                            continue;
+                        }
+
+                        for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> defItemWrapper : defWrapper.getValues()) {
+                            PrismContainerWrapper<MappingType> inboundWrapper =
+                                    defItemWrapper.findContainer(mappingDirection.getContainerName());
+                            if (inboundWrapper == null || inboundWrapper.getValues().isEmpty()) {
+                                result.recordWarning("Suggestion without inbound mappings skipped");
+                                continue;
+                            }
+
+                            PrismPropertyDefinition<Object> refDef =
+                                    defItemWrapper.getDefinition()
+                                            .findPropertyDefinition(ResourceAttributeDefinitionType.F_REF);
+
+                            for (PrismContainerValueWrapper<MappingType> mappingVw : inboundWrapper.getValues()) {
+                                    MappingUtils.createVirtualItemInMapping(
+                                            mappingVw,
+                                            defItemWrapper,
+                                            refDef,
+                                            pageBase,
+                                            ResourceAttributeDefinitionType.F_REF,
+                                            mappingDirection);
+
+                                wrappers.add(mappingVw);
+                                byWrapper.put(mappingVw, suggestionStatusInfo);
+                            }
+                        }
+                    } catch (SchemaException e) {
+                        result.recordPartialError("Failed to wrap mapping items.", e);
+                    }
+                }
+            }
+
+            return new MappingSuggestionProviderResult(wrappers, byWrapper);
+
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Failed to wrap mapping suggestions", e);
+        } finally {
+            result.close();
+        }
+    }
+
     private static boolean isCorrelationSuggestionEligible(
             @Nullable StatusInfo<CorrelationSuggestionsType> si,
             @NotNull ResourceObjectTypeDefinitionType rotDef) {
@@ -209,8 +321,17 @@ public class SmartIntegrationStatusInfoUtils {
                 && matchKindAndIntent(rotDef, si.getRequest());
     }
 
+    private static boolean isMappingSuggestionEligible(
+            StatusInfo<MappingsSuggestionType> si,
+            @NotNull ResourceObjectTypeDefinitionType rotDef) {
+        return si != null
+                && si.getRequest() != null
+                && si.getStatus() != OperationResultStatusType.NOT_APPLICABLE
+                && matchKindAndIntent(rotDef, si.getRequest());
+    }
+
     /** Ensure the top-level container exists (when result is null). */
-    private static @NotNull CorrelationSuggestionsType ensureSuggestionsPresent(
+    private static @NotNull CorrelationSuggestionsType ensureCorrelationSuggestionsPresent(
             @NotNull StatusInfo<CorrelationSuggestionsType> si) {
         CorrelationSuggestionsType out = si.getResult();
         if (out == null) {
@@ -224,6 +345,29 @@ public class SmartIntegrationStatusInfoUtils {
 
             out = new CorrelationSuggestionsType();
             out.getSuggestion().add(s);
+        }
+        return out;
+    }
+
+    /** Ensure the top-level container exists (when result is null). */
+    private static @NotNull MappingsSuggestionType ensureMappingsSuggestionsPresent(
+            @NotNull StatusInfo<MappingsSuggestionType> si,
+            @NotNull MappingDirection mappingDirection) {
+        MappingsSuggestionType out = si.getResult();
+        if (out == null) {
+            var def = new AttributeMappingsSuggestionType();
+            ResourceAttributeDefinitionType attrDef = new ResourceAttributeDefinitionType();
+
+            if (mappingDirection == MappingDirection.INBOUND) {
+                attrDef.getInbound().add(new InboundMappingType());
+            } else if (mappingDirection == MappingDirection.OUTBOUND) {
+                attrDef.setOutbound(new MappingType());
+            }
+
+            def.setDefinition(attrDef);
+
+            out = new MappingsSuggestionType();
+            out.getAttributeMappings().add(def);
         }
         return out;
     }
@@ -274,7 +418,6 @@ public class SmartIntegrationStatusInfoUtils {
         if (suggestedAttributes.isEmpty()) {
             return;
         }
-
 
         Set<ItemPath> rotDefAttributePaths = collectMappingTargets(rotDef.getAttribute());
         Set<ItemPath> suggestionMappingTargetPaths = collectMappingTargets(suggestedAttributes);
@@ -455,6 +598,18 @@ public class SmartIntegrationStatusInfoUtils {
         if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
             CorrelationSuggestionType suggestionValue = parentContainerValue.getRealValue();
             return suggestionValue.getQuality() != null ? (suggestionValue.getQuality() * 100) : null;
+        }
+        return null;
+    }
+
+    public static @Nullable Float extractEfficiencyFromSuggestedMappingItemWrapper(
+            @NotNull PrismContainerValueWrapper<MappingType> valueWrapper) {
+        PrismContainerValueWrapper<AttributeMappingsSuggestionType> parentContainerValue = valueWrapper.getParentContainerValue(
+                AttributeMappingsSuggestionType.class);
+        if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
+            AttributeMappingsSuggestionType suggestionValue = parentContainerValue.getRealValue();
+
+            return suggestionValue.getExpectedQuality() != null ? (suggestionValue.getExpectedQuality() * 100) : null;
         }
         return null;
     }

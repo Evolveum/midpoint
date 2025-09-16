@@ -31,7 +31,7 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
 
-    private static final String ID_HEADER = "header";
+    protected static final String ID_HEADER = "header";
     protected static final String ID_VALUE = "value";
 
 

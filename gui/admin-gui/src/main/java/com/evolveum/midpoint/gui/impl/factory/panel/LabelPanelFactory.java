@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -13,7 +17,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -67,8 +73,33 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
             ItemPathType path = variableBindingDefinition.getPath();
             return new Label(panelCtx.getComponentId(), Model.of(path != null ? path.toString() : ""));
         }
+        if (panelCtx.getDefinitionName().equivalent(MappingType.F_EXPRESSION)) {
+            return createExpressionReadOnlyPanel(panelCtx);
+        }
 
         return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
+    }
+
+    private static <T> @NotNull ExpressionPanel createExpressionReadOnlyPanel(@NotNull PrismPropertyPanelContext<T> panelCtx) {
+        ExpressionType expression = (ExpressionType) panelCtx.getRealValueModel().getObject();
+
+        IModel<ExpressionType> expressionModel = new LoadableModel<>() {
+            @Override
+            protected ExpressionType load() {
+                if (expression == null) {
+                    return new ExpressionType();
+                }
+                return expression;
+            }
+        };
+
+        return new ExpressionPanel(panelCtx.getComponentId(),
+                expressionModel) {
+            @Override
+            protected boolean isReadOnly() {
+                return true;
+            }
+        };
     }
 
     @Override

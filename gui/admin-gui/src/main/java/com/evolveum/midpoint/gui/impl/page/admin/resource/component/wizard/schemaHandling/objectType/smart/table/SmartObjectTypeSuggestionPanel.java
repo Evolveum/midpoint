@@ -257,10 +257,10 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
                 .getModelObject().getValue();
         if (statusInfo != null) {
 
-            SmartIntegrationUtils.removeObjectTypeSuggestion(
+            SmartIntegrationUtils.removeObjectTypeSuggestionNew(
                     getPageBase(),
                     statusInfo,
-                    thisTile,
+                    thisTile.getRealValue(),
                     task,
                     result);
             target.add(getPageBase().getFeedbackPanel());

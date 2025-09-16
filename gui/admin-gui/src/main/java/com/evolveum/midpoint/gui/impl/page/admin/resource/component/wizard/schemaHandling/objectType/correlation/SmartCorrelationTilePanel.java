@@ -56,6 +56,9 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     private static final String ID_TILE_CONTENT = "tileContent";
 
+    private static final String ID_GENERATING_TILE_FRAGMENT = "generatingTileFragment";
+    private static final String ID_BASIC_TILE_FRAGMENT = "basicTileFragment";
+
     private static final String ID_SELECT_CHECKBOX = "selectCheckbox";
     private static final String ID_BADGE_PANEL = "badgePanel";
     private static final String ID_MORE_ACTION = "moreAction";
@@ -105,14 +108,14 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
     }
 
     private @NotNull Fragment createGeneratingFragment() {
-        Fragment fragment = new Fragment(SmartCorrelationTilePanel.ID_TILE_CONTENT, "generatingTileFragment", this);
+        Fragment fragment = new Fragment(SmartCorrelationTilePanel.ID_TILE_CONTENT, ID_GENERATING_TILE_FRAGMENT, this);
         Component generatingPanelComponent = createGeneratingPanelComponent();
         fragment.add(generatingPanelComponent);
         return fragment;
     }
 
     private @NotNull Fragment createBasicFragment() {
-        Fragment fragment = new Fragment(SmartCorrelationTilePanel.ID_TILE_CONTENT, "basicTileFragment", this);
+        Fragment fragment = new Fragment(SmartCorrelationTilePanel.ID_TILE_CONTENT, ID_BASIC_TILE_FRAGMENT, this);
         buildBasicPanel(fragment);
         return fragment;
     }
@@ -194,7 +197,7 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     private void initActionSuggestionButton(@NotNull Fragment fragment) {
         RepeatingView buttonsView = new RepeatingView(ID_STATE_PANEL);
-        initActionButton(buttonsView);
+        initSuggestionActionButton(buttonsView);
         fragment.add(buttonsView);
     }
 
@@ -324,7 +327,7 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
         };
     }
 
-    protected void initActionButton(@NotNull RepeatingView buttonsView) {
+    protected void initSuggestionActionButton(@NotNull RepeatingView buttonsView) {
         // Override to implement action button behavior
     }
 
