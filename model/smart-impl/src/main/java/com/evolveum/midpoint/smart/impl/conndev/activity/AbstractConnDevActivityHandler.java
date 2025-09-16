@@ -67,13 +67,14 @@ public abstract class AbstractConnDevActivityHandler<T extends AbstractConnDevAc
     }
 
 
-    public static abstract class AbstractWorkDefinition extends com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition {
+    public static abstract class AbstractWorkDefinition<T extends ConnDevBaseWorkDefinitionType> extends com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition {
 
         final String connectorDevelopmentOid;
+        final T typedDefinition;
 
         public AbstractWorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
-            var typedDefinition = (ConnDevBaseWorkDefinitionType) info.getBean();
+            this.typedDefinition = (T) info.getBean();
             connectorDevelopmentOid = MiscUtil.configNonNull(Referencable.getOid(typedDefinition.getConnectorDevelopmentRef()), "No resource OID specified");
         }
 
