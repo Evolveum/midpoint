@@ -244,8 +244,9 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
             //if (!file.exists()) {
             //    file.createNewFile();
             //}
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            writer.write(content);
+            try (var writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(content);
+            }
         }
 
         @Override
