@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Evaluates the suitability of correlator(s) for correlation between focus objects and resource shadows.
- * <p>
+ *
  * This class samples a set of focus (e.g., user) and resource shadow objects, computes statistics
  * on given attribute paths, and evaluates "correlator suggestions" according to their appropriateness for
  * unique, high-coverage mapping between focus and resource objects.
@@ -70,13 +70,11 @@ class CorrelatorEvaluator {
     /**
      * Evaluates all provided correlator suggestions by sampling focus and shadow objects, analyzing
      * attribute distribution and mapping, and computing suitability scores.
-     * <p>
+     *
      * The main steps are:
-     * <ul>
-     *     <li>Sampling up to {@value #MAX_FOCUS_SAMPLE_SIZE} focus objects and all relevant shadow objects</li>
-     *     <li>Computing statistics (uniqueness, coverage) for each suggested focus and resource path</li>
-     *     <li>Scoring each suggestion by combining statistics and focus-shadow link coverage/ambiguity</li>
-     * </ul>
+     *   - Sampling up to MAX_FOCUS_SAMPLE_SIZE focus objects and all relevant shadow objects
+     *   - Computing statistics (uniqueness, coverage) for each suggested focus and resource path
+     *   - Scoring each suggestion by combining statistics and focus-shadow link coverage/ambiguity
      *
      * @param result OperationResult for operation logging/auditing.
      * @return List of scores (one per suggestion), in the same order as the input suggestions.
@@ -191,11 +189,9 @@ class CorrelatorEvaluator {
 
     /**
      * Computes the evaluation score for a single correlator suggestion, based on:
-     * <ul>
-     *     <li>Whether either involved path is multivalued (score 0 if so)</li>
-     *     <li>Uniqueness and coverage statistics for focus and shadow attributes</li>
-     *     <li>Linkage coverage and ambiguity between sampled focuses and shadows</li>
-     * </ul>
+     *   - Whether either involved path is multivalued (score 0 if so)
+     *   - Uniqueness and coverage statistics for focus and shadow attributes
+     *   - Linkage coverage and ambiguity between sampled focuses and shadows
      *
      * @param suggestion The correlator suggestion to evaluate.
      * @return A double score value (0 = unusable, 1 = ideal unique/complete mapping).
@@ -337,12 +333,10 @@ class CorrelatorEvaluator {
 
     /**
      * Tracks statistics for a single attribute path, including:
-     * <ul>
-     *     <li>Number of objects processed</li>
-     *     <li>Number of objects missing a value for this path</li>
-     *     <li>Whether any object was multivalued at this path</li>
-     *     <li>Set of distinct values found (for uniqueness)</li>
-     * </ul>
+     *   - Number of objects processed
+     *   - Number of objects missing a value for this path
+     *   - Whether any object was multivalued at this path
+     *   - Set of distinct values found (for uniqueness)
      */
     private static class ItemStatistics {
         private int objects = 0;
@@ -352,11 +346,9 @@ class CorrelatorEvaluator {
 
         /**
          * Computes a score analogous to F1-score in classification:
-         * <ul>
-         *     <li>Uniqueness: Favor paths with more distinct values (close to one-to-one mapping)</li>
-         *     <li>Coverage: Favor paths with fewer missing values</li>
-         *     <li>Harmonic mean: Penalize paths that are low on either dimension</li>
-         * </ul>
+         *   - Uniqueness: Favor paths with more distinct values (close to one-to-one mapping)
+         *   - Coverage: Favor paths with fewer missing values
+         *   - Harmonic mean: Penalize paths that are low on either dimension
          * Returns 0 if there were any multivalued occurrences, or no objects processed.
          *
          * @return Score value between 0 and 1 (inclusive).
