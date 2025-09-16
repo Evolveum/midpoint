@@ -9,6 +9,7 @@ import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
@@ -27,6 +28,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import java.io.IOException;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
@@ -122,6 +125,12 @@ public class CreateConnectorActivityHandler
             // FIXME: Write connectorRef + connectorDirectory to ConnectorDevelopmentType
 
             backend.linkEditableConnector(targetDir, connector.getOid());
+
+            try {
+                backend.recomputeConnectorManifest();
+            } catch (IOException e) {
+                throw new SystemException("Couldn't recompute connector manifest", e);
+            }
 
             state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT,new ConnDevCreateConnectorResultType()
                     .connectorRef(connector.getOid(), ConnectorType.COMPLEX_TYPE));

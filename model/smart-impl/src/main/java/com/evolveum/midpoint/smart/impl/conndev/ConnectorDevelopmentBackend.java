@@ -135,7 +135,7 @@ public abstract class ConnectorDevelopmentBackend {
         recomputeConnectorManifest();
     }
 
-    private void recomputeConnectorManifest() throws IOException {
+    public void recomputeConnectorManifest() throws IOException {
         var manifest = new ConnectorManifestWriter(development).serialize();
 
         editableConnector().saveFile(CONNECTOR_MANIFEST, manifest);
