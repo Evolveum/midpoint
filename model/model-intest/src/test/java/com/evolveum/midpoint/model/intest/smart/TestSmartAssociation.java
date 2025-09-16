@@ -11,9 +11,11 @@ import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
 
     public static final File TEST_DIR = new File(TEST_RESOURCES_PATH, "smart");
+
+    private static final int TIMEOUT = 500_000;
 
     /** Using the implementation in order to set mock service client for testing. */
     @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
@@ -359,5 +363,52 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         });
 
     }
+
+    /** Tests the "suggest associations" operation (in an asynchronous way). */
+    @Test
+    public void testSuggestAssociations() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("submitting 'suggest associations' operation request");
+        var token = smartIntegrationService.submitSuggestAssociationsOperation(
+                RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
+                DUMMY_AD_SMART_SCENARIO_30.subjectTypeId(),
+                DUMMY_AD_SMART_SCENARIO_30.objectTypeId(),
+                task, result);
+
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestAssociationsOperationStatus(token, task, result),
+                TIMEOUT);
+
+        then("there are suggested associations");
+        displayDumpable("response", response);
+        assertThat(response).isNotNull();
+        assertThat(response.getAssociation()).as("suggested associations").isNotEmpty();
+
+        when("listing all suggest associations operation statuses for the resource");
+        var statuses = smartIntegrationService.listSuggestAssociationsOperationStatuses(
+                RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
+                task, result);
+
+        then("the list should contain the submitted token");
+        statuses.forEach(s -> displayDumpable("association operation status", s));
+        assertThat(statuses)
+                .as("statuses list should not be empty")
+                .isNotEmpty();
+
+        var tokens = statuses.stream()
+                .map(StatusInfo::getToken)
+                .collect(Collectors.toSet());
+
+        assertThat(tokens)
+                .as("statuses should include the token of the submitted operation")
+                .contains(token);
+    }
+
 
 }
