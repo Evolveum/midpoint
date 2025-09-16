@@ -514,12 +514,13 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                             IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
                             prismContainerValue.setParent(containerModel.getObject().getItem());
 
-                            try {
-                                containerModel.getObject().getItem().add(prismContainerValue);
-                            } catch (SchemaException e) {
-                                throw new RuntimeException("Couldn't add object type suggestion to the container: "
-                                        + e.getMessage(), e);
-                            }
+                            //TODO we have problem when <schemaHandling> block in xsd not exists
+//                            try {
+//                                containerModel.getObject().getItem().add(prismContainerValue);
+//                            } catch (SchemaException e) {
+//                                throw new RuntimeException("Couldn't add object type suggestion to the container: "
+//                                        + e.getMessage(), e);
+//                            }
 
                             onNewValue(prismContainerValue, containerModel, target, false);
                         }
