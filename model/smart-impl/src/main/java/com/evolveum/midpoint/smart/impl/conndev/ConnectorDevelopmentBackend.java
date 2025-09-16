@@ -60,7 +60,7 @@ public abstract class ConnectorDevelopmentBackend {
     public static ConnectorDevelopmentBackend backendFor(ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         var beans = ConnDevBeans.get();
 
-        if (connDev.getConnector() != null) {
+        if (connDev.getConnector() != null && connDev.getConnector().getIntegrationType() != null) {
             return backendFor(connDev.getConnector().getIntegrationType(), connDev, beans, task, result);
         }
         if (connDev.getApplication() != null) {
@@ -80,7 +80,7 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
-    private void reload() throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    protected void reload() throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         development = beans.modelService.getObject(ConnectorDevelopmentType.class, development.getOid(), null, task, result).asObjectable();
     }
 
@@ -298,4 +298,11 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     public abstract void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+
+    public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        if(development.getProcessedDocumentation().isEmpty()) {
+            processDocumentation();
+            reload();
+        }
+    }
 }

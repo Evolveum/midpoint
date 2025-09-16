@@ -111,7 +111,11 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 for (var link : results) {
                     var discovered = new ConnDevDocumentationSourceType();
                     // FIXME: Switch to full format later
+                    discovered.setName(link.asText());
+                    // FIXME
                     discovered.setUri(link.asText());
+                    // FIXME
+                    discovered.setDescription(link.asText());
                     ret.add(discovered);
                 }
                 return ret;
@@ -357,10 +361,6 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 .addRealValues(documentations.stream().map(ProcessedDocumentation::toBean).toList())
                 .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
-
-        if (openApi == null) {
-            throw new UnsupportedOperationException("Currently only OpenAPI documentation supported");
-        }
     }
 
     private ProcessedDocumentation downloadAndCache(ConnDevDocumentationSourceType openApi) {

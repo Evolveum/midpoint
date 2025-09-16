@@ -87,6 +87,7 @@ public class DiscoverObjectClassInformationActivityHandler
 
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
 
+            backend.ensureDocumentationIsProcessed();
             var connectorDiscovered =  backend.discoverObjectClassesUsingConnector();
 
             var discovered = backend.discoverObjectClassesUsingDocumentation(connectorDiscovered);
