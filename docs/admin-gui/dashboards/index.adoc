@@ -51,9 +51,15 @@ System administrators often like to get a daily report with operational statisti
 If the data they are interested in are already shown in a dashboard, they do not need to duplicate the setup for their static report.
 They can use a xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] that takes the data from the configured dashboard and periodically generates a static report they can then conveniently receive, for example, via e-mail.
 
+== Further reading
+
+* xref:/midpoint/reference/admin-gui/dashboards/dashboard-architecture/[]
+* xref:/midpoint/reference/admin-gui/dashboards/dashboard-configuration-intro/[]
+* xref:/midpoint/reference/admin-gui/dashboards/configuration/[]
+* xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[]
+
 == See also
 
-* xref:configuration/[]
 * xref:/midpoint/reference/admin-gui/collections-views/[]
 * xref:/midpoint/features/planned/compliance/[]
 * xref:/midpoint/reference/schema/archetypes/[]
