@@ -28,13 +28,7 @@ You can configure dashboards based on the metrics that are important for you and
 
 Dashboards can show the number of active employees, failed resources, suspended tasks, and so on.
 You can make dashboards much more powerful than that, though.
-When you set them up to use collection domains{empty}footnote:[
-A collection domain defines the context or parent set from which a collection is derived.
-For example, a collection of _non-compliant roles_ might have a domain of _all roles_.
-Using collection domains enables collections to compute percentages (e.g., _2% of all users are inactive_) and relative metrics (e.g., _10% of roles violate segregation-of-duties policies_).
-These metrics are critical for compliance reporting, as they quantify risks or deviations from policy.
-Based on the calculated ratios, policy rules can also trigger further actions, such as notifying managers about the need for remediation.
-]
+When you set them up to use xref:/midpoint/reference/admin-gui/collections-views/#collection-domain[collection domains]
 and connect them with xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] through xref:/midpoint/reference/roles-policies/policies/policy-rules/#object_marks[object marks], you gain the ability to monitor xrefv:/midpoint/reference/master/admin-gui/dashboards/compliance-dashboard/[compliance] of your organization and xref:/midpoint/reference/misc/notifications/[receive warnings] that an action is needed to put the situation back in line with requirements.
 
 == How dashboards help you stay compliant
