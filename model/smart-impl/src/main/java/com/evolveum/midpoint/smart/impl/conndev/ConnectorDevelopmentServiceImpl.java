@@ -8,6 +8,8 @@ package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -23,10 +25,7 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.impl.StatusInfoImpl;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +45,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private TaskManager taskManager;
+    @Autowired private ModelService modelService;
 
     private static ConnectorDevelopmentServiceImpl instance;
 
@@ -89,6 +89,14 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         public String submitDiscoverDocumentation(Task task, OperationResult result) {
             return submitTask("Discovering documentation for " + stateObject.getOid(),
                     new WorkDefinitionsType().discoverDocumentation(new ConnDevDiscoverDocumentationWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
+        @Override
+        public String submitProcessDocumentation(Task task, OperationResult result) {
+            return submitTask("Processing documentation for " +stateObject.getOid(),
+                    new WorkDefinitionsType().processDocumentation(new ConnDevProcessDocumentationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
         }
@@ -203,6 +211,20 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
             return obj.getEndpoint().stream().filter(e -> e.getSuggestedUse().contains(use)).toList();
         }
+
+        @Override
+        public void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+            if (stateObject.getTesting() != null && stateObject.getTesting().getTestingResource() != null) {
+                var resource = stateObject.getTesting().getTestingResource();
+                ResourceUtils.deleteSchema(resource.getOid(), modelService, task, result);
+            }
+        }
+
+        @Override
+        public void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .updateConfigurationOverride();
+        }
     }
 
     private String submitTask(String name, WorkDefinitionsType work, Task task, OperationResult result) {
@@ -223,7 +245,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
     private String connectorTemplateFor(ConnDevIntegrationType integrationType) {
         // FIXME: Dispatch to IntegrationType specific handler
-        return "file:///home/lskublik/.m2/repository/com/evolveum/polygon/scimrest/connector-sample-scimdev-noclass/0.1-SNAPSHOT/connector-sample-scimdev-noclass-0.1-SNAPSHOT.jar";
+        return "file:///home/tony/.m2/repository/com/evolveum/polygon/scimrest/connector-scimrest-generic/0.1-SNAPSHOT/connector-scimrest-generic-0.1-SNAPSHOT.jar";
     }
 
     private static @NotNull Collection<SelectorOptions<GetOperationOptions>> taskRetrievalOptions() {
@@ -262,6 +284,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token,result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverDocumentationResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevProcessDocumentationResultType> getProcessDocumentationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token,result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevProcessDocumentationResultType.class
         );
     }
 

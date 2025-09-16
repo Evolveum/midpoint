@@ -47,7 +47,7 @@ public class DiscoverObjectClassDetailsActivityHandler
         return new MyActivityRun(context);
     }
 
-    public static class WorkDefinition extends AbstractWorkDefinition {
+    public static class WorkDefinition extends AbstractWorkDefinition<ConnDevDiscoverObjectClassDetailsDefinitionType> {
 
         final String objectClass;
 

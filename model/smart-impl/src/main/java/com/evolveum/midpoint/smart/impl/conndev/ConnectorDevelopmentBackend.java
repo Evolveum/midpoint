@@ -5,6 +5,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -12,16 +13,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 
 public abstract class ConnectorDevelopmentBackend {
 
-    private final Task task;
-    private final OperationResult result;
+    private static final String CONNECTOR_MANIFEST = "connector.manifest.json";
+    private static final String CONFIGURATION_OVERRIDE = "configurationOverride.properties";
+    protected final Task task;
+    protected final OperationResult result;
 
     ConnDevBeans beans;
     private ConnectorDevelopmentType development;
+    private EditableConnector editableConnector;
+    protected boolean deleteConnectorSchema = false;
 
     public ConnectorDevelopmentBackend(ConnDevBeans beans, ConnectorDevelopmentType development, Task task, OperationResult result) {
         this.beans = beans;
@@ -31,16 +40,16 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
 
-    public static OfflineBackend backendFor(String connectorDevelopmentOid, Task task, OperationResult result) throws CommonException {
+    public static ConnectorDevelopmentBackend backendFor(String connectorDevelopmentOid, Task task, OperationResult result) throws CommonException {
         var beans = ConnDevBeans.get();
         var connDev = beans.modelService.getObject(ConnectorDevelopmentType.class, connectorDevelopmentOid, null, task, result);
         // FIXME: Select offline mode if system is configured to be offline.
         return backendFor(connDev.asObjectable(), task, result);
     }
 
-    private static OfflineBackend backendFor(ConnDevIntegrationType integrationType, ConnectorDevelopmentType connDev, ConnDevBeans beans, Task task, OperationResult result) {
+    private static ConnectorDevelopmentBackend backendFor(ConnDevIntegrationType integrationType, ConnectorDevelopmentType connDev, ConnDevBeans beans, Task task, OperationResult result) {
         return switch (integrationType) {
-            case REST -> throw new UnsupportedOperationException();
+            case REST -> new RestBackend(beans, connDev, task, result);
             case SCIM -> throw new UnsupportedOperationException();
             case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
@@ -48,7 +57,7 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     @NotNull
-    public static OfflineBackend backendFor(ConnectorDevelopmentType connDev, Task task, OperationResult result) {
+    public static ConnectorDevelopmentBackend backendFor(ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         var beans = ConnDevBeans.get();
 
         if (connDev.getConnector() != null) {
@@ -61,6 +70,9 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     public void populateBasicApplicationInformation(ConnDevApplicationInfoType type) throws CommonException {
+        if (type.asPrismContainerValue().isEmpty()) {
+            return;
+        }
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
             .item(ConnectorDevelopmentType.F_APPLICATION).replace(type.clone())
             .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
@@ -111,7 +123,6 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     public void saveArtifact(ConnDevArtifactType artifact) throws IOException, CommonException {
-        var modelProp = artifact.clone();
         var itemPath = itemPathFor(artifact);
         saveConnectorFile(artifact.getFilename(), artifact.getContent());
         var modelArtifact = artifact.clone().content(null);
@@ -121,10 +132,21 @@ public abstract class ConnectorDevelopmentBackend {
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
+        recomputeConnectorManifest();
+    }
+
+    private void recomputeConnectorManifest() throws IOException {
+        var manifest = new ConnectorManifestWriter(development).serialize();
+
+        editableConnector().saveFile(CONNECTOR_MANIFEST, manifest);
+
     }
 
     private EditableConnector editableConnector() {
-        return beans.connectorService.editableConnectorFor(development.getConnector().getDirectory());
+        if (editableConnector == null) {
+            editableConnector = beans.connectorService.editableConnectorFor(development.getConnector().getDirectory());
+        }
+        return editableConnector;
     }
 
     private void saveConnectorFile(String filename, String content) throws IOException {
@@ -184,12 +206,12 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
-    private ConnDevObjectClassInfoType connectorObjectClass(String objectClass) {
+    ConnDevObjectClassInfoType connectorObjectClass(String objectClass) {
         return development.getConnector()
                 .getObjectClass().stream().filter(o -> o.getName().equals(objectClass)).findFirst().orElse(null);
     }
 
-    private ConnDevObjectClassInfoType applicationObjectClass(String objectClass) {
+    protected ConnDevObjectClassInfoType applicationObjectClass(String objectClass) {
         return development.getApplication().getDetectedSchema()
                 .getObjectClass().stream().filter(o -> o.getName().equals(objectClass)).findFirst().orElse(null);
     }
@@ -209,8 +231,12 @@ public abstract class ConnectorDevelopmentBackend {
         if (target != null) {
             return;
         }
-        target = development.getApplication().getDetectedSchema()
-                .getObjectClass().stream().filter(o -> o.getName().equals(objectClass)).findFirst().orElse(null);
+        if (development.getApplication().getDetectedSchema() != null && development.getApplication().getDetectedSchema().getObjectClass() != null) {
+            target = development.getApplication().getDetectedSchema()
+                    .getObjectClass().stream().filter(o -> o.getName().equals(objectClass)).findFirst().orElse(null);
+        } else {
+            target = new ConnDevObjectClassInfoType().name(objectClass);
+        }
 
         var copy = target.clone();
         copy.setId(null);
@@ -225,12 +251,51 @@ public abstract class ConnectorDevelopmentBackend {
     public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation();
     public abstract List<ConnDevDocumentationSourceType> discoverDocumentation();
     public abstract ConnDevArtifactType generateArtifact(ConnDevArtifactType artifactSpec);
+    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevArtifactType artifactSpec);
     public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered);
     public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass);
     public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass);
+
     public ConnDevArtifactType getArtifactContent(ConnDevArtifactType type) throws IOException {
         var ret = type.clone();
         ret.content(editableConnector().readFile(type.getFilename()));
         return ret;
     }
+
+    public void updateConfigurationOverride() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        var props = new Properties();
+        updateConfigurationOverride(props);
+
+        try (var stream = new ByteArrayOutputStream()) {
+            props.store(stream, null);
+            var propString = stream.toString(StandardCharsets.UTF_8);
+            editableConnector().saveFile(CONFIGURATION_OVERRIDE, propString);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        var connRef = development.getConnector().getConnectorRef();
+        if (connRef != null && deleteConnectorSchema) {
+            var delta = PrismContext.get().deltaFor(ConnectorType.class)
+                            .item(ConnectorType.F_SCHEMA).replace()
+                            .<ConnectorType>asObjectDelta(connRef.getOid());
+            beans.modelService.executeChanges( List.of(delta), null, task, result);
+
+        }
+    }
+
+    protected void updateConfigurationOverride(Properties props) {
+        var enabledAuths = new HashSet<SupportedAuthorization>();
+        for (var auth : development.getConnector().getAuth()) {
+            enabledAuths.add(SupportedAuthorization.forAuthorizationType(auth.getType()));
+        }
+        for (SupportedAuthorization auth : SupportedAuthorization.values()) {
+            if (!enabledAuths.contains(auth)) {
+                for (var confProp : auth.attributesFor(development.getApplication().getIntegrationType())) {
+                    props.setProperty(confProp.getLocalPart(), "ignore");
+                }
+            }
+        }
+    }
+
+    public abstract void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
 }

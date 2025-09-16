@@ -27,10 +27,15 @@ public class ResourceUtils {
     public static void deleteSchema(PrismObject<? extends ResourceType> resource, ModelService modelService, Task task, OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, PolicyViolationException, SecurityViolationException {
-        ObjectDelta<ResourceType> delta = PrismContext.get().deltaFor(ResourceType.class)
+        deleteSchema(resource.getOid(), modelService, task, parentResult);
+    }
+        public static void deleteSchema(String resource, ModelService modelService, Task task, OperationResult parentResult)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                ConfigurationException, PolicyViolationException, SecurityViolationException {
+            ObjectDelta<ResourceType> delta = PrismContext.get().deltaFor(ResourceType.class)
                 .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION)).replace()
                 .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_CACHING_METADATA)).replace()
-                .asObjectDelta(resource.getOid());
+                .asObjectDelta(resource);
         modelService.executeChanges(singleton(delta), null, task, parentResult);
     }
 }
