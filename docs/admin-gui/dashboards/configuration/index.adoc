@@ -384,7 +384,7 @@ sampleRef::samples/dashboard/object-collection-resource-up.xml[]
 
 The example above contains an specification definition of the xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-domain[collection domain].
 In the case here, the domain contains all the resources in the environment, and the `filter` clause specifies that only those that are `up` should be counted.
-The policy rule then computes the ratio of `up` resources vs. all resources and fires a situation in case the ratio drops beneath the `highWaterMark` value.
+The policy rule then computes the ratio of `up` resources to all resources and fires a situation if the ratio drops below the `highWaterMark` value.
 
 This example uses `policyRule` with `policySituation` which can be leveraged for the variation of widget presentation.
 When the `policyThreshold` is met, the `policySituation` from `policyRule` triggers the widget variation.
@@ -401,7 +401,7 @@ The `policyThreshold` has two important variables: `lowWaterMark` and `highWater
 
 A policy rule with a threshold that does not have any water marks will never activate.
 
-Both watermark objects are of the `WaterMarkType` type and can contain the variables `count` and `percentage`.
+Both watermark objects are of the `WaterMarkType` type and can contain `count` and `percentage` variables.
 
 == See also
 
