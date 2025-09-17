@@ -74,6 +74,7 @@ public class DiscoverGlobalInformationActivityHandler
             var beans = ConnDevBeans.get();
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
 
+            backend.ensureDocumentationIsProcessed();
             ConnDevApplicationInfoType type = backend.discoverBasicInformation();
             backend.populateBasicApplicationInformation(type);
 

@@ -1156,6 +1156,18 @@ CREATE TRIGGER m_connector_development_oid_delete_tr AFTER DELETE ON m_connector
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 $aa$);
 
+call apply_change(56, $aa$
+    DROP INDEX IF EXISTS "m_connector_typeVersion_key";
+    DROP INDEX IF EXISTS "m_connector_typeversionhost_key";
+$aa$);
+call apply_change(57, $aa$
+CREATE INDEX "m_connector_typeVersion_key"
+    ON m_connector (connectorType, connectorVersion)
+    WHERE connectorHostRefTargetOid IS NULL;
+CREATE INDEX "m_connector_typeVersionHost_key"
+    ON m_connector (connectorType, connectorVersion, connectorHostRefTargetOid)
+    WHERE connectorHostRefTargetOid IS NOT NULL;
+$aa$);
 
 ---
 -- WRITE CHANGES ABOVE ^^

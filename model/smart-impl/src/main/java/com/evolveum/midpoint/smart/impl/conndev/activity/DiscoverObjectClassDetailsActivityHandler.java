@@ -78,7 +78,7 @@ public class DiscoverObjectClassDetailsActivityHandler
             //var developmentUri = getWorkDefinition().templateUrl;
 
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
-
+            backend.ensureDocumentationIsProcessed();
             var objectClass = getWorkDefinition().objectClass;
 
             backend.ensureObjectClass(objectClass);
