@@ -29,7 +29,7 @@ You can configure dashboards based on the metrics that are important for you and
 Dashboards can show the number of active employees, failed resources, suspended tasks, and so on.
 You can make dashboards much more powerful than that, though.
 When you set them up to use xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-domain[collection domains]
-and connect them with xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] through xref:/midpoint/reference/concepts/mark/[object marks], you gain the ability to monitor xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[compliance] of your organization and xref:/midpoint/reference/misc/notifications/[receive warnings] that an action is needed to put the situation back in line with requirements.
+and connect them with xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] through xref:/midpoint/reference/concepts/mark/[object marks], you gain the ability to monitor xref:/midpoint/features/planned/compliance/#step-2-compliance-dashboard[compliance] of your organization and xref:/midpoint/reference/misc/notifications/[receive warnings] that an action is needed to put the situation back in line with requirements.
 
 == How dashboards help you stay compliant
 
