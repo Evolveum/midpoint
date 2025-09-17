@@ -24,7 +24,7 @@ including conditioning the appearance so that you get a visual warning when ther
 
 The widget element can contain three configuration elements: `display`,`data`, and `presentation` which you can use to configure what the widget looks like, whence it takes the data, and how it presents the data to users.
 
-include::use-idea-for-midpoint-engineering.adoc[]
+include::../use-idea-for-midpoint-engineering.adoc[]
 
 == Define data sources for widgets
 
