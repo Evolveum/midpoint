@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.util.AssignmentPathUtil;
 import com.evolveum.midpoint.model.api.util.MappingInspector;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -273,7 +274,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private transient ModelBeans modelBeans;
 
     // TODO think about making this non-transient, it's not serializable now (MagicAssignment/Holder classes, etc.)
-    @NotNull private transient final Map<String, EvaluatedPolicyRuleImpl> triggeredObjectPolicyRules = new HashMap<>();
+    @NotNull private transient final Map<String, List<EvaluatedPolicyRuleImpl>> triggeredObjectPolicyRules = new HashMap<>();
 
     public LensContext(@NotNull TaskExecutionMode taskExecutionMode) {
         this(null, taskExecutionMode);
@@ -2047,15 +2048,38 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public Collection<EvaluatedPolicyRuleImpl> getTriggeredObjectPolicyRules() {
-        return triggeredObjectPolicyRules.values();
+        return triggeredObjectPolicyRules.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
     }
 
     public boolean hasTriggeredObjectPolicyRule(String identifier) {
-        return triggeredObjectPolicyRules.containsKey(identifier);
+        return !triggeredObjectPolicyRules.getOrDefault(identifier, List.of()).isEmpty();
     }
 
     public void addTriggeredObjectPolicyRule(EvaluatedPolicyRuleImpl triggeredPolicyRule) {
-        triggeredObjectPolicyRules.put(triggeredPolicyRule.getPolicyRuleIdentifier(), triggeredPolicyRule);
+        List<EvaluatedPolicyRuleImpl> rules =
+                triggeredObjectPolicyRules.computeIfAbsent(triggeredPolicyRule.getPolicyRuleIdentifier(), id -> new ArrayList<>());
+
+        EvaluatedPolicyRuleImpl existing  = findEquivalentPolicyRule(rules, triggeredPolicyRule);
+        if (existing != null) {
+            rules.remove(existing);
+        }
+
+        rules.add(triggeredPolicyRule);
+    }
+
+    private EvaluatedPolicyRuleImpl findEquivalentPolicyRule(List<EvaluatedPolicyRuleImpl> rules, EvaluatedPolicyRuleImpl rule) {
+        for (EvaluatedPolicyRuleImpl r : rules) {
+            if (r.getAssignmentPath() == null && rule.getAssignmentPath() == null){
+                return r;
+            }
+
+            if (r.getAssignmentPath() != null && rule.getAssignmentPath() != null
+                    && r.getAssignmentPath().equivalent(rule.getAssignmentPath())) {
+                return r;
+            }
+        }
+
+        return null;
     }
 
     public enum ExportType {

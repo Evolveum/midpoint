@@ -105,7 +105,8 @@ abstract class PolicyRuleEvaluator {
         String ruleShortString = rule.toShortString();
         String ruleIdentifier = rule.getPolicyRuleIdentifier();
 
-        // // MID-10779 disabled now, since this would cause problems with unevaluated rules in some situations: e.g. assignment exclusion policies
+        // MID-10779 disabled now, since this would cause problems with unevaluated rules in some
+        // situations: e.g. assignment exclusion policies.
         // if (ctx.lensContext.hasTriggeredObjectPolicyRule(ruleIdentifier)) {
         //     LOGGER.trace("Skipping evaluation of policy rule {}, because rule has already been triggered: {}", ruleIdentifier, ruleShortString);
         //     return;
