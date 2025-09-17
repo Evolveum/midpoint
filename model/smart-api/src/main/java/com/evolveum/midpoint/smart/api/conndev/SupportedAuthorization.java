@@ -59,7 +59,7 @@ public enum SupportedAuthorization {
     }
 
     public static SupportedAuthorization forAuthorizationType(ConnDevHttpAuthTypeType authorizationType) {
-        return Arrays.stream(SupportedAuthorization.values()).filter(v -> v.baseAuthInfo.getType().equals(authorizationType))
+        return Arrays.stream(SupportedAuthorization.values()).filter(v -> v.baseAuthInfo.getType() != null && v.baseAuthInfo.getType().equals(authorizationType))
                 .findFirst().orElse(null);
     }
 }

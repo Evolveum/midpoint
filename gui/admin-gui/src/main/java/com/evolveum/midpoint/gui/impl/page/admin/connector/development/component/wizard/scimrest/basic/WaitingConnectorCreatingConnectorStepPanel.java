@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -83,12 +84,10 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
         try {
             PrismReferenceWrapper<Referencable> resource = getDetailsModel().getObjectWrapper().findReference(
                     ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
+//            resource.getValue().setRealValue(new ObjectReferenceType().oid("48b4f6f6-289b-4cce-9f82-bc665e882521").type(ResourceType.COMPLEX_TYPE));
             ObjectDetailsModels<ResourceType> objectDetailsModel =
                     resource.getValue().getNewObjectModel(getContainerConfiguration(PANEL_TYPE), getPageBase(), new OperationResult("getResourceModel"));
             ResourceDetailsModel resourceDetailsModel = (ResourceDetailsModel) objectDetailsModel;
-
-            PrismReferenceWrapper<Referencable> connectorRefProperty = getDetailsModel().getObjectWrapper().findReference(
-                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_CONNECTOR_REF));
 
             ConnDevCreateConnectorResultType connectorRefResult = (ConnDevCreateConnectorResultType) getResult();
             resourceDetailsModel.getObjectWrapper().findProperty(ResourceType.F_NAME).getValue().setRealValue(PolyString.fromOrig(
@@ -108,5 +107,10 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
             target.add(getFeedback());
         }
         return false;
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 }

@@ -85,4 +85,15 @@ public class AuthScriptsConnectorStepPanel extends ScriptConnectorStepPanel {
     public String getStepId() {
         return PANEL_TYPE;
     }
+
+//    @Override
+//    public boolean onNextPerformed(AjaxRequestTarget target) {
+//        WizardModel model = getWizard();
+//        if (model.hasNext()) {
+//            model.next();
+//            target.add(model.getPanel());
+//        }
+//
+//        return false;
+//    }
 }

@@ -92,6 +92,12 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
                 integrationTypeProperty.getValue().setRealValue(containerBean.getIntegrationType());
             }
 
+//            PrismPropertyWrapper<String> directoryProperty =
+//                    getContainerFormModel().getObject().findProperty(ConnDevConnectorType.F_DIRECTORY);
+//            if (StringUtils.isEmpty(directoryProperty.getValue().getRealValue())) {
+//                directoryProperty.getValue().setRealValue(StringUtils.normalizeSpace(containerBean.getApplicationName().getNorm()));
+//            }
+
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }

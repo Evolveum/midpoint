@@ -51,6 +51,11 @@ public class WaitingAuthScriptsConnectorStepPanel extends WaitingConnectorStepPa
     }
 
     @Override
+    protected String getKeyForStoringToken() {
+        return AuthScriptsConnectorStepPanel.TASK_AUTH_SCRIPTS_KEY;
+    }
+
+    @Override
     public String getStepId() {
         return PANEL_TYPE;
     }

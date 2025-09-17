@@ -8,10 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -21,7 +18,12 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -43,6 +45,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -142,7 +145,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
                 listItem.add(name);
 
                 ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                        .visibilityHandler(getVisibilityHandler(listItem.getModelObject().getRealValue().getName()))
+                        .visibilityHandler(getVisibilityHandler(listItem.getModelObject().getRealValue()))
                         .mandatoryHandler(CredentialsConnectorStepPanel.this::checkMandatory)
                         .build();
                 VerticalFormPanel formPanel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration(getPanelType())) {
@@ -196,25 +199,42 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
         return false;
     }
 
-    private ItemVisibilityHandler getVisibilityHandler(String name) {
-        if (StringUtils.equals("Basic Authorization", name)) {
-            return wrapper -> {
-                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_APPLICATION_NAME)) {
-                return ItemVisibility.AUTO;
-            }
-                return ItemVisibility.HIDDEN;
-            };
-        }
-        if (StringUtils.equals("API Key Authorization", name)) {
-            return wrapper -> {
-                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_DESCRIPTION)) {
-                    return ItemVisibility.AUTO;
-                }
-                return ItemVisibility.HIDDEN;
-            };
+    private ItemVisibilityHandler getVisibilityHandler(ConnDevAuthInfoType authType) {
+        List<ItemName> visibleItems = new ArrayList<>();
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integration =
+                    getDetailsModel().getObjectWrapper().findProperty(
+                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE));
+            visibleItems.addAll(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
         }
 
-//        if (StringUtils.equals("OAuth 2.0 Client Credentials", name)) {
+        return wrapper -> {
+            if (visibleItems.stream().anyMatch(visibleItem -> StringUtils.equals(wrapper.getItemName().getLocalPart(), visibleItem.getLocalPart()))) {
+                return ItemVisibility.AUTO;
+            }
+            return ItemVisibility.HIDDEN;
+        };
+
+//        if (StringUtils.equals("Basic Authorization", authType)) {
+//            return wrapper -> {
+//                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_APPLICATION_NAME)) {
+//                return ItemVisibility.AUTO;
+//            }
+//                return ItemVisibility.HIDDEN;
+//            };
+//        }
+//        if (StringUtils.equals("API Key Authorization", authType)) {
+//            return wrapper -> {
+//                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_DESCRIPTION)) {
+//                    return ItemVisibility.AUTO;
+//                }
+//                return ItemVisibility.HIDDEN;
+//            };
+//        }
+
+//        if (StringUtils.equals("OAuth 2.0 Client Credentials", authType)) {
 //            return wrapper -> {
 //                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_DEPLOYMENT_TYPE)) {
 //                    return ItemVisibility.AUTO;
@@ -223,7 +243,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
 //            };
 //        }
 //
-//        if (StringUtils.equals("API Key in Header or Query", name)) {
+//        if (StringUtils.equals("API Key in Header or Query", authType)) {
 //            return wrapper -> {
 //                if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_INTEGRATION_TYPE)) {
 //                    return ItemVisibility.AUTO;
@@ -231,11 +251,22 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
 //                return ItemVisibility.HIDDEN;
 //            };
 //        }
-        return null;
+//        return null;
     }
 
-    private PrismContainerWrapperModel<ConnectorDevelopmentType, ConnDevApplicationInfoType> getContainerFormModel() {
-        return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_APPLICATION);
+    private IModel<? extends PrismContainerWrapper> getContainerFormModel() {
+        try {
+            PrismReferenceWrapper<Referencable> resource = getDetailsModel().getObjectWrapper().findReference(
+                    ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
+
+            ObjectDetailsModels<ResourceType> objectDetailsModel =
+                    resource.getValue().getNewObjectModel(getContainerConfiguration(PANEL_TYPE), getPageBase(), new OperationResult("getResourceModel"));
+
+            ItemPath path = ItemPath.create("connectorConfiguration", "configurationProperties");
+            return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), path);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected String getPanelType() {
@@ -275,5 +306,17 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
     @Override
     protected IModel<String> getNextLabelModel() {
         return null;
+    }
+
+    @Override
+    public boolean onNextPerformed(AjaxRequestTarget target) {
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        getDetailsModel().getConnectorDevelopmentOperation();
+        if (result != null && !result.isError()) {
+            super.onNextPerformed(target);
+        } else {
+            target.add(getFeedback());
+        }
+        return false;
     }
 }

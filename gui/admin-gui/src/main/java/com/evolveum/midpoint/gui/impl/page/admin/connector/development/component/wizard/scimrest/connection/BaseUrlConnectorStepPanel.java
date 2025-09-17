@@ -21,8 +21,11 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPane
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemNameUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -31,6 +34,7 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
@@ -151,17 +155,17 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
         return createStringResource("PageConnectorDevelopment.wizard.step.baseUrl.subText");
     }
 
-    protected boolean checkMandatory(ItemWrapper itemWrapper) {
-        if (itemWrapper.getItemName().equals(ConnDevApplicationInfoType.F_APPLICATION_NAME)) {
+    protected boolean checkMandatory(ItemWrapper wrapper) {
+        if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "scimBaseUrl"))){
             return true;
         }
-        return itemWrapper.isMandatory();
+        return wrapper.isMandatory();
     }
 
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_APPLICATION_NAME)){
+            if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "scimBaseUrl"))){
                 return ItemVisibility.AUTO;
             }
             return ItemVisibility.HIDDEN;
@@ -186,5 +190,17 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     @Override
     protected IModel<String> getNextLabelModel() {
         return null;
+    }
+
+    @Override
+    public boolean onNextPerformed(AjaxRequestTarget target) {
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        getDetailsModel().getConnectorDevelopmentOperation();
+        if (result != null && !result.isError()) {
+            super.onNextPerformed(target);
+        } else {
+            target.add(getFeedback());
+        }
+        return false;
     }
 }

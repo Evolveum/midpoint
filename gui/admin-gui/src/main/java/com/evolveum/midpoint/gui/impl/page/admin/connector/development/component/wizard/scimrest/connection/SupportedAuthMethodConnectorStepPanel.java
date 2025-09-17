@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -201,9 +202,9 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
         try {
             PrismContainerWrapper<ConnDevAuthInfoType> container =
                     getDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH));
+                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH));
 
-            valuesModel.getObject()
+            List<PrismContainerValueWrapper<ConnDevAuthInfoType>> valuesForAdd = valuesModel.getObject()
                     .stream().filter(PrismContainerValueWrapper::isSelected)
                     .map(value -> {
                         try {
@@ -213,23 +214,28 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
-                    })
-                    .forEach(value -> {
-                        try {
-                            if (value.isSelected()) {
+                    }).toList();
 
-                                container.getItem().add(value.getRealValue().asPrismContainerValue());
-                                container.getValues().add(value);
-                            }
-                            value.setSelected(false);
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+            valuesForAdd.forEach(value -> {
+                try {
+                    container.getItem().add(value.getRealValue().asPrismContainerValue());
+                    container.getValues().add(value);
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e);
+                }
+            });
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
-        return super.onNextPerformed(target);
+
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        getDetailsModel().getConnectorDevelopmentOperation();
+        if (result != null && !result.isError()) {
+            super.onNextPerformed(target);
+        } else {
+            target.add(getFeedback());
+        }
+        return false;
     }
 }
