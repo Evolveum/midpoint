@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -236,6 +235,15 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         inlineMenuItems.add(createDeleteSuggestionInlineMenu());
     }
 
+    @SuppressWarnings("unchecked")
+    protected @Nullable StatusInfo<ObjectTypesSuggestionType> getStatusInfo(PrismContainerValueWrapper<?> value) {
+        StatusInfo<?> statusInfo = super.getStatusInfo(value);
+        if (statusInfo != null) {
+            return (StatusInfo<ObjectTypesSuggestionType>) statusInfo;
+        }
+        return null;
+    }
+
     @Override
     protected Component onNameColumnPopulateItem(
             Item<ICellPopulator<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> cellItem,
@@ -377,19 +385,6 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return new StatusAwareDataProvider<>(this, resourceOid, Model.of(), containerModel, suggestionsIndex::get);
     }
 
-    @SuppressWarnings("unchecked")
-    private @Nullable StatusAwareDataProvider<ResourceObjectTypeDefinitionType> getStatusAwareProvider() {
-        var dp = getTable().getDataProvider();
-        return (dp instanceof StatusAwareDataProvider<?> sap)
-                ? (StatusAwareDataProvider<ResourceObjectTypeDefinitionType>) sap
-                : null;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected @Nullable StatusInfo<ObjectTypesSuggestionType> getStatusInfo(PrismContainerValueWrapper<?> value) {
-        var provider = getStatusAwareProvider();
-        return provider != null ? (StatusInfo<ObjectTypesSuggestionType>) provider.getSuggestionInfo((PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) value) : null;
-    }
 
     protected ButtonInlineMenuItem createSuggestionDetailsInlineMenu() {
         return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.details.suggestion.inlineMenu")) {

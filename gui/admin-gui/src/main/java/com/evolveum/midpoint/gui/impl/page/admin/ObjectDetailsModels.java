@@ -42,8 +42,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.cleanupEmptyValue;
-
 public class ObjectDetailsModels<O extends ObjectType> implements Serializable, IDetachable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDetailsModels.class);

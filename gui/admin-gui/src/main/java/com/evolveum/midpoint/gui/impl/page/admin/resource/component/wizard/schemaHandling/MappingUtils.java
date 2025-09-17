@@ -75,66 +75,6 @@ public class MappingUtils {
      * @param target Ajax target for UI updates
      * @return created mapping value wrapper, or {@code null} if creation failed
      */
-//    public static <P extends Containerable, AD extends Containerable>
-//    @Nullable PrismContainerValueWrapper<MappingType> createNewVirtualMappingValue(
-//            @Nullable PrismContainerValue<MappingType> value,
-//            @NotNull IModel<PrismContainerValueWrapper<P>> valueModel,
-//            @NotNull MappingDirection mappingDirection,
-//            @NotNull ItemName itemNameOfContainerWithMappings,
-//            @NotNull ItemName itemNameOfRefAttribute,
-//            @NotNull PageBase pageBase,
-//            AjaxRequestTarget target) {
-//        try {
-//
-//            PrismContainerWrapper<AD> mappingAttributeContainer =
-//                    valueModel.getObject().findContainer(itemNameOfContainerWithMappings);
-//            PrismContainerValue<AD> newMapping
-//                    = mappingAttributeContainer.getItem().createNewValue();
-//
-//            AttributeMappingValueWrapper<?> newAttributeMappingWrapper =
-//                    WebPrismUtil.createNewValueWrapper(mappingAttributeContainer, newMapping, pageBase, target);
-//            newAttributeMappingWrapper.addAttributeMappingType(mappingDirection);
-//
-//            PrismContainerWrapper<MappingType> wrapper =
-//                    newAttributeMappingWrapper.findContainer(getPathBaseOnMappingType(mappingDirection));
-//            PrismContainerValueWrapper<MappingType> newValueWrapper;
-//            if (wrapper.getValues().isEmpty()) {
-//                PrismContainerValue<MappingType> newValue = value;
-//                if (newValue == null) {
-//                    newValue = wrapper.getItem().createNewValue();
-//                }
-//                newValueWrapper = WebPrismUtil.createNewValueWrapper(wrapper, newValue, pageBase, target);
-//            } else {
-//                if (value == null) {
-//                    newValueWrapper = wrapper.getValue();
-//                } else {
-//                    wrapper.getValues().clear();
-//                    newValueWrapper = WebPrismUtil.createNewValueWrapper(wrapper, value, pageBase, target);
-//                }
-//            }
-//
-//            newValueWrapper.findProperty(MappingType.F_STRENGTH).getValue().setRealValue(MappingStrengthType.STRONG);
-//
-//            PrismContainerValueWrapper<P> container = valueModel.getObject();
-//
-//            PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
-//                    ItemPath.create(itemNameOfContainerWithMappings, itemNameOfRefAttribute));
-//
-//            createVirtualItemInMapping(
-//                    newValueWrapper,
-//                    null,
-//                    propertyDef,
-//                    pageBase,
-//                    itemNameOfRefAttribute,
-//                    mappingDirection);
-//
-//            return newValueWrapper;
-//
-//        } catch (SchemaException e) {
-//            LOGGER.error("Couldn't create new attribute mapping");
-//        }
-//        return null;
-//    }
     public static <P extends Containerable, AD extends Containerable>
     @Nullable PrismContainerValueWrapper<MappingType> createNewVirtualMappingValue(
             @Nullable PrismContainerValue<MappingType> value,

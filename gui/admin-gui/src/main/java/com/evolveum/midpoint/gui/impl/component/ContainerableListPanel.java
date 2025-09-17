@@ -869,7 +869,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         List<InlineMenuItem> allItems = getInlineMenuItems();
 
         if (!allItems.isEmpty()) {
-            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
+            return new InlineMenuButtonColumn<>(allItems, getPageBase()) {
                 @Override
                 public String getCssClass() {
                     return getInlineMenuCssClass();
@@ -891,7 +891,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                     super.populateItem(cellItem, componentId, rowModel);
                 }
             };
-            return actionsColumn;
         }
         return null;
     }
