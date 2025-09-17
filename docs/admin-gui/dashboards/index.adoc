@@ -56,7 +56,6 @@ They can use a xref:/midpoint/reference/misc/reports/configuration/dashboard-rep
 * xref:/midpoint/reference/admin-gui/dashboards/dashboard-architecture/[]
 * xref:/midpoint/reference/admin-gui/dashboards/dashboard-configuration-intro/[]
 * xref:/midpoint/reference/admin-gui/dashboards/configuration/[]
-* xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[]
 
 == See also
 
