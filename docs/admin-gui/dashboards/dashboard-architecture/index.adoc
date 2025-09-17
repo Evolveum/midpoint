@@ -29,7 +29,7 @@ An object collection may contain a xref:/midpoint/reference/admin-gui/collection
 This is useful if you want your dashboard to show, for example, what percentage of all employees (superset) is on a long-term leave (queried objects).
 
 Alternatively, dashboard widgets may load data from audit events.
-Refer to the xref:/midpoint/reference/admin-gui/dashboards/configuration/#data-attribute[] for more details on widget data sources configuration.
+Refer to the xref:/midpoint/reference/admin-gui/dashboards/configuration/[] for more details on widget data sources configuration.
 
 Since dashboards serve for _showing_ data, they need to be accessible in the midPoint graphical user interface (GUI).
 When you create a dashboard, you need to add it to the midPoint system configuration so that GUI users can find it under the [.nowrap]#icon:tachometer-alt[] *Dashboards*# menu.
