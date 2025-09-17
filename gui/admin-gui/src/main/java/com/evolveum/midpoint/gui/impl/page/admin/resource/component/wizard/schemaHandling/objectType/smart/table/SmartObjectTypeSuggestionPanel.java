@@ -210,7 +210,7 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     private static void populateObjectClassPropertyPanels(@NotNull List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper, RepeatingView filterPanels) {
         for (PrismPropertyValueWrapper<Object> valueWrapper : filterPropertyValueWrapper) {
             if(valueWrapper.getRealValue() == null){
-                Label valuePanel = new Label(filterPanels.newChildId(), "");
+                Label valuePanel = new Label(filterPanels.newChildId(), "N/A");
                 valuePanel.setOutputMarkupId(true);
                 valuePanel.setEnabled(false);
                 filterPanels.add(valuePanel);
