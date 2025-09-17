@@ -10,17 +10,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.wicket.model.IModel;
@@ -156,7 +155,7 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
         return getValue().getRealValue();
     }
 
-    public PrismPropertyValueWrapper<Object> getFilterPropertyValueWrapper() {
+    public List<PrismPropertyValueWrapper<Object>> getFilterPropertyValueWrapper() {
         try {
             PrismContainerValueWrapper<Containerable> containerValue =
                     getValue().findContainerValue(ResourceObjectTypeDefinitionType.F_DELINEATION);
@@ -175,7 +174,33 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
                 return null;
             }
 
-            return values.get(0);
+            return values;
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<PrismPropertyValueWrapper<Object>> getBaseContexFilterPropertyValueWrapper(ItemPath propertyPath) {
+        try {
+            PrismContainerValueWrapper<Containerable> containerValue =
+                    getValue().findContainerValue(ResourceObjectTypeDefinitionType.F_DELINEATION);
+            if (containerValue == null) {
+                return null;
+            }
+
+            PrismContainerWrapper<ResourceObjectReferenceType> containerWrapper =
+                    containerValue.findItem(ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+            if (containerWrapper == null) {
+                return null;
+            }
+
+            PrismPropertyWrapper<Object> property = containerWrapper.findProperty(propertyPath);
+            List<PrismPropertyValueWrapper<Object>> values = property.getValues();
+            if (values == null || values.isEmpty()) {
+                return null;
+            }
+
+            return values;
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }

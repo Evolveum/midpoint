@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.AttributeModifier;
@@ -56,7 +58,13 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     private static final String ID_TOGGLE = "toggleFilter";
     private static final String ID_FILTER_CTN = "filterContainer";
     private static final String ID_ACE = "aceEditorFilter";
+    private static final String ID_ACE_BASE = "aceEditorBaseFilter";
     private static final String ID_MORE_ACTIONS = "moreActions";
+
+    private static final String ID_FILTER_LABEL="filterLabel";
+    private static final String ID_BASE_CONTEXT_FILTER_LABEL="baseContextFilterLabel";
+    private static final String ID_BASE_CONTEXT_OBJECT_CLASS_LABEL="baseContextFilterObjectClassLabel";
+    private static final String ID_BASE_CONTEXT_OBJECT_CLASS = "baseContextFilterObjectClass";
 
     private static final String ID_TOGGLE_ICON = "toggleIcon";
 
@@ -134,11 +142,38 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         filterCtn.add(new VisibleBehaviour(() -> isFilterVisible));
         add(filterCtn);
 
-        PrismPropertyValuePanel<?> valuePanel = new PrismPropertyValuePanel<>(ID_ACE,
-                () -> getModelObject().getFilterPropertyValueWrapper(), null);
-        valuePanel.setOutputMarkupId(true);
-        valuePanel.setEnabled(false);
-        filterCtn.add(valuePanel);
+        List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper = getModelObject().getFilterPropertyValueWrapper();
+
+        Label filterLabel = new Label(ID_FILTER_LABEL, createStringResource("SmartSuggestObjectTypeTilePanel.filter"));
+        filterLabel.setOutputMarkupId(true);
+        filterCtn.add(filterLabel);
+
+        RepeatingView filterPanels = new RepeatingView(ID_ACE);
+        populatePropertyPanels(filterPropertyValueWrapper, filterPanels);
+        filterCtn.add(filterPanels);
+
+        //TODO design whats with base context filter
+        Label baseContextFilterLabel = new Label(ID_BASE_CONTEXT_FILTER_LABEL,
+                createStringResource("SmartSuggestObjectTypeTilePanel.base.context.filter"));
+        baseContextFilterLabel.setOutputMarkupId(true);
+        filterCtn.add(baseContextFilterLabel);
+
+        Label baseContextObjectClassLabel = new Label(ID_BASE_CONTEXT_OBJECT_CLASS_LABEL,
+                createStringResource("SmartSuggestObjectTypeTilePanel.base.context.object.class"));
+        baseContextObjectClassLabel.setOutputMarkupId(true);
+        filterCtn.add(baseContextObjectClassLabel);
+
+        List<PrismPropertyValueWrapper<Object>> baseContexFilterPropertyValueWrapper = getModelObject()
+                .getBaseContexFilterPropertyValueWrapper(ResourceObjectReferenceType.F_FILTER);
+        RepeatingView baseContextFilterPanels = new RepeatingView(ID_ACE_BASE);
+        populatePropertyPanels(baseContexFilterPropertyValueWrapper, baseContextFilterPanels);
+        filterCtn.add(baseContextFilterPanels);
+
+        List<PrismPropertyValueWrapper<Object>> baseContexFilterObjectClassPropertyValueWrapper1 = getModelObject()
+                .getBaseContexFilterPropertyValueWrapper(ResourceObjectReferenceType.F_OBJECT_CLASS);
+        RepeatingView baseContextFilterObjectClassPanels = new RepeatingView(ID_BASE_CONTEXT_OBJECT_CLASS);
+        populateObjectClassPropertyPanels(baseContexFilterObjectClassPropertyValueWrapper1, baseContextFilterObjectClassPanels);
+        filterCtn.add(baseContextFilterObjectClassPanels);
 
         AjaxLinkPanel togglePanel = new AjaxLinkPanel(ID_TOGGLE, () -> isFilterVisible
                 ? createStringResource("SmartSuggestObjectTypeTilePanel.hide.filter").getString()
@@ -160,6 +195,33 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
         add(toggleIcon);
         add(togglePanel);
+    }
+
+    private static void populatePropertyPanels(List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper, RepeatingView filterPanels) {
+        for (PrismPropertyValueWrapper<Object> valueWrapper : filterPropertyValueWrapper) {
+            PrismPropertyValuePanel<?> valuePanel = new PrismPropertyValuePanel<>(filterPanels.newChildId(),
+                    Model.of(valueWrapper), null);
+            valuePanel.setOutputMarkupId(true);
+            valuePanel.setEnabled(false);
+            filterPanels.add(valuePanel);
+        }
+    }
+
+    private static void populateObjectClassPropertyPanels(@NotNull List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper, RepeatingView filterPanels) {
+        for (PrismPropertyValueWrapper<Object> valueWrapper : filterPropertyValueWrapper) {
+            if(valueWrapper.getRealValue() == null){
+                Label valuePanel = new Label(filterPanels.newChildId(), "");
+                valuePanel.setOutputMarkupId(true);
+                valuePanel.setEnabled(false);
+                filterPanels.add(valuePanel);
+                continue;
+            }
+            QName realValue = (QName) valueWrapper.getRealValue();
+            Label valuePanel = new Label(filterPanels.newChildId(), realValue.getLocalPart());
+            valuePanel.setOutputMarkupId(true);
+            valuePanel.setEnabled(false);
+            filterPanels.add(valuePanel);
+        }
     }
 
     private void initSelectRadio() {
