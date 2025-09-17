@@ -59,6 +59,7 @@ class CorrelatorEvaluator {
         this.focusStatistics = new Statistics(
                 suggestions.stream()
                         .map(s -> s.focusItemPath())
+                        .filter(Objects::nonNull)
                         .collect(PathSet::new, PathSet::add, PathSet::addAll));
         this.resourceStatistics = new Statistics(
                 suggestions.stream()
@@ -88,7 +89,8 @@ class CorrelatorEvaluator {
 
         AtomicInteger focusCounter = new AtomicInteger();
         b.modelService.searchObjectsIterative(
-                ctx.getFocusClass(), null,
+                ctx.getFocusClass(),
+                null,
                 (focus, lResult) -> {
                     if (focusCounter.incrementAndGet() > MAX_FOCUS_SAMPLE_SIZE) return false;
                     sampledFocuses.add(focus);
@@ -200,16 +202,29 @@ class CorrelatorEvaluator {
         ItemPath focusPath = suggestion.focusItemPath();
         ItemPath resourcePath = suggestion.resourceAttrPath();
 
-        boolean focusMulti = isMultiValued(focusPath) && focusStatistics.isPathMultiValued(focusPath);
-        boolean resourceMulti = isMultiValued(resourcePath) && resourceStatistics.isPathMultiValued(resourcePath);
-        if (focusMulti || resourceMulti) {
-            LOGGER.debug("Excluded correlator {} - {}: multi-valued path(s) found. Focus: {}, Resource: {}",
-                    suggestion.focusItemPath(), suggestion.resourceAttrPath(), focusMulti, resourceMulti);
+        boolean hasFocusPath = focusPath != null;
+        boolean hasResourcePath = resourcePath != null;
+
+        if (hasFocusPath && isMultiValued(focusPath) && focusStatistics.isPathMultiValued(focusPath)) {
+            LOGGER.debug("Excluded correlator {}: multi-valued focus path.", focusPath);
+            return 0.0;
+        }
+        if (hasResourcePath && isMultiValued(resourcePath) && resourceStatistics.isPathMultiValued(resourcePath)) {
+            LOGGER.debug("Excluded correlator {}: multi-valued resource path.", resourcePath);
             return 0.0;
         }
 
-        Double focusScore = focusStatistics.getScore(focusPath);
-        Double resourceScore = resourceStatistics.getScore(resourcePath);
+        Double focusScore = hasFocusPath ? focusStatistics.getScore(focusPath) : null;
+        Double resourceScore = hasResourcePath ? resourceStatistics.getScore(resourcePath) : null;
+
+        if (focusScore == null && resourceScore == null) {
+            return 0.0;
+        } else if (focusScore == null) {
+            return resourceScore * 0.5; // penalty for not having focus score
+        } else if (resourceScore == null) {
+            return focusScore * 0.5; // penalty for not having resourceScore score
+        }
+
         if (focusScore == 0 || resourceScore == 0) {
             LOGGER.debug("Excluded correlator {} - {}: either focus score or resource score is 0. Focus score: {}, Resource score: {}",
                     suggestion.focusItemPath(), suggestion.resourceAttrPath(), focusScore, resourceScore);
@@ -276,7 +291,13 @@ class CorrelatorEvaluator {
          */
         private Statistics(PathSet countedPaths) {
             this.countedPathsMap = new PathKeyedMap<>();
-            countedPaths.forEach(p -> countedPathsMap.put(p, new ItemStatistics()));
+            if (countedPaths != null && !countedPaths.isEmpty()) {
+                countedPaths.forEach(p -> {
+                    if (p != null) {
+                        countedPathsMap.put(p, new ItemStatistics());
+                    }
+                });
+            }
         }
 
         /**
@@ -286,6 +307,8 @@ class CorrelatorEvaluator {
          * @param object The object to analyze.
          */
         void process(PrismObject<?> object) {
+            if (countedPathsMap.isEmpty() || object == null) return;
+
             countedPathsMap.forEach(
                     (path, stats) -> {
                         stats.objects++;
@@ -311,6 +334,7 @@ class CorrelatorEvaluator {
          * @return The score (0 to 1).
          */
         Double getScore(ItemPath itemPath) {
+            if (countedPathsMap.isEmpty() || itemPath == null) return null;
             return MiscUtil.stateNonNull(
                             countedPathsMap.get(itemPath),
                             "No statistics for %s", itemPath)
@@ -324,6 +348,7 @@ class CorrelatorEvaluator {
          * @return True if at least one object had a multivalued value at this path.
          */
         Boolean isPathMultiValued(ItemPath itemPath) {
+            if (countedPathsMap.isEmpty() || itemPath == null) return null;
             return MiscUtil.stateNonNull(
                             countedPathsMap.get(itemPath),
                             "No statistics for %s", itemPath)
