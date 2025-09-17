@@ -67,6 +67,17 @@ It may seem that this is a very little functionality to justify its own object.
 However, most of the functionality is still not implemented.
 See xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements] page for the details.
 
+=== Collection domain
+
+A collection domain defines the context or parent set from which a collection is derived.
+For example, a collection of _non-compliant roles_ might have a domain of _all roles_.
+
+Collection domains are particularly useful in xref:/midpoint/reference/admin-gui/dashboards/[dashboards].
+Using collection domains enables collections to compute percentages (e.g., _2% of all users are inactive_) and relative metrics (e.g., _10% of roles violate segregation-of-duties policies_).
+These metrics are critical for compliance reporting, as they quantify risks or deviations from policy.
+Based on the calculated ratios, policy rules can also trigger further actions, such as notifying managers about the need for remediation.
+
+
 === Derived Object Collection
 
 Some collections are often based on other collections.
