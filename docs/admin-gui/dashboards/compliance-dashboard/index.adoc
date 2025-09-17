@@ -30,4 +30,4 @@ Policy rules, stored in xref:/midpoint/reference/schema/policy/[policy objects] 
 
 * xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[]
 
-* xref:../[]
+* xref:/midpoint/reference/admin-gui/dashboards/[]
