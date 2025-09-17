@@ -35,7 +35,7 @@ Using collection domains enables collections to compute percentages (e.g., _2% o
 These metrics are critical for compliance reporting, as they quantify risks or deviations from policy.
 Based on the calculated ratios, policy rules can also trigger further actions, such as notifying managers about the need for remediation.
 ]
-and connect them with xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] through xref:/midpoint/reference/concepts/mark/[object marks], you gain the ability to monitor xrefv:/midpoint/reference/master/admin-gui/dashboards/compliance-dashboard/[compliance] of your organization and xref:/midpoint/reference/misc/notifications/[receive warnings] that an action is needed to put the situation back in line with requirements.
+and connect them with xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] through xref:/midpoint/reference/concepts/mark/[object marks], you gain the ability to monitor xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[compliance] of your organization and xref:/midpoint/reference/misc/notifications/[receive warnings] that an action is needed to put the situation back in line with requirements.
 
 == How dashboards help you stay compliant
 
