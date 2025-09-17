@@ -1694,10 +1694,10 @@ CREATE TRIGGER m_connector_update_tr BEFORE UPDATE ON m_connector
 CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-CREATE UNIQUE INDEX m_connector_typeVersion_key
+CREATE INDEX m_connector_typeVersion_key
     ON m_connector (connectorType, connectorVersion)
     WHERE connectorHostRefTargetOid IS NULL;
-CREATE UNIQUE INDEX m_connector_typeVersionHost_key
+CREATE INDEX m_connector_typeVersionHost_key
     ON m_connector (connectorType, connectorVersion, connectorHostRefTargetOid)
     WHERE connectorHostRefTargetOid IS NOT NULL;
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
@@ -2690,4 +2690,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(55, $$ SELECT 1 $$, true);
+call apply_change(57, $$ SELECT 1 $$, true);
