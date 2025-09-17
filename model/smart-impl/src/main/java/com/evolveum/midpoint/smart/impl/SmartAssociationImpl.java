@@ -23,6 +23,8 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 /**
  * Provides logic for automatically suggesting {@link ShadowAssociationTypeDefinitionType} definitions
  * based on the structure of native reference attributes in the resource schema.
@@ -73,14 +75,10 @@ public class SmartAssociationImpl {
             ConfigurationException {
 
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-        ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        NativeResourceSchema nativeSchema = resourceSchema.getNativeSchema();
 
-        if (refinedSchema == null) {
-            throw new ConfigurationException("Resource schema is not available for resource: " + resource.getName());
-        }
-
-        NativeResourceSchema nativeSchema = refinedSchema.getNativeSchema();
-
+        // Maps class names to the collection of "places" where it is used as a participant -
+        // among all subject/object types whose identifications were passed to this method.
         Map<QName, List<ParticipantDescriptor>> objectClassParticipantsMap = new HashMap<>();
 
         registerParticipantDescriptorValues(subjectTypeIdentifications, ShadowReferenceParticipantRole.SUBJECT,
@@ -93,14 +91,14 @@ public class SmartAssociationImpl {
         objectClassParticipantsMap.values().stream()
                 .flatMap(List::stream)
                 .filter(ParticipantDescriptor::isSubject)
-                .forEach(pair -> {
-                    var firstParticipantRole = pair.participantRole();
-                    var firstParticipantDef = pair.participantObjectClassDefinition();
-                    var firstParticipantObjectTypeIdentification = pair.participantObjectTypeIdentification();
+                .forEach(participantDescriptor -> {
+                    var firstParticipantRole = participantDescriptor.participantRole();
+                    var firstParticipantDef = participantDescriptor.participantObjectClassDefinition();
+                    var firstParticipantObjectTypeIdentification = participantDescriptor.participantObjectTypeIdentification();
 
                     debugParticipantInfo(firstParticipantDef, firstParticipantObjectTypeIdentification);
 
-                   var firstParticipantRefAttributeDefinitions = firstParticipantDef.getReferenceAttributeDefinitions();
+                    var firstParticipantRefAttributeDefinitions = firstParticipantDef.getReferenceAttributeDefinitions();
 
                     firstParticipantRefAttributeDefinitions.forEach(firstParticipantRefAttr -> {
                         var associations = resolveRefBasedAssociations(
@@ -116,7 +114,6 @@ public class SmartAssociationImpl {
                                 .map(def -> new AssociationSuggestionType().definition(def))
                                 .forEach(associationsSuggestionType.getAssociation()::add);
                     });
-
                 });
 
         return associationsSuggestionType;
@@ -149,36 +146,28 @@ public class SmartAssociationImpl {
         ItemName refAttrItemName = firstParticipantRefAttr.getItemName();
         QName referencedAttributeObjectClassName = firstParticipantRefAttr.getReferencedObjectClassName();
 
-
         // TODO: In some cases, the reference attribute may not set the referenced object class name.
         //  Check DummyAdAssociationsScenario -> AccountGroup -> .withObjectClassNames(Account.OBJECT_CLASS_NAME.local(), Group.OBJECT_CLASS_NAME.local()) (member)
         if (referencedAttributeObjectClassName == null) {
-            LOGGER.warn("   Attribute does not have a properly set referenced object class name. Reference attribute: {}",
+            LOGGER.debug("   Attribute does not have a properly set referenced object class name. Reference attribute: {}",
                     refAttrItemName);
             return result;
         }
 
         List<ParticipantDescriptor> linkedObjects = findMatchingParticipantDefinitions(
                 referencedAttributeObjectClassName,
-                firstParticipantObjectTypeIdentification,
                 classDefRoleMap,
                 ShadowReferenceParticipantRole.OBJECT);
 
-        if (linkedObjects == null) {
-            LOGGER.warn("   No class definition found for referenced object class name: {}",
-                    referencedAttributeObjectClassName);
-            return result;
-        }
-
         //TODO: combine associations if requested (means association can have multiple objects/subjects - not separated)
-        for (var pair : linkedObjects) {
-            NativeObjectClassDefinition secondParticipantDef = pair.participantObjectClassDefinition();
-            ResourceObjectTypeIdentification secondParticipantTypeIdentification = pair.participantObjectTypeIdentification();
+        for (var linkedObject : linkedObjects) {
+            NativeObjectClassDefinition secondParticipantDef = linkedObject.participantObjectClassDefinition();
+            ResourceObjectTypeIdentification secondParticipantTypeIdentification = linkedObject.participantObjectTypeIdentification();
 
             ShadowAssociationTypeDefinitionType association = new ShadowAssociationTypeDefinitionType();
 
-            String assocName = constructAssociationName(firstParticipantObjectTypeIdentification, secondParticipantTypeIdentification,
-                    refAttrItemName);
+            String assocName = constructAssociationName(
+                    firstParticipantObjectTypeIdentification, secondParticipantTypeIdentification, refAttrItemName);
             QName assocQName = new QName(nativeSchema.getNamespace(), assocName);
             association.setName(assocQName);
 
@@ -260,29 +249,20 @@ public class SmartAssociationImpl {
     }
 
     /**
-     * Finds all participant descriptors for a given object class name,
-     * excluding the one with the provided identification (to avoid self-reference).
+     * Finds all participant descriptors for a given object class name.
      *
      * @param objectClassName              Name of the object class to search.
-     * @param excludedObjectIdentification Identification to exclude from results.
      * @param classDefRoleMap              Map of all known participant descriptors.
-     * @return A list of matching participants excluding the given one.
+     * @return A list of matching participants.
      */
-    private List<ParticipantDescriptor> findMatchingParticipantDefinitions(
+    private @NotNull List<ParticipantDescriptor> findMatchingParticipantDefinitions(
             @NotNull QName objectClassName,
-            @NotNull ResourceObjectTypeIdentification excludedObjectIdentification,
             @NotNull Map<QName, List<ParticipantDescriptor>> classDefRoleMap,
-            @Nullable ShadowReferenceParticipantRole participantRole) {
+            @NotNull ShadowReferenceParticipantRole participantRole) {
 
-        List<ParticipantDescriptor> entries = classDefRoleMap.get(objectClassName);
-
-        if (entries == null) {
-            return List.of();
-        }
-
+        List<ParticipantDescriptor> entries = emptyIfNull(classDefRoleMap.get(objectClassName));
         return entries.stream()
-                .filter(pair -> !pair.participantObjectTypeIdentification().equals(excludedObjectIdentification))
-                .filter(pair -> participantRole == null || pair.participantRole() == participantRole)
+                .filter(participantDescriptor -> participantDescriptor.participantRole() == participantRole)
                 .collect(Collectors.toList());
     }
 
