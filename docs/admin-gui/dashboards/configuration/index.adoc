@@ -250,7 +250,7 @@ You can see the configuration for the dashboard in the image above in the code b
 .Presentation style configurations
 [%collapsible]
 ====
-link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/howto/dashboard-widget-data-presentation-styles.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/howto/dashboard-widget-data-presentation-styles.xml[View on GitHub]
 
 sampleRef::samples/dashboard/howto/dashboard-widget-data-presentation-styles.xml[]
 ====
@@ -376,7 +376,7 @@ The collection contains a policy rule that is triggered by a situation when the 
 .Example Object Collection
 [%collapsible]
 ====
-link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/object-collection-resource-up.xml[Git]
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/object-collection-resource-up.xml[View on GitHub]
 
 sampleRef::samples/dashboard/object-collection-resource-up.xml[]
 ====
