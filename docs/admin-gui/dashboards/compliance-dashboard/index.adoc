@@ -2,9 +2,10 @@
 midpoint-feature: compliance-dashboard
 doc-type: intro
 ---
-= Compliance Dashboard
+= Compliance dashboard
 :page-keywords: [ 'dashboards', 'dashboard', 'compliance', 'regulation', 'cybersecurity' ]
 :page-since: "4.10"
+:page-display-order: 40
 :page-upkeep-status: green
 
 == Description
@@ -23,10 +24,10 @@ The dashboard can be further extended and customized as needed.
 Functionality of compliance dashboard is heavily based on feature:policy-concept[policies], feature:policy-rule[policy rules] and xref:/midpoint/reference/concepts/mark/[marks], as is described at xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[] page.
 Policy rules, stored in xref:/midpoint/reference/schema/policy/[policy objects] are setting the xref:/midpoint/reference/concepts/mark/[marks], which are used by compliance dashboard for compliance reporting.
 
-== See Also
+== See also
 
 * xref:/midpoint/compliance/[MidPoint Compliance]
 
 * xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[]
 
-* xref:../[]
+* xref:/midpoint/reference/admin-gui/dashboards/[]
