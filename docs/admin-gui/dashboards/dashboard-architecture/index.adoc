@@ -25,7 +25,7 @@ image::basic-dashboard-architecture.svg["Dashboard architecture diagram"]
 
 An object collection contains a query to enumerate the objects counted in the dashboard widget.
 Those are, for instance, all employees who are on a long-term leave.
-An object collection may contain a domain clause defining a superset for the queried objects.
+An object collection may contain a xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-domain[domain clause] defining a superset for the queried objects.
 This is useful if you want your dashboard to show, for example, what percentage of all employees (superset) is on a long-term leave (queried objects).
 
 Alternatively, dashboard widgets may load data from audit events.
@@ -42,7 +42,7 @@ They both show data enumerated by object collections,
 but unlike interactive dashboards, reports are static (as in printable).
 
 However, they are used together in a xref:/midpoint/features/synergy/[synergy] for two use cases:
-Asynchronously updated dashboards and static reports created from regular dashboards.
+Asynchronously updated dashboard widgets and static reports created from dashboards.
 
 .Architecture of dashboards with asynchronous widgets
 image::async-dashboard-architecture.svg["Architecture diagram of dashboards with asynchronous widgets"]
@@ -57,7 +57,7 @@ The way to ease the system load caused by dashboards is to pre-compute the dashb
 That's what asynchronous dashboards are about.
 In addition to the dashboard and object collection, you also define a xref:/midpoint/reference/misc/reports/configuration/dashboard-report/[dashboard report] and make it "run" the dashboard in regular intervals using a scheduled xref:/midpoint/reference/misc/reports/configuration/report-task-definition/#export-report[report task].
 This way, you make the dashboard calculate the data for all the widgets in the dashboard on a frequency that is manageable for your systems.
-Unlike other reports, a dashboard report saves the resulting data in the widgets of the particular dashboard.
+Unlike other reports, a dashboard report can save the resulting data in the widgets of the particular dashboard.
 
 See xref:/midpoint/reference/admin-gui/dashboards/dashboard-configuration-intro#configure-async-widgets[how to configure asynchronous widgets].
 

@@ -97,7 +97,7 @@ Now is the time to create them.
 Widgets are not separate configuration objects, they go directly into their parent dashboard object.
 The first widget we create here is a simple synchronous one;
 the data it shows are calculated every time a user loads the screen with the dashboard.
-You will see how to create an asynchronous widget in the example for the second widget below.
+You will see how to create an asynchronous widget in the example for the second widget.
 
 The first simple widget shows the number of users that are active; for example, active employees as opposed to those on long-term leave.
 The widget itself does not query the users.
@@ -236,7 +236,7 @@ To configure a widget as asynchronous, you need to adjust the synchronous widget
     ** Note that a dashboard report always computes the data for all the widgets in the linked dashboard.
 * A report task which runs the report at scheduled intervals to refresh the data.
 
-First, modify the widget configuration to include the `displaySourceType` element, allowing the widget to utilize the data that the report has stored in it.
+Firstly, modify the widget configuration to include the `displaySourceType` element, allowing the widget to utilize the data that the report has stored in it.
 
 [source,xml]
 ----
@@ -307,6 +307,10 @@ In most cases, it makes sense to schedule this task to run at regular intervals 
 include::../dashboards-reports-and-recurring-tasks-config-limitation.adoc[]
 
 Once you have all the pieces in place, upload them to your midPoint instance, refresh the GUI (possibly log out and back in), and see the updated dashboard under [.nowrap]#icon:tachometer-alt[] *Dashboards*#.
+
+== Further reading
+
+* xref:/midpoint/reference/admin-gui/dashboards/configuration/[]
 
 == See also
 

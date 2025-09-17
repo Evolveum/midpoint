@@ -61,7 +61,6 @@ a| Specify the type of input data for generating a message shown in the widget.
     * `auditSearch`: Content of the widget is based on the data from an object collection with a filter for xref:/midpoint/reference/security/audit/[audit records].
         See also xref:/midpoint/reference/misc/reports/examples/audit-report-with-changed-attributes/[].
     * `object`: Content of the widget is based on the data from a single object.
-        We describe this using `sourceType` and `displaySourceType` in the example beneath the table.
 
 | `displaySourceType`
 | `DashboardWidgetSourceType`
@@ -70,7 +69,7 @@ a| Specify the type of input data for generating a message shown in the widget.
     For asynchronous widgets, set this to `widgetData`.
     Although the widget data source (`sourceType`) may be, e.g., an object collection,
     a report can save the computed data into the widget object
-    and the widget can then display the saved data without querying midPoint objects through the collection anew.
+    and the widget can then display the saved data without querying midPoint objects through the collection de novo.
 
     The widget in the GUI usually contains a btn:[More info] button which takes users to a details page with objects queried using the `sourceType` element configuration.
 
@@ -105,13 +104,15 @@ a| Specify the type of input data for generating a message shown in the widget.
         <collection>
             <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/> <!--3-->
         </collection>
-        <storedData>25/25 runnable</storedData>
+        <storedData>25/25 runnable</storedData> <!--4-->
     </data>
 </widget>
 ----
 <1> The source from which the data for the widget to display are computed.
 <2> The instruction for the widget to display the data it has saved in itself. These data have been saved to the widget by a report.
 <3> The object collection used as the primary source of the widget data.
+<4> The string here displays only before the connected report runs for the first time.
+    The report overwrites this value.
 
 You can use an `objectCollection`, `auditSearch` or `object` as a data source for asynchronous widgets.
 Regardless the widget data source, for asynchronous widgets, you need to use the `displaySourceType` element with the `widgetData` value.
@@ -119,10 +120,10 @@ Regardless the widget data source, for asynchronous widgets, you need to use the
 === Use specific object as a widget data source
 
 Another option is to define a specific `object` as a source.
-In this case, a part of the configuration is a reference to the object which is used as a source.
+In this case, a part of the configuration is a reference to the object which is used as the source.
 The configuration contains a path to the attribute which is presented in the widget.
 
-.An example of a widget data source for an object type
+.An example of a widget querying the execution status of a task object
 [source,xml]
 ----
 <widget>
@@ -142,9 +143,7 @@ The configuration contains a path to the attribute which is presented in the wid
 </widget>
 ----
 
-In the example above, the selected object is a report task.
-The path is set to query the execution status of the task.
-The widget may render as follows, for example:
+The widget may render as follows:
 
 .Dashboard widget showing the execution status of an explicitly selected task.
 image::object.png["Dashboard widget showing the execution status of task"]
@@ -155,7 +154,7 @@ There are two elements for visual configuration of widgets:
 
 * The `display` element: Use to adjust the appearance of your widgets, such as the default color and icon.
 * The `presentation` element: Use to select the data presentation style or condition the appearance based on the data.
-    Furthermore, the `view` element within the `presentation` element serves to configure the report that can be created from the dashboard configuration.
+    Furthermore, the `view` element within the `presentation` element serves to configure the report that can be created based on the dashboard configuration.
 
 === Visual configuration
 
@@ -200,8 +199,8 @@ There are two field types currently supported:
 
 The other element in `dataField` elements is `expression`:
 
-* In the case of `value`-type field, the `value` of the expression element holds the `proportional` element with the presentation `style` element.
-* In the case of `unit`-type field, the `value` of the expression element specifies the literal shown after the number (e.g., _users_, _tasks_, _roles_).
+* In the case of `value`-type field, the `expression` element holds the `proportional` element with the presentation `style` element.
+* In the case of `unit`-type field, the `expression` element holds the `value` element that specifies the string shown after the number (e.g., _users_, _tasks_, _roles_).
 
 .Data presentation configuration skeleton - two `dataField` elements, one for the value, one for the unit
 [source,xml]
@@ -233,7 +232,7 @@ image::dashboard-presentation-styles.webp["MidPoint Dashboard showing various wi
 
 The available presentation styles are:
 
-* A number of objects in the collection and no information about the collection domain
+* A number of objects in the collection and no information about the xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-domain[collection domain]
     ** For example, _8_
     ** `<style>value-only</style>`
 * Percentage of objects in the collection as compared with the collection domain
@@ -257,11 +256,11 @@ sampleRef::samples/dashboard/howto/dashboard-widget-data-presentation-styles.xml
 ====
 
 
-==== Variation of Widget Data
+==== Variation of widget data
 
 The next presentation element is `variation`.
 This element allows for conditional variation of the widget appearance.
-Variations may change the colors or icons of the widget based on specific conditions.
+Variations may change the color or icon of the widget based on specific conditions.
 
 .Configuration options to define a widget display variation based on a condition
 [%autowidth]
@@ -276,7 +275,7 @@ The variation activates when the condition evaluates to true.
 
 | `display`
 | `DisplayType`
-| Display properties are applied when the condition evaluates to true.
+| Display properties to be applied when the condition evaluates to true.
     These display properties specify only the presentation aspects that differ from the default presentation.
     For example, if the variation only changes the widget color, only the color needs to be specified here.
     Icons and other visual attributes are taken from the primary widget display properties.
@@ -357,9 +356,9 @@ You can use four variables for `condition`:
 
 The last element of the presentation container is `view`.
 This element is processed when creating reports.
-The main reason to configure the `view` element is to customize the report that is based on the dashboard widget or adjust the object collection screen
+The main reason to configure the `view` element is to customize the report that is based on the dashboard widget or adjust the object collection screen.
 
-In the graphical user interface, the object collection screen is accessible using the btn:[More info] button on the dashboard widget tile .
+In the graphical user interface, the object collection screen is accessible using the btn:[More info] button on the dashboard widget tile.
 
 Refer to these examples of the `view` element usage:
 
@@ -382,24 +381,24 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/object-collection-resource-up.xml[]
 ====
 
-The example above contains an specification definition of the xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-domain[collection domain].
+The example above contains an explicit definition of the xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-domain[collection domain].
 In the case here, the domain contains all the resources in the environment, and the `filter` clause specifies that only those that are `up` should be counted.
 The policy rule then computes the ratio of `up` resources to all resources and fires a situation if the ratio drops below the `highWaterMark` value.
 
 This example uses `policyRule` with `policySituation` which can be leveraged for the variation of widget presentation.
-When the `policyThreshold` is met, the `policySituation` from `policyRule` triggers the widget variation.
+When the `policyThreshold` is met, the `policySituation` from `policyRule` can trigger the widget variation.
 
-The `policyThreshold` has two important variables: `lowWaterMark` and `highWaterMark`.
+The `policyThreshold` has two important variables: `lowWaterMark` and `highWaterMark`:
 
 * `lowWaterMark` is the lower bound of the threshold, representing the lowest value for which the policy rule is activated.
-    The policy rule will trigger for all values starting from this value up to the `highWaterMark` (closed interval).
-    ** If no `lowWaterMark` is specified, the policy rule activates for all values up to the `highWaterMark`.
+    The policy rule triggers for all values above this value up to the `highWaterMark` value (closed interval).
+    ** If no `lowWaterMark` is specified, the policy rule activates for all values lower than `highWaterMark`.
 
 * `highWaterMark` is the upper bound of the threshold, representing the highest value for which the policy rule is activated.
-    The policy rule will trigger for all values starting from the `lowWaterMark` up to this value (closed interval).
-    ** If no `highWaterMark` is specified, the policy rule activates for all values greater than or equal to the `highWaterMark`.
+    The policy rule triggers for all values between `lowWaterMark` and `highWaterMark` (closed interval).
+    ** If no `highWaterMark` is specified, the policy rule activates for all values greater than or equal to the `lowWaterMark`.
 
-A policy rule with a threshold that does not have any water marks will never activate.
+A policy rule with a threshold and no water marks will never activate.
 
 Both watermark objects are of the `WaterMarkType` type and can contain `count` and `percentage` variables.
 
