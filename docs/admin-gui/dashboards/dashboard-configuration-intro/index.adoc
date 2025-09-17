@@ -68,7 +68,7 @@ You can get inspiration from link:https://github.com/Evolveum/midpoint-samples/t
 == Create your custom dashboard
 
 To create a dashboard, you need to create a dashboard object with an OID, name, label, and widgets.
-The name and label are used for the graphical user interface (GUI).
+The label is used for the graphical user interface (GUI).
 
 [source,xml]
 ----
@@ -168,11 +168,11 @@ To go with the example of counting active users, create a collection that enumer
 And this is it.
 You are getting closer to your goal:
 
-* Add the OID of the collection above to the `collectionRef` in the link:#simple-widget:[widget].
-* Move the widget code to the dashboard object.
-* Upload both the collection and the dashboard objects to your midPoint instance.
+. Add the OID of the collection above to the `collectionRef` in the link:#simple-widget[widget].
+. Move the widget code to the dashboard object.
+. xref:/midpoint/tools/studio/usage/#uploading-midpoint-objects[Upload] both the collection and the dashboard objects to your midPoint instance.
 
-The only step that remains is to display the dashboard in the midPoint graphical user interface.
+The only step that remains is to add the dashboard to the midPoint graphical user interface.
 
 === Add the dashboard to the main menu
 
