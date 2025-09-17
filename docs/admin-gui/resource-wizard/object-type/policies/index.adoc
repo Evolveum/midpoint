@@ -15,7 +15,7 @@ You can access the Object type policies section by going to icon:database[] *Res
 In this section, you can configure the following features:
 
 * <<classsifyObjects,Marking>> - Groups accounts/entitlements by filtering them and assigning marks.
-* <<defaultOperationPolicy,Default Operation Policy>> - Captures all objects that have not been assigned marks in the <<classsifyObjects,Marking>> section and assigns them a default mark.
+* <<defaultOperationPolicy,Default Operation Policy>> - Defines the default policy for objects that have not been explicitly assigned marks in the <<classsifyObjects,Marking>> section.
 
 image:object-type-policies.webp[link=object-type-policies.webp,70%,title=Object type policies]
 
@@ -46,9 +46,9 @@ image::resource-account.webp[link=resource-account.webp,100%,title=Access marks 
 == Define default operation policy
 // GUI - "Default operation policy"
 
-Default operation policy defines the default mark for all objects that are not marked explicitly in the <<classifyObjects,Marking>> section.
+Default operation policy defines the default policy for all objects that are not explicitly marked in the <<classifyObjects,Marking>> section.
 This enables you to define the default behavior for objects that do not need a specific treatment.
-For example, you may want to set the Default operation policy as `Unmanaged` to make all objects of the object type effectively read-only (outbound behavior will be ignored) during object management migration to midPoint.
+For example, you may want to set the Default operation policy to `Unmanaged` to make all objects of the object type effectively read-only (outbound behavior will be ignored) during object management migration to midPoint.
 
 . Go to the resource that contains the objects you want to apply marks to by clicking icon:database[] *Resources* > icon:database[] *All resources* > resource.
 . In the resource, go to icon:male[] *Accounts* / icon:users[] *Entitlements* > icon:cog[] btn:[Configure] > icon:balance-scale[] *Policies*.
@@ -61,14 +61,6 @@ This way you can enable/disable the policy for individual operations, such as Ad
 . Click btn:[Save policies].
 
 TIP: Default operation policy is heavily used in xref:/midpoint/methodology/group-synchronization/[].
-
-== Assign marks to users manually
-
-In some cases, you may need to assign marks to individual objects manually.
-For example, when you only want to apply marks temporarily, or when you need more precision than filters can provide in <<classsifyObjects,marking>>.
-
-You can assign marks directly to users in icon:user[] *Users* > user > icon:circle[] *Marks*.
-
 
 
 include::../../see-also.adoc[]
