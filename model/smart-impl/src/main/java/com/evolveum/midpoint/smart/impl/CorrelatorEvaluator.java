@@ -231,16 +231,18 @@ class CorrelatorEvaluator {
             return 0.0;
         }
 
-        double baseScore = 2.0 * focusScore * resourceScore / (focusScore + resourceScore);
-
         Map<String, Set<String>> ShadowToFocusLinks = collectShadowToFocusLinks(suggestion);
         double linkCoverage = computeLinkCoverage(ShadowToFocusLinks);
 
+        // Excluding base score to have unified score with "black-box" correlators
+        /*
+        double baseScore = 2.0 * focusScore * resourceScore / (focusScore + resourceScore);
         double finalScore = baseScore * linkCoverage;
         LOGGER.debug("Base score: {} - Sampled focus-shadow link coverage: {} - Final score: {}",
                 baseScore, linkCoverage, finalScore);
+         */
 
-        return finalScore;
+        return linkCoverage;
     }
 
     /**
