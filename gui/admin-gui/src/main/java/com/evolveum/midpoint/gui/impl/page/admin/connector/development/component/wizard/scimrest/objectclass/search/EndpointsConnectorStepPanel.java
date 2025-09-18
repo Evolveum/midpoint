@@ -99,7 +99,9 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
                         try {
                             PrismContainerWrapper<ConnDevHttpEndpointType> endpointsContainer = objectClassContainer
                                     .get().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
-                            return endpointsContainer.getValues();
+                            return endpointsContainer.getValues().stream()
+                                    .filter(value -> value.getRealValue().getSuggestedUse().contains(ConnDevHttpEndpointIntentType.GET_ALL))
+                                    .toList();
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }

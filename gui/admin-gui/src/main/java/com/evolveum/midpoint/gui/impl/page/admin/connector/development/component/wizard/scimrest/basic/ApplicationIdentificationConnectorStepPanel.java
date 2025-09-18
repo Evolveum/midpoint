@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
@@ -148,18 +150,15 @@ public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWiz
         return itemWrapper.isMandatory();
     }
 
-//    @Override
-//    protected ItemVisibilityHandler getVisibilityHandler() {
-//        return wrapper -> {
-//            if (wrapper.getItemName().equals(ResourceType.F_CONNECTOR_REF)
-//                    || wrapper.getItemName().equals(ResourceType.F_TEMPLATE)
-//                    || wrapper.getItemName().equals(ResourceType.F_ABSTRACT)
-//                    || wrapper.getItemName().equals(ResourceType.F_SCRIPTS)){
-//                return ItemVisibility.HIDDEN;
-//            }
-//            return ItemVisibility.AUTO;
-//        };
-//    }
+    @Override
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        return wrapper -> {
+            if (wrapper.getItemName().equals(ConnDevApplicationInfoType.F_BASE_API_ENDPOINT)){
+                return ItemVisibility.HIDDEN;
+            }
+            return ItemVisibility.AUTO;
+        };
+    }
 
     @Override
     public String getStepId() {

@@ -54,6 +54,8 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
 
     private static final String PANEL_TYPE = "cdw-endpoint-path";
 
+    private static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "scimBaseUrl");
+
     public EndpointConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
@@ -160,7 +162,7 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
     }
 
     protected boolean checkMandatory(ItemWrapper wrapper) {
-        if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "baseAddress"))){
+        if (QNameUtil.match(wrapper.getItemName(), PROPERTY_ITEM_NAME)){
             return true;
         }
         return wrapper.isMandatory();
@@ -169,7 +171,7 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "scimBaseUrl"))){
+            if (QNameUtil.match(wrapper.getItemName(), PROPERTY_ITEM_NAME)){
                 return ItemVisibility.AUTO;
             }
             return ItemVisibility.HIDDEN;

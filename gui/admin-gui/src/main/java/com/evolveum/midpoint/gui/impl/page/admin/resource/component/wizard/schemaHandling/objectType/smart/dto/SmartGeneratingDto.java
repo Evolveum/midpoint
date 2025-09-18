@@ -79,7 +79,11 @@ public class SmartGeneratingDto implements Serializable {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return List.of();
         }
-        return buildStatusRows(pageBase, statusInfo.getObject());
+        return buildStatusRows(pageBase, statusInfo.getObject(), addDefaultRow());
+    }
+
+    protected boolean addDefaultRow() {
+        return true;
     }
 
     /**

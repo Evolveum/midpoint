@@ -80,11 +80,21 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
                 StatusInfo<?> latest = statusInfoModel.getObject();
                 if (latest == null) {
-                    return new SmartGeneratingDto();
+                    return new SmartGeneratingDto() {
+                        @Override
+                        protected boolean addDefaultRow() {
+                            return false;
+                        }
+                    };
                 }
 
                 PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, token, getPageBase(), task, result);
-                return new SmartGeneratingDto(statusInfoModel, () -> taskTypePrismObject);
+                return new SmartGeneratingDto(statusInfoModel, () -> taskTypePrismObject){
+                    @Override
+                    protected boolean addDefaultRow() {
+                        return false;
+                    }
+                };
             }
         };
     }

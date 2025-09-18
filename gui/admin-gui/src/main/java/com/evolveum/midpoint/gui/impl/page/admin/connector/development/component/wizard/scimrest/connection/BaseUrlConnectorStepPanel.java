@@ -7,10 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -19,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -35,9 +33,12 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lskublik
@@ -51,6 +52,7 @@ import org.apache.wicket.model.IModel;
 public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
     private static final String PANEL_TYPE = "cdw-base-url";
+    private static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "baseAddress");
 
     public BaseUrlConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -75,12 +77,24 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        try {
+            PrismPropertyValueWrapper<Object> suggestedValue = getDetailsModel().getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_BASE_API_ENDPOINT)).getValue();
+            if (StringUtils.isNotEmpty((String) suggestedValue.getRealValue())) {
+                PrismPropertyValueWrapper<String> configurationValue = (PrismPropertyValueWrapper<String>) getContainerFormModel().getObject().findProperty(PROPERTY_ITEM_NAME).getValue();
+                if (StringUtils.isEmpty(configurationValue.getRealValue())) {
+                    configurationValue.setRealValue((String) suggestedValue.getRealValue());
+                }
+            }
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
-        ((VerticalFormPrismContainerPanel)getVerticalForm().getSingleContainerPanel().getContainer().get("1"))
+        ((VerticalFormPrismContainerPanel) getVerticalForm().getSingleContainerPanel().getContainer().get("1"))
                 .getContainer().add(AttributeAppender.remove("class"));
     }
 
@@ -92,7 +106,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
-                ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(this::checkMandatory)
                 .build();
@@ -157,7 +171,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     }
 
     protected boolean checkMandatory(ItemWrapper wrapper) {
-        if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "scimBaseUrl"))){
+        if (QNameUtil.match(wrapper.getItemName(), PROPERTY_ITEM_NAME)) {
             return true;
         }
         return wrapper.isMandatory();
@@ -166,7 +180,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "baseAddress"))){
+            if (QNameUtil.match(wrapper.getItemName(), PROPERTY_ITEM_NAME)) {
                 return ItemVisibility.AUTO;
             }
             return ItemVisibility.HIDDEN;

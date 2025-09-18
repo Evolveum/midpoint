@@ -15,11 +15,8 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.SchemaScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.WaitingConnIdSchemaConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.WaitingNativeSchemaConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.WaitingObjectClassDetailsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.EndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllScriptConnectorStepPanel;
 
@@ -283,6 +280,7 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
                 new WaitingNativeSchemaConnectorStepPanel(getHelper(), valueModel),
                 new WaitingConnIdSchemaConnectorStepPanel(getHelper(), valueModel),
                 new SchemaScriptConnectorStepPanel(getHelper()),
+//                new ShowSchemaConnectorStepPanel(getHelper(), valueModel),
                 new EndpointsConnectorStepPanel(getHelper(), valueModel),
                 new WaitingSearchAllConnectorStepPanel(getHelper(), valueModel),
                 new SearchAllScriptConnectorStepPanel(getHelper()));
