@@ -688,4 +688,30 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule, AssociatedP
     public boolean isEvaluated() {
         return evaluated;
     }
+
+    /**
+     * Comparing only rule identifier and assignment path.
+     *
+     * While rule identifier is obviously needed, the assignment path is needed to distinguish
+     * whether two rule instances were triggered by the same assignment (assignment path is equivalent).
+     */
+    // TODO think about whether we should use this in equals() as well
+    public boolean isTheSameAs(EvaluatedPolicyRuleImpl other) {
+        if (other == null) {
+            return false;
+        }
+
+        if (!Objects.equals(getPolicyRuleIdentifier(), other.getPolicyRuleIdentifier())) {
+            return false;
+        }
+
+        AssignmentPath thisPath = getAssignmentPath();
+        AssignmentPath otherPath = other.getAssignmentPath();
+
+        if (thisPath == null && otherPath == null) {
+            return true;
+        }
+
+        return thisPath != null && otherPath != null && thisPath.equivalent(otherPath);
+    }
 }
