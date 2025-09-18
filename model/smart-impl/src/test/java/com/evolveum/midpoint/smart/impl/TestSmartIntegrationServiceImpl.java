@@ -264,7 +264,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("dave")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Dave Grohl")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_456")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "456admin")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "dave.priv@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
@@ -272,7 +272,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("susan")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Susan Calvin")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm789")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "789_prod")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "susan.adm@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")

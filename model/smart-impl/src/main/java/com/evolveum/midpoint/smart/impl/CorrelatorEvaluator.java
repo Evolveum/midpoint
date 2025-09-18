@@ -35,7 +35,7 @@ class CorrelatorEvaluator {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationServiceImpl.class);
 
-    private static final int MAX_FOCUS_SAMPLE_SIZE = 2000;
+    private static final int MAX_SHADOW_SAMPLE_SIZE = 2000;
     private static final boolean NO_FETCH_SHADOWS = true;
 
     private final TypeOperationContext ctx;
@@ -73,9 +73,9 @@ class CorrelatorEvaluator {
      * attribute distribution and mapping, and computing suitability scores.
      *
      * The main steps are:
-     *   - Sampling up to MAX_FOCUS_SAMPLE_SIZE focus objects and all relevant shadow objects
+     *   - Sampling up to MAX_SHADOW_SAMPLE_SIZE focus objects and all relevant focus objects
      *   - Computing statistics (uniqueness, coverage) for each suggested focus and resource path
-     *   - Scoring each suggestion by combining statistics and focus-shadow link coverage/ambiguity
+     *   - Scoring each suggestion by shadow-focus link coverage/ambiguity
      *
      * @param result OperationResult for operation logging/auditing.
      * @return List of scores (one per suggestion), in the same order as the input suggestions.
@@ -84,27 +84,27 @@ class CorrelatorEvaluator {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        LOGGER.info("Starting correlator evaluation. Focus type: {}, Shadow type: {}, Max focus sample: {}",
-                ctx.getFocusClass(), ctx.getTypeIdentification(), MAX_FOCUS_SAMPLE_SIZE);
+        LOGGER.info("Starting correlator evaluation. Focus type: {}, Shadow type: {}, Max shadow sample: {}",
+                ctx.getFocusClass(), ctx.getTypeIdentification(), MAX_SHADOW_SAMPLE_SIZE);
 
-        AtomicInteger focusCounter = new AtomicInteger();
         b.modelService.searchObjectsIterative(
                 ctx.getFocusClass(),
                 null,
                 (focus, lResult) -> {
-                    if (focusCounter.incrementAndGet() > MAX_FOCUS_SAMPLE_SIZE) return false;
                     sampledFocuses.add(focus);
                     focusStatistics.process(focus);
                     return true;
                 },
                 null, ctx.task, result);
 
+        AtomicInteger shadowCounter = new AtomicInteger();
         b.modelService.searchObjectsIterative(
                 ShadowType.class,
                 Resource.of(ctx.resource)
                         .queryFor(ctx.getTypeIdentification())
                         .build(),
                 (shadow, lResult) -> {
+                    if (shadowCounter.incrementAndGet() > MAX_SHADOW_SAMPLE_SIZE) return false;
                     sampledShadows.add(shadow);
                     resourceStatistics.process(shadow);
                     return true;
@@ -123,45 +123,45 @@ class CorrelatorEvaluator {
     }
 
     /**
-     * Builds a mapping from focus object OIDs to sets of resource shadow OIDs that share
+     * Builds a mapping from shadow object OIDs to sets of focus OIDs that share
      * the same value on the suggested focus/resource attribute paths.
      *
      * @param suggestion The correlator suggestion specifying the focus and shadow attribute paths.
      * @return A map from focus OID to a set of matching shadow OIDs for the given correlator suggestion.
      */
-    private Map<String, Set<String>> collectFocusShadowLinks(CorrelatorSuggestion suggestion) {
-        Map<String, Set<String>> focusToShadows = new HashMap<>();
-        ItemPath focusPath = suggestion.focusItemPath();
+    private Map<String, Set<String>> collectShadowToFocusLinks(CorrelatorSuggestion suggestion) {
+        Map<String, Set<String>> shadowToFocuses = new HashMap<>();
         ItemPath shadowPath = suggestion.resourceAttrPath();
+        ItemPath focusPath = suggestion.focusItemPath();
 
-        Map<Object, Set<String>> shadowValueToOids = new HashMap<>();
-        for (PrismObject<?> shadow : sampledShadows) {
-            var item = shadow.findItem(shadowPath);
-            if (item != null) {
-                Object val = item.getValue().getRealValue();
-                if (val != null) {
-                    shadowValueToOids
-                            .computeIfAbsent(String.valueOf(val), k -> new HashSet<>())
-                            .add(shadow.getOid());
-                }
-            }
-        }
-
+        Map<Object, Set<String>> focusValueToOids = new HashMap<>();
         for (PrismObject<?> focus : sampledFocuses) {
             var item = focus.findItem(focusPath);
             if (item != null) {
                 Object val = item.getValue().getRealValue();
                 if (val != null) {
-                    Set<String> matchingShadows = shadowValueToOids.getOrDefault(String.valueOf(val), Collections.emptySet());
-                    focusToShadows.put(focus.getOid(), new HashSet<>(matchingShadows));
-                } else {
-                    focusToShadows.put(focus.getOid(), Collections.emptySet());
+                    focusValueToOids
+                            .computeIfAbsent(String.valueOf(val), k -> new HashSet<>())
+                            .add(focus.getOid());
                 }
-            } else {
-                focusToShadows.put(focus.getOid(), Collections.emptySet());
             }
         }
-        return focusToShadows;
+
+        for (PrismObject<?> shadow : sampledShadows) {
+            var item = shadow.findItem(shadowPath);
+            if (item != null) {
+                Object val = item.getValue().getRealValue();
+                if (val != null) {
+                    Set<String> matchingFocuses = focusValueToOids.getOrDefault(String.valueOf(val), Collections.emptySet());
+                    shadowToFocuses.put(shadow.getOid(), new HashSet<>(matchingFocuses));
+                } else {
+                    shadowToFocuses.put(shadow.getOid(), Collections.emptySet());
+                }
+            } else {
+                shadowToFocuses.put(shadow.getOid(), Collections.emptySet());
+            }
+        }
+        return shadowToFocuses;
     }
 
     /**
@@ -231,43 +231,45 @@ class CorrelatorEvaluator {
             return 0.0;
         }
 
+        Map<String, Set<String>> shadowToFocusLinks = collectShadowToFocusLinks(suggestion);
+        double linkCoverage = computeLinkCoverage(shadowToFocusLinks);
+
+        // Excluding base score to have unified score with "black-box" correlators
+        /*
         double baseScore = 2.0 * focusScore * resourceScore / (focusScore + resourceScore);
-
-        Map<String, Set<String>> focusToShadowLinks = collectFocusShadowLinks(suggestion);
-        double linkCoverage = computeLinkCoverage(focusToShadowLinks);
-
         double finalScore = baseScore * linkCoverage;
         LOGGER.debug("Base score: {} - Sampled focus-shadow link coverage: {} - Final score: {}",
                 baseScore, linkCoverage, finalScore);
+         */
 
-        return finalScore;
+        return linkCoverage;
     }
 
     /**
-     * Computes how well sampled focus objects are covered by links to shadow objects,
+     * Computes how well sampled shadow objects are covered by links to focus objects,
      * and penalizes ambiguous mappings (one focus mapping to multiple shadows).
      *
-     * @param focusShadowLinks Map from focus OID to set of linked shadow OIDs.
+     * @param shadowToFocusesLinks Map from focus OID to set of linked shadow OIDs.
      * @return Coverage/ambiguity score (0 = no mapping, 1 = perfect one-to-one coverage).
      */
-    private static double computeLinkCoverage(Map<String, Set<String>> focusShadowLinks) {
-        int focusCount = focusShadowLinks.size();
-        if (focusCount == 0) return 0.0;
+    private static double computeLinkCoverage(Map<String, Set<String>> shadowToFocusesLinks) {
+        int shadowCount = shadowToFocusesLinks.size();
+        if (shadowCount == 0) return 0.0;
 
         int linked = 0;
         int multiLinks = 0;
 
-        for (Set<String> shadowOids : focusShadowLinks.values()) {
-            if (!shadowOids.isEmpty()) {
+        for (Set<String> focusOids : shadowToFocusesLinks.values()) {
+            if (!focusOids.isEmpty()) {
                 linked++;
-                if (shadowOids.size() > 1) {
-                    multiLinks += (shadowOids.size() - 1); // ambiguity count
+                if (focusOids.size() > 1) {
+                    multiLinks += (focusOids.size() - 1); // ambiguity count
                 }
             }
         }
 
         // Coverage: How many focus objects are linked to at least one shadow
-        double coverage = (double) linked / focusCount;
+        double coverage = (double) linked / shadowCount;
 
         // Multiplicities: Penalize if a focus links to multiple shadows (ambiguous mapping)
         double avgAmbiguity = linked > 0 ? (double) multiLinks / linked : 0.0;

@@ -78,6 +78,11 @@ public class StatisticsComputer {
     ));
 
     /**
+     * Regular expression pattern for token delimiters.
+     */
+    private static final String DELIMITERS = "[-_:*#+]+";
+
+    /**
      * Regular expression pattern for matching URLs.
      * Matches strings that start with "http://", "https://", or "www.", followed by non-whitespace characters.
      */
@@ -363,6 +368,9 @@ public class StatisticsComputer {
             Map<ShadowValuePatternType, Map<String, Integer>> affixCounts
     ) {
         for (String affix : PREFIXES) {
+            if (value.length() <= affix.length())
+                continue;
+
             if (value.toLowerCase().startsWith(affix)) {
                 affixCounts
                         .computeIfAbsent(ShadowValuePatternType.PREFIX, k -> new HashMap<>())
@@ -370,10 +378,13 @@ public class StatisticsComputer {
             }
         }
         for (String affix : SUFFIXES) {
+            if (value.length() <= affix.length())
+                continue;
+
             if (value.toLowerCase().endsWith(affix)) {
                 affixCounts
                         .computeIfAbsent(ShadowValuePatternType.SUFFIX, k -> new HashMap<>())
-                        .merge(value.substring(0, affix.length()), 1, Integer::sum);
+                        .merge(value.substring(value.length() - affix.length(), value.length()), 1, Integer::sum);
             }
         }
     }
@@ -386,7 +397,7 @@ public class StatisticsComputer {
             String value,
             Map<ShadowValuePatternType, Map<String, Integer>> affixCounts
     ) {
-        String[] tokens = value.split("[^a-zA-Z0-9]+");
+        String[] tokens = value.split(DELIMITERS);
         if (tokens.length < 2) {
             return;
         }
