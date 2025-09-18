@@ -14,6 +14,7 @@ doc-type: config
 :page-upkeep-status: yellow
 :page-description: This describes the configuration of Linked objects in midPoint.
 :page-keywords: object link, link target, link source
+:doctype: article
 
 [[introduction]]
 == Introduction
@@ -40,7 +41,6 @@ They are differentiated by the _relation_ attribute of a particular object refer
 These are typical situations when two objects are linked:
 
 .Situations when objects are linked
-[%autowidth]
 |===
 | Situation | Link source | Link target | Relation | Note
 
@@ -81,14 +81,11 @@ The only user-user assignments we support are link:https://github.com/Evolveum/m
 | org:default
 | (Or org:meta.)
 
-
 | User A is an approver for role R.
 | User A
 | Role R
 | org:approver
 |
-
-
 |===
 
 
@@ -99,16 +96,17 @@ A link between two objects can be:
 .Links between objects
 [%autowidth]
 |===
-| Type of link | Stored in
+| Type of link | Stored in | Note
 
 | prescribed
 | `assignment`
-
+|
 
 | actual
 | `roleMembershipRef`
-// Is this name still valid?
-
+| Besides roles, `roleMembershipRef` can also contain any object that can be assigned, such as archetypes, or organizations.
+When (un)assigning archetypes, `archetypeRef` is also created in addition to `roleMembershipRef`.
+Similarly, `parentOrgRef` is created when (un)assigning between two organizations.
 |===
 
 So the link between two objects (A → B) can be in one of the following states:
@@ -457,8 +455,8 @@ The following modes are available:
 | `singleRun`
 | Uses a single-run scripting action.
 Input for this action contains references to objects that should serve as action inputs.
-.2+| To be used in special cases only. 
-// what cases are those special cases?
+.2+| To be used only in complex and advanced cases. 
+When in doubt, use `iterative`.
 
 | `singleRunNoInput`
 | Uses single-run scripting action without any explicit input.
@@ -480,7 +478,6 @@ The following items are set for the final task (so overwriting the items present
 | `name`
 | Task name
 | Name of the task template (or Execute script if no template is specified) plus a random number suffix.
-// what is the "Execute script"?
 
 
 | `ownerRef`
@@ -568,9 +565,7 @@ The asynchronous option is suitable for roles with lots of members.
 
 === Enabling/disabling the change propagation
 
-The original recompute affected option has an advantage that it can be turned on or off directly when submitting the operation, e.g., via GUI.
-In order to implement a similar mechanism we devised a concept of `ModelExecuteOptions` _extension items_. You can define these using standard extension mechanism, for example:
-// what is meant by "the original recompute affected option" ?
+To enable/disable change propagation directly when submitting operations, e.g., via GUI, midPoint uses the concept of `ModelExecuteOptions` _extension items_. You can define these using the standard extension mechanism, for example:
 
 .Extension mechanism example
 [source,xml]
@@ -644,8 +639,7 @@ And then you could check for this option in conditions related to the particular
 
 The specific options cannot be (now) set via GUI.
 However, they can be specified in actions, synchronization reactions, or anywhere where the model API is called from a Java or Groovy code.
-In the near future we will implement support also for REST calls.
-// is support for REST calls already implemented?
+In the future we will also implement support for REST calls.
 
 [TIP]
 .TODO
