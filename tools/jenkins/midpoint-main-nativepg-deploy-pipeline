@@ -12,7 +12,8 @@ podTemplate(
         activeDeadlineSeconds: 21600, // 6h total build limit
         idleMinutes: 10,
         // No need for secret volume, no mvn deploy done here.
-        volumes: [ secretVolume(secretName: "jenkins-nexus", mountPath: "/root/jenkins-nexus")],
+        volumes: [ secretVolume(secretName: "jenkins-nexus", mountPath: "/root/jenkins-nexus"),
+                   persistentVolumeClaim(claimName: "${JOB_NAME}-m2repo", mountPath: "/root/.m2/repository")],
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
@@ -59,6 +60,10 @@ podTemplate(
             }
             stage("build") {
                 container('maven') {
+                    if (params.CLEAN_M2_REPOSITORY) {
+                        sh "rm -rf ~/.m2/repository/*"
+                    }
+
                     withCredentials([
                         string(credentialsId: params.PASSWORD_SINGING_JAR, variable: 'MIDPOINT_BUILD_STOREPASS'),
                         string(credentialsId: params.PASSWORD_SINGING_JAR, variable: 'MIDPOINT_BUILD_KEYPASS'),

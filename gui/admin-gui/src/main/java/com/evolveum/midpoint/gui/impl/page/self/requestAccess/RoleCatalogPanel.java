@@ -542,15 +542,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                                 details.add(new EnableBehaviour(() -> {
                                     ObjectType object = model.getObject().getValue().getValue();
-
-                                    RequestAccess access = RoleCatalogPanel.this.getModelObject();
-
-                                    ObjectReferenceType newTargetRef = new ObjectReferenceType()
-                                            .oid(object.getOid())
-                                            .type(object.asPrismObject().getDefinition().getTypeName())
-                                            .relation(access.getRelation());
-
-                                    return access.canAddTemplateAssignment(newTargetRef);
+                                    return isAddToCartEnabled(object);
                                 }));
                                 return details;
                             }
@@ -654,6 +646,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
         };
         add(menu);
+    }
+
+    private boolean isAddToCartEnabled(ObjectType object) {
+        RequestAccess access = RoleCatalogPanel.this.getModelObject();
+
+        ObjectReferenceType newTargetRef = new ObjectReferenceType()
+                .oid(object.getOid())
+                .type(object.asPrismObject().getDefinition().getTypeName())
+                .relation(access.getRelation());
+
+        return access.canAddTemplateAssignment(newTargetRef);
     }
 
     private void updateQueryModelSearchAndParameters(ListGroupMenuItem<RoleCatalogQueryItem> item) {
@@ -1051,9 +1054,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 if (model == null || model.getObject() == null || model.getObject().getValue() == null) {
                     return Model.of(true);
                 }
-                RequestAccess ra = getModelObject();
-                boolean isAssignedToAll = ra.isAssignedToAll(model.getObject().getValue().getOid());
-                return Model.of(!isAssignedToAll);
+                return Model.of(isAddToCartEnabled(model.getObject().getValue()));
             }
         });
         columns.add(new RoundedIconColumn<>(null) {
