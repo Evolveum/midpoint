@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.LinkManager;
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.model.impl.security.RunAsRunner;
 import com.evolveum.midpoint.model.impl.security.RunAsRunnerFactory;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -57,11 +55,9 @@ public class PolicyRuleScriptExecutor {
     private static final String OP_EXECUTE_SCRIPTS_FROM_RULES = PolicyRuleScriptExecutor.class + ".executeScriptsFromRules";
 
     @Autowired PrismContext prismContext;
-    @Autowired RelationRegistry relationRegistry;
     @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
     @Autowired ModelService modelService;
     @Autowired SecurityContextManager securityContextManager;
-    @Autowired ModelObjectResolver modelObjectResolver;
     @Autowired ReferenceResolver referenceResolver;
     @Autowired ExpressionFactory expressionFactory;
     @Autowired BulkActionsExecutor bulkActionsExecutor;
@@ -118,17 +114,20 @@ public class PolicyRuleScriptExecutor {
 
         // Must not be minor because of background OID information.
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPTS_FROM_RULES);
-        try (RunAsRunner runAsRunner = runAsRunnerFactory.runner()) {
+        RunAsRunner runAsRunner = runAsRunnerFactory.runner();
+        try {
             for (EvaluatedPolicyRuleImpl rule : rules) {
                 var enabledActions = rule.getEnabledActions(ScriptExecutionPolicyActionType.class);
                 LOGGER.trace("Rule {} has {} enabled script execution actions", rule, enabledActions.size());
                 for (var action : enabledActions) {
                     ActionContext actx = new ActionContext(action, rule, context, task, this);
                     try {
-                        // We should consider ordering actions to be executed by runAsRef to avoid unnecessary context switches.
                         runAsRunner.runAs(
-                                () -> executeScriptingAction(actx, result),
-                                actx.action.getRunAsRef(), // FIXME privileges!
+                                (result1) -> {
+                                    executeScriptingAction(actx, result1);
+                                    return null;
+                                },
+                                actx.actionCI.getPrivileges(),
                                 result);
                     } catch (CommonException e) {
                         LoggingUtils.logUnexpectedException(
