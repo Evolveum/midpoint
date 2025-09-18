@@ -53,6 +53,15 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         super.initSystem(initTask, initResult);
         initTestObjects(initTask, initResult,
                 CommonInitialObjects.ARCHETYPE_UTILITY_TASK);
+
+        var systemDelta = deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_SMART_INTEGRATION)
+                .replace(new SmartIntegrationConfigurationType()
+                        .connectorGenerationUrl("http://127.0.0.1:8090/api/v1")
+                        .connectorFrameworkUrl("file:///home/tony/.m2/repository/com/evolveum/polygon/scimrest/connector-scimrest-generic/0.1-SNAPSHOT/connector-scimrest-generic-0.1-SNAPSHOT.jar")
+                ).<SystemConfigurationType>asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+        executeChanges(systemDelta, null, initTask, initResult);
+
         developmentOid = addObject(new ConnectorDevelopmentType()
                 .name("dummy")
                         .application(new ConnDevApplicationInfoType()

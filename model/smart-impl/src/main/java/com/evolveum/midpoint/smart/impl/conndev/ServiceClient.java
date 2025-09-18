@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.axiom.concepts.CheckedFunction;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -9,7 +8,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -26,9 +24,14 @@ import java.util.List;
 
 public class ServiceClient {
 
-    private String apiBase = "http://localhost:8090/api/v1/";
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private final String apiBase;
+
+    public ServiceClient(String apiBase) {
+        this.apiBase = apiBase.endsWith("/") ? apiBase : apiBase + "/";
+    }
 
     public Job postJob(String endpoint, ObjectNode body) throws IOException {
         var job = new Job(apiBase+endpoint);

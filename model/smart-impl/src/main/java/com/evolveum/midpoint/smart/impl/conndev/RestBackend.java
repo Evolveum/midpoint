@@ -13,11 +13,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
-import org.apache.hc.client5.http.entity.mime.FormBodyPartBuilder;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.checkerframework.checker.units.qual.C;
 
 import java.io.FileNotFoundException;
 import java.net.URL;
@@ -41,7 +39,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     public ConnDevApplicationInfoType discoverBasicInformation() {
         var documentation = selectBestDocumentation(getProcessedDocumentation());
 
-        try(var job = beans.client.postDocumentationJob("digester/getInfoMetadata", documentation.asInputStream() , null)) {
+        try(var job = client().postDocumentationJob("digester/getInfoMetadata", documentation.asInputStream() , null)) {
             return job.waitAndProcess(SLEEP_TIME, o -> {
                 var ret = new ConnDevApplicationInfoType();
 
@@ -78,7 +76,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     public List<ConnDevAuthInfoType> discoverAuthorizationInformation() {
         var documentation = selectBestDocumentation(getProcessedDocumentation());
 
-        try(var job = beans.client.postDocumentationJob("digester/getAuth", documentation.asInputStream() , null)) {
+        try(var job = client().postDocumentationJob("digester/getAuth", documentation.asInputStream() , null)) {
             return job.waitAndProcess(SLEEP_TIME, json -> {
                 var ret = new ArrayList<ConnDevAuthInfoType>();
                 for (var jsonAuth : json.get("auth")) {
@@ -104,7 +102,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         request.set("applicationName", JSON_FACTORY.textNode(developmentObject().getApplication().getApplicationName().getOrig()));
         request.set("applicationVersion", JSON_FACTORY.textNode(developmentObject().getApplication().getVersion()));
 
-        try(var jobSpec = beans.client.postJob("discovery/getCandidateLinks", request)) {
+        try(var jobSpec = client().postJob("discovery/getCandidateLinks", request)) {
             return jobSpec.waitAndProcess(SLEEP_TIME, result -> {
                 var results = jobSpec.getResult().get("candidateLinks");
                 var ret = new ArrayList<ConnDevDocumentationSourceType>();
@@ -181,7 +179,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         } catch (FileNotFoundException e) {
             throw new SystemException("Couldn't open documentation file", e);
         }
-        try(var job = beans.client.postEntityJob("codegen/getSearch", artifactSpec.getObjectClass(), request.build())) {
+        try(var job = client().postEntityJob("codegen/getSearch", artifactSpec.getObjectClass(), request.build())) {
             return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
         } catch (Exception e) {
             throw new SystemException("Couldn't generate native schema for objectClass " + artifactSpec.getObjectClass(), e);
@@ -193,11 +191,15 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         var attributesPair = new BasicNameValuePair("attributes", toJsonAttributes(attributes).toPrettyString());
         var request = new UrlEncodedFormEntity(List.of(attributesPair));
 
-        try(var job = beans.client.postEntityJob("codegen/getConnID", artifactSpec.getObjectClass(), request)) {
+        try(var job = client().postEntityJob("codegen/getConnID", artifactSpec.getObjectClass(), request)) {
             return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
         } catch (Exception e) {
             throw new SystemException("Couldn't generate native schema for objectClass " + artifactSpec.getObjectClass(), e);
         }
+    }
+
+    private ServiceClient client() {
+        return beans.client(result);
     }
 
     private String generateNativeSchema(ConnDevArtifactType artifactSpec) {
@@ -205,7 +207,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         var attributesPair = new BasicNameValuePair("attributes", toJsonAttributes(attributes).toPrettyString());
         var request = new UrlEncodedFormEntity(List.of(attributesPair));
 
-        try(var job = beans.client.postEntityJob("codegen/getNativeSchema", artifactSpec.getObjectClass(), request)) {
+        try(var job = client().postEntityJob("codegen/getNativeSchema", artifactSpec.getObjectClass(), request)) {
             return job.waitAndProcess(SLEEP_TIME, json -> {
                 return json.get("code").asText();
             });
@@ -215,21 +217,24 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered) {
+    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated) {
         var documentation = selectBestDocumentation(getProcessedDocumentation());
 
-        try(var job = beans.client.postDocumentationJob("digester/getObjectClass", documentation.asInputStream() , null)) {
+        try(var job = client().postDocumentationJob("digester/getObjectClass", documentation.asInputStream() , null)) {
             return job.waitAndProcess(SLEEP_TIME, o -> {
                 var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
                 var jsonClasses = o.get("objectClasses");
                 for (var jsonClass : jsonClasses) {
                     var objClass = new ConnDevBasicObjectClassInfoType();
+                    var relevant = toBoolean(jsonClass.get("relevant"));
                     objClass.setName(jsonClass.get("name").asText());
-                    objClass.setRelevant(toBoolean(jsonClass.get("relevant")));
+                    objClass.setRelevant(relevant);
                     objClass.setAbstract(toBoolean(jsonClass.get("abstract")));
                     objClass.setEmbedded(toBoolean(jsonClass.get("embedded")));
                     objClass.setDescription(jsonClass.get("description").asText());
-                    ret.add(objClass);
+                    if (relevant || includeUnrelated) {
+                        ret.add(objClass);
+                    }
                 }
                 return ret;
             });
@@ -251,7 +256,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass) {
         var documentation = selectBestDocumentation(getProcessedDocumentation());
-        try(var job = beans.client.postDocumentationObjectClassJob("digester/getEndpoints", objectClass , documentation.asInputStream() , null)) {
+        try(var job = client().postDocumentationObjectClassJob("digester/getEndpoints", objectClass , documentation.asInputStream() , null)) {
             return job.waitAndProcess(SLEEP_TIME, o -> {
                 var ret = new ArrayList<ConnDevHttpEndpointType>();
                 var jsonClasses = o.get("endpoints");
@@ -296,10 +301,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     private ConnDevHttpOperationType toOperation(JsonNode method) {
-        if (method == null) {
+        if (method == null || method.isNull()) {
             return null;
         }
-        return switch (method.asText()) {
+        return switch (method.asText().toUpperCase()) {
             case "GET" -> ConnDevHttpOperationType.GET;
             case "POST" -> ConnDevHttpOperationType.POST;
             case "PUT" -> ConnDevHttpOperationType.PUT;
@@ -311,7 +316,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass) {
         var documentation = selectBestDocumentation(getProcessedDocumentation());
-        try(var job = beans.client.postDocumentationObjectClassJob("digester/getObjectClassSchema", objectClass, documentation.asInputStream() , null)) {
+        try(var job = client().postDocumentationObjectClassJob("digester/getObjectClassSchema", objectClass, documentation.asInputStream() , null)) {
             return job.waitAndProcess(SLEEP_TIME, o -> {
                 var ret = new ArrayList<ConnDevAttributeInfoType>();
                 var jsonAttributes = (ObjectNode) o.get("attributes");
@@ -363,7 +368,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
     }
 
-    private ProcessedDocumentation downloadAndCache(ConnDevDocumentationSourceType openApi) {
+    protected ProcessedDocumentation downloadAndCache(ConnDevDocumentationSourceType openApi) {
         var documentation = new ProcessedDocumentation(UUID.randomUUID().toString(), openApi.getUri());
 
         try {
@@ -427,5 +432,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     private static String toValue(ConnDevHttpOperationType operation) {
         return operation != null ? operation.value() : null;
+    }
+
+    @Override
+    public boolean isOnline() {
+        return true;
     }
 }

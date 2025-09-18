@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.smart.api.conndev;
 
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevAuthInfoType;
@@ -11,18 +10,26 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum SupportedAuthorization {
-    NONE(null, "No authorization"),
-    HTTP_BASIC(ConnDevHttpAuthTypeType.BASIC, "HTTP Basic Authorization", "Username", "Password"),
-    HTTP_BEARER(ConnDevHttpAuthTypeType.BEARER, "HTTP Bearer Token Authorization", "TokenName", "TokenValue"),
-    HTTP_APIKEY(ConnDevHttpAuthTypeType.API_KEY, "HTTP API Key Authorization", "ApiKey");
+    NONE( null, new ConnDevAuthInfoType()
+            .name("No authorization")),
+    HTTP_BASIC(ConnDevHttpAuthTypeType.BASIC, new ConnDevAuthInfoType()
+            .name("HTTP Basic Authorization")
+            .description("Basic authorization using username and password")
+            , "Username", "Password"),
+    HTTP_BEARER(ConnDevHttpAuthTypeType.BEARER, new ConnDevAuthInfoType()
+            .name("HTTP Bearer Token Authorization")
+            .description("Authorization using Bearer token.")
+            , "TokenName", "TokenValue"),
+    HTTP_APIKEY(ConnDevHttpAuthTypeType.API_KEY, new ConnDevAuthInfoType()
+            .name("HTTP API Key Authorization")
+            .description("Authorization using preshared API key"), "ApiKey");
 
     private final List<ItemName.WithoutPrefix> scimProperties;
     private final List<ItemName.WithoutPrefix> restProperties;
 
-    SupportedAuthorization(ConnDevHttpAuthTypeType type, String name, String... properties) {
-        baseAuthInfo = new ConnDevAuthInfoType()
-                .type(type)
-                .name(name);
+    SupportedAuthorization(ConnDevHttpAuthTypeType type, ConnDevAuthInfoType info, String... properties) {
+        baseAuthInfo = info
+                .type(type);
         scimProperties = Arrays.stream(properties).map(p -> ItemName.from(SchemaConstants.NS_ICF_CONFIGURATION, "scim" + p)).toList();
         restProperties = Arrays.stream(properties).map(p -> ItemName.from(SchemaConstants.NS_ICF_CONFIGURATION, "rest" + p)).toList();
     }
@@ -37,7 +44,6 @@ public enum SupportedAuthorization {
             default -> null;
         };
     }
-
 
     public ConnDevAuthInfoType crateBasicInformation() {
         return baseAuthInfo.clone();

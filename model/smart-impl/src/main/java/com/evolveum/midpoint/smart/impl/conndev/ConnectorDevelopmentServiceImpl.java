@@ -23,6 +23,7 @@ import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.impl.StatusInfoImpl;
+import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -135,7 +136,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public String submitGenerateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
-            return submitTask("Generating script",
+            return submitTask("Generating script " + artifact.getFilename(),
                     new WorkDefinitionsType().generateConnectorArtifact(
                             new ConnDevGenerateArtifactDefinitionType()
                                     .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
@@ -193,6 +194,9 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         public void saveArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
             ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .saveArtifact(artifact);
+            if (ConnDevOperationType.SCHEMA.equals(artifact.getOperation())) {
+                resetResourceSchema(task, result);
+            }
         }
 
         public void comfirmApplicationInformation(Task task, OperationResult result) {
@@ -245,7 +249,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
     private String connectorTemplateFor(ConnDevIntegrationType integrationType) {
         // FIXME: Dispatch to IntegrationType specific handler
-        return "file:///home/tony/.m2/repository/com/evolveum/polygon/scimrest/connector-scimrest-generic/0.1-SNAPSHOT/connector-scimrest-generic-0.1-SNAPSHOT.jar";
+        return ConnDevBeans.get().getFrameworkUrl(new OperationResult("Empty"));
     }
 
     private static @NotNull Collection<SelectorOptions<GetOperationOptions>> taskRetrievalOptions() {

@@ -90,7 +90,7 @@ public class DiscoverObjectClassInformationActivityHandler
             backend.ensureDocumentationIsProcessed();
             var connectorDiscovered =  backend.discoverObjectClassesUsingConnector();
 
-            var discovered = backend.discoverObjectClassesUsingDocumentation(connectorDiscovered);
+            var discovered = backend.discoverObjectClassesUsingDocumentation(connectorDiscovered, false);
 
             backend.updateApplicationObjectClasses(discovered);
 
