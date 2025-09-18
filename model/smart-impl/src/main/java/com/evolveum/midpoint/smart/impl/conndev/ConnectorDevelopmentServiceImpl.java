@@ -135,7 +135,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public String submitGenerateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
-            return submitTask("Generating script",
+            return submitTask("Generating script " + artifact.getFilename(),
                     new WorkDefinitionsType().generateConnectorArtifact(
                             new ConnDevGenerateArtifactDefinitionType()
                                     .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
@@ -193,6 +193,9 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         public void saveArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
             ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .saveArtifact(artifact);
+            if (ConnDevOperationType.SCHEMA.equals(artifact.getOperation())) {
+                resetResourceSchema(task, result);
+            }
         }
 
         public void comfirmApplicationInformation(Task task, OperationResult result) {

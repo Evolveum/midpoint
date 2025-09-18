@@ -13,11 +13,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
-import org.apache.hc.client5.http.entity.mime.FormBodyPartBuilder;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.checkerframework.checker.units.qual.C;
 
 import java.io.FileNotFoundException;
 import java.net.URL;
@@ -215,7 +213,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered) {
+    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated) {
         var documentation = selectBestDocumentation(getProcessedDocumentation());
 
         try(var job = beans.client.postDocumentationJob("digester/getObjectClass", documentation.asInputStream() , null)) {
@@ -224,12 +222,15 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 var jsonClasses = o.get("objectClasses");
                 for (var jsonClass : jsonClasses) {
                     var objClass = new ConnDevBasicObjectClassInfoType();
+                    var relevant = toBoolean(jsonClass.get("relevant"));
                     objClass.setName(jsonClass.get("name").asText());
-                    objClass.setRelevant(toBoolean(jsonClass.get("relevant")));
+                    objClass.setRelevant(relevant);
                     objClass.setAbstract(toBoolean(jsonClass.get("abstract")));
                     objClass.setEmbedded(toBoolean(jsonClass.get("embedded")));
                     objClass.setDescription(jsonClass.get("description").asText());
-                    ret.add(objClass);
+                    if (relevant || includeUnrelated) {
+                        ret.add(objClass);
+                    }
                 }
                 return ret;
             });
@@ -296,10 +297,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     private ConnDevHttpOperationType toOperation(JsonNode method) {
-        if (method == null) {
+        if (method == null || method.isNull()) {
             return null;
         }
-        return switch (method.asText()) {
+        return switch (method.asText().toUpperCase()) {
             case "GET" -> ConnDevHttpOperationType.GET;
             case "POST" -> ConnDevHttpOperationType.POST;
             case "PUT" -> ConnDevHttpOperationType.PUT;
@@ -363,7 +364,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
     }
 
-    private ProcessedDocumentation downloadAndCache(ConnDevDocumentationSourceType openApi) {
+    protected ProcessedDocumentation downloadAndCache(ConnDevDocumentationSourceType openApi) {
         var documentation = new ProcessedDocumentation(UUID.randomUUID().toString(), openApi.getUri());
 
         try {
@@ -427,5 +428,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     private static String toValue(ConnDevHttpOperationType operation) {
         return operation != null ? operation.value() : null;
+    }
+
+    @Override
+    public boolean isOnline() {
+        return true;
     }
 }

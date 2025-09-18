@@ -114,7 +114,7 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered) {
+    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated) {
         return List.of(
                 new ConnDevBasicObjectClassInfoType()
                         .name("User")
