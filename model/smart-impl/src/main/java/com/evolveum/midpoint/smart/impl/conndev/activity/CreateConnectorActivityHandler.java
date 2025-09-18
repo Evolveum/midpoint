@@ -103,6 +103,14 @@ public class CreateConnectorActivityHandler
 
             template.remove();
             // Rename template to connector
+
+            try {
+                editable.asEditable().updateProperty("Messages.properties", "manifest.connector.display", backend.connectorDisplayName());
+            } catch (IOException e) {
+                // FIXME: Add proper exception
+                throw new SystemException(e);
+            }
+
             editable.asEditable().renameBundle(connDef.getGroupId(), connDef.getArtifactId(), connDef.getVersion());
 
             // Install template

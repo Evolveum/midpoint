@@ -333,7 +333,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
         ConnectorType connectorType = new ConnectorType();
         ConnectorKey key = cinfo.getConnectorKey();
-        UcfUtil.addConnectorNames(connectorType, "ConnId", key.getConnectorName(), key.getBundleVersion(), hostType);
+
+        var displayName = cinfo.getConnectorDisplayName();
+        displayName = displayName == null ? key.getConnectorName() : displayName;
+        UcfUtil.addConnectorNames(connectorType, "ConnId", displayName, key.getBundleVersion(), hostType);
         String stringID = keyToNamespaceSuffix(key);
         connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
         connectorType.setConnectorType(key.getConnectorName());
