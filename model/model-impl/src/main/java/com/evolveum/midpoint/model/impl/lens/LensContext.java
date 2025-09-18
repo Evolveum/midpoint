@@ -280,8 +280,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Key for this map is policy rule identifier.
      * Value is a list different triggered policy instances with the same identifier.
      * Equality is determined via {@link EvaluatedPolicyRuleImpl#isTheSameAs(EvaluatedPolicyRuleImpl)}.
+     *
+     * TODO: Later on this field should be moved to {@Link com.evolveum.midpoint.model.impl.lens.PolicyRulesContext}
+     *  after {@link LensContext#historicResourceObjects} are made to contain full {@link LensProjectionContext}s
+     *  not just their keys.
+     *
+     * TODO think about making this non-transient, it's not serializable now (MagicAssignment/Holder classes, etc.)
      */
-    // TODO think about making this non-transient, it's not serializable now (MagicAssignment/Holder classes, etc.)
     @NotNull private transient final Map<String, List<EvaluatedPolicyRuleImpl>> triggeredObjectPolicyRules = new HashMap<>();
 
     public LensContext(@NotNull TaskExecutionMode taskExecutionMode) {
