@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -33,6 +34,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
 
 /**
@@ -53,7 +55,7 @@ public class SmartIntegrationUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationUtils.class);
 
-    private static final int MAX_SIZE_FOR_ESTIMATION = 10_000;
+    private static final int MAX_SIZE_FOR_ESTIMATION = 100;
 
     /**
      * Estimates the size of a given object class on the resource using smart integration services.
@@ -154,6 +156,51 @@ public class SmartIntegrationUtils {
                         activityResult.setBackgroundTaskOid(oid);
                     });
         }
+        return executeTaskAction;
+    }
+
+    /**
+     * Executes an association suggestion operation if no suggestion is currently available.
+     * If suggestions exist, no background task is started.
+     * Returns {@code true} if the task was executed, {@code false} otherwise.
+     */
+    public static boolean runAssociationSuggestionAction(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull Collection<ResourceObjectTypeIdentification> subjectTypes,
+            @NotNull Collection<ResourceObjectTypeIdentification> objectTypes,
+            @NotNull AjaxRequestTarget target,
+            @NotNull String operationName,
+            @NotNull Task task) {
+
+        OperationResult opResult = task.getResult();
+        List<StatusInfo<AssociationsSuggestionType>> statuses =
+                loadAssociationSuggestions(pageBase, resourceOid, task, opResult);
+
+        if (opResult.isError() || opResult.isFatalError()) {
+            opResult.recordFatalError("Error loading association suggestions: " + opResult.getMessage());
+            LOGGER.error("Error loading association suggestions for resource {}: {}",
+                    resourceOid, opResult.getMessage());
+            return false;
+        }
+
+        // TBD: fine-tune when we allow to execute the task action
+        boolean executeTaskAction = statuses == null
+                || statuses.isEmpty()
+                || statuses.get(0).getResult() == null
+                || statuses.get(0).getResult().getAssociation() == null
+                || statuses.get(0).getResult().getAssociation().isEmpty();
+
+        if (executeTaskAction) {
+            pageBase.taskAwareExecutor(target, operationName)
+                    .runVoid((activityTask, activityResult) -> {
+                        var oid = pageBase.getSmartIntegrationService()
+                                .submitSuggestAssociationsOperation(resourceOid, subjectTypes, objectTypes,
+                                        activityTask, activityResult);
+                        activityResult.setBackgroundTaskOid(oid);
+                    });
+        }
+
         return executeTaskAction;
     }
 
@@ -437,6 +484,29 @@ public class SmartIntegrationUtils {
         removeSuggestionCommon(pageBase, statusInfo, definitionToRemove, task, result, handler);
     }
 
+    /**
+     * Removes an association suggestion from the task identified by the status token.
+     * Deletes the task if it becomes empty.
+     */
+    public static void removeAssociationTypeSuggestionNew(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<AssociationsSuggestionType> statusInfo,
+            @NotNull AssociationSuggestionType suggestionToRemove,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        RemoveSuggestionHandler<AssociationSuggestionType, AssociationsSuggestionType> handler =
+                new RemoveSuggestionHandler<>(
+                        AssociationsSuggestionType.class,
+                        AssociationsSuggestionType::getAssociation,
+                        AssociationSuggestionType::asPrismContainerValue,
+                        AssociationSuggestionType::cloneWithoutId,
+                        "AssociationsSuggestionType",
+                        "association suggestions"
+                );
+
+        removeSuggestionCommon(pageBase, statusInfo, suggestionToRemove, task, result, handler);
+    }
 
     public static void removeWholeTaskObject(
             @NotNull PageBase pageBase,

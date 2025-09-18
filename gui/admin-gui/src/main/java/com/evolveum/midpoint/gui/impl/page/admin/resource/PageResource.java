@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
@@ -201,6 +202,12 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     public ResourceAssociationTypeWizardPanel showAssociationTypeWizardForDuplicate(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, AjaxRequestTarget target, ItemPath pathToValue) {
         ResourceAssociationTypeWizardPanel panel = showWizard(value, target, pathToValue, ResourceAssociationTypeWizardPanel.class);
+        panel.setPanelForDuplicate(true);
+        return panel;
+    }
+
+    public ResourceAssociationTypeWizardPanel showAssociationTypeWizardForSuggestionDuplicate(@NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
+        ResourceAssociationTypeWizardPanel panel = showWizard(valueModel, target, ResourceAssociationTypeWizardPanel.class, null);
         panel.setPanelForDuplicate(true);
         return panel;
     }
