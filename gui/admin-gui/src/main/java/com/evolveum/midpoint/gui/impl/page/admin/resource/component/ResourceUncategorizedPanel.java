@@ -173,8 +173,13 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
                 table.resetTable(target);
             }
         });
+        objectTypes.add(new VisibleBehaviour(this::isObjectClassFieldVisible));
         objectTypes.setOutputMarkupId(true);
         add(objectTypes);
+    }
+
+    protected boolean isObjectClassFieldVisible() {
+        return true;
     }
 
     private void resetSearch(QName currentObjectClass) {

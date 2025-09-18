@@ -176,12 +176,18 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
+
+        onAfterSave(target);
         if (result != null && !result.isError()) {
             super.onNextPerformed(target);
         } else {
             target.add(getFeedback());
         }
         return false;
+    }
+
+    protected void onAfterSave(AjaxRequestTarget target) {
+
     }
 
     protected abstract void saveScript(ConnDevArtifactType object, Task task, OperationResult result) throws IOException, CommonException;

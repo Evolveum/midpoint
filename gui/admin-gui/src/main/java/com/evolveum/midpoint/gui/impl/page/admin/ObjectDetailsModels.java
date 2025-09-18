@@ -18,6 +18,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -48,6 +50,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
     private static final String DOT_CLASS = ObjectDetailsModels.class.getName() + ".";
     protected static final String OPERATION_LOAD_PARENT_ORG = DOT_CLASS + "loadParentOrgs";
+    private static final String OP_LOAD_CONNECTOR = DOT_CLASS + "loadConnector";
 
     private ModelServiceLocator modelServiceLocator;
     private LoadableDetachableModel<PrismObject<O>> prismObjectModel;
@@ -358,6 +361,18 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
             return prismObjectModel.getObject();
         }
         return getObjectWrapper().getObject();
+    }
+
+    public void reloadPrismObjectByOid() {
+        String oid = getObjectWrapper().getOid();
+        if (oid == null) {
+            return;
+        }
+        Task task = getPageBase().createSimpleTask(OP_LOAD_CONNECTOR);
+
+        reset();
+        reloadPrismObjectModel((PrismObject<O>) WebModelServiceUtils.loadObject(
+                getObjectType().getClass(), oid, getPageBase(), task, task.getResult()));
     }
 
     public void reloadPrismObjectModel() {

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.EndpointsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllScriptConnectorStepPanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchObjectsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchAllConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -280,10 +281,11 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
                 new WaitingNativeSchemaConnectorStepPanel(getHelper(), valueModel),
                 new WaitingConnIdSchemaConnectorStepPanel(getHelper(), valueModel),
                 new SchemaScriptConnectorStepPanel(getHelper()),
-//                new ShowSchemaConnectorStepPanel(getHelper(), valueModel),
+                new ShowSchemaConnectorStepPanel(getHelper(), valueModel),
                 new EndpointsConnectorStepPanel(getHelper(), valueModel),
                 new WaitingSearchAllConnectorStepPanel(getHelper(), valueModel),
-                new SearchAllScriptConnectorStepPanel(getHelper()));
+                new SearchAllScriptConnectorStepPanel(getHelper()),
+                new SearchObjectsConnectorStepPanel(getHelper(), valueModel));
     }
 
     @Override
