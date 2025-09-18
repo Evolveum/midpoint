@@ -506,7 +506,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     protected String getTileContainerCssClass() {
-        return "row justify-content-left pt-2 ";
+        return "h-100 justify-content-left pt-2 ";
     }
 
     @Override
@@ -524,7 +524,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     }
 
     @Override
-    protected void initTable(@NotNull BoxedTablePanel<?> table) {
+    protected void initTable(@NotNull WebMarkupContainer table) {
         RadioGroup<PrismContainerValueWrapper<ComplexTypeDefinitionType>> radioGroup = buildRadioGroup(ID_TABLE_RADIO);
         radioGroup.add(table);
 
@@ -535,7 +535,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     }
 
     @Override
-    public BoxedTablePanel<?> getTable() {
+    public BoxedTablePanel<?> getBoxedTablePanelComponent() {
         QName name = getSelectedTileModel().getObject().getRealValue().getName();
         System.out.println("Selected tile name: " + name);
         return (BoxedTablePanel<?>) get(createComponentPath(ID_TABLE_RADIO_FORM, ID_TABLE_RADIO, ID_TABLE));

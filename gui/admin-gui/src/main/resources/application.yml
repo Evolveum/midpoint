@@ -25,13 +25,17 @@ server:
   tomcat:
     basedir: ${midpoint.home}
     max-http-form-post-size: 100MB
+    max-part-header-size: 768
     # tomcat hard limit for multipart/form-data requests (default is 10)
-    max-part-count: 250
+    max-part-count: 100
 
 ## Enable and configuration ajp connector for mp
 #    ajp:
 #      enabled: true
 #      port: 9090
+#      max-part-header-size: 1024
+#      max-part-count: 300
+
   servlet:
     context-path: /midpoint
     application-display-name: MidPoint

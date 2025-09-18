@@ -99,7 +99,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="taskRunHistory" type="tns:TaskRunHistoryType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="taskRunRecord" type="tns:TaskRunRecordType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -664,7 +664,7 @@
     </xsd:complexType>
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
 
-    <xsd:complexType name="TaskRunHistoryType">
+    <xsd:complexType name="TaskRunRecordType">
         <xsd:annotation>
             <xsd:documentation>
                 Information about a single task run.
@@ -2562,6 +2562,17 @@
                         <xsd:appinfo>
                             <a:since>4.11</a:since>
                             <a:displayName>WorkDefinitionsType.mappingsSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="associationsSuggestion" type="tns:AssociationSuggestionWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests association type definitions for resource object types (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.associationsSuggestion</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -10280,6 +10291,50 @@
     </xsd:complexType>
     <xsd:element name="objectTypeRelatedSuggestionWorkDefinition" type="tns:ObjectTypeRelatedSuggestionWorkDefinitionType"/>
 
+    <xsd:complexType name="AssociationSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest associations" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource against which we want to execute the activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AssociationsSuggestionWorkDefinitionType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subjectObjectTypes" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifies the subject object types for which associations should be suggested.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectObjectTypes" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifies the object types for which associations should be suggested.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="associationSuggestionWorkDefinition" type="tns:AssociationSuggestionWorkDefinitionType"/>
+
     <xsd:complexType name="CorrelationSuggestionWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -10400,6 +10455,32 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="correlationSuggestionWorkState" type="tns:CorrelationSuggestionWorkStateType" />
+
+    <xsd:complexType name="AssociationSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest associations" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:AssociationsSuggestionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested associations (possibly multiple versions).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="associationSuggestionWorkState" type="tns:AssociationSuggestionWorkStateType"/>
 
     <xsd:complexType name="MappingsSuggestionWorkStateType">
         <xsd:annotation>

@@ -11,15 +11,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -34,15 +33,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.*;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestion;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createMappingsValueIfRequired;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.collectRequiredResourceAttributeDefs;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestionNew;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
 /**
@@ -54,6 +55,10 @@ import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "CorrelationWizardPanelWizardPanel.headerLabel", icon = "fa fa-code-branch"))
 public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceWizardBasicPanel<CorrelationDefinitionType> {
+
+    private static final String DOT_CLASS = CorrelationItemsTableWizardPanel.class.getName() + ".";
+    private static final String OP_COUNT_TASKS = DOT_CLASS + "countTasks";
+    private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemsTableWizardPanel.class);
 
@@ -95,7 +100,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 ID_TABLE,
                 TABLE_SMART_CORRELATION,
                 Model.of(ViewToggle.TILE),
-                getValueModel().getObject(),
+                getValueModel(),
                 resourceOid) {
 
             @Override
@@ -177,8 +182,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             return;
         }
 
-        CorrelationSuggestionType suggestion = parentSuggestionW.getRealValue();
-        List<ResourceAttributeDefinitionType> attributes = suggestion.getAttributes();
+        List<ResourceAttributeDefinitionType> attributes = collectRequiredResourceAttributeDefs(pageBase, target, parentSuggestionW);
 
         if (attributes.isEmpty()) {
             performAddOperation(pageBase, target, resourceObjectTypeDefinition, attributes, rowModel, statusInfo);
@@ -202,14 +206,14 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             @Nullable List<ResourceAttributeDefinitionType> attributes,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
             @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
-        createMappingsValueIfRequired(pageBase, target, resourceObjectTypeDef, attributes);
+        createMappingsValueIfRequired(pageBase, resourceObjectTypeDef, attributes, getAssignmentHolderDetailsModel());
         PrismContainerValueWrapper<ItemsSubCorrelatorType> object = valueModel.getObject();
         createNewItemsSubCorrelatorValue(pageBase, object.getNewValue().clone(), target);
         performDiscard(pageBase, target, valueModel, statusInfo);
         postProcessAddSuggestion(target);
     }
 
-    protected void postProcessAddSuggestion(AjaxRequestTarget target){
+    protected void postProcessAddSuggestion(AjaxRequestTarget target) {
         getTable().refreshAndDetach(target);
     }
 
@@ -217,13 +221,13 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             @NotNull PageBase pageBase,
             @NotNull AjaxRequestTarget target,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
-            @NotNull StatusInfo<?> statusInfo) {
+            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
         Task task = pageBase.createSimpleTask("discardSuggestion");
         PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueModel.getObject()
                 .getParentContainerValue(CorrelationSuggestionType.class);
         if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
             CorrelationSuggestionType suggestionToDelete = parentContainerValue.getRealValue();
-            removeCorrelationTypeSuggestion(pageBase, statusInfo, suggestionToDelete, task, task.getResult());
+            removeCorrelationTypeSuggestionNew(pageBase, statusInfo, suggestionToDelete, task, task.getResult());
         }
         target.add(this);
     }
@@ -278,6 +282,40 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     @Override
     protected String getSaveLabelKey() {
         return "CorrelationWizardPanelWizardPanel.saveButton";
+    }
+
+    @Override
+    protected void addCustomButtons(@NotNull RepeatingView buttons) {
+        SimulationActionTaskButton simulationActionTaskButton = createSimulationMenuButton(buttons);
+        buttons.add(simulationActionTaskButton);
+    }
+
+    private @NotNull SimulationActionTaskButton createSimulationMenuButton(@NotNull RepeatingView buttons) {
+        SimulationActionTaskButton simulationActionTaskButton = new SimulationActionTaskButton(
+                buttons.newChildId(),
+                this::getResourceObjectDefinition,
+                () -> getAssignmentHolderDetailsModel().getObjectType()) {
+
+            @Override
+            public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                CorrelationItemsTableWizardPanel.this.redirectToSimulationTasksWizard(target);
+            }
+        };
+
+        simulationActionTaskButton.setRenderBodyOnly(true);
+        return simulationActionTaskButton;
+    }
+
+    protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+
+    }
+
+    private @Nullable ResourceObjectTypeDefinitionType getResourceObjectDefinition() {
+        PrismContainerValueWrapper<CorrelationDefinitionType> object = getValueModel().getObject();
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentContainerValue = object.getParentContainerValue(
+                ResourceObjectTypeDefinitionType.class);
+
+        return parentContainerValue != null ? parentContainerValue.getRealValue() : null;
     }
 
     @Override

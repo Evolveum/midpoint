@@ -173,7 +173,7 @@ Connector in midPoint is any method of connection to the resource.
 
 | Role
 | RoleType
-| A role that implements xref:/midpoint/reference/roles-policies/rbac/[Role-Based Access Control (RBAC)] mechanisms.
+| A role that implements xref:/midpoint/reference/roles-policies/roles/rbac/[Role-Based Access Control (RBAC)] mechanisms.
 
 
 | User Template
@@ -343,7 +343,7 @@ TODO: Remote connector, connector upgrade
 
 == Role
 
-Main article: xref:/midpoint/reference/roles-policies/rbac/[midPoint RBAC]
+Main article: xref:/midpoint/reference/roles-policies/roles/rbac/[midPoint RBAC]
 
 TODO
 

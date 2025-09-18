@@ -105,8 +105,9 @@ public class SmartGeneratingDto implements Serializable {
             if (isFatalError) {
                 return "fa fa-exclamation-triangle text-danger";
             }
-
-            if (done == null || done == ActivityProgressInformation.RealizationState.UNKNOWN) {
+            if (done == null) {
+                return "fa fa fa-pause";
+            } else if (done == ActivityProgressInformation.RealizationState.UNKNOWN) {
                 return "fa fa-question-circle";
             } else if (done == ActivityProgressInformation.RealizationState.COMPLETE) {
                 return "fa fa-check text-success";

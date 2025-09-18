@@ -20,14 +20,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public interface SimulationPage extends IRequestablePage {
 
-    String PAGE_PARAMETER_RESULT_OID = "RESULT_OID";
-    String PAGE_PARAMETER_MARK_OID = "MARK_OID";
-    String PAGE_PARAMETER_CONTAINER_ID = "CONTAINER_ID";
+    String PAGE_PARAMETER_RESULT_OID = "RESULT_OID"; // -> SimulationResultType
+    String PAGE_PARAMETER_MARK_OID = "MARK_OID"; // -> SimulationResultMarkType
+    String PAGE_PARAMETER_CONTAINER_ID = "CONTAINER_ID"; // -> SimulationResultProcessedObjectType
 
     default String getPageParameterResultOid() {
         PageParameters params = getPageParameters();
@@ -52,19 +54,6 @@ public interface SimulationPage extends IRequestablePage {
 
     default SimulationResultType loadSimulationResult(PageBase page) {
         String resultOid = getPageParameterResultOid();
-
-        if (!Utils.isPrismObjectOidValid(resultOid)) {
-            throw new RestartResponseException(PageError404.class);
-        }
-
-        Task task = page.getPageTask();
-
-        PrismObject<SimulationResultType> object = WebModelServiceUtils.loadObject(
-                SimulationResultType.class, resultOid, page, task, task.getResult());
-        if (object == null) {
-            throw new RestartResponseException(PageError404.class);
-        }
-
-        return object.asObjectable();
+        return SimulationsGuiUtil.loadSimulationResult(page, resultOid);
     }
 }

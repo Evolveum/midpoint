@@ -68,7 +68,7 @@ There may be some companies where all users in fact have UNIX accounts.
 But a more realistic case is that some people have UNIX accounts and some people have not.
 Therefore we need a dynamic way how to assign auxiliary object classes to objects.
 
-The mechanism that usually decides whether a user should have UNIX account or not is xref:/midpoint/reference/roles-policies/rbac/[RBAC]. If the user has a role that gives a UNIX account then the account should have `posixAccount` auxiliary object class.
+The mechanism that usually decides whether a user should have UNIX account or not is xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC]. If the user has a role that gives a UNIX account then the account should have `posixAccount` auxiliary object class.
 If the user does not have such a role there should be just the structural object class.
 MidPoint supports this configuration.
 In this case the xref:/midpoint/reference/resources/resource-configuration/[resource configuration] contains only the structural object class:

@@ -11,13 +11,13 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -45,11 +45,11 @@ public class TitleWithMarks extends BasePanel<String> {
     }
 
     protected AbstractLink createTitleLinkComponent(String id) {
-        return new Link<>(id) {
+        return new AjaxLink<>(id) {
 
             @Override
-            public void onClick() {
-                onTitleClicked();
+            public void onClick(AjaxRequestTarget target) {
+                onTitleClicked(target);
             }
         };
     }
@@ -105,7 +105,7 @@ public class TitleWithMarks extends BasePanel<String> {
         return true;
     }
 
-    protected void onTitleClicked() {
+    protected void onTitleClicked(AjaxRequestTarget target) {
 
     }
 

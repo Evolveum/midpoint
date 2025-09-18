@@ -32,13 +32,6 @@
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>
                     </expression>
-                    <condition>
-                        <script>
-                            <code>
-                                assignmentPath?.protoRole?.locality != null
-                            </code>
-                        </script>
-                    </condition>
                 </outbound>
             </association>
         </construction>

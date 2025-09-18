@@ -225,7 +225,7 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
         return true;
     }
 
-    protected StatusInfo<?> getStatusInfo() {
+    protected StatusInfo<CorrelationSuggestionsType> getStatusInfo() {
         return statusInfoModel.getObject();
     }
 
@@ -259,7 +259,7 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
             @NotNull PageBase pageBase,
             @NotNull AjaxRequestTarget target,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
-            @NotNull StatusInfo<?> statusInfo) {
+            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
     }
 
 }

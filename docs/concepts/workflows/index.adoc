@@ -114,7 +114,7 @@ See xref:/midpoint/reference/admin-gui/admin-gui-config/#custom-actions-for-obje
 
 === Policy rules
 
-xref:/midpoint/reference/roles-policies/policy-rules/[Policy rules] allows you to define policies that can be checked or enforced.
+xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy rules] allows you to define policies that can be checked or enforced.
 Policies also might have conditions when they are triggered.
 That allow you to defined policy that will enforce certain actions and be triggered on custom conditions.
 Thanks to this, midPoint can cover the second type of workflows (triggered actions).

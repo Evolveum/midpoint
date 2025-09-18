@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -17,20 +16,30 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -123,7 +132,39 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected IColumn<PrismContainerValueWrapper<C>, String> createActionsColumn() {
-                return super.createActionsColumn();
+                List<InlineMenuItem> inlineMenuItems = getInlineMenuItems();
+                return createCustomActionsColumn(getPageBase(), inlineMenuItems);
+            }
+
+            private @Nullable IColumn<PrismContainerValueWrapper<C>, String> createCustomActionsColumn(
+                    @NotNull PageBase pageBase,
+                    @NotNull List<InlineMenuItem> allItems) {
+                return !allItems.isEmpty() ? new InlineMenuButtonColumn<>(allItems, pageBase) {
+                    @Override
+                    public String getCssClass() {
+                        return "inline-menu-column";
+                    }
+
+                    @Override
+                    protected String getDropDownButtonIcon() {
+                        return "fa fa-ellipsis-h";
+                    }
+
+                    @Override
+                    protected String getSpecialButtonClass() {
+                        return "btn btn-link btn-sm";
+                    }
+
+                    @Override
+                    protected String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
+                        return "btn btn-link btn-sm text-nowrap";
+                    }
+
+                    @Override
+                    protected String getAdditionalMultiButtonPanelCssClass() {
+                        return "justify-content-end";
+                    }
+                } : null;
             }
 
             @Override
@@ -135,28 +176,13 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                List<InlineMenuItem> actions = getDefaultMenuActions();
+                List<InlineMenuItem> actions = new ArrayList<>();
+                actions.add(createDeleteInlineMenu());
+                ButtonInlineMenuItem editInlineMenu = createEditInlineMenu();
+                editInlineMenu.setLabelVisible(true);
+                actions.add(editInlineMenu);
                 actions.add(createShowLifecycleStatesInlineMenu());
                 return actions;
-            }
-
-            @Override
-            protected @Nullable String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
-                String customCssClass = customInlineMenuItemCssClass(rowModel);
-                if (customCssClass != null) {
-                    return customCssClass;
-                }
-                return super.getInlineMenuItemCssClass(rowModel);
-            }
-
-            @Override
-            protected boolean isDuplicationSupported() {
-                return super.isDuplicationSupported();
-            }
-
-            @Override
-            protected String getInlineMenuCssClass() {
-                return " mp-w-md-1 ";
             }
 
             @Override
@@ -203,7 +229,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             private void createSuggestObjectButton(String idButton, @NotNull List<Component> bar) {
                 AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton,
-                        Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
+                        Model.of("fa-solid fa-wand-magic-sparkles"),
                         createStringResource("SchemaHandlingObjectsPanel.suggestNew")) {
 
                     @Serial private static final long serialVersionUID = 1L;
@@ -250,6 +276,62 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected boolean isHeaderVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean allowEditMultipleValuesAtOnce() {
+                return false;
+            }
+
+            @Override
+            protected IColumn<PrismContainerValueWrapper<C>, String> createCheckboxColumn() {
+                return new CheckBoxHeaderColumn<>();
+            }
+
+            public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
+                if (toDelete == null || toDelete.isEmpty()) {
+                    warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
+                    target.add(getPageBase().getFeedbackPanel());
+                    return;
+                }
+
+                Task task = getPageBase().getPageTask();
+                OperationResult result = task.getResult();
+
+                toDelete.forEach(value -> {
+                    if (deleteObjectTypeSuggestionIfRequested(value, task, result))
+                        return;
+
+                    if (value.getStatus() == ValueStatus.ADDED) {
+                        PrismContainerWrapper<C> wrapper = getContainerModel() != null ?
+                                getContainerModel().getObject() : null;
+                        if (wrapper != null) {
+                            wrapper.getValues().remove(value);
+                        }
+                    } else {
+                        value.setStatus(ValueStatus.DELETED);
+                    }
+                    value.setSelected(false);
+                });
+                refreshForm(target);
+            }
+
+            @SuppressWarnings("unchecked")
+            private boolean deleteObjectTypeSuggestionIfRequested(
+                    PrismContainerValueWrapper<C> value,
+                    Task task,
+                    OperationResult result) {
+                StatusInfo<?> statusInfo = getStatusInfo(value);
+                if (statusInfo != null && value.getRealValue() instanceof ResourceObjectTypeDefinitionType defToDelete) {
+                    SmartIntegrationUtils.removeObjectTypeSuggestionNew(
+                            getPageBase(),
+                            (StatusInfo<ObjectTypesSuggestionType>) statusInfo,
+                            defToDelete,
+                            task,
+                            result);
+                    return true;
+                }
                 return false;
             }
 
@@ -331,6 +413,21 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<C>> rowModel) {
         // Default implementation does nothing. Override if needed.
         return null;
+    }
+
+    @Nullable
+    protected StatusAwareDataProvider<?> getStatusAwareProvider() {
+        var dp = getTable().getDataProvider();
+        return (dp instanceof StatusAwareDataProvider<?> sap)
+                ? sap
+                : null;
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    protected @Nullable StatusInfo<?> getStatusInfo(PrismContainerValueWrapper<?> value) {
+        var provider = getStatusAwareProvider();
+        return provider != null ? provider
+                .getSuggestionInfo((PrismContainerValueWrapper) value) : null;
     }
 
     private InlineMenuItem createShowLifecycleStatesInlineMenu() {
@@ -483,13 +580,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     }
 
     protected void refreshForm(@NotNull AjaxRequestTarget target) {
-        WebMarkupContainer form = (WebMarkupContainer) get(ID_FORM);
-
-        MultivalueContainerListPanel<?> fresh = createMultiValueListPanel();
-        fresh.setOutputMarkupId(true);
-
-        form.addOrReplace(fresh);
-        target.add(fresh);
+        if (getTable().getDataProvider() instanceof MultivalueContainerListDataProvider<?> provider) {
+            provider.getModel().detach();
+        }
+        getTable().refreshTable(target);
+        target.add(get(ID_FORM));
     }
 
     protected boolean isToggleSuggestionVisible() {

@@ -21,17 +21,14 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.searchfilter.SearchFilterTypeForQueryModel;
 import com.evolveum.midpoint.gui.impl.factory.panel.searchfilter.SearchFilterTypeForXmlModel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import java.io.Serial;
+
 /**
  * @author honchar
  */
@@ -54,7 +53,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
         XML, QUERY
     }
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchFilterConfigurationPanel.class);
 
@@ -97,7 +96,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
 
     private void initFilterTypeModel() {
         filterTypeModel = new LoadableModel<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public Class<O> load() {
@@ -139,7 +138,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
         container.add(textPanel);
 
         AjaxButton searchConfigurationButton = new AjaxButton(ID_CONFIGURE_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -163,21 +162,27 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
         buttonLabel.setOutputMarkupId(true);
 
         AjaxLink fieldTypeButton = new AjaxLink<String>(ID_FIELD_TYPE_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                fieldType = FieldType.QUERY.equals(fieldType) ? FieldType.XML : FieldType.QUERY;
-
-                target.add(SearchFilterConfigurationPanel.this.get(ID_CONTAINER));
-                target.add(getPageBase().getFeedbackPanel());
-                target.add(buttonLabel);
-                target.add(this);
+                updateModelToMidpointQuery();
+                switchToFieldType(FieldType.QUERY.equals(fieldType) ? FieldType.XML : FieldType.QUERY, target);
             }
         };
         fieldTypeButton.add(buttonLabel);
         fieldTypeButton.add(new VisibleBehaviour(() -> FieldType.XML.equals(fieldType)));
         add(fieldTypeButton);
+    }
+
+    private void switchToFieldType(FieldType newFieldType, AjaxRequestTarget target) {
+        fieldType = newFieldType;
+
+        target.add(SearchFilterConfigurationPanel.this);
+        target.add(getPageBase().getFeedbackPanel());
+        if (getBaseFormComponent().getForm() != null) {
+            target.add(getBaseFormComponent().getForm());
+        }
     }
 
     protected boolean addEmptyBlumBehaviourToTextField() {
@@ -192,7 +197,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
         filterTypeModel.reset();
         SearchPropertiesConfigPanel<O> configPanel = new SearchPropertiesConfigPanel<>(getPageBase().getMainPopupBodyId(),
                 new BasicSearchFilterModel<>(getModel(), filterTypeModel.getObject(), getPageBase()), filterTypeModel) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target) {
@@ -202,15 +207,24 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
                     if (configuredFilter == null) {
                         return;
                     }
-                    SearchFilterConfigurationPanel.this.getModel().setObject(SearchFilterConfigurationPanel.this.getPageBase().getQueryConverter().createSearchFilterType(configuredFilter));
-                    target.add(SearchFilterConfigurationPanel.this.get(ID_CONTAINER));
-                    target.add(getPageBase().getFeedbackPanel());
-                } catch (SchemaException e) {
+                    SearchFilterConfigurationPanel.this.getModel().setObject(SearchFilterConfigurationPanel.this.getPageBase()
+                            .getQueryConverter().createSearchFilterType(configuredFilter));
+                    updateModelToMidpointQuery();
+                    switchToFieldType(FieldType.QUERY, target);
+                } catch (Exception e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
                 }
             }
         };
         getPageBase().showMainPopup(configPanel, target);
+    }
+
+    private void updateModelToMidpointQuery() {
+        if (containerWrapper == null || getModel().getObject() == null) {
+            return;
+        }
+        SearchFilterTypeForQueryModel queryModel = createQueryModel(getModel(), filterTypeModel, true);
+        getModel().getObject().setText(queryModel.getObject());
     }
 
     public PrismPropertyWrapper<SearchFilterType> getItemModelObject() {

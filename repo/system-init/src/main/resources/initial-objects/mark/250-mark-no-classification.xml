@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark oid="2bb936a6-91b4-4439-82ac-1b3e89c2a26a"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>No classification</name>
+    <description>Mark for objects (usually applications) that are not properly classified.</description>
+    <documentation>
+        This mark is named "No classification" rather than "Unclassified" to avoid confusion.
+        The term "unclassified" is commonly used to describe objects that are not classified for any secrecy class,
+        e.i. objects that are not restricted, secret or top secret.
+        This means that "unclassified" usually means "unrestricted" or "public".
+        However, this means that "unclassified" is a classification on its own.
+        Therefore, this mark and all other related configuration using term "no classification" rather than "unclassified".
+        (ISO27001/A.5.12,ISO27001/A.5.13)
+    </documentation>
+    <display>
+        <icon>
+            <cssClass>fa fa-times-circle</cssClass>
+        </icon>
+    </display>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/>
+    </assignment>
+</mark>

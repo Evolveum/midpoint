@@ -157,7 +157,7 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<RoleAnalysi
                     @Override
                     protected void itemSelected(@NotNull AjaxRequestTarget target, @NotNull IModel<Toggle<ViewToggle>> item) {
                         getViewToggleModel().setObject(item.getObject().getValue());
-                        getTable().refreshSearch();
+                        getBoxedTablePanelComponent().refreshSearch();
                         target.add(RoleAnalysisOutlierPartitionTileTable.this);
                     }
                 };

@@ -43,7 +43,7 @@ And it is also difficult to imagine a life with just a static roles.
 That would easily lead to role explosion.
 Thanks to midPoint design, there were ways how to work around this problem:
 
-* xref:/midpoint/reference/roles-policies/metaroles/policy/[Metaroles] can be used to group all the necessary logic, including expressions.
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Metaroles] can be used to group all the necessary logic, including expressions.
 Meta roles can be setup by a trusted administrator.
 Delegated administrators then just "use" the metarole, with possible parametrization using parameters in assignment extension.
 However, even this method is not yet fully supported in midPoint user interface.

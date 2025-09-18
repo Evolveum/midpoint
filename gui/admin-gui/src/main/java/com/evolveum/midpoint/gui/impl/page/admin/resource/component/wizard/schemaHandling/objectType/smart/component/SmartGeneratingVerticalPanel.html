@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div wicket:id="panelContainer" class="d-flex gap-3">
+        <div class="col-auto gap-3 d-flex align-items-center">
+            <i class="text-center text-primary font-weight-bold fa-xl" wicket:id="titleIcon"></i>
+            <div class="d-flex flex-column">
+                <div class="m-0" wicket:id="text"></div>
+                <div class="text-muted" wicket:id="subText"></div>
+            </div>
+        </div>
+
+        <div wicket:id="bodyContainer" class="col d-flex gap-3 align-items-center">
+            <div wicket:id="listViewContainer" class="col bg-white rounded border-left border-3 border-primary px-3">
+                <div wicket:id="listView" class="d-flex flex-row gap-2 w-100 align-items-center">
+                    <i wicket:id="icon"></i>
+                    <span wicket:id="text" class="text-start"></span>
+                    <div wicket:id="info" class="btn btn-link btn-sm ml-auto"></div>
+                </div>
+            </div>
+
+            <div class="col-auto ml-auto">
+                <span class="text-muted" wicket:id="elapsedTime"></span>
+            </div>
+
+            <div class="col-auto">
+                <div class="d-flex flex-row gap-2 justify-content-end" wicket:id="buttonsContainer">
+                    <a wicket:id="buttons"></a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</wicket:panel>
+</html>

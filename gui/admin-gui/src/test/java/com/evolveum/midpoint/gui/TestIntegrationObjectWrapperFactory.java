@@ -83,6 +83,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     private static final String USER_NEWMAN_SHIP = "Nova";
 
     private static final List<ItemPath> BASIC_USER_CONTAINERS_PATHS = Arrays.asList(
+            UserType.F_PHONE_NUMBER, // TODO should this really be a container? (technically it is, but also in GUI?)
+            UserType.F_EMAIL, // TODO the same
+            UserType.F_PHYSICAL_ADDRESS, // TODO the same
             UserType.F_EXTENSION,
             UserType.F_ASSIGNMENT,
             UserType.F_ACTIVATION,
@@ -109,6 +112,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_POLICY_STATEMENT,
             ShadowType.F_REFERENCE_ATTRIBUTES);
     private static final List<ItemPath> BASIC_ORG_CONTAINERS_PATHS = Arrays.asList(
+            OrgType.F_PHONE_NUMBER, // TODO should this really be a container? (technically it is, but also in GUI?)
+            OrgType.F_EMAIL, // TODO the same
+            OrgType.F_PHYSICAL_ADDRESS, // TODO the same
             OrgType.F_EXTENSION,
             OrgType.F_ASSIGNMENT,
             OrgType.F_ACTIVATION,

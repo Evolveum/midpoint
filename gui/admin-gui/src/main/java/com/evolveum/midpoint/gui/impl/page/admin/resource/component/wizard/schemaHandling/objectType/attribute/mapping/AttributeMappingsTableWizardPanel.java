@@ -6,45 +6,40 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.Collections;
 
-import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SimulationActionTaskButton;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping.SmartMappingTable;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.TabCenterTabbedPanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_INBOUND_MAPPINGS;
 
 /**
  * @author lskublik
@@ -60,10 +55,7 @@ import org.jetbrains.annotations.NotNull;
         display = @PanelDisplay(label = "AttributeMappingsTableWizardPanel.outboundTable", icon = "fa fa-arrow-right-from-bracket"))
 public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
 
-    private static final String INBOUND_PANEL_TYPE = "rw-attribute-inbounds";
-    private static final String OUTBOUND_PANEL_TYPE = "rw-attribute-outbounds";
-
-    private static final String ID_TAB_TABLE = "tabTable";
+    private static final String ID_PANEL = "panel";
 
     private final MappingDirection initialTab;
 
@@ -83,136 +75,57 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     private void initLayout() {
 
-        List<ITab> tabs = new ArrayList<>();
-        tabs.add(createInboundTableTab());
-        tabs.add(createOutboundTableTab());
-
-        TabCenterTabbedPanel<ITab> tabPanel = new TabCenterTabbedPanel<>(ID_TAB_TABLE, tabs) {
+        String resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
+        SmartMappingTable<P> smartMappingTable = new SmartMappingTable<P>(ID_PANEL,
+                TABLE_SMART_INBOUND_MAPPINGS,
+                Model.of(ViewToggle.TILE),
+                Model.of(initialTab),
+                getValueModel(),
+                resourceOid) {
             @Override
-            protected void onAjaxUpdate(Optional<AjaxRequestTarget> optional) {
-                if (optional.isPresent()) {
-                    AjaxRequestTarget target = optional.get();
-                    target.add(getButtonsContainer());
+            public void acceptSuggestionItemPerformed(@NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel, StatusInfo<MappingsSuggestionType> statusInfo, @NotNull AjaxRequestTarget target) {
+                PrismContainerValueWrapper<MappingType> newValue = createNewValue(rowModel.getObject().getNewValue(), target);
+                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()));
+                refreshAndDetach(target);
+            }
+
+            @SuppressWarnings({ "rawtypes", "unchecked" })
+            @Override
+            public void editItemPerformed(AjaxRequestTarget target, IModel rowModel, boolean isDuplicate) {
+                if (isInboundTabSelected) {
+                    inEditInboundValue(rowModel, target);
+                } else {
+                    inEditOutboundValue(rowModel, target);
                 }
             }
-
-            @Override
-            protected void onClickTabPerformed(int index, Optional<AjaxRequestTarget> target) {
-                if (getTable().isValidFormComponents(target.orElse(null))) {
-                    super.onClickTabPerformed(index, target);
-                }
-            }
         };
-        tabPanel.setOutputMarkupId(true);
-        switch (initialTab) {
-            case INBOUND:
-                tabPanel.setSelectedTab(0);
-                break;
-            case OUTBOUND:
-                tabPanel.setSelectedTab(1);
-                break;
-        }
-        add(tabPanel);
+        smartMappingTable.setOutputMarkupId(true);
+        add(smartMappingTable);
     }
 
-    private ITab createInboundTableTab() {
-        return new IconPanelTab(
-                getPageBase().createStringResource(
-                "AttributeMappingsTableWizardPanel.inboundTable"),
-                new VisibleBehaviour(() -> isInboundVisible())) {
+    boolean isInboundTabSelected = true;
 
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return new InboundAttributeMappingsTable<>(panelId, getValueModel(), getConfiguration(INBOUND_PANEL_TYPE)) {
-                    @Override
-                    protected ItemName getItemNameOfContainerWithMappings() {
-                        return AttributeMappingsTableWizardPanel.this.getItemNameOfContainerWithMappings();
-                    }
-
-                    @Override
-                    public void editItemPerformed(
-                            AjaxRequestTarget target,
-                            IModel<PrismContainerValueWrapper<MappingType>> rowModel,
-                            List<PrismContainerValueWrapper<MappingType>> listItems) {
-                        if (isValidFormComponentsOfRow(rowModel, target)) {
-                            inEditInboundValue(rowModel, target);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public IModel<String> getCssIconModel() {
-                return Model.of("fa fa-arrow-right-to-bracket");
-            }
-        };
-    }
-
-    protected abstract ItemName getItemNameOfContainerWithMappings();
-
-    protected boolean isInboundVisible() {
-        return true;
-    }
-
-    private ITab createOutboundTableTab() {
-        return new IconPanelTab(
-                getPageBase().createStringResource(
-                "AttributeMappingsTableWizardPanel.outboundTable"),
-                new VisibleBehaviour(() -> isOutboundVisible())) {
-
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return new OutboundAttributeMappingsTable<>(panelId, getValueModel(), getConfiguration(OUTBOUND_PANEL_TYPE)) {
-                    @Override
-                    protected ItemName getItemNameOfContainerWithMappings() {
-                        return AttributeMappingsTableWizardPanel.this.getItemNameOfContainerWithMappings();
-                    }
-
-                    @Override
-                    public void editItemPerformed(
-                            AjaxRequestTarget target,
-                            IModel<PrismContainerValueWrapper<MappingType>> rowModel,
-                            List<PrismContainerValueWrapper<MappingType>> listItems) {
-                        if (isValidFormComponentsOfRow(rowModel, target)) {
-                            inEditOutboundValue(rowModel, target);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public IModel<String> getCssIconModel() {
-                return Model.of("fa fa-arrow-right-from-bracket");
-            }
-        };
-    }
-
-    protected boolean isOutboundVisible() {
-        return true;
-    }
-
-    public TabbedPanel<ITab> getTabPanel() {
-        //noinspection unchecked
-        return ((TabbedPanel<ITab>) get(ID_TAB_TABLE));
-    }
-
-    protected AttributeMappingsTable getTable() {
-        TabbedPanel<ITab> tabPanel = getTabPanel();
-        return (AttributeMappingsTable) tabPanel.get(TabbedPanel.TAB_PANEL_ID);
+    @SuppressWarnings("unchecked")
+    protected SmartMappingTable<MappingType> getTable() {
+        return ((SmartMappingTable<MappingType>) get(ID_PANEL));
     }
 
     public MappingDirection getSelectedMappingType() {
-        AttributeMappingsTable table = getTable();
-        if (table instanceof InboundAttributeMappingsTable) {
-            return MappingDirection.INBOUND;
-        } else if (table instanceof OutboundAttributeMappingsTable) {
-            return MappingDirection.OUTBOUND;
-        }
-        return null;
+        return isInboundTabSelected ? MappingDirection.INBOUND : MappingDirection.OUTBOUND;
     }
 
     @Override
-    protected void addCustomButtons(RepeatingView buttons) {
+    protected void addCustomButtons(@NotNull RepeatingView buttons) {
+        IModel<PrismContainerValueWrapper<P>> valueModel = getValueModel();
+        PrismContainerValueWrapper<P> object = valueModel.getObject();
+        if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType def) {
+            buttons.add(createSimulationMenuButton(buttons, () -> def));
+        }
+
+        buttons.add(createShowOverridesButton(buttons));
+    }
+
+    private @NotNull AjaxIconButton createShowOverridesButton(@NotNull RepeatingView buttons) {
         AjaxIconButton showOverrides = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-shuffle"),
@@ -226,7 +139,26 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         };
         showOverrides.showTitleAsLabel(true);
         showOverrides.add(AttributeAppender.append("class", "btn btn-primary"));
-        buttons.add(showOverrides);
+        return showOverrides;
+    }
+
+    private @NotNull SimulationActionTaskButton createSimulationMenuButton(
+            @NotNull RepeatingView buttons,
+            @NotNull IModel<ResourceObjectTypeDefinitionType> objectTypeDefModel) {
+
+        SimulationActionTaskButton simulationActionTaskButton = new SimulationActionTaskButton(
+                buttons.newChildId(),
+                objectTypeDefModel,
+                () -> getAssignmentHolderDetailsModel().getObjectType()) {
+
+            @Override
+            public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                AttributeMappingsTableWizardPanel.this.redirectToSimulationTasksWizard(target);
+            }
+        };
+
+        simulationActionTaskButton.setRenderBodyOnly(true);
+        return simulationActionTaskButton;
     }
 
     @Override
@@ -269,9 +201,13 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         return "col-11";
     }
 
-    protected ContainerPanelConfigurationType getConfiguration(String panelType){
+    protected ContainerPanelConfigurationType getConfiguration(String panelType) {
         return WebComponentUtil.getContainerConfiguration(
                 getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
                 panelType);
+    }
+
+    protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+
     }
 }

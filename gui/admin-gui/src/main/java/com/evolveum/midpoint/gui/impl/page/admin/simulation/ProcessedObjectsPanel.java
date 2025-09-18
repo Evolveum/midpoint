@@ -9,17 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObject;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -35,7 +33,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -51,13 +48,10 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.ChoicesSearchItem
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -79,6 +73,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -215,8 +211,8 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                     }
 
                     @Override
-                    protected void onTitleClicked() {
-                        onObjectNameClicked(rowModel.getObject());
+                    protected void onTitleClicked(AjaxRequestTarget target) {
+                        onObjectNameClicked(rowModel.getObject(), target);
                     }
 
                     @Override
@@ -650,15 +646,23 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 //        return statements;
 //    }
 
-    private void onObjectNameClicked(SelectableBean<SimulationResultProcessedObjectType> bean) {
+    private void onObjectNameClicked(@NotNull SelectableBean<SimulationResultProcessedObjectType> bean, AjaxRequestTarget target) {
         SimulationResultProcessedObjectType object = bean.getValue();
         if (object == null) {
             return;
         }
-
-        PageParameters params = new PageParameters();
-        params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, getSimulationResultOid());
         String markOid = getPredefinedMarkOid();
+        String simulationResultOid = getSimulationResultOid();
+        navigateToSimulationResultObject(simulationResultOid, markOid, object, target);
+    }
+
+    protected void navigateToSimulationResultObject(
+            @NotNull String simulationResultOid,
+            @Nullable String markOid,
+            @NotNull SimulationResultProcessedObjectType object,
+            @NotNull AjaxRequestTarget target) {
+        PageParameters params = new PageParameters();
+        params.set(PageSimulationResultObject.PAGE_PARAMETER_RESULT_OID, simulationResultOid);
         if (markOid != null) {
             params.set(PageSimulationResultObject.PAGE_PARAMETER_MARK_OID, markOid);
         }

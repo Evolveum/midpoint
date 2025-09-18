@@ -23,11 +23,11 @@ Workflow process modeling is almost never needed.
 MidPoint does *not* have any special way how to request something.
 E.g. there is no special mechanism how to request assignment of a role or how to request creation of a new organizational unit.
 The request is simply the operation itself: user requests an assignment of a role simply by trying to assign the role to himself.
-When midPoint encounters an operation like this it will consult the policies (xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]) and decide whether the operation needs to be driven through an approval process.
+When midPoint encounters an operation like this it will consult the policies (xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]) and decide whether the operation needs to be driven through an approval process.
 If an approval is needed then midPoint will automatically compute the approvers and start a workflow process to drive the approvals.
 When the approval process is done then midPoint will gather the results and proceed with the operation.
 
-Therefore the only thing that is usually needed to set up an approval mechanism is the definition of the approvers and the xref:/midpoint/reference/roles-policies/policy-rules/[policy rules]. MidPoint will take care of the rest.
+Therefore the only thing that is usually needed to set up an approval mechanism is the definition of the approvers and the xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules]. MidPoint will take care of the rest.
 
 There are two broad categories for approvals: assignment approval and lifecycle approvals.
 These are described in the following sections.
@@ -35,7 +35,7 @@ These are described in the following sections.
 
 == Assignment Approval
 
-Assignment approvals decide whether a user can have some kind of xref:/midpoint/reference/roles-policies/assignment/[assignment]. This usually means approval of a role assignment.
+Assignment approvals decide whether a user can have some kind of xref:/midpoint/reference/roles-policies/roles/assignment/[assignment]. This usually means approval of a role assignment.
 The process usually goes like this:
 
 * User selects a role in the midPoint user interface (shopping cart).
@@ -43,9 +43,9 @@ The user simply selects the roles and clicks on the "request" button.
 What the user does not know is that in fact this starts an operation that adds new assignment to the user object xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType].
 
 * When that operation is evaluated, xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[internal algorithms] in midPoint will analyze all the requested roles.
-MidPoint will evaluate xref:/midpoint/reference/roles-policies/rbac/[role hierarchies], xref:/midpoint/reference/roles-policies/metaroles/gensync/[metaroles], gather all the applicable xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] and apply default policies.
+MidPoint will evaluate xref:/midpoint/reference/roles-policies/roles/rbac/[role hierarchies], xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[metaroles], gather all the applicable xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] and apply default policies.
 This determines how the role assignment needs to be approved - and by whom.
-This also determines whether the role can be assigned at all (e.g. whether it does not violate the xref:/midpoint/reference/roles-policies/segregation-of-duties/[SoD constraints]).
+This also determines whether the role can be assigned at all (e.g. whether it does not violate the xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[SoD constraints]).
 
 * If there are any approvers then midPoint suspends the operation and it will drive it through an approval workflow.
 
@@ -53,9 +53,9 @@ This also determines whether the role can be assigned at all (e.g. whether it do
 
 The default policy in midPoint is to drive the request through approvals only if there are any approvers defined for the role.
 If no approvers are defined then the request is not driven through the approval process and it is automatically executed.
-This default can be changed by properly setting up the xref:/midpoint/reference/roles-policies/policy-rules/[policy rules].
+This default can be changed by properly setting up the xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules].
 
-Default role approvers are defined by using the xref:/midpoint/reference/roles-policies/assignment/[assignment mechanism].
+Default role approvers are defined by using the xref:/midpoint/reference/roles-policies/roles/assignment/[assignment mechanism].
 Role approvers have an assignment pointing to the role that are approving.
 This assignment has xref:/midpoint/reference/concepts/relation/[Relation] set to `approver`.
 The default midPoint policy will look for these assignments.
@@ -80,7 +80,7 @@ The lifecycle approval goes like this:
 E.g. a junior role engineer creates a new role.
 Operation to add a new role object is started in midPoint.
 
-* When that operation is evaluated, xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[internal algorithms] in midPoint will analyze xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] that are applicable to the new role.
+* When that operation is evaluated, xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[internal algorithms] in midPoint will analyze xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] that are applicable to the new role.
 As this role is new then the global policy rules will be applied.
 The policy rules may define an approver for the role modification.
 
@@ -88,7 +88,7 @@ The policy rules may define an approver for the role modification.
 
 * After approvals are done the operation continues (if it was approved) or it is discarded.
 
-See xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle] page for more details about specific use of lifecycle approval to control role lifecycle.
+See xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role Lifecycle] page for more details about specific use of lifecycle approval to control role lifecycle.
 
 [TIP]
 .MidPoint 3.5 or later
@@ -100,10 +100,10 @@ Although it was - in some form - present also in midPoint 3.4.1 and earlier (usi
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+* xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment]
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 
-* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle]
+* xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role Lifecycle]
 
 * xref:/midpoint/reference/misc/deputy/[Deputy]

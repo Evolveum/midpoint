@@ -112,9 +112,15 @@ public class StatusInfoImpl<T> implements StatusInfo<T> {
         return taskInformation.isComplete();
     }
 
+    //TODO check problem with suspended tasks
     @Override
     public boolean isExecuting() {
         return taskInformation.isExecuting();
+    }
+
+    //Temporary helper
+    public boolean isSuspended() {
+        return taskInformation.getTask().getExecutionState() == TaskExecutionStateType.SUSPENDED;
     }
 
     @Override

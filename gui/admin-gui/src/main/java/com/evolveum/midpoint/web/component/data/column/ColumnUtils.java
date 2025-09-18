@@ -1429,7 +1429,7 @@ public class ColumnUtils {
 
         column = new AbstractColumn<SelectableBean<CaseType>, String>(
                 createStringResource("pageCases.table.openTimestamp"),
-                MetadataType.F_CREATE_TIMESTAMP.getLocalPart()) {
+                "metadata/createTimestamp") {
 
             private static final long serialVersionUID = 1L;
 

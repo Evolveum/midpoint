@@ -8,11 +8,14 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ApprovalSchemaExecutionInformationUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
@@ -27,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class ApprovalStageExecutionInformationDto implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String F_APPROVER_ENGAGEMENTS = "approverEngagements";
 
@@ -51,7 +54,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
     }
 
     static ApprovalStageExecutionInformationDto createFrom(ApprovalSchemaExecutionInformationType processInfo, int stageNumber,
-            ObjectResolver resolver, ObjectResolver.Session session, Task opTask, OperationResult result) {
+            Task opTask, OperationResult result, PageAdminLTE parentPage) {
         ApprovalStageExecutionInformationType stageInfo = ApprovalSchemaExecutionInformationUtil.getStage(processInfo, stageNumber);
         if (stageInfo == null) {
             throw new IllegalStateException("No stage execution information in " + processInfo);
@@ -59,9 +62,9 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
         ApprovalStageExecutionInformationDto rv = new ApprovalStageExecutionInformationDto(stageInfo.getDefinition());
         int currentStageNumber = defaultIfNull(processInfo.getCurrentStageNumber(), 0);
         if (stageNumber <= currentStageNumber) {
-            addInformationFromPastOrCurrentStage(rv, processInfo, stageNumber, currentStageNumber, resolver, session, opTask, result);
+            addInformationFromPastOrCurrentStage(rv, processInfo, stageNumber, currentStageNumber, opTask, result, parentPage);
         } else {
-            addInformationFromFutureStage(rv, stageInfo.getExecutionPreview(), resolver, session, opTask, result);
+            addInformationFromFutureStage(rv, stageInfo.getExecutionPreview(), opTask, result, parentPage);
         }
         // computing stage outcome that is to be displayed
         if (rv.automatedOutcome != null) {
@@ -83,30 +86,30 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
     }
 
     private static void addInformationFromFutureStage(ApprovalStageExecutionInformationDto rv,
-            ApprovalStageExecutionPreviewType executionPreview, ObjectResolver resolver,
-            ObjectResolver.Session session, Task opTask, OperationResult result) {
+            ApprovalStageExecutionPreviewType executionPreview,
+            Task opTask, OperationResult result, PageAdminLTE parentPage) {
         if (executionPreview.getExpectedAutomatedCompletionReason() != null) {
             rv.automatedCompletionReason = executionPreview.getExpectedAutomatedCompletionReason();
             rv.automatedOutcome = executionPreview.getExpectedAutomatedOutcome();
         } else {
             for (ObjectReferenceType approver : executionPreview.getExpectedApproverRef()) {
-                resolve(approver, resolver, session, opTask, result);
+                resolve(approver, opTask, result, parentPage);
                 rv.addApproverEngagement(new ApproverEngagementDto(approver));
             }
         }
         rv.errorMessage = executionPreview.getErrorMessage();
     }
 
-    private static void resolve(ObjectReferenceType ref, ObjectResolver resolver, ObjectResolver.Session session,
-            Task opTask, OperationResult result) {
+    private static void resolve(ObjectReferenceType ref, Task opTask, OperationResult result, PageAdminLTE parentPage) {
         if (ref != null) {
-            resolver.resolveReference(ref.asReferenceValue(), "resolving approver", session, opTask, result);
+            PrismObject<?> referencedObject = WebModelServiceUtils.resolveReferenceNoFetch(ref, parentPage, opTask, result);
+            ref.asReferenceValue().setObject(referencedObject);
         }
     }
 
     private static void addInformationFromPastOrCurrentStage(ApprovalStageExecutionInformationDto rv,
             ApprovalSchemaExecutionInformationType processInfo, int stageNumber, int currentStageNumber,
-            ObjectResolver resolver, ObjectResolver.Session session, Task opTask, OperationResult result) {
+            Task opTask, OperationResult result, PageAdminLTE parentPage) {
         assert stageNumber <= currentStageNumber;
         CaseType aCase = ApprovalSchemaExecutionInformationUtil.getEmbeddedCaseBean(processInfo);
 
@@ -115,8 +118,8 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
                 WorkItemCompletionEventType completionEvent = (WorkItemCompletionEventType) event;
                 ObjectReferenceType initiatorRef = completionEvent.getInitiatorRef();
                 ObjectReferenceType attorneyRef = completionEvent.getAttorneyRef();
-                resolve(initiatorRef, resolver, session, opTask, result);
-                resolve(attorneyRef, resolver, session, opTask, result);
+                resolve(initiatorRef, opTask, result, parentPage);
+                resolve(attorneyRef, opTask, result, parentPage);
                 ApproverEngagementDto engagement = new ApproverEngagementDto(initiatorRef);
                 engagement.setCompletedAt(completionEvent.getTimestamp());
                 engagement.setCompletedBy(initiatorRef);
@@ -137,7 +140,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
             for (CaseWorkItemType workItem : CaseTypeUtil.getWorkItemsForStage(aCase, stageNumber)) {
                 if (CaseTypeUtil.isCaseWorkItemNotClosed(workItem)) {
                     for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
-                        resolve(assigneeRef, resolver, session, opTask, result);
+                        resolve(assigneeRef, opTask, result, parentPage);
                         rv.addApproverEngagement(new ApproverEngagementDto(assigneeRef));
                     }
                 }

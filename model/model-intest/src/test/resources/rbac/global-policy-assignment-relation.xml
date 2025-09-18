@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+
+    <globalPolicyRule>
+        <name>Recompute service identity when new service owner is set</name>
+        <policyConstraints>
+            <assignment>
+                <relation>owner</relation>
+            </assignment>
+        </policyConstraints>
+        <policyActions>
+            <scriptExecution>
+                <object>
+                    <linkTarget>
+                        <archetypeRef oid="fefefefe-2223-4e2d-975a-bce0fc69b305" type="ArchetypeType"/>
+                        <relation>owner</relation>
+                        <!-- <changeSituation>always</changeSituation>-->
+                    </linkTarget>
+                </object>
+                <executeScript>
+                    <s:recompute/>
+                </executeScript>
+            </scriptExecution>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+        <targetSelector>
+            <type>ServiceType</type>
+            <archetypeRef oid="fefefefe-2223-4e2d-975a-bce0fc69b305" type="ArchetypeType"/>
+        </targetSelector>
+    </globalPolicyRule>
+</systemConfiguration>

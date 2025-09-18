@@ -195,7 +195,7 @@ The xref:/midpoint/reference/concepts/clockwork/model-context/[Model Context] pa
 == Projector Branch
 
 The primary purpose of the Projector is to take input deltas (user changes or synchronization deltas), apply them to the current state and try to figure out what effects those changes have.
-There are many ways how the input deltas can influence the output: xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings], xref:/midpoint/reference/expressions/object-template/[object template], xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings], etc.
+There are many ways how the input deltas can influence the output: xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings], xref:/midpoint/reference/expressions/object-template/[object template], xref:/midpoint/reference/roles-policies/roles/rbac/[roles], xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings], etc.
 Each of these steps provide part of the data for the computation.
 Therefore also projector is internally divided into several "processors".
 Each of the processors takes care of one part of the computation:
@@ -205,7 +205,7 @@ E.g. it loads the current state of the user and accounts (if necessary).
 
 * Focus Processor takes care of applying changes to the xref:/midpoint/reference/schema/focus-and-projections/[focus] (usually xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[UserType]). It takes care of xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping] and xref:/midpoint/reference/expressions/object-template/[Object Template] processing.
 It is internally composed from other processors such as InboundProcessor and ObjectTemplateProcessor and AssignmentProcessor.
-xref:/midpoint/reference/roles-policies/rbac/[Roles and Orgs (RBAC)] is also pre-computed in this stage.
+xref:/midpoint/reference/roles-policies/roles/rbac/[Roles and Orgs (RBAC)] is also pre-computed in this stage.
 Although we only care whether a specific xref:/midpoint/reference/schema/focus-and-projections/[projection] is legal or not.
 We do not process the projection attributes yet.
 
@@ -213,7 +213,7 @@ We do not process the projection attributes yet.
 
 * Then each xref:/midpoint/reference/schema/focus-and-projections/[projection] is processed individually:
 
-** Projection Values Processor will evaluate attribute values specified in xref:/midpoint/reference/roles-policies/rbac/[roles and Orgs (RBAC)] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. All the mappings are evaluated and the values are consolidated into deltas.
+** Projection Values Processor will evaluate attribute values specified in xref:/midpoint/reference/roles-policies/roles/rbac/[roles and Orgs (RBAC)] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. All the mappings are evaluated and the values are consolidated into deltas.
 
 ** Credentials Processor will take care of proper propagation of credentials, generating of passwords, etc.
 
@@ -303,7 +303,7 @@ This dump also contains meta-data, e.g. we can see that this triple has originat
 Which means that this value is produced by outbound mapping for object where kind=account and intent=default.
 If you follow such traces you can find out where your problem is and from where has midPoint taken the definition that caused it.
 
-Similar logic also applies to processing xref:/midpoint/reference/roles-policies/assignment/[assignments]. There are also triples that describe which assignments will be added or removed.
+Similar logic also applies to processing xref:/midpoint/reference/roles-policies/roles/assignment/[assignments]. There are also triples that describe which assignments will be added or removed.
 However, you may need to enable TRACE logging for com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor to get it.
 It looks like this:
 

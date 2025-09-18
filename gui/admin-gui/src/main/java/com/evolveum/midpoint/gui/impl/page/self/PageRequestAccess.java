@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -43,8 +42,6 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 public class PageRequestAccess extends PageSelf {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(PageRequestAccess.class);
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD = "wizard";
@@ -79,7 +76,7 @@ public class PageRequestAccess extends PageSelf {
         if (model == null) {
             model = new WizardModel(createSteps());
         }
-        WizardPanel wizard = new WizardPanel(ID_WIZARD, model);
+        WizardPanel wizard = new WizardPanel(ID_WIZARD, model, true);
         wizard.setOutputMarkupId(true);
         mainForm.add(wizard);
     }

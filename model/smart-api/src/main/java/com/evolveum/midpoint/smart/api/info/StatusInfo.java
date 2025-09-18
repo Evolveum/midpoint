@@ -48,6 +48,10 @@ public interface StatusInfo<T> extends Serializable, DebugDumpable {
         return wasStarted() && !isExecuting() && !isComplete();
     }
 
+    //TODO think over isExecuting
+    /** Is the operation currently suspended? */
+    boolean isSuspended();
+
     /**
      * Status of the operation, typically one of the following:
      *

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.extractCorrelationItemListWrapper;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
 
 public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<ItemsSubCorrelatorType>> extends TemplateTile<T> {
 
@@ -92,7 +92,7 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         statesRecordList.add(new StateRecord(tierLabel, "Tier"));
 
         if (this.efficiency != null) {
-            statesRecordList.add(new StateRecord(efficiency + "%", "Efficiency"));
+            statesRecordList.add(new StateRecord(String.format("%.2f%%", efficiency), "Efficiency"));
         }
     }
 

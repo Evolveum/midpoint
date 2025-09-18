@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -150,7 +151,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     public List<InlineMenuItem> getDefaultMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(createDeleteInlineMenu());
+        menuItems.add(createDeleteButtonInlineMenu());
         menuItems.add(createEditInlineMenu());
         return menuItems;
     }
@@ -176,14 +177,25 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         };
     }
 
-    protected ButtonInlineMenuItem createDeleteInlineMenu() {
+    protected ButtonInlineMenuItem createDeleteButtonInlineMenu() {
         return new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder(){
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return createDeleteColumnAction();
+            }
+        };
+    }
+
+    protected InlineMenuItem createDeleteInlineMenu() {
+        return new InlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {

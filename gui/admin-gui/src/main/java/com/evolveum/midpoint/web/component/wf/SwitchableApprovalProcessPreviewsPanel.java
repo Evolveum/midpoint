@@ -114,7 +114,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
         try {
             if (info != null) {
                 rv = ApprovalProcessExecutionInformationDto
-                        .createFrom(info, parentPage.getModelObjectResolver(), wholeProcess, opTask, result);
+                        .createFrom(info, wholeProcess, opTask, result, parentPage);
             }
             result.computeStatus();
         } catch (Throwable t) {

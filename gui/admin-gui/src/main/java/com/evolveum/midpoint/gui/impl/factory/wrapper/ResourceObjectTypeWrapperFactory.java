@@ -6,20 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import jakarta.annotation.PostConstruct;
@@ -30,8 +24,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.QNameUtil;
-
-import java.util.List;
 
 /**
  * @author lskublik
@@ -88,8 +80,4 @@ public class ResourceObjectTypeWrapperFactory extends PrismContainerWrapperFacto
         getRegistry().addToRegistry((ContainerableDuplicateResolver) this);
     }
 
-    @Override
-    public PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> createValueWrapper(PrismContainerWrapper<ResourceObjectTypeDefinitionType> parent, PrismContainerValue<ResourceObjectTypeDefinitionType> value, ValueStatus status, WrapperContext context) throws SchemaException {
-        return super.createValueWrapper(parent, value, status, context);
-    }
 }

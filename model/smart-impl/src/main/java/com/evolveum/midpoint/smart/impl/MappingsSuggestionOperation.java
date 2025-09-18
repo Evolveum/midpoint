@@ -131,7 +131,7 @@ class MappingsSuggestionOperation {
         Collection<OwnedShadow> ownedShadows;
         try {
             ownedShadows = fetchOwnedShadows(shadowsCollectionState, result);
-        }  catch (Throwable t) {
+        } catch (Throwable t) {
             shadowsCollectionState.recordException(t);
             throw t;
         } finally {
@@ -266,6 +266,8 @@ class MappingsSuggestionOperation {
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.getItemPath().rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
+                                .name(shadowAttrPath.getItemPath().lastName().getLocalPart()
+                                        + "-to-" + focusPropPath.getItemPath().toString()) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusPropPath.getItemPath().toBean()))
                                 .expression(expression)));

@@ -76,12 +76,21 @@ public abstract class AbstractFormWizardStepPanel<AHDM extends AssignmentHolderD
                 return AbstractFormWizardStepPanel.this.isShowEmptyButtonVisible();
             }
 
+            @Override
+            protected boolean isExpandedButtonVisible() {
+                return AbstractFormWizardStepPanel.this.isExpandedButtonVisible();
+            }
+
         };
         panel.setOutputMarkupId(true);
         add(panel);
     }
 
     protected boolean isShowEmptyButtonVisible() {
+        return true;
+    }
+
+    protected boolean isExpandedButtonVisible() {
         return true;
     }
 

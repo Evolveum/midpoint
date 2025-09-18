@@ -15,7 +15,7 @@ This includes properties that describe whether the user is enabled, disabled, ar
 ====
 The _activation_ is a concept that usually applies to users and accounts.
 But in midPoint the term has much wider applications.
-Also roles, organizational units and even individual xref:/midpoint/reference/roles-policies/assignment/[assignments] can have individual activation properties.
+Also roles, organizational units and even individual xref:/midpoint/reference/roles-policies/roles/assignment/[assignments] can have individual activation properties.
 E.g. a role may be valid until the end of year (when next role review is scheduled).
 Or the user may get a role just for two weeks while his colleague is on vacation.
 There are many possibilities how to use this concept to create a very dynamic configuration.

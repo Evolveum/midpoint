@@ -66,7 +66,7 @@ prismContext.queryFor(FocusType.class)
 . Select the *Object type* like you would for any other query.
 In our example, we are using the type from the `queryFor(...)` call, i.e. `FocusType`.
 . In the *Language* drop-down menu, select the language in which the script is written (_XML_/_JSON_/_YAML_).
-. Press *Translate and execute*.
+. Click *Translate and execute*.
 This executes the query in the expression and also shows the query in the selected language.
 
 Using expressions requires proper imports.
@@ -90,7 +90,7 @@ To convert an XML query:
 . Select the *Object type* from which the query will be selecting.
 . Paste your full original query, i.e. starting with the `<query>` element, into the *XML Query* text area.
     Make sure you remove namespaces from XML elements, or define them in the `<query>` element.
-. Press *Convert query*.
+. Click *Convert query*.
 
 
 .An example without namespaces

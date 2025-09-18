@@ -19,7 +19,7 @@ But we do not want all parts of user interface to deal with all the relation typ
 For example pages and components that are focused on identity governance only care about governance-related relations such as `owner` or `approver`. Organizational structure pages do not really care about these, but `manager` relation is very important for them.
 While the relations were hardcoded then it was also easy to hardcode the beahvior of the user interface.
 But as relations are customizable, user interface behavior cannot be hardcoded any longer.
-And similar principles may apply also to other midPoint concepts in the future: xref:/midpoint/reference/roles-policies/policy-rules/[policy rules], roles, organizational units, services (unified indirectly through xref:/midpoint/reference/schema/archetypes/[archetypes]), and so on.
+And similar principles may apply also to other midPoint concepts in the future: xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules], roles, organizational units, services (unified indirectly through xref:/midpoint/reference/schema/archetypes/[archetypes]), and so on.
 
 For now the list of categories is pre-defined (hardcoded) in midPoint:
 

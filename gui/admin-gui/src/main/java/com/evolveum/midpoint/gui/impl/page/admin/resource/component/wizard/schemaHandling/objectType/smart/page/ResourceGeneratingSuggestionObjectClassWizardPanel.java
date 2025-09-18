@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -144,7 +143,7 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
 
     @Override
     protected @Nullable IModel<String> getBreadcrumbIcon() {
-        return Model.of(GuiStyleConstants.CLASS_ICON_WIZARD);
+        return Model.of("fa-solid fa-wand-magic-sparkles");
     }
 
     @Override

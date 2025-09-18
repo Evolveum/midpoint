@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="btn-group btn-group-sm">
+
+        <button class="btn btn-default" wicket:id="primaryButton"></button>
+
+        <button aria-expanded="false" type="button"
+                class="btn btn-default dropdown-toggle dropdown-icon"
+                data-toggle="dropdown" wicket:id="dropdownButton">
+            <span class="sr-only"><wicket:message key="SplitButtonDropDown.toggle"/></span>
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+            <wicket:container wicket:id="menuItems">
+                <a class="dropdown-item" wicket:id="menuItem" role="menuitem"></a>
+            </wicket:container>
+        </ul>
+    </div>
+
+    <wicket:fragment wicket:id="primaryButtonFragment">
+        <i wicket:id="icon"></i>
+        <span class="mx-1" wicket:id="label"></span>
+        <span class="badge bg-danger" wicket:id="info"></span>
+    </wicket:fragment>
+</wicket:panel>

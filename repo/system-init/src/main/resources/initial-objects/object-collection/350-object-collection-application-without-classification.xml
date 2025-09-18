@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectCollection oid="d7887599-3f3a-4d51-80ae-ee8567cd51aa"
+                  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Applications without classification</name>
+    <documentation>
+        (ISO27001/A.5.12,ISO27001/A.5.13)
+        This collection is named "without classification" rather than "Unclassified" to avoid confusion.
+        The term "unclassified" is commonly used to describe objects that are not classified for any secrecy class,
+        e.i. objects that are not restricted, secret or top secret.
+        This means that "unclassified" usually means "unrestricted" or "public".
+        However, this means that "unclassified" is a classification on its own.
+        Therefore, this mark and all other related configuration using term "no classification" rather than "unclassified".
+    </documentation>
+    <type>ServiceType</type>
+    <filter>
+        <q:text>effectiveMarkRef matches ( oid = "2bb936a6-91b4-4439-82ac-1b3e89c2a26a" ) and archetypeRef matches ( oid = "00000000-0000-0000-0000-000000000329" )</q:text>
+    </filter>
+    <defaultView>
+        <display>
+            <label>
+                <orig>Application without classification</orig>
+                <translation>
+                    <key>applicationWithoutClassification.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Applications without classification</orig>
+                <translation>
+                    <key>applicationWithoutClassification.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+        </display>
+    </defaultView>
+</objectCollection>

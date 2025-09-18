@@ -8,7 +8,7 @@
 
 
 xref:index.adoc[Relation] is an important mechanism that is used at many places in midPoint.
-But perhaps the most important usage is to enable advanced features of xref:/midpoint/reference/roles-policies/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure management]. Older midPoint versions had hardcoded set of relations that could not be customized.
+But perhaps the most important usage is to enable advanced features of xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure management]. Older midPoint versions had hardcoded set of relations that could not be customized.
 MidPoint provides partial configuration of relations.
 Now it is possible to add new relation that will be used by midPoint in addition to hardcoded relations.
 
@@ -217,7 +217,7 @@ Changing existing (hardcoded) relations is *xref:/midpoint/versioning/experiment
 
 * xref:index.adoc[Relation]
 
-* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 

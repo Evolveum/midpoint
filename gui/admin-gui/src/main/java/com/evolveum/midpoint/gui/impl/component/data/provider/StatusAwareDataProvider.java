@@ -15,20 +15,36 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
+/**
+ * Data provider that augments {@link MultivalueContainerListDataProvider}
+ * with awareness of {@link StatusInfo} for each wrapped value.
+ * <p>
+ * It maintains two caches:
+ * <ul>
+ *   <li>{@code tokenByWrapper} – maps each {@link PrismContainerValueWrapper}
+ *       to the status token it belongs to</li>
+ *   <li>{@code statusByToken} – maps a token string to the corresponding
+ *       {@link StatusInfo}</li>
+ * </ul>
+ * These caches allow efficient lookup of suggestion status for both
+ * the current page and all loaded items.
+ *
+ * @param <C> type of container values this provider supplies
+ */
 public class StatusAwareDataProvider<C extends Containerable>
         extends MultivalueContainerListDataProvider<C> {
 
-    private final Map<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionByWrapper =
-            new IdentityHashMap<>();
+    /** Cache of status information keyed by token. */
+    private final Map<String, StatusInfo<?>> statusByToken = new HashMap<>();
+
+    /** Cache of wrappers mapped to their status token (identity-based). */
+    private final Map<PrismContainerValueWrapper<C>, String> tokenByWrapper = new IdentityHashMap<>();
 
     private final SerializableFunction<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionResolver;
 
-    String resourceOid;
+    private final String resourceOid;
 
     public StatusAwareDataProvider(
             Component component,
@@ -42,34 +58,70 @@ public class StatusAwareDataProvider<C extends Containerable>
     }
 
     @Override
-    protected void postProcessWrapper(@NotNull PrismContainerValueWrapper<C> valueWrapper) {
-        StatusInfo<?> info = suggestionResolver.apply(valueWrapper);
+    protected void postProcessWrapper(@NotNull PrismContainerValueWrapper<C> vw) {
+        StatusInfo<?> info = suggestionResolver.apply(vw);
         if (info != null) {
-            suggestionByWrapper.put(valueWrapper, info);
+            tokenByWrapper.put(vw, info.getToken());
+            statusByToken.putIfAbsent(info.getToken(), info);
         }
     }
 
-    public @Nullable StatusInfo<?> getSuggestionInfo(PrismContainerValueWrapper<C> value) {
+    /**
+     * Returns the current {@link StatusInfo} for the given value wrapper.
+     * <p>
+     * If the wrapper is not yet cached, the {@code suggestionResolver} is applied,
+     * and the token/status are stored. The status is then refreshed using the
+     * {@link SmartIntegrationService}, ensuring up-to-date information.
+     *
+     * @param vw wrapper whose suggestion status should be resolved
+     * @return the latest {@link StatusInfo}, or {@code null} if none is available
+     */
+    public @Nullable StatusInfo<?> getSuggestionInfo(PrismContainerValueWrapper<C> vw) {
+        String token = tokenByWrapper.get(vw);
+        if (token == null) {
+            StatusInfo<?> info = suggestionResolver.apply(vw);
+            if (info == null) {return null;}
+            token = info.getToken();
+            tokenByWrapper.put(vw, token);
+            statusByToken.putIfAbsent(token, info);
+        }
         Task task = getPageBase().createSimpleTask("Load correlation suggestion");
-        SmartIntegrationService smartService = getPageBase().getSmartIntegrationService();
-        StatusInfo<?> statusInfo = suggestionByWrapper.get(value);
-        if (statusInfo != null) {
-            try {
-                return smartService.getSuggestCorrelationOperationStatus(statusInfo.getToken(), task, task.getResult());
-            } catch (Throwable e) {
-                getPageBase().error("Couldn't get correlation suggestion status: " + e.getMessage());
-            }
+        SmartIntegrationService smart = getPageBase().getSmartIntegrationService();
+        try {
+            return smart.getSuggestCorrelationOperationStatus(token, task, task.getResult());
+        } catch (Throwable e) {
+            getPageBase().error("Couldn't get correlation suggestion status: " + e.getMessage());
+            return null;
         }
-        return null;
     }
 
-    protected String getResourceOid(){
+    protected String getResourceOid() {
         return resourceOid;
-    };
+    }
 
     @Override
     public void clearCache() {
         super.clearCache();
-        suggestionByWrapper.clear();
+        tokenByWrapper.clear();
+        statusByToken.clear();
+    }
+
+    /** Optionally warm the cache for all rows (not just current page). */
+    public void primeSuggestionCacheForAll() {
+        List<PrismContainerValueWrapper<C>> all = getModel().getObject();
+        if (all == null) {return;}
+        for (PrismContainerValueWrapper<C> vw : all) {
+            StatusInfo<?> info = suggestionResolver.apply(vw);
+            if (info != null) {
+                tokenByWrapper.put(vw, info.getToken());
+                statusByToken.putIfAbsent(info.getToken(), info);
+            }
+        }
+    }
+
+    public List<PrismContainerValueWrapper<C>> getAllSelected() {
+        List<PrismContainerValueWrapper<C>> all = getModel().getObject();
+        if (all == null) {return List.of();}
+        return all.stream().filter(PrismContainerValueWrapper::isSelected).toList();
     }
 }

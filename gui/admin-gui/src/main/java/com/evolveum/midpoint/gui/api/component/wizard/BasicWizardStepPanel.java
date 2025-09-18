@@ -32,6 +32,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_BACK = "back";
+    private static final String ID_BACK_LABEL = "backLabel";
     private static final String ID_EXIT = "exit";
 
     private static final String ID_BUTTONS_STRIP = "buttonsStrip";
@@ -83,6 +84,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         back.add(getBackBehaviour());
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
+        back.add(new Label(ID_BACK_LABEL, getBackLabelModel()));
         WebComponentUtil.addDisabledClassBehavior(back);
         buttonsStrip.add(back);
 
@@ -214,6 +216,10 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     protected AjaxLink getBack() {
         return (AjaxLink) get(createComponentPath(ID_BUTTONS_STRIP, ID_BACK));
+    }
+
+    protected IModel<String> getBackLabelModel() {
+        return createStringResource("WizardHeader.back");
     }
 
     protected AjaxSubmitButton getSubmit() {

@@ -245,8 +245,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         + "|\t|\tWeapon: rum\n"
                         + "|\t|\tFull Name: Jack Sparrow\n"
                         + "|\tPassword created:\n"
-                        + "|\t|\tPassword created:\n"
-                        + "|\t|\t|\tValue: (protected string)\n"
+                        + "|\t|\tValue: (protected string)\n"
                         + "Channel: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user\n"
                         + "No active subscription. Please support midPoint by purchasing a subscription.");
 
