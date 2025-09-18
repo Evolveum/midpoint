@@ -126,7 +126,7 @@ public class ObjectClassBasicConnectorStepPanel
             protected void onInitialize() {
                 super.onInitialize();
                 ((VerticalFormDefaultContainerablePanel)getValuePanel()).getFormContainer().add(AttributeAppender.remove("class"));
-                get(ID_VALUE_FORM).add(AttributeAppender.remove("class"));
+                get(ID_MAIN_CONTAINER).add(AttributeAppender.remove("class"));
             }
 
             @Override

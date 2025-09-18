@@ -609,7 +609,9 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return PrismContainerWrapperModel.fromContainerWrapper(Model.of(value), path);
     }
 
-    protected abstract IModel<PrismContainerWrapper<C>> getContainerModel();
+    protected IModel<PrismContainerWrapper<C>> getContainerModel(){
+        return null;
+    };
 
     @Override
     protected String getAdditionalTableCssClasses() {

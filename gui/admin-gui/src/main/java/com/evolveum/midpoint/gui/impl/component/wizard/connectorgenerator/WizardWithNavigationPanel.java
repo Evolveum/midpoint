@@ -59,8 +59,8 @@ public class WizardWithNavigationPanel extends WizardPanel {
 
         NavigationPanel header = new NavigationPanel(ID_HEADER) {
             @Override
-            protected AjaxLink createBackButton(String id) {
-                AjaxLink back = super.createBackButton(id);
+            protected AjaxLink createBackButton(String id, IModel<String> backTitle) {
+                AjaxLink back = super.createBackButton(id, backTitle);
                 back.add(AttributeAppender.replace("class", "btn btn-link"));
                 return back;
             }
