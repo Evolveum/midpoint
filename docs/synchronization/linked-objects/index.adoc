@@ -701,6 +701,6 @@ When looking for targets, the candidate set of objects is taken from assignments
 However, further filtering requires fetching these objects by their OID.
 In extreme cases, that might present hundreds of objects.
 The repo calls should be cached.
-However, in both cases, the objects pass tbhe model `getObject`/`searchObjects` methods, so all the model processing (security, template, post read hooks) is applied.
+However, in both cases, the objects pass the model `getObject`/`searchObjects` methods, so all the model processing (security, template, post read hooks) is applied.
 And as it is not treated by cache, it is applied each time those methods are used.
 If this is an issue, you need to write your own (optimized) versions of these methods or, providing that a platform subscription is in place, request such changes from Evolveum.
