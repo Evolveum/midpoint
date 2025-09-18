@@ -368,7 +368,9 @@ public class StatisticsComputer {
             Map<ShadowValuePatternType, Map<String, Integer>> affixCounts
     ) {
         for (String affix : PREFIXES) {
-            if (value.length() <= affix.length()) continue;
+            if (value.length() <= affix.length())
+                continue;
+
             if (value.toLowerCase().startsWith(affix)) {
                 affixCounts
                         .computeIfAbsent(ShadowValuePatternType.PREFIX, k -> new HashMap<>())
@@ -376,7 +378,9 @@ public class StatisticsComputer {
             }
         }
         for (String affix : SUFFIXES) {
-            if (value.length() <= affix.length()) continue;
+            if (value.length() <= affix.length())
+                continue;
+
             if (value.toLowerCase().endsWith(affix)) {
                 affixCounts
                         .computeIfAbsent(ShadowValuePatternType.SUFFIX, k -> new HashMap<>())

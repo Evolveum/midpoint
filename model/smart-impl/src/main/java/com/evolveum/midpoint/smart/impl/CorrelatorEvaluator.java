@@ -73,9 +73,9 @@ class CorrelatorEvaluator {
      * attribute distribution and mapping, and computing suitability scores.
      *
      * The main steps are:
-     *   - Sampling up to MAX_FOCUS_SAMPLE_SIZE focus objects and all relevant shadow objects
+     *   - Sampling up to MAX_SHADOW_SAMPLE_SIZE focus objects and all relevant focus objects
      *   - Computing statistics (uniqueness, coverage) for each suggested focus and resource path
-     *   - Scoring each suggestion by combining statistics and focus-shadow link coverage/ambiguity
+     *   - Scoring each suggestion by shadow-focus link coverage/ambiguity
      *
      * @param result OperationResult for operation logging/auditing.
      * @return List of scores (one per suggestion), in the same order as the input suggestions.
@@ -231,8 +231,8 @@ class CorrelatorEvaluator {
             return 0.0;
         }
 
-        Map<String, Set<String>> ShadowToFocusLinks = collectShadowToFocusLinks(suggestion);
-        double linkCoverage = computeLinkCoverage(ShadowToFocusLinks);
+        Map<String, Set<String>> shadowToFocusLinks = collectShadowToFocusLinks(suggestion);
+        double linkCoverage = computeLinkCoverage(shadowToFocusLinks);
 
         // Excluding base score to have unified score with "black-box" correlators
         /*
