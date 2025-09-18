@@ -31,6 +31,7 @@ public abstract class ConnectorDevelopmentBackend {
     private ConnectorDevelopmentType development;
     private EditableConnector editableConnector;
     protected boolean deleteConnectorSchema = false;
+    protected boolean skipConfigurationPropsUpgrade = false;
 
     public ConnectorDevelopmentBackend(ConnDevBeans beans, ConnectorDevelopmentType development, Task task, OperationResult result) {
         this.beans = beans;
@@ -263,6 +264,10 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     public void updateConfigurationOverride() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        if (skipConfigurationPropsUpgrade) {
+            return;
+        }
+
         var props = new Properties();
         updateConfigurationOverride(props);
 
@@ -304,5 +309,13 @@ public abstract class ConnectorDevelopmentBackend {
             processDocumentation();
             reload();
         }
+    }
+
+    public String connectorDisplayName() {
+        var ret = development.getConnector().getDisplayName();
+        if (ret == null) {
+            ret = development.getApplication().getApplicationName().plus(" Connector");
+        }
+        return ret.getOrig();
     }
 }

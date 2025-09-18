@@ -23,6 +23,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
@@ -253,6 +254,17 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
         public String readFile(String filename) throws IOException {
             var file = newFile(connectorFile, filename);
             return Files.readString(file.toPath());
+        }
+
+        @Override
+        public void updateProperty(String filename, String key, String value) throws IOException {
+            var file = newFile(connectorFile, filename);
+            var props = new Properties();
+            props.load(new FileInputStream(file));
+            props.setProperty(key, value);
+            try (var stream = new FileOutputStream(file)) {
+                props.store(stream, null);
+            }
         }
     }
 
