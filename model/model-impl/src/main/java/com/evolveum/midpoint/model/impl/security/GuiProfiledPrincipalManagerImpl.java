@@ -206,7 +206,7 @@ public class GuiProfiledPrincipalManagerImpl
 
             focusComputer.recompute(focus, lifecycleModel);
             GuiProfiledPrincipal principal = new GuiProfiledPrincipal(focus.asObjectable());
-            initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer, options);
+            initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer, options, result);
             return principal;
         } finally {
             securityContextManager.clearTemporaryPrincipalOid();
@@ -331,12 +331,14 @@ public class GuiProfiledPrincipalManagerImpl
             GuiProfiledPrincipal principal,
             PrismObject<SystemConfigurationType> systemConfiguration,
             AuthorizationTransformer authorizationTransformer,
-            ProfileCompilerOptions options) {
+            ProfileCompilerOptions options,
+            OperationResult result) {
         Task task = taskManager.createTaskInstance(GuiProfiledPrincipalManagerImpl.class.getName() + ".initializePrincipalFromAssignments");
-        OperationResult result = task.getResult();
+//        OperationResult result = task.getResult();
         try {
             guiProfileCompiler.compileFocusProfile(principal, systemConfiguration, authorizationTransformer, options, task, result);
         } catch (Throwable e) {
+            result.recordPartialError("There was some problem while principle user compiling, ", e);
             // Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
             // want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
             LOGGER.error("Error compiling user profile for {}: {}", principal, e.getMessage(), e);
@@ -522,7 +524,8 @@ public class GuiProfiledPrincipalManagerImpl
                     principal,
                     systemConfiguration,
                     null,
-                    options);
+                    options,
+                    result);
             principal.clearEffectivePrivilegesModification(); // we just recomputed them strictly from user's assignments
 
             return principal.getCompiledGuiProfile();

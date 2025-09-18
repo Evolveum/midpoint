@@ -165,6 +165,7 @@ public class LoginAssignmentCollector {
                                     result));
                 } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException
                         | SecurityViolationException | ConfigurationException | CommunicationException e) {
+                    result.recordPartialError("Error while processing assignment, ", e);
                     // We continue because of login mode.
                     LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
                             focus, e.getMessage(), assignment, e);
