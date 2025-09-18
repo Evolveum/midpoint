@@ -34,6 +34,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
@@ -222,7 +223,15 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     }
 
     private @NotNull ListView<SmartGeneratingDto.StatusRow> createStatusListView() {
-        ListView<SmartGeneratingDto.StatusRow> listView = new ListView<>(ID_LIST_VIEW, this::getSafeRows) {
+
+        IModel<List<SmartGeneratingDto.StatusRow>> rowsModel = new LoadableDetachableModel<>() {
+            @Override
+            protected List<SmartGeneratingDto.StatusRow> load() {
+                return getSafeRows();
+            }
+        };
+
+        ListView<SmartGeneratingDto.StatusRow> listView = new ListView<>(ID_LIST_VIEW, rowsModel) {
             @Override
             protected void populateItem(@NotNull ListItem<SmartGeneratingDto.StatusRow> item) {
                 SmartGeneratingDto.StatusRow row = item.getModelObject();
@@ -283,6 +292,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             }
         };
 
+        listView.setReuseItems(false);
         listView.setOutputMarkupId(true);
         listView.add(new VisibleBehaviour(this::isListViewVisible));
         return listView;

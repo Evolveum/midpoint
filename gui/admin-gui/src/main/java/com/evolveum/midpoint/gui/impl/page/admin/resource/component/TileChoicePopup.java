@@ -67,8 +67,9 @@ public abstract class TileChoicePopup<O extends Serializable>
 
     private O selectedValue;
 
-    public TileChoicePopup(String id, IModel<List<Tile<O>>> tileModel) {
+    public TileChoicePopup(String id, IModel<List<Tile<O>>> tileModel, O selectedValue) {
         super(id, tileModel);
+        this.selectedValue = selectedValue;
     }
 
     @Override
@@ -131,7 +132,8 @@ public abstract class TileChoicePopup<O extends Serializable>
     }
 
     private void initTileStatus(IModel<Tile<O>> tileModel, TilePanel<Tile<O>, O> components) {
-        if (getSelectedValue() != null && selectedValue.equals(tileModel.getObject().getValue())) {
+        if (getSelectedValue() != null && getSelectedValue()
+                .equals(tileModel.getObject().getValue())) {
             components.add(AttributeModifier.append("class", "active"));
         }
     }
@@ -150,7 +152,7 @@ public abstract class TileChoicePopup<O extends Serializable>
         };
         acceptButton.showTitleAsLabel(true);
         acceptButton.setOutputMarkupId(true);
-        acceptButton.add(new EnableBehaviour(() -> selectedValue != null));
+        acceptButton.add(new EnableBehaviour(() -> getSelectedValue() != null));
         footer.add(acceptButton);
 
         footer.add(new AjaxLink<Void>(ID_CLOSE) {
