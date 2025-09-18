@@ -44,7 +44,9 @@ public abstract class ConnectorDevelopmentBackend {
     public static ConnectorDevelopmentBackend backendFor(String connectorDevelopmentOid, Task task, OperationResult result) throws CommonException {
         var beans = ConnDevBeans.get();
         var connDev = beans.modelService.getObject(ConnectorDevelopmentType.class, connectorDevelopmentOid, null, task, result);
-        // FIXME: Select offline mode if system is configured to be offline.
+        if (beans.isOffline()) {
+            return new OfflineBackend(beans, connDev.asObjectable(), task, result);
+        }
         return backendFor(connDev.asObjectable(), task, result);
     }
 

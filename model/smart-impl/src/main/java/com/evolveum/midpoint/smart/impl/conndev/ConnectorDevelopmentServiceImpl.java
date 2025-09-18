@@ -23,6 +23,7 @@ import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.impl.StatusInfoImpl;
+import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -248,7 +249,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
     private String connectorTemplateFor(ConnDevIntegrationType integrationType) {
         // FIXME: Dispatch to IntegrationType specific handler
-        return "file:///home/tony/.m2/repository/com/evolveum/polygon/scimrest/connector-scimrest-generic/0.1-SNAPSHOT/connector-scimrest-generic-0.1-SNAPSHOT.jar";
+        return ConnDevBeans.get().getFrameworkUrl(new OperationResult("Empty"));
     }
 
     private static @NotNull Collection<SelectorOptions<GetOperationOptions>> taskRetrievalOptions() {
