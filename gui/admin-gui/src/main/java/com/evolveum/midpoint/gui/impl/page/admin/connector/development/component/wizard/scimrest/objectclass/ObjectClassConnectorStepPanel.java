@@ -122,21 +122,22 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
                 return newItemWrapper;
             }
 
-            @Override
-            protected void onDetach() {
-                String newObjectClassName = getObject().getRealValue().getName();
-                if (newObjectClassName != null) {
-                    if (!StringUtils.equals(objectClass, newObjectClassName)) {
-                        WizardModel wizard = getWizard();
-                        if (wizard instanceof WizardModelWithParentSteps modelWithParentSteps) {
-                            modelWithParentSteps.replaceParentStepId(
-                                    getPanelType() + (objectClass == null ? "" : "-" + objectClass),
-                                    getStepId());
-                        }
-                    }
-                }
-                objectClass = newObjectClassName;
-            }
+//            @Override
+//            protected void onDetach() {
+//                String newObjectClassName = getObject().getRealValue().getName();
+//                if (newObjectClassName != null) {
+//                    if (!StringUtils.equals(objectClass, newObjectClassName)) {
+//                        WizardModel wizard = getWizard();
+//                        if (wizard instanceof WizardModelWithParentSteps modelWithParentSteps) {
+//                            modelWithParentSteps.replaceParentStepId(
+//                                    getPanelType() + (objectClass == null ? "" : "-" + objectClass),
+//                                    getStepId());
+//                        }
+//                    }
+//                }
+//                objectClass = newObjectClassName;
+//                super.onDetach();
+//            }
         };
     }
 
@@ -259,6 +260,11 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
         if (StringUtils.isNotEmpty(valueModel.getObject().getRealValue().getName())) {
             return getPanelType() + "-" + StringUtils.normalizeSpace(valueModel.getObject().getRealValue().getName());
         }
+        return getDefaultStepId();
+    }
+
+    @Override
+    public String getDefaultStepId() {
         return getPanelType();
     }
 
@@ -272,7 +278,7 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
         return List.of(
 //                new ObjectClassBasicConnectorStepPanel(getHelper(), valueModel),
                 new WaitingObjectClassConnectorStepPanel(getHelper()),
-                new ObjectClassSelectConnectorStepPanel(getHelper()),
+                new ObjectClassSelectConnectorStepPanel(getHelper(), valueModel),
                 new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), valueModel),
                 new WaitingNativeSchemaConnectorStepPanel(getHelper(), valueModel),
                 new WaitingConnIdSchemaConnectorStepPanel(getHelper(), valueModel),

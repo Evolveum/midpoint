@@ -91,7 +91,11 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
         };
     }
 
-    protected abstract List<String> getTokensForTasksForObtainResults();
+    protected abstract List<String> getTokensKeys();
+
+    private List<String> getTokensForTasksForObtainResults() {
+        return getTokensKeys().stream().map(key -> getHelper().getVariable(key)).toList();
+    }
 
     private void initLayout() {
         getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));

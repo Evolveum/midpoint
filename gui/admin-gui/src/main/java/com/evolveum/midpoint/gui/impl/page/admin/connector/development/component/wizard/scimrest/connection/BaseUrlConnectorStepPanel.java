@@ -165,7 +165,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "scimBaseUrl"))){
+            if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "baseAddress"))){
                 return ItemVisibility.AUTO;
             }
             return ItemVisibility.HIDDEN;

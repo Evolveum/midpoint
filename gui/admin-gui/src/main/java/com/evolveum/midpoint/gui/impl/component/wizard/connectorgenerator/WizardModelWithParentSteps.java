@@ -69,7 +69,12 @@ public class WizardModelWithParentSteps extends WizardModel {
 
     private List<WizardStep> getChildrenSteps(WizardParentStep parentStep) {
         if (!childrenSteps.containsKey(parentStep.getStepId())) {
-            childrenSteps.put(parentStep.getStepId(), parentStep.createChildrenSteps());
+            String defaultKey = parentStep.getDefaultStepId();
+            if (childrenSteps.containsKey(defaultKey)) {
+                childrenSteps.put(parentStep.getStepId(), childrenSteps.get(defaultKey));
+            } else {
+                childrenSteps.put(parentStep.getStepId(), parentStep.createChildrenSteps());
+            }
         }
         return childrenSteps.get(parentStep.getStepId());
     }
@@ -295,13 +300,6 @@ public class WizardModelWithParentSteps extends WizardModel {
         newStep.init(this);
         if (newStep instanceof WizardParentStep parentStep) {
             getChildrenSteps(parentStep).forEach(s -> s.init(this));
-        }
-    }
-
-    public void replaceParentStepId(String oldStepId, String newStepId) {
-        if (childrenSteps.containsKey(oldStepId)) {
-            childrenSteps.put(newStepId, childrenSteps.get(oldStepId));
-            childrenSteps.remove(oldStepId);
         }
     }
 }

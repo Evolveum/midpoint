@@ -108,9 +108,4 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
         }
         return false;
     }
-
-    @Override
-    public VisibleEnableBehaviour getNextBehaviour() {
-        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
-    }
 }

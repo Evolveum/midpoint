@@ -44,7 +44,7 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
     }
 
     @Override
-    protected List<String> getTokensForTasksForObtainResults() {
+    protected List<String> getTokensKeys() {
         return List.of(TASK_NATIVE_SCRIPTS_KEY, TASK_CONNID_SCRIPTS_KEY);
     }
 

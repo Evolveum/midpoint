@@ -66,10 +66,13 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_MORE_OBJECT_CLASSES_BUTTON = "moreObjectClassesButton";
 
+    private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>> valuesModel;
 
-    public ObjectClassSelectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    public ObjectClassSelectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
+            IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
         super(helper);
+        this.valueModel = valueModel;
     }
 
     @Override
@@ -251,20 +254,22 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
 
         if (objectClassName.get() != null) {
             getHelper().putVariable(OBJECT_CLASS_NAME, objectClassName.get());
+            valueModel.detach();
         }
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {
-            ObjectClassConnectorStepPanel step = new ObjectClassConnectorStepPanel(getHelper());
-            WizardModel wizardModel = getWizard();
-            wizardModel.addStepBefore(step, ObjectClassConnectorStepPanel.class);
-            if (wizardModel instanceof WizardModelWithParentSteps wizardModelWithParentSteps) {
-                wizardModelWithParentSteps.setActiveChildStepById(ObjectClassConnectorStepPanel.PANEL_TYPE);
-            } else {
-                wizardModel.setActiveStepById(ObjectClassConnectorStepPanel.PANEL_TYPE);
-            }
-            wizardModel.fireActiveStepChanged();
-            target.add(getWizard().getPanel());
+//            ObjectClassConnectorStepPanel step = new ObjectClassConnectorStepPanel(getHelper());
+//            WizardModel wizardModel = getWizard();
+//            wizardModel.addStepBefore(step, ObjectClassConnectorStepPanel.class);
+//            if (wizardModel instanceof WizardModelWithParentSteps wizardModelWithParentSteps) {
+//                wizardModelWithParentSteps.setActiveChildStepById(ObjectClassConnectorStepPanel.PANEL_TYPE);
+//            } else {
+//                wizardModel.setActiveStepById(ObjectClassConnectorStepPanel.PANEL_TYPE);
+//            }
+//            wizardModel.fireActiveStepChanged();
+//            target.add(getWizard().getPanel());
+            super.onNextPerformed(target);
         } else {
             target.add(getFeedback());
         }

@@ -71,7 +71,7 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
                     getContainerFormModel().getObject().findProperty(ConnDevConnectorType.F_GROUP_ID);
             if (StringUtils.isEmpty(groupIdProperty.getValue().getRealValue())) {
                 groupIdProperty.getValue().setRealValue(
-                        "com.evolveum." + StringUtils.normalizeSpace(containerBean.getApplicationName().getNorm()));
+                        "com.evolveum.polygon.community");
             }
 
             PrismPropertyWrapper<String> artifactIdProperty =

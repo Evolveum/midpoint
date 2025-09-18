@@ -90,7 +90,7 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
             protected List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> load() {
                 try {
                     PrismContainerWrapper<ConnDevObjectClassInfoType> container = getDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
+                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_DETECTED_SCHEMA, ConnDevSchemaType.F_OBJECT_CLASS));
                     Optional<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassContainer = container.getValues().stream().filter(value ->
                                     StringUtils.equals(value.getRealValue().getName(), objectClassModel.getObject().getRealValue().getName()))
                             .findFirst();
@@ -224,7 +224,7 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
             PrismContainerWrapper<ConnDevHttpEndpointType> container =
                     objectClassModel.getObject().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
 
-            valuesModel.getObject()
+            List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> valuesToAdd = valuesModel.getObject()
                     .stream().filter(PrismContainerValueWrapper::isSelected)
                     .map(value -> {
                         try {
@@ -234,19 +234,16 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
-                    })
-                    .forEach(value -> {
-                        try {
-                            if (value.isSelected()) {
+                    }).toList();
 
-                                container.getItem().add(value.getRealValue().asPrismContainerValue());
-                                container.getValues().add(value);
-                            }
-                            value.setSelected(false);
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+            valuesToAdd.forEach(value -> {
+                try {
+                    container.getItem().add(value.getRealValue().asPrismContainerValue());
+                    container.getValues().add(value);
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e);
+                }
+            });
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);

@@ -17,4 +17,8 @@ public interface WizardParentStep extends WizardStep {
         return List.of();
     }
 
+    default String getDefaultStepId() {
+        return getStepId();
+    }
+
 }

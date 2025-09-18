@@ -168,7 +168,7 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
         return wrapper -> {
-            if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "baseAddress"))){
+            if (QNameUtil.match(wrapper.getItemName(), ItemName.from("", "scimBaseUrl"))){
                 return ItemVisibility.AUTO;
             }
             return ItemVisibility.HIDDEN;
