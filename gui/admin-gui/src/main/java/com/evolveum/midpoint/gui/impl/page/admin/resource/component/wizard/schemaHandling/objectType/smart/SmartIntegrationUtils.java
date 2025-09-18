@@ -89,6 +89,14 @@ public class SmartIntegrationUtils {
                 ? s.getRealizationEndTimestamp().toGregorianCalendar().getTimeInMillis()
                 : System.currentTimeMillis());
 
+        return formatElapsedTime(startMillis, endMillis);
+    }
+
+    public static @NotNull String formatElapsedTime(Long startMillis, Long endMillis) {
+        if (endMillis == null) {
+            endMillis = System.currentTimeMillis();
+        }
+
         long elapsedMillis = endMillis - startMillis;
         if (elapsedMillis < 0) {elapsedMillis = 0;}
 

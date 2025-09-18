@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemNameUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -64,7 +65,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
             ObjectDetailsModels<ResourceType> objectDetailsModel =
                     resource.getValue().getNewObjectModel(getContainerConfiguration(PANEL_TYPE), getPageBase(), new OperationResult("getResourceModel"));
 
-            ItemPath path = ItemPath.create("connectorConfiguration", "configurationProperties");
+            ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
             return PrismContainerWrapperModel.fromContainerWrapper(objectDetailsModel.getObjectWrapperModel(), path);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
