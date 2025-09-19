@@ -438,4 +438,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     public boolean isOnline() {
         return true;
     }
+
+    @Override
+    public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) {
+        return List.of();
+    }
+
 }

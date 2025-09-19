@@ -60,6 +60,10 @@ public interface ConnectorDevelopmentOperation {
         return submitGenerateArtifact(SEARCH_ALL_DEFINITION.create(objectClass), task, result);
     }
 
+    default String submitGenerateRelationScript(ConnDevRelationInfoType relation, Task task, OperationResult result) {
+        return submitGenerateArtifact(RELATIONSHIP_SCHEMA_DEFINITION.create(relation.getName()), task, result);
+    }
+
     // FIXME: Also add operation results
     // Midpoint local
     ResourceType testConnection(ConnectorConfigurationType type);
@@ -94,6 +98,10 @@ public interface ConnectorDevelopmentOperation {
     default void  saveNativeSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);
         resetResourceSchema(task, result);
+    }
+
+    default void saveRelationshipScritp(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException {
+        saveArtifact(endpoint, task, result);
     }
 
 

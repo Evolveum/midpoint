@@ -94,7 +94,9 @@ public class DiscoverObjectClassInformationActivityHandler
 
             backend.updateApplicationObjectClasses(discovered);
 
+            var relations = backend.discoverRelationsUsingObjectClasses(discovered);
 
+            backend.updateRelations(relations);
             var state = getActivityState();
 
             // FIXME: Write connectorRef + connectorDirectory to ConnectorDevelopmentType

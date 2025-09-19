@@ -34,13 +34,10 @@ public class ResourceUtils {
         public static void deleteSchema(String resource, ModelService modelService, Task task, OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, PolicyViolationException, SecurityViolationException {
-            var rawOptions = GetOperationOptionsBuilder.create().raw().build();
-            var resourceObj = modelService.getObject(ResourceType.class, resource, rawOptions , task, parentResult);
-            if (resourceObj != null && resourceObj.asObjectable().getSchema() != null) {
-                ObjectDelta<ResourceType> delta = PrismContext.get().deltaFor(ResourceType.class)
-                        .item(ResourceType.F_SCHEMA).delete(resourceObj.asObjectable().getSchema().clone()).asObjectDelta(resource);
-
-                modelService.executeChanges(singleton(delta), ModelExecuteOptions.create().raw(), task, parentResult);
-            }
+        ObjectDelta<ResourceType> delta = PrismContext.get().deltaFor(ResourceType.class)
+                .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION)).replace()
+                .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_CACHING_METADATA)).replace()
+                .asObjectDelta(resource);
+        modelService.executeChanges(singleton(delta), ModelExecuteOptions.create().raw(), task, parentResult);
     }
 }
