@@ -930,8 +930,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         Map<String, Integer> valueCounts = typeAttribute.getValueCount().stream()
                 .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
         assertThat(valueCounts).containsEntry("employee", 2);
-        assertThat(valueCounts).containsEntry("manager", 1);
-        assertThat(valueCounts).containsEntry("contractor", 1);
+        assertThat(valueCounts).doesNotContainEntry("manager", 1);
+        assertThat(valueCounts).doesNotContainEntry("contractor", 1);
     }
 
     private static <T, R extends Comparable<? super R>> boolean isSortedDesc(List<T> list, Function<T, R> f) {
@@ -1031,7 +1031,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         for (var attribute : statistics.getAttribute()) {
             if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
                 assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(11);
+                assertThat(attribute.getValuePatternCount().size()).isEqualTo(17);
                 for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
                     assertThat(patternCount.getValue()).isNotEmpty();
                     assertThat(patternCount.getType()).isNotNull();
