@@ -256,7 +256,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var c = dummyForObjectTypes.getController();
         c.addAccount("carol")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Carol Danvers")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_123")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_12šč3")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "carol.prod@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
@@ -1031,7 +1031,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         for (var attribute : statistics.getAttribute()) {
             if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
                 assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(9);
+                assertThat(attribute.getValuePatternCount().size()).isEqualTo(17);
                 for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
                     assertThat(patternCount.getValue()).isNotEmpty();
                     assertThat(patternCount.getType()).isNotNull();
