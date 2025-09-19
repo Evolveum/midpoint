@@ -118,7 +118,6 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                           creatable true
                        }
                     }
-                    }
                     """;
             case CONNID_SCHEMA_DEFINITION -> """
                     objectClass("${objectClass}") {
