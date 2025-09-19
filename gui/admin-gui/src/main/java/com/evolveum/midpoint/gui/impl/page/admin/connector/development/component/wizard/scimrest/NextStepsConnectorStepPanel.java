@@ -226,6 +226,8 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
 
     public enum ConnectorAction implements TileEnum {
 
+        CREATE_RESOURCE("fa fa-plus bg-teal-100 text-success",
+                "ConnectorAction.CREATE_RESOURCE.description"),
         UPLOAD("fa-solid fa-gears bg-cyan-100 text-info",
                 "ConnectorAction.UPLOAD.description"),
         NEW_OBJECT_CLASS("fa-solid fa-shapes bg-orange-100 text-warning",

@@ -279,9 +279,18 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             protected boolean isFulltextEnabled() {
                 return false;
             }
+
+            @Override
+            protected boolean isHeaderVisible() {
+                return ResourceUncategorizedPanel.this.isHeaderVisible();
+            }
         };
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
+    }
+
+    protected boolean isHeaderVisible() {
+        return true;
     }
 
     protected Consumer<Task> createProviderSearchTaskCustomizer() {

@@ -102,6 +102,11 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
     }
 
     @Override
+    public IModel<String> getTitle() {
+        return createStringResource("PageConnectorDevelopment.wizard.step.resourceTest");
+    }
+
+    @Override
     public String appendCssToWizard() {
         return "col-12";
     }

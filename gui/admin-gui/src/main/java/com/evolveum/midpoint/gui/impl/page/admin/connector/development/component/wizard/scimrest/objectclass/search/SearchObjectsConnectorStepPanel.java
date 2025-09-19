@@ -133,6 +133,11 @@ public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<Con
             protected boolean isObjectClassFieldVisible() {
                 return false;
             }
+
+            @Override
+            protected boolean isHeaderVisible() {
+                return false;
+            }
         };
         table.setOutputMarkupId(true);
         add(table);

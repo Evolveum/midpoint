@@ -29,6 +29,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Optional;
 
 /**
@@ -129,8 +131,9 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                 return false;
             }
 
+            @Override
             protected IModel<String> getIconCssModel() {
-                return Model.of("fa fa-search");
+                return getIconModel();
             }
 
             protected IModel<String> getTitleModel() {
@@ -140,9 +143,20 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             protected IModel<String> getSubTitleModel() {
                 return WaitingConnectorStepPanel.this.getSubTextModel();
             }
+
+            @Override
+            protected void onInitialize() {
+                super.onInitialize();
+                getSubTextLabelPanel().add(
+                        AttributeAppender.replace("class", "text-center text-secondary mb-2 col-6 lh-2"));
+            }
         };
         waitingPanel.setOutputMarkupId(true);
         add(waitingPanel);
+    }
+
+    protected @NotNull Model<String> getIconModel() {
+        return Model.of("fa fa-search");
     }
 
     @Override

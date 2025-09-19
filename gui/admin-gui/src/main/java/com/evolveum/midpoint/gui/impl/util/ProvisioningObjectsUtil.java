@@ -487,9 +487,9 @@ public class ProvisioningObjectsUtil {
         refreshResourceSchema(resource, operation, target, pageBase, result);
     }
 
-    public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, PageBase pageBase, boolean showResult) {
+    public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, PageBase pageBase, boolean showSuccessResult) {
         OperationResult result = new OperationResult(operation);
-        refreshResourceSchema(resource, operation, pageBase, result, true);
+        refreshResourceSchema(resource, operation, pageBase, result, showSuccessResult);
     }
 
     public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase, OperationResult result) {
@@ -497,7 +497,7 @@ public class ProvisioningObjectsUtil {
         target.add(pageBase.getFeedbackPanel());
     }
 
-    private static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, PageBase pageBase, OperationResult result, boolean showResult) {
+    private static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, PageBase pageBase, OperationResult result, boolean showSuccessResult) {
         Task task = pageBase.createSimpleTask(operation);
 
         try {
@@ -511,7 +511,7 @@ public class ProvisioningObjectsUtil {
         }
 
         result.computeStatus();
-        if (showResult) {
+        if (!result.isSuccess() || showSuccessResult) {
             pageBase.showResult(result, "pageResource.refreshSchema.failed");
         }
     }

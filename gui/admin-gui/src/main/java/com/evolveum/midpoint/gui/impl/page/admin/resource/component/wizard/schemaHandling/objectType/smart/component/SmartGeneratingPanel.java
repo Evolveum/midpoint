@@ -481,4 +481,8 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     protected IModel<String> getSubTitleModel() {
         return createStringResource("SmartGeneratingSuggestionStep.wizard.step.generating.suggestion.action.subText");
     }
+
+    protected Label getSubTextLabelPanel() {
+        return (Label) get(createComponentPath(ID_PANEL_CONTAINER, ID_SUBTEXT));
+    }
 }

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingObjectClass", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class WaitingObjectClassConnectorStepPanel extends WaitingConnectorStepPanel {
+public class WaitingObjectClassConnectorStepPanel extends WaitingConnectorStepPanel implements WizardParentStep {
 
     private static final String PANEL_TYPE = "cdw-connector-waiting-object-class";
 

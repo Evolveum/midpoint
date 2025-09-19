@@ -164,11 +164,11 @@ public class ResourceTestPanel extends BasePanel<String> {
     }
 
     protected IModel<String> getTitleModel() {
-        return createTextModel("ResourceTestPanel.text");
+        return createTextModel("PageConnectorDevelopment.wizard.step.resourceTest.text");
     }
 
     protected IModel<String> getSubTitleModel() {
-        return createTextModel("ResourceTestPanel.subText");
+        return createTextModel("PageConnectorDevelopment.wizard.step.resourceTest.subText");
     }
 
     private @NotNull IModel<String> createTextModel(String keyPrefix) {

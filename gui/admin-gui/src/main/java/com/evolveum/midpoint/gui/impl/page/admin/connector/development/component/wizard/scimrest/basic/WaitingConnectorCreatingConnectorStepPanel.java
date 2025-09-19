@@ -32,6 +32,9 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author lskublik
  */
@@ -107,5 +110,10 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
             target.add(getFeedback());
         }
         return false;
+    }
+
+    @Override
+    protected @NotNull Model<String> getIconModel() {
+        return Model.of("fa fa-cogs");
     }
 }

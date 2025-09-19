@@ -218,7 +218,7 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
     @Override
     public IModel<String> getTitle() {
         return () -> {
-            String title = createStringResource("PageResource.wizard.step.objectType.objectClassBasic").getString();
+            String title = createStringResource("PageConnectorDevelopment.wizard.step.objectClass").getString();
             if (StringUtils.isNotEmpty(valueModel.getObject().getRealValue().getName())) {
                 title += ": " + valueModel.getObject().getRealValue().getName();
             }
@@ -275,7 +275,7 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
     public List<WizardStep> createChildrenSteps() {
         return List.of(
 //                new ObjectClassBasicConnectorStepPanel(getHelper(), valueModel),
-                new WaitingObjectClassConnectorStepPanel(getHelper()),
+//                new WaitingObjectClassConnectorStepPanel(getHelper()),
                 new ObjectClassSelectConnectorStepPanel(getHelper(), valueModel),
                 new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), valueModel),
                 new WaitingNativeSchemaConnectorStepPanel(getHelper(), valueModel),

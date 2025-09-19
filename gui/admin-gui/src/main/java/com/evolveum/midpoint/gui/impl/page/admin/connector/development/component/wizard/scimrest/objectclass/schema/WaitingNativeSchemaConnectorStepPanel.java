@@ -25,6 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassIn
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author lskublik
  */
@@ -80,5 +83,10 @@ public class WaitingNativeSchemaConnectorStepPanel extends WaitingConnectorStepP
     @Override
     protected IModel<String> getSubTextModel() {
         return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingNativeSchema.subText");
+    }
+
+    @Override
+    protected @NotNull Model<String> getIconModel() {
+        return Model.of("fa fa-cogs");
     }
 }

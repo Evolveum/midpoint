@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.WaitingObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
@@ -88,6 +89,7 @@ public class PageConnectorDevelopment extends PageAssignmentHolderDetails<Connec
                 List.of(
                         new BasicInformationConnectorStepPanel(helper),
                         new ConnectionConnectorStepPanel(helper),
+                        new WaitingObjectClassConnectorStepPanel(helper),
                         new ObjectClassConnectorStepPanel(helper),
                         new NextStepsConnectorStepPanel(helper)));
     }

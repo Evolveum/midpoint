@@ -474,9 +474,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         ExecuteChangeOptionsDto options = getExecuteChangesOptionsDto();
 
-        Collection<ExecutedDeltaPostProcessor> preconditionDeltas;
+        Collection<ExecutedDeltaPostProcessor> preconditionDeltaProcessors;
         try {
-            preconditionDeltas = getObjectDetailsModels().collectPreconditionDeltas(this, result);
+            preconditionDeltaProcessors = getObjectDetailsModels().collectPreconditionDeltas(this, result);
         } catch (CommonException ex) {
             result.recordHandledError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
@@ -485,11 +485,15 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             return null;
         }
 
-        if (!previewOnly && !preconditionDeltas.isEmpty()) {
-            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltas) {
+        if (!previewOnly && !preconditionDeltaProcessors.isEmpty()) {
+            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltaProcessors) {
                 OperationResult subResult = result.createSubresult("executePreconditionDeltas");
+                Collection<ObjectDelta<? extends ObjectType>> preconditionDeltas = preconditionDelta.getObjectDeltas();
+                if (preconditionDeltas.isEmpty()) {
+                    continue;
+                }
                 Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(
-                        preconditionDelta.getObjectDeltas(), previewOnly, options, task, subResult, target);
+                        preconditionDeltas, previewOnly, options, task, subResult, target);
                 if (subResult.isFatalError()) {
                     afterSavePerformed(subResult, executedDeltas, target);
                     return null;
@@ -517,7 +521,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         if (previewOnly) {
-            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltas) {
+            for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltaProcessors) {
                 deltas.addAll(preconditionDelta.getObjectDeltas());
             }
         }

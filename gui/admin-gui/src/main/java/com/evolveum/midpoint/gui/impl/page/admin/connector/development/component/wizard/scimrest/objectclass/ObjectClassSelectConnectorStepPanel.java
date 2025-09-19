@@ -51,7 +51,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 @PanelInstance(identifier = "cdw-select-object-class",
         applicableForType = ConnectorDevelopmentType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.objectClass", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.selectObjectClass", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
@@ -183,7 +183,7 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.objectClass");
+        return createStringResource("PageConnectorDevelopment.wizard.step.selectObjectClass");
     }
 
     @Override
