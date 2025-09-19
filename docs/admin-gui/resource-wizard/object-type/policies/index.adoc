@@ -63,6 +63,40 @@ This way you can enable/disable the policy for individual operations, such as Ad
 
 TIP: Default operation policy is heavily used in xref:/midpoint/methodology/group-synchronization/[].
 
+[[markManually]]
+== Mark objects manually
+
+In addition to marking objects in bulk by filtering them in the <<classsifyObjects,Marking>> section, you can also mark individual objects manually in the following areas of the midPoint GUI:
+
+=== Accounts
+. Go to [.nowrap]#icon:database[] *Resources*# > [.nowrap]#icon:database[] *All resources*# > resource.
+. In the resource, click [.nowrap]#icon:male[] *Accounts*#.
++
+image::object-add-mark-01.webp[link=object-add-mark-01.webp,100%,title=Navigate to accounts]
+. Click the name of the account that you want to mark.
+. Go to the [.nowrap]#icon:circle[] *Marks*# tab.
++
+image::object-add-mark-02.webp[link=object-add-mark-02.webp,100%,title=Add marks to accounts]
+. Click [.nowrap]#icon:plus[] btn:[Add mark]# to add a new mark.
+
+=== Entitlements
+. Go to [.nowrap]#icon:database[] *Resources*# > [.nowrap]#icon:database[] *All resources*# > resource.
+. In the resource, click [.nowrap]#icon:users[] *Entitlements*#.
+. Click the dropdown button at the farthest right for the entitlement you want to mark and select [.nowrap]#*Modify marks*#.
++
+image::object-add-mark-03.webp[link=object-add-mark-03.webp,100%,title=Add marks to entitlements]
+. Click [.nowrap]#icon:plus[] btn:[Add mark]# to add a new mark.
+
+=== Simulations
+. Go to [.nowrap]#icon:flask[] *Simulations*# > [.nowrap]#icon:circle[] *All results*#.
+. Click the name of a simulation.
+. Click the [.nowrap]#icon:search[] btn:[View processed objects]# button.
+. For the object to which you want to assign marks, you can:
+** Mark the object directly as _Protected_ by clicking the [.nowrap]#icon:shield-alt[] btn:[Mark as Protected]# button.
++
+image::simulations-add-mark.webp[link=simulations-add-mark.webp,100%,title=Add marks in simulation results]
+** Assign other marks by clicking the dropdown button next to the [.nowrap]#icon:shield-alt[] btn:[Mark as Protected]# button, and selecting *Modify marks*.
+
 == Review marks
 
 You can review marked objects by going to [.nowrap]#icon:tag[] *Marks*# > [.nowrap]#icon:tag[] *Object marks*# > mark > [.nowrap]#icon:circle[] *Marked shadows*#.
