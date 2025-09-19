@@ -71,7 +71,7 @@ public class RunAsRunner {
         if (identityRef == null) {
             return null;
         }
-        String oid = MiscUtil.requireNonNull(identityRef.getOid(), "Identity reference without OID is not supported");
+        String oid = MiscUtil.requireNonNull(identityRef.getOid(), () -> "Identity reference without OID is not supported");
         if (isLoggedIn(oid)) {
             return null; // already logged as requested OID -> no need to switch the context
         }
