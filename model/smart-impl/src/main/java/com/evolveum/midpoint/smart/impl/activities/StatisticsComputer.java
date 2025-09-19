@@ -247,8 +247,11 @@ public class StatisticsComputer {
      * @return a LinkedHashMap of the top N most frequent values and their counts, or an empty map if all counts are 1
      */
     private Map<String, Integer> getTopNValueCounts(Map<String, Integer> valueCounts) {
+        if (valueCounts.values().stream().max(Integer::compare).orElse(0) <= 1) {
+            return new LinkedHashMap<>();
+        }
+
         return valueCounts.entrySet().stream()
-                .filter(e -> e.getValue() > 1)
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .limit(TOP_N_LIMIT)
                 .collect(LinkedHashMap::new,
