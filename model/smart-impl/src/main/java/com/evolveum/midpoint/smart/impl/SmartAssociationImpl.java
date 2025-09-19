@@ -17,7 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.cxf.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -170,19 +169,21 @@ public class SmartAssociationImpl {
                     firstParticipantObjectTypeIdentification, secondParticipantTypeIdentification, refAttrItemName);
             QName assocQName = new QName(nativeSchema.getNamespace(), assocName);
             association.setName(assocQName);
+            association.setDisplayName(assocName);
 
             ShadowAssociationTypeSubjectDefinitionType subject;
             ShadowAssociationTypeObjectDefinitionType object;
 
             // Currently we want to support subjectToObject associations only, but should we use refAttributeDef.getReferenceParticipantRole()?
             if (firstParticipantRole == ShadowReferenceParticipantRole.SUBJECT) {
-                subject = buildSubjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef);
-                object = buildObjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef);
+                subject = buildSubjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef, refAttrItemName);
+                object = buildObjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef, refAttrItemName);
             } else {
                 //NOTE this is never used in the current implementation, but it is here for completeness.
-                subject = buildSubjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef);
-                object = buildObjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef);
+                subject = buildSubjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef, refAttrItemName);
+                object = buildObjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef, refAttrItemName);
             }
+
 
             String descriptionNote = createAssociationDescription(refAttrItemName,
                     firstParticipantDef, firstParticipantObjectTypeIdentification,
@@ -269,16 +270,22 @@ public class SmartAssociationImpl {
     /**
      * Builds a subject-side association participant definition.
      *
-     * @param subjectType   Type identification for the subject.
+     * @param subjectType Type identification for the subject.
      * @param subjectClassDef Native object class definition for the subject.
+     * @param refAttrItemName Reference attribute defining the association.
      * @return A fully initialized {@link ShadowAssociationTypeSubjectDefinitionType}.
      */
     private static @NotNull ShadowAssociationTypeSubjectDefinitionType buildSubjectParticipantDefinitionType(
             @NotNull ResourceObjectTypeIdentification subjectType,
-            @NotNull NativeObjectClassDefinition subjectClassDef) {
+            @NotNull NativeObjectClassDefinition subjectClassDef, ItemName refAttrItemName) {
+
+        ShadowAssociationDefinitionType assocDef = new ShadowAssociationDefinitionType()
+                .ref(refAttrItemName.toBean()) //TODO this is probably not correct
+                .sourceAttributeRef(refAttrItemName.toBean());
 
         return new ShadowAssociationTypeSubjectDefinitionType()
                 .ref(subjectClassDef.getQName())
+                .association(assocDef)
                 .objectType(new ResourceObjectTypeIdentificationType()
                         .kind(subjectType.getKind())
                         .intent(subjectType.getIntent()));
@@ -287,19 +294,26 @@ public class SmartAssociationImpl {
     /**
      * Builds an object-side association participant definition.
      *
-     * @param objectType     Type identification for the object.
+     * @param objectType Type identification for the object.
      * @param objectClassDef Native object class definition for the object.
+     * @param refAttrItemName Reference attribute that defines the association.
      * @return A fully initialized {@link ShadowAssociationTypeObjectDefinitionType}.
      */
     private static @NotNull ShadowAssociationTypeObjectDefinitionType buildObjectParticipantDefinitionType(
             @NotNull ResourceObjectTypeIdentification objectType,
-            @NotNull NativeObjectClassDefinition objectClassDef) {
+            @NotNull NativeObjectClassDefinition objectClassDef,
+            @NotNull ItemName refAttrItemName) {
+
+        ShadowAssociationDefinitionType assocDef = new ShadowAssociationDefinitionType()
+                .ref(refAttrItemName.toBean())
+                .sourceAttributeRef(refAttrItemName.toBean());
 
         return new ShadowAssociationTypeObjectDefinitionType()
                 .ref(objectClassDef.getQName())
                 .objectType(new ResourceObjectTypeIdentificationType()
                         .kind(objectType.getKind())
-                        .intent(objectType.getIntent()));
+                        .intent(objectType.getIntent()))
+                .association(assocDef);
     }
 
     //TODO: Design better strategy for generating association names. Also think for combined/separated associations.

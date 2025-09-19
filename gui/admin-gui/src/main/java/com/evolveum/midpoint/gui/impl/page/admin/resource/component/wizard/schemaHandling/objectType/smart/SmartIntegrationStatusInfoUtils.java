@@ -70,6 +70,29 @@ public class SmartIntegrationStatusInfoUtils {
     }
 
     /**
+     * Loads the current status of association suggestions for a resource,
+     * initializing it via smart integration services.
+     * Returns a real status or an error status in case of failure.
+     */
+    public static @Nullable List<StatusInfo<AssociationsSuggestionType>> loadAssociationSuggestions(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        var smart = pageBase.getSmartIntegrationService();
+
+        try {
+            return smart.listSuggestAssociationsOperationStatuses(resourceOid, task, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            LoggingUtils.logException(LOGGER, "Couldn't load association suggestions status for {}", t, resourceOid);
+            return null;
+        } finally {
+            result.close();
+        }
+    }
+
+    /**
      * Retrieves the latest available object types suggestion for a given object class.
      * Returns {@code null} if there are no suggestions.
      */
@@ -285,13 +308,13 @@ public class SmartIntegrationStatusInfoUtils {
                                             .findPropertyDefinition(ResourceAttributeDefinitionType.F_REF);
 
                             for (PrismContainerValueWrapper<MappingType> mappingVw : inboundWrapper.getValues()) {
-                                    MappingUtils.createVirtualItemInMapping(
-                                            mappingVw,
-                                            defItemWrapper,
-                                            refDef,
-                                            pageBase,
-                                            ResourceAttributeDefinitionType.F_REF,
-                                            mappingDirection);
+                                MappingUtils.createVirtualItemInMapping(
+                                        mappingVw,
+                                        defItemWrapper,
+                                        refDef,
+                                        pageBase,
+                                        ResourceAttributeDefinitionType.F_REF,
+                                        mappingDirection);
 
                                 wrappers.add(mappingVw);
                                 byWrapper.put(mappingVw, suggestionStatusInfo);
@@ -552,6 +575,75 @@ public class SmartIntegrationStatusInfoUtils {
         });
 
         return new ObjectTypeSuggestionProviderResult(wrappers, suggestionByWrapper);
+    }
+
+    public record AssociationTypeSuggestionProviderResult(
+            @NotNull List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> wrappers,
+            @NotNull Map<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>, StatusInfo<AssociationsSuggestionType>> suggestionByWrapper) {
+
+    }
+
+    /** Creates value wrappers for each suggested association type. */
+    public static @NotNull AssociationTypeSuggestionProviderResult loadAssociationTypeSuggestionWrappers(
+            PageBase pageBase,
+            String resourceOid,
+            Task task,
+            OperationResult result) {
+        Map<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>, StatusInfo<AssociationsSuggestionType>> suggestionByWrapper = new HashMap<>();
+
+        final @Nullable List<StatusInfo<AssociationsSuggestionType>> suggestions = loadAssociationSuggestions(
+                pageBase, resourceOid, task, result);
+        if (suggestions == null || suggestions.isEmpty()) {
+            return new AssociationTypeSuggestionProviderResult(Collections.emptyList(), suggestionByWrapper);
+        }
+
+        final List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> wrappers = new ArrayList<>();
+        suggestions.stream().filter(Objects::nonNull).forEach(si -> {
+            AssociationsSuggestionType suggestion = si.getResult();
+            if (si.getStatus() == OperationResultStatusType.NOT_APPLICABLE) {
+                return;
+            }
+
+            if (si.getResult() == null || si.getResult().getAssociation().isEmpty()) {
+                AssociationsSuggestionType tmp = new AssociationsSuggestionType();
+                tmp.getAssociation().add(new AssociationSuggestionType());
+                suggestion = tmp;
+            }
+
+            try {
+                @SuppressWarnings("unchecked")
+                PrismContainer<AssociationSuggestionType> container =
+                        suggestion.asPrismContainerValue().findContainer(AssociationsSuggestionType.F_ASSOCIATION);
+
+                PrismContainerWrapper<AssociationSuggestionType> wrapper = pageBase.createItemWrapper(
+                        container, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
+
+                List<PrismContainerValueWrapper<AssociationSuggestionType>> values = wrapper.getValues();
+                for (PrismContainerValueWrapper<AssociationSuggestionType> value : values) {
+                    PrismContainerWrapper<ShadowAssociationTypeDefinitionType> assocDefW =
+                            value.findContainer(AssociationSuggestionType.F_DEFINITION);
+                    if (assocDefW == null || assocDefW.getValues() == null || assocDefW.getValues().isEmpty()) {
+                        result.recordWarning("Association suggestion without definition was skipped.");
+                        continue;
+                    }
+                    if (assocDefW.getValues().size() > 1) {
+                        result.recordWarning("Association suggestion with multiple definitions was skipped.");
+                        continue;
+                    }
+
+                    List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> shadowAssociationValueWrappers = assocDefW.getValues();
+                    shadowAssociationValueWrappers.forEach(v -> {
+                        suggestionByWrapper.put(v, si);
+                        wrappers.add(v);
+                    });
+
+                }
+            } catch (SchemaException e) {
+                throw new IllegalStateException("Failed to wrap object type suggestions", e);
+            }
+        });
+
+        return new AssociationTypeSuggestionProviderResult(wrappers, suggestionByWrapper);
     }
 
     /** Builds display rows depending on the suggestion status. */

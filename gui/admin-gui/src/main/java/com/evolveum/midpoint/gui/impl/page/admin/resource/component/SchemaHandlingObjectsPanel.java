@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -19,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -35,6 +39,7 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -45,7 +50,9 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -61,8 +68,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
+import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
@@ -89,6 +100,22 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         return PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
     }
 
+    protected void customizeInlineMenuItems(@NotNull List<InlineMenuItem> inlineMenuItems) {
+        for (InlineMenuItem menuItem : inlineMenuItems) {
+            menuItem.setVisibilityChecker((InlineMenuItem.VisibilityChecker) (rowModel, isHeader) -> {
+                if (rowModel != null && rowModel.getObject() instanceof PrismContainerValueWrapper) {
+                    return statusFor((PrismContainerValueWrapper<?>) rowModel.getObject()) == null;
+                }
+                return true;
+            });
+        }
+
+        inlineMenuItems.add(createSuggestionOperationInlineMenu());
+        inlineMenuItems.add(createSuggestionDetailsInlineMenu());
+        inlineMenuItems.add(createSuggestionReviewInlineMenu());
+        inlineMenuItems.add(createDeleteSuggestionInlineMenu());
+    }
+
     private @NotNull MultivalueContainerListPanel<C> createMultiValueListPanel() {
         return new MultivalueContainerListPanel<C>(ID_TABLE, getSchemaHandlingObjectsType()) {
             @Override
@@ -111,8 +138,13 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected void customProcessNewRowItem(Item<PrismContainerValueWrapper<C>> item, IModel<PrismContainerValueWrapper<C>> model) {
-                super.customProcessNewRowItem(item, model);
-                customizeNewRowItem(item, model);
+                OperationResultStatusType status = statusFor(model.getObject());
+                if (status == null) {
+                    super.customProcessNewRowItem(item, model);
+                    return;
+                }
+                item.add(AttributeModifier.replace("class", SmartIntegrationUtils.SuggestionUiStyle.from(status).rowClass));
+                addAjaxTimeBehaviorIfRequested(model.getObject(), item);
             }
 
             @Override
@@ -300,8 +332,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 OperationResult result = task.getResult();
 
                 toDelete.forEach(value -> {
-                    if (deleteObjectTypeSuggestionIfRequested(value, task, result))
-                        return;
+                    if (deleteObjectTypeSuggestionIfRequested(value, task, result)) {return;}
 
                     if (value.getStatus() == ValueStatus.ADDED) {
                         PrismContainerWrapper<C> wrapper = getContainerModel() != null ?
@@ -360,7 +391,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItems) {
-                AbstractPageObjectDetails parent = findParent(AbstractPageObjectDetails.class);
+                AbstractPageObjectDetails<?, ?> parent = findParent(AbstractPageObjectDetails.class);
 
                 if (parent == null) {
                     getParentPage().warn("SchemaHandlingObjectsPanel.message.couldnOpenWizard");
@@ -373,9 +404,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     } else {
                         valueModel = rowModel;
                     }
-                    if (valueModel != null) {
-                        onEditValue(valueModel, target);
-                    }
+                    onEditValue(valueModel, target);
                 } else {
                     warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
                     target.add(getPageBase().getFeedbackPanel());
@@ -383,7 +412,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
-            protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
+            protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target,
+                    AssignmentObjectRelation relationSpec, boolean isDuplicate) {
                 onNewValue(value, getContainerModel(), target, isDuplicate);
             }
 
@@ -392,11 +422,6 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
     protected ISelectableDataProvider<PrismContainerValueWrapper<C>> createProvider() {
         return null;
-    }
-
-    protected void customizeNewRowItem(
-            Item<PrismContainerValueWrapper<C>> item, IModel<PrismContainerValueWrapper<C>> model) {
-        // Default implementation does nothing. Override if needed.
     }
 
     /**
@@ -409,9 +434,66 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
      * @param rowModel The model for the row being populated.
      * @return A component to be added to the cell, or null if no custom component is needed.
      */
-    protected @Nullable Component onNameColumnPopulateItem(
-            Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<C>> rowModel) {
-        // Default implementation does nothing. Override if needed.
+    protected Component onNameColumnPopulateItem(
+            Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem,
+            String componentId,
+            @NotNull IModel<PrismContainerValueWrapper<C>> rowModel) {
+        PrismContainerValueWrapper<C> object = rowModel.getObject();
+        StatusInfo<?> suggestionTypeStatusInfo = getStatusInfo(object);
+
+        C realValue = object.getRealValue();
+        if (suggestionTypeStatusInfo != null) {
+            OperationResultStatusType status = suggestionTypeStatusInfo.getStatus();
+
+            LoadableModel<String> displayNameModel = new LoadableModel<>() {
+                @Override
+                protected String load() {
+                    if (status.equals(OperationResultStatusType.IN_PROGRESS)) {
+                        return createStringResource("ResourceObjectTypesPanel.suggestion.inProgress").getString();
+                    }
+
+                    if (realValue != null) {
+                        if (realValue instanceof ResourceObjectTypeDefinitionType value) {
+                            return value.getDisplayName();
+                        }
+                        if (realValue instanceof ShadowAssociationTypeDefinitionType value && value.getName() != null) {
+                            return value.getName().getLocalPart();
+                        }
+                    }
+                    return " - ";
+                }
+            };
+
+            LabelWithBadgePanel labelWithBadgePanel = new LabelWithBadgePanel(
+                    componentId, getAiBadgeModel(), displayNameModel) {
+                @Override
+                protected boolean isIconVisible() {
+                    return status.equals(OperationResultStatusType.IN_PROGRESS);
+                }
+
+                @Contract(pure = true)
+                @Override
+                protected @NotNull String getIconCss() {
+                    return GuiStyleConstants.ICON_FA_SPINNER + " fa-spin  text-info";
+                }
+
+                @Contract(pure = true)
+                @Override
+                protected @Nullable String getLabelCss() {
+                    return status.equals(OperationResultStatusType.IN_PROGRESS)
+                            ? " text-info"
+                            : null;
+                }
+
+                @Override
+                protected boolean isBadgeVisible() {
+                    return status.equals(OperationResultStatusType.SUCCESS);
+                }
+            };
+            labelWithBadgePanel.setOutputMarkupId(true);
+            cellItem.add(labelWithBadgePanel);
+            return labelWithBadgePanel;
+        }
         return null;
     }
 
@@ -428,6 +510,13 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         var provider = getStatusAwareProvider();
         return provider != null ? provider
                 .getSuggestionInfo((PrismContainerValueWrapper) value) : null;
+    }
+
+    @Nullable
+    protected OperationResultStatusType statusFor(
+            PrismContainerValueWrapper<?> wrapper) {
+        StatusInfo<?> info = getStatusInfo(wrapper);
+        return info != null ? info.getStatus() : null;
     }
 
     private InlineMenuItem createShowLifecycleStatesInlineMenu() {
@@ -567,12 +656,30 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         return true;
     }
 
-    protected void customizeInlineMenuItems(List<InlineMenuItem> inlineMenuItems) {
-        // Default implementation does nothing. Override if needed.
-    }
+    private void addAjaxTimeBehaviorIfRequested(
+            PrismContainerValueWrapper<?> value,
+            Item<PrismContainerValueWrapper<C>> item) {
+        @Nullable StatusInfo<?> statusInfo = getStatusInfo(value);
+        if (statusInfo != null && statusInfo.getStatus() != null) {
+            item.add(AttributeModifier.append("class", SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).rowClass));
 
-    protected @Nullable String customInlineMenuItemCssClass(@Nullable IModel<PrismContainerValueWrapper<C>> rowModel) {
-        return null;
+            boolean executing = statusInfo.isExecuting() && !statusInfo.isSuspended();
+            if (executing) {
+                AbstractAjaxTimerBehavior timer = new AbstractAjaxTimerBehavior(Duration.ofSeconds(3)) {
+                    @Override
+                    protected void onTimer(@NotNull AjaxRequestTarget target) {
+                        target.add(item);
+                        StatusInfo<?> statusInfo = getStatusInfo(value);
+                        if (statusInfo == null || !statusInfo.isExecuting() || statusInfo.isSuspended()) {
+                            stop(target);
+                            refreshForm(target);
+                            target.add(item);
+                        }
+                    }
+                };
+                item.add(timer);
+            }
+        }
     }
 
     protected IModel<Boolean> getSwitchSuggestionModel() {
@@ -591,4 +698,250 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         return isSuggestButtonVisible() && !hasNoValues();
     }
 
+    protected ButtonInlineMenuItem createSuggestionDetailsInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.details.suggestion.inlineMenu")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_SEARCH);
+            }
+
+            @Override
+            public VisibilityChecker getVisibilityChecker() {
+                return (rowModel, isHeader) -> {
+                    if (rowModel == null || rowModel.getObject() == null) {
+                        return false;
+                    }
+
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                        StatusInfo<?> suggestionStatus = getStatusInfo(valueWrapper);
+                        return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.FATAL_ERROR;
+                    }
+                    return false;
+                };
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        IModel<Serializable> rowModel = getRowModel();
+                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                            StatusInfo<?> statusInfo = getStatusInfo(valueWrapper);
+                            if (statusInfo == null) {
+                                return;
+                            }
+
+                            HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
+                                    getPageBase().getMainPopupBodyId(),
+                                    statusInfo::getLocalizedMessage) {
+                                @Override
+                                public StringResourceModel getTitle() {
+                                    return createStringResource("ResourceObjectTypesPanel.suggestion.details.title");
+                                }
+
+                                @Override
+                                protected @NotNull Label initLabel(IModel<String> messageModel) {
+                                    Label label = super.initLabel(messageModel);
+                                    label.add(AttributeModifier.append("class", "alert alert-danger"));
+                                    return label;
+                                }
+
+                                @Override
+                                public @NotNull Component getFooter() {
+                                    Component footer = super.getFooter();
+                                    footer.add(new VisibleBehaviour(() -> false));
+                                    return footer;
+                                }
+                            };
+
+                            target.add(getPageBase().getMainPopup());
+
+                            getPageBase().showMainPopup(
+                                    helpInfoPanel, target);
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public boolean isLabelVisible() {
+                return true;
+            }
+        };
+    }
+
+    protected ButtonInlineMenuItem createSuggestionOperationInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.suspend.generating.inlineMenu")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> getLabel() {
+                ColumnMenuAction<?> action = (ColumnMenuAction<?>) getAction();
+                IModel<?> rowModel = action.getRowModel();
+                if (rowModel != null && rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
+                    StatusInfo<?> suggestionStatus = getStatusInfo(wrapper);
+                    if (suggestionStatus != null && suggestionStatus.isSuspended()) {
+                        return createStringResource("ResourceObjectTypesPanel.resume.generating.inlineMenu");
+                    }
+                }
+                return super.getLabel();
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_STOP_MENU_ITEM);
+            }
+
+            @Override
+            public VisibilityChecker getVisibilityChecker() {
+                return (rowModel, isHeader) -> {
+                    if (rowModel == null || rowModel.getObject() == null) {
+                        return false;
+                    }
+
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
+                        StatusInfo<?> suggestionStatus = getStatusInfo(wrapper);
+                        if (suggestionStatus == null) {
+                            return false;
+                        }
+                        OperationResultStatusType status = suggestionStatus.getStatus();
+                        return !suggestionStatus.isComplete() && status != OperationResultStatusType.FATAL_ERROR;
+                    }
+
+                    return false;
+                };
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        Task task = getPageBase().getPageTask();
+                        OperationResult result = task.getResult();
+
+                        IModel<Serializable> rowModel = getRowModel();
+                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
+                            StatusInfo<?> statusInfo = getStatusInfo(wrapper);
+                            if (statusInfo != null) {
+                                if (statusInfo.isSuspended() && statusInfo.getStatus() != OperationResultStatusType.FATAL_ERROR) {
+                                    resumeSuggestionTask(getPageBase(), statusInfo, task, result);
+                                } else {
+                                    suspendSuggestionTask(getPageBase(), statusInfo, task, result);
+                                }
+                                refreshForm(target);
+                            }
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public boolean isLabelVisible() {
+                return true;
+            }
+        };
+    }
+
+    protected ButtonInlineMenuItem createSuggestionReviewInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.review.suggestion.inlineMenu")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_SEARCH);
+            }
+
+            @Override
+            public VisibilityChecker getVisibilityChecker() {
+                return (rowModel, isHeader) -> {
+                    if (rowModel == null || rowModel.getObject() == null) {
+                        return false;
+                    }
+
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                        StatusInfo<?> suggestionStatus = getStatusInfo(valueWrapper);
+                        return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.SUCCESS;
+                    }
+                    return false;
+                };
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        IModel<Serializable> rowModel = getRowModel();
+                        if (!(rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper)) {
+                            getPageBase().warn("Couldn't get value from the row model.");
+                            target.add(getPageBase().getFeedbackPanel().getParent());
+                            return;
+                        }
+
+                        performOnReview(target, valueWrapper);
+                    }
+                };
+            }
+
+            @Override
+            public boolean isLabelVisible() {
+                return true;
+            }
+        };
+    }
+
+    protected ButtonInlineMenuItem createDeleteSuggestionInlineMenu() {
+        return new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
+            }
+
+            @Override
+            public VisibilityChecker getVisibilityChecker() {
+                return (rowModel, isHeader) -> {
+                    if (rowModel == null || rowModel.getObject() == null) {
+                        return false;
+                    }
+
+                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
+                        @Nullable StatusInfo<?> suggestionStatus = getStatusInfo(valueWrapper);
+                        return suggestionStatus != null;
+                    }
+                    return false;
+                };
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        IModel<Serializable> rowModel = getRowModel();
+                        performOnDeleteSuggestion(target, rowModel);
+                    }
+                };
+            }
+        };
+    }
+
+    protected void performOnDeleteSuggestion(AjaxRequestTarget target, IModel<Serializable> rowModel) {
+    }
+
+    protected void performOnReview(@NotNull AjaxRequestTarget target, @NotNull PrismContainerValueWrapper<?> valueWrapper) {
+    }
 }

@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 import org.apache.wicket.AttributeModifier;
@@ -41,8 +43,8 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel;
 
     public SmartObjectClassPanel(@NotNull String id,
-                                 @NotNull IModel<SmartObjectClassTileModel<C>> model,
-                                 @NotNull IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel) {
+            @NotNull IModel<SmartObjectClassTileModel<C>> model,
+            @NotNull IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel) {
         super(id, model);
         this.selectedTileModel = selectedTileModel;
     }
@@ -146,13 +148,15 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
         add(AttributeModifier.replace(CLASS_CSS, cssClass));
     }
 
-    private String buildCountValueLabel() {
-        String count = getModelObject().getCount();
-        if (count == null || count.isEmpty()) {
-            return createStringResource("SuggestTilePanel.count.unknown").getString();
+    private IModel<String> buildCountValueLabel() {
+        ObjectClassSizeEstimationType estimatedSize = getModelObject().getEstimatedSize();
+        if (estimatedSize == null || estimatedSize.getValue() == null) {
+            return createStringResource("SuggestTilePanel.count.unknown");
         }
-
-        return "~" + count;
+        ObjectClassSizeEstimationPrecisionType precision = estimatedSize.getPrecision();
+        Integer count = estimatedSize.getValue();
+        return createStringResource("ObjectClassSizeEstimationType."
+                + precision.value(), count);
     }
 
     protected void onViewSchema(AjaxRequestTarget target) {
