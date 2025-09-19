@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -476,6 +477,12 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
             }
         }
 
+        boolean businessRoleViewExists = ObjectCollectionViewUtil.businessRoleArchetypeViewExists(getPageBase());
+        if (!businessRoleViewExists) {
+            warn(createStringResource("RoleAnalysis.business.role.view.not.exist").getString());
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
         PrismObject<RoleType> businessRole = new RoleType().asPrismObject();
 
         List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();

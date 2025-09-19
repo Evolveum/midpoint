@@ -37,6 +37,10 @@ public class ExplanationUtil {
     }
 
     protected static List<RoleAnalysisAttributeAnalysis> getUserAttributeAnalysis(@NotNull DetectedAnomalyResult result) {
+        if (result.getStatistics() == null || result.getStatistics().getAttributeAnalysis() == null
+                || result.getStatistics().getAttributeAnalysis().getUserAttributeAnalysisResult() == null) {
+            return null;
+        }
         return result.getStatistics()
                 .getAttributeAnalysis()
                 .getUserAttributeAnalysisResult()
