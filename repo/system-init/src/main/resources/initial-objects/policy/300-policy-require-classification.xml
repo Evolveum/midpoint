@@ -8,23 +8,15 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>Require classification</name>
-    <description>Policy applied to archetypes, requiring archetyped objects to have classification.</description>
+    <description>Policy requiring affected objects to have classification.</description>
     <documentation>
-        This policy is meant to be applied (assigned) to archetypes.
-        When applied, the archetyped objects are required to have a classification.
+        When this policy is applied, the affected objects are required to have a classification.
         Objects with no classification are marked with "No classification" mark.
-
-        NOTE: This policy can only be applied to archetypes.
-        Support for application directly to affected objects (roles, applications) is likely to come later.
-
         (ISO27001/A.5.1,ISO27001/A.5.2,ISO27001/A.5.9,ISO27001/A.5.36)
     </documentation>
     <inducement>
         <identifier>policy-require-classification</identifier>
         <documentation>(ISO27001/A.5.12,ISO27001/A.5.13,ISO27001/A.5.36)</documentation>
-        <orderConstraint>
-            <order>2</order>
-        </orderConstraint>
         <policyRule>
             <name>rule-require-classification</name>
             <policyConstraints>
