@@ -61,7 +61,6 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationTypeSuggestionWrappers;
@@ -367,27 +366,25 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
     }
 
     @Override
-    protected void performOnDeleteSuggestion(AjaxRequestTarget target, IModel<Serializable> rowModel) {
+    protected boolean performOnDeleteSuggestion(AjaxRequestTarget target, PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> valueWrapper) {
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
         OperationResult result = task.getResult();
 
-        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-            @Nullable StatusInfo<AssociationsSuggestionType> statusInfo = getStatusInfo(valueWrapper);
-            if (statusInfo == null) {
-                return;
-            }
-            PrismContainerValueWrapper<AssociationSuggestionType> parentContainerValue = valueWrapper
-                    .getParentContainerValue(AssociationSuggestionType.class);
-            //TODO move it into schemaHandling
-            SmartIntegrationUtils.removeAssociationTypeSuggestionNew(
-                    getPageBase(),
-                    statusInfo,
-                    parentContainerValue.getRealValue(),
-                    task,
-                    result);
-            target.add(getPageBase().getFeedbackPanel());
-            refreshForm(target);
+        @Nullable StatusInfo<AssociationsSuggestionType> statusInfo = getStatusInfo(valueWrapper);
+        if (statusInfo == null) {
+            return false;
         }
+        PrismContainerValueWrapper<AssociationSuggestionType> parentContainerValue = valueWrapper
+                .getParentContainerValue(AssociationSuggestionType.class);
+        //TODO move it into schemaHandling
+        SmartIntegrationUtils.removeAssociationTypeSuggestionNew(
+                getPageBase(),
+                statusInfo,
+                parentContainerValue.getRealValue(),
+                task,
+                result);
+        target.add(getPageBase().getFeedbackPanel());
+        return true;
     }
 
     @SuppressWarnings("unchecked")

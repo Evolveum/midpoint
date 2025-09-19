@@ -44,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestionWrappers;
@@ -254,24 +253,22 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return !suggestions.wrappers().isEmpty();
     }
 
-    protected void performOnDeleteSuggestion(AjaxRequestTarget target, IModel<Serializable> rowModel) {
+    protected boolean performOnDeleteSuggestion(AjaxRequestTarget target, PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> valueWrapper) {
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
         OperationResult result = task.getResult();
 
-        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-            StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(valueWrapper);
-            if (statusInfo == null) {
-                return;
-            }
-            SmartIntegrationUtils.removeObjectTypeSuggestionNew(
-                    getPageBase(),
-                    statusInfo,
-                    (ResourceObjectTypeDefinitionType) valueWrapper.getRealValue(),
-                    task,
-                    result);
-            target.add(getPageBase().getFeedbackPanel());
-            refreshForm(target);
+        StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(valueWrapper);
+        if (statusInfo == null) {
+            return false;
         }
+        SmartIntegrationUtils.removeObjectTypeSuggestionNew(
+                getPageBase(),
+                statusInfo,
+                valueWrapper.getRealValue(),
+                task,
+                result);
+        target.add(getPageBase().getFeedbackPanel());
+        return true;
     }
 
     @SuppressWarnings("unchecked")
@@ -300,4 +297,8 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         onNewValue(prismContainerValue, containerModel, target, false);
     }
 
+    @Override
+    protected boolean isStatisticsAllowed() {
+        return true;
+    }
 }

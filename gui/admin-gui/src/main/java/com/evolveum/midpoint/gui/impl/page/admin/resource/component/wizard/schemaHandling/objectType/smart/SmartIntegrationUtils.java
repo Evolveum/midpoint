@@ -10,19 +10,23 @@ import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartStatisticsPanel;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -32,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
@@ -274,7 +277,7 @@ public class SmartIntegrationUtils {
             if (s == null) {return DEFAULT;}
             return switch (s) {
                 case FATAL_ERROR -> FATAL;
-                case IN_PROGRESS  -> IN_PROGRESS;
+                case IN_PROGRESS -> IN_PROGRESS;
                 case UNKNOWN -> UNKNOWN;
                 case NOT_APPLICABLE -> NOT_APPLICABLE;
                 default -> DEFAULT;
@@ -326,8 +329,8 @@ public class SmartIntegrationUtils {
             Function<E, E> cloneWithoutId,
             String beanDisplayName,
             String itemDisplayPlural
-    ){}
-
+    ) {
+    }
 
     /**
      * Removes a specific suggestion from the task's activity work state, deleting the task if
@@ -466,7 +469,6 @@ public class SmartIntegrationUtils {
         removeSuggestionCommon(pageBase, statusInfo, suggestionToRemove, task, result, handler);
     }
 
-
     public static void removeMappingTypeSuggestionNew(
             @NotNull PageBase pageBase,
             @NotNull StatusInfo<MappingsSuggestionType> statusInfo,
@@ -556,5 +558,59 @@ public class SmartIntegrationUtils {
             }
         }
         return strategy;
+    }
+
+    public static @NotNull AjaxIconButton createStatisticsButton(
+            @NotNull String id,
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            ResourceObjectTypeDefinitionType objectTypeDefinition) {
+        AjaxIconButton statisticsButton = new AjaxIconButton(id,
+                Model.of("fa fa-solid fa-chart-bar"),
+                pageBase.createStringResource("Statistics.button.label")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (objectTypeDefinition == null) {
+                    return;
+                }
+
+                showStatisticsPanel(target, objectTypeDefinition, pageBase, resourceOid);
+            }
+        };
+        statisticsButton.add(AttributeModifier.replace("class", "btn btn-default rounded mr-2"));
+        statisticsButton.setOutputMarkupId(true);
+        statisticsButton.showTitleAsLabel(true);
+        return statisticsButton;
+    }
+
+    public static void showStatisticsPanel(
+            @NotNull AjaxRequestTarget target,
+            @NotNull ResourceObjectTypeDefinitionType objectTypeDefinition,
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid) {
+        ResourceObjectTypeDelineationType delineation = objectTypeDefinition.getDelineation();
+        if (delineation == null || delineation.getObjectClass() == null) {
+            return;
+        }
+
+        QName objectClass = delineation.getObjectClass();
+
+        SmartIntegrationService smartIntegrationService = pageBase.getSmartIntegrationService();
+        Task pageTask = pageBase.getPageTask();
+
+        ShadowObjectClassStatisticsType statisticsRequired;
+        try {
+            GenericObjectType latestStatistics = smartIntegrationService
+                    .getLatestStatistics(resourceOid, objectClass, pageTask, pageTask.getResult());
+            statisticsRequired = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(latestStatistics);
+        } catch (SchemaException e) {
+            throw new RuntimeException("Couldn't get statistics for "
+                    + objectClass + " on resource " + resourceOid, e);
+        }
+
+        SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
+                pageBase.getMainPopupBodyId(), () -> statisticsRequired, resourceOid, objectClass);
+
+        pageBase.showMainPopup(statisticsPanel, target);
     }
 }
