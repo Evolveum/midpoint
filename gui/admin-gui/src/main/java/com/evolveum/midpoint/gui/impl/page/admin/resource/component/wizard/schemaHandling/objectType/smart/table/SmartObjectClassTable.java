@@ -545,4 +545,11 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     public void refresh(AjaxRequestTarget target) {
 
     }
+
+    @Override
+    public boolean displayNoValuePanel() {
+        return getProvider().size() == 0;
+    }
+
+
 }
