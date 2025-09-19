@@ -45,15 +45,15 @@ A typical scenario in which marks are used to control the behavior of groups of 
 
 TIP: See how you can xref:/midpoint/reference/admin-gui/resource-wizard/object-type/policies[classify objects and define the default operation policy in the midPoint GUI].
 
-== Basic Concepts
+== Basic concepts
 
-=== Effective Marks
+=== Effective marks
 
 Effective marks are marks, which are applied to object based on policies, or explicitly specified by policy statements of the object.
 
 Effective marks are stored in object `effectiveMarkRef` of type `ObjectReferenceType` and are indexed by repository, so it is possible to use them for search.
 
-=== Policy Statements
+=== Policy statements
 
 Effective marks could be manually added / induced / excluded from object by modifying policy statement of particular object.
 
@@ -65,7 +65,7 @@ A policy statement has two main properties:
 ** `exclude` - referenced mark will not be effective, even if other policy may specify it so.
 
 
-.Marking Shadow as Protected
+.Marking shadow as protected
 [source, xml]
 ----
 <policyStatement>
@@ -76,14 +76,15 @@ A policy statement has two main properties:
 </policyStatement>
 ----
 
-== Object Operation Policy
+== Object operation policy
 
 NOTE: Currently, the object operation policy is supported for shadow objects only.
 
 Object Marks allows to specify operation policy, which may enabled or disable specific operations for marked objects.
 
-Currently supported object operation policies for shadows are:
+The supported object operation policies for shadows are:
 
+.Supported object operation policies for shadows
 [%autowidth]
 |===
 | Operation | Kind | Behavior if disabled
@@ -122,7 +123,7 @@ Operations disabled by any of the marks are always disabled.
 The `tolerant` flag should not have values of `true` and `false` mixed together.
 The current implementation is that the value of `true` is the result, should such a combination occur (with a warning into the log), but this behavior may change in the future.
 
-.Object Operation Policy of Protected mark
+.Object operation policy of protected mark
 [source, xml]
 ----
 <objectOperationPolicy>
@@ -161,12 +162,11 @@ The current implementation is that the value of `true` is the result, should suc
 - The `synchronize/membership/outbound` is supported only for `associationConstruction` expression evaluator.
 ====
 
-=== Built-in Object Marks
+=== Built-in object marks
 
 These object marks are intended to mark objects violating various policies.
 
-Objects can be manually marked using xref:/midpoint/reference/concepts/mark/manual-marking/#object-marks[midPoint GUI].
-
+.Built-in object marks
 |===
 | Object Mark | Description
 
@@ -220,13 +220,11 @@ Objects can be manually marked using xref:/midpoint/reference/concepts/mark/manu
 
 |===
 
-=== Shadow Policy Marks
+=== Shadow policy marks
 
 Automatic marking of shadows with shadow policy marks can be configured in xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#marking-rules[resource schema handling].
 
-Shadow Policy Marks can be also assigned manually using xref:/midpoint/reference/concepts/mark/manual-marking/#shadow-policy-marks[midPoint GUI].
-
-.Built-in Shadow Marks
+.Built-in shadow marks
 [cols="20%,5%,5%,5%,5%,5%,60%"]
 |===
 
@@ -251,21 +249,23 @@ h| Out
 |No
 |Protected accounts. MidPoint ignores them in both synchronization and provisioning. Usually used for administrative or technical accounts.
 
-| xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#managed-mark[*Managed*]
+| *Managed*
 | Yes
 | Yes
 | Yes
 | Yes
 | Yes
 |Protected accounts. MidPoint ignores them in both synchronization and provisioning. Usually used for administrative or technical accounts.
+Refer to xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#managed-mark[] for details.
 
-| xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#unmanaged-mark[*Unmanaged*]
+| *Unmanaged*
 | Yes
 | No
 | No
 | No
 | No
 | Shadow object marked as `Unmanaged` is tolerated by midPoint, but not managed by it.
+Refer to xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#unmanaged-mark[] for details.
 
 
 |*Decommission later*

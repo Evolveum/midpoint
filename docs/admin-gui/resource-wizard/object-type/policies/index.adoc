@@ -4,20 +4,19 @@
 :page-since: "4.9"
 :experimental:
 :page-keywords: object type policy, marks, default policy, filter
-:page-description: This page describes how to use object marks in the Object type policies section of the midPoint graphical user interface (GUI), thus enabling you to control the behavior of groups of accounts and entitlements.
+:page-description: This page describes how to use object marks in the Object type policies section of the midPoint graphical user interface (GUI), thus enabling you to control the behavior of groups of accounts and entitlements in resources.
 
 
-This page describes how to use object marks in the *Object type policies* section of the midPoint graphical user interface (GUI), thus enabling you to control the behavior of groups of accounts and entitlements.
+This page describes how to use object marks in the *Object type policies* section of the midPoint graphical user interface (GUI), thus enabling you to control the behavior of groups of accounts and entitlements in resources.
 
-To learn more technical details on object marks, and to see how you can use them in your workflows, see xref:/midpoint/reference/concepts/mark[].
+For more technical details on object marks, and to see how you can use them in your workflows, see xref:/midpoint/reference/concepts/mark[].
 
-You can access the Object type policies section by going to icon:database[] *Resources* > icon:database[] *All resources* > resource > icon:male[] *Accounts* / icon:users[] *Entitlements* > icon:cog[] btn:[Configure] > icon:balance-scale[] *Policies*.
-In this section, you can configure the following features:
+Object type policies enable you to configure the following features:
 
-* <<classsifyObjects,Marking>> - Groups accounts/entitlements by filtering them and assigning marks.
+* <<classsifyObjects,Marking>> - Groups accounts/entitlements by filtering them and assigning marks to them.
 * <<defaultOperationPolicy,Default Operation Policy>> - Defines the default policy for objects that have not been explicitly assigned marks in the <<classsifyObjects,Marking>> section.
 
-image:object-type-policies.webp[link=object-type-policies.webp,70%,title=Object type policies]
+image::object-type-policies.webp[link=object-type-policies.webp,70%,title=Object type policies]
 
 
 [[classsifyObjects]]
@@ -26,18 +25,19 @@ image:object-type-policies.webp[link=object-type-policies.webp,70%,title=Object 
 In midPoint GUI, you can group accounts and entitlements in resources so that you can apply policies only to such groups.
 This is done by selecting a mark, and subsequently, defining a xref:/midpoint/reference/concepts/query/midpoint-query-language/[filter] that matches the objects that you want to group under that mark.
 
-. Create an object mark for your use case in icon:tag[] *Marks* > icon:tag[] *All marks*.
-. Go to the resource that contains the objects you want to apply marks to by clicking icon:database[] *Resources* > icon:database[] *All resources* > resource.
-. In the resource, go to icon:male[] *Accounts* / icon:users[] *Entitlements* > icon:cog[] btn:[Configure] > icon:balance-scale[] *Policies*.
+. Create an object mark for your use case in [.nowrap]#icon:tag[] *Marks*# > [.nowrap]#icon:tag[] *Object marks*#.
+. Go to the resource that contains the objects to which you want to apply marks by clicking [.nowrap]#icon:database[] *Resources*# > [.nowrap]#icon:database[] *All resources*# > resource.
+. In the resource, depending on which objects you want to group, click [.nowrap]#icon:male[] *Accounts*# or [.nowrap]#icon:users[] *Entitlements*#.
+. Click [.nowrap]#icon:cog[] btn:[Configure]# and select [.nowrap]#icon:balance-scale[] *Policies*#.
 +
 image::resource-account.webp[link=resource-account.webp,100%,title=Access marks in a resource]
-. Click icon:tag[] btn:[Marking].
-. Click icon:circle-plus[] btn:[New marking rule].
+. Click [.nowrap]#icon:tag[] btn:[Marking]#.
+. Click [.nowrap]#icon:circle-plus[] btn:[New marking rule]#.
 . Select the mark that you want to use for your group of objects.
 . In *Application time*, select when the mark should be applied to objects:
     ** *Always* - Anytime that midPoint works with the objects.
     ** *Classification* - Only once when the objects are created in the midPoint repository.
-. Click icon:edit[] btn:[Edit] and enter a filter query that matches the objects that you want to group under the mark that you have selected.
+. Click [.nowrap]#icon:edit[] btn:[Edit]# and enter a xref:/midpoint/reference/concepts/query/midpoint-query-language/filters[filter query] that matches the objects that you want to group under the mark that you have selected.
 . Click btn:[Done].
 . Click btn:[Save marking rules].
 
@@ -50,17 +50,24 @@ Default operation policy defines the default policy for all objects that are not
 This enables you to define the default behavior for objects that do not need a specific treatment.
 For example, you may want to set the Default operation policy to `Unmanaged` to make all objects of the object type effectively read-only (outbound behavior will be ignored) during object management migration to midPoint.
 
-. Go to the resource that contains the objects you want to apply marks to by clicking icon:database[] *Resources* > icon:database[] *All resources* > resource.
-. In the resource, go to icon:male[] *Accounts* / icon:users[] *Entitlements* > icon:cog[] btn:[Configure] > icon:balance-scale[] *Policies*.
-. Click icon:tag[] btn:[Default operation policies].
-. Click icon:circle-plus[] btn:[Add new policy].
+. Go to the resource that contains the objects to which you want to apply the default operation policy by clicking [.nowrap]#icon:database[] *Resources*# > [.nowrap]#icon:database[] *All resources*# > resource.
+. In the resource, depending on the objects for which you want to set up the default operation policy, click [.nowrap]#icon:male[] *Accounts*# or [.nowrap]#icon:users[] *Entitlements*#.
+. Click [.nowrap]#icon:cog[] btn:[Configure]# and select [.nowrap]#icon:balance-scale[] *Policies*#.
+. Click [.nowrap]#icon:tag[] btn:[Default operation policies]#.
+. Click [.nowrap]#icon:circle-plus[] btn:[Add new policy]#.
 . In the *Policy* field, select the mark to which your default policy applies. +
-To create a new mark, click icon:edit[] btn:[Edit] and select *Create new mark* in the Default operation policy dialog.
+To create a new mark, click [.nowrap]#icon:edit[] btn:[Edit]# and select *Create new mark* in the Default operation policy dialog.
 This way you can enable/disable the policy for individual operations, such as Add or Modify, and define what the system reports when those operations occur by configuring the severity of the individual operations.
 . Select the xref:/midpoint/reference/concepts/object-lifecycle/[lifecycle state] for your policy.
 . Click btn:[Save policies].
 
 TIP: Default operation policy is heavily used in xref:/midpoint/methodology/group-synchronization/[].
+
+== Review marks
+
+You can review marked objects by going to [.nowrap]#icon:tag[] *Marks*# > [.nowrap]#icon:tag[] *Object marks*# > mark > [.nowrap]#icon:circle[] *Marked shadows*#.
+
+image::object-marks-review.webp[link=object-marks-review.webp,100%,title=Review object marks]
 
 
 include::../../see-also.adoc[]
