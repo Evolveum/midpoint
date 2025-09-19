@@ -99,7 +99,7 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
             @Nullable PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(resourceRef.getValue().getRealValue(), getPageBase());
             getPageBase().getCacheDispatcher().dispatchInvalidation(ResourceType.class, resource.getOid(), false, null);
             ProvisioningObjectsUtil.refreshResourceSchema(resource, OPERATION_REFRESH_SCHEMA, getPageBase(), false);
-
+            ProvisioningObjectsUtil.refreshResourceSchema(resource, OPERATION_REFRESH_SCHEMA, getPageBase(), false);
             getDetailsModel().reloadPrismObjectByOid();
 
         } catch (SchemaException e) {
