@@ -319,14 +319,11 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             unique = object.getUniqueValueCount();
         }
 
-//        main.addOrReplace(buildWidgetsContainer(total, unique, missing));
+        main.addOrReplace(buildWidgetsContainer(total, unique, missing));
         main.addOrReplace(buildPatternTable(selectedAttribute.getObject()));
-//        main.addOrReplace(buildFrequencyTable(selectedAttribute.getObject(), total));
-//        main.addOrReplace(buildTupleTable(selectedTuple.getObject()));
-        main.addOrReplace(new EmptyPanel(ID_WIDGETS_CONTAINER));
-//        main.addOrReplace(new EmptyPanel(ID_TABLE_PATTERN_CONTAINER));
-        main.addOrReplace(new EmptyPanel(ID_TABLE_FREQ_CONTAINER));
-        main.addOrReplace(new EmptyPanel(ID_TABLE_COMB_CONTAINER));
+        main.addOrReplace(buildFrequencyTable(selectedAttribute.getObject(), total));
+        main.addOrReplace(buildTupleTable(selectedTuple.getObject()));
+
 
         return main;
     }
