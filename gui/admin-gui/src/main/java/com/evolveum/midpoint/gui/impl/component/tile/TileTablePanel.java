@@ -141,8 +141,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         footerContainer.add(AttributeAppender.append("class", getTilesFooterCssClasses()));
         tilesView.add(footerContainer);
 
-        PageableListView pageableView = getTiles();
-        NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, pageableView, true) {
+        NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, getTiles(), true) {
 
             @Contract(pure = true)
             @Override
@@ -492,7 +491,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
      */
     protected Component createPanelForNoValue() {
         NoValuePanel components = new NoValuePanel(ID_NO_VALUE_PANEL, () -> new NoValuePanelDto(
-                tableId.name())) {
+                tableId != null ? tableId.toString() : "default")) {
             @Override
             protected @NotNull @Unmodifiable List<Component> createToolbarButtons(String buttonsId) {
                 return createNoValueButtonToolbar(buttonsId);
