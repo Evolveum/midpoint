@@ -294,6 +294,8 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 //                                        + e.getMessage(), e);
 //                            }
 
+        //TODO temporary
+        performOnDeleteSuggestion(target, (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) valueWrapper);
         onNewValue(prismContainerValue, containerModel, target, false);
     }
 

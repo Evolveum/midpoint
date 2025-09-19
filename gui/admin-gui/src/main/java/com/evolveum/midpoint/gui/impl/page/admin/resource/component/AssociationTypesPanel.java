@@ -400,31 +400,31 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
         AssociationDuplicateResolver resolver = new AssociationDuplicateResolver();
         ShadowAssociationTypeDefinitionType duplicatedBean =
-                resolver.duplicateObject(oldValue.getValue(), getPageBase());
+                resolver.duplicateObjectWithoutCopyOf(oldValue.getValue());
 
-        @SuppressWarnings("unchecked")
-        PrismContainerValue<ShadowAssociationTypeDefinitionType> duplicatedValue =
-                (PrismContainerValue<ShadowAssociationTypeDefinitionType>) duplicatedBean.asPrismContainerValue();
 
-        try {
-            PrismContainerWrapper<ShadowAssociationTypeDefinitionType> targetContainer =
-                    getObjectDetailsModels().getObjectWrapper().findContainer(containerWrapper.getPath());
-            PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> readOnlyWrapper =
-                    WebPrismUtil.createNewValueWrapper(
-                            containerModel.getObject(),
-                            duplicatedValue,
-                            getPageBase(),
-                            getObjectDetailsModels().createWrapperContext());
-            WebPrismUtil.setReadOnlyRecursively(readOnlyWrapper);
-            targetContainer.getValues().add(readOnlyWrapper);
+        PrismContainerValue<ShadowAssociationTypeDefinitionType> prismContainerValue =
+                (PrismContainerValue<ShadowAssociationTypeDefinitionType>)
+                        PrismValueCollectionsUtil.cloneCollectionComplex(
+                                        CloneStrategy.REUSE,
+                                        Collections.singletonList(duplicatedBean.asPrismContainerValue()))
+                                .iterator().next();
 
-            getObjectDetailsModels().getPageResource()
-                    .showAssociationTypeWizardForSuggestionDuplicate(
-                            () -> readOnlyWrapper,
-                            target);
 
-        } catch (SchemaException e) {
-            throw new RuntimeException("Couldn't create wrapper for duplicated association type definition.", e);
-        }
+        WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
+        IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel2 = createContainerModel();
+        prismContainerValue.setParent(containerModel2.getObject().getItem());
+
+        refreshForm(target);
+        //TODO: temporary solution
+        performOnDeleteSuggestion(target, (PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>) valueWrapper);
+
+        //TODO problem with ref attribute modification (try using review, change ref, review again)
+        getObjectDetailsModels().getPageResource()
+                .showAssociationTypeWizardForDuplicate(
+                        prismContainerValue,
+                        target,
+                        containerModel2.getObject().getPath());
+
     }
 }
