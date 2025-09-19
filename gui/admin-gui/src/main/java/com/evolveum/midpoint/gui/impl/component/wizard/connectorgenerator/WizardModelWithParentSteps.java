@@ -72,6 +72,7 @@ public class WizardModelWithParentSteps extends WizardModel {
             String defaultKey = parentStep.getDefaultStepId();
             if (childrenSteps.containsKey(defaultKey)) {
                 childrenSteps.put(parentStep.getStepId(), childrenSteps.get(defaultKey));
+                childrenSteps.remove(defaultKey);
             } else {
                 childrenSteps.put(parentStep.getStepId(), parentStep.createChildrenSteps());
             }
