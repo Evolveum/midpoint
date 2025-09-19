@@ -134,6 +134,12 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                         }
                     }
                     """;
+            case RELATIONSHIP_SCHEMA_DEFINITION -> """
+                        relationship("${objectClass}") {
+                            // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
+                            // how to write test connection part of the script.
+                        }
+                    """;
             default -> throw new IllegalStateException("Unexpected script type: " + classification);
         };
         content = content.replace("${objectClass}", objectClass);
@@ -228,4 +234,23 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     public void processDocumentation() {
         // NOOP
     }
+
+    @Override
+    public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) {
+        return List.of(new ConnDevRelationInfoType()
+                    .name("UserGroupMembership")
+                    .shortDescription("User's group membership")
+                    .subject("User")
+                    .subjectAttribute("memberOf")
+                    .object("Group")
+                    .objectAttribute("members"),
+                new ConnDevRelationInfoType()
+                    .name("GroupOwnership")
+                    .subject("User")
+                    .subjectAttribute("ownerOf")
+                    .object("Group")
+                    .objectAttribute("owner")
+        );
+    }
+
 }

@@ -29,6 +29,8 @@ public class ConnectorDevelopmentArtifacts {
                 "connid.schema.groovy", ConnDevObjectClassInfoType.F_CONNID_SCHEMA_SCRIPT),
         TEST_CONNECTION_DEFINITION(true, ConnDevOperationType.TEST_CONNECTION, null,
                 "test.op.groovy", ConnDevConnectorType.F_TEST_OPERATION),
+        RELATIONSHIP_SCHEMA_DEFINITION(true, ConnDevOperationType.SCHEMA, ConnDevScriptIntentType.RELATION,
+                "schema.groovy", ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT);
         ;
 
         public final ConnDevOperationType operation;

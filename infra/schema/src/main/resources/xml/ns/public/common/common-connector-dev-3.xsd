@@ -26,11 +26,11 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="application" type="c:ConnDevApplicationInfoType" minOccurs="0"/>
-                    <xsd:element name="connector" type="c:ConnDevConnectorType" minOccurs="0"/>
-                    <xsd:element name="testing" type="c:ConnDevTestingType" minOccurs="0"/>
-                    <xsd:element name="documentationSource"  type="c:ConnDevDocumentationSourceType" minOccurs="0" maxOccurs="unbounded" />
-                    <xsd:element name="processedDocumentation" type="c:ProcessedDocumentationType" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element minOccurs="0" name="application" type="c:ConnDevApplicationInfoType"/>
+                    <xsd:element minOccurs="0" name="connector" type="c:ConnDevConnectorType"/>
+                    <xsd:element minOccurs="0" name="testing" type="c:ConnDevTestingType"/>
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="documentationSource" type="c:ConnDevDocumentationSourceType"/>
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="processedDocumentation" type="c:ProcessedDocumentationType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -52,14 +52,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="description" type="t:PolyStringType" minOccurs="0">
+            <xsd:element minOccurs="0" name="description" type="t:PolyStringType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Description of application
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="version" type="xsd:string" minOccurs="0">
+            <xsd:element minOccurs="0" name="version" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Version of application
@@ -94,7 +94,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="baseApiEndpoint" type="xsd:string"  minOccurs="0" />
+            <xsd:element minOccurs="0" name="baseApiEndpoint" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -136,13 +136,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
+            <xsd:element minOccurs="0" name="displayName" type="t:PolyStringType">
                 <xsd:annotation>
                     <xsd:documentation>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="description" type="t:PolyStringType" minOccurs="0">
+            <xsd:element minOccurs="0" name="description" type="t:PolyStringType">
                 <xsd:annotation>
                     <xsd:documentation>
                     </xsd:documentation>
@@ -154,8 +154,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="directory" type="xsd:string" />
-            <xsd:element name="connectorRef" type="tns:ObjectReferenceType" />
+            <xsd:element name="directory" type="xsd:string"/>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType"/>
 
             <xsd:element name="integrationType" type="tns:ConnDevIntegrationType">
                 <xsd:annotation>
@@ -181,11 +181,11 @@
                 </xsd:annotation>
             </xsd:element -->
 
-            <xsd:element name="objectClass" type="tns:ConnDevObjectClassInfoType" maxOccurs="unbounded">
+            <xsd:element maxOccurs="unbounded" name="objectClass" type="tns:ConnDevObjectClassInfoType">
             </xsd:element>
 
-            <xsd:element name="testOperation" type="tns:ConnDevArtifactType" />
-            <xsd:element name="authenticationScript" type="tns:ConnDevArtifactType" />
+            <xsd:element name="testOperation" type="tns:ConnDevArtifactType"/>
+            <xsd:element name="authenticationScript" type="tns:ConnDevArtifactType"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -197,6 +197,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element maxOccurs="unbounded" name="objectClass" type="tns:ConnDevObjectClassInfoType"/>
+            <xsd:element minOccurs="0" maxOccurs="unbounded" name="relation" type="tns:ConnDevRelationInfoType" />
         </xsd:sequence>
     </xsd:complexType>
 
@@ -221,7 +222,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="uri" type="xsd:string"/>
-            <xsd:element name="uuid" type="xsd:string" />
+            <xsd:element name="uuid" type="xsd:string"/>
             <xsd:element name="contentType" type="xsd:string"/>
             <xsd:element name="content" type="xsd:string"/>
         </xsd:sequence>
@@ -262,15 +263,32 @@
                 <xsd:sequence>
                     <xsd:element maxOccurs="unbounded" name="endpoint" type="tns:ConnDevHttpEndpointType"/>
                     <xsd:element maxOccurs="unbounded" name="attribute" type="tns:ConnDevAttributeInfoType"/>
-                    <xsd:element name="getOperation" type="tns:ConnDevArtifactType" />
-                    <xsd:element name="searchAllOperation" type="tns:ConnDevArtifactType" />
-                    <xsd:element name="searchFilterOperation" type="tns:ConnDevArtifactType" />
-                    <xsd:element name="nativeSchemaScript" type="tns:ConnDevArtifactType" />
-                    <xsd:element name="connidSchemaScript" type="tns:ConnDevArtifactType" />
+                    <xsd:element name="getOperation" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="searchAllOperation" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="searchFilterOperation" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="nativeSchemaScript" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="connidSchemaScript" type="tns:ConnDevArtifactType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:complexType name="ConnDevRelationInfoType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="shortDescription" type="xsd:string"/>
+            <xsd:element name="subject" type="xsd:string"/>
+            <xsd:element name="subjectAttribute" type="xsd:string"/>
+            <xsd:element name="object" type="xsd:string"/>
+            <xsd:element name="objectAttribute" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
 
     <xsd:complexType name="ConnDevAttributeInfoType">
         <xsd:annotation>
@@ -279,17 +297,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="type" type="xsd:string" />
-            <xsd:element name="format" type="xsd:string" />
-            <xsd:element name="description"  type="xsd:string" />
-            <xsd:element name="mandatory" type="xsd:boolean" />
-            <xsd:element name="updatable" type="xsd:boolean" />
-            <xsd:element name="creatable" type="xsd:boolean" />
-            <xsd:element name="readable" type="xsd:boolean" />
-            <xsd:element name="multivalue"  type="xsd:boolean" />
-            <xsd:element name="returnedByDefault" type="xsd:boolean" />
-            <xsd:element name="connIdAttribute" type="xsd:string" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="format" type="xsd:string"/>
+            <xsd:element name="description" type="xsd:string"/>
+            <xsd:element name="mandatory" type="xsd:boolean"/>
+            <xsd:element name="updatable" type="xsd:boolean"/>
+            <xsd:element name="creatable" type="xsd:boolean"/>
+            <xsd:element name="readable" type="xsd:boolean"/>
+            <xsd:element name="multivalue" type="xsd:boolean"/>
+            <xsd:element name="returnedByDefault" type="xsd:boolean"/>
+            <xsd:element name="connIdAttribute" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -302,7 +320,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
             <xsd:element name="type" type="tns:ConnDevHttpAuthTypeType"/>
-            <xsd:element name="description" type="xsd:string" />
+            <xsd:element name="description" type="xsd:string"/>
             <xsd:element name="quirks" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -317,10 +335,10 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
             <xsd:element name="uri" type="xsd:string"/>
-            <xsd:element name="operation" type="tns:ConnDevHttpOperationType" />
+            <xsd:element name="operation" type="tns:ConnDevHttpOperationType"/>
             <xsd:element name="requestContentType" type="xsd:string"/>
             <xsd:element name="responseContentType" type="xsd:string"/>
-            <xsd:element name="suggestedUse" type="tns:ConnDevHttpEndpointIntentType" maxOccurs="unbounded" />
+            <xsd:element maxOccurs="unbounded" name="suggestedUse" type="tns:ConnDevHttpEndpointIntentType"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -349,7 +367,7 @@
             <xsd:element name="objectClass" type="xsd:string"/>
             <xsd:element name="intent" type="tns:ConnDevScriptIntentType"/>
             <xsd:element name="filename" type="xsd:string"/>
-            <xsd:element name="content" type="xsd:string" />
+            <xsd:element name="content" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -451,6 +469,13 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CONNID"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="relation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RELATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
