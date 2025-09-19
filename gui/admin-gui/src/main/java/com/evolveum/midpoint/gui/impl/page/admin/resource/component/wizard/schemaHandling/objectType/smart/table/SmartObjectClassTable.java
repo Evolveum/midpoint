@@ -516,7 +516,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     protected boolean showFooter() {
-        return getTilesModel().getObject().size() > getMaxTileCount();
+        return getProvider().size() > getMaxTileCount();
     }
 
     protected int getMaxTileCount() {

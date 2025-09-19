@@ -138,7 +138,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected void customProcessNewRowItem(Item<PrismContainerValueWrapper<C>> item, IModel<PrismContainerValueWrapper<C>> model) {
-                OperationResultStatusType status = statusFor(model.getObject());
+                StatusInfo<?> status = getStatusInfo(model.getObject());
                 if (status == null) {
                     super.customProcessNewRowItem(item, model);
                     return;
@@ -448,8 +448,9 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             LoadableModel<String> displayNameModel = new LoadableModel<>() {
                 @Override
                 protected String load() {
-                    if (status.equals(OperationResultStatusType.IN_PROGRESS)) {
-                        return createStringResource("ResourceObjectTypesPanel.suggestion.inProgress").getString();
+                    if (status.equals(OperationResultStatusType.IN_PROGRESS)
+                            || status.equals(OperationResultStatusType.UNKNOWN)) {
+                        return createStringResource("Generating.suggestion").getString();
                     }
 
                     if (realValue != null) {

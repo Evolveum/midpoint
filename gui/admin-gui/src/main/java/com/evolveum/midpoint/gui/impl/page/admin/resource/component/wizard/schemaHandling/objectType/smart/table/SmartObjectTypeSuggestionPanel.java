@@ -16,7 +16,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
@@ -65,8 +64,6 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     private static final String ID_BASE_CONTEXT_FILTER_LABEL="baseContextFilterLabel";
     private static final String ID_BASE_CONTEXT_OBJECT_CLASS_LABEL="baseContextFilterObjectClassLabel";
     private static final String ID_BASE_CONTEXT_OBJECT_CLASS = "baseContextFilterObjectClass";
-
-    private static final String ID_TOGGLE_ICON = "toggleIcon";
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
 
@@ -175,7 +172,10 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         populateObjectClassPropertyPanels(baseContexFilterObjectClassPropertyValueWrapper1, baseContextFilterObjectClassPanels);
         filterCtn.add(baseContextFilterObjectClassPanels);
 
-        AjaxLinkPanel togglePanel = new AjaxLinkPanel(ID_TOGGLE, () -> isFilterVisible
+        AjaxIconButton togglePanel = new AjaxIconButton(ID_TOGGLE,
+                () -> isFilterVisible
+                        ? "fa fa-chevron-up"
+                        : "fa fa-chevron-down",() -> isFilterVisible
                 ? createStringResource("SmartSuggestObjectTypeTilePanel.hide.filter").getString()
                 : createStringResource("SmartSuggestObjectTypeTilePanel.show.filter").getString()) {
             @Serial private static final long serialVersionUID = 1L;
@@ -187,13 +187,9 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
             }
         };
         togglePanel.setOutputMarkupId(true);
+        togglePanel.showTitleAsLabel(true);
+        togglePanel.add(AttributeModifier.append("class", "flex-row-reverse"));
 
-        WebMarkupContainer toggleIcon = new WebMarkupContainer(ID_TOGGLE_ICON);
-        toggleIcon.add(AttributeModifier.append(CLASS_CSS, () ->
-                isFilterVisible ? "fa fa-chevron-up" : "fa fa-chevron-down"));
-        toggleIcon.setOutputMarkupId(true);
-
-        add(toggleIcon);
         add(togglePanel);
     }
 

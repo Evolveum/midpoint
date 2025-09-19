@@ -233,6 +233,8 @@ public class SmartIntegrationUtils {
                 "SuggestionUiStyle.fatal"),
         IN_PROGRESS("bg-light-info", "info-badge text-info", "border border-info",
                 "SuggestionUiStyle.inProgress"),
+        UNKNOWN("bg-light-info", "info-badge text-info", "border border-info",
+                "SuggestionUiStyle.inProgress"),
         NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
         DEFAULT("bg-light-purple", "info-badge purple", "border border-purple",
@@ -272,7 +274,8 @@ public class SmartIntegrationUtils {
             if (s == null) {return DEFAULT;}
             return switch (s) {
                 case FATAL_ERROR -> FATAL;
-                case IN_PROGRESS -> IN_PROGRESS;
+                case IN_PROGRESS  -> IN_PROGRESS;
+                case UNKNOWN -> UNKNOWN;
                 case NOT_APPLICABLE -> NOT_APPLICABLE;
                 default -> DEFAULT;
             };
