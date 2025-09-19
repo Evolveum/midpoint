@@ -73,7 +73,7 @@ public class SmartIntegrationUtils {
         try {
             return pageBase.getSmartIntegrationService().estimateObjectClassSize(
                     resourceOid, objectClassName, MAX_SIZE_FOR_ESTIMATION, task, result);
-        } catch (CommonException e) {
+        } catch (Exception e) {
             result.recordPartialError("Couldn't estimate object class size for " + objectClassName, e);
             LOGGER.warn("Couldn't estimate object class size for {} / {}", resourceOid, objectClassName, e);
             return null;
