@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 
@@ -96,8 +97,12 @@ public interface ShadowReferenceAttributeDefinition
 
     default void checkSubjectSide() {
         stateCheck(
-                getParticipantRole() == ShadowReferenceParticipantRole.SUBJECT,
+                isSubjectSide(),
                 "Only subject-side reference definition can have target object class definition: %s", this);
+    }
+
+    default boolean isSubjectSide() {
+        return getParticipantRole() == ShadowReferenceParticipantRole.SUBJECT;
     }
 
     /** Returns `true` if the provided shadow is a legal target for this reference (according to the definition). */
@@ -114,10 +119,16 @@ public interface ShadowReferenceAttributeDefinition
      * of returned values that filters out those shadows that do not match those kind/intent values.
      *
      * Note that currently provisioning module require at most one kind/intent even with `noFetch` option being present.
+     *
+     * Supported only on subject-side references.
      */
     default @NotNull ObjectFilter createTargetObjectsFilter(boolean resourceSafe) {
-        return ObjectQueryUtil.createObjectTypesFilter(
-                getResourceOid(), getTargetParticipantTypes(), resourceSafe, this);
+        if (isSubjectSide()) {
+            return ObjectQueryUtil.createObjectTypesFilter(
+                    getResourceOid(), getTargetParticipantTypes(), resourceSafe, this);
+        } else {
+            return PrismContext.get().queryFactory().createNone();
+        }
     }
 
     ReferenceDelta createEmptyDelta();
