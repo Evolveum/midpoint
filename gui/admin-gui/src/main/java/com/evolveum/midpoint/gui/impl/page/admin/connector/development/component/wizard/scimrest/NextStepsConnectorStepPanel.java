@@ -11,15 +11,22 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardParentStep;
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -42,6 +49,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -130,8 +139,34 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
 
             @Override
             protected void onTemplateChosePerformed(ConnectorAction action, AjaxRequestTarget target) {
-                if (action == ConnectorAction.NEW_OBJECT_CLASS) {
-                    createNewObjectClass(target);
+                switch (action) {
+                    case NEW_OBJECT_CLASS -> createNewObjectClass(target);
+                    case CREATE_RESOURCE -> {
+                        ResourceCreationPopup popup = new ResourceCreationPopup(getPageBase().getMainPopupBodyId()) {
+                            @Override
+                            protected void createNewResource(boolean useConfiguration) {
+                                try {
+                                    PrismReferenceWrapper<Referencable> resourceRef = getDetailsModel().getObjectWrapper().findReference(
+                                            ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
+                                    @Nullable PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(resourceRef.getValue().getRealValue(), getPageBase());
+                                    if (resource != null) {
+                                        PrismObject<ResourceType> newResource = DuplicationProcessHelper.duplicateObjectDefault(resource);
+                                        newResource.findOrCreateProperty(ResourceType.F_NAME).setRealValue(null);
+                                        newResource.findOrCreateContainer(ResourceType.F_SCHEMA).clear();
+                                        newResource.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).setRealValue(SchemaConstants.LIFECYCLE_PROPOSED);
+                                        if (!useConfiguration) {
+                                            ItemPath path = ItemPath.create("connectorConfiguration");
+                                            newResource.findOrCreateContainer(path).clear();
+                                        }
+                                        DetailsPageUtil.dispatchToObjectDetailsPage(newResource, true, true, getPageBase());
+                                    }
+                                } catch (SchemaException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        };
+                        getPageBase().showMainPopup(popup, target);
+                    }
                 }
             }
         };
