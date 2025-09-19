@@ -12,8 +12,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 
-import com.evolveum.midpoint.model.test.CommonInitialObjects;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,6 +20,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;

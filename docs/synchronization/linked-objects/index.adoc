@@ -670,7 +670,7 @@ Currently they are not.
 You can use the `runAsRef` mechanism in expressions to define a different user, if needed.
 
 * Scripts (actions) in scripting policy rules also execute under privileges of the currently logged-in user.
-You can use `scriptExecution.runAsRef` to define a different user. *
+You can use `scriptExecution.runAsRef` to define a different user. +
 There is one exception, though: to increase performance, the search for relevant objects (linked sources or targets) is done directly via the repository.
 So the security is not being applied there.
 This might change in the future.

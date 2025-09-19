@@ -20,11 +20,6 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.util.MappingInspector;
-
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -38,6 +33,7 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.api.util.MappingInspector;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder;
@@ -52,6 +48,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -66,6 +63,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -271,6 +269,25 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private int clickLimit;
 
     private transient ModelBeans modelBeans;
+
+    /**
+     * Policy rules that were triggered during the life of this context.
+     *
+     * Without this global map, policy rules that were triggered in first click were lost during next clicks.
+     * If such policy contained scripting action, action was not executed since it's only executed after
+     * the last execution wave for example were lost.
+     *
+     * Key for this map is policy rule identifier.
+     * Value is a list different triggered policy instances with the same identifier.
+     * Equality is determined via {@link EvaluatedPolicyRuleImpl#isTheSameAs(EvaluatedPolicyRuleImpl)}.
+     *
+     * TODO: Later on this field should be moved to {@Link com.evolveum.midpoint.model.impl.lens.PolicyRulesContext}
+     *  after {@link LensContext#historicResourceObjects} are made to contain full {@link LensProjectionContext}s
+     *  not just their keys.
+     *
+     * TODO think about making this non-transient, it's not serializable now (MagicAssignment/Holder classes, etc.)
+     */
+    @NotNull private transient final Map<String, List<EvaluatedPolicyRuleImpl>> triggeredObjectPolicyRules = new HashMap<>();
 
     public LensContext(@NotNull TaskExecutionMode taskExecutionMode) {
         this(null, taskExecutionMode);
@@ -2041,6 +2058,36 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public boolean areAccessesMetadataEnabled() {
         return SystemConfigurationTypeUtil.isAccessesMetadataEnabled(getSystemConfigurationBean());
+    }
+
+    public Collection<EvaluatedPolicyRuleImpl> getTriggeredObjectPolicyRules() {
+        return triggeredObjectPolicyRules.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+    }
+
+    public boolean hasTriggeredObjectPolicyRule(String identifier) {
+        return !triggeredObjectPolicyRules.getOrDefault(identifier, List.of()).isEmpty();
+    }
+
+    public void addTriggeredObjectPolicyRule(EvaluatedPolicyRuleImpl triggeredPolicyRule) {
+        List<EvaluatedPolicyRuleImpl> rules =
+                triggeredObjectPolicyRules.computeIfAbsent(triggeredPolicyRule.getPolicyRuleIdentifier(), id -> new ArrayList<>());
+
+        EvaluatedPolicyRuleImpl existing = findEquivalentPolicyRule(rules, triggeredPolicyRule);
+        if (existing != null) {
+            rules.remove(existing);
+        }
+
+        rules.add(triggeredPolicyRule);
+    }
+
+    private EvaluatedPolicyRuleImpl findEquivalentPolicyRule(List<EvaluatedPolicyRuleImpl> rules, EvaluatedPolicyRuleImpl rule) {
+        for (EvaluatedPolicyRuleImpl r : rules) {
+            if (rule.isTheSameAs(r)) {
+                return r;
+            }
+        }
+
+        return null;
     }
 
     public enum ExportType {
