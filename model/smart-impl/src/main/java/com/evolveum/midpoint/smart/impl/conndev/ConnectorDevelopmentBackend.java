@@ -31,7 +31,7 @@ public abstract class ConnectorDevelopmentBackend {
     private ConnectorDevelopmentType development;
     private EditableConnector editableConnector;
     protected boolean deleteConnectorSchema = false;
-    protected boolean skipConfigurationPropsUpgrade = false;
+    protected boolean skipConfigurationPropsUpgrade = true;
 
     public ConnectorDevelopmentBackend(ConnDevBeans beans, ConnectorDevelopmentType development, Task task, OperationResult result) {
         this.beans = beans;

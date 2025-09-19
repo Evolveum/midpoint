@@ -33,9 +33,7 @@ public class ResourceUtils {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, PolicyViolationException, SecurityViolationException {
             ObjectDelta<ResourceType> delta = PrismContext.get().deltaFor(ResourceType.class)
-                .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION)).replace()
-                .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_CACHING_METADATA)).replace()
-                .asObjectDelta(resource);
+                .item(ResourceType.F_SCHEMA).replace().asObjectDelta(resource);
         modelService.executeChanges(singleton(delta), null, task, parentResult);
     }
 }
