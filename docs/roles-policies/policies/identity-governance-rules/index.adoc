@@ -43,19 +43,19 @@ Therefore, the natural method of enforcing the policy is to apply it at the arch
 
 MidPoint comes with a couple of xref:/midpoint/reference/roles-policies/policies/preconfigured-policies/[pre-configured policies] that are ready-made to be applied.
 To support the ownership requirement, there is the `Require owner` pre-configured policy.
-When this policy is applied to an archetype, all objects of that archetype are required to have at least one owner.
+When this policy is included (induced) in an archetype, all objects of that archetype are required to have at least one owner.
 As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts as a xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role], the policy rule in the inducement is applied to all applications.
 
-The policy can be applied by assigning the policy to an archetype:
+The policy can be applied by _inducing_ the policy in an archetype:
 
-.Ownership requirement policy applied to application archetype
+.Ownership requirement policy included in application archetype
 [source,xml]
 ----
 <archetype oid="00000000-0000-0000-0000-000000000329">
     <name>Application</name>
-    <assignment>
+    <inducement>
         <targetRef oid="6451bca8-4035-4fb3-8ab1-5de14da59e18" type="PolicyType"/>
-    </assignment>
+    </inducement>
 </archetype>
 
 <policy oid="6451bca8-4035-4fb3-8ab1-5de14da59e18">
@@ -74,13 +74,13 @@ When this policy is applied to applications for the first time, all applications
 The recomputation triggers an evaluation of the policies that set or clear the marks as appropriate.
 
 TIP: The `Require owner` policy is implemented in an _inducement_ in the `Require owner` policy object.
-This is order 2 inducement, which means it does not apply to the assignee object (`Application` archetype).
-Instead, the inducement applies to all objects that have the `Application` archetype assigned.
+As the `Require owner` policy is _induced_ in the `Application` archetype, the archetype efficiently acts as a complex (meta)role.
+All the combined inducements apply to all objects that have the `Application` archetype assigned.
 This is the xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role mechanism] in action.
 
 == Dashboards and Reporting
 
-Once the policy is applied, and the archetype and the affected objects (applications) are recomputed, violations are recorded in the form of an object mark.
+Once the policy is applied, and the affected objects (applications) are recomputed, violations are recorded in the form of an object mark.
 The objects that violate the rule can be found by querying the _effective mark_ reference:
 
 .Unowned mark query
@@ -241,9 +241,6 @@ Policy rules implementing such a policy can be placed into a dedicated xref:/mid
     ...
     <inducement>
         <identifier>policy-require-approver</identifier>
-        <orderConstraint>
-            <order>2</order>
-        </orderConstraint>
         <policyRule>
             <name>rule-require-approver</name>
             <policyConstraints>
@@ -265,27 +262,22 @@ Policy rules implementing such a policy can be placed into a dedicated xref:/mid
 </policy>
 ----
 
-NOTE: The _inducement_ in the `Require approver` policy object is an order 2 inducement.
-Such inducement does not apply to the assignee object (`Business role` archetype).
-Instead, it applies to all objects that have the `Business role` archetype assigned.
-See xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role mechanism] for more details.
+Such packaged policy can be applied to the `Business role` archetype by using _inducement_:
 
-Such packaged policy can be applied to the `Business role` archetype by assignment:
-
-.Approver requirement policy applied to business role archetype
+.Approver requirement policy included in business role archetype
 [source,xml]
 ----
 <archetype oid="00000000-0000-0000-0000-000000000321">
     <name>Business role</name>
-    <assignment>
+    <inducement>
         <targetRef oid="36103ab2-6313-11f0-b5d6-cf6a2e7b791d" type="PolicyType"/>
-    </assignment>
+    </inducement>
 </archetype>
 ----
 
 Packaging policies is not only advantageous for re-using policies but also for governance.
 All the related policy rules that implement a certain policy can be neatly packaged inside one object.
-The resulting policy object encapsulates the policy and it makes it easy to maintain and manage.
+The resulting policy object encapsulates the policy, and it makes it easy to maintain and manage.
 E.g. a policy can be reviewed as one logical unit, it can have an owner, changes to the policy can be managed using an approval process and so on.
 
 == See Also
