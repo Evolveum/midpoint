@@ -14,8 +14,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -36,9 +38,11 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 
 /**
  * Utility methods for smart integration features in resource object type handling.
@@ -78,6 +82,33 @@ public class SmartIntegrationUtils {
             LOGGER.warn("Couldn't estimate object class size for {} / {}", resourceOid, objectClassName, e);
             return null;
         }
+    }
+
+    /**
+     * Returns names of standalone (i.e. not embedded) + structural (i.e. not auxiliary) object classes.
+     *
+     * Those are the only object classes that can be directly mapped to object types.
+     * Also, we can reasonably assume that we can count objects for these classes.
+     *
+     * NOTE: This method requires that the schema does exist for the resource and that the resource can be fetched
+     * via model API (which should be fine even for slightly malformed resources). Otherwise it will return an empty set.
+     * Anyway, if we want to e.g. count objects on this resource, it must be at least minimally functional.
+     */
+    public static @NotNull Set<QName> getStandaloneStructuralObjectClassesNames(
+            @NotNull String resourceOid, @NotNull PageBase pageBase, Task task, OperationResult result) {
+        NativeResourceSchema schema;
+        try {
+            var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
+            schema = Resource.of(resource).getNativeResourceSchemaRequired();
+        } catch (Exception e) {
+            result.recordPartialError("Couldn't get native resource schema for resource " + resourceOid, e);
+            LOGGER.warn("Couldn't get native resource schema for resource {}", resourceOid, e);
+            return Set.of();
+        }
+        return schema.getObjectClassDefinitions().stream()
+                .filter(def -> !def.isEmbedded() && !def.isAuxiliary())
+                .map(def -> new QName(NS_RI, def.getName())) // def.getQName is buggy now
+                .collect(Collectors.toSet());
     }
 
     /**

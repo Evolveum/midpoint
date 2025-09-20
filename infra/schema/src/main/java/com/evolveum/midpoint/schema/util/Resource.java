@@ -82,6 +82,14 @@ public class Resource {
         return ResourceSchemaFactory.getCompleteSchemaRequired(resourceBean);
     }
 
+    public @Nullable NativeResourceSchema getNativeResourceSchema() throws SchemaException {
+        return ResourceSchemaFactory.getNativeSchema(resourceBean);
+    }
+
+    public @NotNull NativeResourceSchema getNativeResourceSchemaRequired() throws SchemaException, ConfigurationException {
+        return ResourceSchemaFactory.getNativeSchemaRequired(resourceBean);
+    }
+
     public @NotNull Collection<ResourceObjectTypeDefinition> getObjectTypeDefinitions()
             throws SchemaException, ConfigurationException {
         ResourceSchema schema = getCompleteSchema();
