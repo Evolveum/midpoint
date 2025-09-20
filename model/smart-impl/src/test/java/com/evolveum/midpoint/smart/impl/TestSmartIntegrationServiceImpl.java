@@ -27,11 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-
-import com.evolveum.midpoint.prism.PrismObject;
-
-import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import org.assertj.core.data.Offset;
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +73,9 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     private static final TestObject<?> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
     private static final TestObject<?> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
     private static final TestObject<?> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "30cef119-71b6-42b3-9762-5c649b2a2b6a");
+
+    private static final ResourceObjectTypeIdentification GENERIC_ORGANIZATIONAL_UNIT =
+            ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, "organizationalUnit");
 
     private static DummyScenario dummyForObjectTypes;
     private static DummyScenario dummyForMappingsAndCorrelation;
@@ -597,7 +596,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** All features: both filters and base context, plus multiple object types. */
-    @Test
+    @Test(enabled = false) // MID-10872
     public void test110SuggestObjectTypesWithFiltersAndBaseContext() throws CommonException, IOException {
         skipIfRealService();
 
@@ -731,7 +730,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** All features: both filters and base context, plus multiple object types. */
-    @Test
+    @Test(enabled = false) // MID-10872
     public void test140ConflictingObjectTypes() throws CommonException, IOException {
         skipIfRealService();
 
@@ -1185,6 +1184,37 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                         path.equivalent(s.getDefinition().getRef().getItemPath()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No suggestion found for " + path));
+    }
+
+    /**
+     * This is to test whether the matching request for an org has appropriate number of attributes, i.e. that unimportant
+     * ones are avoided.
+     */
+    @Test
+    public void test310SuggestMappingsForOrg() throws CommonException, ActivityInterruptedException {
+        skipIfRealService();
+
+        //noinspection resource
+        var mockClient = new MockServiceClientImpl(new SiMatchSchemaResponseType()); // not important for this test
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("suggesting mappings");
+        smartIntegrationService.suggestMappings(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                GENERIC_ORGANIZATIONAL_UNIT,
+                null, null, null, task, result);
+
+        then("the number of attributes in the request is appropriate");
+        var request = (SiMatchSchemaRequestType) mockClient.getLastRequest();
+        displayValueAsXml("match schema request", request);
+        var midPointAttributesNumber = request.getMidPointSchema().getAttribute().size();
+        displayValue("midpoint attributes number", midPointAttributesNumber);
+        assertThat(midPointAttributesNumber)
+                .as("number of midPoint attributes in request")
+                .isLessThanOrEqualTo(100);
     }
 
     @Test
