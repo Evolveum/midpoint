@@ -487,11 +487,11 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         if (!previewOnly && !preconditionDeltaProcessors.isEmpty()) {
             for (ExecutedDeltaPostProcessor preconditionDelta : preconditionDeltaProcessors) {
-                OperationResult subResult = result.createSubresult("executePreconditionDeltas");
                 Collection<ObjectDelta<? extends ObjectType>> preconditionDeltas = preconditionDelta.getObjectDeltas();
                 if (preconditionDeltas.isEmpty()) {
                     continue;
                 }
+                OperationResult subResult = result.createSubresult("executePreconditionDeltas");
                 Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(
                         preconditionDeltas, previewOnly, options, task, subResult, target);
                 if (subResult.isFatalError()) {

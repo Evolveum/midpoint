@@ -183,6 +183,8 @@
 
             <xsd:element maxOccurs="unbounded" name="objectClass" type="tns:ConnDevObjectClassInfoType">
             </xsd:element>
+            <xsd:element maxOccurs="unbounded" name="relation" type="tns:ConnDevRelationInfoType">
+            </xsd:element>
 
             <xsd:element name="testOperation" type="tns:ConnDevArtifactType"/>
             <xsd:element name="authenticationScript" type="tns:ConnDevArtifactType"/>
