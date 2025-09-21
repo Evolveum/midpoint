@@ -17,10 +17,11 @@ public class ProcessedDocumentation {
     private final String uri;
     private final String uuid;
     private final File storage;
-
+    private String mimeType;
 
     ProcessedDocumentation(ProcessedDocumentationType base) {
         this(base.getUuid(), base.getUri());
+        mimeType = base.getContentType();
     }
 
     ProcessedDocumentation(String uuid, String uri) {
@@ -41,6 +42,26 @@ public class ProcessedDocumentation {
     public ProcessedDocumentationType toBean() {
         return new ProcessedDocumentationType()
                 .uri(uri)
-                .uuid(uuid);
+                .uuid(uuid)
+                .contentType(contentType());
+    }
+
+    public void write(String value) throws IOException {
+        try (DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(asOutputStream()))) {
+            outStream.writeUTF(value);
+        }
+    }
+
+    String contentType() {
+        if (mimeType == null) {
+            if (uri.endsWith(".json")) {
+                mimeType = "application/json";
+            } else if (uri.endsWith(".yml") || uri.endsWith(".yaml")) {
+                mimeType = "application/yaml";
+            } else {
+                mimeType = "text/html";
+            }
+        }
+        return mimeType;
     }
 }
