@@ -73,7 +73,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="deploymentType" type="tns:ConnDevDeploymentType">
+            <xsd:element name="deploymentType" type="tns:ConnDevDeploymentType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Application deployment type.
