@@ -57,8 +57,10 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingConnectorStepPane
 
     @Override
     protected String getTaskToken(Task task, OperationResult result) {
+        var realValue = valueModel.getObject().getRealValue();
+
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateSearchScript(
-                valueModel.getObject().getRealValue().getName(), null, task, result);
+                realValue.getName(), realValue.getEndpoint(), task, result);
     }
 
     @Override

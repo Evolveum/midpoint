@@ -57,9 +57,22 @@ public interface ConnectorDevelopmentOperation {
         return submitGenerateArtifact(AUTHENTICATION_CUSTOMIZATION.create(), task, result);
     }
 
-    default String submitGenerateSearchScript(String objectClass, ConnDevHttpEndpointType endpoint, Task task, OperationResult result) {
+    default String submitGenerateSearchScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
         return submitGenerateArtifact(SEARCH_ALL_DEFINITION.create(objectClass),
-                definition -> definition.endpoint(endpoint.clone()), task, result);
+                definition -> {
+                    if (endpoints != null && !endpoints.isEmpty()) {
+                        for (var endpoint : endpoints) {
+                            // Somehow clone triggers NPE in serializer
+                            definition.endpoint(new ConnDevHttpEndpointType()
+                                    .uri(endpoint.getUri())
+                                    .name(endpoint.getName())
+                                    .operation(endpoint.getOperation())
+                                    .requestContentType(endpoint.getRequestContentType())
+                                    .responseContentType(endpoint.getResponseContentType())
+                            );
+                        }
+                    }
+                }, task, result);
     }
 
     default String submitGenerateRelationScript(ConnDevRelationInfoType relation, Task task, OperationResult result) {
