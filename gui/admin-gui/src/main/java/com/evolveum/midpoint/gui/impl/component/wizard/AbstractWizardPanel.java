@@ -50,7 +50,11 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
             WizardPanelHelper<C, AHD> helper) {
         super(id);
         this.helper = helper;
-        startWithChoiceTemplate = nameOfObjectIsNotNull();
+        startWithChoiceTemplate = initStartWithChoiceTemplate();
+    }
+
+    protected boolean initStartWithChoiceTemplate() {
+        return nameOfObjectIsNotNull();
     }
 
     @Override

@@ -1,0 +1,46 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
+        <div wicket:id="feedback" class="messagePanel"/>
+    </div>
+    <div class="col-12 gap-2 p-0" wicket:id="radioGroup">
+        <div class="d-flex flex-column w-100 p-3 card" wicket:id="panel">
+            <div class="d-flex flex-row w-100 border-bottom pb-2 gap-2">
+                <input wicket:id="radio" type="radio"/>
+                <div class="font-weight-bold" wicket:id="name"/>
+                <div class="text-secondary ml-auto" wicket:id="description"/>
+            </div>
+            <div class="w-100 d-flex flex-row pt-3">
+                <div class="d-lex flex-column pr-2">
+                    <div class="text-secondary">
+                        <wicket:message key="AssociationSelectConnectorStepPanel.subject"/>
+                    </div>
+                    <div class="font-weight-bold" wicket:id="subject"/>
+                    <div class="m-auto border rounded px-2">
+                        <div wicket:id="subjectAttribute"/>
+                    </div>
+                </div>
+                <div class="w-100 border-bottom my-auto" style="height:1px;"></div>
+                <div class="d-lex flex-column pl-2 text-right">
+                    <div class="text-secondary">
+                        <wicket:message key="AssociationSelectConnectorStepPanel.object"/>
+                    </div>
+                    <div class="font-weight-bold" wicket:id="object"/>
+                    <div class="m-auto border rounded px-2">
+                        <div wicket:id="objectAttribute"/>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</wicket:extend>
+</html>

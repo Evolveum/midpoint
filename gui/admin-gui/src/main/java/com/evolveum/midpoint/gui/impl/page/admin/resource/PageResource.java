@@ -89,6 +89,10 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         super(resource);
     }
 
+    public PageResource(PrismObject<ResourceType> resource, boolean showWizard) {
+        super(resource);
+    }
+
     @Override
     public Class<ResourceType> getType() {
         return ResourceType.class;
