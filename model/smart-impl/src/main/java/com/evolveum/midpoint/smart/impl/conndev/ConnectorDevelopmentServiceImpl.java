@@ -37,6 +37,7 @@ import javax.xml.datatype.Duration;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Component
 public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentService {
@@ -136,12 +137,18 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public String submitGenerateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
+            return submitGenerateArtifact(artifact, noop -> {},task, result);
+        }
+
+
+        @Override
+        public String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, Task task, OperationResult result) {
+            var definition =  new ConnDevGenerateArtifactDefinitionType()
+                    .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    .artifact(artifact.clone());
+            customizer.accept(definition);
             return submitTask("Generating script " + artifact.getFilename(),
-                    new WorkDefinitionsType().generateConnectorArtifact(
-                            new ConnDevGenerateArtifactDefinitionType()
-                                    .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
-                                    .artifact(artifact.clone())
-                    ), task, result);
+                    new WorkDefinitionsType().generateConnectorArtifact(definition), task, result);
         }
 
         @Override

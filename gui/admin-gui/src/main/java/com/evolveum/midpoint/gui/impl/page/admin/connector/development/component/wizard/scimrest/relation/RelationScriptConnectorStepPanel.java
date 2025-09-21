@@ -71,6 +71,6 @@ public class RelationScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
     @Override
     protected void saveScript(ConnDevArtifactType object, Task task, OperationResult result) throws IOException, CommonException {
-        getDetailsModel().getConnectorDevelopmentOperation().saveRelationshipScritp(object, task, result);
+        getDetailsModel().getConnectorDevelopmentOperation().saveRelationScript(object, task, result);
     }
 }

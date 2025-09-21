@@ -52,8 +52,8 @@ public abstract class ConnectorDevelopmentBackend {
 
     private static ConnectorDevelopmentBackend backendFor(ConnDevIntegrationType integrationType, ConnectorDevelopmentType connDev, ConnDevBeans beans, Task task, OperationResult result) {
         return switch (integrationType) {
-            case REST -> new JsonHalBackend(beans, connDev, task, result);
-            case SCIM -> throw new UnsupportedOperationException();
+            case REST -> new RestTestBackend(beans, connDev, task, result);
+            case SCIM -> new JsonHalBackend(beans, connDev, task, result);
             case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
 
@@ -130,6 +130,9 @@ public abstract class ConnectorDevelopmentBackend {
         saveConnectorFile(artifact.getFilename(), artifact.getContent());
         var modelArtifact = artifact.clone().content(null);
 
+        if (ConnDevScriptIntentType.RELATION.equals(artifact.getIntent())) {
+            return;
+        }
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(itemPath).replace(modelArtifact)
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
@@ -253,8 +256,8 @@ public abstract class ConnectorDevelopmentBackend {
     public abstract ConnDevApplicationInfoType discoverBasicInformation();
     public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation();
     public abstract List<ConnDevDocumentationSourceType> discoverDocumentation();
-    public abstract ConnDevArtifactType generateArtifact(ConnDevArtifactType artifactSpec);
-    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevArtifactType artifactSpec);
+    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
+    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
     public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated);
     public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass);
     public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass);

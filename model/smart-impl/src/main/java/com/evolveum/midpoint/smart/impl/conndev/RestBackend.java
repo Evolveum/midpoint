@@ -7,6 +7,8 @@ import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,18 +20,18 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
-import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class RestBackend extends ConnectorDevelopmentBackend {
 
     private static final long SLEEP_TIME = 5 * 1000L;
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
+
+
+    private static final Trace LOGGER = TraceManager.getTrace(ConnectorDevelopmentBackend.class);
 
     public RestBackend(ConnDevBeans beans, ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         super(beans, connDev, task, result);
@@ -38,7 +40,6 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public ConnDevApplicationInfoType discoverBasicInformation() {
         var documentation = selectBestDocumentation(getProcessedDocumentation());
-
         try(var job = client().postDocumentationJob("digester/getInfoMetadata", documentation.asInputStream() , null)) {
             return job.waitAndProcess(SLEEP_TIME, o -> {
                 var ret = new ConnDevApplicationInfoType();
@@ -69,6 +70,11 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     private ProcessedDocumentation selectBestDocumentation(List<ProcessedDocumentation> processedDocumentation) {
         // FIXME: Select documentation based on classification
+        for (var doc : processedDocumentation) {
+            if ("application/json".equals(doc.contentType()) || "application/yaml".equals(doc.contentType())) {
+                return doc;
+            }
+        }
         return processedDocumentation.get(0);
     }
 
@@ -104,17 +110,26 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
         try(var jobSpec = client().postJob("discovery/getCandidateLinks", request)) {
             return jobSpec.waitAndProcess(SLEEP_TIME, result -> {
-                var results = jobSpec.getResult().get("candidateLinks");
-                var ret = new ArrayList<ConnDevDocumentationSourceType>();
+                var results = jobSpec.getResult().get("candidateLinksEnriched");
+
+                var map = new HashMap<String, ConnDevDocumentationSourceType>();
                 for (var link : results) {
                     var discovered = new ConnDevDocumentationSourceType();
-                    // FIXME: Switch to full format later
-                    discovered.setName(link.asText());
-                    // FIXME
-                    discovered.setUri(link.asText());
-                    // FIXME
-                    discovered.setDescription(link.asText());
-                    ret.add(discovered);
+                    discovered.setName(toString(link.get("title")));
+                    discovered.setUri(toString(link.get("href")));
+                    discovered.setDescription(toString(link.get("body")));
+                    map.put(discovered.getUri(), discovered);
+                }
+                var ret = new ArrayList<ConnDevDocumentationSourceType>(map.values());
+
+                for (var jsonText : result.get("candidateLinks")) {
+                    var href = toString(jsonText);
+                    if (!map.containsKey(href)) {
+                        var discovered = new ConnDevDocumentationSourceType();
+                        discovered.setName(href);
+                        discovered.setUri(href);
+                        ret.add(discovered);
+                    }
                 }
                 return ret;
             });
@@ -123,10 +138,11 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         }
     }
 
-    public ConnDevArtifactType generateArtifact(ConnDevArtifactType artifactSpec) {
+    public ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType input) {
+        var artifactSpec = input.getArtifact();
         var ret = artifactSpec.clone();
         if (artifactSpec.getObjectClass() != null) {
-            return generateObjectClassArtifact(artifactSpec);
+            return generateObjectClassArtifact(input);
         }
 
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
@@ -135,9 +151,6 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                         authentication {
                             // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
                             // how to write authentication part of the script.
-                            apiKey {
-
-                            }
                         }
                         """);
             case TEST_CONNECTION_DEFINITION -> ret.content("""
@@ -153,13 +166,15 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public ConnDevArtifactType generateObjectClassArtifact(ConnDevArtifactType artifactSpec) {
+    public ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType input) {
+        var artifactSpec = input.getArtifact();
         var objectClass = artifactSpec.getObjectClass();
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
         var content = switch (classification) {
             case NATIVE_SCHEMA_DEFINITION -> generateNativeSchema(artifactSpec);
             case CONNID_SCHEMA_DEFINITION -> generateConnIdSchema(artifactSpec);
-            case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec);
+            case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, input.getEndpoint());
+            case RELATIONSHIP_SCHEMA_DEFINITION -> genereateRelation(artifactSpec, input.getRelation());
             default -> throw new IllegalStateException("Unexpected script type: " + classification);
         };
         content = content.replace("${objectClass}", objectClass);
@@ -167,9 +182,27 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     }
 
-    private String generateSearchAll(ConnDevArtifactType artifactSpec) {
+    private String genereateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation) {
+        var request = MultipartEntityBuilder.create();
+        var documentation = selectBestDocumentation(getProcessedDocumentation());
+        try {
+            request.addBinaryBody("documentation", documentation.asInputStream(), ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
+            request.addTextBody("relation",  toJsonRelations(relation).toPrettyString());
+        } catch (FileNotFoundException e) {
+            throw new SystemException("Couldn't open documentation file", e);
+        }
+        try(var job = client().postEntityJob("codegen/getRelation" , request.build())) {
+            return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
+        } catch (Exception e) {
+            throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
+        }
+
+    }
+
+
+
+    private String generateSearchAll(ConnDevArtifactType artifactSpec, List<ConnDevHttpEndpointType> endpoints) {
         var attributes = connectorObjectClass(artifactSpec.getObjectClass()).getAttribute();
-        var endpoints = applicationObjectClass(artifactSpec.getObjectClass()).getEndpoint();
         var request = MultipartEntityBuilder.create();
         var documentation = selectBestDocumentation(getProcessedDocumentation());
         try {
@@ -345,8 +378,8 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         ConnDevDocumentationSourceType openApi = null;
-        var byMidpoint = new ArrayList<>();
-        var byScrapper = new ArrayList<>();
+        var byMidpoint = new ArrayList<ConnDevDocumentationSourceType>();
+        var byScrapper = new ArrayList<ConnDevDocumentationSourceType>();
         for (var doc : developmentObject().getDocumentationSource()) {
             if (isOpenApi(doc)) {
                 // Workaround since midPoint does not
@@ -361,6 +394,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         if (openApi != null) {
             documentations.add(downloadAndCache(openApi));
         }
+        if (!byScrapper.isEmpty()) {
+            downloadUsingScrapper(byScrapper, documentations);
+        }
+
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
                 .addRealValues(documentations.stream().map(ProcessedDocumentation::toBean).toList())
@@ -368,15 +405,73 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
     }
 
+    private void downloadUsingScrapper(ArrayList<ConnDevDocumentationSourceType> byScrapper, ArrayList<ProcessedDocumentation> documentations) {
+        var request = scrapperRequest(byScrapper);
+        try(var job = client().postJob("scrape/getRelevantDocumentation", request)) {
+            var scrapped = job.waitAndProcess(SLEEP_TIME, json -> {
+                var ret = new ArrayList<ProcessedDocumentation>();
+                var jsonUris = json.get("relevantDocuments");
+
+                var jsonFulltexts = json.get("relevantDocumentsFulltext");
+
+                for (int i = 0; i < jsonUris.size(); i++) {
+                    try {
+                        var uri = toString(jsonUris.get(i));
+                        var fulltext = toString(jsonFulltexts.get(i));
+                        var processed = new ProcessedDocumentation(UUID.randomUUID().toString(), uri);
+                        processed.write(fulltext);
+                        ret.add(processed);
+                    } catch (Exception e) {
+                        // Skipping documentation
+                        // FIXME: we should log this
+                    }
+                }
+                return ret;
+            });
+            documentations.addAll(scrapped);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private ObjectNode scrapperRequest(ArrayList<ConnDevDocumentationSourceType> byScrapper) {
+        var ret = JSON_FACTORY.objectNode();
+        var starterLinks = JSON_FACTORY.arrayNode();
+        var trustedDomains = new HashSet<String>();
+
+
+        for (var doc : byScrapper) {
+            try {
+                var uri = new URL(doc.getUri());
+                starterLinks.add(doc.getUri());
+                trustedDomains.add(uri.getHost());
+            } catch (Exception e) {
+                // SHould not happen.
+            }
+        }
+
+        ret.set("starterLinks", starterLinks);
+        ret.set("applicationName",  JSON_FACTORY.textNode(developmentObject().getApplication().getApplicationName().getOrig()));
+        ret.set("applicationVersion", JSON_FACTORY.textNode("latest"));
+
+        var trustedDomainsJson = JSON_FACTORY.arrayNode();
+        trustedDomains.forEach(d -> trustedDomainsJson.add(JSON_FACTORY.textNode(d)));
+        ret.set("trustedDomains", trustedDomainsJson );
+
+        ret.set("maxScraperIterations", JSON_FACTORY.numberNode(3));
+        ret.set("runParts", JSON_FACTORY.textNode("all"));
+        ret.set("scraperUrlSelectMethod", JSON_FACTORY.textNode("current-except"));
+        ret.set("returnFulltext", JSON_FACTORY.booleanNode(true));
+        return ret;
+    }
+
     protected ProcessedDocumentation downloadAndCache(ConnDevDocumentationSourceType openApi) {
         var documentation = new ProcessedDocumentation(UUID.randomUUID().toString(), openApi.getUri());
 
         try {
             var url = new URL(openApi.getUri());
-            var readableByteChannel = Channels.newChannel(url.openStream());
-            var fileOutputStream = documentation.asOutputStream();
-            var fileChannel = fileOutputStream.getChannel();
-            fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+            beans.downloadFile(url, documentation.asOutputStream());
             return documentation;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -430,6 +525,39 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         return ret;
     }
 
+    public static ObjectNode toJsonObjectClasses(List<? extends ConnDevBasicObjectClassInfoType> classes) {
+        var  ret = JSON_FACTORY.objectNode();
+        var jsonObjectClasses = JSON_FACTORY.arrayNode();
+        ret.set("objectClasses", jsonObjectClasses);
+        for (var classInfo : classes) {
+            var object = JSON_FACTORY.objectNode();
+            object.set("name", JSON_FACTORY.textNode(classInfo.getName()));
+            object.set("description", JSON_FACTORY.textNode(classInfo.getDescription()));
+            // Somehow relevant needs to be string
+            object.set("relevant", JSON_FACTORY.textNode(Boolean.toString(classInfo.isRelevant())));
+            object.set("abstract", JSON_FACTORY.booleanNode(classInfo.isAbstract()));
+            object.set("embedded", JSON_FACTORY.booleanNode(classInfo.isEmbedded()));
+            jsonObjectClasses.add(object);
+        }
+        return ret;
+    }
+
+    private ObjectNode toJsonRelations(List<ConnDevRelationInfoType> relation) {
+        var ret = JSON_FACTORY.objectNode();
+        var jsonRelations = JSON_FACTORY.arrayNode();
+        ret.set("relations", jsonRelations);
+        for (var relationInfo : relation) {
+            var object = JSON_FACTORY.objectNode();
+            object.set("name", JSON_FACTORY.textNode(relationInfo.getName()));
+            object.set("subject", JSON_FACTORY.textNode(relationInfo.getSubject()));
+            object.set("subjectAttribute",  JSON_FACTORY.textNode(relationInfo.getSubjectAttribute()));
+            object.set("object",  JSON_FACTORY.textNode(relationInfo.getObject()));
+            object.set("objectAttribute",  JSON_FACTORY.textNode(relationInfo.getObjectAttribute()));
+            jsonRelations.add(object);
+        }
+        return ret;
+    }
+
     private static String toValue(ConnDevHttpOperationType operation) {
         return operation != null ? operation.value() : null;
     }
@@ -441,7 +569,76 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) {
-        return List.of();
+
+        var request = MultipartEntityBuilder.create();
+        var documentation = selectBestDocumentation(getProcessedDocumentation());
+        try {
+            request.addBinaryBody("documentation", documentation.asInputStream(), ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
+            request.addTextBody("relevantObjectClasses", toJsonObjectClasses(discovered).toPrettyString());
+
+            try(var job = client().postEntityJob("digester/getRelations",request.build())) {
+                return job.waitAndProcess(SLEEP_TIME, json -> {
+                    var ret = new ArrayList<ConnDevRelationInfoType>();
+                    var jsonRelations = json.get("relations");
+                    for (var object : jsonRelations) {
+                        var relation = toRelation(object, discovered);
+                        if (relation != null) {
+                            ret.add(relation);
+                        }
+                    }
+                    return ret;
+                });
+            }
+        } catch (Exception e) {
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
+
+    private ConnDevRelationInfoType toRelation(JsonNode object, List<ConnDevBasicObjectClassInfoType> discovered) {
+        var ret = new ConnDevRelationInfoType();
+        ret.setName(toString(object.get("name")));
+        ret.setObject(toString(object.get("object")));
+        ret.setObjectAttribute(toString(object.get("objectAttribute")));
+        ret.setSubject(toString(object.get("subject")));
+        ret.setSubjectAttribute(toString(object.get("subjectAttribute")));
+        ret.setShortDescription(toString(object.get("shortDescription")));
+
+
+        ret.setObject(normalize(ret.getObject(), discovered));
+        ret.setSubject(normalize(ret.getSubject(), discovered));
+
+        if (ret.getSubject() == null) {
+            // Ignore relations without subject.
+            return null;
+        }
+
+        // Add name and relation
+        if (ret.getName() == null) {
+            var base = ret.getSubject()
+                    + "_" + ret.getSubjectAttribute()
+                    + "_" + ret.getObject()
+                    + "_" + ret.getObjectAttribute();
+            ret.setName(base);
+
+        }
+        if (ret.getShortDescription() == null) {
+            var base = "Relation between "
+                    + ret.getSubject()
+                    + "/" + ret.getSubjectAttribute()
+                    + " - " + ret.getObject()
+                    + "/" + ret.getObjectAttribute();
+            ret.setShortDescription(base);
+        }
+        return ret;
+    }
+
+    private String normalize(String llmName, List<ConnDevBasicObjectClassInfoType> discovered) {
+        if (llmName == null) {
+            return null;
+        }
+        return discovered.stream().map(ConnDevBasicObjectClassInfoType::getName)
+                .filter(llmName::equalsIgnoreCase).findFirst().orElse(null);
+
     }
 
 }
