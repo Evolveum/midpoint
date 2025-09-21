@@ -210,7 +210,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return panel;
     }
 
-    public ResourceAssociationTypeWizardPanel showAssociationTypeWizardForSuggestionDuplicate(@NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
+    public ResourceAssociationTypeWizardPanel showAssociationTypeWizardForSuggestion(@NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
         ResourceAssociationTypeWizardPanel panel = showWizard(valueModel, target, ResourceAssociationTypeWizardPanel.class, null);
         panel.setPanelForDuplicate(true);
         return panel;

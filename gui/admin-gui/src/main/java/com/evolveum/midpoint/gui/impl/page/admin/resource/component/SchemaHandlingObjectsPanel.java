@@ -113,7 +113,6 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         inlineMenuItems.add(createSuggestionOperationInlineMenu());
         inlineMenuItems.add(createSuggestionDetailsInlineMenu());
         inlineMenuItems.add(createSuggestionReviewInlineMenu());
-        inlineMenuItems.add(createDeleteSuggestionInlineMenu());
     }
 
     private @NotNull MultivalueContainerListPanel<C> createMultiValueListPanel() {
@@ -138,7 +137,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected void customProcessNewRowItem(Item<PrismContainerValueWrapper<C>> item, IModel<PrismContainerValueWrapper<C>> model) {
-                OperationResultStatusType status = statusFor(model.getObject());
+                StatusInfo<?> status = getStatusInfo(model.getObject());
                 if (status == null) {
                     super.customProcessNewRowItem(item, model);
                     return;
@@ -203,13 +202,18 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             public @NotNull List<InlineMenuItem> getInlineMenuItems() {
                 List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
                 customizeInlineMenuItems(inlineMenuItems);
+
+                if (isStatisticsAllowed()) {
+                    inlineMenuItems.add(createStatisticsInlineMenu());
+                }
+                inlineMenuItems.add(createDeleteInlineMenu());
+
                 return inlineMenuItems;
             }
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> actions = new ArrayList<>();
-                actions.add(createDeleteInlineMenu());
                 ButtonInlineMenuItem editInlineMenu = createEditInlineMenu();
                 editInlineMenu.setLabelVisible(true);
                 actions.add(editInlineMenu);
@@ -224,6 +228,34 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 createSuggestObjectButton(idButton, bar);
                 createToggleSuggestionButton(idButton, bar);
                 return bar;
+            }
+
+            public @NotNull InlineMenuItem createStatisticsInlineMenu() {
+                return new InlineMenuItem(createStringResource("Statistics.button.label")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public InlineMenuItemAction initAction() {
+                        return new ColumnMenuAction<>() {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                if (getRowModel() != null) {
+                                    ResourceType resource = getObjectDetailsModels().getObjectType();
+                                    String resourceOid = resource.getOid();
+
+                                    PrismContainerValueWrapper<?> object = (PrismContainerValueWrapper<?>) getRowModel().getObject();
+
+                                    if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType objectTypeDefinition) {
+                                        showStatisticsPanel(target, objectTypeDefinition, getPageBase(), resourceOid);
+                                    }
+
+                                }
+                            }
+                        };
+                    }
+                };
             }
 
             @Override
@@ -328,11 +360,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     return;
                 }
 
-                Task task = getPageBase().getPageTask();
-                OperationResult result = task.getResult();
-
                 toDelete.forEach(value -> {
-                    if (deleteObjectTypeSuggestionIfRequested(value, task, result)) {return;}
+
+                    if (performOnDeleteSuggestion(target, value)) {
+                        return;
+                    }
 
                     if (value.getStatus() == ValueStatus.ADDED) {
                         PrismContainerWrapper<C> wrapper = getContainerModel() != null ?
@@ -348,30 +380,16 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 refreshForm(target);
             }
 
-            @SuppressWarnings("unchecked")
-            private boolean deleteObjectTypeSuggestionIfRequested(
-                    PrismContainerValueWrapper<C> value,
-                    Task task,
-                    OperationResult result) {
-                StatusInfo<?> statusInfo = getStatusInfo(value);
-                if (statusInfo != null && value.getRealValue() instanceof ResourceObjectTypeDefinitionType defToDelete) {
-                    SmartIntegrationUtils.removeObjectTypeSuggestionNew(
-                            getPageBase(),
-                            (StatusInfo<ObjectTypesSuggestionType>) statusInfo,
-                            defToDelete,
-                            task,
-                            result);
-                    return true;
-                }
-                return false;
-            }
-
             @Override
-            protected IColumn<PrismContainerValueWrapper<C>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-                return new PrismPropertyWrapperColumn<>(getContainerModel(), getPathForDisplayName(), AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
+            protected IColumn<PrismContainerValueWrapper<C>, String> createNameColumn(IModel<String> displayModel,
+                    GuiObjectColumnType customColumn,
+                    ExpressionType expression) {
+                return new PrismPropertyWrapperColumn<>(getContainerModel(), getPathForDisplayName(),
+                        AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<C>> rowModel) {
+                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId,
+                            IModel<PrismContainerValueWrapper<C>> rowModel) {
 
                         Component component = onNameColumnPopulateItem(cellItem, componentId, rowModel);
                         if (component != null) {
@@ -390,7 +408,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
-            public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItems) {
+            public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
+                    List<PrismContainerValueWrapper<C>> listItems) {
                 AbstractPageObjectDetails<?, ?> parent = findParent(AbstractPageObjectDetails.class);
 
                 if (parent == null) {
@@ -448,8 +467,9 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             LoadableModel<String> displayNameModel = new LoadableModel<>() {
                 @Override
                 protected String load() {
-                    if (status.equals(OperationResultStatusType.IN_PROGRESS)) {
-                        return createStringResource("ResourceObjectTypesPanel.suggestion.inProgress").getString();
+                    if (status.equals(OperationResultStatusType.IN_PROGRESS)
+                            || status.equals(OperationResultStatusType.UNKNOWN)) {
+                        return createStringResource("Generating.suggestion").getString();
                     }
 
                     if (realValue != null) {
@@ -900,48 +920,14 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         };
     }
 
-    protected ButtonInlineMenuItem createDeleteSuggestionInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> {
-                    if (rowModel == null || rowModel.getObject() == null) {
-                        return false;
-                    }
-
-                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                        @Nullable StatusInfo<?> suggestionStatus = getStatusInfo(valueWrapper);
-                        return suggestionStatus != null;
-                    }
-                    return false;
-                };
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        IModel<Serializable> rowModel = getRowModel();
-                        performOnDeleteSuggestion(target, rowModel);
-                    }
-                };
-            }
-        };
-    }
-
-    protected void performOnDeleteSuggestion(AjaxRequestTarget target, IModel<Serializable> rowModel) {
+    protected boolean performOnDeleteSuggestion(AjaxRequestTarget target, PrismContainerValueWrapper<C> rowModel) {
+        return false;
     }
 
     protected void performOnReview(@NotNull AjaxRequestTarget target, @NotNull PrismContainerValueWrapper<?> valueWrapper) {
+    }
+
+    protected boolean isStatisticsAllowed() {
+        return false;
     }
 }

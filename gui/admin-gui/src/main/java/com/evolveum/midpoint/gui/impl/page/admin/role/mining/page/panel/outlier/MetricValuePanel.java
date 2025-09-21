@@ -21,6 +21,7 @@ import org.apache.wicket.model.Model;
 
 public class MetricValuePanel extends BasePanel<String> {
 
+    private static final String ID_CONTAINER = "container";
     private static final String ID_TITLE = "title";
     private static final String ID_VALUE = "value";
     private static final String ID_HELP_CONTAINER = "helpContainer";
@@ -37,18 +38,23 @@ public class MetricValuePanel extends BasePanel<String> {
     }
 
     private void initLayout() {
+        WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
+        container.setOutputMarkupId(true);
+        container.add(AttributeModifier.replace("class", getContainerCssClass()));
+        add(container);
+
         Component title = getTitleComponent(ID_TITLE);
         title.setOutputMarkupId(true);
-        add(title);
+        container.add(title);
 
         Component value = getValueComponent(ID_VALUE);
         value.setOutputMarkupId(true);
-        add(value);
+        container.add(value);
 
         WebMarkupContainer helpContainer = new WebMarkupContainer(ID_HELP_CONTAINER);
         helpContainer.setOutputMarkupId(true);
         helpContainer.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getHelpModel().getObject())));
-        add(helpContainer);
+        container.add(helpContainer);
 
         Label help = new Label(ID_HELP);
         IModel<String> helpModel = getHelpModel();
@@ -69,6 +75,10 @@ public class MetricValuePanel extends BasePanel<String> {
 
     protected IModel<String> getHelpModel() {
         return Model.of("");
+    }
+
+    protected String getContainerCssClass() {
+        return "col p-0";
     }
 
 }

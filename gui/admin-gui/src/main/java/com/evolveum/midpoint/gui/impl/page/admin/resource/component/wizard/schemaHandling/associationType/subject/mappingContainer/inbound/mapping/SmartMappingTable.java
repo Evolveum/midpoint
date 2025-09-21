@@ -204,6 +204,11 @@ public abstract class SmartMappingTable<P extends Containerable>
     }
 
     protected void excludeMappings(@NotNull List<PrismContainerValueWrapper<MappingType>> list, MappingUsedFor usedFor) {
+
+        if (usedFor == MappingUsedFor.ALL) {
+            return;
+        }
+
         list.removeIf(valueWrapper -> {
             InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
             InboundMappingUseType valueUse = realValue.getUse();
@@ -734,7 +739,7 @@ public abstract class SmartMappingTable<P extends Containerable>
         DropDownChoicePanel<MappingUsedFor> dropdown = WebComponentUtil.createEnumPanel(
                 idButton,
                 WebComponentUtil.createReadonlyModelFromEnum(MappingUsedFor.class),
-                Model.of(),
+                mappingUsedForIModel,
                 SmartMappingTable.this,
                 true,
                 getString("InboundAttributeMappingsTable.allMappings"));

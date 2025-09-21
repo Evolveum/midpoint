@@ -61,7 +61,6 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationTypeSuggestionWrappers;
@@ -367,27 +366,25 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
     }
 
     @Override
-    protected void performOnDeleteSuggestion(AjaxRequestTarget target, IModel<Serializable> rowModel) {
+    protected boolean performOnDeleteSuggestion(AjaxRequestTarget target, PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> valueWrapper) {
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
         OperationResult result = task.getResult();
 
-        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-            @Nullable StatusInfo<AssociationsSuggestionType> statusInfo = getStatusInfo(valueWrapper);
-            if (statusInfo == null) {
-                return;
-            }
-            PrismContainerValueWrapper<AssociationSuggestionType> parentContainerValue = valueWrapper
-                    .getParentContainerValue(AssociationSuggestionType.class);
-            //TODO move it into schemaHandling
-            SmartIntegrationUtils.removeAssociationTypeSuggestionNew(
-                    getPageBase(),
-                    statusInfo,
-                    parentContainerValue.getRealValue(),
-                    task,
-                    result);
-            target.add(getPageBase().getFeedbackPanel());
-            refreshForm(target);
+        @Nullable StatusInfo<AssociationsSuggestionType> statusInfo = getStatusInfo(valueWrapper);
+        if (statusInfo == null) {
+            return false;
         }
+        PrismContainerValueWrapper<AssociationSuggestionType> parentContainerValue = valueWrapper
+                .getParentContainerValue(AssociationSuggestionType.class);
+        //TODO move it into schemaHandling
+        SmartIntegrationUtils.removeAssociationTypeSuggestionNew(
+                getPageBase(),
+                statusInfo,
+                parentContainerValue.getRealValue(),
+                task,
+                result);
+        target.add(getPageBase().getFeedbackPanel());
+        return true;
     }
 
     @SuppressWarnings("unchecked")
@@ -403,31 +400,31 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
         AssociationDuplicateResolver resolver = new AssociationDuplicateResolver();
         ShadowAssociationTypeDefinitionType duplicatedBean =
-                resolver.duplicateObject(oldValue.getValue(), getPageBase());
+                resolver.duplicateObjectWithoutCopyOf(oldValue.getValue());
 
-        @SuppressWarnings("unchecked")
-        PrismContainerValue<ShadowAssociationTypeDefinitionType> duplicatedValue =
-                (PrismContainerValue<ShadowAssociationTypeDefinitionType>) duplicatedBean.asPrismContainerValue();
 
-        try {
-            PrismContainerWrapper<ShadowAssociationTypeDefinitionType> targetContainer =
-                    getObjectDetailsModels().getObjectWrapper().findContainer(containerWrapper.getPath());
-            PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> readOnlyWrapper =
-                    WebPrismUtil.createNewValueWrapper(
-                            containerModel.getObject(),
-                            duplicatedValue,
-                            getPageBase(),
-                            getObjectDetailsModels().createWrapperContext());
-            WebPrismUtil.setReadOnlyRecursively(readOnlyWrapper);
-            targetContainer.getValues().add(readOnlyWrapper);
+        PrismContainerValue<ShadowAssociationTypeDefinitionType> prismContainerValue =
+                (PrismContainerValue<ShadowAssociationTypeDefinitionType>)
+                        PrismValueCollectionsUtil.cloneCollectionComplex(
+                                        CloneStrategy.REUSE,
+                                        Collections.singletonList(duplicatedBean.asPrismContainerValue()))
+                                .iterator().next();
 
-            getObjectDetailsModels().getPageResource()
-                    .showAssociationTypeWizardForSuggestionDuplicate(
-                            () -> readOnlyWrapper,
-                            target);
 
-        } catch (SchemaException e) {
-            throw new RuntimeException("Couldn't create wrapper for duplicated association type definition.", e);
-        }
+        WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
+        IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel2 = createContainerModel();
+        prismContainerValue.setParent(containerModel2.getObject().getItem());
+
+        refreshForm(target);
+        //TODO: temporary solution
+        performOnDeleteSuggestion(target, (PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>) valueWrapper);
+
+        //TODO problem with ref attribute modification (try using review, change ref, review again)
+        getObjectDetailsModels().getPageResource()
+                .showAssociationTypeWizardForDuplicate(
+                        prismContainerValue,
+                        target,
+                        containerModel2.getObject().getPath());
+
     }
 }

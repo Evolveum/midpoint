@@ -116,6 +116,18 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
      * Shows a popup for selecting a predefined simulation configuration.
      */
     protected void showPredefinedConfigPopup(AjaxRequestTarget target) {
+        PredefinedConfigurationType defaultSimulationPredefinedConf = PredefinedConfigurationType.DEVELOPMENT;
+
+        ResourceObjectTypeDefinitionType modelObject = getModelObject();
+        String lifecycleState = modelObject.getLifecycleState();
+        boolean isConfigurationEnabled = lifecycleState == null
+                || !lifecycleState.equals(ShadowLifecycleStateType.PROPOSED.value());
+
+        if (!isConfigurationEnabled) {
+            createNewTaskPerformed(target, defaultSimulationPredefinedConf);
+            return;
+        }
+
         List<Tile<PredefinedConfigurationType>> tiles = Arrays.stream(PredefinedConfigurationType.values())
                 .map(cfg -> {
                     String icon = cfg == PredefinedConfigurationType.PRODUCTION
@@ -131,7 +143,10 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
                 })
                 .toList();
 
-        TileChoicePopup<PredefinedConfigurationType> popup = new TileChoicePopup<>(getPageBase().getMainPopupBodyId(), () -> tiles) {
+        TileChoicePopup<PredefinedConfigurationType> popup = new TileChoicePopup<>(
+                getPageBase().getMainPopupBodyId(),
+                () -> tiles,
+                defaultSimulationPredefinedConf) {
 
             @Override
             protected IModel<String> getText() {
@@ -169,13 +184,13 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
                     @Nullable ResourceObjectTypeDefinitionType resourceObjectTypeDef = getResourceObjectDefinition();
                     if (resourceObjectTypeDef == null) {
                         result.recordWarning(createStringResource("SimulationActionButton.noResourceObjectDefinition")
-                                        .getString());
+                                .getString());
                         return null;
                     }
                     ResourceType resource = getResourceObject();
                     ResourceTaskCreator creator =
                             ResourceTaskCreator.forResource(resource, getPageBase())
-                                    .ofFlavor(SynchronizationTaskFlavor.RECONCILIATION)
+                                    .ofFlavor(getSynchronizationTaskFlavor())
                                     .ownedByCurrentUser()
                                     .withCoordinates(
                                             resourceObjectTypeDef.getKind(),
@@ -183,7 +198,7 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
                                             resourceObjectTypeDef.getObjectClass());
 
                     creator = creator
-                            .withExecutionMode(ExecutionModeType.PREVIEW)
+                            .withExecutionMode(getExecutionMode())
                             .withPredefinedConfiguration(value)
                             .withSimulationResultDefinition(
                                     new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false));
@@ -192,6 +207,14 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
                 });
 
         saveAndPerformSimulation(target, newTask);
+    }
+
+    protected @NotNull SynchronizationTaskFlavor getSynchronizationTaskFlavor() {
+        return SynchronizationTaskFlavor.IMPORT;
+    }
+
+    protected ExecutionModeType getExecutionMode() {
+        return ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
     }
 
     /**

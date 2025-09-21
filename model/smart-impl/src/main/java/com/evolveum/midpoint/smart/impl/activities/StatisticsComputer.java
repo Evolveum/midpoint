@@ -80,7 +80,7 @@ public class StatisticsComputer {
     /**
      * Regular expression pattern for token delimiters.
      */
-    private static final String DELIMITERS = "[-_:*#+]+";
+    private static final String DELIMITERS = "[-_:*#+.]+";
 
     /**
      * Regular expression pattern for matching URLs.
@@ -403,12 +403,12 @@ public class StatisticsComputer {
         }
         String firstToken = tokens[0];
         String lastToken = tokens[tokens.length - 1];
-        if (!firstToken.isEmpty() && !PREFIXES.contains(firstToken.toLowerCase())) {
+        if (!firstToken.isEmpty()) {
             affixCounts
                     .computeIfAbsent(ShadowValuePatternType.FIRST_TOKEN, k -> new HashMap<>())
                     .merge(firstToken, 1, Integer::sum);
         }
-        if (!lastToken.isEmpty() && !SUFFIXES.contains(lastToken.toLowerCase())) {
+        if (!lastToken.isEmpty()) {
             affixCounts
                     .computeIfAbsent(ShadowValuePatternType.LAST_TOKEN, k -> new HashMap<>())
                     .merge(lastToken, 1, Integer::sum);
@@ -441,7 +441,7 @@ public class StatisticsComputer {
             if (isUrl(value) || isEmail(value) || isPhoneNumber(value)) {
                 continue;
             }
-            incrementVocabularyAffixCounts(value, vocabularyCounts);
+            // incrementVocabularyAffixCounts(value, vocabularyCounts);
             incrementFirstAndLastAffixCounts(value, splitTokenCounts);
         }
     }
@@ -469,9 +469,6 @@ public class StatisticsComputer {
         for (Map.Entry<ShadowValuePatternType, Map<String, Integer>> typeEntry : splitTokenCounts.entrySet()) {
             ShadowValuePatternType type = typeEntry.getKey();
             Map<String, Integer> valueCounts = typeEntry.getValue();
-            if (valueCounts.size() > AFFIX_PERCENTAGE_LIMIT * statistics.getSize()) {
-                continue;
-            }
             for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
                 stats.beginValuePatternCount()
                         .value(entry.getKey())

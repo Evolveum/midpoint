@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping.SmartMappingTable;
 import com.evolveum.midpoint.prism.Containerable;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -150,6 +149,11 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 buttons.newChildId(),
                 objectTypeDefModel,
                 () -> getAssignmentHolderDetailsModel().getObjectType()) {
+
+            @Override
+            protected ExecutionModeType getExecutionMode() {
+                return ExecutionModeType.PREVIEW;
+            }
 
             @Override
             public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {

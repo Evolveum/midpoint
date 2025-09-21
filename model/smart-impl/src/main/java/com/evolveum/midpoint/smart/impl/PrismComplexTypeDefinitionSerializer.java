@@ -68,7 +68,11 @@ class PrismComplexTypeDefinitionSerializer extends SchemaSerializer {
                         FocusType.F_CREDENTIALS.append(CredentialsType.F_NONCE),
                         FocusType.F_CREDENTIALS.append(CredentialsType.F_SECURITY_QUESTIONS),
                         FocusType.F_CREDENTIALS.append(CredentialsType.F_ATTRIBUTE_VERIFICATION),
-                        UserType.F_ADMIN_GUI_CONFIGURATION),
+                        UserType.F_ADMIN_GUI_CONFIGURATION, // applies to AbstractRoleType as well
+                        AbstractRoleType.F_INDUCEMENT,
+                        AbstractRoleType.F_AUTHORIZATION,
+                        AbstractRoleType.F_AUTOASSIGN,
+                        AbstractRoleType.F_CONDITION),
                 DescriptiveItemPath.empty(),
                 Set.of());
     }
