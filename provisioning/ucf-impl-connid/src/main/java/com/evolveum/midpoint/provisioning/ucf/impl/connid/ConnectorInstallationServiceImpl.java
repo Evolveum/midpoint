@@ -6,6 +6,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.DownloadedConnector;
 import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.util.CheckedConsumer;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -78,6 +80,17 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
         } catch (IOException e) {
             throw new SystemException(e);
         }
+    }
+
+    @Override
+    public DownloadedConnector writeConnector(String targetName, CheckedConsumer<FileOutputStream> writter) throws CommonException {
+        File target = temporaryTargetFile(targetName);
+        try (var stream = new FileOutputStream(target)) {
+            writter.accept(stream);
+        } catch (IOException e) {
+            throw new SystemException("Can not download connector", e);
+        }
+        return new DownloadedJarConnector(target);
     }
 
     @Override
