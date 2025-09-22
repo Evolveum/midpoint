@@ -39,6 +39,10 @@ public class RestTestBackend extends RestBackend {
                     .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
             beans.modelService.executeChanges(List.of(delta), null, task, result);
         }
-        super.processDocumentation();
+        try {
+            super.processDocumentation();
+        } catch (Exception e) {
+            // Continue with already processed documentation
+        }
     }
 }

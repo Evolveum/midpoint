@@ -11,17 +11,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.ButtonBar;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormDefaultContainerablePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerValuePanel;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -31,10 +34,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.SelectableRow;
-import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,12 +44,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
@@ -81,6 +82,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     private static final String OP_LOAD_DOCS = CLASS_DOT + "loadDocumentations";
 
     private static final String ID_PANEL = "panel";
+    private static final String ID_AI_ALERT = "aiAlert";
 
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>>> valuesModel;
 
@@ -140,9 +142,11 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                                             StringUtils.equals(((ConnDevDocumentationSourceType)suggestedValue.getRealValue()).getName(), value.getRealValue().getName())))
                     .map(suggestedValue -> {
                         try {
+                            PrismContainerValue<ConnDevDocumentationSourceType> clone = suggestedValue.clone();
+                            AiUtil.markContainerValueAsAiProvided(clone);
                             //noinspection unchecked
                             return (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPageBase().createValueWrapper(
-                                    parentWrapper, suggestedValue.clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                                    parentWrapper, clone, ValueStatus.ADDED, getDetailsModel().createWrapperContext());
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
@@ -164,10 +168,16 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     private void initLayout() {
+        setOutputMarkupId(true);
         getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary lh-2 mb-3 w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+
+        WebMarkupContainer aiAlert = new WebMarkupContainer(ID_AI_ALERT);
+        aiAlert.setOutputMarkupId(true);
+        add(aiAlert);
+        aiAlert.add(new VisibleBehaviour(this::isAiAlertVisible));
 
         MultiSelectContainerActionTileTablePanel<PrismContainerValueWrapper<ConnDevDocumentationSourceType>, ConnDevDocumentationSourceType, DocumentationTile> panel = new MultiSelectContainerActionTileTablePanel<>(
                 ID_PANEL, UserProfileStorage.TableId.PANEL_CONNECTOR_GENERATION_DOCUMENTATION, () -> ViewToggle.TILE) {
@@ -211,10 +221,8 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
-                        getProvider().detach();
                         valuesModel.detach();
-                        refresh(target);
-                        target.add(this);
+                        refreshAndDetach(target);
                     }
                 };
             }
@@ -247,6 +255,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        onAddUrlPerformed(target);
                     }
                 };
 
@@ -317,6 +326,72 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 //        };
         panel.setOutputMarkupId(true);
         add(panel);
+    }
+
+    private boolean isAiAlertVisible() {
+        return valuesModel.getObject().stream()
+                .anyMatch(value -> AiUtil.isMarkedAsAiProvided(value.getOldValue()));
+    }
+
+    private void onAddUrlPerformed(AjaxRequestTarget target) {
+        OnePanelPopupPanel popup = new OnePanelPopupPanel(
+                getPageBase().getMainPopupBodyId(),
+                createStringResource("DocumentationConnectorStepPanel.addNewDocumentation")) {
+            @Override
+            protected WebMarkupContainer createPanel(String id) {
+                ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+                        .headerVisibility(false)
+                        .build();
+                settings.setConfig(getContainerConfiguration(PANEL_TYPE));
+
+                IModel<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> model = new LoadableModel<>(false) {
+
+                    @Override
+                    protected PrismContainerValueWrapper<ConnDevDocumentationSourceType> load() {
+                        PrismContainerWrapperModel<ConnectorDevelopmentType, ConnDevDocumentationSourceType> model
+                                = PrismContainerWrapperModel.fromContainerWrapper(
+                                getDetailsModel().getObjectWrapperModel(),
+                                ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+                        PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper;
+                            try {
+                                PrismContainerValue<ConnDevDocumentationSourceType> newItem = model.getObject().getItem().createNewValue();
+                                newItemWrapper = WebPrismUtil.createNewValueWrapper(
+                                        model.getObject(), newItem, getPageBase());
+                                model.getObject().getValues().add(newItemWrapper);
+                            } catch (SchemaException e) {
+                                LOGGER.error("Couldn't create new value for limitation container", e);
+                                return null;
+                            }
+                        newItemWrapper.setExpanded(true);
+                        newItemWrapper.setShowEmpty(true);
+                        return newItemWrapper;
+                    }
+                };
+
+                return new VerticalFormPrismContainerValuePanel<>(id, model, settings){
+                    @Override
+                    protected void onInitialize() {
+                        super.onInitialize();
+                        ((VerticalFormDefaultContainerablePanel)getValuePanel()).getFormContainer().add(AttributeAppender.remove("class"));
+                        get(ID_MAIN_CONTAINER).add(AttributeAppender.remove("class"));
+                    }
+
+                    @Override
+                    protected boolean isShowEmptyButtonVisible() {
+                        return false;
+                    }
+                };
+            }
+
+            @Override
+            protected void processHide(AjaxRequestTarget target) {
+                valuesModel.detach();
+                ((MultiSelectContainerActionTileTablePanel)DocumentationConnectorStepPanel.this.get(ID_PANEL)).refreshAndDetach(target);
+                super.processHide(target);
+            }
+        };
+        popup.setOutputMarkupId(true);
+        getPageBase().showMainPopup(popup, target);
     }
 
     protected String getPanelType() {
