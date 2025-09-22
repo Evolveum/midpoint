@@ -7,26 +7,16 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.ButtonBar;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassBasicConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.page.admin.schema.component.BasicPrimItemDefinitionPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormDefaultContainerablePanel;
@@ -44,16 +34,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.SelectableRow;
-import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.DefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -75,7 +59,6 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -99,6 +82,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     private static final String OP_LOAD_DOCS = CLASS_DOT + "loadDocumentations";
 
     private static final String ID_PANEL = "panel";
+    private static final String ID_AI_ALERT = "aiAlert";
 
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>>> valuesModel;
 
@@ -186,9 +170,14 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
     private void initLayout() {
         setOutputMarkupId(true);
         getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary lh-2 mb-3 w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+
+        WebMarkupContainer aiAlert = new WebMarkupContainer(ID_AI_ALERT);
+        aiAlert.setOutputMarkupId(true);
+        add(aiAlert);
+        aiAlert.add(new VisibleBehaviour(this::isAiAlertVisible));
 
         MultiSelectContainerActionTileTablePanel<PrismContainerValueWrapper<ConnDevDocumentationSourceType>, ConnDevDocumentationSourceType, DocumentationTile> panel = new MultiSelectContainerActionTileTablePanel<>(
                 ID_PANEL, UserProfileStorage.TableId.PANEL_CONNECTOR_GENERATION_DOCUMENTATION, () -> ViewToggle.TILE) {
@@ -337,6 +326,11 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 //        };
         panel.setOutputMarkupId(true);
         add(panel);
+    }
+
+    private boolean isAiAlertVisible() {
+        return valuesModel.getObject().stream()
+                .anyMatch(value -> AiUtil.isMarkedAsAiProvided(value.getOldValue()));
     }
 
     private void onAddUrlPerformed(AjaxRequestTarget target) {

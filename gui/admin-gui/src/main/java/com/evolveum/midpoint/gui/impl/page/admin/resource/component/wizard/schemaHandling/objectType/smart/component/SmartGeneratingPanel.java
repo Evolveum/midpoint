@@ -93,6 +93,11 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         this.isWizardPanel = isWizardPanel;
         setOutputMarkupId(true);
         add(AttributeModifier.append("class", "p-0"));
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
