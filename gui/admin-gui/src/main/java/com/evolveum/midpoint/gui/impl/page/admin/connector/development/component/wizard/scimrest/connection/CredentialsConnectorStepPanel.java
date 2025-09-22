@@ -90,7 +90,11 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
                     PrismContainerWrapper<ConnDevAuthInfoType> container = getDetailsModel().getObjectWrapper().findContainer(
                             ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH));
 
-                    return container.getValues();
+                    List<PrismContainerValueWrapper<ConnDevAuthInfoType>> values = container.getValues();
+                    if (values.size() == 1) {
+                        values.get(0).setSelected(true);
+                    }
+                    return values;
                 } catch (SchemaException e) {
                     throw new RuntimeException(e);
                 }
@@ -147,7 +151,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
 
                 ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                         .visibilityHandler(getVisibilityHandler(listItem.getModelObject().getRealValue()))
-                        .mandatoryHandler(CredentialsConnectorStepPanel.this::checkMandatory)
+                        .mandatoryHandler(getMandatoryHandler(listItem.getModelObject().getRealValue()))
                         .build();
                 VerticalFormPanel formPanel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration(getPanelType())) {
 
@@ -196,8 +200,19 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
         });
     }
 
-    private boolean checkMandatory(ItemWrapper<?, ?> itemWrapper) {
-        return false;
+    private ItemMandatoryHandler getMandatoryHandler(ConnDevAuthInfoType authType) {
+        List<ItemName> visibleItems = new ArrayList<>();
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integration =
+                    getDetailsModel().getObjectWrapper().findProperty(
+                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE));
+            visibleItems.addAll(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+
+        return wrapper -> visibleItems.stream()
+                .anyMatch(visibleItem -> StringUtils.equals(wrapper.getItemName().getLocalPart(), visibleItem.getLocalPart()));
     }
 
     private ItemVisibilityHandler getVisibilityHandler(ConnDevAuthInfoType authType) {

@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.smart.impl.conndev;
 
+import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessedDocumentationType;
 
 import java.io.*;
 
 public class ProcessedDocumentation {
 
-    private static final File DIRECTORY = new File("docs-tmp");
-
+    private final File directory;
     private final String uri;
     private final String uuid;
     private final File storage;
@@ -27,8 +27,9 @@ public class ProcessedDocumentation {
     ProcessedDocumentation(String uuid, String uri) {
         this.uuid = uuid;
         this.uri = uri;
-        DIRECTORY.mkdirs();
-        storage = new File(DIRECTORY, uuid);
+        directory = new File(ConnDevBeans.get().getMidpointHome(), "tmp-docs");
+        directory.mkdirs();
+        storage = new File(directory, uuid);
     }
 
     public InputStream asInputStream() throws FileNotFoundException {

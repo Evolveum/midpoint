@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.smart.impl.conndev.activity;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -44,6 +45,7 @@ public class ConnDevBeans {
     @Autowired public ConnectorInstallationService connectorService;
     @Autowired public ProvisioningService provisioningService;
     @Autowired public SystemObjectCache systemObjectCache;
+    @Autowired public MidpointConfiguration configuration;
     private CloseableHttpClient client;
 
     @PostConstruct
@@ -132,5 +134,9 @@ public class ConnDevBeans {
                 return response;
             });
         }
+    }
+
+    public String getMidpointHome() {
+        return configuration.getMidpointHome();
     }
 }

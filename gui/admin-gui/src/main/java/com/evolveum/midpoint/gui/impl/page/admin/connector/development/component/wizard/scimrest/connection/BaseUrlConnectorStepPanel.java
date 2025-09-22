@@ -24,18 +24,21 @@ import com.evolveum.midpoint.prism.path.ItemNameUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -53,6 +56,8 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     private static final String PANEL_TYPE = "cdw-base-url";
     private static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "baseAddress");
+
+    private static final String ID_AI_ALERT = "aiAlert";
 
     public BaseUrlConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -102,9 +107,14 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     protected void initLayout() {
 //        getTopLevelContainer().add(AttributeAppender.replace("class", "d-flex flex-column col-9 mt-2"));
         getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary lh-2 mb-3 w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+
+        WebMarkupContainer aiAlert = new WebMarkupContainer(ID_AI_ALERT);
+        aiAlert.setOutputMarkupId(true);
+        add(aiAlert);
+        aiAlert.add(new VisibleBehaviour(this::isAiAlertVisible));
 
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
@@ -144,6 +154,11 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
         panel.setOutputMarkupId(true);
         panel.add(AttributeAppender.replace("class", "col-12"));
         add(panel);
+    }
+
+    private boolean isAiAlertVisible() {
+        return getDetailsModel().getObjectType() != null && getDetailsModel().getObjectType().getApplication() != null
+                && StringUtils.isNotEmpty(getDetailsModel().getObjectType().getApplication().getBaseApiEndpoint());
     }
 
     protected String getPanelType() {

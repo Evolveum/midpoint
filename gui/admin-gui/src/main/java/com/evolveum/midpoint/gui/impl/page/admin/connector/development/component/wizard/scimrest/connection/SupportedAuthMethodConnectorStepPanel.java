@@ -90,7 +90,11 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
                 try {
                     PrismContainerWrapper<ConnDevAuthInfoType> container = getDetailsModel().getObjectWrapper().findContainer(
                             ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH));
-                    return container.getValues();
+                    List<PrismContainerValueWrapper<ConnDevAuthInfoType>> values = container.getValues();
+                    if (values.size() == 1) {
+                        values.get(0).setSelected(true);
+                    }
+                    return values;
                 } catch (SchemaException e) {
                     throw new RuntimeException(e);
                 }
