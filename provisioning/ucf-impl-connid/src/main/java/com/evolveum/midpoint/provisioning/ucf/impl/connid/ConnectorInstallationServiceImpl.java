@@ -169,7 +169,7 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
 
         @Override
         boolean isInstallable() {
-            return ConnectorFactoryConnIdImpl.isThisJarFileBundle(connectorFile);
+            return ConnectorFactoryConnIdImpl.isThisJarFileBundle(connectorFile, false);
         }
 
         public DownloadedConnector unpack(String directory, OperationResult result) {

@@ -40,7 +40,7 @@ public class ProcessDocumentationActivityHandler
         return new MyActivityRun(context);
     }
 
-    public static class WorkDefinition extends AbstractWorkDefinition {
+    public static class WorkDefinition extends AbstractWorkDefinition<ConnDevProcessDocumentationWorkDefinitionType> {
         public WorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
             super(info);
         }
