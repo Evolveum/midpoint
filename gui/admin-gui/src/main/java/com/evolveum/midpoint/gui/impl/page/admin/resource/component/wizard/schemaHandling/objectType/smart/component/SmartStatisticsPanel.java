@@ -560,7 +560,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         Fragment header = new Fragment(SmartStatisticsPanel.ID_HEADER_FRAGMENT, ID_HEADER_FRAGMENT, this);
         header.add(new Label(ID_HEADER_PRIMARY_TITLE, getTitle()));
         header.add(new Label(ID_HEADER_SECONDARY_TITLE, secondaryTitle).setVisible(secondaryTitle != null));
-        header.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1"));
+        header.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1 mt-1"));
         return header;
     }
 
