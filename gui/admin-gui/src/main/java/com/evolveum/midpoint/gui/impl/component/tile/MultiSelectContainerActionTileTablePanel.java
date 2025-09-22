@@ -239,7 +239,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         inlineMenu.setOutputMarkupId(true);
         inlineMenu.add(AttributeAppender.append("class", "mr-2"));
         inlineMenu.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
-//        inlineMenu.setRenderBodyOnly(true);
+        inlineMenu.setRenderBodyOnly(true);
         return inlineMenu;
     }
 
