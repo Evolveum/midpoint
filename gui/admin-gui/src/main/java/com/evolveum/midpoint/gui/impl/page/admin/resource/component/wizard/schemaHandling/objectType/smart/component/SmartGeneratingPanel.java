@@ -91,8 +91,6 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     public SmartGeneratingPanel(String id, IModel<SmartGeneratingDto> model, boolean isWizardPanel) {
         super(id, model);
         this.isWizardPanel = isWizardPanel;
-        setOutputMarkupId(true);
-        add(AttributeModifier.append("class", "p-0"));
     }
 
     @Override
