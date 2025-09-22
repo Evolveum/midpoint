@@ -169,7 +169,8 @@ class MappingsSuggestionOperation {
 
                     // Normally, the activity framework makes sure that the activity result status is computed properly at the end.
                     // But this is a special case where we must do that ourselves.
-                    mappingsSuggestionState.setResultStatus(OperationResultStatus.PARTIAL_ERROR);
+                    // FIXME temporarily disabled, as GUI cannot deal with it anyway
+                    //mappingsSuggestionState.setResultStatus(OperationResultStatus.PARTIAL_ERROR);
                 }
                 ctx.checkIfCanRun();
             }
