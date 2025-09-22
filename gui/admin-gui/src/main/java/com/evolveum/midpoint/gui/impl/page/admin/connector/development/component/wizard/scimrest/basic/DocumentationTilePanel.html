@@ -15,8 +15,14 @@
             <i wicket:id="icon"></i>
         </div>
         <div class="w-100 d-flex flex-column" wicket:id="clickableArea">
-            <div class="d-lex flex-row">
+            <div class="d-flex flex-row">
                 <div class="d-inline" wicket:id="title"/>
+                <div class="d-flex flex-row">
+                    <div class="bg-ai-badge-color text-ai px-1 ml-2 rounded font-weight-bold" wicket:id="aiTag">
+                        <i class="fa fa-wand-magic-sparkles"></i>
+                        AI
+                    </div>
+                </div>
             </div>
             <div class="text-secondary" wicket:id="description"/>
             <div class="text-sm text-secondary mt-1" wicket:id="uri"/>

@@ -37,6 +37,7 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
     private static final String ID_URI = "uri";
     private static final String ID_SHOW_DETAILS = "showDetails";
     private static final String ID_DELETE = "delete";
+    private static final String ID_AI_TAG = "aiTag";
 
     public DocumentationTilePanel(String id, IModel<DocumentationTile> model) {
         super(id, model);
@@ -69,6 +70,11 @@ public class DocumentationTilePanel extends TilePanel<DocumentationTile, PrismCo
         Label title = new Label(ID_TITLE, () -> getModelObject().getTitle());
         title.setOutputMarkupId(true);
         clickableArea.add(title);
+
+        WebMarkupContainer aiTag = new WebMarkupContainer(ID_AI_TAG);
+        aiTag.setOutputMarkupId(true);
+        clickableArea.add(aiTag);
+        aiTag.add(new VisibleBehaviour(() -> getModelObject().isAIMarked()));
 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
         description.setOutputMarkupId(true);

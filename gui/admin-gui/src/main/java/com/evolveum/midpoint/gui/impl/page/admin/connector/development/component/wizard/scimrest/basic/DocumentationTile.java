@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,5 +45,9 @@ public class DocumentationTile extends TemplateTile<PrismContainerValueWrapper<C
     @Override
     public void setSelected(boolean selected) {
         getValue().setSelected(selected);
+    }
+
+    public boolean isAIMarked() {
+        return AiUtil.isMarkedAsAiProvided(getValue().getOldValue());
     }
 }
