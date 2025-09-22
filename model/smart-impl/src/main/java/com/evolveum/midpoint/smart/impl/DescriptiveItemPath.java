@@ -129,4 +129,9 @@ public class DescriptiveItemPath {
         }
         return new DescriptiveItemPath(segs).asString();
     }
+
+    @Override
+    public String toString() {
+        return asString();
+    }
 }

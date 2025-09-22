@@ -17,8 +17,22 @@ import com.evolveum.midpoint.util.exception.SystemException;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.net.ssl.SSLContext;
+import java.io.*;
+import java.net.URL;
+import java.nio.channels.Channels;
 
 @Component
 public class ConnDevBeans {
@@ -30,13 +44,23 @@ public class ConnDevBeans {
     @Autowired public ConnectorInstallationService connectorService;
     @Autowired public ProvisioningService provisioningService;
     @Autowired public SystemObjectCache systemObjectCache;
-
-
+    private CloseableHttpClient client;
 
     @PostConstruct
     public void init() {
         instance = this;
-
+        SSLContext trustAllContext = null;
+        try {
+            trustAllContext = SSLContexts.custom()
+                    .loadTrustMaterial(null, new TrustAllStrategy())
+                    .build();
+            client = HttpClients.custom()
+                    .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                            .setTlsSocketStrategy(new DefaultClientTlsStrategy(trustAllContext))
+                            .build()).build();
+        } catch (Exception e) {
+            throw new RuntimeException("Problem initializing client", e);
+        }
     }
 
     @PreDestroy
@@ -77,10 +101,36 @@ public class ConnDevBeans {
         if (apiBase == null) {
             throw new SystemException("Connector Generation Service  not configured.");
         }
-        return new ServiceClient(apiBase);
+        return new ServiceClient(apiBase, client);
     }
 
     public boolean isOffline() {
         return getServiceUrl(new OperationResult("isOffline")) == null;
+    }
+
+    public void downloadFile(URL url, FileOutputStream target) throws IOException {
+        if ("file".equals(url.getProtocol())) {
+            try (var input = url.openStream()) {
+                var readableByteChannel = Channels.newChannel(input);
+                var fileChannel = target.getChannel();
+                fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+            }
+        } else {
+            client.execute(new HttpGet(url.toString()), response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    var entity = response.getEntity();
+                    if (entity != null) {
+                        try (InputStream input = entity.getContent()) {
+                            var readableByteChannel = Channels.newChannel(input);
+                            var fileChannel = target.getChannel();
+                            fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+                        }
+                    }
+                } else {
+                    throw new IOException("Can not download file " + url.toString());
+                }
+                return response;
+            });
+        }
     }
 }

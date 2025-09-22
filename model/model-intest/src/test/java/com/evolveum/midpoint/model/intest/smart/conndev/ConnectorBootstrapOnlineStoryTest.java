@@ -85,11 +85,20 @@ public class ConnectorBootstrapOnlineStoryTest extends ConnectorBootstrapStoryTe
         when();
         var development = continueDevelopment();
 
+        var links = List.of("https://www.openproject.org/docs/api/",
+                "https://www.openproject.org/docs/api/endpoints/versions/",
+                "https://www.openproject.org/docs/api/endpoints/projects/",
+                "https://www.openproject.org/docs/api/endpoints/work-packages/",
+                "https://www.openproject.org/docs/api/example/",
+                "https://www.openproject.org/docs/api/introduction/",
+                "https://community.openproject.org/topics/12564",
+                "https://www.openproject.org/blog/open-api/",
+                "https://www.openproject.org/docs")
+                .stream().map(l -> new ConnDevDocumentationSourceType().uri(l)).toList();
+
         var delta = deltaFor(ConnectorDevelopmentType.class)
-                .item(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE).add(new ConnDevDocumentationSourceType()
-                        .name("OpenProject OpenAPI Specification")
-                        .uri("https://www.openproject.org/docs/api/v3/spec.yml")
-                ).<ConnectorDevelopmentType>asObjectDelta(developmentOid);
+                .item(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE).addRealValues(links)
+                .<ConnectorDevelopmentType>asObjectDelta(developmentOid);
         executeChanges(List.of(delta), null, getTestTask(),getTestOperationResult());
 
         var token = development.submitProcessDocumentation(getTestTask(), getTestOperationResult());

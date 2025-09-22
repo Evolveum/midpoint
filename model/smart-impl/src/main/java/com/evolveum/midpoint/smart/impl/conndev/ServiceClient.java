@@ -11,16 +11,15 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 public class ServiceClient {
 
@@ -29,7 +28,11 @@ public class ServiceClient {
 
     private final String apiBase;
 
-    public ServiceClient(String apiBase) {
+    private static SSLContext trustAllContext;
+    private CloseableHttpClient client;
+
+    public ServiceClient(String apiBase, CloseableHttpClient client) {
+        this.client = client;
         this.apiBase = apiBase.endsWith("/") ? apiBase : apiBase + "/";
     }
 
@@ -65,6 +68,14 @@ public class ServiceClient {
         return job;
     }
 
+    public Job postEntityJob(String endpoint, HttpEntity entity) throws IOException {
+        var job = new Job(apiBase+endpoint);
+        var request = new HttpPost(apiBase+endpoint);
+        request.setEntity(entity);
+        job.startJob(request);
+        return job;
+    }
+
     public Job postEntityJob(String endpoint, String objectClass, HttpEntity entity) throws IOException {
         var job = new Job(apiBase+endpoint);
         var request = new HttpPost(apiBase+endpoint + "?objectClass=" + objectClass);
@@ -84,7 +95,7 @@ public class ServiceClient {
 
         private final String uri;
         private String jobId = null;
-        private CloseableHttpClient client = HttpClients.createDefault();
+
         private JobStatus status = JobStatus.NEW;
         private ObjectNode latestResult;
 
@@ -93,8 +104,8 @@ public class ServiceClient {
         }
 
         @Override
-        public void close() throws Exception {
-            client.close();
+        public void close(){
+            //client.close();
         }
 
         public HttpPost postBuilder() {

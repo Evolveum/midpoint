@@ -57,10 +57,11 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public ConnDevArtifactType generateArtifact(ConnDevArtifactType artifactSpec) {
+    public ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType input) {
+        var artifactSpec = input.getArtifact();
         var ret = artifactSpec.clone();
         if (artifactSpec.getObjectClass() != null) {
-            return generateObjectClassArtifact(artifactSpec);
+            return generateObjectClassArtifact(input);
         }
 
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
@@ -84,7 +85,8 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public ConnDevArtifactType generateObjectClassArtifact(ConnDevArtifactType artifactSpec) {
+    public ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType input) {
+        var artifactSpec = input.getArtifact();
         var objectClass = artifactSpec.getObjectClass();
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
         var content = switch (classification) {

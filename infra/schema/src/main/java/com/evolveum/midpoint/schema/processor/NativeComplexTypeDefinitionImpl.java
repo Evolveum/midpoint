@@ -54,7 +54,7 @@ public class NativeComplexTypeDefinitionImpl
      */
     @NotNull private final String name;
 
-    /** QName version of {@link #name}, with the constant namespace of `ri`. */
+    /** QName version of {@link #name}, with the constant namespace of `ri`. FIXME: this is not true now! */
     @NotNull private final QName qName;
 
     //region The following applies to OBJECT classes

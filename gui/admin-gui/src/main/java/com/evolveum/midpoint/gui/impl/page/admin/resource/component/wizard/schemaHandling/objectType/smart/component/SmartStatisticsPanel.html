@@ -1,0 +1,74 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="d-flex align-items-start ">
+        <div class="border" style="min-width:300px" wicket:id="leftPanelContainer">
+
+            <div wicket:id="chipsContainer" class="d-flex align-items-center justify-content-between p-3">
+                <div wicket:id="totalObjects"></div>
+                <div wicket:id="coverage"></div>
+            </div>
+
+            <hr class="m-0"/>
+            <div class="p-3 d-flex align-items-center justify-content-center">
+                <div wicket:id="togglePanel" class="border"></div>
+            </div>
+
+            <hr class="m-0"/>
+
+            <div wicket:id="listViewContainer"
+                    class="w-100 p-2 bg-white d-flex flex-column align-items-start"
+                    style="height: 70vh; overflow-y: auto;">
+
+                <!--        TODO borders-->
+                <button wicket:id="listView" type="button" class="btn-light d-flex flex-column gap-2 w-100 p-2 mt-1
+             border-right-0  border-top-0 border-bottom-0 border-3">
+                    <div class="d-flex flex-column align-items-start py-1">
+                        <span wicket:id="text" class="text-primary fw-semibold text-truncate"></span>
+                        <span wicket:id="subText" class="text-muted small"></span>
+                    </div>
+                </button>
+
+            </div>
+
+        </div>
+
+        <div wicket:id="mainPanelContainer" class="col p-3">
+
+            <div class="d-flex align-items-center flex-fill gap-3">
+                <div wicket:id="widgetsContainer" class="flex-fill bg-light p-3 rounded d-flex align-items-center flex-column"></div>
+            </div>
+
+            <wicket:container wicket:id="tablePatternContainer"></wicket:container>
+            <wicket:container wicket:id="tableFreqContainer"></wicket:container>
+            <wicket:container wicket:id="tableCombContainer"></wicket:container>
+
+        </div>
+    </div>
+
+    <wicket:fragment wicket:id="tableFragment">
+        <div class="h5 py-2" wicket:id="tableHeader"></div>
+        <div wicket:id="table"></div>
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="footerButtons">
+        <div class="d-flex justify-content-start w-100">
+            <button type="button" wicket:id="closeButton" class="btn btn-link"></button>
+        </div>
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="title">
+        <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="h5 m-0" wicket:id="primaryTitle"></div>
+            <div class="text-muted small" wicket:id="secondaryTitle"></div>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

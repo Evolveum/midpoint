@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.io.IOException;
+import java.net.URL;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
@@ -96,8 +97,15 @@ public class CreateConnectorActivityHandler
             var targetDir = connDef.getGroupId() + "." + connDef.getArtifactId() + "." + connDef.getVersion();
 
             // Download template
-            var template = beans.connectorService.downloadConnector(getWorkDefinition().templateUrl, targetDir + ".template" ,result);
 
+
+            var template = beans.connectorService.writeConnector(targetDir + ".template", stream -> {
+                try {
+                    beans.downloadFile(new URL(getWorkDefinition().templateUrl), stream);
+                } catch (IOException e) {
+                    throw new SystemException("Couldn't download connector template", e);
+                }
+            });
             // Unpack template
             var editable = template.unpack(targetDir, result);
 

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import static com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts.KnownArtifactType.*;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface ConnectorDevelopmentOperation {
 
@@ -56,14 +57,30 @@ public interface ConnectorDevelopmentOperation {
         return submitGenerateArtifact(AUTHENTICATION_CUSTOMIZATION.create(), task, result);
     }
 
-    default String submitGenerateSearchScript(String objectClass, ConnDevHttpEndpointType endpoint, Task task, OperationResult result) {
-        return submitGenerateArtifact(SEARCH_ALL_DEFINITION.create(objectClass), task, result);
+    default String submitGenerateSearchScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
+        return submitGenerateArtifact(SEARCH_ALL_DEFINITION.create(objectClass),
+                definition -> {
+                    if (endpoints != null && !endpoints.isEmpty()) {
+                        for (var endpoint : endpoints) {
+                            // Somehow clone triggers NPE in serializer
+                            definition.endpoint(new ConnDevHttpEndpointType()
+                                    .uri(endpoint.getUri())
+                                    .name(endpoint.getName())
+                                    .operation(endpoint.getOperation())
+                                    .requestContentType(endpoint.getRequestContentType())
+                                    .responseContentType(endpoint.getResponseContentType())
+                            );
+                        }
+                    }
+                }, task, result);
     }
 
     default String submitGenerateRelationScript(ConnDevRelationInfoType relation, Task task, OperationResult result) {
-        return submitGenerateArtifact(RELATIONSHIP_SCHEMA_DEFINITION.create(relation.getName()), task, result);
+        return submitGenerateArtifact(RELATIONSHIP_SCHEMA_DEFINITION.create(relation.getName()),
+                definition -> definition.relation(relation.clone()), task, result);
     }
 
+    String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, Task task, OperationResult result);
     // FIXME: Also add operation results
     // Midpoint local
     ResourceType testConnection(ConnectorConfigurationType type);
@@ -100,7 +117,7 @@ public interface ConnectorDevelopmentOperation {
         resetResourceSchema(task, result);
     }
 
-    default void saveRelationshipScritp(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException {
+    default void saveRelationScript(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(endpoint, task, result);
     }
 

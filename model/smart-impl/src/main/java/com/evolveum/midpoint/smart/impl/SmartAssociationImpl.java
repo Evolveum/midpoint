@@ -17,7 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.cxf.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -43,9 +42,9 @@ public class SmartAssociationImpl {
     /**
      * Describes one participant (subject or object) in an association.
      *
-     * @param participantRole                       The role of the participant (subject or object).
-     * @param participantObjectClassDefinition      Native object class definition for the participant.
-     * @param participantObjectTypeIdentification   Identification of the participant's object type (kind + intent).
+     * @param participantRole The role of the participant (subject or object).
+     * @param participantObjectClassDefinition Native object class definition for the participant.
+     * @param participantObjectTypeIdentification Identification of the participant's object type (kind + intent).
      */
     private record ParticipantDescriptor(
             ShadowReferenceParticipantRole participantRole,
@@ -170,18 +169,19 @@ public class SmartAssociationImpl {
                     firstParticipantObjectTypeIdentification, secondParticipantTypeIdentification, refAttrItemName);
             QName assocQName = new QName(nativeSchema.getNamespace(), assocName);
             association.setName(assocQName);
+            association.setDisplayName(assocName);
 
             ShadowAssociationTypeSubjectDefinitionType subject;
             ShadowAssociationTypeObjectDefinitionType object;
 
             // Currently we want to support subjectToObject associations only, but should we use refAttributeDef.getReferenceParticipantRole()?
             if (firstParticipantRole == ShadowReferenceParticipantRole.SUBJECT) {
-                subject = buildSubjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef);
-                object = buildObjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef);
+                subject = buildSubjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef, refAttrItemName);
+                object = buildObjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef, refAttrItemName);
             } else {
                 //NOTE this is never used in the current implementation, but it is here for completeness.
-                subject = buildSubjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef);
-                object = buildObjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef);
+                subject = buildSubjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef, refAttrItemName);
+                object = buildObjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef, refAttrItemName);
             }
 
             String descriptionNote = createAssociationDescription(refAttrItemName,
@@ -199,11 +199,11 @@ public class SmartAssociationImpl {
     /**
      * Builds a human-readable description of the generated association for trace/debug purposes.
      *
-     * @param refAttrItemName                            Reference attribute that defines the association.
-     * @param firstParticipantDef                        Object class of the subject.
-     * @param firstParticipantObjectTypeIdentification   Subject identification (kind, intent).
-     * @param secondParticipantDef                       Object class of the object.
-     * @param secondParticipantTypeIdentification        Object identification (kind, intent).
+     * @param refAttrItemName Reference attribute that defines the association.
+     * @param firstParticipantDef Object class of the subject.
+     * @param firstParticipantObjectTypeIdentification Subject identification (kind, intent).
+     * @param secondParticipantDef Object class of the object.
+     * @param secondParticipantTypeIdentification Object identification (kind, intent).
      * @return A string describing how the association was derived.
      */
     private static @NotNull String createAssociationDescription(
@@ -223,11 +223,11 @@ public class SmartAssociationImpl {
     /**
      * Registers all given type identifications into the class-role map as {@link ParticipantDescriptor}s.
      *
-     * @param typeIdentifications  Object types to register.
-     * @param role                 Whether the type is considered a subject or object.
-     * @param resourceSchema       Complete resource schema.
-     * @param nativeSchema         Native schema holding low-level object class definitions.
-     * @param classDefRoleMap      Mutable output map where descriptors are stored.
+     * @param typeIdentifications Object types to register.
+     * @param role Whether the type is considered a subject or object.
+     * @param resourceSchema Complete resource schema.
+     * @param nativeSchema Native schema holding low-level object class definitions.
+     * @param classDefRoleMap Mutable output map where descriptors are stored.
      */
     private void registerParticipantDescriptorValues(
             @NotNull Collection<ResourceObjectTypeIdentification> typeIdentifications,
@@ -251,8 +251,8 @@ public class SmartAssociationImpl {
     /**
      * Finds all participant descriptors for a given object class name.
      *
-     * @param objectClassName              Name of the object class to search.
-     * @param classDefRoleMap              Map of all known participant descriptors.
+     * @param objectClassName Name of the object class to search.
+     * @param classDefRoleMap Map of all known participant descriptors.
      * @return A list of matching participants.
      */
     private @NotNull List<ParticipantDescriptor> findMatchingParticipantDefinitions(
@@ -269,16 +269,22 @@ public class SmartAssociationImpl {
     /**
      * Builds a subject-side association participant definition.
      *
-     * @param subjectType   Type identification for the subject.
+     * @param subjectType Type identification for the subject.
      * @param subjectClassDef Native object class definition for the subject.
+     * @param refAttrItemName Reference attribute defining the association.
      * @return A fully initialized {@link ShadowAssociationTypeSubjectDefinitionType}.
      */
     private static @NotNull ShadowAssociationTypeSubjectDefinitionType buildSubjectParticipantDefinitionType(
             @NotNull ResourceObjectTypeIdentification subjectType,
-            @NotNull NativeObjectClassDefinition subjectClassDef) {
+            @NotNull NativeObjectClassDefinition subjectClassDef, ItemName refAttrItemName) {
+
+        ShadowAssociationDefinitionType assocDef = new ShadowAssociationDefinitionType()
+                .ref(refAttrItemName.toBean()) //TODO this is probably not correct
+                .sourceAttributeRef(refAttrItemName.toBean());
 
         return new ShadowAssociationTypeSubjectDefinitionType()
                 .ref(subjectClassDef.getQName())
+                .association(assocDef)
                 .objectType(new ResourceObjectTypeIdentificationType()
                         .kind(subjectType.getKind())
                         .intent(subjectType.getIntent()));
@@ -287,29 +293,37 @@ public class SmartAssociationImpl {
     /**
      * Builds an object-side association participant definition.
      *
-     * @param objectType     Type identification for the object.
+     * @param objectType Type identification for the object.
      * @param objectClassDef Native object class definition for the object.
+     * @param refAttrItemName Reference attribute that defines the association.
      * @return A fully initialized {@link ShadowAssociationTypeObjectDefinitionType}.
      */
     private static @NotNull ShadowAssociationTypeObjectDefinitionType buildObjectParticipantDefinitionType(
             @NotNull ResourceObjectTypeIdentification objectType,
-            @NotNull NativeObjectClassDefinition objectClassDef) {
+            @NotNull NativeObjectClassDefinition objectClassDef,
+            @NotNull ItemName refAttrItemName) {
+
+        ShadowAssociationDefinitionType assocDef = new ShadowAssociationDefinitionType()
+                .ref(refAttrItemName.toBean())
+                .sourceAttributeRef(refAttrItemName.toBean());
 
         return new ShadowAssociationTypeObjectDefinitionType()
                 .ref(objectClassDef.getQName())
                 .objectType(new ResourceObjectTypeIdentificationType()
                         .kind(objectType.getKind())
-                        .intent(objectType.getIntent()));
+                        .intent(objectType.getIntent()))
+                .association(assocDef);
     }
 
     //TODO: Design better strategy for generating association names. Also think for combined/separated associations.
+
     /**
      * Constructs a machine-readable and unique name for an association based on subject/object kinds,
      * intents, and the reference attribute.
      *
-     * @param firstParticipantObjectTypeIdentification  Identification of the source participant.
-     * @param secondParticipantTypeIdentification       Identification of the target participant.
-     * @param refAttr                                   Reference attribute the association is based on.
+     * @param firstParticipantObjectTypeIdentification Identification of the source participant.
+     * @param secondParticipantTypeIdentification Identification of the target participant.
+     * @param refAttr Reference attribute the association is based on.
      * @return The generated association name.
      */
     private static @NotNull String constructAssociationName(
@@ -317,25 +331,24 @@ public class SmartAssociationImpl {
             @NotNull ResourceObjectTypeIdentification secondParticipantTypeIdentification,
             @NotNull ItemName refAttr) {
         String firstParticipantSubjectKind = StringUtils.capitalize(firstParticipantObjectTypeIdentification.getKind().value());
+        String secondParticipantSubjectKind = StringUtils.capitalize(secondParticipantTypeIdentification.getKind().value());
+
         String firstParticipantSubjectIntent = StringUtils.capitalize(firstParticipantObjectTypeIdentification.getIntent()
                 .replaceAll("[^a-zA-Z0-9]", ""));
 
-        String secondParticipantSubjectKind = StringUtils.capitalize(secondParticipantTypeIdentification.getKind().value());
         String secondParticipantSubjectIntent = StringUtils.capitalize(secondParticipantTypeIdentification.getIntent()
                 .replaceAll("[^a-zA-Z0-9]", ""));
 
-        String referenceName = StringUtils.capitalize(refAttr.getLocalPart());
-
-        return StringUtils.uncapitalize(firstParticipantSubjectKind + firstParticipantSubjectIntent + "To"
-                + secondParticipantSubjectKind+secondParticipantSubjectIntent + referenceName);
+        return firstParticipantSubjectKind + firstParticipantSubjectIntent + "-"
+                + secondParticipantSubjectKind+secondParticipantSubjectIntent;
     }
 
     /**
      * Logs the result of resolved associations for a given participant and reference attribute.
      *
-     * @param associations         The list of associations found (possibly empty).
+     * @param associations The list of associations found (possibly empty).
      * @param objectIdentification Identification of the participant.
-     * @param refAttr              Reference attribute being evaluated.
+     * @param refAttr Reference attribute being evaluated.
      */
     private static void debugAssociationResult(@NotNull List<ShadowAssociationTypeDefinitionType> associations,
             ResourceObjectTypeIdentification objectIdentification,
@@ -382,7 +395,7 @@ public class SmartAssociationImpl {
     /**
      * Logs a basic summary of a participant (class name, kind, and intent).
      *
-     * @param def    Object class definition of the participant.
+     * @param def Object class definition of the participant.
      * @param typeId Type identification (kind, intent) of the participant.
      */
     private static void debugParticipantInfo(

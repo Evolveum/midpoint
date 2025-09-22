@@ -115,6 +115,12 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         assertThat(response).isNotNull();
         display("Discovered Links", response);
 
+        selectDocumentation(response.getDocumentation());
+
+
+    }
+
+    protected void selectDocumentation(List<ConnDevDocumentationSourceType> documentation) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
         var delta = deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE).add(new ConnDevDocumentationSourceType()
                         .name("OpenProject OpenAPI Specification")

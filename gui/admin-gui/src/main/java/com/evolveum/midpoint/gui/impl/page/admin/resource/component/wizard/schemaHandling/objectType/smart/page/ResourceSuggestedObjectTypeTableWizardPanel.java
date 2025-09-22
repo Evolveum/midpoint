@@ -42,6 +42,7 @@ import javax.xml.namespace.QName;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeObjectTypeSuggestionNew;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.createResourceObjectTypeDefinitionWrapper;
 
 @PanelType(name = "rw-suggested-object-type")
@@ -55,9 +56,12 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
     private static final String OP_DETERMINE_STATUS =
             ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".determineStatus";
+    private static final String OP_DELETE_SUGGESTIONS =
+            ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".deleteSuggestions";
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedModel = Model.of();
     QName selectedObjectClassName;
+    StatusInfo<ObjectTypesSuggestionType> statusInfo;
 
     public ResourceSuggestedObjectTypeTableWizardPanel(
             String id,
@@ -114,7 +118,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
                 ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
 
-                StatusInfo<ObjectTypesSuggestionType> statusInfo = loadObjectClassObjectTypeSuggestions(getPageBase(),
+                statusInfo = loadObjectClassObjectTypeSuggestions(getPageBase(),
                         resource.getOid(),
                         selectedObjectClassName,
                         task,
@@ -180,6 +184,11 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createResourceObjectTypeDefinitionWrapper(
                 prismContainerValue,
                 objectWrapperModel);
+
+        //TODO should be after save
+        Task task = getPageBase().createSimpleTask(OP_DELETE_SUGGESTIONS);
+        OperationResult result = task.getResult();
+        removeObjectTypeSuggestionNew(getPageBase(), statusInfo, prismContainerValue.getValue(), task, result);
 
         onContinueWithSelected(selectedModel, prismContainerValue, containerModel, target);
     }

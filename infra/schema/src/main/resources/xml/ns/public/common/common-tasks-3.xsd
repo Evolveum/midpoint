@@ -10749,6 +10749,8 @@
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
                     <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
+                    <xsd:element name="endpoint" type="tns:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="relation" type="tns:ConnDevRelationInfoType" minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
