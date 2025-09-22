@@ -30,10 +30,10 @@ public abstract class AbstractConnDevActivityHandler<T extends AbstractConnDevAc
     private final QName definitionType;
     private final ItemName definitionName;
     private final QName stateType;
-    private final Class<? extends AbstractWorkDefinition> definitionClass;
+    private final Class<? extends AbstractWorkDefinition<?>> definitionClass;
     private final WorkDefinitionFactory.WorkDefinitionSupplier definitionFactory;
 
-    public AbstractConnDevActivityHandler(QName definitionType, ItemName definitionName, QName stateType, Class<? extends AbstractWorkDefinition> definitionClass, WorkDefinitionFactory.WorkDefinitionSupplier definitionFactory) {
+    public AbstractConnDevActivityHandler(QName definitionType, ItemName definitionName, QName stateType, Class<? extends AbstractWorkDefinition<?>> definitionClass, WorkDefinitionFactory.WorkDefinitionSupplier definitionFactory) {
         this.definitionType = definitionType;
         this.definitionName = definitionName;
         this.stateType = stateType;
@@ -73,16 +73,28 @@ public abstract class AbstractConnDevActivityHandler<T extends AbstractConnDevAc
         final T typedDefinition;
 
         public AbstractWorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info) throws ConfigurationException {
+            this(info, true);
+        }
+
+        public AbstractWorkDefinition(WorkDefinitionFactory.@NotNull WorkDefinitionInfo info, boolean requireConnectorDevelopment) throws ConfigurationException {
             super(info);
             this.typedDefinition = (T) info.getBean();
-            connectorDevelopmentOid = MiscUtil.configNonNull(Referencable.getOid(typedDefinition.getConnectorDevelopmentRef()), "No resource OID specified");
+            connectorDevelopmentOid = Referencable.getOid(typedDefinition.getConnectorDevelopmentRef());
+            if (requireConnectorDevelopment) {
+                MiscUtil.configNonNull(connectorDevelopmentOid, "No Connector Development OID specified");
+            }
         }
 
         @Override
         public @NotNull AffectedObjectsInformation.ObjectSet getAffectedObjectSetInformation(@Nullable AbstractActivityWorkStateType state) throws SchemaException, ConfigurationException {
+            if (connectorDevelopmentOid == null) {
+                return AffectedObjectsInformation.ObjectSet.notSupported();
+            }
             return AffectedObjectsInformation.ObjectSet.repository(new BasicObjectSetType()
                     .objectRef(connectorDevelopmentOid, ConnectorDevelopmentType.COMPLEX_TYPE)
             );
+
+
         }
 
         @Override

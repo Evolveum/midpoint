@@ -703,6 +703,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      * @return boolean
      */
     static Boolean isThisJarFileBundle(File file) {
+        return isThisJarFileBundle(file, true);
+    }
+
+    static Boolean isThisJarFileBundle(File file, boolean skipTmp) {
         // Startup tests
         if (null == file) {
             throw new IllegalArgumentException("No file is provided for bundle test.");
@@ -714,7 +718,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             return false;
         }
 
-        if (file.getName().endsWith(".tmp")) {
+        if (skipTmp && file.getName().endsWith(".tmp")) {
             LOGGER.debug("This {} is a temporary file", file.getAbsolutePath());
             return false;
         }

@@ -2584,6 +2584,14 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="installConnector" type="tns:ConnDevDownloadConnectorWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="discoverDocumentation" type="tns:ConnDevDiscoverDocumentationWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -10518,7 +10526,7 @@
         <xsd:complexContent>
         <xsd:extension base="tns:AbstractWorkDefinitionType">
         <xsd:sequence>
-            <xsd:element name="connectorDevelopmentRef" type="c:ObjectReferenceType">
+            <xsd:element name="connectorDevelopmentRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:ConnectorDevelopmentType</a:objectReferenceTargetType>
@@ -10553,6 +10561,39 @@
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevCreateConnectorResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="ConnDevDownloadConnectorWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="connectorUrl" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDownloadConnectorWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDownloadConnectorResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDownloadConnectorResultType">
         <xsd:sequence>
             <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
                 <xsd:annotation>
