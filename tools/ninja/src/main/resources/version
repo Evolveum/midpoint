@@ -1,1 +1,1 @@
-Version: ${project.version}, rev. ${git.commit.id.describe}, built by ${git.build.user.name}, ${git.build.time}
+${project.version}
