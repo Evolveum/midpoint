@@ -1,3 +1,7 @@
+---
+midpoint-feature: micro-certification
+doc-type: [ 'config' ]
+---
 = Ad-Hoc Certification
 :page-wiki-name: Ad-hoc certification HOWTO
 :page-wiki-id: 24085921
