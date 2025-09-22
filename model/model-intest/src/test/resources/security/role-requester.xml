@@ -9,10 +9,6 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         oid="40000000-1000-0000-0000-000000000000">
     <name>role-requester</name>
-    <description>This role allows to search for the roles with allowed items name, description, displayName.
-        #assign authorization is trying to search by requestable and riskLevel items.
-        Service type objects have also requestable among the allowed items for search.
-    </description>
     <authorization>
         <name>self-read</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
@@ -20,6 +16,34 @@
             <type>UserType</type>
             <special>self</special>
         </object>
+    </authorization>
+    <authorization>
+        <name>self-modify</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <type>UserType</type>
+            <special>self</special>
+        </object>
+        <item>credentials</item>
+        <item>assignment</item>
+    </authorization>
+    <authorization>
+        <name>users-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+    </authorization>
+    <authorization>
+        <name>orgs-search</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
+        <item>displayName</item>
     </authorization>
     <authorization>
         <name>service-read</name>
@@ -33,7 +57,29 @@
         <item>requestable</item>
         <item>riskLevel</item>
     </authorization>
-
+    <authorization>
+        <name>assign-requestable-services</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <phase>request</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <target>
+            <type>ServiceType</type>
+            <filter>
+                <q:and>
+                    <q:equal>
+                        <q:path>requestable</q:path>
+                        <q:value>true</q:value>
+                    </q:equal>
+                    <q:equal>
+                        <q:path>riskLevel</q:path>
+                        <q:value>low</q:value>
+                    </q:equal>
+                </q:and>
+            </filter>
+        </target>
+    </authorization>
     <authorization>
         <name>roles-read</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
@@ -69,9 +115,6 @@
                     </q:equal>
                 </q:and>
             </filter>
-            <!--            <orgRelation>-->
-            <!--                <subjectRelation>org:manager</subjectRelation>-->
-            <!--            </orgRelation>-->
         </target>
     </authorization>
 </role>

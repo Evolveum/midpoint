@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import javax.management.relation.Role;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ActivityCustomization;
@@ -129,9 +130,14 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
     private static final File ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE = new File(TEST_DIR, "role-read-resource-operational-state.xml");
     private static final String ROLE_READ_RESOURCE_OPERATIONAL_STATE_OID = "18f17721-63e1-42cf-abaf-8a50a04e639f";
 
-    private static final File ROLE_REQUESTABLE_HIGH_RISK_FILE = new File(TEST_DIR, "role-requestable-high-risk.xml");
-    private static final File SERVICE_REQUESTABLE_HIGH_RISK_FILE = new File(TEST_DIR, "service-requestable-high-risk.xml");
-    private static final File ROLE_REQUESTER_FILE = new File(TEST_DIR, "role-requester.xml");
+    private static final TestObject<RoleType> ROLE_REQUESTER =
+            TestObject.file(TEST_DIR, "role-requester.xml", "40000000-1000-0000-0000-000000000000");
+    private static final TestObject<RoleType> ROLE_REQUESTABLE_HIGH_RISK =
+            TestObject.file(TEST_DIR, "role-requestable-high-risk.xml", "20000000-1000-0000-0000-000000000003");
+    private static final TestObject<ServiceType> SERVICE_REQUESTABLE_HIGH_RISK =
+            TestObject.file(TEST_DIR, "service-requestable-high-risk.xml", "20000000-1000-0000-0000-000000000004");
+    private static final TestObject<ServiceType> SERVICE_REQUESTABLE_LOW_RISK =
+            TestObject.file(TEST_DIR, "service-requestable-low-risk.xml", "629bafd6-8b5e-4a7c-94fa-36813984c5c3");
 
     private static final TestObject<RoleType> ROLE_READ_TASK_STATUS = TestObject.file(TEST_DIR, "role-read-task-status.xml", "bc2d0900-ac17-40c1-acf8-eb5466995aae");
     private static final TestObject<TaskType> TASK_DUMMY = TestObject.file(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
@@ -166,9 +172,10 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
         repoAddObjectFromFile(ROLE_READ_ORG_EXEC_FILE, initResult);
         repoAddObjectFromFile(ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE, initResult);
-        repoAddObjectFromFile(ROLE_REQUESTER_FILE, initResult);
-        repoAddObjectFromFile(ROLE_REQUESTABLE_HIGH_RISK_FILE, initResult);
-        repoAddObjectFromFile(SERVICE_REQUESTABLE_HIGH_RISK_FILE, initResult);
+        repoAdd(ROLE_REQUESTER, initResult);
+        repoAdd(ROLE_REQUESTABLE_HIGH_RISK, initResult);
+        repoAdd(SERVICE_REQUESTABLE_LOW_RISK, initResult);
+        repoAdd(SERVICE_REQUESTABLE_HIGH_RISK, initResult);
         repoAdd(ROLE_READ_TASK_STATUS, initResult);
         repoAdd(TASK_DUMMY, initResult);
         repoAdd(ROLE_MANY_SHADOW_OWNER_AUTZ, initResult);
@@ -3388,17 +3395,17 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
         query.addFilter(filter);
 
-//        logger.info("assert search for role type");
-//
-//        assertSearch(RoleType.class,query);
-//
-//        logger.info("assert search for service type");
-//
-//        assertSearch(ServiceType.class, query, "20000000-1000-0000-0000-000000000004");
+        logger.info("assert search for role type");
+
+        assertSearch(RoleType.class,query);
+
+        logger.info("assert search for service type");
+
+        assertSearch(ServiceType.class, query, "629bafd6-8b5e-4a7c-94fa-36813984c5c3");
 
         logger.info("assert search for abstract role type");
 
-        assertSearch(AbstractRoleType.class, query, "20000000-1000-0000-0000-000000000004");
+        assertSearch(AbstractRoleType.class, query, "629bafd6-8b5e-4a7c-94fa-36813984c5c3");
     }
 
 

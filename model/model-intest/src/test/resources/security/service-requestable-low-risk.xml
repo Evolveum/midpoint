@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="629bafd6-8b5e-4a7c-94fa-36813984c5c3">
+    <name>service-low2</name>
+    <requestable>true</requestable>
+    <riskLevel>low</riskLevel>
+    <assignment>
+        <targetRef oid="8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2" relation="org:default" type="c:OrgType" />
+    </assignment>
+    <roleMembershipRef oid="8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2" relation="org:default" type="c:OrgType"/>
+    <parentOrgRef oid="8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2" relation="org:default" type="c:OrgType"/>
+</service>
