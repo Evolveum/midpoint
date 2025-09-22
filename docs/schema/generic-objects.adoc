@@ -126,7 +126,7 @@ Therefore it is defined just once and applied everywhere it is needed.
 
 All midPoint objects are extensible.
 Users, roles, orgs, services, resources, tasks - and even xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]. System configuration object extension is in fact a very useful mechanism.
-Most xref:/midpoint/reference/expressions/[expressions] have `configuration` variable available during expression evaluation.
+Most xref:/midpoint/reference/expressions/[expressions] have `connection` variable available during expression evaluation.
 Therefore all the data placed into system configuration extension are available to expressions.
 This is a very elegant way how to set system-wide parameters (constants).
 

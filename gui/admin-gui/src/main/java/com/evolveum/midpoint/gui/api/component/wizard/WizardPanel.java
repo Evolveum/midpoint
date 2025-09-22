@@ -97,6 +97,10 @@ public class WizardPanel extends BasePanel implements WizardListener {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
+        customizeHeader(response);
+    }
+
+    protected void customizeHeader(IHeaderResponse response) {
         response.render(OnDomReadyHeaderItem.forScript(
                 "MidPointTheme.updatePageUrlParameter('" + WizardModel.PARAM_STEP + "', '" + wizardModel.getActiveStep().getStepId() + "');"));
 
@@ -118,7 +122,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
         return () -> wizardModel.getSteps().stream().filter(s -> BooleanUtils.isTrue(s.isStepVisible().getObject())).map(s -> s.getTitle()).collect(Collectors.toList());
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         add(AttributeAppender.prepend("class", "bs-stepper"));
         add(AttributeAppender.append("class", () -> "w-100"));
 

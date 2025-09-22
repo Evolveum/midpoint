@@ -76,7 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinition
  * Multi-select tile table for mappings items.
  */
 public abstract class SmartMappingTable<P extends Containerable>
-        extends MultiSelectContainerActionTileTablePanel<PrismContainerValueWrapper<MappingType>, MappingType> {
+        extends MultiSelectContainerActionTileTablePanel<PrismContainerValueWrapper<MappingType>, MappingType, SmartMappingTileModel<PrismContainerValueWrapper<MappingType>>> {
 
     private static final String CLASS_DOT = SmartMappingTable.class.getName() + ".";
     private static final String OP_SUGGEST_MAPPING = CLASS_DOT + "suggestMapping";
@@ -127,7 +127,7 @@ public abstract class SmartMappingTable<P extends Containerable>
     }
 
     @Override
-    protected void customizeTileItemCss(Component tile, @NotNull TemplateTile<PrismContainerValueWrapper<MappingType>> item) {
+    protected void customizeTileItemCss(Component tile, @NotNull SmartMappingTileModel<PrismContainerValueWrapper<MappingType>> item) {
         super.customizeTileItemCss(tile, item);
 
         StatusInfo<MappingsSuggestionType> statusInfo = getStatusInfo(item.getValue());
@@ -138,7 +138,7 @@ public abstract class SmartMappingTable<P extends Containerable>
     }
 
     @Override
-    protected TemplateTile<PrismContainerValueWrapper<MappingType>> createTileObject(
+    protected SmartMappingTileModel<PrismContainerValueWrapper<MappingType>> createTileObject(
             @NotNull PrismContainerValueWrapper<MappingType> object) {
         StatusInfo<MappingsSuggestionType> statusInfo = getStatusInfo(object);
         return new SmartMappingTileModel<>(object, resourceOid, statusInfo != null ? statusInfo.getToken() : null);
@@ -146,7 +146,7 @@ public abstract class SmartMappingTable<P extends Containerable>
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    protected Component createTile(String id, @NotNull IModel<TemplateTile<PrismContainerValueWrapper<MappingType>>> model) {
+    protected Component createTile(String id, @NotNull IModel<SmartMappingTileModel<PrismContainerValueWrapper<MappingType>>> model) {
         PrismContainerValueWrapper<MappingType> value = model.getObject().getValue();
         return new SmartMappingTilePanel(id, model) {
             @Override

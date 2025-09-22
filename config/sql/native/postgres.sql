@@ -67,6 +67,7 @@ CREATE TYPE ObjectType AS ENUM (
     'ASSIGNMENT_HOLDER',
     'CASE',
     'CONNECTOR',
+    'CONNECTOR_DEVELOPMENT',
     'CONNECTOR_HOST',
     'DASHBOARD',
     'FOCUS',
@@ -1693,10 +1694,10 @@ CREATE TRIGGER m_connector_update_tr BEFORE UPDATE ON m_connector
 CREATE TRIGGER m_connector_oid_delete_tr AFTER DELETE ON m_connector
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-CREATE UNIQUE INDEX m_connector_typeVersion_key
+CREATE INDEX m_connector_typeVersion_key
     ON m_connector (connectorType, connectorVersion)
     WHERE connectorHostRefTargetOid IS NULL;
-CREATE UNIQUE INDEX m_connector_typeVersionHost_key
+CREATE INDEX m_connector_typeVersionHost_key
     ON m_connector (connectorType, connectorVersion, connectorHostRefTargetOid)
     WHERE connectorHostRefTargetOid IS NOT NULL;
 CREATE INDEX m_connector_nameOrig_idx ON m_connector (nameOrig);
@@ -1706,6 +1707,23 @@ CREATE INDEX m_connector_policySituation_idx
     ON m_connector USING gin(policysituations gin__int_ops);
 CREATE INDEX m_connector_createTimestamp_idx ON m_connector (createTimestamp);
 CREATE INDEX m_connector_modifyTimestamp_idx ON m_connector (modifyTimestamp);
+
+-- Represents Connector Development table
+CREATE TABLE m_connector_development (
+     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+     objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR_DEVELOPMENT') STORED
+        CHECK (objectType = 'CONNECTOR_DEVELOPMENT')
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_connector_development_oid_insert_tr BEFORE INSERT ON m_connector_development
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_connector_development_update_tr BEFORE UPDATE ON m_connector_development
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_connector_development_oid_delete_tr AFTER DELETE ON m_connector_development
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+
 
 -- Represents ConnectorHostType, see https://docs.evolveum.com/connectors/connid/1.x/connector-server/
 CREATE TABLE m_connector_host (
@@ -2672,4 +2690,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(53, $$ SELECT 1 $$, true);
+call apply_change(57, $$ SELECT 1 $$, true);

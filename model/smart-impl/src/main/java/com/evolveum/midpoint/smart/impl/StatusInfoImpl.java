@@ -54,11 +54,17 @@ public class StatusInfoImpl<T> implements StatusInfo<T> {
      * @param resultItemName Item name of the result in the task work state.
      * @param resultClass Class of the result item.
      */
-    StatusInfoImpl(TaskType task, ItemName resultItemName, Class<T> resultClass) {
+    public StatusInfoImpl(TaskType task, ItemName resultItemName, Class<T> resultClass) {
         LOGGER.trace("Task:\n{}", task.debugDump(1));
         argCheck(task.getParent() == null, "Task must be a root task, not a subtask.");
         this.taskInformation = ActivityBasedTaskInformation.createForTask(task, null);
-        this.request = task.getAffectedObjects().getActivity().get(0).getResourceObjects(); // FIXME implement more robustly
+
+        var affected = task.getAffectedObjects();
+        if (affected != null && affected.getActivity() != null) {
+            this.request = task.getAffectedObjects().getActivity().get(0).getResourceObjects(); // FIXME implement more robustly
+        } else {
+            this.request = null;
+        }
         this.resultItemName = resultItemName;
         this.resultClass = resultClass;
     }

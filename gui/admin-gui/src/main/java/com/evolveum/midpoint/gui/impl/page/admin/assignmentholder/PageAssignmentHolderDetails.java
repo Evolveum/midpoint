@@ -71,11 +71,12 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentHolderDetails.class);
     protected static final String ID_TEMPLATE_VIEW = "templateView";
     protected static final String ID_TEMPLATE = "template";
-    private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
-    private static final String ID_WIZARD = "wizard";
+    protected static final String ID_WIZARD_FRAGMENT = "wizardFragment";
+    protected static final String ID_WIZARD = "wizard";
+
+    private final boolean showTemplate;
 
     private List<Breadcrumb> wizardBreadcrumbs = new ArrayList<>();
-    private final boolean showTemplate;
 
     public PageAssignmentHolderDetails() {
         this(null, null);
@@ -332,10 +333,6 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return getModelWrapperObject().getObject();
     }
 
-    public List<Breadcrumb> getWizardBreadcrumbs() {
-        return wizardBreadcrumbs;
-    }
-
     public boolean isShowByWizard() {
         return isShowedByWizard();
     }
@@ -492,7 +489,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return null;
     }
 
-    private <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelper(
+    protected  <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelper(
             IModel<PrismContainerValueWrapper<C>> valueModel) {
         return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
 
@@ -533,7 +530,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         };
     }
 
-    private <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelperWithoutSave(
+    protected  <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelperWithoutSave(
             IModel<PrismContainerValueWrapper<C>> valueModel) {
         return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
 
@@ -585,8 +582,16 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         };
     }
 
-    protected void exitFromWizard() {
-        navigateToNext(DetailsPageUtil.getObjectListPage(getType()));
+    private void backToDetailsFromWizard(AjaxRequestTarget target) {
+        DetailsFragment detailsFragment = createDetailsFragment();
+        PageAssignmentHolderDetails.this.addOrReplace(detailsFragment);
+        target.add(detailsFragment);
+
+        getFeedbackPanel().setVisible(true);
+    }
+
+    public List<Breadcrumb> getWizardBreadcrumbs() {
+        return wizardBreadcrumbs;
     }
 
     public void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {
@@ -609,11 +614,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         showMainPopup(confirmationPanel, target);
     }
 
-    private void backToDetailsFromWizard(AjaxRequestTarget target) {
-        DetailsFragment detailsFragment = createDetailsFragment();
-        PageAssignmentHolderDetails.this.addOrReplace(detailsFragment);
-        target.add(detailsFragment);
-
-        getFeedbackPanel().setVisible(true);
+    protected void exitFromWizard() {
+        navigateToNext(DetailsPageUtil.getObjectListPage(getType()));
     }
 }

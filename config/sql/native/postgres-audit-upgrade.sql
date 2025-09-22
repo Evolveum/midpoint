@@ -163,6 +163,18 @@ call apply_audit_change(10, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_OUTLIER';
 $aa$);
 
+--- Application Type
+call apply_audit_change(11, $aa$
+    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'APPLICATION' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
+$aa$);
+
+--- Connector Development Type
+call apply_audit_change(12, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
+$aa$);
+
+
+
 -- WRITE CHANGES ABOVE ^^
 
 -- IMPORTANT: update apply_audit_change number at the end of postgres-audit.sql

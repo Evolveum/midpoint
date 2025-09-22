@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QReferenceMapping;
 
@@ -71,6 +72,8 @@ public class QAffectedObjectReferenceMapping
         MAffectedObjectReference row = new MAffectedObjectReference();
         row.ownerOid = ownerRow.ownerOid;
         row.ownerType = ownerRow.type;
+        // This should be task, not sure why ownerRow.type is empty
+        row.ownerType = MObjectType.TASK;
         row.affectedObjectCid = ownerRow.cid;
         return row;
     }

@@ -13,8 +13,11 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -58,7 +61,11 @@ public class ReferenceExecutedDeltaProcessor implements Serializable, ExecutedDe
     private QName getType() {
         List<QName> types = ((PrismReferenceWrapper)referenceWrapper.getParent()).getTargetTypes();
         if (types.size() == 1) {
-            return types.get(0);
+            QName type = types.get(0);
+            if (type != null && StringUtils.isEmpty(type.getNamespaceURI())) {
+                type = ObjectTypes.canonizeObjectType(type);
+            }
+            return type;
         }
         return ObjectType.COMPLEX_TYPE;
     }

@@ -1868,6 +1868,12 @@ public final class WebComponentUtil {
 
     @NotNull
     public static TabbedPanel<ITab> createTabPanel(
+            String id, final PageBase parentPage, final List<ITab> tabs) {
+        return createTabPanel(id, parentPage, tabs, null, null);
+    }
+
+    @NotNull
+    public static TabbedPanel<ITab> createTabPanel(
             String id, final PageBase parentPage, final List<ITab> tabs, TabbedPanel.RightSideItemProvider provider) {
         return createTabPanel(id, parentPage, tabs, provider, null);
     }

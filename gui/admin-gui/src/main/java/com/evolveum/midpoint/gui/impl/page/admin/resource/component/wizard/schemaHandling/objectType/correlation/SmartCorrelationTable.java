@@ -77,7 +77,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
  * Multi-select tile table for correlation items.
  */
 public class SmartCorrelationTable
-        extends MultiSelectContainerActionTileTablePanel<PrismContainerValueWrapper<ItemsSubCorrelatorType>, ItemsSubCorrelatorType> {
+        extends MultiSelectContainerActionTileTablePanel<PrismContainerValueWrapper<ItemsSubCorrelatorType>, ItemsSubCorrelatorType, TemplateTile<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> {
 
     private static final String CLASS_DOT = SmartCorrelationTable.class.getName() + ".";
     private static final String OP_SUGGEST_CORRELATION_RULES = CLASS_DOT + "suggestCorrelationRules";

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -38,13 +39,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class SelectTileWizardStepPanel<O extends SelectableRow, ODM extends ObjectDetailsModels>
-        extends AbstractWizardStepPanel<ODM> {
+public abstract class SelectTileWizardStepPanel<O extends SelectableRow, AHDM extends AssignmentHolderDetailsModel>
+        extends AbstractWizardStepPanel<AHDM> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectTileWizardStepPanel.class);
 
@@ -57,7 +57,7 @@ public abstract class SelectTileWizardStepPanel<O extends SelectableRow, ODM ext
 
     static final String ID_TABLE = "table";
 
-    public SelectTileWizardStepPanel(ODM model) {
+    public SelectTileWizardStepPanel(AHDM model) {
         super(model);
     }
 

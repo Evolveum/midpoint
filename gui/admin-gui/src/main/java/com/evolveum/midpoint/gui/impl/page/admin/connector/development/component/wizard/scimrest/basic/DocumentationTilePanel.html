@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-row p-2 w-100">
+        <div class="h-100 m-auto pr-3">
+            <div wicket:id="check"/>
+        </div>
+        <div class="h-100 m-auto pr-3">
+            <i wicket:id="icon"></i>
+        </div>
+        <div class="w-100 d-flex flex-column" wicket:id="clickableArea">
+            <div class="d-lex flex-row">
+                <div class="d-inline" wicket:id="title"/>
+            </div>
+            <div class="text-secondary" wicket:id="description"/>
+            <div class="text-sm text-secondary mt-1" wicket:id="uri"/>
+        </div>
+        <div class="h-100 m-auto pr-3">
+            <a class="text-secondary" wicket:id="showDetails">
+                <i class="fa fa-eye"></i>
+            </a>
+        </div>
+        <div class="h-100 m-auto pr-3">
+            <a class="text-danger" wicket:id="delete">
+                <i class="fa fa-trash"></i>
+            </a>
+        </div>
+    </div>
+</wicket:panel>
+</html>

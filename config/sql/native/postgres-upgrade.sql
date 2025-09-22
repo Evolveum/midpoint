@@ -1136,6 +1136,39 @@ CREATE INDEX m_application_modifyTimestamp_idx ON m_application (modifyTimestamp
 
 $aa$);
 
+call apply_change(54, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
+$aa$);
+
+call apply_change(55, $aa$
+CREATE TABLE m_connector_development (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR_DEVELOPMENT') STORED
+        CHECK (objectType = 'CONNECTOR_DEVELOPMENT')
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_connector_development_oid_insert_tr BEFORE INSERT ON m_connector_development
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_connector_development_update_tr BEFORE UPDATE ON m_connector_development
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_connector_development_oid_delete_tr AFTER DELETE ON m_connector_development
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+$aa$);
+
+call apply_change(56, $aa$
+    DROP INDEX IF EXISTS m_connector_typeVersion_key;
+    DROP INDEX IF EXISTS m_connector_typeversionhost_key;
+$aa$);
+call apply_change(57, $aa$
+CREATE INDEX m_connector_typeVersion_key
+    ON m_connector (connectorType, connectorVersion)
+    WHERE connectorHostRefTargetOid IS NULL;
+CREATE INDEX m_connector_typeVersionHost_key
+    ON m_connector (connectorType, connectorVersion, connectorHostRefTargetOid)
+    WHERE connectorHostRefTargetOid IS NOT NULL;
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

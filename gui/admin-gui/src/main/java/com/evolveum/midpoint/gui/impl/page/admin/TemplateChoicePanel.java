@@ -58,7 +58,7 @@ public abstract class TemplateChoicePanel extends AbstractTemplateChoicePanel<Co
     }
 
     @Override
-    protected WebMarkupContainer createIconPanel(IModel<Tile<CompiledObjectCollectionView>> tileModel, String idIcon) {
+    protected WebMarkupContainer createTemplateIconPanel(IModel<Tile<CompiledObjectCollectionView>> tileModel, String idIcon) {
         IModel<CompositedIcon> iconModel = () -> {
             CompiledObjectCollectionView view = tileModel.getObject().getValue();
             return createCompositedIcon(view);

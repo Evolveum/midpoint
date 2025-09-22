@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  ~ Copyright (c) 2022 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="d-flex flex-column gap-3 mt-2">
+        <h4 class="mb-2 font-weight-bold" wicket:id="text"/>
+        <h5 class="text-secondary pb-2 col-12 lh-2 border-bottom mb-2" wicket:id="subText"/>
+        <div class="col-12">
+            <div wicket:id="feedbackContainer" class="feedbackContainer mx-auto p-0">
+                <div wicket:id="feedback" class="messagePanel"/>
+            </div>
+            <wicket:child/>
+        </div>
+        <div class="d-flex mt-3 gap-3 justify-content-center" wicket:id="buttonsContainer">
+            <a class="btn" wicket:id="buttons"/>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

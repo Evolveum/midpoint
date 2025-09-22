@@ -150,6 +150,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             }
         };
         footerContainer.add(tilesPaging);
+        tilesPaging.add(new VisibleBehaviour(() -> getTilesModel().getObject().size() > getTiles().getItemsPerPage()));
 
         WebMarkupContainer buttonToolbar = createTilesButtonToolbar(ID_BUTTON_TOOLBAR);
         footerContainer.add(buttonToolbar);
@@ -182,7 +183,9 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         tilesFragment.add(AttributeAppender.replace("class", getTileContainerCssClass()));
 
         PageableListView<T, O> tiles = createTilesPanel(ID_TILES, provider);
+        tiles.setOutputMarkupId(true);
         tilesFragment.add(tiles);
+        tilesFragment.setOutputMarkupId(true);
 
         return tilesFragment;
     }

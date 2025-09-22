@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
@@ -387,6 +388,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private MainMenuItem createApplicationsItems() {
         MainMenuItem applicationMenu = createMainMenuItem("PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(applicationMenu, PageTypes.APPLICATION);
+
+        MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
+                GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
+        applicationMenu.addMenuItem(connectorGenerator);
+
         return applicationMenu;
     }
 

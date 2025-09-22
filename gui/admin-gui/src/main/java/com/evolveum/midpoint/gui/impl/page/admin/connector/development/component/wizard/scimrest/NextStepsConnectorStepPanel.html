@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
+        <div wicket:id="feedback" class="messagePanel"/>
+    </div>
+    <div class="d-flex flex-column" wicket:id="objectClass">
+        <div class="font-weight-bold mb-2" wicket:id="objectClassName"/>
+        <div class="d-inline" wicket:id="objectClassPossibilities"/>
+    </div>
+    <div class="d-flex flex-column">
+        <div class="font-weight-bold mt-3 mb-2">
+            <wicket:message key="NextStepsConnectorStepPanel.connectionAction"/>
+        </div>
+        <div class="d-inline" wicket:id="connectorAction"/>
+    </div>
+</wicket:extend>
+</html>
