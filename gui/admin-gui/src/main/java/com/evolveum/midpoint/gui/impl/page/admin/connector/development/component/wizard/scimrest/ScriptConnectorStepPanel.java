@@ -138,7 +138,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         super.onSubmitPerformed(target);
-        super.onNextPerformed(target);
+        onNextPerformed(target);
     }
 
     @Override
