@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -71,7 +74,8 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                     @Override
                     protected StatusInfo<?> load() {
                         try {
-                            Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
+                            MidPointApplication app = MidPointApplication.get();
+                            Task task = app.createSimpleTask(OP_DETERMINE_STATUS);
                             OperationResult result = task.getResult();
                             return obtainResult(token, task, result);
                         } catch (SchemaException|ObjectNotFoundException e) {
