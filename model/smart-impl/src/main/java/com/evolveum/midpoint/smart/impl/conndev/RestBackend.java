@@ -32,6 +32,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorDevelopmentBackend.class);
+    private static final int MAX_SCRAPE_ITERATIONS = 2;
 
     public RestBackend(ConnDevBeans beans, ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         super(beans, connDev, task, result);
@@ -459,7 +460,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         trustedDomains.forEach(d -> trustedDomainsJson.add(JSON_FACTORY.textNode(d)));
         ret.set("trustedDomains", trustedDomainsJson );
 
-        ret.set("maxScraperIterations", JSON_FACTORY.numberNode(3));
+        ret.set("maxScraperIterations", JSON_FACTORY.numberNode(MAX_SCRAPE_ITERATIONS));
         ret.set("runParts", JSON_FACTORY.textNode("all"));
         ret.set("scraperUrlSelectMethod", JSON_FACTORY.textNode("current-except"));
         ret.set("returnFulltext", JSON_FACTORY.booleanNode(true));
