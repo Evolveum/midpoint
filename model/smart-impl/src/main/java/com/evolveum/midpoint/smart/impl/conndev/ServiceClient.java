@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
+import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
@@ -113,6 +114,14 @@ public class ServiceClient {
         }
 
         public void startJob(HttpPost request) throws IOException {
+            try {
+                startJob0(request);
+            } catch (ConnectTimeoutException e) {
+                startJob0(request);
+            }
+        }
+
+        public void startJob0(HttpPost request) throws IOException {
             try(var response = client.execute(request)) {
                 if (HttpStatus.SC_OK == response.getCode()) {
                     var result = parseJson(response.getEntity().getContent());
@@ -164,7 +173,8 @@ public class ServiceClient {
         }
 
         public boolean isFinished() {
-            return status == JobStatus.COMPLETED;
+            return status == JobStatus.COMPLETED
+                    || (status ==  JobStatus.FAILED && getResult() != null && !getResult().isEmpty());
         }
 
         public <T,E extends Exception> T waitAndProcess(long sleepTime, CheckedFunction<ObjectNode, T, E> transform) throws E {
