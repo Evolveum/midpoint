@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObjects;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,8 +46,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconP
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResultObjects;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
 import com.evolveum.midpoint.prism.PrismObject;

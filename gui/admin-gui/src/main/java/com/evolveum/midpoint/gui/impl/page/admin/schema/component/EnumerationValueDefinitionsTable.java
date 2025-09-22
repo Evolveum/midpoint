@@ -8,30 +8,18 @@
 package com.evolveum.midpoint.gui.impl.page.admin.schema.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -39,24 +27,17 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.*;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -134,13 +115,13 @@ public class EnumerationValueDefinitionsTable extends AbstractWizardTable<Enumer
     @Override
     protected List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> menuItems = new ArrayList<>();
-        menuItems.add(createDeleteInlineMenu());
+        menuItems.add(createDeleteButtonInlineMenu());
         menuItems.add(createEditInlineMenu());
         return menuItems;
     }
 
     @Override
-    protected ButtonInlineMenuItem createDeleteInlineMenu() {
+    protected ButtonInlineMenuItem createDeleteButtonInlineMenu() {
         ButtonInlineMenuItem menu = new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
             private static final long serialVersionUID = 1L;
 

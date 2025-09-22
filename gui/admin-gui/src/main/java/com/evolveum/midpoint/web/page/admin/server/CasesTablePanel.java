@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 
@@ -50,11 +52,9 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
     @Override
     protected ISelectableDataProvider<SelectableBean<CaseType>> createProvider() {
         SelectableBeanObjectDataProvider<CaseType> provider =
-                createSelectableBeanObjectDataProvider(() -> getCustomizeContentQuery(),
+                createSelectableBeanObjectDataProvider(this::getCustomizeContentQuery,
                 (sortParam) -> WebComponentUtil.createMetadataOrdering(sortParam, "createTimestamp", getPrismContext()),
                         createOperationOptions());
-        provider.setSort(MetadataType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
-
         return provider;
     }
 
@@ -93,6 +93,14 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     protected ObjectFilter getCasesFilter(){
         return null;
+    }
+
+    protected String getDefaultSortParam() {
+        return ObjectType.F_METADATA.getLocalPart() + "/" + MetadataType.F_CREATE_TIMESTAMP.getLocalPart();
+    }
+
+    protected SortOrder getDefaultSortOrder() {
+        return SortOrder.DESCENDING;
     }
 
 }

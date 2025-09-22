@@ -210,6 +210,30 @@ public interface SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException;
 
     /**
+     * Submits "suggest associations" request. Returns a token used to query the status.
+     */
+    String submitSuggestAssociationsOperation(
+            String resourceOid,
+            Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
+            Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
+            Task task,
+            OperationResult result)
+            throws CommonException;
+
+    /**
+     * Lists statuses of all relevant "suggest associations" requests (for the given resource OID).
+     * They are sorted by finished time, then by started time.
+     */
+    List<StatusInfo<AssociationsSuggestionType>> listSuggestAssociationsOperationStatuses(
+            String resourceOid, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+
+    /** Checks the status of the "suggest associations" request. */
+    StatusInfo<AssociationsSuggestionType> getSuggestAssociationsOperationStatus(
+            String token, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+
+    /**
      * Cancels the request with the given token.
      *
      * Currently it is implemented by suspending the task that is executing the request. The user must have the authorization

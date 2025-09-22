@@ -12,15 +12,13 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.volatilityMultivalue.AttributeTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.LimitationsStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.MainConfigurationStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.MappingOverridesTableWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.SimulationWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -34,6 +32,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -55,6 +55,11 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
         return new AttributeMappingsTableWizardPanel<>(getIdOfChoicePanel(), getHelper(), initialTab) {
 
             @Override
+            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                showChoiceFragment(target, buildSimulationWizard(initialTab));
+            }
+
+            @Override
             protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
                 showOutboundAttributeMappingWizardFragment(target, value);
             }
@@ -62,11 +67,6 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             @Override
             protected void inEditInboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
                 showInboundAttributeMappingWizardFragment(target, value);
-            }
-
-            @Override
-            protected ItemName getItemNameOfContainerWithMappings() {
-                return AttributeMappingWizardPanel.this.getItemNameOfContainerWithMappings();
             }
 
             @Override
@@ -198,4 +198,14 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
     private void showTableFragment(AjaxRequestTarget target, MappingDirection initialTab) {
         showChoiceFragment(target, createTablePanel(initialTab));
     }
+
+    private @NotNull SimulationWizardPanel<?> buildSimulationWizard(MappingDirection direction) {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper()) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel(direction));
+            }
+        };
+    }
+
 }

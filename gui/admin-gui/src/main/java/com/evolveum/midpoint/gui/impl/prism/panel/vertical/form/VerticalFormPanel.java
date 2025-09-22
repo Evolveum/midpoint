@@ -141,6 +141,12 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                     protected String getCssClassForFormContainerOfValuePanel() {
                         return VerticalFormPanel.this.getCssClassForFormContainerOfValuePanel();
                     }
+
+                    @Override
+                    protected boolean isExpandedButtonVisible() {
+                        return VerticalFormPanel.this.isExpandedButtonVisible();
+
+                    }
                 };
             }
 
@@ -186,6 +192,10 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         return true;
     }
 
+    protected boolean isExpandedButtonVisible() {
+        return true;
+    }
+
     protected boolean isHeaderVisible(IModel<PrismContainerWrapper<C>> model) {
         return true;
     }
@@ -200,5 +210,9 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
 
     protected String getIcon() {
         return "";
+    }
+
+    public final SingleContainerPanel getSingleContainerPanel(){
+        return (SingleContainerPanel) get(ID_SINGLE_CONTAINER);
     }
 }

@@ -79,7 +79,11 @@ public class SmartGeneratingDto implements Serializable {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return List.of();
         }
-        return buildStatusRows(pageBase, statusInfo.getObject());
+        return buildStatusRows(pageBase, statusInfo.getObject(), addDefaultRow());
+    }
+
+    protected boolean addDefaultRow() {
+        return true;
     }
 
     /**
@@ -105,8 +109,9 @@ public class SmartGeneratingDto implements Serializable {
             if (isFatalError) {
                 return "fa fa-exclamation-triangle text-danger";
             }
-
-            if (done == null || done == ActivityProgressInformation.RealizationState.UNKNOWN) {
+            if (done == null) {
+                return "fa fa fa-pause";
+            } else if (done == ActivityProgressInformation.RealizationState.UNKNOWN) {
                 return "fa fa-question-circle";
             } else if (done == ActivityProgressInformation.RealizationState.COMPLETE) {
                 return "fa fa-check text-success";

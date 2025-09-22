@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -130,8 +131,8 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
     }
 
     @Override
-    protected <O extends ObjectType> PrismObject<O> createNewPrismObject(OperationResult result) throws SchemaException {
-        PrismObject<O> newObject = super.createNewPrismObject(result);
+    protected <O extends ObjectType> PrismObject<O> createNewPrismObject(OperationResult result, PageAdminLTE pageAdminLTE) throws SchemaException {
+        PrismObject<O> newObject = super.createNewPrismObject(result, pageAdminLTE);
         PrismContainerDefinition<O> def = newObject.getDefinition().clone();
         PrismContainerDefinition<Containerable> iconContainerDefinition = def.findContainerDefinition(ItemPath.create(
                 ArchetypeType.F_ARCHETYPE_POLICY,

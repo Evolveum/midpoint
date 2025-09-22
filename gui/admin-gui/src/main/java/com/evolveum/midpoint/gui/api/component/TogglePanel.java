@@ -25,6 +25,9 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -47,7 +50,7 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", () -> "btn-group"));
+        add(AttributeAppender.append("class", this::getDefaultCssClass));
         setOutputMarkupId(true);
 
         ListView<Toggle<O>> buttons = new ListView<>(ID_BUTTONS, getModel()) {
@@ -62,7 +65,10 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
                         itemSelected(target, item.getModel());
                     }
                 };
-                button.add(AttributeAppender.append("class", () -> item.getModelObject().isActive() ? "active" : null));
+
+                button.add(AttributeAppender.replace("class", getButtonCssClass()));
+                button.add(AttributeAppender.append("class", () -> item.getModelObject().isActive()
+                        ? getActiveCssClass() : getInactiveCssClass()));
                 button.add(AttributeAppender.replace("aria-pressed", () -> item.getModelObject().isActive() ? "true" : "false"));
                 button.add(AttributeAppender.append("title", getTitleModel(item)));
                 button.add(AttributeAppender.append("aria-label", getTitleModel(item)));
@@ -73,7 +79,24 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
                 button.add(content);
             }
         };
+        buttons.setOutputMarkupId(true);
+        buttons.add(AttributeAppender.append("class", getDefaultCssClass()));
         add(buttons);
+    }
+
+    public @NotNull String getActiveCssClass() {
+        return "active";
+    }
+
+    public @Nullable String getInactiveCssClass() {
+        return null;
+    }
+    protected String getDefaultCssClass() {
+        return "btn-group";
+    }
+
+    protected String getButtonCssClass() {
+        return "btn btn-default";
     }
 
     private IModel<String> getTitleModel(ListItem<Toggle<O>> item) {

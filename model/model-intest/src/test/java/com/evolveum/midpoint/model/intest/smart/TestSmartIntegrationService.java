@@ -304,4 +304,60 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         assertThat(response).isNotNull();
         assertThat(response.getAttributeMappings()).as("suggested attribute mappings").isNotEmpty();
     }
+
+    /** Tests the handling of an LLM failure in "suggest mappings" operation. */
+    @Test
+    public void test310SuggestMappingsWithFailure() throws CommonException {
+        skipIfRealService();
+        smartIntegrationService.setServiceClientSupplier(
+                () -> new MockServiceClientImpl(
+                        new SiMatchSchemaResponseType()
+                                .attributeMatch(new SiAttributeMatchSuggestionType()
+                                        .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                        .midPointAttribute(asStringSimple(UserType.F_NAME)))
+                                .attributeMatch(new SiAttributeMatchSuggestionType()
+                                        .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
+                                        .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER)))
+                                .attributeMatch(new SiAttributeMatchSuggestionType()
+                                        .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.TYPE.path()))
+                                        .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
+                                .attributeMatch(new SiAttributeMatchSuggestionType()
+                                        .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PHONE.path()))
+                                        .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
+                        new RuntimeException("LLM went crazy here"),
+                        new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")));
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("submitting 'suggest mappings' operation request");
+        var token = smartIntegrationService.submitSuggestMappingsOperation(
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, task, result);
+
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestMappingsOperationStatus(token, task, result),
+                TIMEOUT);
+
+        then("there are suggested mappings");
+        displayDumpable("response", response);
+        assertThat(response).isNotNull();
+        assertThat(response.getAttributeMappings()).as("suggested attribute mappings").isNotEmpty();
+
+        and("the error is correctly reported");
+        var lastStatus = smartIntegrationService.getSuggestMappingsOperationStatus(token, task, result);
+        displayDumpable("status (complex)", lastStatus);
+        displayValue("result status", lastStatus.getStatus()); // should be PARTIAL_ERROR (but we're not there yet)
+
+        // Just to dump the details
+        assertTask(token, "task after")
+                .display();
+    }
+
+    private void skipIfRealService() {
+        skipTestIf(DefaultServiceClientImpl.hasServiceUrlOverride(), "Not applicable with a real service");
+    }
 }

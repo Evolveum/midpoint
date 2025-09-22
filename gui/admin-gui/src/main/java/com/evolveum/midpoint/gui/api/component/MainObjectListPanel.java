@@ -10,30 +10,19 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.util.MarkTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -41,7 +30,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -169,14 +157,13 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(IModel<SelectableBean<O>> rowModel) {
-                O object = rowModel.getObject().getValue();
-                MainObjectListPanel.this.objectDetailsPerformed(object);
+            public void onClick(IModel<SelectableBean<O>> rowModel, AjaxRequestTarget target) {
+                onNameColumnPerform(rowModel, target);
             }
 
             @Override
             protected IModel<String> createRealMarksList(SelectableBean<O> bean) {
-                if(MainObjectListPanel.this.createRealMarksList(bean) != null) {
+                if (MainObjectListPanel.this.createRealMarksList(bean) != null) {
                     return MainObjectListPanel.this.createRealMarksList(bean);
                 }
 
@@ -188,6 +175,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 return MainObjectListPanel.this.isObjectDetailsEnabled(rowModel);
             }
         };
+    }
+
+    protected void onNameColumnPerform(@NotNull IModel<SelectableBean<O>> rowModel, AjaxRequestTarget target) {
+        O object = rowModel.getObject().getValue();
+        MainObjectListPanel.this.objectDetailsPerformed(object);
     }
 
     protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {

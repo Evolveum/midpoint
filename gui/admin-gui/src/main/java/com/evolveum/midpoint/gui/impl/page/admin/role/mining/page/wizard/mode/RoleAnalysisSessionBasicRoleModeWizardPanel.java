@@ -292,7 +292,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
                 createStringResource("RoleAnalysisSessionBasicRoleModeWizardPanel.roles.label")) {
             @Override
             protected IModel<String> getHelpModel() {
-                return createStringResource("RoleAnalysisSessionBasicRoleModeWizardPanel.archetype.label.help");
+                return createStringResource("RoleAnalysisSessionBasicRoleModeWizardPanel.roles.label.help");
             }
         };
         add(labelWithHelpPanel);

@@ -42,7 +42,7 @@ Assignment of each critical role will be approved at two to four stages, by the 
 
 Files for this scenario are in the link:https://github.com/Evolveum/midpoint/tree/master/testing/story/src/test/resources/strings[testing/story/strings directory]. Let's have a look at most important ones.
 
-Contrary to legacy (pre-3.5) approach where the approval process had to be defined as a single unit, starting from midPoint 3.5 a declarative approach, based on xref:/midpoint/reference/roles-policies/policy-rules/[policy rules], can be used.
+Contrary to legacy (pre-3.5) approach where the approval process had to be defined as a single unit, starting from midPoint 3.5 a declarative approach, based on xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules], can be used.
 These policy rules can be system-wide (defined in system configuration) or specifically assigned, usually via metaroles.
 The latter approach is used in this scenario.
 

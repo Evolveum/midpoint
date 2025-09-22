@@ -42,7 +42,6 @@ public class ReviewerTilePanel extends TilePanel<Tile<UserType>, UserType> {
     public ReviewerTilePanel(String id, IModel<Tile<UserType>> model, ReviewerStatisticDto statisticDto) {
         super(id, model);
         this.statisticDto = statisticDto;
-        initLayout();
     }
 
     @Override
@@ -55,7 +54,8 @@ public class ReviewerTilePanel extends TilePanel<Tile<UserType>, UserType> {
         return messageImagePanel;
     }
 
-    private void initLayout() {
+    protected void initLayout() {
+        super.initLayout();
         DoughnutChartConfiguration chartConfig = getReviewerProgressChartConfig();
 
         ChartedHeaderDto<DoughnutChartConfiguration> infoDto = new ChartedHeaderDto<>(chartConfig,

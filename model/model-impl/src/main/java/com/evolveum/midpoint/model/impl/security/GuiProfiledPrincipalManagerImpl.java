@@ -516,8 +516,6 @@ public class GuiProfiledPrincipalManagerImpl
             PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
             LifecycleStateModelType lifecycleModel = getLifecycleModel(focus, systemConfiguration);
             focusComputer.recompute(focus, lifecycleModel);
-            principal.clearAuthorizations();
-            principal.clearOtherPrivilegesLimitations();
             //focus.freeze(); // to avoid cloning when running clockwork against focus
             // For refreshing current logged-in principal, we need to support GUI config
             initializePrincipalFromAssignments(

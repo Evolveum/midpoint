@@ -49,6 +49,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="connectorGenerationUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A URL of the code generation [micro]service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="connectorFrameworkUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A URL of the connector framework (for demo purposes only, should be integration catalog in future).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="smartIntegrationConfiguration" type="tns:SmartIntegrationConfigurationType"/>

@@ -39,7 +39,12 @@ public class OtherPrivilegesLimitations implements DebugDumpable, Serializable {
                 (key, value) -> limitationMap.put(key, value.clone()));
     }
 
-    void addDelegationTarget(PrismObject<? extends AssignmentHolderType> target, @NotNull Limitation limitation) {
+    /**
+     * Only for internal use.
+     * @param target
+     * @param limitation
+     */
+    public void addDelegationTarget(PrismObject<? extends AssignmentHolderType> target, @NotNull Limitation limitation) {
         limitationMap.compute(
                 SimpleReference.of(target),
                 (oid, currentLimitation) -> {

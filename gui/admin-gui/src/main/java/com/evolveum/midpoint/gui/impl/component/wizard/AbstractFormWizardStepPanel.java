@@ -10,16 +10,15 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismReferenceValuePanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -27,13 +26,17 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractFormWizardStepPanel<ODM extends ObjectDetailsModels>
-        extends AbstractWizardStepPanel<ODM> {
+public abstract class AbstractFormWizardStepPanel<AHDM extends AssignmentHolderDetailsModel>
+        extends AbstractWizardStepPanel<AHDM> {
 
-    private static final String ID_FORM = "form";
+    protected static final String ID_FORM = "form";
 
-    public AbstractFormWizardStepPanel(ODM model) {
+    public AbstractFormWizardStepPanel(AHDM model) {
         super(model);
+    }
+
+    public AbstractFormWizardStepPanel(WizardPanelHelper<? extends Containerable, AHDM> helper) {
+        super(helper);
     }
 
     @Override
@@ -73,12 +76,21 @@ public abstract class AbstractFormWizardStepPanel<ODM extends ObjectDetailsModel
                 return AbstractFormWizardStepPanel.this.isShowEmptyButtonVisible();
             }
 
+            @Override
+            protected boolean isExpandedButtonVisible() {
+                return AbstractFormWizardStepPanel.this.isExpandedButtonVisible();
+            }
+
         };
         panel.setOutputMarkupId(true);
         add(panel);
     }
 
     protected boolean isShowEmptyButtonVisible() {
+        return true;
+    }
+
+    protected boolean isExpandedButtonVisible() {
         return true;
     }
 

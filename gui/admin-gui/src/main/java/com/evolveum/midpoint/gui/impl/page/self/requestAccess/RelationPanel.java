@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -160,5 +162,13 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
         }
 
         getModelObject().setRelation(selected);
+    }
+
+    @Override
+    protected IModel<String> getBackLabelModel() {
+        return () -> {
+            WizardStep step = getWizard().findPreviousStep();
+            return step != null ? getString("WizardHeader.backTo", step.getTitle().getObject()) : getString("WizardHeader.back");
+        };
     }
 }

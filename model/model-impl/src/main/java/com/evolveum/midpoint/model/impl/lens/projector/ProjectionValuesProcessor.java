@@ -367,8 +367,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         }
 
         F focus = asObjectable(context.getFocusContext().getObjectNew());
-        if (focus == null || focus.getOid() == null) {
-            LOGGER.trace("'object new' is null or without OID ({}) -> no opportunistic sync will be attempted", focus);
+        if (focus == null) {    // MID-10729 focus oid might be null in case user is not yet stored
+            LOGGER.trace("'object new' is null -> no opportunistic sync will be attempted");
             return false;
         }
 

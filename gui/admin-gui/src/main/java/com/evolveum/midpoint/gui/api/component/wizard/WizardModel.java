@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassConnectorStepPanel;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
@@ -33,10 +35,10 @@ public class WizardModel implements IClusterable {
     private WizardPanel panel;
 
     private List<WizardStep> steps;
-    private int activeStepIndex;
+    protected int activeStepIndex;
 
-    public WizardModel(@NotNull List<WizardStep> steps) {
-        this.steps = steps;
+    public WizardModel(List<? extends WizardStep> steps) {
+        this.steps = (List<WizardStep>) steps;
     }
 
     public void addWizardListener(@NotNull WizardListener listener) {
@@ -48,6 +50,11 @@ public class WizardModel implements IClusterable {
     }
 
     public final void fireActiveStepChanged(final WizardStep step) {
+        wizardListeners.forEach(listener -> listener.onStepChanged(step));
+    }
+
+    public final void fireActiveStepChanged() {
+        WizardStep step = getActiveStep();
         wizardListeners.forEach(listener -> listener.onStepChanged(step));
     }
 
@@ -79,7 +86,7 @@ public class WizardModel implements IClusterable {
         fireActiveStepChanged(getActiveStep());
     }
 
-    private String getStepIdFromParams(Page page) {
+    protected final String getStepIdFromParams(Page page) {
         if (page == null) {
             return null;
         }
@@ -175,7 +182,7 @@ public class WizardModel implements IClusterable {
         return findPreviousStep() != null;
     }
 
-    private WizardStep findPreviousStep() {
+    public WizardStep findPreviousStep() {
         for (int i = activeStepIndex - 1; i >= 0; i--) {
             if (i < 0) {
                 return null;
@@ -206,5 +213,39 @@ public class WizardModel implements IClusterable {
 
     public WizardStep getNextPanel() {
         return findNextStep();
+    }
+
+    protected void setActiveStepIndex(int activeStepIndex) {
+        this.activeStepIndex = activeStepIndex;
+    }
+
+    public void addStepAfter(WizardStep newStep, Class<?> objectClassConnectorStepPanelClass) {
+        boolean find = false;
+        for (WizardStep step : steps) {
+            if (find && !objectClassConnectorStepPanelClass.equals(step.getClass())) {
+                initNewStep(newStep);
+                steps.add(steps.indexOf(step), newStep);
+                return;
+            }
+            if (objectClassConnectorStepPanelClass.equals(step.getClass())) {
+                find = true;
+            }
+        }
+        steps.add(newStep);
+    }
+
+    protected void initNewStep(WizardStep newStep) {
+        newStep.init(this);
+    }
+
+    public void addStepBefore(WizardStep newStep, Class<?> objectClassConnectorStepPanelClass) {
+        for (WizardStep step : steps) {
+            if (objectClassConnectorStepPanelClass.equals(step.getClass())) {
+                initNewStep(newStep);
+                steps.add(steps.indexOf(step), newStep);
+                return;
+            }
+        }
+        steps.add(newStep);
     }
 }

@@ -56,6 +56,9 @@ public record ConnectorConfiguration(
         if (configuration == null) {
             return other.configuration == null;
         } else {
+            if (configuration.isEmpty() && other.configuration == null) {
+                return true;
+            }
             return other.configuration != null && configuration.equivalent(other.configuration);
         }
     }

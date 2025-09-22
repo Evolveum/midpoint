@@ -82,6 +82,13 @@ public class AiUtil {
         }
     }
 
+    //TODO tmp method for using in connector generation wizard, remove after MVP
+    public static void markContainerValueAsAiProvided(@Nullable PrismContainerValue<?> value) {
+        if (value != null) {
+            ValueMetadataTypeUtil.getOrCreateMetadata(value, AI_PROVENANCE_METADATA);
+        }
+    }
+
     // TODO methods for clearing the AI mark
 
     /**

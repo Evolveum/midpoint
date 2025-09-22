@@ -420,24 +420,24 @@ public class ActivityTreeStateOverview {
     public void recordTaskRunHistoryStart() throws ActivityRunException {
         try {
             String taskRunIdentifier = rootTask.getPropertyRealValue(PATH_TASK_RUN_IDENTIFIER, String.class);
-            List<TaskRunHistoryType> historyList = rootTask.getTaskRunHistory();
+            List<TaskRunRecordType> historyList = rootTask.getTaskRunRecords();
 
-            List<TaskRunHistoryType> toDelete = getTaskRunHistoryToDelete(historyList);
+            List<TaskRunRecordType> toDelete = getTaskRunHistoryToDelete(historyList);
 
-            TaskRunHistoryType history = findTaskRunHistoryByIdentifier(historyList, taskRunIdentifier);
-            TaskRunHistoryType newItem = null;
+            TaskRunRecordType history = findTaskRunHistoryByIdentifier(historyList, taskRunIdentifier);
+            TaskRunRecordType newItem = null;
             if (history != null) {
                 // this should not happen, but we can handle it gracefully
                 LOGGER.warn("Task run history already exists for identifier: {}", taskRunIdentifier);
             } else {
-                newItem = new TaskRunHistoryType();
+                newItem = new TaskRunRecordType();
                 newItem.setTaskRunIdentifier(taskRunIdentifier);
                 newItem.setRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
             }
 
             rootTask.modify(
                     PrismContext.get().deltaFor(TaskType.class)
-                            .item(TaskType.F_TASK_RUN_HISTORY)
+                            .item(TaskType.F_TASK_RUN_RECORD)
                             .deleteRealValues(toDelete)
                             .add(newItem)
                             .asItemDelta());
@@ -446,7 +446,7 @@ public class ActivityTreeStateOverview {
         }
     }
 
-    private List<TaskRunHistoryType> getTaskRunHistoryToDelete(List<TaskRunHistoryType> history) {
+    private List<TaskRunRecordType> getTaskRunHistoryToDelete(List<TaskRunRecordType> history) {
         if (history == null || history.isEmpty()) {
             return List.of();
         }
@@ -454,7 +454,7 @@ public class ActivityTreeStateOverview {
         int maxRecordsPerTask = beans.operationExecutionRecorder.getMaximumRecordsPerTask();
         if (maxRecordsPerTask <= 0) {
             return history.stream()
-                    .map(TaskRunHistoryType::clone)
+                    .map(TaskRunRecordType::clone)
                     .toList();
         }
 
@@ -465,13 +465,13 @@ public class ActivityTreeStateOverview {
 
         if (itemsToRemove >= history.size()) {
             return history.stream()
-                    .map(TaskRunHistoryType::clone)
+                    .map(TaskRunRecordType::clone)
                     .toList();
         }
 
         return history.stream()
                 .sorted(Comparator
-                        .<TaskRunHistoryType, Long>comparing(
+                        .<TaskRunRecordType, Long>comparing(
                                 t -> getMillisFromCalendar(t.getRunStartTimestamp()),
                                 Comparator.nullsFirst(Comparator.naturalOrder()))
                         .thenComparing(
@@ -486,7 +486,7 @@ public class ActivityTreeStateOverview {
         return calendar != null ? calendar.toGregorianCalendar().getTimeInMillis() : null;
     }
 
-    private TaskRunHistoryType findTaskRunHistoryByIdentifier(List<TaskRunHistoryType> historyList, String taskRunIdentifier) {
+    private TaskRunRecordType findTaskRunHistoryByIdentifier(List<TaskRunRecordType> historyList, String taskRunIdentifier) {
         return historyList.stream()
                 .filter(h -> Objects.equals(taskRunIdentifier, h.getTaskRunIdentifier()))
                 .findFirst()
@@ -497,20 +497,20 @@ public class ActivityTreeStateOverview {
         try {
             String taskRunIdentifier = rootTask.getPropertyRealValue(PATH_TASK_RUN_IDENTIFIER, String.class);
 
-            List<TaskRunHistoryType> historyList = rootTask.getTaskRunHistory();
-            TaskRunHistoryType history = findTaskRunHistoryByIdentifier(historyList, taskRunIdentifier);
+            List<TaskRunRecordType> historyList = rootTask.getTaskRunRecords();
+            TaskRunRecordType history = findTaskRunHistoryByIdentifier(historyList, taskRunIdentifier);
 
             if (history == null) {
                 LOGGER.warn("No task run history found for identifier: {}", taskRunIdentifier);
                 return; // nothing to do, no history found
             }
 
-            TaskRunHistoryType cloned = history.clone();
+            TaskRunRecordType cloned = history.clone();
             cloned.setRunEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
             // replacing the whole container, because we don't have container ID in memory
             rootTask.modify(
                     PrismContext.get().deltaFor(TaskType.class)
-                            .item(TaskType.F_TASK_RUN_HISTORY)
+                            .item(TaskType.F_TASK_RUN_RECORD)
                             .delete(history.clone())
                             .add(cloned)
                             .asItemDelta());

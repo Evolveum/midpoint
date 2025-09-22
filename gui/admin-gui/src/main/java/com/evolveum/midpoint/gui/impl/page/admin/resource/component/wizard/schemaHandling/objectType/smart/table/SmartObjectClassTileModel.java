@@ -23,7 +23,7 @@ public class SmartObjectClassTileModel<T extends PrismContainerValueWrapper<Comp
     String icon;
     String name;
     String description;
-    String count;
+    ObjectClassSizeEstimationType estimationType;
 
     public SmartObjectClassTileModel(T valueWrapper, ObjectClassSizeEstimationType sizeEstimation) {
         super(valueWrapper);
@@ -32,12 +32,7 @@ public class SmartObjectClassTileModel<T extends PrismContainerValueWrapper<Comp
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
         this.name = extractName(valueWrapper.getRealValue());
         this.description = "Description for this object class is not ready yet, but it will be available soon."; // TODO
-
-        if (sizeEstimation == null || sizeEstimation.getValue() == null) {
-            this.count = "Unknown";
-        } else {
-            this.count = sizeEstimation.getValue().toString();
-        }
+        this.estimationType = sizeEstimation;
     }
 
     private String extractName(@NotNull ComplexTypeDefinitionType definition) {
@@ -71,11 +66,7 @@ public class SmartObjectClassTileModel<T extends PrismContainerValueWrapper<Comp
         this.description = description;
     }
 
-    public String getCount() {
-        return count;
-    }
-
-    public void setCount(String count) {
-        this.count = count;
+    public ObjectClassSizeEstimationType getEstimatedSize() {
+        return estimationType;
     }
 }

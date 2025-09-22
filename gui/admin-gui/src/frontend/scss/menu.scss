@@ -1,0 +1,251 @@
+/*!
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+@import "@fortawesome/fontawesome-free/scss/mixins";
+
+//Expanded
+//$media screen and (min-width: $screen-lg) {
+.details-menu {
+  height: 100%;
+  width: 100%;
+  //position: fixed;
+  z-index: 1;
+  //top: 0;
+  right: 0;
+  //overflow-x: hidden;
+  //padding-top: 16px;
+  margin: 0;
+
+  & a > div > i.fas,
+  a > div > i.far,
+  a > div > i.fa,
+  a > div > i.fe,
+  a > div > i.fa-solid,
+  a > div > i.fa-regular {
+    min-width: 24px;
+    text-align: center;
+  }
+
+  & a > div > div {
+    min-width: 9rem;
+    max-width: 14rem;
+    padding-right: 0.75rem;
+    padding-left: 0.5rem;
+  }
+
+  & a .details-menu-items {
+    align-items: center;
+    //min-width: 42px;
+    justify-content: end;
+  }
+
+  & a .details-menu-items .details-caret {
+    width: 1.15rem;
+    line-height:normal;
+  }
+
+  & > li.navigation-details {
+    list-style: none;
+    border-radius: 0.25rem;
+    //overflow: hidden;
+    //margin: 0px 10px 0px 5px;
+
+    &:not(:last-child){
+      margin-bottom: 0.2rem;
+    }
+
+    .navigation-details {
+      display: none;
+
+      &.active {
+        background-color: #eeeeee;  //TODO: change to constant
+      }
+      //&.open {
+      //  display: block;
+      //}
+    }
+
+    &.active {
+      background-color: #eeeeee;  //TODO change to constant
+      list-style: none;
+
+      .navigation-details {
+        display: block;
+      }
+    }
+    &.open {
+      display: block;
+
+      .navigation-details {
+        display: block;
+      }
+
+      & > a .fa-angle-left {
+        transform: rotate(270deg);
+      }
+    }
+  }
+
+//.details-menu a>i.fa,.details-menu a>i.fe{width:20px}
+
+
+  .details-menu {
+    padding-top: 0px;
+    background-color: $sidebar-light-submenu-bg;
+  }
+}
+//}
+
+//Collapsed
+//@media screen and (max-width: $screen-lg-min) {
+//  .details-menu {
+//    height: 100%;
+//    width: 100%;
+//    //position: fixed;
+//    z-index: 1;
+//    right: 0;
+//    background-color: $sidebar-light-bg;
+//    overflow-x: hidden;
+//    padding-top: 16px;
+//
+//    > li.navigation-details {
+//      list-style: none;
+//      margin: 0px 10px 0px 5px;
+//
+//      > a > i {
+//        width: 100%;
+//      }
+//
+//      & .pull-right-container {
+//        display: none;
+//      }
+//    }
+//
+//    > li.navigation-details:hover {
+//      > a > .details-menu-label:first-of-type {
+//        display: block !important;
+//        right: 132px;
+//        position: absolute;
+//        list-style: none;
+//        margin-top: -20px;
+//        background-color: inherit;
+//      }
+//
+//
+//
+//      .details-menu {
+//        display: block !important;
+//        right: 132px;
+//        position: absolute;
+//        list-style: none;
+//
+//        .navigation-details {
+//          display: block;
+//
+//          & a > .details-menu-label {
+//            display: block;
+//          }
+//        }
+//      }
+//
+//      //  margin: 0px 10px 0px 5px;
+//    }
+//
+//    //& > li.navigation-details {
+//    //  list-style: none;
+//    //  margin: 0px 10px 0px 5px;
+//    //
+//    //  .navigation-details {
+//    //    display: none;
+//    //  }
+//
+//      //&:hover {
+//      //  .details-menu {
+//      //
+//      //
+//      //    .navigation-details {
+//      //      display: block;
+//      //    }
+//      //
+//      //    .details-menu-label {
+//      //      display: block;
+//      //    }
+//      //  }
+//      //
+//      //  .details-menu a >
+//      //  .details-menu-label {
+//      //    display: block;
+//      //  }
+//      //}
+//
+//      //&.active {
+//      //  background-color: #eeeeee;
+//      //  list-style: none;
+//      //
+//      //  .navigation-details {
+//      //    display: block;
+//      //  }
+//      //}
+//    //}
+//
+//    .details-menu {
+//      padding-top: 0px;
+//    }
+//  }
+//}
+
+//@media screen and (max-width: $screen-lg-min) {
+//  .details-menu a >
+//  .details-menu-label {
+//    display: none;
+//  }
+//}
+
+
+.details-menu a {
+  text-decoration: none;
+  font-size: 15px;
+  color: $sidebar-light-color;
+  display: block;
+  cursor: pointer;
+  padding: 8px 8px 8px 10px;
+  border-radius: 0.25rem;
+
+  & > i {
+    padding-right: 5px;
+
+    &.fa {
+      width: 20px;
+    }
+
+    &.fe {
+      width: 20px;
+    }
+  }
+  & .details-caret i {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.details-menu a:hover {
+  color: $sidebar-light-hover-color;
+  background-color: $sidebar-light-hover-bg;
+}
+
+ul.details-menu {
+  padding-inline-start: 0px;
+
+  & ul {
+    padding-inline-start: 13px;
+  }
+}
+
+.wizard-navigation-menu {
+  max-width: 350px;
+  width: 100%;
+}

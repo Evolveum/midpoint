@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+/*
+ * Contains all styles for all kinds of tile panels
+ */
+
+ .bg-gray-100 {
+   background-color: $gray-100;
+ }
+
+ .bg-gray-200 {
+   background-color: $gray-200;
+ }
+
+ .bg-pink-100 {
+   background-color: #f7d6e6 !important;
+ }
+
+ .text-pink {
+   color: $pink !important;
+ }
+
+.bg-orange-100 {
+   background-color: #ffe5d0 !important;
+ }
+
+.bg-cyan-100 {
+   background-color: #cff4fc !important;
+ }
+
+.bg-teal-100 {
+   background-color: #d2f4ea !important;
+ }
+
+.bg-ai-badge-color {
+   background-color: #e0cffc !important;
+ }
+
+.text-ai{
+  color: #6610f2 !important;
+}
+
+.border-color-ai{
+  border-color: #6610f2 !important;
+}

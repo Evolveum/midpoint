@@ -34,7 +34,7 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
 
     @Override
     protected void addToHeader(WebMarkupContainer header) {
-        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
+        IModel<String> headerLabelModel = getLabelModel();
         Label labelComponent = new Label(ID_LABEL, headerLabelModel);
         labelComponent.setRenderBodyOnly(true);
         labelComponent.add(new VisibleBehaviour(this::notEmptyAndNotDirectChildOfValueMetadataType));
@@ -88,7 +88,7 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
     }
 
     @Override
-    protected void createMetadataPanel(MidpointForm form) {
+    protected void createMetadataPanel(WebMarkupContainer mainContainer) {
 
     }
 

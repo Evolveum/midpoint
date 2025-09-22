@@ -32,7 +32,6 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
@@ -45,7 +44,8 @@ import javax.xml.namespace.QName;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.createResourceObjectTypeDefinitionWrapper;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeObjectTypeSuggestionNew;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 @PanelType(name = "rw-suggested-object-type")
 @PanelInstance(identifier = "w-suggested-object-type",
@@ -58,9 +58,12 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
     private static final String OP_DETERMINE_STATUS =
             ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".determineStatus";
+    private static final String OP_DELETE_SUGGESTIONS =
+            ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".deleteSuggestions";
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedModel = Model.of();
     QName selectedObjectClassName;
+    StatusInfo<ObjectTypesSuggestionType> statusInfo;
 
     public ResourceSuggestedObjectTypeTableWizardPanel(
             String id,
@@ -117,7 +120,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
                 ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
 
-                StatusInfo<ObjectTypesSuggestionType> statusInfo = loadObjectClassObjectTypeSuggestions(getPageBase(),
+                statusInfo = loadObjectClassObjectTypeSuggestions(getPageBase(),
                         resource.getOid(),
                         selectedObjectClassName,
                         task,
@@ -153,17 +156,18 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         };
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> selected = selectedModel.getObject();
-        if (selected == null || selected.getRealValue() == null) {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> suggestionValueWrapper = selectedModel.getObject();
+        if (suggestionValueWrapper == null || suggestionValueWrapper.getRealValue() == null) {
             getPageBase().warn(getPageBase().createStringResource("Smart.suggestion.noSelection")
                     .getString());
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
 
-        var suggestion = selected.getRealValue();
+        var suggestion = suggestionValueWrapper.getRealValue();
         var kind = suggestion.getKind();
         var intent = suggestion.getIntent();
 
@@ -173,18 +177,30 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
-        ResourceObjectTypeDefinitionType realValue = selected.getRealValue().clone();
 
-        LoadableModel<PrismObjectWrapper<ResourceType>> objectWrapperModel = getAssignmentHolderDetailsModel().getObjectWrapperModel();
+        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
+        ResourceObjectTypeDefinitionType suggestedValue = suggestionValueWrapper.getRealValue();
+        PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject =
+                (PrismContainerValue<ResourceObjectTypeDefinitionType>) suggestedValue.asPrismContainerValue();
+        WebPrismUtil.cleanupEmptyContainerValue(originalObject);
 
-        @SuppressWarnings("unchecked")
-        PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue =
-                (PrismContainerValue<ResourceObjectTypeDefinitionType>) realValue.asPrismContainerValue();
-        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createResourceObjectTypeDefinitionWrapper(
-                prismContainerValue,
-                objectWrapperModel);
+        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(
+                originalObject,
+                containerModel.getObject().getItem());
 
-        onContinueWithSelected(selectedModel, prismContainerValue, containerModel, target);
+        //TODO should be after save
+        Task task = getPageBase().createSimpleTask(OP_DELETE_SUGGESTIONS);
+        OperationResult result = task.getResult();
+        removeObjectTypeSuggestionNew(getPageBase(), statusInfo, suggestedValue, task, result);
+
+        onContinueWithSelected(selectedModel, suggestionToAdd, containerModel, target);
+    }
+
+    public <R extends Containerable> IModel<PrismContainerWrapper<R>> createContainerModel() {
+        LoadableModel<PrismObjectWrapper<ResourceType>> objectWrapperModel = getAssignmentHolderDetailsModel()
+                .getObjectWrapperModel();
+        return PrismContainerWrapperModel.fromContainerWrapper(
+                objectWrapperModel, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
     }
 
     @Override
@@ -205,7 +221,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
     @Override
     protected @Nullable IModel<String> getBreadcrumbIcon() {
-        return Model.of(GuiStyleConstants.CLASS_ICON_WIZARD);
+        return Model.of("fa-solid fa-wand-magic-sparkles");
     }
 
     @Override

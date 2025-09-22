@@ -1,18 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2024 Evolveum and contributors
+  ~ Copyright (c) 2025 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  oid="00000000-0000-0000-0001-000000000354">
+<objectCollection oid="00000000-0000-0000-0001-000000000354"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Privileged roles</name>
+    <documentation>(ISO27001/A.5.15,ISO27001/A.5.18,ISO27001/A.8.2)</documentation>
     <type>RoleType</type>
     <filter>
-        <q:text>roleMembershipRef matches ( oid = "00000000-0000-0000-0000-000000000332" )</q:text>
+        <q:text>effectiveMarkRef matches ( oid = "c58394cd-c883-4e41-927c-f90a7c7a0c97" )</q:text>
     </filter>
+    <defaultView>
+        <display>
+            <label>
+                <orig>Privileged role</orig>
+                <translation>
+                    <key>privilegedRole.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Privileged roles</orig>
+                <translation>
+                    <key>privilegedRole.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+                <color>red</color>
+            </icon>
+        </display>
+    </defaultView>
 </objectCollection>

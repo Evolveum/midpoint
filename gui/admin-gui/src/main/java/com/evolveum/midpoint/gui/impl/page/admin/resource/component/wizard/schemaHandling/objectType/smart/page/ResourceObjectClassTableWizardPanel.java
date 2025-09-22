@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -15,8 +14,10 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectClassTable;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,9 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeObjectClassSizeEstimationType;
 
@@ -73,14 +72,15 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
 
     private void initLayout() {
         String resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
-        LoadableModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> complexTypeDefinitionTypes = getComplexTypeDefinitionTypes();
-        Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimations = loadObjectClassesSizeEstimations(
-                complexTypeDefinitionTypes, resourceOid, getPageBase());
+        Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimations =
+                loadObjectClassesSizeEstimations(resourceOid, getPageBase());
+        LoadableModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> objectClassDefinitions =
+                getComplexTypeDefinitionTypes(objectClassSizeEstimations.keySet());
 
         SmartObjectClassTable<PrismContainerValueWrapper<ComplexTypeDefinitionType>> table = new SmartObjectClassTable<>(
                 ID_PANEL,
                 UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_CLASSES,
-                complexTypeDefinitionTypes,
+                objectClassDefinitions,
                 selectedModel,
                 resourceOid,
                 objectClassSizeEstimations);
@@ -88,35 +88,34 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
         add(table);
     }
 
+    /** The returned map key set contains all relevant object classes. */
     private @NotNull Map<QName, ObjectClassSizeEstimationType> loadObjectClassesSizeEstimations(
-            @NotNull IModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> model,
-            @NotNull String resourceOid,
-            @NotNull PageBase pageBase) {
+            @NotNull String resourceOid, @NotNull PageBase pageBase) {
         Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache = new HashMap<>();
 
         Task task = pageBase.createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
 
-        List<PrismContainerValueWrapper<ComplexTypeDefinitionType>> object = model.getObject();
-        if (object != null && !object.isEmpty()) {
-            for (PrismContainerValueWrapper<ComplexTypeDefinitionType> item : object) {
-                ComplexTypeDefinitionType realValue = item.getRealValue();
-                QName objectClassName = realValue.getName();
-                ObjectClassSizeEstimationType objectClassSizeEstimationType = computeObjectClassSizeEstimationType(
-                        pageBase,
-                        resourceOid,
-                        objectClassName,
-                        task,
-                        result);
+        Set<QName> standaloneStructuralObjectClassesNames =
+                SmartIntegrationUtils.getStandaloneStructuralObjectClassesNames(resourceOid, pageBase, task, result);
 
-                objectClassSizeEstimationCache.put(objectClassName, objectClassSizeEstimationType);
-            }
+        for (var objectClassName : standaloneStructuralObjectClassesNames) {
+            ObjectClassSizeEstimationType objectClassSizeEstimationType = computeObjectClassSizeEstimationType(
+                    pageBase,
+                    resourceOid,
+                    objectClassName,
+                    task,
+                    result);
+            objectClassSizeEstimationCache.put(objectClassName, objectClassSizeEstimationType);
         }
+
         return objectClassSizeEstimationCache;
     }
 
+    /** Selects only allowed types, e.g. standalone structural object classes. We assume all QNames are qualified. */
     @Contract(pure = true)
-    private @NotNull LoadableModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> getComplexTypeDefinitionTypes() {
+    private @NotNull LoadableModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> getComplexTypeDefinitionTypes(
+            @NotNull Collection<QName> allowedTypeNames) {
         return new LoadableModel<>() {
             @Override
             protected List<PrismContainerValueWrapper<ComplexTypeDefinitionType>> load() {
@@ -126,7 +125,15 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
                                     ResourceType.F_SCHEMA,
                                     WebPrismUtil.PRISM_SCHEMA,
                                     PrismSchemaType.F_COMPLEX_TYPE));
-                    return container.getValues();
+                    // We filter types to contain only allowed ones
+                    return container.getValues().stream()
+                            .filter(type -> {
+                                //noinspection unchecked
+                                ComplexTypeDefinitionType typeDefBean =
+                                        ((PrismContainerValue<ComplexTypeDefinitionType>) type.getOldValue()).asContainerable();
+                                return allowedTypeNames.contains(typeDefBean.getName());
+                            })
+                            .toList();
                 } catch (SchemaException e) {
                     throw new RuntimeException("Error while loading complex type definition", e);
                 }
@@ -156,7 +163,7 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
 
     @Override
     protected @Nullable IModel<String> getBreadcrumbIcon() {
-        return Model.of(GuiStyleConstants.CLASS_ICON_WIZARD);
+        return Model.of("fa-solid fa-wand-magic-sparkles");
     }
 
     @Override

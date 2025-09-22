@@ -17,6 +17,8 @@ import org.apache.wicket.model.IModel;
  */
 public abstract class ButtonInlineMenuItem extends InlineMenuItem {
 
+    boolean isLabelVisible = false;
+
     public ButtonInlineMenuItem(IModel<String> labelModel) {
         super(labelModel);
     }
@@ -38,7 +40,11 @@ public abstract class ButtonInlineMenuItem extends InlineMenuItem {
     }
 
     public boolean isLabelVisible() {
-        return false;
+        return isLabelVisible;
+    }
+
+    public void setLabelVisible(boolean visible) {
+        this.isLabelVisible = visible;
     }
 
 }

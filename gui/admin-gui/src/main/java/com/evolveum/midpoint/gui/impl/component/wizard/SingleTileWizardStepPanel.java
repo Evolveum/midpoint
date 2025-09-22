@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanData
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectObjectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -37,19 +38,19 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extends ObjectDetailsModels, V extends Containerable>
-        extends SelectTileWizardStepPanel<SelectableBean<O>, ODM> {
+public abstract class SingleTileWizardStepPanel<O extends ObjectType, AHDM extends AssignmentHolderDetailsModel, V extends Containerable>
+        extends SelectTileWizardStepPanel<SelectableBean<O>, AHDM> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SingleTileWizardStepPanel.class);
 
     private IModel<PrismContainerValueWrapper<V>> valueModel;
 
-    public SingleTileWizardStepPanel(ODM model, IModel<PrismContainerValueWrapper<V>> valueModel) {
+    public SingleTileWizardStepPanel(AHDM model, IModel<PrismContainerValueWrapper<V>> valueModel) {
         super(model);
         initValueModel(valueModel);
     }
 
-    public SingleTileWizardStepPanel(ODM model) {
+    public SingleTileWizardStepPanel(AHDM model) {
         super(model);
         initValueModel(null);
     }
@@ -75,6 +76,9 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
                 try {
                     PrismContainerWrapper<V> container =
                             getDetailsModel().getObjectWrapper().findContainer(path);
+                    if (container == null) {
+                        return null;
+                    }
                     PrismContainerValue<V> newValue = createNewValue(container);
                     PrismContainerValueWrapper<V> valueWrapper = WebPrismUtil.createNewValueWrapper(
                             container, newValue, getPageBase(), getDetailsModel().createWrapperContext());
@@ -149,7 +153,10 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
                     getValueModel().getObject());
         } else {
             try {
-                getValueModel().getObject().getParent().remove(getValueModel().getObject(), getPageBase());
+                if (getValueModel().getObject() != null
+                        && getValueModel().getObject().getParent() != null) {
+                    getValueModel().getObject().getParent().remove(getValueModel().getObject(), getPageBase());
+                }
                 getValueModel().detach();
             } catch (SchemaException e) {
                 LOGGER.error("Couldn't remove value from inducement container.");

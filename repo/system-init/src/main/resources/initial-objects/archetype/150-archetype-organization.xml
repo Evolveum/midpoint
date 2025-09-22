@@ -1,0 +1,56 @@
+<!--
+  ~ Copyright (c) 2024-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="886bfa6e-8702-11ef-9c40-6fce51f54b0d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Organization</name>
+    <description>Archetype for organizations (companies, ministries, agencies, schools, etc.)</description>
+    <documentation>(ISO27001/A.5.15,ISO27001/A.5.16)</documentation>
+    <archetypePolicy>
+        <display>
+            <label>
+                <orig>Organization</orig>
+                <translation>
+                    <key>organization.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Organizations</orig>
+                <translation>
+                    <key>organization.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-building-flag</cssClass>
+                <color>#ffc107</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <description>This archetype can be applied to orgs (OrgType).</description>
+        <assignmentRelation id="2">
+            <holderType>OrgType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement id="3">
+        <identifier>membership</identifier>
+        <description>Organization can have organizational units, (direct) members and manager (director, CEO, headmaster, etc.)</description>
+        <assignmentRelation id="4">
+            <description>User can be direct member of organization, as well as manager.</description>
+            <holderType>UserType</holderType>
+            <relation>org:default</relation>
+            <relation>org:manager</relation>
+        </assignmentRelation>
+        <assignmentRelation id="5">
+            <description>Organizational units in this organization.</description>
+            <holderType>OrgType</holderType>
+            <holderArchetypeRef oid="6a12b965-a1c2-47c9-87bd-19e84c71d814"/>
+            <relation>org:default</relation>
+        </assignmentRelation>
+    </inducement>
+</archetype>

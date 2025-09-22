@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.TaskService;
@@ -86,6 +87,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private static final String OP_GET_SUGGEST_CORRELATION_OPERATION_STATUS = "getSuggestCorrelationOperationStatus";
     private static final String OP_LIST_SUGGEST_CORRELATION_OPERATION_STATUSES = "listSuggestCorrelationOperationStatuses";
     private static final String OP_SUGGEST_ASSOCIATIONS = CLASS_DOT + "suggestAssociations";
+    private static final String OP_SUBMIT_SUGGEST_ASSOCIATIONS_OPERATION = "submitSuggestAssociationsOperation";
+    private static final String OP_GET_SUGGEST_ASSOCIATIONS_OPERATION_STATUS = "getSuggestAssociationsOperationStatus";
+    private static final String OP_LIST_SUGGEST_ASSOCIATIONS_OPERATION_STATUSES = "listSuggestAssociationsOperationStatuses";
 
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
@@ -724,7 +728,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                                 Comparator.nullsFirst(Comparator.reverseOrder()))
                         .thenComparing(
                                 (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationStartTimestamp()),
-                                Comparator.reverseOrder()));
+                                Comparator.nullsFirst(Comparator.reverseOrder())));
     }
 
     private static ObjectQuery queryForActivityType(String resourceOid, ItemName activityType) {
@@ -760,9 +764,109 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.trace("Suggesting associations for resourceOid {}, subjectTypeIdentifications {}, objectTypeIdentifications {}",
                     resourceOid, subjectTypeIdentifications, objectTypeIdentifications);
 
-
             return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable(),
-                    subjectTypeIdentifications, objectTypeIdentifications,false);
+                    subjectTypeIdentifications, objectTypeIdentifications, false);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public String submitSuggestAssociationsOperation(
+            String resourceOid,
+            Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
+            Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
+            Task task,
+            OperationResult parentResult) throws CommonException {
+
+        var result = parentResult.subresult(OP_SUBMIT_SUGGEST_ASSOCIATIONS_OPERATION)
+                .addParam("resourceOid", resourceOid)
+                .addArbitraryObjectCollectionAsParam("subjectTypeIdentifications", subjectTypeIdentifications)
+                .addArbitraryObjectCollectionAsParam("objectTypeIdentifications", objectTypeIdentifications)
+                .build();
+
+        try {
+            var workDef = new AssociationSuggestionWorkDefinitionType()
+                    .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
+
+            subjectTypeIdentifications.stream()
+                    .map(ri -> ri.asBean())
+                    .forEach(workDef::subjectObjectTypes);
+
+            objectTypeIdentifications.stream()
+                    .map(ri -> ri.asBean())
+                    .forEach(workDef::objectObjectTypes);
+
+            var oid = modelInteractionService.submit(
+                    new ActivityDefinitionType()
+                            .work(new WorkDefinitionsType()
+                                    .associationsSuggestion(workDef)),
+                    ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
+                            .name("Suggest associations on " + resourceOid)
+                            .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
+                    task, result);
+
+            LOGGER.debug("Submitted suggest associations operation for resourceOid {}, subjects {}, objects {}: {}",
+                    resourceOid, subjectTypeIdentifications, objectTypeIdentifications, oid);
+            return oid;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public List<StatusInfo<AssociationsSuggestionType>> listSuggestAssociationsOperationStatuses(
+            String resourceOid, Task task, OperationResult parentResult)
+            throws SchemaException {
+
+        var result = parentResult.subresult(OP_LIST_SUGGEST_ASSOCIATIONS_OPERATION_STATUSES)
+                .addParam("resourceOid", resourceOid)
+                .build();
+        try {
+            var tasks = taskManager.searchObjects(
+                    TaskType.class,
+                    queryForActivityType(resourceOid, SchemaConstantsGenerated.C_ASSOCIATIONS_SUGGESTION),
+                    taskRetrievalOptions(),
+                    result);
+
+            var resultingList = new ArrayList<StatusInfo<AssociationsSuggestionType>>();
+            for (PrismObject<TaskType> t : tasks) {
+                resultingList.add(
+                        new StatusInfoImpl<>(
+                                t.asObjectable(),
+                                AssociationSuggestionWorkStateType.F_RESULT,
+                                AssociationsSuggestionType.class));
+            }
+
+            sortByFinishAndStartTime(resultingList);
+            return resultingList;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public StatusInfo<AssociationsSuggestionType> getSuggestAssociationsOperationStatus(
+            String token, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+
+        var result = parentResult.subresult(OP_GET_SUGGEST_ASSOCIATIONS_OPERATION_STATUS)
+                .addParam("token", token)
+                .build();
+        try {
+            return new StatusInfoImpl<>(
+                    getTask(token, result),
+                    AssociationSuggestionWorkStateType.F_RESULT,
+                    AssociationsSuggestionType.class);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

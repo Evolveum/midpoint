@@ -8,12 +8,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -32,17 +34,19 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.deleteWholeTaskObject;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
 
 /**
  * Panel for monitoring and controlling a "smart generating" task.
@@ -87,8 +91,11 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     public SmartGeneratingPanel(String id, IModel<SmartGeneratingDto> model, boolean isWizardPanel) {
         super(id, model);
         this.isWizardPanel = isWizardPanel;
-        setOutputMarkupId(true);
-        add(AttributeModifier.append("class", "p-0"));
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
@@ -115,7 +122,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     }
 
     @Contract("_, _, _, _ -> new")
-    public static @NotNull AbstractAjaxTimerBehavior createSuggestionAjaxTimerBehavior(
+    public @NotNull AbstractAjaxTimerBehavior createSuggestionAjaxTimerBehavior(
             @NotNull WebMarkupContainer bodyContainer,
             @NotNull Duration refreshDuration,
             @NotNull IModel<SmartGeneratingDto> model,
@@ -136,12 +143,10 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                     final boolean failed = dto.isFailed();
                     final boolean suspended = dto.isSuspended();
 
-                    if (!finished && !failed && !suspended) {
-                        if (dto.getStatusInfo() != null) {
-                            dto.getStatusInfo().reset();
-                        } else {
-                            LOGGER.debug("StatusInfo is null for DTO {}", dto);
-                        }
+                    if (dto.getStatusInfo() != null) {
+                        dto.getStatusInfo().reset();
+                    } else {
+                        LOGGER.debug("StatusInfo is null for DTO {}", dto);
                     }
 
                     if (finished && !failed && !suspended) {
@@ -197,9 +202,16 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         titleIcon.add(AttributeModifier.append("class", getIconCssModel()));
         panelContainer.add(titleIcon);
 
-        Label title = new Label(ID_TEXT, getTitleModel());
+        AjaxLinkPanel title = new AjaxLinkPanel(ID_TEXT, getTitleModel()) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                SmartGeneratingDto modelObject = SmartGeneratingPanel.this.getModelObject();
+                String taskToken = modelObject.getToken();
+                DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskToken, this,false);
+            }
+        };
         title.setOutputMarkupId(true);
-        title.add(AttributeAppender.append("class", isWizardPanel ? "h3" : "h5"));
+        title.add(AttributeAppender.append("class", getTitleCssClass()));
         panelContainer.add(title);
 
         Label subTitle = new Label(ID_SUBTEXT, getSubTitleModel());
@@ -207,8 +219,20 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         panelContainer.add(subTitle);
     }
 
+    protected @Nullable String getTitleCssClass() {
+        return isWizardPanel ? "h3" : "h5";
+    }
+
     private @NotNull ListView<SmartGeneratingDto.StatusRow> createStatusListView() {
-        ListView<SmartGeneratingDto.StatusRow> listView = new ListView<>(ID_LIST_VIEW, this::getSafeRows) {
+
+        IModel<List<SmartGeneratingDto.StatusRow>> rowsModel = new LoadableDetachableModel<>() {
+            @Override
+            protected List<SmartGeneratingDto.StatusRow> load() {
+                return getSafeRows();
+            }
+        };
+
+        ListView<SmartGeneratingDto.StatusRow> listView = new ListView<>(ID_LIST_VIEW, rowsModel) {
             @Override
             protected void populateItem(@NotNull ListItem<SmartGeneratingDto.StatusRow> item) {
                 SmartGeneratingDto.StatusRow row = item.getModelObject();
@@ -219,9 +243,6 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                 icon.setOutputMarkupId(true);
                 icon.add(AttributeModifier.replace("class", row.getIconCss()));
                 item.add(icon);
-
-                item.add(AttributeModifier.append("class", "statusInfo-row"));
-
                 initInfoButton(item, row);
             }
 
@@ -272,6 +293,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             }
         };
 
+        listView.setReuseItems(false);
         listView.setOutputMarkupId(true);
         listView.add(new VisibleBehaviour(this::isListViewVisible));
         return listView;
@@ -282,13 +304,13 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     }
 
     /** Null-safe accessor for rows. */
-    private List<SmartGeneratingDto.StatusRow> getSafeRows() {
+    protected List<SmartGeneratingDto.StatusRow> getSafeRows() {
         SmartGeneratingDto dto = getModelObject();
         return dto != null ? dto.getStatusRows(getPageBase()) : Collections.emptyList();
     }
 
     /** Polling interval; override if you want a different cadence. */
-    protected Duration getRefreshInterval() {
+    protected static Duration getRefreshInterval() {
         return Duration.ofSeconds(1);
     }
 
@@ -298,9 +320,15 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
      */
     // TODO: we don't want to access task in GUI (needs moving to service layer)
     protected void createButtons(@NotNull RepeatingView buttonsView) {
-        initRunInBackgroundButton(buttonsView);
+        if (allowShowInBackground()) {
+            initRunInBackgroundButton(buttonsView);
+        }
         initActionButton(buttonsView);
         initDiscardButton(buttonsView);
+    }
+
+    protected boolean allowShowInBackground() {
+        return true;
     }
 
     private void initRunInBackgroundButton(@NotNull RepeatingView buttonsView) {
@@ -356,8 +384,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         if (token == null) {
             return;
         }
-        deleteWholeTaskObject(getPageBase(), task, result, token);
-        onFinishActionPerform(target);
+        removeWholeTaskObject(getPageBase(), task, result, token);
     }
 
     public void initActionButton(@NotNull RepeatingView buttonsView) {
@@ -464,5 +491,9 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
     protected IModel<String> getSubTitleModel() {
         return createStringResource("SmartGeneratingSuggestionStep.wizard.step.generating.suggestion.action.subText");
+    }
+
+    protected Label getSubTextLabelPanel() {
+        return (Label) get(createComponentPath(ID_PANEL_CONTAINER, ID_SUBTEXT));
     }
 }

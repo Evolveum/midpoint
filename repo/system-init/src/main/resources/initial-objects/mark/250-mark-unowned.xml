@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark oid="5508aca4-2aef-47a6-ad50-892389823c91"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Unowned</name>
+    <description>Mark for object which does not have an owner.</description>
+    <documentation>(ISO27001/A.5.16,ISO27001/A.5.36)</documentation>
+    <display>
+        <icon>
+            <cssClass>fa fa-user-xmark</cssClass>
+        </icon>
+    </display>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/>
+    </assignment>
+</mark>

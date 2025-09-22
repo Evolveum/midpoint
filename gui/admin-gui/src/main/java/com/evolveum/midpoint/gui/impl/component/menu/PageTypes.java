@@ -27,10 +27,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMark;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.PageMarks;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResults;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.util.QNameUtil;

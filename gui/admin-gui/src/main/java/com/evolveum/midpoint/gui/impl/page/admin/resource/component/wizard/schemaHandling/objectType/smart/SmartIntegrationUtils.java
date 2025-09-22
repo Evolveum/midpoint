@@ -8,22 +8,27 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartStatisticsPanel;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -32,8 +37,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 
 /**
  * Utility methods for smart integration features in resource object type handling.
@@ -53,7 +62,7 @@ public class SmartIntegrationUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationUtils.class);
 
-    private static final int MAX_SIZE_FOR_ESTIMATION = 10_000;
+    private static final int MAX_SIZE_FOR_ESTIMATION = 100;
 
     /**
      * Estimates the size of a given object class on the resource using smart integration services.
@@ -68,11 +77,38 @@ public class SmartIntegrationUtils {
         try {
             return pageBase.getSmartIntegrationService().estimateObjectClassSize(
                     resourceOid, objectClassName, MAX_SIZE_FOR_ESTIMATION, task, result);
-        } catch (CommonException e) {
+        } catch (Exception e) {
             result.recordPartialError("Couldn't estimate object class size for " + objectClassName, e);
             LOGGER.warn("Couldn't estimate object class size for {} / {}", resourceOid, objectClassName, e);
             return null;
         }
+    }
+
+    /**
+     * Returns names of standalone (i.e. not embedded) + structural (i.e. not auxiliary) object classes.
+     *
+     * Those are the only object classes that can be directly mapped to object types.
+     * Also, we can reasonably assume that we can count objects for these classes.
+     *
+     * NOTE: This method requires that the schema does exist for the resource and that the resource can be fetched
+     * via model API (which should be fine even for slightly malformed resources). Otherwise it will return an empty set.
+     * Anyway, if we want to e.g. count objects on this resource, it must be at least minimally functional.
+     */
+    public static @NotNull Set<QName> getStandaloneStructuralObjectClassesNames(
+            @NotNull String resourceOid, @NotNull PageBase pageBase, Task task, OperationResult result) {
+        NativeResourceSchema schema;
+        try {
+            var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
+            schema = Resource.of(resource).getNativeResourceSchemaRequired();
+        } catch (Exception e) {
+            result.recordPartialError("Couldn't get native resource schema for resource " + resourceOid, e);
+            LOGGER.warn("Couldn't get native resource schema for resource {}", resourceOid, e);
+            return Set.of();
+        }
+        return schema.getObjectClassDefinitions().stream()
+                .filter(def -> !def.isEmbedded() && !def.isAuxiliary())
+                .map(def -> new QName(NS_RI, def.getName())) // def.getQName is buggy now
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -88,6 +124,14 @@ public class SmartIntegrationUtils {
         long endMillis = (s.getRealizationEndTimestamp() != null
                 ? s.getRealizationEndTimestamp().toGregorianCalendar().getTimeInMillis()
                 : System.currentTimeMillis());
+
+        return formatElapsedTime(startMillis, endMillis);
+    }
+
+    public static @NotNull String formatElapsedTime(Long startMillis, Long endMillis) {
+        if (endMillis == null) {
+            endMillis = System.currentTimeMillis();
+        }
 
         long elapsedMillis = endMillis - startMillis;
         if (elapsedMillis < 0) {elapsedMillis = 0;}
@@ -157,6 +201,51 @@ public class SmartIntegrationUtils {
         return executeTaskAction;
     }
 
+    /**
+     * Executes an association suggestion operation if no suggestion is currently available.
+     * If suggestions exist, no background task is started.
+     * Returns {@code true} if the task was executed, {@code false} otherwise.
+     */
+    public static boolean runAssociationSuggestionAction(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull Collection<ResourceObjectTypeIdentification> subjectTypes,
+            @NotNull Collection<ResourceObjectTypeIdentification> objectTypes,
+            @NotNull AjaxRequestTarget target,
+            @NotNull String operationName,
+            @NotNull Task task) {
+
+        OperationResult opResult = task.getResult();
+        List<StatusInfo<AssociationsSuggestionType>> statuses =
+                loadAssociationSuggestions(pageBase, resourceOid, task, opResult);
+
+        if (opResult.isError() || opResult.isFatalError()) {
+            opResult.recordFatalError("Error loading association suggestions: " + opResult.getMessage());
+            LOGGER.error("Error loading association suggestions for resource {}: {}",
+                    resourceOid, opResult.getMessage());
+            return false;
+        }
+
+        // TBD: fine-tune when we allow to execute the task action
+        boolean executeTaskAction = statuses == null
+                || statuses.isEmpty()
+                || statuses.get(0).getResult() == null
+                || statuses.get(0).getResult().getAssociation() == null
+                || statuses.get(0).getResult().getAssociation().isEmpty();
+
+        if (executeTaskAction) {
+            pageBase.taskAwareExecutor(target, operationName)
+                    .runVoid((activityTask, activityResult) -> {
+                        var oid = pageBase.getSmartIntegrationService()
+                                .submitSuggestAssociationsOperation(resourceOid, subjectTypes, objectTypes,
+                                        activityTask, activityResult);
+                        activityResult.setBackgroundTaskOid(oid);
+                    });
+        }
+
+        return executeTaskAction;
+    }
+
     public static @NotNull IModel<Badge> getAiBadgeModel() {
         return getAiCustomTextBadgeModel("AI");
     }
@@ -185,6 +274,8 @@ public class SmartIntegrationUtils {
         FATAL("bg-light-danger", "info-badge danger", "border border-danger",
                 "SuggestionUiStyle.fatal"),
         IN_PROGRESS("bg-light-info", "info-badge text-info", "border border-info",
+                "SuggestionUiStyle.inProgress"),
+        UNKNOWN("bg-light-info", "info-badge text-info", "border border-info",
                 "SuggestionUiStyle.inProgress"),
         NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
@@ -226,6 +317,7 @@ public class SmartIntegrationUtils {
             return switch (s) {
                 case FATAL_ERROR -> FATAL;
                 case IN_PROGRESS -> IN_PROGRESS;
+                case UNKNOWN -> UNKNOWN;
                 case NOT_APPLICABLE -> NOT_APPLICABLE;
                 default -> DEFAULT;
             };
@@ -240,130 +332,66 @@ public class SmartIntegrationUtils {
         String token = statusInfo.getToken();
         SmartIntegrationService smartIntegrationService = pageBase.getSmartIntegrationService();
         try {
-            smartIntegrationService.cancelRequest(token, 5000L, task, result);
+            smartIntegrationService.cancelRequest(token, 2000L, task, result);
         } catch (CommonException e) {
             result.recordFatalError("Couldn't suspend suggestion task: " + e.getMessage(), e);
             LOGGER.error("Couldn't suspend suggestion task for token {}: {}", token, e.getMessage(), e);
         }
     }
 
-    //TODO just dummy method (need to be implemented properly, generic, on service side)
-    @SuppressWarnings("ReassignedVariable")
-    public static void removeObjectTypeSuggestion(
-            @NotNull PageBase pageBase,
-            @NotNull StatusInfo<ObjectTypesSuggestionType> statusInfo,
-            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> valueWrapper,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        final String token = statusInfo.getToken();
-        PrismObject<TaskType> taskPo =
-                WebModelServiceUtils.loadObject(TaskType.class, token, pageBase, task, result);
-
-        if (taskPo == null) {
-            result.recordFatalError("Task with token " + token + " not found");
-            LOGGER.error("Task with token {} not found", token);
-            return;
-        }
-
-        TaskType taskObject = taskPo.asObjectable();
-        TaskActivityStateType activityState = taskObject.getActivityState();
-        if (activityState == null || activityState.getActivity() == null || activityState.getActivity().getWorkState() == null) {
-            result.recordWarning("Task has no activity/workState to update.");
-            LOGGER.warn("Task {} has no activity/workState", token);
-            return;
-        }
-
-        AbstractActivityWorkStateType workState = taskObject.getActivityState().getActivity().getWorkState();
-        AbstractActivityWorkStateType workStateClone = workState.clone();
-
-        PrismContainerValue<?> wsPcv = workStateClone.asPrismContainerValue();
-
-        ObjectTypesSuggestionType suggestionsBean = null;
-        for (Item<?, ?> it : wsPcv.getItems()) {
-            Object real = it.getRealValue();
-            if (real instanceof ObjectTypesSuggestionType) {
-                suggestionsBean = (ObjectTypesSuggestionType) real;
-                break;
-            }
-        }
-
-        if (suggestionsBean == null) {
-            result.recordWarning("No ObjectTypesSuggestionType found in workState. Removing task.");
-            LOGGER.warn("No ObjectTypesSuggestionType found in workState for task {}", token);
-            deleteWholeTaskObject(pageBase, task, result, token);
-            return;
-        }
-
-        // Identify the object-type value (by kind + intent) we need to remove.
-        ResourceObjectTypeDefinitionType toRemove = null;
-        ResourceObjectTypeDefinitionType clicked = valueWrapper != null ? valueWrapper.getRealValue() : null;
-        if (clicked == null) {
-            result.recordWarning("No value to remove was provided.");
-            LOGGER.warn("No valueWrapper/realValue provided for removal in task {}", token);
-            return;
-        }
-
-        ShadowKindType wantKind = clicked.getKind();
-        String wantIntent = clicked.getIntent();
-
-        for (ResourceObjectTypeDefinitionType candidate : suggestionsBean.getObjectType()) {
-            if (Objects.equals(wantKind, candidate.getKind())
-                    && Objects.equals(wantIntent, candidate.getIntent())) {
-                toRemove = candidate;
-                break;
-            }
-        }
-
-        if (toRemove == null) {
-            LOGGER.info("Object type kind={} intent={} not found in suggestions for task {}",
-                    wantKind, wantIntent, token);
-            result.recordSuccessIfUnknown();
-            return;
-        }
-
-        PrismContainerValue<ResourceObjectTypeDefinitionType> toRemovePcv = toRemove.asPrismContainerValue();
-        PrismContainer<ResourceObjectTypeDefinitionType> objTypeCont =
-                suggestionsBean.asPrismContainerValue()
-                        .findContainer(ObjectTypesSuggestionType.F_OBJECT_TYPE);
-
-        if (objTypeCont != null) {
-            boolean removed = objTypeCont.remove(toRemovePcv);
-            if (!removed) {
-                suggestionsBean.getObjectType().remove(toRemove);
-            }
-        } else {
-            suggestionsBean.getObjectType().remove(toRemove);
-        }
-
-        boolean hasSuggestions = suggestionsBean.getObjectType() != null && !suggestionsBean.getObjectType().isEmpty();
-
-        ModelService modelService = pageBase.getModelService();
-        try {
-
-            ObjectDelta<TaskType> delta = PrismContext.get().deltaFor(TaskType.class)
-                    .item(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY, ActivityStateType.F_WORK_STATE)
-                    .replace(workStateClone)
-                    .asObjectDelta(token);
-
-            modelService.executeChanges(Collections.singletonList(delta), null, task, result);
-            result.recordSuccessIfUnknown();
-            LOGGER.info("Removed suggestion kind={} intent={} from task {}", wantKind, wantIntent, token);
-
-        } catch (CommonException e) {
-            result.recordFatalError("Couldn't remove object type suggestion: " + e.getMessage(), e);
-            LOGGER.error("Couldn't remove object type suggestion for task {}: {}", token, e.getMessage(), e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static void removeCorrelationTypeSuggestion(
+    public static void resumeSuggestionTask(
             @NotNull PageBase pageBase,
             @NotNull StatusInfo<?> statusInfo,
-            @NotNull CorrelationSuggestionType suggestionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {
         String token = statusInfo.getToken();
+        try {
+            TaskService taskService = pageBase.getTaskService();
+            taskService.resumeTask(token, task, result);
+        } catch (CommonException e) {
+            result.recordFatalError("Couldn't resume suggestion task: " + e.getMessage(), e);
+            LOGGER.error("Couldn't resume suggestion task for token {}: {}", token, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Strategy bundle describing how to locate, normalize and compare suggestion items
+     * within a specific suggestions bean type.
+     *
+     * @param <E> element type of single suggestion item
+     * @param <B> suggestions bean type that holds a list of E
+     */
+    private record RemoveSuggestionHandler<E, B>(
+            Class<B> beanClass,
+            Function<B, List<E>> listGetter,
+            Function<E, PrismContainerValue<?>> toPrismValue,
+            Function<E, E> cloneWithoutId,
+            String beanDisplayName,
+            String itemDisplayPlural
+    ) {
+    }
+
+    /**
+     * Removes a specific suggestion from the task's activity work state, deleting the task if
+     * no suggestions remain. Uses the supplied handler to access and compare items.
+     *
+     * @param pageBase UI/service entry point
+     * @param statusInfo token carrier identifying the task
+     * @param suggestionToRemove suggestion element to remove
+     * @param task current security/context task
+     * @param result operation result to record status
+     * @param handler strategy describing how to access and compare suggestions
+     */
+    private static <E, B> void removeSuggestionCommon(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<?> statusInfo,
+            @NotNull E suggestionToRemove,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull RemoveSuggestionHandler<E, B> handler) {
+
+        String token = statusInfo.getToken();
+
         PrismObject<TaskType> taskObject =
                 WebModelServiceUtils.loadObject(TaskType.class, token, pageBase, task, result);
 
@@ -386,28 +414,36 @@ public class SmartIntegrationUtils {
         AbstractActivityWorkStateType workStateClone = workState.clone();
         PrismContainerValue<?> workStateValue = workStateClone.asPrismContainerValue();
 
-        CorrelationSuggestionsType suggestionsBean = workStateValue.getItems().stream()
+        B suggestionsBean = workStateValue.getItems().stream()
                 .map(Item::getRealValue)
-                .filter(CorrelationSuggestionsType.class::isInstance)
-                .map(CorrelationSuggestionsType.class::cast)
+                .filter(handler.beanClass()::isInstance)
+                .map(handler.beanClass()::cast)
                 .findFirst()
                 .orElse(null);
 
-        if (suggestionsBean == null || suggestionsBean.getSuggestion().isEmpty()) {
-            result.recordWarning("No CorrelationSuggestionsType found in workState. Removing task.");
-            LOGGER.warn("No CorrelationSuggestionsType found in workState for task {}", token);
-            deleteWholeTaskObject(pageBase, task, result, token);
+        List<E> list = suggestionsBean != null ? handler.listGetter().apply(suggestionsBean) : null;
+
+        if (list == null || list.isEmpty()) {
+            result.recordWarning("No " + handler.beanDisplayName() + " found in workState. Removing task.");
+            LOGGER.warn("No {} found in workState for task {}", handler.beanDisplayName(), token);
+            removeWholeTaskObject(pageBase, task, result, token);
             return;
         }
 
-        WebPrismUtil.cleanupEmptyContainerValue(suggestionToRemove.asPrismContainerValue());
-        boolean removed = suggestionsBean.getSuggestion().removeIf(s ->
-                s.cloneWithoutId().equals(suggestionToRemove.cloneWithoutId()));
+        WebPrismUtil.cleanupEmptyContainerValue(handler.toPrismValue().apply(suggestionToRemove));
+
+        boolean removed = list.removeIf(s ->
+                handler.cloneWithoutId().apply(s).equals(handler.cloneWithoutId().apply(suggestionToRemove)));
 
         if (!removed) {
-            LOGGER.info("Correlation suggestion id={} not found in suggestions for task {}",
-                    suggestionToRemove.getId(), token);
+            LOGGER.info("Suggestion not found in {} for task {}", handler.itemDisplayPlural(), token);
             result.recordSuccessIfUnknown();
+            return;
+        }
+
+        if (list.isEmpty()) {
+            removeWholeTaskObject(pageBase, task, result, token);
+            LOGGER.info("No more {} left, deleted task {}", handler.itemDisplayPlural(), token);
             return;
         }
 
@@ -419,15 +455,108 @@ public class SmartIntegrationUtils {
 
             pageBase.getModelService().executeChanges(List.of(delta), null, task, result);
             result.recordSuccessIfUnknown();
-            LOGGER.info("Removed correlation suggestion id={} from task {}", suggestionToRemove.getId(), token);
+            LOGGER.info("Removed suggestion from {} for task {}", handler.itemDisplayPlural(), token);
 
         } catch (CommonException e) {
-            result.recordFatalError("Couldn't remove correlation suggestion: " + e.getMessage(), e);
-            LOGGER.error("Couldn't remove correlation suggestion for task {}: {}", token, e.getMessage(), e);
+            result.recordFatalError("Couldn't remove suggestion: " + e.getMessage(), e);
+            LOGGER.error("Couldn't remove suggestion for task {}: {}", token, e.getMessage(), e);
         }
     }
 
-    public static void deleteWholeTaskObject(@NotNull PageBase pageBase, @NotNull Task task, @NotNull OperationResult result, String token) {
+    /**
+     * Removes a correlation suggestion from the task identified by the status token.
+     * Deletes the task if it becomes empty.
+     */
+    public static void removeCorrelationTypeSuggestionNew(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo,
+            @NotNull CorrelationSuggestionType suggestionToRemove,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        RemoveSuggestionHandler<CorrelationSuggestionType, CorrelationSuggestionsType> handler = new RemoveSuggestionHandler<>(
+                CorrelationSuggestionsType.class,
+                CorrelationSuggestionsType::getSuggestion,
+                CorrelationSuggestionType::asPrismContainerValue,
+                CorrelationSuggestionType::cloneWithoutId,
+                "CorrelationSuggestionsType",
+                "correlation suggestions"
+        );
+
+        removeSuggestionCommon(pageBase, statusInfo, suggestionToRemove, task, result, handler);
+    }
+
+    /**
+     * Removes an object-type suggestion from the task identified by the status token.
+     * Deletes the task if it becomes empty.
+     */
+    public static void removeObjectTypeSuggestionNew(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<ObjectTypesSuggestionType> statusInfo,
+            @NotNull ResourceObjectTypeDefinitionType suggestionToRemove,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        RemoveSuggestionHandler<ResourceObjectTypeDefinitionType, ObjectTypesSuggestionType> handler = new RemoveSuggestionHandler<>(
+                ObjectTypesSuggestionType.class,
+                ObjectTypesSuggestionType::getObjectType,
+                ResourceObjectTypeDefinitionType::asPrismContainerValue,
+                ResourceObjectTypeDefinitionType::cloneWithoutId,
+                "ObjectTypesSuggestionType",
+                "object type suggestions"
+        );
+        removeSuggestionCommon(pageBase, statusInfo, suggestionToRemove, task, result, handler);
+    }
+
+    public static void removeMappingTypeSuggestionNew(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<MappingsSuggestionType> statusInfo,
+            AttributeMappingsSuggestionType definitionToRemove,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        RemoveSuggestionHandler<AttributeMappingsSuggestionType, MappingsSuggestionType> handler =
+                new RemoveSuggestionHandler<>(
+                        MappingsSuggestionType.class,
+                        MappingsSuggestionType::getAttributeMappings,
+                        AttributeMappingsSuggestionType::asPrismContainerValue,
+                        AttributeMappingsSuggestionType::cloneWithoutId,
+                        "MappingsSuggestionType",
+                        "attribute mapping definitions"
+                );
+
+        removeSuggestionCommon(pageBase, statusInfo, definitionToRemove, task, result, handler);
+    }
+
+    /**
+     * Removes an association suggestion from the task identified by the status token.
+     * Deletes the task if it becomes empty.
+     */
+    public static void removeAssociationTypeSuggestionNew(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<AssociationsSuggestionType> statusInfo,
+            @NotNull AssociationSuggestionType suggestionToRemove,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        RemoveSuggestionHandler<AssociationSuggestionType, AssociationsSuggestionType> handler =
+                new RemoveSuggestionHandler<>(
+                        AssociationsSuggestionType.class,
+                        AssociationsSuggestionType::getAssociation,
+                        AssociationSuggestionType::asPrismContainerValue,
+                        AssociationSuggestionType::cloneWithoutId,
+                        "AssociationsSuggestionType",
+                        "association suggestions"
+                );
+
+        removeSuggestionCommon(pageBase, statusInfo, suggestionToRemove, task, result, handler);
+    }
+
+    public static void removeWholeTaskObject(
+            @NotNull PageBase pageBase,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull String token) {
         try {
             ObjectDelta<TaskType> deleteDelta =
                     PrismContext.get().deltaFactory().object().createDeleteDelta(TaskType.class, token);
@@ -470,15 +599,63 @@ public class SmartIntegrationUtils {
         return strategy;
     }
 
-    public static List<PrismContainerValueWrapper<CorrelationItemType>> extractCorrelationItemListWrapper(
-            @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> object) {
-        try {
-            PrismContainerWrapper<CorrelationItemType> container = object.findContainer(ItemsSubCorrelatorType.F_ITEM);
-            return container.getValues();
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't extract CorrelationItemType wrappers: {}", e.getMessage(), e);
+    public static @NotNull AjaxIconButton createStatisticsButton(
+            @NotNull String id,
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            ResourceObjectTypeDefinitionType objectTypeDefinition) {
+        AjaxIconButton statisticsButton = new AjaxIconButton(id,
+                Model.of("fa fa-solid fa-chart-bar"),
+                pageBase.createStringResource("Statistics.button.label")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (objectTypeDefinition == null) {
+                    return;
+                }
+
+                showStatisticsPanel(target, objectTypeDefinition, pageBase, resourceOid);
+            }
+        };
+        statisticsButton.add(AttributeModifier.replace("class", "btn btn-default rounded mr-2"));
+        statisticsButton.setOutputMarkupId(true);
+        statisticsButton.showTitleAsLabel(true);
+        return statisticsButton;
+    }
+
+    public static void showStatisticsPanel(
+            @NotNull AjaxRequestTarget target,
+            @NotNull ResourceObjectTypeDefinitionType objectTypeDefinition,
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid) {
+        ResourceObjectTypeDelineationType delineation = objectTypeDefinition.getDelineation();
+        if (delineation == null || delineation.getObjectClass() == null) {
+            return;
         }
 
-        return Collections.emptyList();
+        QName objectClass = delineation.getObjectClass();
+
+        SmartIntegrationService smartIntegrationService = pageBase.getSmartIntegrationService();
+        Task pageTask = pageBase.getPageTask();
+
+        ShadowObjectClassStatisticsType statisticsRequired;
+        try {
+            GenericObjectType latestStatistics = smartIntegrationService
+                    .getLatestStatistics(resourceOid, objectClass, pageTask, pageTask.getResult());
+            if (latestStatistics == null) {
+                pageBase.warn(pageBase.getString("SmartIntegrationUtils.noStatistics.available.for.on",
+                        objectClass, resourceOid));
+                target.add(pageBase.getFeedbackPanel());
+                return;
+            }
+            statisticsRequired = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(latestStatistics);
+        } catch (SchemaException e) {
+            throw new RuntimeException("Couldn't get statistics for "
+                    + objectClass + " on resource " + resourceOid, e);
+        }
+
+        SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
+                pageBase.getMainPopupBodyId(), () -> statisticsRequired, resourceOid, objectClass);
+
+        pageBase.showMainPopup(statisticsPanel, target);
     }
 }

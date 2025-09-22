@@ -8,7 +8,7 @@
 :page-liquid:
 
 Relation is a mechanism that specifies meaning or purpose of xref:/midpoint/reference/schema/object-references/[object references].
-The relation is frequently used to specify the relation of object references of xref:/midpoint/reference/roles-policies/assignment/[assignment/inducement targets] and in the xref:/midpoint/reference/org/organizational-structure/[organizational structure] management.
+The relation is frequently used to specify the relation of object references of xref:/midpoint/reference/roles-policies/roles/assignment/[assignment/inducement targets] and in the xref:/midpoint/reference/org/organizational-structure/[organizational structure] management.
 For example a relation specifies whether a user is an ordinary member of the organizational unit or whether he is a manager of that unit.
 
 
@@ -89,7 +89,7 @@ Please see xref:/midpoint/reference/concepts/relation/relation-configuration/[Re
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+* xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment]
 
 * xref:/midpoint/reference/misc/deputy/[Deputy]
 

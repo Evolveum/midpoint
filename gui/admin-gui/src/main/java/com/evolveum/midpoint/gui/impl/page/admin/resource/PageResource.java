@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
@@ -18,7 +19,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundEvaluatorWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundMappingContainerWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page.SmartSuggestionWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page.SmartObjectTypeSuggestionWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
@@ -85,6 +86,10 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public PageResource(PrismObject<ResourceType> resource) {
+        super(resource);
+    }
+
+    public PageResource(PrismObject<ResourceType> resource, boolean showWizard) {
         super(resource);
     }
 
@@ -205,6 +210,12 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return panel;
     }
 
+    public ResourceAssociationTypeWizardPanel showAssociationTypeWizardForSuggestion(@NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
+        ResourceAssociationTypeWizardPanel panel = showWizard(valueModel, target, ResourceAssociationTypeWizardPanel.class, null);
+        panel.setPanelForDuplicate(true);
+        return panel;
+    }
+
     public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(AjaxRequestTarget target, IModel<String> exitLabel) {
         return showWizard(target, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE), ResourceAssociationTypeWizardPanel.class, exitLabel);
     }
@@ -218,7 +229,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showSuggestObjectTypeWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectTypeSuggestion(target, pathToValue, SmartSuggestionWizardPanel.class);
+        showContainerWizardForObjectTypeSuggestion(target, pathToValue, SmartObjectTypeSuggestionWizardPanel.class);
     }
 
     public void showAttributeMappingWizard(AjaxRequestTarget target, ItemPath pathToValue) {

@@ -15,7 +15,10 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -131,7 +134,7 @@ class MappingsSuggestionOperation {
         Collection<OwnedShadow> ownedShadows;
         try {
             ownedShadows = fetchOwnedShadows(shadowsCollectionState, result);
-        }  catch (Throwable t) {
+        } catch (Throwable t) {
             shadowsCollectionState.recordException(t);
             throw t;
         } finally {
@@ -148,14 +151,25 @@ class MappingsSuggestionOperation {
                 var op = mappingsSuggestionState.recordProcessingStart(m.shadowAttrDescPath.asString());
                 mappingsSuggestionState.flush(result);
                 var pairs = getValuesPairs(m, ownedShadows);
-                suggestion.getAttributeMappings().add(
-                        suggestMapping(
-                                m.shadowAttrDescPath,
-                                m.shadowAttrDef,
-                                m.focusPropDescPath,
-                                m.focusPropDef,
-                                pairs));
-                mappingsSuggestionState.recordProcessingEnd(op);
+                try {
+                    suggestion.getAttributeMappings().add(
+                            suggestMapping(
+                                    m.shadowAttrDescPath,
+                                    m.shadowAttrDef,
+                                    m.focusPropDescPath,
+                                    m.focusPropDef,
+                                    pairs));
+                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
+                } catch (Throwable t) {
+                    // TODO Shouldn't we create an unfinished mapping with just error info?
+                    LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", t, m.shadowAttrDescPath);
+                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.FAILURE);
+
+                    // Normally, the activity framework makes sure that the activity result status is computed properly at the end.
+                    // But this is a special case where we must do that ourselves.
+                    // FIXME temporarily disabled, as GUI cannot deal with it anyway
+                    //mappingsSuggestionState.setResultStatus(OperationResultStatus.PARTIAL_ERROR);
+                }
                 ctx.checkIfCanRun();
             }
             return suggestion;
@@ -224,53 +238,118 @@ class MappingsSuggestionOperation {
     private record OwnedShadow(ShadowType shadow, FocusType owner) {
     }
 
-    AttributeMappingsSuggestionType suggestMapping(
+    private AttributeMappingsSuggestionType suggestMapping(
             DescriptiveItemPath shadowAttrPath,
             ShadowSimpleAttributeDefinition<?> attrDef,
             DescriptiveItemPath focusPropPath,
             PrismPropertyDefinition<?> propertyDef,
             Collection<ValuesPair> valuesPairs) throws SchemaException {
 
-        String transformationScript;
-        if (!valuesPairs.isEmpty()) {
-            var applicationAttrDefBean = new SiAttributeDefinitionType()
-                    .name(shadowAttrPath.asString())
-                    .type(getTypeName(attrDef))
-                    .minOccurs(attrDef.getMinOccurs())
-                    .maxOccurs(attrDef.getMaxOccurs());
-            var midPointPropertyDefBean = new SiAttributeDefinitionType()
-                    .name(focusPropPath.asString())
-                    .type(getTypeName(propertyDef))
-                    .minOccurs(propertyDef.getMinOccurs())
-                    .maxOccurs(propertyDef.getMaxOccurs());
-            var siRequest = new SiSuggestMappingRequestType()
-                    .applicationAttribute(applicationAttrDefBean)
-                    .midPointAttribute(midPointPropertyDefBean)
-                    .inbound(true);
-            valuesPairs.forEach(pair ->
-                    siRequest.getExample().add(
-                            pair.toSiExample(
-                                    shadowAttrPath, focusPropPath)));
-            var siResponse = ctx.serviceClient.invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
-            transformationScript = siResponse.getTransformationScript();
+        LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
+                shadowAttrPath, focusPropPath, valuesPairs.size());
+
+        ExpressionType expression;
+        if (valuesPairs.isEmpty()) {
+            LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
+            expression = null;
+        } else if (doesAsIsSuffice(valuesPairs, propertyDef)) {
+            LOGGER.trace(" -> 'asIs' does suffice according to the data, so we'll use it (without calling LLM)");
+            expression = null;
+        } else if (isTargetDataMissing(valuesPairs)) {
+            LOGGER.trace(" -> target data missing; we assume they are probably not there yet, so 'asIs' is fine (no LLM call)");
+            expression = null;
         } else {
-            transformationScript = null; // no pairs, no transformation script
-        }
-        ExpressionType expression = StringUtils.isNotBlank(transformationScript) && !transformationScript.equals("input") ?
-                new ExpressionType()
+            LOGGER.trace(" -> going to ask LLM about mapping script");
+            var transformationScript = askMicroservice(shadowAttrPath, attrDef, focusPropPath, propertyDef, valuesPairs);
+            if (transformationScript == null || transformationScript.equals("input")) {
+                LOGGER.trace(" -> LLM returned '{}', using 'asIs'", transformationScript);
+                expression = null;
+            } else {
+                LOGGER.trace(" -> LLM returned a script, using it:\n{}", transformationScript);
+                expression = new ExpressionType()
                         .expressionEvaluator(
                                 new ObjectFactory().createScript(
-                                        new ScriptExpressionEvaluatorType().code(transformationScript))) :
-                null;
+                                        new ScriptExpressionEvaluatorType().code(transformationScript)));
+            }
+        }
+
         var suggestion = new AttributeMappingsSuggestionType()
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.getItemPath().rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
+                                .name(shadowAttrPath.getItemPath().lastName().getLocalPart()
+                                        + "-to-" + focusPropPath.getItemPath().toString()) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusPropPath.getItemPath().toBean()))
                                 .expression(expression)));
         AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
         return suggestion;
+    }
+
+    private String askMicroservice(
+            DescriptiveItemPath shadowAttrPath,
+            ShadowSimpleAttributeDefinition<?> attrDef,
+            DescriptiveItemPath focusPropPath,
+            PrismPropertyDefinition<?> propertyDef,
+            Collection<ValuesPair> valuesPairs) throws SchemaException {
+        var applicationAttrDefBean = new SiAttributeDefinitionType()
+                .name(shadowAttrPath.asString())
+                .type(getTypeName(attrDef))
+                .minOccurs(attrDef.getMinOccurs())
+                .maxOccurs(attrDef.getMaxOccurs());
+        var midPointPropertyDefBean = new SiAttributeDefinitionType()
+                .name(focusPropPath.asString())
+                .type(getTypeName(propertyDef))
+                .minOccurs(propertyDef.getMinOccurs())
+                .maxOccurs(propertyDef.getMaxOccurs());
+        var siRequest = new SiSuggestMappingRequestType()
+                .applicationAttribute(applicationAttrDefBean)
+                .midPointAttribute(midPointPropertyDefBean)
+                .inbound(true);
+        valuesPairs.forEach(pair ->
+                siRequest.getExample().add(
+                        pair.toSiExample(
+                                shadowAttrPath, focusPropPath)));
+        return ctx.serviceClient
+                .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class)
+                .getTransformationScript();
+    }
+
+    /** Returns {@code true} if a simple "asIs" mapping is sufficient. */
+    private boolean doesAsIsSuffice(Collection<ValuesPair> valuesPairs, PrismPropertyDefinition<?> propertyDef) {
+        for (var valuesPair : valuesPairs) {
+            var shadowValues = valuesPair.shadowValues();
+            var focusValues = valuesPair.focusValues();
+            if (shadowValues.size() != focusValues.size()) {
+                return false;
+            }
+            var expectedFocusValues = new ArrayList<>(focusValues.size());
+            for (Object shadowValue : shadowValues) {
+                Object converted;
+                try {
+                    converted = ExpressionUtil.convertValue(
+                            propertyDef.getTypeClass(), null, shadowValue, ctx.b.protector);
+                } catch (Exception e) {
+                    // If the conversion is not possible e.g. because of different types, an exception is thrown
+                    // We are OK with that (from performance point of view), because this is just a sample of values.
+                    LOGGER.trace("Value conversion failed, assuming transformation is needed: {} (value: {})",
+                            e.getMessage(), shadowValue); // no need to provide full stack trace here
+                    return false;
+                }
+                if (converted != null) {
+                    expectedFocusValues.add(converted);
+                }
+            }
+            if (!MiscUtil.unorderedCollectionEquals(focusValues, expectedFocusValues)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Returns {@code true} if there are no target data altogether. */
+    private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs) {
+        return valuesPairs.stream().allMatch(pair -> pair.focusValues().isEmpty());
     }
 
     private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
@@ -289,7 +368,7 @@ class MappingsSuggestionOperation {
         }
     }
 
-    record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
+    private record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
         private SiSuggestMappingExampleType toSiExample(
                 DescriptiveItemPath applicationAttrNameBean, DescriptiveItemPath midPointPropertyNameBean) {
             return new SiSuggestMappingExampleType()

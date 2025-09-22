@@ -73,7 +73,7 @@ Archetype definitions are xref:/midpoint/architecture/concepts/abstract-role/[ab
 To apply an archetype to an object simply assign archetype to that object as you would normally assign a role.
 From that point on archetype applies to that object.
 Archetypes being abstract roles makes them really powerful.
-That means archetypes may work as ordinary roles or xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]:
+That means archetypes may work as ordinary roles or xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles]:
 
 [source,xml]
 ----

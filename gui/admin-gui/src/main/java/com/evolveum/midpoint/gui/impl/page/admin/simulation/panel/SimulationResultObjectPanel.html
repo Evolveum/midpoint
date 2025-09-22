@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (c) 2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="row">
+        <div class="col-xl-3">
+            <div wicket:id="details"></div>
+            <wicket:enclosure child="relatedObjects">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fa-sharp fa-solid fa-bookmark mr-1"></i>
+                            <wicket:message key="PageSimulationResultObject.relatedObjects"/>
+                        </h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover" wicket:id="relatedObjects"></table>
+                    </div>
+                    <div class="card-footer d-flex align-items-center" wicket:id="footer">
+                        <div class="flex-grow-1" wicket:id="count"></div>
+                        <div wicket:id="paging"></div>
+                    </div>
+                </div>
+            </wicket:enclosure>
+        </div>
+        <div class="col-xl-9">
+            <div wicket:id="changes"></div>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

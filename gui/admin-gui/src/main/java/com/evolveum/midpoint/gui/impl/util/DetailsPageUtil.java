@@ -27,6 +27,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
 
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -58,7 +60,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;

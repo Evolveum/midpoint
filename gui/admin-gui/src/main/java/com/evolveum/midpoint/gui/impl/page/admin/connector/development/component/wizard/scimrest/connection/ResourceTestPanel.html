@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="panelContainer" class="d-flex flex-column align-items-center gap-3 my-5">
+        <i class="text-center mb-2 font-weight-bold fa-2x" wicket:id="titleIcon"></i>
+        <div class="text-center text-primary mb-0 h3" wicket:id="text"></div>
+        <div class="text-center text-secondary mb-2 col-6 lh-2" wicket:id="subText"></div>
+        <div wicket:id="bodyContainer" class="d-flex flex-column align-items-center w-100 text-center">
+            <span class="text-muted" wicket:id="elapsedTime"></span>
+        </div>
+    </div>
+</wicket:panel>
+</html>

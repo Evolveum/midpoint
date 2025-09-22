@@ -86,7 +86,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                     if (getModelObject().getDefinition().isMultiValue()) {
                         key = "PrismContainerValuePanel.container";
                     }
-                    LoadableDetachableModel<String> labelModel = getLabelModel();
+                    IModel<String> labelModel = getLabelModel();
                     String label = labelModel.getObject();
                     labelModel.detach();
                     return getParentPage().createStringResource(
@@ -110,7 +110,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     @Override
     protected void addToHeader(WebMarkupContainer header) {
-        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
+        IModel<String> headerLabelModel = getLabelModel();
         AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
             @Serial private static final long serialVersionUID = 1L;
             @Override
@@ -141,7 +141,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         //TODO always visible if isObject
     }
 
-    protected LoadableDetachableModel<String> getLabelModel() {
+    protected IModel<String> getLabelModel() {
         return createStringResource("${displayName}", getModel());
     }
 
@@ -293,7 +293,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private ToggleIconButton<Void> getSortButton() {
-        return (ToggleIconButton) get(createComponentPath(ID_VALUE_FORM, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
+        return (ToggleIconButton) get(createComponentPath(ID_MAIN_CONTAINER, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
     }
 
     public void refreshPanel(AjaxRequestTarget target) {

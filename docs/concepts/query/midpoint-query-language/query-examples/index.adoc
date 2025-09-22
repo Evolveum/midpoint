@@ -53,14 +53,22 @@ This section provides examples of MQL queries that can be utilized when configur
 
 === Search by Archetype Name
 
-You can search for reports with an archetype using the archetype name:
+In the following example, we are searching for users with an archetype using the archetype name:
 
-.midPoint query
+.searching for users by archetype name
+----
+archetypeRef/@/name = "Employee"
+----
+
+Similarly, you can search for other xref:/midpoint/reference/interfaces/rest/endpoints/[objects], such as reports:
+
+.searching for report by archetype name
 ----
 archetypeRef/@/name = "Report export task"
 ----
 
-Where `archetypeRef/@` specifies that we are not matching a reference value but its target. In this case, it is an archetype.
+In these examples, `archetypeRef/@` specifies that we are not matching a reference value but its target.
+In this case, it is an archetype.
 
 
 === Search by Assigned Role Name

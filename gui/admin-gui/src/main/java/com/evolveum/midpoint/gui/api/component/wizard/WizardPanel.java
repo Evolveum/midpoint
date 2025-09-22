@@ -46,16 +46,22 @@ public class WizardPanel extends BasePanel implements WizardListener {
     private static final String ID_STEP_STATUS = "stepStatus";
 
     private WizardModel wizardModel;
+    private boolean enableBackTitleModel = false;
 
-    public WizardPanel(String id, WizardModel wizardModel) {
+    public WizardPanel(String id, WizardModel wizardModel, boolean enableBackTitleModel) {
         super(id);
 
         this.wizardModel = wizardModel;
         this.wizardModel.setPanel(this);
+        this.enableBackTitleModel = enableBackTitleModel;
 
         wizardModel.addWizardListener(this);
 
         initLayout();
+    }
+
+    public WizardPanel(String id, WizardModel wizardModel) {
+        this(id, wizardModel, false);
     }
 
     @Override
@@ -91,6 +97,10 @@ public class WizardPanel extends BasePanel implements WizardListener {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
+        customizeHeader(response);
+    }
+
+    protected void customizeHeader(IHeaderResponse response) {
         response.render(OnDomReadyHeaderItem.forScript(
                 "MidPointTheme.updatePageUrlParameter('" + WizardModel.PARAM_STEP + "', '" + wizardModel.getActiveStep().getStepId() + "');"));
 
@@ -112,7 +122,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
         return () -> wizardModel.getSteps().stream().filter(s -> BooleanUtils.isTrue(s.isStepVisible().getObject())).map(s -> s.getTitle()).collect(Collectors.toList());
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         add(AttributeAppender.prepend("class", "bs-stepper"));
         add(AttributeAppender.append("class", () -> "w-100"));
 
@@ -181,6 +191,17 @@ public class WizardPanel extends BasePanel implements WizardListener {
             @Override
             protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
                 return wizardModel.getActiveStep().getNextBehaviour();
+            }
+
+            @Override
+            protected IModel<String> createBackTitleModel() {
+                if (enableBackTitleModel) {
+                    return () -> {
+                        WizardStep step = wizardModel.findPreviousStep();
+                        return step != null ? getString("WizardHeader.backTo", step.getTitle().getObject()) : getString("WizardHeader.back");
+                    };
+                }
+                return createStringResource("WizardHeader.back");
             }
         };
         contentHeader.add(new BehaviourDelegator(() -> getActiveStep().getHeaderBehaviour()));

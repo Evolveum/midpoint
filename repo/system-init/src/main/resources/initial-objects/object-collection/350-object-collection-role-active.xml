@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  oid="8494d5a9-5ce9-4795-813b-0e424b9e4d42">
+    <name>Active roles</name>
+    <type>RoleType</type>
+    <filter>
+        <q:text>activation/effectiveStatus = "enabled"</q:text>
+    </filter>
+    <domain>
+        <collectionRef oid="02c103d7-e178-4d34-b494-e367164f0fa7" type="ObjectCollectionType"/>
+    </domain>
+    <defaultView>
+        <display>
+            <label>
+                <orig>Active role</orig>
+                <translation>
+                    <key>activeRole.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Active roles</orig>
+                <translation>
+                    <key>activeRole.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+        </display>
+    </defaultView>
+</objectCollection>

@@ -70,6 +70,17 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getObjectTypesSuggestion());
         addTypedParameters(values, definitions.getCorrelationSuggestion());
         addTypedParameters(values, definitions.getMappingsSuggestion());
+        addTypedParameters(values, definitions.getAssociationsSuggestion());
+
+        addTypedParameters(values, definitions.getCreateConnector());
+        addTypedParameters(values, definitions.getInstallConnector());
+        addTypedParameters(values, definitions.getDiscoverDocumentation());
+        addTypedParameters(values, definitions.getProcessDocumentation());
+        addTypedParameters(values, definitions.getDiscoverGlobalInformation());
+        addTypedParameters(values, definitions.getDiscoverObjectClassInformation());
+        addTypedParameters(values, definitions.getDiscoverObjectClassDetails());
+        addTypedParameters(values, definitions.getGenerateConnectorArtifact());
+
         addUntypedParameters(values, definitions.getExtension());
         return values;
     }

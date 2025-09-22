@@ -27,6 +27,6 @@ Such division is very helpful for presentation (user interface), reporting and g
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
-* xref:/midpoint/reference/roles-policies/classification/[]
+* xref:/midpoint/reference/roles-policies/policies/classification/[]

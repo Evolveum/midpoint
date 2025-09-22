@@ -254,7 +254,7 @@ The query is missing a space between `levenshtein` and `(`.
 
 | Troubleshooting hints
 a| xref:../filters.adoc#_similarity_filters[Similarity search filters] require 3 attributes.
-The set of attributes is enclosed in brackets.
+The set of attributes is enclosed in parentheses.
 
 |====
 

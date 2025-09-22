@@ -15,7 +15,7 @@
         <div class="d-flex gap-3 justify-content-center mt-5" wicket:id="buttonsStrip">
             <a class="btn text-primary" wicket:id="back">
                 <i class="fas fa-arrow-left mr-1"></i>
-                <wicket:message key="WizardHeader.back"/>
+                <span wicket:id="backLabel"></span>
             </a>
             <a class="btn btn-default" wicket:id="exit">
                 <i class="fas fa-right-from-bracket mr-1 fa-rotate-180"></i>
@@ -27,7 +27,7 @@
                 <span wicket:id="submitLabel"/>
             </a>
             <a class="btn btn-primary" wicket:id="next">
-                <wicket:message key="WizardHeader.next"/>
+                <wicket:message key="NavigationPanel.onlyNext"/>
                 <span wicket:id="nextLabel"/>
                 <i class="fas fa-arrow-right ml-1"></i>
             </a>

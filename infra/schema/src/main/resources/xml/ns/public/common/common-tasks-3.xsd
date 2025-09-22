@@ -19,7 +19,7 @@
         elementFormDefault="qualified"
         xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
         jaxb:extensionBindingPrefixes="xjc"
-        jaxb:version="3.0" xmlns:xsdS="http://www.w3.org/2001/XMLSchema">
+        jaxb:version="3.0" xmlns:xsdS="http://www.w3.org/2001/XMLSchema" xmlns:xas="http://www.w3.org/2001/XMLSchema">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -37,6 +37,8 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-connector-dev-3" />
 
     <xsd:complexType name="TaskType">
         <xsd:annotation>
@@ -97,7 +99,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="taskRunHistory" type="tns:TaskRunHistoryType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="taskRunRecord" type="tns:TaskRunRecordType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -662,7 +664,7 @@
     </xsd:complexType>
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
 
-    <xsd:complexType name="TaskRunHistoryType">
+    <xsd:complexType name="TaskRunRecordType">
         <xsd:annotation>
             <xsd:documentation>
                 Information about a single task run.
@@ -2563,6 +2565,81 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="associationsSuggestion" type="tns:AssociationSuggestionWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests association type definitions for resource object types (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.associationsSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="createConnector" type="tns:ConnDevCreateConnectorWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="installConnector" type="tns:ConnDevDownloadConnectorWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="discoverDocumentation" type="tns:ConnDevDiscoverDocumentationWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="processDocumentation" type="tns:ConnDevProcessDocumentationWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="discoverGlobalInformation" type="tns:ConnDevDiscoverGlobalInformationWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="discoverObjectClassInformation" type="tns:ConnDevDiscoverObjectClassInformationDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="discoverObjectClassDetails" type="tns:ConnDevDiscoverObjectClassDetailsDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="generateConnectorArtifact" type="tns:ConnDevGenerateArtifactDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
             </xsd:choice>
             <xsd:element name="extension" type="tns:ExtensionType" minOccurs="0">
                 <xsd:annotation>
@@ -10222,6 +10299,50 @@
     </xsd:complexType>
     <xsd:element name="objectTypeRelatedSuggestionWorkDefinition" type="tns:ObjectTypeRelatedSuggestionWorkDefinitionType"/>
 
+    <xsd:complexType name="AssociationSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest associations" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource against which we want to execute the activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AssociationsSuggestionWorkDefinitionType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subjectObjectTypes" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifies the subject object types for which associations should be suggested.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectObjectTypes" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifies the object types for which associations should be suggested.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="associationSuggestionWorkDefinition" type="tns:AssociationSuggestionWorkDefinitionType"/>
+
     <xsd:complexType name="CorrelationSuggestionWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -10343,6 +10464,32 @@
     </xsd:complexType>
     <xsd:element name="correlationSuggestionWorkState" type="tns:CorrelationSuggestionWorkStateType" />
 
+    <xsd:complexType name="AssociationSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest associations" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:AssociationsSuggestionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested associations (possibly multiple versions).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="associationSuggestionWorkState" type="tns:AssociationSuggestionWorkStateType"/>
+
     <xsd:complexType name="MappingsSuggestionWorkStateType">
         <xsd:annotation>
             <xsd:documentation>
@@ -10368,4 +10515,314 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="mappingsSuggestionWorkState" type="tns:MappingsSuggestionWorkStateType" />
+
+
+    <xsd:complexType name="ConnDevBaseWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        <xsd:extension base="tns:AbstractWorkDefinitionType">
+        <xsd:sequence>
+            <xsd:element name="connectorDevelopmentRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:ConnectorDevelopmentType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!-- Create Connector -->
+
+    <xsd:complexType name="ConnDevCreateConnectorWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevCreateConnectorWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevCreateConnectorResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevCreateConnectorResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="ConnDevDownloadConnectorWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="connectorUrl" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDownloadConnectorWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDownloadConnectorResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDownloadConnectorResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover documentation -->
+
+    <xsd:complexType name="ConnDevDiscoverDocumentationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverDocumentationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverDocumentationResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverDocumentationResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentation" type="tns:ConnDevDocumentationSourceType" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Process Documentation -->
+
+    <xsd:complexType name="ConnDevProcessDocumentationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevProcessDocumentationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevProcessDocumentationResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevProcessDocumentationResultType">
+        <xsd:sequence>
+            <!-- xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover General Information -->
+
+    <xsd:complexType name="ConnDevDiscoverGlobalInformationWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverGlobalInformationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverGlobalInformationResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverGlobalInformationResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover Object-Class specific information -->
+    <xsd:complexType name="ConnDevDiscoverObjectClassInformationDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassInformationWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassInformationResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassInformationResultType">
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Discover Object-Class specific information -->
+    <xsd:complexType name="ConnDevDiscoverObjectClassDetailsDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objectClass" type="xsd:string" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassDetailsWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassDetailsResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverObjectClassDetailsResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Generate Global Artifact -->
+
+    <xsd:complexType name="ConnDevGenerateArtifactDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
+                    <xsd:element name="endpoint" type="tns:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="relation" type="tns:ConnDevRelationInfoType" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevGenerateArtifactWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevGenerateArtifactResultType" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevGenerateArtifactResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
+        </xsd:sequence>
+    </xsd:complexType>
+
 </xsd:schema>

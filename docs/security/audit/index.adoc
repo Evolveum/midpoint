@@ -183,7 +183,7 @@ Other event types may be added in the future (including custom event types).
 === Event Stages
 
 Operations in midPoint may be subject to quite complex processing before they get executed.
-This may include processing xref:/midpoint/reference/roles-policies/rbac/[RBAC], expressions, workflows or other "plugin" hooks.
+This may include processing xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC], expressions, workflows or other "plugin" hooks.
 Therefore, the details of the operation may considerably differ at the beginning of the operation and at the end.
 Event stages are defined to denote this difference and to record events at various stages through the operation lifecycle.
 
@@ -507,14 +507,20 @@ If set to `true`, the printer will show the concrete item path for each item del
                         ItemPath path = changedItem != null ? changedItem.getItemPath() : ItemPath.EMPTY_PATH
 
                         DeltaPrinterOptions opts = new DeltaPrinterOptions()
-                                .showObjectDelta(true)
+                                // whether to show delta if search bar doesn't contain "Changed item path" value
+                                .showFullObjectDelta(true)
+                                // whether to show also change in subitems of the "Changed item path", e.g. if changed item path is assignment
+                                // whether to display deltas that contain changes for assignment/activation
                                 .showPartialDeltas(true)
 
                         opts.prettyPrinterOptions()
+                                // whether to show full object (with all attributes) or just the high level info (type, oid, name, etc.)
                                 .showFullAddObjectDelta(false)
                                 .showOperational(false)
-                                // or defaultUIIndentation() can be used
-                                .indentation(UserFriendlyPrettyPrinterOptions.DEFAULT_UI_INDENT)
+                                .defaultUIIndentation()
+                                // use localized names for items and types when available
+                                .locale(locale)
+                                .localizationService(localizationService)
 
                         result = []
                         for (var delta : input) {

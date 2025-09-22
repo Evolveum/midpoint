@@ -54,6 +54,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         TABLE_OBJECTS_COLLECTION,
         TABLE_OBJECT_TEMPLATES,
         TABLE_SMART_CORRELATION,
+        TABLE_SMART_INBOUND_MAPPINGS,
         ROLE_MEMBER_PANEL,
         ORG_MEMBER_PANEL,
         ARCHETYPE_MEMBER_PANEL,
@@ -168,6 +169,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_FOCUS_MAPPING_WIZARD,
         PANEL_ATTRIBUTE_VOLATILITY_WIZARD,
         PANEL_TASK_ERRORS,
+        PANEL_CONNECTOR_GENERATION_DOCUMENTATION
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

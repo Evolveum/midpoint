@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -16,8 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
@@ -29,18 +27,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -49,18 +40,14 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestionWrappers;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 @PanelType(name = "resourceObjectTypes")
 @PanelInstance(identifier = "resourceObjectTypes", applicableForType = ResourceType.class,
@@ -113,7 +100,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                     Item<ICellPopulator<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> cellItem,
                     String componentId,
                     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
-                StatusInfo<ObjectTypesSuggestionType> statusInfo = suggestionByWrapper.get(rowModel.getObject());
+                StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(rowModel.getObject());
                 if (statusInfo != null) {
                     QName objectClassName = statusInfo.getObjectClassName();
                     if (objectClassName != null) {
@@ -200,115 +187,13 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return true;
     }
 
-    private Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>,
-            StatusInfo<ObjectTypesSuggestionType>> suggestionByWrapper = new HashMap<>();
-
-    protected <C extends Containerable> boolean isSuggestionRow(@Nullable IModel<PrismContainerValueWrapper<C>> rowModel) {
-        if (rowModel == null || rowModel.getObject() == null) {
-            return false;
+    @SuppressWarnings("unchecked")
+    protected @Nullable StatusInfo<ObjectTypesSuggestionType> getStatusInfo(PrismContainerValueWrapper<?> value) {
+        StatusInfo<?> statusInfo = super.getStatusInfo(value);
+        if (statusInfo != null) {
+            return (StatusInfo<ObjectTypesSuggestionType>) statusInfo;
         }
-
-        return statusFor(rowModel.getObject()) != null;
-    }
-
-    @Override
-    protected @Nullable String customInlineMenuItemCssClass(
-            @Nullable IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
-        return isSuggestionRow(rowModel)
-                ? "position-relative btn btn-link btn-sm d-flex"
-                : super.customInlineMenuItemCssClass(rowModel);
-    }
-
-    @Override
-    protected void customizeInlineMenuItems(@NotNull List<InlineMenuItem> inlineMenuItems) {
-        for (InlineMenuItem menuItem : inlineMenuItems) {
-            menuItem.setVisibilityChecker((InlineMenuItem.VisibilityChecker) (rowModel, isHeader) -> {
-                if (rowModel != null && rowModel.getObject() instanceof PrismContainerValueWrapper) {
-                    return statusFor((PrismContainerValueWrapper<?>) rowModel.getObject()) == null;
-                }
-                return true;
-            });
-        }
-
-        inlineMenuItems.add(createSuggestionStopInlineMenu());
-        inlineMenuItems.add(createSuggestionDetailsInlineMenu());
-        inlineMenuItems.add(createSuggestionReviewInlineMenu());
-        inlineMenuItems.add(createDeleteSuggestionInlineMenu());
-    }
-
-    @Override
-    protected Component onNameColumnPopulateItem(
-            Item<ICellPopulator<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> cellItem,
-            String componentId,
-            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = rowModel.getObject();
-        StatusInfo<ObjectTypesSuggestionType> suggestionTypeStatusInfo = suggestionByWrapper.get(object);
-
-        ResourceObjectTypeDefinitionType realValue = object.getRealValue();
-
-        if (suggestionTypeStatusInfo != null) {
-            OperationResultStatusType status = suggestionTypeStatusInfo.getStatus();
-
-            LoadableModel<String> displayNameModel = new LoadableModel<>() {
-                @Override
-                protected String load() {
-                    if (status.equals(OperationResultStatusType.IN_PROGRESS)) {
-                        return createStringResource("ResourceObjectTypesPanel.suggestion.inProgress").getString();
-                    }
-                    return realValue != null ? realValue.getDisplayName() : " - ";
-                }
-            };
-
-            LabelWithBadgePanel labelWithBadgePanel = new LabelWithBadgePanel(
-                    componentId, getAiBadgeModel(), displayNameModel) {
-                @Override
-                protected boolean isIconVisible() {
-                    return status.equals(OperationResultStatusType.IN_PROGRESS);
-                }
-
-                @Contract(pure = true)
-                @Override
-                protected @NotNull String getIconCss() {
-                    return GuiStyleConstants.ICON_FA_SPINNER + " text-info";
-                }
-
-                @Contract(pure = true)
-                @Override
-                protected @Nullable String getLabelCss() {
-                    return status.equals(OperationResultStatusType.IN_PROGRESS)
-                            ? " text-info"
-                            : null;
-                }
-
-                @Override
-                protected boolean isBadgeVisible() {
-                    return status.equals(OperationResultStatusType.SUCCESS);
-                }
-            };
-            labelWithBadgePanel.setOutputMarkupId(true);
-            cellItem.add(labelWithBadgePanel);
-            return labelWithBadgePanel;
-        }
-
-        return super.onNameColumnPopulateItem(cellItem, componentId, rowModel);
-    }
-
-    private @Nullable OperationResultStatusType statusFor(
-            PrismContainerValueWrapper<?> wrapper) {
-        StatusInfo<ObjectTypesSuggestionType> info = suggestionByWrapper.get(wrapper);
-        return info != null ? info.getStatus() : null;
-    }
-
-    @Override
-    protected void customizeNewRowItem(
-            Item<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> item,
-            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model) {
-        OperationResultStatusType status = statusFor(model.getObject());
-        if (status == null) {
-            super.customizeNewRowItem(item, model);
-            return;
-        }
-        item.add(AttributeModifier.append("class", SmartIntegrationUtils.SuggestionUiStyle.from(status).rowClass));
+        return null;
     }
 
     @Override
@@ -316,22 +201,26 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         PrismContainerWrapperModel<ResourceType, ResourceObjectTypeDefinitionType> resourceDefWrapper =
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
 
+        final Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, StatusInfo<ObjectTypesSuggestionType>>
+                suggestionsIndex = new HashMap<>();
+
         LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> containerModel =
                 new LoadableModel<>() {
                     @Override
                     protected @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> load() {
                         List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> out = new ArrayList<>();
 
+                        suggestionsIndex.clear();
                         if (Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
                             final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
                             final OperationResult result = task.getResult();
 
                             final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
 
-                            SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadObjectTypeSuggestionWrappers(
-                                    getPageBase(), resourceOid, task, result);
+                            SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions =
+                                    loadObjectTypeSuggestionWrappers(getPageBase(), resourceOid, task, result);
                             out.addAll(suggestions.wrappers());
-                            suggestionByWrapper = suggestions.suggestionByWrapper();
+                            suggestionsIndex.putAll(suggestions.suggestionByWrapper());
                         }
 
                         List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resource = resourceDefWrapper
@@ -343,246 +232,13 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                     }
                 };
 
-        return new MultivalueContainerListDataProvider<>(ResourceObjectTypesPanel.this, Model.of(), containerModel);
-    }
-
-    protected ButtonInlineMenuItem createSuggestionDetailsInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.details.suggestion.inlineMenu")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_SEARCH);
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> {
-                    if (rowModel == null || rowModel.getObject() == null) {
-                        return false;
-                    }
-
-                    @SuppressWarnings("SuspiciousMethodCalls")
-                    StatusInfo<ObjectTypesSuggestionType> suggestionStatus = suggestionByWrapper.get(rowModel.getObject());
-                    return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.FATAL_ERROR;
-                };
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        IModel<Serializable> rowModel = getRowModel();
-                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            StatusInfo<ObjectTypesSuggestionType> statusInfo = suggestionByWrapper.get(valueWrapper);
-
-                            HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
-                                    getPageBase().getMainPopupBodyId(),
-                                    statusInfo::getLocalizedMessage) {
-                                @Override
-                                public StringResourceModel getTitle() {
-                                    return createStringResource("ResourceObjectTypesPanel.suggestion.details.title");
-                                }
-
-                                @Override
-                                protected @NotNull Label initLabel(IModel<String> messageModel) {
-                                    Label label = super.initLabel(messageModel);
-                                    label.add(AttributeModifier.append("class", "alert alert-danger"));
-                                    return label;
-                                }
-
-                                @Override
-                                public @NotNull Component getFooter() {
-                                    Component footer = super.getFooter();
-                                    footer.add(new VisibleBehaviour(() -> false));
-                                    return footer;
-                                }
-                            };
-
-                            target.add(getPageBase().getMainPopup());
-
-                            getPageBase().showMainPopup(
-                                    helpInfoPanel, target);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public boolean isLabelVisible() {
-                return true;
-            }
-        };
-    }
-
-    protected ButtonInlineMenuItem createSuggestionReviewInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.review.suggestion.inlineMenu")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_SEARCH);
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> {
-                    if (rowModel == null || rowModel.getObject() == null) {
-                        return false;
-                    }
-
-                    @SuppressWarnings("SuspiciousMethodCalls")
-                    StatusInfo<ObjectTypesSuggestionType> suggestionStatus = suggestionByWrapper.get(rowModel.getObject());
-                    return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.SUCCESS;
-                };
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        IModel<Serializable> rowModel = getRowModel();
-                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            ResourceObjectTypeDefinitionType realValue =
-                                    ((ResourceObjectTypeDefinitionType) valueWrapper.getRealValue()).clone();
-
-                            @SuppressWarnings("unchecked")
-                            PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue =
-                                    (PrismContainerValue<ResourceObjectTypeDefinitionType>) realValue.asPrismContainerValue();
-                            WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
-                            IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-                            prismContainerValue.setParent(containerModel.getObject().getItem());
-
-                            onNewValue(
-                                    prismContainerValue, createContainerModel(),
-                                    target, false);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public boolean isLabelVisible() {
-                return true;
-            }
-        };
-    }
-
-    protected ButtonInlineMenuItem createSuggestionStopInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.stop.generating.inlineMenu")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_STOP_MENU_ITEM);
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> {
-                    if (rowModel == null || rowModel.getObject() == null) {
-                        return false;
-                    }
-
-                    @SuppressWarnings("SuspiciousMethodCalls")
-                    StatusInfo<ObjectTypesSuggestionType> suggestionStatus = suggestionByWrapper.get(rowModel.getObject());
-                    return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.IN_PROGRESS;
-                };
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-                        OperationResult result = task.getResult();
-
-                        IModel<Serializable> rowModel = getRowModel();
-                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            StatusInfo<ObjectTypesSuggestionType> statusInfo = suggestionByWrapper.get(valueWrapper);
-                            SmartIntegrationUtils.suspendSuggestionTask(
-                                    getPageBase(), statusInfo, task, result);
-
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public boolean isLabelVisible() {
-                return true;
-            }
-        };
-    }
-
-    protected ButtonInlineMenuItem createDeleteSuggestionInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> {
-                    if (rowModel == null || rowModel.getObject() == null) {
-                        return false;
-                    }
-
-                    @SuppressWarnings("SuspiciousMethodCalls")
-                    StatusInfo<ObjectTypesSuggestionType> suggestionStatus = suggestionByWrapper.get(rowModel.getObject());
-                    return suggestionStatus != null;
-                };
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-                        OperationResult result = task.getResult();
-
-                        IModel<Serializable> rowModel = getRowModel();
-                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            StatusInfo<ObjectTypesSuggestionType> statusInfo = suggestionByWrapper.get(valueWrapper);
-                            //noinspection unchecked
-                            SmartIntegrationUtils.removeObjectTypeSuggestion(
-                                    getPageBase(),
-                                    statusInfo,
-                                    (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) valueWrapper,
-                                    task,
-                                    result);
-                            target.add(getPageBase().getFeedbackPanel());
-                            refreshForm(target);
-                        }
-                    }
-                };
-            }
-        };
+        String resourceOid = getObjectWrapperObject().getOid();
+        return new StatusAwareDataProvider<>(this, resourceOid, Model.of(), containerModel, suggestionsIndex::get);
     }
 
     @Override
     protected boolean hasNoValues() {
-        return createProvider().size() == 0;
-    }
-
-    @Override
-    protected IModel<Boolean> getSwitchSuggestionModel() {
-        return super.getSwitchSuggestionModel();
+        return Objects.requireNonNull(getStatusAwareProvider()).size() == 0;
     }
 
     @Override
@@ -596,5 +252,45 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                 getPageBase(), resourceOid, task, result);
 
         return !suggestions.wrappers().isEmpty();
+    }
+
+    protected boolean performOnDeleteSuggestion(AjaxRequestTarget target, PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> valueWrapper) {
+        Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
+        OperationResult result = task.getResult();
+
+        StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(valueWrapper);
+        if (statusInfo == null) {
+            return false;
+        }
+        SmartIntegrationUtils.removeObjectTypeSuggestionNew(
+                getPageBase(),
+                statusInfo,
+                valueWrapper.getRealValue(),
+                task,
+                result);
+        target.add(getPageBase().getFeedbackPanel());
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void performOnReview(@NotNull AjaxRequestTarget target, @NotNull PrismContainerValueWrapper<?> valueWrapper) {
+        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
+        PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject = valueWrapper.getOldValue();
+        WebPrismUtil.cleanupEmptyContainerValue(originalObject);
+
+        PrismContainer<ResourceObjectTypeDefinitionType> item = containerModel.getObject().getItem();
+        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(
+                originalObject,
+                item);
+
+        //TODO temporary
+        performOnDeleteSuggestion(target, (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) valueWrapper);
+        onNewValue(suggestionToAdd, containerModel, target, false);
+    }
+
+    @Override
+    protected boolean isStatisticsAllowed() {
+        return true;
     }
 }

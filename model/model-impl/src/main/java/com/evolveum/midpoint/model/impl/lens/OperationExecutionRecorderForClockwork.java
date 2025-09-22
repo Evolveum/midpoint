@@ -188,6 +188,7 @@ class OperationExecutionRecorderForClockwork {
             }
         }
         createTaskRef(record, ctx);
+        createTaskRunIdentifier(record, ctx);
 
         ExecutionSupport executionSupport = ctx.task.getExecutionSupport();
         if (executionSupport != null) {
@@ -217,6 +218,14 @@ class OperationExecutionRecorderForClockwork {
         }
         if (rootTaskOid != null) {
             operation.setTaskRef(ObjectTypeUtil.createObjectRef(rootTaskOid, ObjectTypes.TASK));
+        }
+    }
+
+    private void createTaskRunIdentifier(OperationExecutionType operation, Context<?> ctx) {
+        Task task = ctx.task;
+        String runIdentifier = task.getTaskRunIdentifier();
+        if (runIdentifier != null) {
+            operation.setTaskRunIdentifier(runIdentifier);
         }
     }
 

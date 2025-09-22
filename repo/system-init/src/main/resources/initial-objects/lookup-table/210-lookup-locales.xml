@@ -77,4 +77,20 @@
         <key>zh_CN</key>
         <label>中文</label>
     </row>
+    <row id="18">
+        <key>arb</key>
+        <label>عربي</label>
+    </row>
+    <row id="19">
+        <key>ko</key>
+        <label>한국인</label>
+    </row>
+    <row id="20">
+        <key>nl</key>
+        <label>Nederlands</label>
+    </row>
+    <row id="21">
+        <key>tr</key>
+        <label>Yкраїнська</label>
+    </row>
 </lookupTable>

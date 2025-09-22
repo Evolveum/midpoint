@@ -10,6 +10,7 @@
     <test name="task" preserve-order="true">
         <classes>
             <class name="com.evolveum.midpoint.task.quartzimpl.TestTaskManagerBasic"/>
+            <class name="com.evolveum.midpoint.task.quartzimpl.TestTaskManagerJdbc"/>
             <class name="com.evolveum.midpoint.task.quartzimpl.CleanupTest"/>
             <class name="com.evolveum.midpoint.task.quartzimpl.TestMiscellaneous"/>
         </classes>

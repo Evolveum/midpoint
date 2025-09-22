@@ -51,7 +51,7 @@ Service accounts are linked to those xref:/midpoint/reference/misc/services/[ser
 Therefore it will be clear which account belongs to which service (even if the service needs accounts in many systems).
 The xref:/midpoint/reference/misc/services/[service] in midPoint is a very flexible object.
 It can do almost all of the tricks that user, org and role can.
-Therefore it may have an owner, its lifecycle can be managed, it may be subject to xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] and so on.
+Therefore it may have an owner, its lifecycle can be managed, it may be subject to xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] and so on.
 This is a very natural, smooth and extremely powerful way to manage services and service accounts.
 
 image::service-accounts.png[]
@@ -79,10 +79,10 @@ However, the service-specific processes are not implemented.
 Of course, service accounts may have different mappings than ordinary accounts.
 However, as account type (_intent_) is determined very early in account processing there may be change that mappings from person accounts may be accidentally used on service accounts that are mis-detected.
 
-* There is an issues with xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[assigning vs linking]. Service accounts are often just linked to the services and not assigned.
+* There is an issues with xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[assigning vs linking]. Service accounts are often just linked to the services and not assigned.
 The processes that handle those transitions for service accounts are missing.
 
-* Service itself can be subject to xref:/midpoint/reference/roles-policies/certification/[certification] processes.
+* Service itself can be subject to xref:/midpoint/reference/roles-policies/policies/certification/[certification] processes.
 But the process is not tailored specifically for service accounts and there may be missing pieces.
 
 * Account reclassification is supported only in fully automated mode, without any GUI support.

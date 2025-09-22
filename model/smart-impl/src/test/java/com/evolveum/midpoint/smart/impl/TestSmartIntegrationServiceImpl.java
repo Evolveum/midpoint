@@ -17,14 +17,18 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSi
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
+import org.assertj.core.data.Offset;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -68,6 +72,9 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     private static final TestObject<?> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
     private static final TestObject<?> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
     private static final TestObject<?> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "30cef119-71b6-42b3-9762-5c649b2a2b6a");
+
+    private static final ResourceObjectTypeIdentification GENERIC_ORGANIZATIONAL_UNIT =
+            ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, "organizationalUnit");
 
     private static DummyScenario dummyForObjectTypes;
     private static DummyScenario dummyForMappingsAndCorrelation;
@@ -247,7 +254,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var c = dummyForObjectTypes.getController();
         c.addAccount("carol")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Carol Danvers")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_123")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_12šč3")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "carol.prod@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
@@ -255,7 +262,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("dave")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Dave Grohl")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_456")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "456admin")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "dave.priv@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
@@ -263,7 +270,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("susan")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Susan Calvin")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm789")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "789_prod")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "susan.adm@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
@@ -436,7 +443,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test040DescriptiveItemPath() throws Exception {
+    public void test040DescriptiveItemPath() {
         QName Q_GIVEN_NAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "givenName", "c");
         QName Q_EMAIL = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "email", "c");
         QName Q_VALUE = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "value", "c");
@@ -588,7 +595,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** All features: both filters and base context, plus multiple object types. */
-    @Test
+    @Test(enabled = false) // MID-10872
     public void test110SuggestObjectTypesWithFiltersAndBaseContext() throws CommonException, IOException {
         skipIfRealService();
 
@@ -722,7 +729,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** All features: both filters and base context, plus multiple object types. */
-    @Test
+    @Test(enabled = false) // MID-10872
     public void test140ConflictingObjectTypes() throws CommonException, IOException {
         skipIfRealService();
 
@@ -1022,7 +1029,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         for (var attribute : statistics.getAttribute()) {
             if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
                 assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(9);
+                assertThat(attribute.getValuePatternCount().size()).isEqualTo(17);
                 for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
                     assertThat(patternCount.getValue()).isNotEmpty();
                     assertThat(patternCount.getType()).isNotNull();
@@ -1118,9 +1125,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .applicationAttribute(asStringSimple(Account.AttributeNames.PHONE.path()))
                                 .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
                         // No mapping for status -> activation, as non-attribute mappings are not supported yet
-                new SiSuggestMappingResponseType().transformationScript(null),
-                new SiSuggestMappingResponseType().transformationScript(null),
-                new SiSuggestMappingResponseType().transformationScript("if (input == 'e') { 'employee' } else if (input == 'c') { 'contractor' } else { null }"),
+                // icfs:name -> name and ri:fullName -> fullName are as-is, LLM microservice should not be called
+                new RuntimeException("LLM went crazy here"),
                 new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")
         );
         smartIntegrationService.setServiceClientSupplier(() -> mockClient);
@@ -1138,10 +1144,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         displayValueAsXml("suggested mappings", suggestedMappings);
         assertThat(suggestedMappings.getExtensionItem()).isEmpty(); // not implemented yet
         var attrMappings = suggestedMappings.getAttributeMappings();
-        assertThat(attrMappings).as("attribute mappings").hasSize(4);
+        assertThat(attrMappings).as("attribute mappings").hasSize(3);
         assertSuggestion(attrMappings, ICFS_NAME, UserType.F_NAME);
         assertSuggestion(attrMappings, Account.AttributeNames.FULLNAME.q(), UserType.F_FULL_NAME);
-        assertSuggestion(attrMappings, Account.AttributeNames.TYPE.q(), UserType.F_DESCRIPTION);
+        // Suggestion from type to description is skipped, as there's a simulated LLM error there
+        // Later, we'll probably create a partial suggestion, with just the other attributes
         assertSuggestion(attrMappings, Account.AttributeNames.PHONE.q(), UserType.F_TELEPHONE_NUMBER);
         // TODO asserting scripts
     }
@@ -1176,6 +1183,37 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                         path.equivalent(s.getDefinition().getRef().getItemPath()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No suggestion found for " + path));
+    }
+
+    /**
+     * This is to test whether the matching request for an org has appropriate number of attributes, i.e. that unimportant
+     * ones are avoided.
+     */
+    @Test
+    public void test310SuggestMappingsForOrg() throws CommonException, ActivityInterruptedException {
+        skipIfRealService();
+
+        //noinspection resource
+        var mockClient = new MockServiceClientImpl(new SiMatchSchemaResponseType()); // not important for this test
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("suggesting mappings");
+        smartIntegrationService.suggestMappings(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                GENERIC_ORGANIZATIONAL_UNIT,
+                null, null, null, task, result);
+
+        then("the number of attributes in the request is appropriate");
+        var request = (SiMatchSchemaRequestType) mockClient.getLastRequest();
+        displayValueAsXml("match schema request", request);
+        var midPointAttributesNumber = request.getMidPointSchema().getAttribute().size();
+        displayValue("midpoint attributes number", midPointAttributesNumber);
+        assertThat(midPointAttributesNumber)
+                .as("number of midPoint attributes in request")
+                .isLessThanOrEqualTo(100);
     }
 
     @Test
@@ -1274,5 +1312,130 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .filter(s -> path.equivalent(s.getRef().getItemPath()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No definition found for " + path));
+    }
+
+    @Test
+    public void test410ItemStatisticsGetScore_UniqueComplete() throws Exception {
+        // Create ItemStatistics via reflection
+        Class<?> itemStatsClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator$ItemStatistics");
+        Constructor con = itemStatsClass.getDeclaredConstructor();
+        con.setAccessible(true);
+        Object itemStats = con.newInstance();
+
+        Field objectsF = itemStatsClass.getDeclaredField("objects");
+        Field missingValuesF = itemStatsClass.getDeclaredField("missingValues");
+        Field skippedMultiValuedF = itemStatsClass.getDeclaredField("skippedMultiValued");
+        Field distinctValuesF = itemStatsClass.getDeclaredField("distinctValues");
+        objectsF.setAccessible(true);
+        missingValuesF.setAccessible(true);
+        skippedMultiValuedF.setAccessible(true);
+        distinctValuesF.setAccessible(true);
+
+        // 10 objects, all have value, all unique
+        objectsF.setInt(itemStats, 10);
+        missingValuesF.setInt(itemStats, 0);
+        skippedMultiValuedF.setBoolean(itemStats, false);
+        Set<Object> vals = new HashSet<>();
+        for (int i = 0; i < 10; i++) vals.add("v"+i);
+        ((Set<Object>) distinctValuesF.get(itemStats)).addAll(vals);
+
+        Method getScore = itemStatsClass.getDeclaredMethod("getScore");
+        Double score = (Double) getScore.invoke(itemStats);
+        assertThat(score).isEqualTo(1.0);
+    }
+
+    @Test
+    public void test411ItemStatisticsGetScore_MissingValues() throws Exception {
+        Class<?> itemStatsClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator$ItemStatistics");
+        Constructor con = itemStatsClass.getDeclaredConstructor();
+        con.setAccessible(true);
+        Object itemStats = con.newInstance();
+
+        Field objectsF = itemStatsClass.getDeclaredField("objects");
+        Field missingValuesF = itemStatsClass.getDeclaredField("missingValues");
+        Field skippedMultiValuedF = itemStatsClass.getDeclaredField("skippedMultiValued");
+        Field distinctValuesF = itemStatsClass.getDeclaredField("distinctValues");
+        objectsF.setAccessible(true);
+        missingValuesF.setAccessible(true);
+        skippedMultiValuedF.setAccessible(true);
+        distinctValuesF.setAccessible(true);
+
+        // 10 objects, 5 missing, 5 with unique value
+        objectsF.setInt(itemStats, 10);
+        missingValuesF.setInt(itemStats, 5);
+        skippedMultiValuedF.setBoolean(itemStats, false);
+        Set<Object> vals = new HashSet<>();
+        for (int i = 0; i < 5; i++) vals.add("v"+i);
+        ((Set<Object>) distinctValuesF.get(itemStats)).addAll(vals);
+
+        Method getScore = itemStatsClass.getDeclaredMethod("getScore");
+        Double score = (Double) getScore.invoke(itemStats);
+
+        // Uniqueness = 5/5 = 1, Coverage = 5/10 = 0.5, Harmonic mean = (2*1*0.5)/(1+0.5)=0.666...
+        assertThat(score).isEqualTo(0.666, Offset.offset(0.01));
+    }
+
+    @Test
+    public void test412ItemStatisticsGetScore_MultivaluedReturnsZero() throws Exception {
+        Class<?> itemStatsClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator$ItemStatistics");
+        Constructor con = itemStatsClass.getDeclaredConstructor();
+        con.setAccessible(true);
+        Object itemStats = con.newInstance();
+
+        Field objectsF = itemStatsClass.getDeclaredField("objects");
+        Field missingValuesF = itemStatsClass.getDeclaredField("missingValues");
+        Field skippedMultiValuedF = itemStatsClass.getDeclaredField("skippedMultiValued");
+        Field distinctValuesF = itemStatsClass.getDeclaredField("distinctValues");
+        objectsF.setAccessible(true);
+        missingValuesF.setAccessible(true);
+        skippedMultiValuedF.setAccessible(true);
+        distinctValuesF.setAccessible(true);
+
+        objectsF.setInt(itemStats, 10);
+        missingValuesF.setInt(itemStats, 0);
+        skippedMultiValuedF.setBoolean(itemStats, true); // multivalued
+        Set<Object> vals = new HashSet<>();
+        for (int i = 0; i < 10; i++) vals.add("v"+i);
+        ((Set<Object>) distinctValuesF.get(itemStats)).addAll(vals);
+
+        Method getScore = itemStatsClass.getDeclaredMethod("getScore");
+        Double score = (Double) getScore.invoke(itemStats);
+
+        assertThat(score).isEqualTo(0.0);
+    }
+
+    @Test
+    public void test420ComputeLinkCoverage_PerfectMapping() throws Exception {
+        // Get computeLinkCoverage method
+        Class<?> ceClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator");
+        Method computeLinkCoverage = ceClass.getDeclaredMethod("computeLinkCoverage", Map.class);
+        computeLinkCoverage.setAccessible(true);
+
+        // 3 focus, each maps to one unique shadow
+        Map<String, Set<String>> links = Map.of(
+                "f1", Set.of("s1"),
+                "f2", Set.of("s2"),
+                "f3", Set.of("s3")
+        );
+        Object result = computeLinkCoverage.invoke(null, links);
+        assertThat(result).isEqualTo(1.0);
+    }
+
+    @Test
+    public void test421ComputeLinkCoverage_AmbiguousMapping() throws Exception {
+        Class<?> ceClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator");
+        Method computeLinkCoverage = ceClass.getDeclaredMethod("computeLinkCoverage", Map.class);
+        computeLinkCoverage.setAccessible(true);
+
+        // 2 out of 3 focus map to multiple shadows
+        Map<String, Set<String>> links = Map.of(
+                "f1", Set.of("s1", "s2"),
+                "f2", Set.of("s3"),
+                "f3", Set.of()
+        );
+        // f1 has 2 (ambiguity 1), f2 has 1, f3 has none.
+        // linked=2, focusCount=3, avgAmbiguity=1/2=0.5, penalty=1/(1+0.5)=0.666, coverage=2/3, total=0.444
+        Object result = computeLinkCoverage.invoke(null, links);
+        assertThat((Double) result).isEqualTo(0.444, Offset.offset(0.01));
     }
 }

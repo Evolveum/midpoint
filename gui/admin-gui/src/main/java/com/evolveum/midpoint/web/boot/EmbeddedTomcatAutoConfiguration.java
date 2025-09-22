@@ -8,6 +8,10 @@ package com.evolveum.midpoint.web.boot;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import jakarta.servlet.Servlet;
 
 import com.google.common.base.Strings;
@@ -32,6 +36,8 @@ import org.springframework.core.Ordered;
 
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
+import org.springframework.util.unit.DataSize;
+
 /**
  * Custom configuration (factory) for embedded tomcat factory.
  * This is necessary, as the tomcat factory is hacking tomcat setup.
@@ -51,6 +57,8 @@ public class EmbeddedTomcatAutoConfiguration {
     @ConditionalOnMissingBean(value = TomcatServletWebServerFactory.class, search = SearchStrategy.CURRENT)
     public static class EmbeddedTomcat {
 
+        private static final Trace LOGGER = TraceManager.getTrace(EmbeddedTomcat.class);
+
         @Value("${server.tomcat.ajp.enabled:false}")
         private boolean enableAjp;
 
@@ -65,6 +73,18 @@ public class EmbeddedTomcatAutoConfiguration {
 
         @Value("${server.tomcat.ajp.secret:}")
         private String secret;
+
+        @Value("${server.tomcat.ajp.max-part-header-size:}")
+        private DataSize ajpMaxPartHeaderSize;
+
+        @Value("${server.tomcat.ajp.max-part-count:}")
+        private Integer ajpMaxPartCount;
+
+        @Value("${server.tomcat.max-part-header-size:}")
+        private DataSize tomcatMaxPartHeaderSize;
+
+        @Value("${server.tomcat.max-part-count:}")
+        private Integer tomcatMaxPartCount;
 
         @Value("${server.servlet.context-path}")
         private String contextPath;
@@ -88,11 +108,27 @@ public class EmbeddedTomcatAutoConfiguration {
                 ajpConnector.setScheme("http");
                 ajpConnector.setAllowTrace(false);
 
+                if (getMaxPartHeaderSize() != null) {
+                    ajpConnector.setMaxPartHeaderSize((int) getMaxPartHeaderSize().toBytes());
+                }
+                if (getMaxPartCount() != null) {
+                    ajpConnector.setMaxPartCount(getMaxPartCount());
+                }
+
                 tomcat.addAdditionalTomcatConnectors(ajpConnector);
                 tomcat.setJvmRoute(jvmRoute); // will be set on Engine there
             }
 
             return tomcat;
         }
+
+        private DataSize getMaxPartHeaderSize() {
+            return ajpMaxPartHeaderSize != null ? ajpMaxPartHeaderSize : tomcatMaxPartHeaderSize;
+        }
+
+        private Integer getMaxPartCount() {
+            return ajpMaxPartCount != null ? ajpMaxPartCount : tomcatMaxPartCount;
+        }
+
     }
 }

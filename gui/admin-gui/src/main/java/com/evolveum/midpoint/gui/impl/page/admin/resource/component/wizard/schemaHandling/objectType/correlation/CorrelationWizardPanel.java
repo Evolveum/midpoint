@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.*;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -34,6 +35,12 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
 
     protected CorrelationItemsTableWizardPanel createTablePanel() {
         return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
+
+            @Override
+            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                SimulationWizardPanel<?> simulationWizardPanel = buildSimulationWizard();
+                showChoiceFragment(target, simulationWizardPanel);
+            }
 
             @Override
             protected void postProcessAddSuggestion(AjaxRequestTarget target) {
@@ -69,7 +76,7 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                             @NotNull PageBase pageBase,
                             @NotNull AjaxRequestTarget target,
                             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
-                            @NotNull StatusInfo<?> statusInfo) {
+                            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
                         performDiscard(pageBase, target, valueModel, statusInfo);
                     }
 
@@ -79,6 +86,15 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                     }
 
                 });
+            }
+        };
+    }
+
+    private @NotNull SimulationWizardPanel<?> buildSimulationWizard() {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper()) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel());
             }
         };
     }

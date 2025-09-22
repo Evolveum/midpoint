@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -19,6 +20,8 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -63,8 +66,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.jetbrains.annotations.Nullable;
 
-public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable>
-        extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, TemplateTile<PrismContainerValueWrapper<C>>> {
+public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable, T extends TemplateTile<PrismContainerValueWrapper<C>>>
+        extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, T> {
 
     private final IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
 
@@ -82,7 +85,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     @Override
-    protected void customizeTileItemCss(Component tile, @NotNull TemplateTile<PrismContainerValueWrapper<C>> item) {
+    protected void customizeTileItemCss(Component tile, @NotNull T item) {
         updateRowCssBasedValueStatus(tile, item.getValue(), true);
     }
 
@@ -170,9 +173,9 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             boolean isTile) {
         if (isTile) {
             switch (value.getStatus()) {
-                case DELETED -> component.add(AttributeModifier.replace("class", "card rounded h-100 border border-danger"));
-                case ADDED -> component.add(AttributeModifier.replace("class", "card rounded h-100 border border-success"));
-                default -> component.add(AttributeModifier.replace("class", "card rounded h-100"));
+                case DELETED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger"));
+                case ADDED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success"));
+                default -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0"));
             }
             return;
         }
@@ -240,7 +243,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return inlineMenu;
     }
 
-    private @NotNull AjaxIconButton createNewObjectPerformButton(String idButton, PrismContainerValueWrapper<C> modelObject) {
+    @NotNull
+    protected AjaxIconButton createNewObjectPerformButton(String idButton, PrismContainerValueWrapper<C> modelObject) {
         AjaxIconButton newObjectButton = new AjaxIconButton(idButton,
                 Model.of(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
                 createStringResource("SmartCorrelationTable.button.addNewCorrelationItem")) {
@@ -249,13 +253,18 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                editItemPerformed(target, null, false);
+                onCreateNewObjectPerform(target);
             }
         };
 
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary rounded mr-2"));
         return newObjectButton;
+    }
+
+    protected void onCreateNewObjectPerform(AjaxRequestTarget target) {
+        newItemPerformed(null, target, null, false, null);
+        refreshAndDetach(target);
     }
 
     protected InlineMenuItem createDeleteItemMenu(PrismContainerValueWrapper<C> model) {
@@ -303,8 +312,30 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
     }
 
+    protected PrismContainerValueWrapper<C> createNewValue(PrismContainerValue<C> value, AjaxRequestTarget target) {
+        PrismContainerWrapper<C> container = getContainerModel().getObject();
+        PrismContainerValue<C> newValue = value;
+        if (newValue == null) {
+            newValue = container.getItem().createNewValue();
+        }
+        return createNewItemContainerValueWrapper(newValue, container, target);
+    }
+
+    public PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
+            PrismContainerValue<C> newItem,
+            PrismContainerWrapper<C> model, AjaxRequestTarget target) {
+
+        return WebPrismUtil.createNewValueWrapper(model, newItem, getPageBase(), target);
+    }
+
     protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec,
             boolean isDuplicate, StatusInfo<?> statusInfo) {
+    }
+
+    protected void setDefaultPagingSize(UserProfileStorage.@NotNull TableId tableId, Integer pageItemSize) {
+        MidPointAuthWebSession session = getSession();
+        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        userProfile.setPagingSize(tableId, pageItemSize);
     }
 
     public ColumnMenuAction<PrismContainerValueWrapper<C>> createDeleteColumnAction() {
@@ -356,7 +387,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
         if (noSelectedItemsWarn(getPageBase(), target, toDelete)) {return;}
-        toDelete.forEach(MultiSelectContainerActionTileTablePanel::resolveDeletedItem);
+        toDelete.forEach(this::resolveDeletedItem);
         refreshAndDetach(target);
     }
 
@@ -371,9 +402,9 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return false;
     }
 
-    protected static <C extends Containerable> void resolveDeletedItem(@NotNull PrismContainerValueWrapper<C> value) {
+    protected void resolveDeletedItem(@NotNull PrismContainerValueWrapper<C> value) {
         if (value.getStatus() == ValueStatus.ADDED) {
-            IModel<PrismContainerWrapper<C>> containerModel = getContainerModel(value, null);
+            IModel<PrismContainerWrapper<C>> containerModel = getContainerModel();
             PrismContainerWrapper<C> wrapper = containerModel.getObject();
             if (wrapper != null) {
                 wrapper.getValues().remove(value);
@@ -488,8 +519,9 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
     }
 
-    private @NotNull AjaxIconButton createSuggestObjectButton(String idButton) {
-        AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton, Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
+    @NotNull
+    protected AjaxIconButton createSuggestObjectButton(String idButton) {
+        AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton, Model.of("fa-solid fa-wand-magic-sparkles"),
                 createStringResource("SmartIntegration.suggestNew")) {
 
             @Serial private static final long serialVersionUID = 1L;
@@ -515,7 +547,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return suggestObjectButton;
     }
 
-    private @NotNull ToggleCheckBoxPanel createToggleSuggestionButton(String idButton, IModel<Boolean> switchToggleModel) {
+    @NotNull
+    protected ToggleCheckBoxPanel createToggleSuggestionButton(String idButton, IModel<Boolean> switchToggleModel) {
         ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton,
                 switchToggleModel) {
             @Override
@@ -570,10 +603,15 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         super.refresh(target);
     }
 
+
     @Contract("_, _ -> new")
-    public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> getContainerModel(PrismContainerValueWrapper<C> value, ItemPath path) {
-        return PrismContainerWrapperModel.fromContainerValueWrapper(Model.of(value), path);
+    public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> getContainerModel(PrismContainerWrapper<C> value, ItemPath path) {
+        return PrismContainerWrapperModel.fromContainerWrapper(Model.of(value), path);
     }
+
+    protected IModel<PrismContainerWrapper<C>> getContainerModel(){
+        return null;
+    };
 
     @Override
     protected String getAdditionalTableCssClasses() {

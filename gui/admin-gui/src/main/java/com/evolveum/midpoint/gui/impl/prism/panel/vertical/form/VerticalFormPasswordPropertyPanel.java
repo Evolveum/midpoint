@@ -10,13 +10,18 @@ import com.evolveum.midpoint.gui.api.component.password.ProtectedStringPropertyP
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by honchar
@@ -38,6 +43,19 @@ public class VerticalFormPasswordPropertyPanel extends ProtectedStringPropertyPa
                 target.add(VerticalFormPasswordPropertyPanel.this);
             }
         };
+    }
+
+    @Override
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item) {
+        PrismPropertyValuePanel<ProtectedStringType> panel = new VerticalFormPrismPropertyValuePanel<>(ID_VALUE, item.getModel(), getSettings()) {
+
+            @Override
+            protected boolean isRemoveButtonVisible() {
+                return false;
+            }
+        };
+        item.add(panel);
+        return panel;
     }
 
     @Override

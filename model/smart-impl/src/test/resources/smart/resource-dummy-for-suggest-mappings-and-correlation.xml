@@ -43,5 +43,15 @@
                 <type>UserType</type>
             </focus>
         </objectType>
+        <objectType>
+            <kind>generic</kind>
+            <intent>organizationalUnit</intent>
+            <delineation>
+                <objectClass>ri:organizationalUnit</objectClass>
+            </delineation>
+            <focus>
+                <type>OrgType</type>
+            </focus>
+        </objectType>
     </schemaHandling>
 </resource>

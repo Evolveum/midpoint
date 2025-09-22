@@ -1764,6 +1764,19 @@ public final class WebComponentUtil {
         return list;
     }
 
+    public static List<QName> getAttributeApplicableMatchingRuleList() {
+        List<QName> list = new ArrayList<>();
+
+        list.add(PrismConstants.DEFAULT_MATCHING_RULE_NAME);
+        list.add(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
+         list.add(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME);
+        list.add(PrismConstants.EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME);
+        list.add(PrismConstants.UUID_MATCHING_RULE_NAME);
+        list.add(PrismConstants.XML_MATCHING_RULE_NAME);
+
+        return list;
+    }
+
     public static String createHumanReadableByteCount(long bytes) {
         int unit = 1024;
         if (bytes < unit) {return bytes + "B";}
@@ -1851,6 +1864,12 @@ public final class WebComponentUtil {
             panelIdentifier = panelIdentifierParam.toString();
         }
         return panelIdentifier;
+    }
+
+    @NotNull
+    public static TabbedPanel<ITab> createTabPanel(
+            String id, final PageBase parentPage, final List<ITab> tabs) {
+        return createTabPanel(id, parentPage, tabs, null, null);
     }
 
     @NotNull

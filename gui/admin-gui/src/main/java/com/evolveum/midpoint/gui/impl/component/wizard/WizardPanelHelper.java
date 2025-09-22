@@ -7,10 +7,13 @@
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -26,32 +29,33 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-public abstract class WizardPanelHelper<C extends Containerable, AHD extends AssignmentHolderDetailsModel> implements Serializable {
+public abstract class WizardPanelHelper<C extends Containerable, AHDM extends AssignmentHolderDetailsModel> implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(WizardPanelHelper.class);
 
     private IModel<PrismContainerValueWrapper<C>> valueModel;
+    private Map<String, String> variables = new HashMap<>();
 
-    private AHD detailsModel;
+    private AHDM detailsModel;
     private IModel<String> exitLabel;
 
     public WizardPanelHelper(
-            @NotNull AHD resourceModel) {
+            @NotNull AHDM resourceModel) {
         this.detailsModel = resourceModel;
     }
 
     public WizardPanelHelper(
-            @NotNull AHD resourceModel,
+            @NotNull AHDM resourceModel,
             IModel<PrismContainerValueWrapper<C>> valueModel) {
         this.detailsModel = resourceModel;
         this.valueModel = valueModel;
     }
 
-    public AHD getDetailsModel() {
+    public AHDM getDetailsModel() {
         return detailsModel;
     }
 
-    public final void updateDetailsModel(AHD newModel) {
+    public final void updateDetailsModel(AHDM newModel) {
         this.detailsModel = newModel;
     }
 
@@ -146,5 +150,19 @@ public abstract class WizardPanelHelper<C extends Containerable, AHD extends Ass
 
     public IModel<String> getExitLabel() {
         return exitLabel;
+    }
+
+    public void putVariable(String key, String variable) {
+        variables.put(key, variable);
+    }
+
+    public String getVariable(String key) {
+        return variables.get(key);
+    }
+
+    public void removeVariable(String key) {
+        if (variables.containsKey(key)) {
+            variables.remove(key);
+        }
     }
 }
