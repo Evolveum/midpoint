@@ -1126,8 +1126,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .applicationAttribute(asStringSimple(Account.AttributeNames.PHONE.path()))
                                 .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
                         // No mapping for status -> activation, as non-attribute mappings are not supported yet
-                new SiSuggestMappingResponseType().transformationScript(null),
-                new SiSuggestMappingResponseType().transformationScript(null),
+                // icfs:name -> name and ri:fullName -> fullName are as-is, LLM microservice should not be called
                 new SiSuggestMappingResponseType().transformationScript("if (input == 'e') { 'employee' } else if (input == 'c') { 'contractor' } else { null }"),
                 new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")
         );
