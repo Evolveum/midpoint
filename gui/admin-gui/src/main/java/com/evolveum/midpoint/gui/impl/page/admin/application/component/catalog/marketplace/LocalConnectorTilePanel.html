@@ -1,0 +1,24 @@
+<!--
+  ~  Copyright (c) 2025 Evolveum
+  ~
+  ~  This work is dual-licensed under the Apache License 2.0
+  ~  and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="bg-gray-light rounded-circle text-center lh-1 h4 p-3" style="width: 3.5rem; height: 3.5rem;">
+        <i aria-hidden="true" class="text-lightblue" wicket:id="icon"></i>
+    </div>
+    <div wicket:id="title" class="h6 text-bold text-break" />
+    <div wicket:id="description" class="mp-local-connector-tile__description" />
+    <button wicket:id="moreDetails" class="mp-local-connector-tile__link btn btn-link pl-0" href="#">
+        <wicket:message key="LocalConnectorTilePanel.moreDetails">More Details</wicket:message>
+        <i aria-hidden="true" class="fa-solid fa-arrow-right ml-2"></i>
+    </button>
+    <button wicket:id="addApplication" class="btn btn-outline-secondary d-flex flex-row justify-content-center align-items-center w-100 gap-2 mt-auto">
+        <i aria-hidden="true" class="fa-solid fa-plus"></i>
+        <wicket:message key="LocalConnectorTilePanel.addApplication">Add Application</wicket:message>
+    </button>
+</wicket:panel>
+</html>

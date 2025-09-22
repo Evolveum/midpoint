@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.application.component.ApplicationSummaryPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.application.component.wizard.ApplicationWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.application.component.catalog.IntegrationCatalogPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -64,7 +64,7 @@ public class PageApplication extends PageAbstractRole<ApplicationType, AbstractR
         return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageApplication.this) {
             @Override
             protected void initFragmentLayout() {
-                add(new ApplicationWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper()));
+                add(new IntegrationCatalogPanel(ID_TEMPLATE));
             }
         };
     }

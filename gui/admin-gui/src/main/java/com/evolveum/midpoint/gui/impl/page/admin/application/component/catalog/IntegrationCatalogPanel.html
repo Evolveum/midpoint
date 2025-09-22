@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="row mb-3">
+        <div class="col align-items-center">
+            <h1><wicket:message key="IntegrationCatalog.title" /></h1>
+        </div>
+        <div class="col d-flex flex-row justify-content-end align-items-center">
+            <button wicket:id="createWithAIBtn" class="btn btn-primary">
+                <i aria-hidden="true" class="fa-regular fa-stars mr-1"></i>
+                <wicket:message key="IntegrationCatalog.createWithAI"/>
+            </button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xl-3">
+            <div wicket:id="filter" />
+        </div>
+        <div class="col-xl-9">
+            <div wicket:id="catalog" />
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>
