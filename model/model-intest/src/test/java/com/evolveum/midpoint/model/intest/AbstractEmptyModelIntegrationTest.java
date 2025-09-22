@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNE
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.axiom.concepts.CheckedSupplier;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
@@ -142,6 +144,17 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
     protected <T> T waitForFinish(
             CheckedSupplier<StatusInfo<T>, CommonException> statusInformationSupplier,
             long timeout) throws CommonException {
+        return waitForFinish(
+                statusInformationSupplier,
+                new WaitForFinishOptions(
+                        List.of(OperationResultStatusType.SUCCESS),
+                        timeout));
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected <T> T waitForFinish(
+            CheckedSupplier<StatusInfo<T>, CommonException> statusInformationSupplier,
+            WaitForFinishOptions options) throws CommonException {
 
         var checker = new Checker() {
 
@@ -160,10 +173,14 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
             }
         };
 
-        IntegrationTestTools.waitFor("Waiting for the operation to finish", checker, timeout, 500);
-        if (checker.lastStatusInformation.getStatus() != OperationResultStatusType.SUCCESS) {
-            fail("Operation did not finish successfully. Last status: " + checker.lastStatusInformation);
+        IntegrationTestTools.waitFor("Waiting for the operation to finish", checker, options.timeout, 500);
+        if (!options.expectedStatuses.contains(checker.lastStatusInformation.getStatus())) {
+            fail("Operation did not finish as expected. Last status: %s, expected: %s".formatted(
+                    checker.lastStatusInformation, options.expectedStatuses));
         }
         return checker.lastStatusInformation.getResult();
+    }
+
+    protected record WaitForFinishOptions(Collection<OperationResultStatusType> expectedStatuses, long timeout) {
     }
 }

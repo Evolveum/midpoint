@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -152,14 +153,24 @@ class MappingsSuggestionOperation {
                 var op = mappingsSuggestionState.recordProcessingStart(m.shadowAttrDescPath.asString());
                 mappingsSuggestionState.flush(result);
                 var pairs = getValuesPairs(m, ownedShadows);
-                suggestion.getAttributeMappings().add(
-                        suggestMapping(
-                                m.shadowAttrDescPath,
-                                m.shadowAttrDef,
-                                m.focusPropDescPath,
-                                m.focusPropDef,
-                                pairs));
-                mappingsSuggestionState.recordProcessingEnd(op);
+                try {
+                    suggestion.getAttributeMappings().add(
+                            suggestMapping(
+                                    m.shadowAttrDescPath,
+                                    m.shadowAttrDef,
+                                    m.focusPropDescPath,
+                                    m.focusPropDef,
+                                    pairs));
+                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
+                } catch (Throwable t) {
+                    // TODO Shouldn't we create an unfinished mapping with just error info?
+                    LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", t, m.shadowAttrDescPath);
+                    mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.FAILURE);
+
+                    // Normally, the activity framework makes sure that the activity result status is computed properly at the end.
+                    // But this is a special case where we must do that ourselves.
+                    mappingsSuggestionState.setResultStatus(OperationResultStatus.PARTIAL_ERROR);
+                }
                 ctx.checkIfCanRun();
             }
             return suggestion;

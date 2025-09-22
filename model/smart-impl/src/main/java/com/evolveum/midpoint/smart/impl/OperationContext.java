@@ -139,6 +139,17 @@ class OperationContext {
             }
         }
 
+        void setResultStatus(OperationResultStatus status) {
+            if (activityState == null) {
+                return;
+            }
+            try {
+                activityState.setResultStatus(status);
+            } catch (ActivityRunException e) {
+                throw SystemException.unexpected(e);
+            }
+        }
+
         public void close(OperationResult result) {
             if (activityState == null) {
                 return;
@@ -205,7 +216,7 @@ class OperationContext {
             }
         }
 
-        void recordProcessingEnd(com.evolveum.midpoint.schema.statistics.Operation op) {
+        void recordProcessingEnd(com.evolveum.midpoint.schema.statistics.Operation op, ItemProcessingOutcomeType outcome) {
             if (op == null || activityState == null) {
                 return;
             }
@@ -213,7 +224,7 @@ class OperationContext {
             try {
                 activityState.getLiveProgress().increment(
                         new QualifiedItemProcessingOutcomeType()
-                                .outcome(ItemProcessingOutcomeType.SUCCESS),
+                                .outcome(outcome),
                         ActivityProgress.Counters.COMMITTED);
                 activityState.updateProgressAndStatisticsNoCommit();
             } catch (ActivityRunException e) {
