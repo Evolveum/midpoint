@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.TaskService;
@@ -723,11 +724,27 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         resultingList.sort(
                 Comparator
                         .comparing(
-                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationEndTimestamp()),
+                                (StatusInfo<?> info) -> toMillisSafe(info.getRealizationEndTimestamp()),
                                 Comparator.nullsFirst(Comparator.reverseOrder()))
                         .thenComparing(
-                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationStartTimestamp()),
-                                Comparator.reverseOrder()));
+                                (StatusInfo<?> info) -> toMillisSafe(info.getRealizationStartTimestamp()),
+                                Comparator.nullsLast(Comparator.reverseOrder())));
+    }
+
+    /**
+     * Safely converts {@link XMLGregorianCalendar} to epoch millis for sorting.
+     * Needed because tasks may have null or incomplete timestamps while running,
+     * which can cause {@link NullPointerException} in XmlTypeConverter.
+     *
+     * @return millis or {@code null} if not available
+     */
+    private static Long toMillisSafe(@Nullable XMLGregorianCalendar ts) {
+        if (ts == null) {
+            return null;
+        }
+        return ts.toGregorianCalendar() != null
+                ? ts.toGregorianCalendar().getTimeInMillis()
+                : null;
     }
 
     private static ObjectQuery queryForActivityType(String resourceOid, ItemName activityType) {

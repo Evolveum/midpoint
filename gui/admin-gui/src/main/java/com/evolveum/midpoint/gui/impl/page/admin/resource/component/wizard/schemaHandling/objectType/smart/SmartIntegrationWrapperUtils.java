@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
@@ -39,35 +38,27 @@ public class SmartIntegrationWrapperUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationWrapperUtils.class);
 
-    public static @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> createResourceObjectTypeDefinitionWrapper(
-            @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> value,
-            @NotNull LoadableModel<PrismObjectWrapper<ResourceType>> objectWrapperModel) {
-        WebPrismUtil.cleanupEmptyContainerValue(value);
+    public static <C extends Containerable> @NotNull PrismContainerValue<C> processSuggestedContainerValue(
+            @NotNull PrismContainerValue<C> container,
+            @NotNull PrismContainer<C> parent) {
+        PrismContainerValue<C> value = PrismValueCollectionsUtil.cloneCollectionComplex(
+                        CloneStrategy.REUSE,
+                        Collections.singletonList(container))
+                .iterator().next();
+        value.setParent(parent);
+        // TODO: Be careful here! (need refactoring)
+// 1. If <schemaHandling/> is not present in the resource, calling parent.getValues().add(value)
+//    implicitly creates a new <schemaHandling/> block in Prism.
+// 2. This forces MidPoint to generate an ADD delta not only for <schemaHandling/>,
+//    but also for the newly added <objectType/>.
+// 3. As a result, we can end up with *two* "new" items in the container, which breaks validation
+//    (e.g. duplicate check reports value already exists).
+// 4. Another side effect: when the user just clicks "Review" and then exits the wizard,
+//    these generated deltas are already stored on the object, even though the user
+//    never confirmed the change explicitly.
 
-        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createObjectTypeContainerModel(objectWrapperModel);
-
-        if (containerModel.getObject() == null || containerModel.getObject().getItem() == null) {
-            throw new IllegalStateException("Couldn't find object type definition container.");
-        }
-
-        PrismContainer<ResourceObjectTypeDefinitionType> container = containerModel.getObject().getItem();
-
-        try {
-            value.setParent(container);
-            if (!container.getValues().contains(value)) {
-                container.add(value);
-            }
-        } catch (SchemaException e) {
-            throw new RuntimeException("Couldn't add new value to the container.", e);
-        }
-
-        return containerModel;
-    }
-
-    public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> createObjectTypeContainerModel(
-            @NotNull LoadableModel<PrismObjectWrapper<ResourceType>> objectWrapperModel) {
-        ItemPath itemPath = ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE);
-        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel, itemPath);
+        parent.getValues().add(value);
+        return value;
     }
 
     /**
