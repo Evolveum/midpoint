@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -17,12 +18,15 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -40,6 +44,8 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+
+import org.apache.wicket.model.Model;
 
 /**
  * @author lskublik
@@ -95,7 +101,7 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
         getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
-        getSubmit().add(AttributeAppender.replace("class", "btn btn-primary"));
+
 
                 ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
@@ -190,18 +196,12 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
 
     @Override
     protected boolean isSubmitVisible() {
-        return true;
+        return false;
     }
 
     @Override
-    protected IModel<String> getSubmitLabelModel() {
-        return createStringResource("EndpointConnectorStepPanel.submit");
-    }
-
-    @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        super.onSubmitPerformed(target);
-        super.onNextPerformed(target);
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 
     @Override
@@ -214,5 +214,21 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
             target.add(getFeedback());
         }
         return false;
+    }
+
+    @Override
+    protected void initCustomButtons(RepeatingView customButtons) {
+        AjaxIconButton testResource = new AjaxIconButton(
+                customButtons.newChildId(),
+                Model.of("fa fa-tower-broadcast "),
+                getPageBase().createStringResource("EndpointConnectorStepPanel.submit")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onNextPerformed(target);
+            }
+        };
+        testResource.showTitleAsLabel(true);
+        testResource.add(AttributeAppender.append("class", "btn-primary"));
+        customButtons.add(testResource);
     }
 }

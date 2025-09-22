@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
@@ -27,7 +28,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtif
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.io.IOException;
@@ -89,6 +92,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+        getSubmit().add(AttributeAppender.replace("class", "btn btn-primary"));
 
         SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(
                 ID_PANEL, new PropertyModel<>(valueModel, ConnDevArtifactType.F_CONTENT.getLocalPart()), 450) {
@@ -123,7 +127,18 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     @Override
     protected boolean isSubmitVisible() {
-        return false;
+        return true;
+    }
+
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        return createStringResource("ScriptConnectorStepPanel.submit");
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
+        super.onNextPerformed(target);
     }
 
     @Override

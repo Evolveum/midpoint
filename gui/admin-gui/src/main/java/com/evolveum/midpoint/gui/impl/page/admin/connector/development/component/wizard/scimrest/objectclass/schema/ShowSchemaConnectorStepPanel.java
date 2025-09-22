@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismContainerDefinit
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
 
 import org.apache.commons.lang3.Strings;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
@@ -80,6 +81,7 @@ public class ShowSchemaConnectorStepPanel extends AbstractWizardStepPanel<Connec
         getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+        getSubmit().add(AttributeAppender.replace("class", "btn btn-primary"));
 
         ResourceDetailsModel resourceDetailsModel;
 
@@ -163,7 +165,7 @@ public class ShowSchemaConnectorStepPanel extends AbstractWizardStepPanel<Connec
 
     @Override
     protected boolean isSubmitVisible() {
-        return false;
+        return true;
     }
 
     @Override
@@ -187,12 +189,18 @@ public class ShowSchemaConnectorStepPanel extends AbstractWizardStepPanel<Connec
     }
 
     @Override
-    protected boolean isSubmitEnable() {
-        return false;
+    public String getStepId() {
+        return PANEL_TYPE;
     }
 
     @Override
-    public String getStepId() {
-        return PANEL_TYPE;
+    protected IModel<String> getSubmitLabelModel() {
+        return createStringResource("ShowSchemaConnectorStepPanel.submit");
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
+        onNextPerformed(target);
     }
 }

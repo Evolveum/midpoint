@@ -8,6 +8,17 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
+    <div class="alert alert-info d-flex flex-row mb-3 w-100 px-2">
+            <span>
+                <i class="fa fa fa-info-circle fa-sm p-2"/>
+            </span>
+        <div class="font-weight-bold pr-1">
+            <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.title"/>
+        </div>
+        <div>
+            <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.description"/>
+        </div>
+    </div>
     <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
@@ -17,8 +28,8 @@
         </div>
         <a class="ml-auto btn btn-default rounded-0" wicket:id="moreObjectClassesButton"/>
     </div>
-    <div class="d-flex flex-wrap gap-2" wicket:id="radioGroup">
-        <div class="d-flex flex-row flex-fill card p-2" wicket:id="panel">
+    <div class="d-flex flex-wrap gap-2 w-100" wicket:id="radioGroup">
+        <div class="d-flex flex-row flex-fill card mb-0 p-2" wicket:id="panel">
             <div class="h-100 m-auto pr-3">
                 <input wicket:id="radio" type="radio"/>
             </div>

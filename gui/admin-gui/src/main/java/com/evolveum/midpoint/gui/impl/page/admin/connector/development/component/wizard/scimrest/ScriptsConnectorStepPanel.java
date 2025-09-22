@@ -102,6 +102,7 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
         getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+        getSubmit().add(AttributeAppender.replace("class", "btn btn-primary"));
 
         TabbedPanel<ITab> panel = WebComponentUtil.createTabPanel(ID_PANEL, getPageBase(), createScriptsTabs());
         panel.setOutputMarkupId(true);
@@ -151,7 +152,18 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
 
     @Override
     protected boolean isSubmitVisible() {
-        return false;
+        return true;
+    }
+
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        return createStringResource("ScriptConnectorStepPanel.submit");
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
+        onNextPerformed(target);
     }
 
     @Override
@@ -187,7 +199,6 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
     }
 
     protected void onAfterSave(AjaxRequestTarget target) {
-
     }
 
     protected abstract void saveScript(ConnDevArtifactType object, Task task, OperationResult result) throws IOException, CommonException;
