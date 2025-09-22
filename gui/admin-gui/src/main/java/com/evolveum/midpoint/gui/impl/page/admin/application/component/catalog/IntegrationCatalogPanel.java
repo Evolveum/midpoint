@@ -7,21 +7,27 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.application.component.catalog.filter.CatalogFilterPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.application.component.catalog.marketplace.LocalConnectorCatalogPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.application.component.catalog.marketplace.LocalConnectorTilePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundAttributeMappingsTable;
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 
 import com.evolveum.midpoint.web.component.TabCenterTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -29,8 +35,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class IntegrationCatalogPanel extends BasePanel {
-    enum Tab {}
-    private static final String INBOUND_PANEL_TYPE = "rw-attribute-inbounds";
+    private static final Trace LOGGER = TraceManager.getTrace(LocalConnectorTilePanel.class);
 
     public IntegrationCatalogPanel(String id) {
         super(id);
@@ -40,22 +45,27 @@ public class IntegrationCatalogPanel extends BasePanel {
     protected void onInitialize() {
         super.onInitialize();
 
-
         add(new CatalogFilterPanel("filter"));
         add(new AjaxButton("createWithAIBtn") {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
+                LOGGER.trace("Clicked: createWithAIBtn");
             }
         });
-
+        add(new AjaxButton("feedbackButton") {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                LOGGER.trace("Clicked: feedbackButton");
+            }
+        });
         add(createTabbedPanel());
     }
 
     private TabCenterTabbedPanel<ITab> createTabbedPanel() {
-        List<ITab> tabs = List.of(createLocalConnectorsTab(), createIntegrationCatalogTab());
+        List<ITab> tabs = List.of(createIntegrationCatalogTab(), createLocalConnectorsTab());
         TabCenterTabbedPanel<ITab> tabPanel = new TabCenterTabbedPanel<>("catalog", tabs) {};
         tabPanel.setOutputMarkupId(true);
+        tabPanel.setSelectedTab(1); // TODO mělo by si to asi pamatovat, nebo ovodit z URL
         return tabPanel;
     }
 
@@ -63,7 +73,26 @@ public class IntegrationCatalogPanel extends BasePanel {
         return new PanelTab(getPageBase().createStringResource("IntegrationCatalog.tabs.localConnectors")) {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new LocalConnectorCatalogPanel(panelId);
+                return new LocalConnectorCatalogPanel(panelId) {
+                    @Override
+                    protected WebMarkupContainer createFooter(String id) {
+                        Fragment footerFragment = new Fragment(id, "footerFragment", IntegrationCatalogPanel.this);
+                        footerFragment.add(new AjaxLinkPanel("requestConnectorLink", Model.of()) {
+                            @Override
+                            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                                LOGGER.trace("Clicked: requestConnectorLink");
+                            }
+                        });
+                        footerFragment.add(new AjaxLinkPanel("importConnectorLink", Model.of()) {
+                            @Override
+                            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                                LOGGER.trace("Clicked: importConnectorLink");
+                            }
+                        });
+                        // customFooter.add(new Label("customFooterContent", "Toto je můj obsah pod tabulkou, který ale nevypadá podle představ."));
+                        return footerFragment;
+                    }
+                };
             }
         };
     }

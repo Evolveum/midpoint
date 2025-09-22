@@ -25,12 +25,12 @@ public class LocalConnectorTilePanel extends TemplateTilePanel<ConnectorType, Te
         super(id, model);
     }
 
-    public void onMoreDetailsClick() {
-        LOGGER.debug("More Details button clicked: " + getPath());
+    public void onMoreDetailsClick(AjaxRequestTarget target) {
+        LOGGER.trace("More Details button clicked: " + getPath());
     }
 
-    public void onAddApplicationClick() {
-        LOGGER.debug("Add Application button clicked: " + getPath());
+    public void onAddApplicationClick(AjaxRequestTarget target) {
+        LOGGER.trace("Add Application button clicked: " + getPath());
     }
 
     @Override
@@ -40,13 +40,13 @@ public class LocalConnectorTilePanel extends TemplateTilePanel<ConnectorType, Te
         add(new AjaxLink<Void>("moreDetails") {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                LocalConnectorTilePanel.this.onMoreDetailsClick();
+                LocalConnectorTilePanel.this.onMoreDetailsClick(target);
             }
         });
         add(new AjaxLink<Void>("addApplication") {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                LocalConnectorTilePanel.this.onAddApplicationClick();
+                LocalConnectorTilePanel.this.onAddApplicationClick(target);
             }
         });
     }

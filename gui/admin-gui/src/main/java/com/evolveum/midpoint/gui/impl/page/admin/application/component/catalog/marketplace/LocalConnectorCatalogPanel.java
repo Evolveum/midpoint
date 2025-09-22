@@ -15,17 +15,19 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PersonOfInterestPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -39,7 +41,7 @@ import java.util.*;
 
 // Proč je druhý typový parametr TemplateTile<ConnectorType> a ne ConnectorType
 // Když tam dám ConnectorType, typově to sedí, ale selže cast v TileTablePanel.createTile
-public class LocalConnectorCatalogPanel extends BasePanel<Void> {
+public abstract class LocalConnectorCatalogPanel extends BasePanel<Void> {
     @Serial private static final long serialVersionUID = 8850627686387495224L;
     private static final Trace LOGGER = TraceManager.getTrace(LocalConnectorCatalogPanel.class);
 
@@ -50,6 +52,8 @@ public class LocalConnectorCatalogPanel extends BasePanel<Void> {
         super(id);
         setOutputMarkupId(true);
     }
+
+    abstract protected WebMarkupContainer createFooter(String id);
 
     @Override
     protected void onInitialize() {
@@ -65,6 +69,18 @@ public class LocalConnectorCatalogPanel extends BasePanel<Void> {
         add(new Label("searchState", Model.of(createStringResource("IntegrationCatalog.counterStatus", 10))));
         add(new WebMarkupContainer("viewToggle"));
         add(createTileTablePanel("tilesTable"));
+        add(new AjaxButton("req") {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                LOGGER.trace("Button createWithAIBtn clicked");
+            }
+        });
+        add(new AjaxButton("createWithAIBtn") {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                LOGGER.trace("Button createWithAIBtn clicked");
+            }
+        });
     }
 
     protected TileTablePanel<TemplateTile<ConnectorType>, TemplateTile<ConnectorType>> createTileTablePanel(String id) {
@@ -73,6 +89,11 @@ public class LocalConnectorCatalogPanel extends BasePanel<Void> {
             protected void onInitialize() {
                 super.onInitialize();
                 getTable().setShowAsCard(false);
+            }
+
+            @Override
+            protected WebMarkupContainer createTilesButtonToolbar(String id) {
+                return createFooter(id);
             }
 
             @Override
@@ -107,7 +128,7 @@ public class LocalConnectorCatalogPanel extends BasePanel<Void> {
                                 item.add(new AjaxLinkPanel(id, createStringResource("LocalConnectorTilePanel.addApplication")) {
                                     @Override
                                     public void onClick(AjaxRequestTarget target) {
-                                        // Add Application
+                                        LocalConnectorCatalogPanel.this.onAddApplication(target);
                                     }
                                 });
                             }
@@ -128,13 +149,14 @@ public class LocalConnectorCatalogPanel extends BasePanel<Void> {
             protected Component createTile(String id, IModel<TemplateTile<ConnectorType>> model) {
                 return new LocalConnectorTilePanel(id, model) {
                     @Override
-                    public void onMoreDetailsClick() {
-                        super.onMoreDetailsClick();
+                    public void onMoreDetailsClick(AjaxRequestTarget target) {
+                        super.onMoreDetailsClick(target);
                     }
 
                     @Override
-                    public void onAddApplicationClick() {
-                        super.onAddApplicationClick();
+                    public void onAddApplicationClick(AjaxRequestTarget target) {
+                        super.onAddApplicationClick(target);
+                        LocalConnectorCatalogPanel.this.onAddApplication(target);
                     }
                 };
             }
@@ -228,5 +250,16 @@ public class LocalConnectorCatalogPanel extends BasePanel<Void> {
                 }
             }
         };
+    }
+
+    private void onAddApplication(AjaxRequestTarget target) {
+        var page = getPageBase();
+        ConfirmationPanel dialog = new ConfirmationPanel(
+                page.getMainPopupBodyId(),
+                createStringResource("PersonOfInterestPanel.confirmShoppingCartDataRecalculation")
+        ) {
+
+        };
+        page.showMainPopup(dialog, target);
     }
 }
