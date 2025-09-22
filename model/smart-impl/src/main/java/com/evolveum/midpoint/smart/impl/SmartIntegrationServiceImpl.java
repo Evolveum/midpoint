@@ -724,27 +724,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         resultingList.sort(
                 Comparator
                         .comparing(
-                                (StatusInfo<?> info) -> toMillisSafe(info.getRealizationEndTimestamp()),
+                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationEndTimestamp()),
                                 Comparator.nullsFirst(Comparator.reverseOrder()))
                         .thenComparing(
-                                (StatusInfo<?> info) -> toMillisSafe(info.getRealizationStartTimestamp()),
-                                Comparator.nullsLast(Comparator.reverseOrder())));
-    }
-
-    /**
-     * Safely converts {@link XMLGregorianCalendar} to epoch millis for sorting.
-     * Needed because tasks may have null or incomplete timestamps while running,
-     * which can cause {@link NullPointerException} in XmlTypeConverter.
-     *
-     * @return millis or {@code null} if not available
-     */
-    private static Long toMillisSafe(@Nullable XMLGregorianCalendar ts) {
-        if (ts == null) {
-            return null;
-        }
-        return ts.toGregorianCalendar() != null
-                ? ts.toGregorianCalendar().getTimeInMillis()
-                : null;
+                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationStartTimestamp()),
+                                Comparator.nullsFirst(Comparator.reverseOrder())));
     }
 
     private static ObjectQuery queryForActivityType(String resourceOid, ItemName activityType) {
