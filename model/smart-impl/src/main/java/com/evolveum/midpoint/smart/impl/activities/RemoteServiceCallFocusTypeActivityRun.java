@@ -7,24 +7,21 @@
 
 package com.evolveum.midpoint.smart.impl.activities;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
 
 class RemoteServiceCallFocusTypeActivityRun
         extends LocalActivityRun<
@@ -49,15 +46,20 @@ class RemoteServiceCallFocusTypeActivityRun
         var suggestedObjectTypesClone = parentState.getWorkStateItemRealValueClone(
                 ObjectTypesSuggestionWorkStateType.F_RESULT, ObjectTypesSuggestionType.class);
 
-        for (var objectType : suggestedObjectTypesClone.getObjectType()) {
+        for (var objectTypeBean : suggestedObjectTypesClone.getObjectType()) {
             LOGGER.debug("Going to suggest focus type for resource {} and object type:\n{}",
-                    resourceOid, objectType.debugDumpLazily(1));
-            var focusType =
-                    SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(resourceOid, objectType, task, result);
-            objectType.setFocus(
-                    new ResourceObjectFocusSpecificationType()
-                            .type(focusType.getFocusType())
-            );
+                    resourceOid, objectTypeBean.debugDumpLazily(1));
+            try {
+                var focusType =
+                        SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(resourceOid, objectTypeBean, task, result);
+                objectTypeBean.setFocus(
+                        new ResourceObjectFocusSpecificationType()
+                                .type(focusType.getFocusType()));
+            } catch (Exception e) {
+                LoggingUtils.logException(LOGGER, "Couldn't determine focus type for resource {} and object type {}",
+                        e, resourceOid, ResourceObjectTypeIdentification.of(objectTypeBean));
+                // TODO report the error somehow (probably after making this activity iterative)
+            }
         }
         parentState.setWorkStateItemRealValues(ObjectTypesSuggestionWorkStateType.F_RESULT, suggestedObjectTypesClone);
         parentState.flushPendingTaskModifications(result);

@@ -188,6 +188,57 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                 });
     }
 
+    /** Tests the "suggest object types" operation, with an error returning by one of the "suggest focus type" sub-operations. */
+    @Test
+    public void test110SuggestObjectTypesWithError() throws CommonException {
+        skipIfRealService();
+        //noinspection resource
+        var serviceClient = new MockServiceClientImpl(
+                new SiSuggestObjectTypesResponseType()
+                        .objectType(new SiSuggestedObjectTypeType()
+                                .kind("account")
+                                .intent("abc")
+                                .filter("attributes/ri:type = 'abc'"))
+                        .objectType(new SiSuggestedObjectTypeType()
+                                .kind("account")
+                                .intent("def")
+                                .filter("attributes/ri:type = 'def'")),
+                new RuntimeException("LLM went crazy here"),
+                new SiSuggestFocusTypeResponseType()
+                        .focusTypeName(UserType.COMPLEX_TYPE));
+        smartIntegrationService.setServiceClientSupplier(() -> serviceClient);
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("submitting 'suggest object types' operation request");
+        var token = smartIntegrationService.submitSuggestObjectTypesOperation(
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, task, result);
+
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestObjectTypesOperationStatus(token, task, result),
+                TIMEOUT);
+
+        then("there are two object types");
+        displayDumpable("response", response);
+        assertThat(response).isNotNull();
+        assertThat(response.getObjectType()).as("suggested object types collection").hasSize(2);
+
+        and("first has no focus type (because of the error)");
+        var first = response.getObjectType().get(0); // quite brittle (order is not guaranteed), but should be OK for now
+        assertThat(first.getIntent()).isEqualTo("abc");
+        assertThat(first.getFocus()).isNull();
+
+        and("second has correct focus type");
+        var second = response.getObjectType().get(1);
+        assertThat(second.getIntent()).isEqualTo("def");
+        assertThat(second.getFocus().getType()).isEqualTo(UserType.COMPLEX_TYPE);
+    }
+
     /** Tests the "suggest focus type" method. */
     @Test
     public void test150SuggestFocusType() throws CommonException {

@@ -17,10 +17,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -169,7 +167,8 @@ class MappingsSuggestionOperation {
 
                     // Normally, the activity framework makes sure that the activity result status is computed properly at the end.
                     // But this is a special case where we must do that ourselves.
-                    mappingsSuggestionState.setResultStatus(OperationResultStatus.PARTIAL_ERROR);
+                    // FIXME temporarily disabled, as GUI cannot deal with it anyway
+                    //mappingsSuggestionState.setResultStatus(OperationResultStatus.PARTIAL_ERROR);
                 }
                 ctx.checkIfCanRun();
             }
@@ -246,37 +245,34 @@ class MappingsSuggestionOperation {
             PrismPropertyDefinition<?> propertyDef,
             Collection<ValuesPair> valuesPairs) throws SchemaException {
 
-        String transformationScript;
-        if (!valuesPairs.isEmpty() && isTransformationNeeded(valuesPairs, propertyDef)) {
-            var applicationAttrDefBean = new SiAttributeDefinitionType()
-                    .name(shadowAttrPath.asString())
-                    .type(getTypeName(attrDef))
-                    .minOccurs(attrDef.getMinOccurs())
-                    .maxOccurs(attrDef.getMaxOccurs());
-            var midPointPropertyDefBean = new SiAttributeDefinitionType()
-                    .name(focusPropPath.asString())
-                    .type(getTypeName(propertyDef))
-                    .minOccurs(propertyDef.getMinOccurs())
-                    .maxOccurs(propertyDef.getMaxOccurs());
-            var siRequest = new SiSuggestMappingRequestType()
-                    .applicationAttribute(applicationAttrDefBean)
-                    .midPointAttribute(midPointPropertyDefBean)
-                    .inbound(true);
-            valuesPairs.forEach(pair ->
-                    siRequest.getExample().add(
-                            pair.toSiExample(
-                                    shadowAttrPath, focusPropPath)));
-            var siResponse = ctx.serviceClient.invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
-            transformationScript = siResponse.getTransformationScript();
+        LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
+                shadowAttrPath, focusPropPath, valuesPairs.size());
+
+        ExpressionType expression;
+        if (valuesPairs.isEmpty()) {
+            LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
+            expression = null;
+        } else if (doesAsIsSuffice(valuesPairs, propertyDef)) {
+            LOGGER.trace(" -> 'asIs' does suffice according to the data, so we'll use it (without calling LLM)");
+            expression = null;
+        } else if (isTargetDataMissing(valuesPairs)) {
+            LOGGER.trace(" -> target data missing; we assume they are probably not there yet, so 'asIs' is fine (no LLM call)");
+            expression = null;
         } else {
-            transformationScript = null; // no pairs, no transformation script
-        }
-        ExpressionType expression = StringUtils.isNotBlank(transformationScript) && !transformationScript.equals("input") ?
-                new ExpressionType()
+            LOGGER.trace(" -> going to ask LLM about mapping script");
+            var transformationScript = askMicroservice(shadowAttrPath, attrDef, focusPropPath, propertyDef, valuesPairs);
+            if (transformationScript == null || transformationScript.equals("input")) {
+                LOGGER.trace(" -> LLM returned '{}', using 'asIs'", transformationScript);
+                expression = null;
+            } else {
+                LOGGER.trace(" -> LLM returned a script, using it:\n{}", transformationScript);
+                expression = new ExpressionType()
                         .expressionEvaluator(
                                 new ObjectFactory().createScript(
-                                        new ScriptExpressionEvaluatorType().code(transformationScript))) :
-                null;
+                                        new ScriptExpressionEvaluatorType().code(transformationScript)));
+            }
+        }
+
         var suggestion = new AttributeMappingsSuggestionType()
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.getItemPath().rest().toBean()) // FIXME! what about activation, credentials, etc?
@@ -290,16 +286,42 @@ class MappingsSuggestionOperation {
         return suggestion;
     }
 
-    /**
-     * Returns {@code true} if a transformation script is needed to convert the values,
-     * i.e. the default "asIs" mapping is not enough.
-     */
-    private boolean isTransformationNeeded(Collection<ValuesPair> valuesPairs, PrismPropertyDefinition<?> propertyDef) {
+    private String askMicroservice(
+            DescriptiveItemPath shadowAttrPath,
+            ShadowSimpleAttributeDefinition<?> attrDef,
+            DescriptiveItemPath focusPropPath,
+            PrismPropertyDefinition<?> propertyDef,
+            Collection<ValuesPair> valuesPairs) throws SchemaException {
+        var applicationAttrDefBean = new SiAttributeDefinitionType()
+                .name(shadowAttrPath.asString())
+                .type(getTypeName(attrDef))
+                .minOccurs(attrDef.getMinOccurs())
+                .maxOccurs(attrDef.getMaxOccurs());
+        var midPointPropertyDefBean = new SiAttributeDefinitionType()
+                .name(focusPropPath.asString())
+                .type(getTypeName(propertyDef))
+                .minOccurs(propertyDef.getMinOccurs())
+                .maxOccurs(propertyDef.getMaxOccurs());
+        var siRequest = new SiSuggestMappingRequestType()
+                .applicationAttribute(applicationAttrDefBean)
+                .midPointAttribute(midPointPropertyDefBean)
+                .inbound(true);
+        valuesPairs.forEach(pair ->
+                siRequest.getExample().add(
+                        pair.toSiExample(
+                                shadowAttrPath, focusPropPath)));
+        return ctx.serviceClient
+                .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class)
+                .getTransformationScript();
+    }
+
+    /** Returns {@code true} if a simple "asIs" mapping is sufficient. */
+    private boolean doesAsIsSuffice(Collection<ValuesPair> valuesPairs, PrismPropertyDefinition<?> propertyDef) {
         for (var valuesPair : valuesPairs) {
             var shadowValues = valuesPair.shadowValues();
             var focusValues = valuesPair.focusValues();
             if (shadowValues.size() != focusValues.size()) {
-                return true;
+                return false;
             }
             var expectedFocusValues = new ArrayList<>(focusValues.size());
             for (Object shadowValue : shadowValues) {
@@ -312,17 +334,22 @@ class MappingsSuggestionOperation {
                     // We are OK with that (from performance point of view), because this is just a sample of values.
                     LOGGER.trace("Value conversion failed, assuming transformation is needed: {} (value: {})",
                             e.getMessage(), shadowValue); // no need to provide full stack trace here
-                    return true;
+                    return false;
                 }
                 if (converted != null) {
                     expectedFocusValues.add(converted);
                 }
             }
             if (!MiscUtil.unorderedCollectionEquals(focusValues, expectedFocusValues)) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
+    }
+
+    /** Returns {@code true} if there are no target data altogether. */
+    private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs) {
+        return valuesPairs.stream().allMatch(pair -> pair.focusValues().isEmpty());
     }
 
     private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
@@ -341,7 +368,7 @@ class MappingsSuggestionOperation {
         }
     }
 
-    record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
+    private record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
         private SiSuggestMappingExampleType toSiExample(
                 DescriptiveItemPath applicationAttrNameBean, DescriptiveItemPath midPointPropertyNameBean) {
             return new SiSuggestMappingExampleType()

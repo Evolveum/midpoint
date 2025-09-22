@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.smart.impl.conndev.activity;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -33,6 +35,7 @@ import javax.net.ssl.SSLContext;
 import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class ConnDevBeans {
@@ -44,6 +47,7 @@ public class ConnDevBeans {
     @Autowired public ConnectorInstallationService connectorService;
     @Autowired public ProvisioningService provisioningService;
     @Autowired public SystemObjectCache systemObjectCache;
+    @Autowired public MidpointConfiguration configuration;
     private CloseableHttpClient client;
 
     @PostConstruct
@@ -54,8 +58,15 @@ public class ConnDevBeans {
             trustAllContext = SSLContexts.custom()
                     .loadTrustMaterial(null, new TrustAllStrategy())
                     .build();
+            var timeout = 5000;
+            var defaultConfig = ConnectionConfig.custom()
+                    .setConnectTimeout(timeout, TimeUnit.MILLISECONDS)
+                    .setSocketTimeout(timeout, TimeUnit.MILLISECONDS)
+                    .build();
+
             client = HttpClients.custom()
                     .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                            .setDefaultConnectionConfig(defaultConfig)
                             .setTlsSocketStrategy(new DefaultClientTlsStrategy(trustAllContext))
                             .build()).build();
         } catch (Exception e) {
@@ -132,5 +143,9 @@ public class ConnDevBeans {
                 return response;
             });
         }
+    }
+
+    public String getMidpointHome() {
+        return configuration.getMidpointHome();
     }
 }
