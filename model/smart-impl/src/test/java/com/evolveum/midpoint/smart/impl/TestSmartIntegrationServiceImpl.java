@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Function;
@@ -444,7 +443,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test040DescriptiveItemPath() throws Exception {
+    public void test040DescriptiveItemPath() {
         QName Q_GIVEN_NAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "givenName", "c");
         QName Q_EMAIL = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "email", "c");
         QName Q_VALUE = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "value", "c");
@@ -1127,7 +1126,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
                         // No mapping for status -> activation, as non-attribute mappings are not supported yet
                 // icfs:name -> name and ri:fullName -> fullName are as-is, LLM microservice should not be called
-                new SiSuggestMappingResponseType().transformationScript("if (input == 'e') { 'employee' } else if (input == 'c') { 'contractor' } else { null }"),
+                new RuntimeException("LLM went crazy here"),
                 new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")
         );
         smartIntegrationService.setServiceClientSupplier(() -> mockClient);
@@ -1145,10 +1144,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         displayValueAsXml("suggested mappings", suggestedMappings);
         assertThat(suggestedMappings.getExtensionItem()).isEmpty(); // not implemented yet
         var attrMappings = suggestedMappings.getAttributeMappings();
-        assertThat(attrMappings).as("attribute mappings").hasSize(4);
+        assertThat(attrMappings).as("attribute mappings").hasSize(3);
         assertSuggestion(attrMappings, ICFS_NAME, UserType.F_NAME);
         assertSuggestion(attrMappings, Account.AttributeNames.FULLNAME.q(), UserType.F_FULL_NAME);
-        assertSuggestion(attrMappings, Account.AttributeNames.TYPE.q(), UserType.F_DESCRIPTION);
+        // Suggestion from type to description is skipped, as there's a simulated LLM error there
+        // Later, we'll probably create a partial suggestion, with just the other attributes
         assertSuggestion(attrMappings, Account.AttributeNames.PHONE.q(), UserType.F_TELEPHONE_NUMBER);
         // TODO asserting scripts
     }

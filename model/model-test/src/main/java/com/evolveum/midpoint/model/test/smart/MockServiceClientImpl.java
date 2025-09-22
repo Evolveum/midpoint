@@ -35,8 +35,15 @@ public class MockServiceClientImpl implements ServiceClient {
         LOGGER.debug("Invoking {} with request:\n{}",
                 method, PrismContext.get().jsonSerializer().serializeRealValueContent(request));
         lastRequest = request;
+        if (!responses.hasNext()) {
+            throw new AssertionError("No more responses available in the mock service client");
+        }
+        var response = responses.next();
+        if (response instanceof RuntimeException exception) {
+            throw exception;
+        }
         //noinspection unchecked
-        return (RESP) responses.next();
+        return (RESP) response;
     }
 
     public Object getLastRequest() {
