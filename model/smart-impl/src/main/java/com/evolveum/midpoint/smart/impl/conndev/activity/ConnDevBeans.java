@@ -62,7 +62,7 @@ public class ConnDevBeans {
             var defaultConfig = ConnectionConfig.custom()
                     .setConnectTimeout(timeout, TimeUnit.MILLISECONDS)
                     .setSocketTimeout(timeout, TimeUnit.MILLISECONDS)
-                    .build();;
+                    .build();
 
             client = HttpClients.custom()
                     .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
