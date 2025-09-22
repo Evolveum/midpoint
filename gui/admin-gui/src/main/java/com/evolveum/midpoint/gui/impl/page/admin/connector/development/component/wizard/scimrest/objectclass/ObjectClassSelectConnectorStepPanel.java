@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -96,7 +97,11 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
                     throw new RuntimeException(e);
                 }
 
-                return container.getValues();
+                return container.getValues().stream()
+                        .filter(value ->
+                                getDetailsModel().getObjectType().getConnector().getObjectClass().stream()
+                                        .noneMatch(savedObjectClass -> StringUtils.equals(savedObjectClass.getName(), value.getRealValue().getName())))
+                        .toList();
             }
         };
     }

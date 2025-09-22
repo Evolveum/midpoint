@@ -18,6 +18,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang3.Strings;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
@@ -82,6 +83,7 @@ public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<Con
         getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
+        getSubmit().add(AttributeAppender.replace("class", "btn btn-primary"));
 
         ResourceDetailsModel resourceDetailsModel;
 
@@ -151,7 +153,7 @@ public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     @Override
     protected boolean isSubmitVisible() {
-        return false;
+        return true;
     }
 
     @Override
@@ -175,12 +177,18 @@ public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     @Override
-    protected boolean isSubmitEnable() {
-        return false;
+    public String getStepId() {
+        return PANEL_TYPE;
     }
 
     @Override
-    public String getStepId() {
-        return PANEL_TYPE;
+    protected IModel<String> getSubmitLabelModel() {
+        return createStringResource("SearchObjectsConnectorStepPanel.submit");
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
+        onNextPerformed(target);
     }
 }
