@@ -140,12 +140,10 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                     final boolean failed = dto.isFailed();
                     final boolean suspended = dto.isSuspended();
 
-                    if (!finished && !failed && !suspended) {
-                        if (dto.getStatusInfo() != null) {
-                            dto.getStatusInfo().reset();
-                        } else {
-                            LOGGER.debug("StatusInfo is null for DTO {}", dto);
-                        }
+                    if (dto.getStatusInfo() != null) {
+                        dto.getStatusInfo().reset();
+                    } else {
+                        LOGGER.debug("StatusInfo is null for DTO {}", dto);
                     }
 
                     if (finished && !failed && !suspended) {

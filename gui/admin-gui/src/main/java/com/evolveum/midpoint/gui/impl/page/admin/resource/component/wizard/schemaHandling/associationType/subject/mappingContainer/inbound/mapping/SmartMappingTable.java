@@ -628,10 +628,8 @@ public abstract class SmartMappingTable<P extends Containerable>
         pageBase.taskAwareExecutor(target, OP_SUGGEST_MAPPING)
                 .runVoid((task, result) -> {
                     service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, task, result);
-                    target.add(this);
+                    refreshAndDetach(target);
                 });
-        super.refreshAndDetach(target);
-        target.add(getFeedbackPanel().getParent());
     }
 
     @Override

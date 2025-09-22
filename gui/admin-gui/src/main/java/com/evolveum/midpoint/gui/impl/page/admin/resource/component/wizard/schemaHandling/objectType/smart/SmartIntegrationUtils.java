@@ -641,6 +641,12 @@ public class SmartIntegrationUtils {
         try {
             GenericObjectType latestStatistics = smartIntegrationService
                     .getLatestStatistics(resourceOid, objectClass, pageTask, pageTask.getResult());
+            if (latestStatistics == null) {
+                pageBase.warn(pageBase.getString("SmartIntegrationUtils.noStatistics.available.for.on",
+                        objectClass, resourceOid));
+                target.add(pageBase.getFeedbackPanel());
+                return;
+            }
             statisticsRequired = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(latestStatistics);
         } catch (SchemaException e) {
             throw new RuntimeException("Couldn't get statistics for "

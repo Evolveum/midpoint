@@ -82,6 +82,13 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 getValueModel(),
                 resourceOid) {
             @Override
+            public void refreshAndDetach(AjaxRequestTarget target) {
+                super.refreshAndDetach(target);
+                //rerender also feedback panel
+                target.add(AttributeMappingsTableWizardPanel.this);
+            }
+
+            @Override
             public void acceptSuggestionItemPerformed(@NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel, StatusInfo<MappingsSuggestionType> statusInfo, @NotNull AjaxRequestTarget target) {
                 PrismContainerValueWrapper<MappingType> newValue = createNewValue(rowModel.getObject().getNewValue(), target);
                 deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()));

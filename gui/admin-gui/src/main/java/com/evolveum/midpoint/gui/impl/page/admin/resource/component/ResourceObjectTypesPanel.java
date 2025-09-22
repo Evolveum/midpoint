@@ -47,6 +47,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestionWrappers;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 @PanelType(name = "resourceObjectTypes")
 @PanelInstance(identifier = "resourceObjectTypes", applicableForType = ResourceType.class,
@@ -274,29 +275,18 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
     @SuppressWarnings("unchecked")
     @Override
     protected void performOnReview(@NotNull AjaxRequestTarget target, @NotNull PrismContainerValueWrapper<?> valueWrapper) {
-        PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue =
-                (PrismContainerValue<ResourceObjectTypeDefinitionType>)
-                        PrismValueCollectionsUtil.cloneCollectionComplex(
-                                        CloneStrategy.REUSE,
-                                        Collections.singletonList(valueWrapper.getOldValue()))
-                                .iterator().next();
-
-        WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
         IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-        prismContainerValue.setParent(containerModel.getObject().getItem());
+        PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject = valueWrapper.getOldValue();
+        WebPrismUtil.cleanupEmptyContainerValue(originalObject);
 
-//        TODO we have problem when <schemaHandling> block in xsd not exists
-//
-//                            try {
-//                                containerModel.getObject().getItem().add(prismContainerValue);
-//                            } catch (SchemaException e) {
-//                                throw new RuntimeException("Couldn't add object type suggestion to the container: "
-//                                        + e.getMessage(), e);
-//                            }
+        PrismContainer<ResourceObjectTypeDefinitionType> item = containerModel.getObject().getItem();
+        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(
+                originalObject,
+                item);
 
         //TODO temporary
         performOnDeleteSuggestion(target, (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) valueWrapper);
-        onNewValue(prismContainerValue, containerModel, target, false);
+        onNewValue(suggestionToAdd, containerModel, target, false);
     }
 
     @Override

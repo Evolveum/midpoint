@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -224,7 +228,7 @@ class MappingsSuggestionOperation {
     private record OwnedShadow(ShadowType shadow, FocusType owner) {
     }
 
-    AttributeMappingsSuggestionType suggestMapping(
+    private AttributeMappingsSuggestionType suggestMapping(
             DescriptiveItemPath shadowAttrPath,
             ShadowSimpleAttributeDefinition<?> attrDef,
             DescriptiveItemPath focusPropPath,
@@ -232,7 +236,7 @@ class MappingsSuggestionOperation {
             Collection<ValuesPair> valuesPairs) throws SchemaException {
 
         String transformationScript;
-        if (!valuesPairs.isEmpty()) {
+        if (!valuesPairs.isEmpty() && isTransformationNeeded(valuesPairs, propertyDef)) {
             var applicationAttrDefBean = new SiAttributeDefinitionType()
                     .name(shadowAttrPath.asString())
                     .type(getTypeName(attrDef))
@@ -273,6 +277,41 @@ class MappingsSuggestionOperation {
                                 .expression(expression)));
         AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
         return suggestion;
+    }
+
+    /**
+     * Returns {@code true} if a transformation script is needed to convert the values,
+     * i.e. the default "asIs" mapping is not enough.
+     */
+    private boolean isTransformationNeeded(Collection<ValuesPair> valuesPairs, PrismPropertyDefinition<?> propertyDef) {
+        for (var valuesPair : valuesPairs) {
+            var shadowValues = valuesPair.shadowValues();
+            var focusValues = valuesPair.focusValues();
+            if (shadowValues.size() != focusValues.size()) {
+                return true;
+            }
+            var expectedFocusValues = new ArrayList<>(focusValues.size());
+            for (Object shadowValue : shadowValues) {
+                Object converted;
+                try {
+                    converted = ExpressionUtil.convertValue(
+                            propertyDef.getTypeClass(), null, shadowValue, ctx.b.protector);
+                } catch (Exception e) {
+                    // If the conversion is not possible e.g. because of different types, an exception is thrown
+                    // We are OK with that (from performance point of view), because this is just a sample of values.
+                    LOGGER.trace("Value conversion failed, assuming transformation is needed: {} (value: {})",
+                            e.getMessage(), shadowValue); // no need to provide full stack trace here
+                    return true;
+                }
+                if (converted != null) {
+                    expectedFocusValues.add(converted);
+                }
+            }
+            if (!MiscUtil.unorderedCollectionEquals(focusValues, expectedFocusValues)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {

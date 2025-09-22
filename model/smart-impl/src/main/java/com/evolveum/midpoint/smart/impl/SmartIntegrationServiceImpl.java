@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.TaskService;
@@ -727,7 +728,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                                 Comparator.nullsFirst(Comparator.reverseOrder()))
                         .thenComparing(
                                 (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationStartTimestamp()),
-                                Comparator.reverseOrder()));
+                                Comparator.nullsFirst(Comparator.reverseOrder())));
     }
 
     private static ObjectQuery queryForActivityType(String resourceOid, ItemName activityType) {
