@@ -74,8 +74,21 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
         String resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
         Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimations =
                 loadObjectClassesSizeEstimations(resourceOid, getPageBase());
+
+        List<QName> qNamesSerialized = new ArrayList<>(objectClassSizeEstimations.keySet());
+        SmartObjectClassTable<PrismContainerValueWrapper<ComplexTypeDefinitionType>> table = buildTable(
+                resourceOid,
+                qNamesSerialized,
+                objectClassSizeEstimations);
+        add(table);
+    }
+
+    private @NotNull SmartObjectClassTable<PrismContainerValueWrapper<ComplexTypeDefinitionType>> buildTable(
+            String resourceOid,
+            List<QName> qNamesSerialized,
+            Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimations) {
         LoadableModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> objectClassDefinitions =
-                getComplexTypeDefinitionTypes(objectClassSizeEstimations.keySet());
+                getComplexTypeDefinitionTypes(qNamesSerialized);
 
         SmartObjectClassTable<PrismContainerValueWrapper<ComplexTypeDefinitionType>> table = new SmartObjectClassTable<>(
                 ID_PANEL,
@@ -85,7 +98,7 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
                 resourceOid,
                 objectClassSizeEstimations);
         table.setOutputMarkupId(true);
-        add(table);
+        return table;
     }
 
     /** The returned map key set contains all relevant object classes. */
