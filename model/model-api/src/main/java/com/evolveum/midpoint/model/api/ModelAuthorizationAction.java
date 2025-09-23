@@ -31,6 +31,7 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     READ("read", "Read", "READ_HELP"),
     GET("get", "Get", "GET_HELP"),
     SEARCH("search", "Search", "SEARCH_HELP"),
+    SEARCH_BY("searchBy", "Search by", "SEARCH_BY_HELP"), // to be decided
     ADD("add", "Add", "ADD_HELP"),
 
     /**
@@ -151,6 +152,7 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     READ_TRACE("readTrace", "Read trace", "READ_TRACE_HELP");
 
     public static final String[] AUTZ_ACTIONS_URLS_SEARCH = new String[] { READ.getUrl(),  SEARCH.getUrl() };
+    public static final String[] AUTZ_ACTIONS_URLS_SEARCH_BY = new String[] { READ.getUrl(), SEARCH.getUrl(), SEARCH_BY.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_GET = new String[] { READ.getUrl(),  GET.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_ADD = new String[] { ADD.getUrl() };
     public static final String[] AUTZ_ACTIONS_URLS_MODIFY = new String[] { MODIFY.getUrl() };

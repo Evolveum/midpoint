@@ -380,7 +380,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     @Override
     public @Nullable <T> ObjectFilter preProcessObjectFilter(
             @Nullable MidPointPrincipal principal,
-            @NotNull String @NotNull [] operationUrls,
+            @NotNull String[] operationUrls,
+            @NotNull String[] searchByOperationUrls,
             @Nullable AuthorizationPhaseType phase,
             @NotNull Class<T> filterType,
             @Nullable ObjectFilter origFilter,
@@ -392,20 +393,21 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
-                principal, operationUrls, phase, filterType,
-                origFilter, limitAuthorizationAction, paramOrderConstraints, options, task, result);
+                principal, operationUrls, searchByOperationUrls, phase,
+                filterType, origFilter, limitAuthorizationAction, paramOrderConstraints, options, task, result);
     }
 
     @Override
     public <T extends ObjectType, O extends ObjectType, F> F computeTargetSecurityFilter(
-            MidPointPrincipal principal, String[] operationUrls, AuthorizationPhaseType phase, Class<T> searchResultType,
+            MidPointPrincipal principal, String[] operationUrls, @NotNull String[] searchByOperationUrls,
+            AuthorizationPhaseType phase, Class<T> searchResultType,
             @NotNull PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints, FilterGizmo<F> gizmo, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.computeTargetSecurityFilter(
-                principal, operationUrls, phase, searchResultType, object, origFilter,
-                limitAuthorizationAction, paramOrderConstraints, gizmo, task, result);
+                principal, operationUrls, searchByOperationUrls, phase, searchResultType, object,
+                origFilter, limitAuthorizationAction, paramOrderConstraints, gizmo, task, result);
     }
 
     @Override

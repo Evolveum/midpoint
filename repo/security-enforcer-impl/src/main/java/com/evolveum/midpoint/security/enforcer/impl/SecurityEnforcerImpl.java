@@ -200,6 +200,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     public @Nullable <T> ObjectFilter preProcessObjectFilter(
             @Nullable MidPointPrincipal principal,
             @NotNull String @NotNull [] operationUrls,
+            @NotNull String[] searchByOperationUrls,
             @Nullable AuthorizationPhaseType phase,
             @NotNull Class<T> filterType,
             @Nullable ObjectFilter origFilter,
@@ -212,7 +213,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             CommunicationException, ConfigurationException, SecurityViolationException {
         FilterGizmo<ObjectFilter> gizmo = new FilterGizmoObjectFilterImpl();
         ObjectFilter securityFilter = computeSecurityFilterInternal(
-                principal, operationUrls, phase, filterType, forObject(), origFilter,
+                principal, operationUrls, searchByOperationUrls, phase, filterType, forObject(), origFilter,
                 limitAuthorizationAction, paramOrderConstraints, gizmo, "filter pre-processing",
                 options, task, result);
         ObjectFilter finalFilter = gizmo.and(origFilter, securityFilter);
@@ -229,6 +230,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     public <T extends ObjectType, O extends ObjectType, F> F computeTargetSecurityFilter(
             MidPointPrincipal principal,
             String[] operationUrls,
+            @NotNull String[] searchByOperationUrls,
             AuthorizationPhaseType phase,
             Class<T> filterType,
             @NotNull PrismObject<O> object,
@@ -240,7 +242,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         return computeSecurityFilterInternal(
-                principal, operationUrls, phase, filterType, forTarget(object), origFilter,
+                principal, operationUrls, searchByOperationUrls, phase, filterType, forTarget(object), origFilter,
                 limitAuthorizationAction, paramOrderConstraints, gizmo, "security filter computation",
                 Options.create(), task, result);
     }
@@ -248,6 +250,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     private <T, F> F computeSecurityFilterInternal(
             @Nullable MidPointPrincipal principal,
             @NotNull String[] operationUrls,
+            @NotNull String[] searchByOperationUrls,
             @Nullable AuthorizationPhaseType phase,
             @NotNull Class<T> filterType,
             @NotNull AuthorizationSelectorExtractor selectorExtractor,
@@ -262,7 +265,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         return new EnforcerFilterOperation<>(
-                operationUrls, filterType, selectorExtractor, origFilter, limitAuthorizationAction,
+                operationUrls, searchByOperationUrls, filterType, selectorExtractor, origFilter, limitAuthorizationAction,
                 paramOrderConstraints, gizmo, desc, principal, options, beans, task)
                 .computeSecurityFilter(phase, result);
     }

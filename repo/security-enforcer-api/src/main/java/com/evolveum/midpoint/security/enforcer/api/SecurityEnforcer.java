@@ -296,6 +296,7 @@ public interface SecurityEnforcer {
     <T> @Nullable ObjectFilter preProcessObjectFilter(
             @Nullable MidPointPrincipal principal,
             @NotNull String[] operationUrls,
+            @NotNull String[] searchByOperationUrls,
             @Nullable AuthorizationPhaseType phase,
             @NotNull Class<T> filterType,
             @Nullable ObjectFilter origFilter,
@@ -308,8 +309,8 @@ public interface SecurityEnforcer {
             ConfigurationException, SecurityViolationException;
 
     /**
-     * Similar to {@link #preProcessObjectFilter(MidPointPrincipal, String[], AuthorizationPhaseType, Class, ObjectFilter,
-     * String, List, Options, Task, OperationResult)} but deals with the target-related authorization statements,
+     * Similar to {@link #preProcessObjectFilter(MidPointPrincipal, String[], String[], AuthorizationPhaseType, Class,
+     * ObjectFilter, String, List, Options, Task, OperationResult)} but deals with the target-related authorization statements,
      * not object-related ones.
      *
      * The `object` is the object we are looking for targets for.
@@ -320,6 +321,7 @@ public interface SecurityEnforcer {
     <T extends ObjectType, O extends ObjectType, F> F computeTargetSecurityFilter(
             MidPointPrincipal principal,
             String[] operationUrls,
+            @NotNull String[] searchByOperationUrls,
             AuthorizationPhaseType phase,
             Class<T> searchResultType,
             @NotNull PrismObject<O> object,

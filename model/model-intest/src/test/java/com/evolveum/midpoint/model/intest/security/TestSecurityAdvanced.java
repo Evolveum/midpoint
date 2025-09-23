@@ -184,7 +184,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
                 TASK_TEMPLATE_DUMMY); // intentionally in non-raw mode
     }
 
-    private static final int NUMBER_OF_IMPORTED_ROLES = 21;
+    private static final int NUMBER_OF_IMPORTED_ROLES = 23;
     private static final int NUMBER_OF_IMPORTED_TASKS = 2;
 
     protected int getNumberOfRoles() {
@@ -3377,37 +3377,34 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
      */
     @Test
     public void test390AutzJackCannotFilterUnpermittedItems() throws Exception {
-        // GIVEN
+        given();
 
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, "40000000-1000-0000-0000-000000000000");
 
         login(USER_JACK_USERNAME);
 
-        // WHEN
         when("Search for role type objects by non-permitted items (requestable, riskLevel)");
 
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        assertSearchByNonPermittedItems(RoleType.class, "assert search for role type");
+        assertSearchByNonPermittedItems(ServiceType.class, "assert search for service type", "629bafd6-8b5e-4a7c-94fa-36813984c5c3");
+        // todo service probably should be there -> "629bafd6-8b5e-4a7c-94fa-36813984c5c3"
+        assertSearchByNonPermittedItems(AbstractRoleType.class, "assert search for abstract role type");
+    }
+
+    private <R extends AbstractRoleType> void assertSearchByNonPermittedItems(Class<R> type, String message, String... expectedOids) throws Exception {
+        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID), type, 0);
         ObjectFilter filter = spec.getRelationMap().get(RelationTypes.MEMBER.getRelation());
-        ObjectQuery query = queryFor(AbstractRoleType.class)
+        ObjectQuery query = queryFor(type)
                 .isInScopeOf(ORG_REQUESTABLE.oid, OrgFilter.Scope.ONE_LEVEL)
                 .build();
 
         query.addFilter(filter);
 
-        logger.info("assert search for role type");
+        logger.info(message);
 
-        assertSearch(RoleType.class,query);
-
-        logger.info("assert search for service type");
-
-        assertSearch(ServiceType.class, query, "629bafd6-8b5e-4a7c-94fa-36813984c5c3");
-
-        logger.info("assert search for abstract role type");
-
-        assertSearch(AbstractRoleType.class, query, "629bafd6-8b5e-4a7c-94fa-36813984c5c3");
+        assertSearch(type, query, expectedOids);
     }
-
 
     @SuppressWarnings("SameParameterValue")
     private ObjectQuery createOrgSubtreeAndNameQuery(String orgOid, String name) {

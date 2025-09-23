@@ -6,8 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sqale.filtering;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.path.TypedItemPath;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -207,5 +211,10 @@ class RefFilterWithRepoPath implements RefFilter {
     @Override
     public boolean isTargetTypeNullAsAny() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void collectUsedPaths(TypedItemPath base, Consumer<TypedItemPath> pathConsumer, boolean expandReferences) {
+        // NOOP - never used outside repo.
     }
 }

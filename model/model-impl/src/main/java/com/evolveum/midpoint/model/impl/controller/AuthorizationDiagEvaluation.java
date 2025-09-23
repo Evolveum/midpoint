@@ -274,7 +274,7 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
             MidPointPrincipal principal = createPrincipal(result);
 
             var augmentedFilter = b.securityEnforcer.preProcessObjectFilter(
-                    principal, getActionUrls(), null,
+                    principal, getActionUrls(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY, null,
                     objectType, originalFilter,
                     null, List.of(),
                     createOptions(), task, result);

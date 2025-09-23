@@ -1900,8 +1900,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         AuthorizationPhaseType phase =
                 GetOperationOptions.isExecutionPhase(rootOptions) ? AuthorizationPhaseType.EXECUTION : null;
         ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(
-                securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, phase, objectType,
-                origFilter, null, List.of(), SecurityEnforcer.Options.create(), task, result);
+                securityEnforcer.getMidPointPrincipal(),
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH,
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
+                phase, objectType, origFilter, null, List.of(), SecurityEnforcer.Options.create(), task, result);
         return updateObjectQuery(origQuery, secFilter);
     }
 
