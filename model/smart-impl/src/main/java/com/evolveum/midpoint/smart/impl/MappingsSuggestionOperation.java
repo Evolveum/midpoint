@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -273,14 +274,19 @@ class MappingsSuggestionOperation {
             }
         }
 
+        ItemPath focusPropRealPath = focusPropPath.getItemPath();
+        // TODO remove this ugly hack
+        var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropRealPath);
+        var hackedSerialized = serialized.replace("ext:", "");
+        var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
         var suggestion = new AttributeMappingsSuggestionType()
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.getItemPath().rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
                                 .name(shadowAttrPath.getItemPath().lastName().getLocalPart()
-                                        + "-to-" + focusPropPath.getItemPath().toString()) //TODO TBD
+                                        + "-to-" + focusPropRealPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
-                                        .path(focusPropPath.getItemPath().toBean()))
+                                        .path(hackedReal.toBean()))
                                 .expression(expression)));
         AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
         return suggestion;
