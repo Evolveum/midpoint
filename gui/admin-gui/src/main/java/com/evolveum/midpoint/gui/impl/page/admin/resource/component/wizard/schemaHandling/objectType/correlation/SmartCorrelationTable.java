@@ -662,10 +662,8 @@ public class SmartCorrelationTable
         pageBase.taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
                 .runVoid((task, result) -> {
                     service.submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, task, result);
-                    target.add(this);
+                    refreshAndDetach(target);
                 });
-        super.refreshAndDetach(target);
-        target.add(getFeedbackPanel().getParent());
     }
 
     @Override

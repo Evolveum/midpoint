@@ -104,6 +104,12 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 resourceOid) {
 
             @Override
+            public void refreshAndDetach(AjaxRequestTarget target) {
+                super.refreshAndDetach(target);
+                target.add(CorrelationItemsTableWizardPanel.this);
+            }
+
+            @Override
             protected MultivalueContainerListDataProvider<ItemsSubCorrelatorType> createProvider() {
                 return super.createProvider();
             }
