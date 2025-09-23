@@ -418,8 +418,6 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
                                 .iterator().next();
 
         WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
-        IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel2 = createContainerModel();
-        prismContainerValue.setParent(containerModel2.getObject().getItem());
 
         refreshForm(target);
         //TODO: temporary solution
@@ -430,7 +428,7 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
                 .showAssociationTypeWizardForDuplicate(
                         prismContainerValue,
                         target,
-                        containerModel2.getObject().getPath());
+                        containerModel.getObject().getPath());
 
     }
 }
