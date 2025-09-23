@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -252,12 +253,15 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
         resourceSchema.getObjectTypeDefinitions().forEach(objectTypeDef ->
                 objectTypeDef.getReferenceAttributeDefinitions().forEach(
-                        associationDef -> {
-                            if (!associationDef.canRead() || ShadowReferenceParticipantRole.SUBJECT != associationDef.getParticipantRole()) {
+                        refAttrDef -> {
+                            if (!refAttrDef.canRead()
+                                    || ShadowReferenceParticipantRole.SUBJECT != refAttrDef.getParticipantRole()
+                                    || refAttrDef.getNativeDefinition().isComplexAttribute()) {
                                 return;
                             }
+
                             AssociationDefinitionWrapper wrapper = new AssociationDefinitionWrapper(
-                                    objectTypeDef, associationDef, resourceSchema);
+                                    objectTypeDef, refAttrDef, resourceSchema);
                             list.add(wrapper);
                         }));
 
@@ -266,9 +270,13 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         list.forEach(def -> {
             List<AssociationDefinitionWrapper.ParticipantWrapper> objects = def.getObjects();
             List<AssociationDefinitionWrapper.ParticipantWrapper> subjects = def.getSubjects();
-            objects.stream().map(object -> ResourceObjectTypeIdentification.of(object.getKind(), object.getIntent()))
+            objects.stream()
+                    .filter(object -> ShadowUtil.isClassified(object.getKind(), object.getIntent()))
+                    .map(object -> ResourceObjectTypeIdentification.of(object.getKind(), object.getIntent()))
                     .forEach(objectTypes::add);
-            subjects.stream().map(subject -> ResourceObjectTypeIdentification.of(subject.getKind(), subject.getIntent()))
+            subjects.stream()
+                    .filter(subject -> ShadowUtil.isClassified(subject.getKind(), subject.getIntent()))
+                    .map(subject -> ResourceObjectTypeIdentification.of(subject.getKind(), subject.getIntent()))
                     .forEach(subjectTypes::add);
         });
 
@@ -402,14 +410,12 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         ShadowAssociationTypeDefinitionType duplicatedBean =
                 resolver.duplicateObjectWithoutCopyOf(oldValue.getValue());
 
-
         PrismContainerValue<ShadowAssociationTypeDefinitionType> prismContainerValue =
                 (PrismContainerValue<ShadowAssociationTypeDefinitionType>)
                         PrismValueCollectionsUtil.cloneCollectionComplex(
                                         CloneStrategy.REUSE,
                                         Collections.singletonList(duplicatedBean.asPrismContainerValue()))
                                 .iterator().next();
-
 
         WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
         IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel2 = createContainerModel();
