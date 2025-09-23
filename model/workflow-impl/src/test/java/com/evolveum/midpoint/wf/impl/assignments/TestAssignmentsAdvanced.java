@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.wf.impl.assignments;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -21,8 +23,13 @@ import java.io.File;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import com.evolveum.midpoint.wf.impl.*;
@@ -86,6 +93,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             TEST_RESOURCE_DIR, "role-extension-property-mod-approval.xml", "60459cec-7bdb-4872-99ae-65063c9c2e82");
 
     private static final TestObject<ObjectType> ROLE_SKIPPED_FILE = TestObject.file(TEST_RESOURCE_DIR, "role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
+    private static final TestObject<RoleType> ROLE_AUTOCOMPLETE_FILE = TestObject.file(TEST_RESOURCE_DIR, "role-autocomplete.xml", "9f4a3a87-2b9e-4e4c-9fcb-7bb2d1210a5e");
     private static final TestObject<RoleType> ROLE_APPROVE_UNASSIGN = TestObject.file(TEST_RESOURCE_DIR, "role-approve-unassign.xml", "3746aa73-ae91-4326-8493-f5ac5b22f3b6");
 
     private static final TestObject<ObjectType> ROLE_IDEMPOTENT = TestObject.file(TEST_RESOURCE_DIR, "role-idempotent.xml", "e2f2d977-887b-4ea1-99d8-a6a030a1a6c0");
@@ -125,6 +133,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private String roleRole27Oid;
     private String roleRole28Oid;
     private String roleRole29Oid;
+    private String roleAutocompleteId;
     private String orgLeads2122Oid;
 
     private String userLead21Oid;
@@ -153,6 +162,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         repoAdd(ROLE_IDEMPOTENT, initResult);
         repoAdd(ROLE_WITH_IDEMPOTENT_METAROLE, initResult);
         repoAdd(ROLE_SKIPPED_FILE, initResult);
+        repoAdd(ROLE_AUTOCOMPLETE_FILE, initResult);
         repoAdd(ROLE_APPROVE_UNASSIGN, initResult);
 
         orgLeads2122Oid = repoAddObjectFromFile(ORG_LEADS2122_FILE, initResult).getOid();
@@ -1331,6 +1341,33 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .subcases()
                 .assertSubcases(1);
     }
+
+    @Test
+    public void test950CreateNewRoleWhileApprovalProcessWithAutoCompletion() throws Exception {
+        given();
+        login(userAdministrator);
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("create new role with assignment to the approval process with auto-completion");
+        String newRoleOid = "8fcb9b1c-3a6f-4e47-93c8-1c4d4379dfd0";
+        String newRoleName = "addRoleWithAutocompleteApproval";
+        RoleType newRole = new RoleType()
+                .oid(newRoleOid)
+                .name(newRoleName)
+                .assignment(ROLE_AUTOCOMPLETE_FILE.assignmentTo());
+        ObjectDelta<RoleType> addDelta = newRole.asPrismObject().createAddDelta();
+        executeChanges(addDelta, null, task, result);
+        Thread.sleep(3000); //todo how to wait till approval process finishes?
+
+         // THEN
+        then();
+        PrismObject<RoleType> createdRole = repositoryService.getObject(RoleType.class, newRoleOid, null, result);
+        String xml = getPrismContext().xmlSerializer().serialize(createdRole);
+        assertThat(xml.startsWith("<role")).isEqualTo(true);
+    }
+
 
     private void executeAssignRoles123ToJack(boolean immediate,
             boolean approve1, boolean approve2, boolean approve3a, boolean approve3b, boolean securityDeputy) throws Exception {
