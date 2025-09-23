@@ -23,13 +23,8 @@ import java.io.File;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import com.evolveum.midpoint.wf.impl.*;
@@ -1359,7 +1354,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .assignment(ROLE_AUTOCOMPLETE_FILE.assignmentTo());
         ObjectDelta<RoleType> addDelta = newRole.asPrismObject().createAddDelta();
         executeChanges(addDelta, null, task, result);
-        Thread.sleep(3000); //todo how to wait till approval process finishes?
+        CaseType caseObj = assertCase(result, "after")
+                .getObject().asObjectable();
+        waitForCaseClose(caseObj, 3000);
 
          // THEN
         then();
