@@ -426,6 +426,10 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                                 PageAssignmentHolderDetails.this,
                                 getObjectDetailsModels().createWrapperContext());
                         container.getValues().add(newWrapper);
+                        if(!newValue.isEmpty()){
+                            newValue.setParent(container.getItem());
+                            container.getItem().add(newValue);
+                        }
                         return newWrapper;
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't resolve value for path: " + pathToValue);

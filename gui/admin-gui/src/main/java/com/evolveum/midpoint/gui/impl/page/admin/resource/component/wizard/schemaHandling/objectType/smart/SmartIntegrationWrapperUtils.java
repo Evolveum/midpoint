@@ -45,7 +45,7 @@ public class SmartIntegrationWrapperUtils {
                         CloneStrategy.REUSE,
                         Collections.singletonList(container))
                 .iterator().next();
-        value.setParent(parent);
+//        value.setParent(parent);
         // TODO: Be careful here! (need refactoring)
 // 1. If <schemaHandling/> is not present in the resource, calling parent.getValues().add(value)
 //    implicitly creates a new <schemaHandling/> block in Prism.
@@ -57,7 +57,7 @@ public class SmartIntegrationWrapperUtils {
 //    these generated deltas are already stored on the object, even though the user
 //    never confirmed the change explicitly.
 
-        parent.getValues().add(value);
+//        parent.getValues().add(value);
         return value;
     }
 
