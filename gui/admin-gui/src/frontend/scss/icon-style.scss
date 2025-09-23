@@ -212,3 +212,60 @@ i.flip-icon-margin {
   margin-left: -7px;
   margin-right: 7px;
 }
+
+
+@keyframes spinner-grow {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+}
+
+/* Speeds */
+.spinner-grow-slow {
+  animation: spinner-grow 2.5s ease-in-out infinite;
+}
+
+.spinner-grow-medium {
+  animation: spinner-grow 1.25s ease-in-out infinite;
+}
+
+.spinner-grow-fast {
+  animation: spinner-grow 0.6s ease-in-out infinite;
+}
+
+@keyframes spinner-blur {
+  0% {
+    filter: blur(4px);
+    opacity: 0.5;
+  }
+  50% {
+    filter: blur(0);
+    opacity: 1;
+  }
+  100% {
+    filter: blur(4px);
+    opacity: 0.5;
+  }
+}
+
+.spinner-blur-slow {
+  animation: spinner-blur 2.5s ease-in-out infinite;
+}
+
+.spinner-blur-medium {
+  animation: spinner-blur 1.25s ease-in-out infinite;
+}
+
+.spinner-blur-fast {
+  animation: spinner-blur 0.6s ease-in-out infinite;
+}
+

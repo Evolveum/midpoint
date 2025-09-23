@@ -200,6 +200,10 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         WebMarkupContainer titleIcon = new WebMarkupContainer(ID_TITLE_ICON);
         titleIcon.setOutputMarkupId(true);
         titleIcon.add(AttributeModifier.append("class", getIconCssModel()));
+        titleIcon.add(AttributeModifier.append("class", () -> {
+            SmartGeneratingDto dto = getModelObject();
+            return !dto.isFailed() && !dto.isSuspended() ? getIconSpecialEffectCss() : null;
+        }));
         panelContainer.add(titleIcon);
 
         AjaxLinkPanel title = new AjaxLinkPanel(ID_TEXT, getTitleModel()) {
@@ -207,7 +211,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 SmartGeneratingDto modelObject = SmartGeneratingPanel.this.getModelObject();
                 String taskToken = modelObject.getToken();
-                DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskToken, this,false);
+                DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskToken, this, false);
             }
         };
         title.setOutputMarkupId(true);
@@ -217,6 +221,15 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         Label subTitle = new Label(ID_SUBTEXT, getSubTitleModel());
         subTitle.setOutputMarkupId(true);
         panelContainer.add(subTitle);
+    }
+
+    /**
+     * Override to provide special effect CSS classes for the icon.
+     * Effects are applied only when the task is running (not failed or suspended).
+     * @return CSS class string, e.g. "fa-spin", "fa-pulse", "spinner-grow-slow" or "spinner-blur-slow" (FontAwesome classes)
+     */
+    protected String getIconSpecialEffectCss(){
+        return null;
     }
 
     protected @Nullable String getTitleCssClass() {
