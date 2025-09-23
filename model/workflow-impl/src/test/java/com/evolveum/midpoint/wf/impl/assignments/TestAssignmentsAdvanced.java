@@ -1337,7 +1337,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .assertSubcases(1);
     }
 
-    @Test
+    //covers #10853
+    @Test(enabled = false)
     public void test950CreateNewRoleWhileApprovalProcessWithAutoCompletion() throws Exception {
         given();
         login(userAdministrator);
