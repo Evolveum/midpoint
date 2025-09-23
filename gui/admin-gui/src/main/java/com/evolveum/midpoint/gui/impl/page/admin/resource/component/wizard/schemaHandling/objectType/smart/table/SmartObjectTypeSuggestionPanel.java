@@ -150,10 +150,10 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         filterCtn.add(filterPanels);
 
         //TODO design whats with base context filter
-        Label baseContextFilterLabel = new Label(ID_BASE_CONTEXT_FILTER_LABEL,
-                createStringResource("SmartSuggestObjectTypeTilePanel.base.context.filter"));
-        baseContextFilterLabel.setOutputMarkupId(true);
-        filterCtn.add(baseContextFilterLabel);
+//        Label baseContextFilterLabel = new Label(ID_BASE_CONTEXT_FILTER_LABEL,
+//                createStringResource("SmartSuggestObjectTypeTilePanel.base.context.filter"));
+//        baseContextFilterLabel.setOutputMarkupId(true);
+//        filterCtn.add(baseContextFilterLabel);
 
         Label baseContextObjectClassLabel = new Label(ID_BASE_CONTEXT_OBJECT_CLASS_LABEL,
                 createStringResource("SmartSuggestObjectTypeTilePanel.base.context.object.class"));
