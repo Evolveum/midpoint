@@ -32,6 +32,8 @@ import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
@@ -39,7 +41,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -87,6 +88,8 @@ public class SmartCorrelationTable
     private static final int MAX_TILE_COUNT = 4;
 
     private final String resourceOid;
+
+    private static final Trace LOGGER = TraceManager.getTrace(SmartCorrelationTable.class);
 
     IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> correlationWrapper;
 
@@ -676,13 +679,12 @@ public class SmartCorrelationTable
                     return null;
                 }
 
-                PrismContainerWrapper<ItemsSubCorrelatorType> container = null;
+                PrismContainerWrapper<ItemsSubCorrelatorType> container;
                 try {
                     container = object.getObject().findContainer(
-                            ItemPath.create(ResourceObjectTypeDefinitionType.F_CORRELATION,
-                                    CorrelationDefinitionType.F_CORRELATORS, CompositeCorrelatorType.F_ITEMS));
+                            ItemPath.create(CorrelationDefinitionType.F_CORRELATORS, CompositeCorrelatorType.F_ITEMS));
                 } catch (SchemaException e) {
-                    //TODO
+                    LOGGER.error("Cannot get correlation items container: {}", e.getMessage(), e);
                     return null;
                 }
                 return container;

@@ -294,8 +294,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     private <P extends AbstractWizardPanel> P showContainerCorrelationWizard(
             AjaxRequestTarget target, @NotNull ItemPath pathToValue, Class<P> wizardClass) {
-        pathToValue.append(ResourceObjectTypeDefinitionType.F_CORRELATION);
-        P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
+        P wizardPanel = (P) showWizard(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CORRELATION), wizardClass);
         addWizardBreadcrumbsResourceName(wizardPanel);
         return wizardPanel;
     }

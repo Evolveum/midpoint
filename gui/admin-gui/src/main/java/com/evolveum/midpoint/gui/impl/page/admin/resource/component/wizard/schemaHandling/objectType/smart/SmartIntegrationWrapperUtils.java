@@ -97,7 +97,6 @@ public class SmartIntegrationWrapperUtils {
         IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createcContainerModel(
                 model,
                 ItemPath.create(
-                        ResourceObjectTypeDefinitionType.F_CORRELATION,
                         CorrelationDefinitionType.F_CORRELATORS,
                         CompositeCorrelatorType.F_ITEMS));
 
