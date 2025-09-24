@@ -56,12 +56,6 @@ COPY container_files/usr-local-bin/* /usr/local/bin/
 
 RUN case "${base_image}" in \
       ubuntu) \
-        case "${base_image_tag}" in \
-          24.04|noble) UBUNTU_RELEASE="noble" ;; \
-          22.04|jammy) UBUNTU_RELEASE="jammy" ;; \
-          20.04|focal) UBUNTU_RELEASE="focal" ;; \
-          *) UBUNTU_RELEASE="noble" ;; \
-        esac && \
         sed 's/main$/main universe/' -i /etc/apt/sources.list && \
         apt-get update -y && \
         apt-get install -y --no-install-recommends \
