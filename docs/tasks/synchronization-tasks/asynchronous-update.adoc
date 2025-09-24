@@ -42,7 +42,7 @@ we want to process updates for. The `resourceRef` is obligatory, all the other p
 
 The default behavior of Asynchronous update activity is to _stop_ when an error is encountered.
 This is to ensure that no information is lost in such cases. This behavior can be changed via
-custom xref:/midpoint/reference/tasks/task-error-handling/[error handling specification].
+custom xref:/midpoint/reference/tasks/activities/error-handling/[error handling specification].
 
 == See Also
 
