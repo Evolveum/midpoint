@@ -21,27 +21,29 @@
     </div>
     <div class="row">
         <div class="col-xl-3">
-            <div wicket:id="filter" />
+            <wicket:container wicket:id="aside" />
         </div>
         <div class="col-xl-9">
-            <div wicket:id="catalog" />
-            <button wicket:id="feedbackButton" />
+            <div class="card">
+                <wicket:container wicket:id="main" />
+                <hr />
+                <p class="text-center">
+                    <wicket:message key="LocalConnectorTilePanel.requestConnector.begin" />
+                    <a wicket:id="requestConnectorLink">
+                        <wicket:message key="LocalConnectorTilePanel.requestConnector.link" />
+                    </a>
+                    <wicket:message key="LocalConnectorTilePanel.requestConnector.end" />
+                </p>
+                <p class="text-center">
+                    <wicket:message key="LocalConnectorTilePanel.importConnector.begin" />
+                    <a wicket:id="importConnectorLink">
+                        <wicket:message key="LocalConnectorTilePanel.importConnector.link" />
+                    </a>
+                    <wicket:message key="LocalConnectorTilePanel.importConnector.end" />
+                </p>
+            </div>
         </div>
     </div>
-
-    <wicket:fragment wicket:id="footerFragment">
-        <hr />
-        <div>
-            <span wicket:message="LocalConnectorTilePanel.requestConnector.begin" />
-            <a wicket:id="requestConnectorLink" wicket:message="LocalConnectorTilePanel.requestConnector.link" />
-            <span wicket:message="LocalConnectorTilePanel.requestConnector.end" />
-        </div>
-        <div>
-            <span wicket:message="LocalConnectorTilePanel.importConnector.begin" />
-            <a wicket:id="importConnectorLink" wicket:message="LocalConnectorTilePanel.importConnector.link" />
-            <span wicket:message="LocalConnectorTilePanel.importConnector.end" />
-        </div>
-    </wicket:fragment>
 </wicket:panel>
 </body>
 </html>

@@ -14,6 +14,7 @@ import java.text.Collator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -1935,6 +1936,38 @@ public final class WebComponentUtil {
             @Override
             public boolean isVisible() {
                 return !model.getObject();
+            }
+        };
+    }
+
+    /**
+     * Creates a {@link Behavior} that sets a component's visibility based on a
+     * predefined "not blank/empty" rule.
+     */
+    public static Behavior visibleWhenModelIsNotBlank() {
+        Predicate<Object> isNotBlank = modelObject -> {
+            if (modelObject instanceof String str) {
+                return !StringUtils.isBlank(str);
+            }
+            if (modelObject instanceof Collection<?> col) {
+                return !col.isEmpty();
+            }
+            return modelObject != null;
+        };
+        return visibleWhen(isNotBlank);
+    }
+
+    /**
+     * Creates a {@link Behavior} that sets a component's visibility based on a
+     * custom condition provided as a {@link Predicate}.
+     */
+    public static Behavior visibleWhen(Predicate<Object> visibilityPredicate) {
+        return new Behavior() {
+            @Override
+            public void onConfigure(Component component) {
+                super.onConfigure(component);
+                Object modelObject = component.getDefaultModelObject();
+                component.setVisible(visibilityPredicate.test(modelObject));
             }
         };
     }

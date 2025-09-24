@@ -7,51 +7,68 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.application.component.catalog.marketplace;
 
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Optional;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectTileProvider;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.io.Serial;
-import java.util.*;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 
-// Proč je druhý typový parametr TemplateTile<ConnectorType> a ne ConnectorType
-// Když tam dám ConnectorType, typově to sedí, ale selže cast v TileTablePanel.createTile
-public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
-    @Serial private static final long serialVersionUID = 8850627686387495224L;
+public abstract class CatalogPanel<O extends Serializable, T extends Tile<O>> extends BasePanel<T> {
+    @Serial private static final long serialVersionUID = -9159471012370264087L;
 
-    public LocalConnectorCatalogPanel(String id) {
+    protected IModel<Search<T>> searchModel;
+    protected IModel<ViewToggle> viewToggleModel;
+
+    public CatalogPanel(String id) {
         super(id);
     }
 
-    @Override
-    protected Search<ConnectorType> createSearch() {
-        return new SearchBuilder<>(ConnectorType.class)
-                .modelServiceLocator(getPageBase())
-                .setFullTextSearchEnabled(true)
-                .build();
-    }
+    abstract public void onActionClick(AjaxRequestTarget target);
+
+    protected abstract Search<T> createSearch();
 
     @Override
-    protected Component createContent(String id) {
-        return new TileTablePanel(id, viewToggleModel, null) {
+    protected void onInitialize() {
+        super.onInitialize();
+
+        Search<T> search = createSearch();
+        searchModel = Model.of(search);
+        viewToggleModel = Model.of(ViewToggle.TILE);
+
+        // TODO jak zjistit count
+        add(new Label("searchState", Model.of(createStringResource("IntegrationCatalog.counterStatus", 0))));
+        add(new WebMarkupContainer("viewToggle"));
+        add(createContent("tilesTable"));
+    }
+
+    protected TileTablePanel<T, O> createContent(String id) {
+        return new TileTablePanel<T, O>(id, viewToggleModel, null) {
             @Override
             protected void onInitialize() {
                 super.onInitialize();
@@ -90,7 +107,7 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
                                 item.add(new AjaxLinkPanel(id, createStringResource("LocalConnectorTilePanel.addApplication")) {
                                     @Override
                                     public void onClick(AjaxRequestTarget target) {
-                                        LocalConnectorCatalogPanel.this.onAddApplication(target);
+                                        CatalogPanel.this.onActionClick(target);
                                     }
                                 });
                             }
@@ -118,7 +135,7 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
                     @Override
                     public void onActionClick(AjaxRequestTarget target) {
                         super.onActionClick(target);
-                        LocalConnectorCatalogPanel.this.onAddApplication(target);
+                        CatalogPanel.this.onTileAction(target);
                     }
                 };
             }
@@ -161,7 +178,7 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
 
             @Override
             protected Component createHeader(String id) {
-                Fragment headerContainer = new Fragment(id, "customHeaderFragment", LocalConnectorCatalogPanel.this);
+                Fragment headerContainer = new Fragment(id, "customHeaderFragment", CatalogPanel.this);
                 SearchBoxPanel searchBoxPanel = new SearchBoxPanel("searchBoxPanel", createStringResource("SearchBoxPanel.placeholder")) {
                     @Override
                     protected void onSearch(AjaxRequestTarget target, String query) {
@@ -184,7 +201,7 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
                 ViewTogglePanel viewToggle = new ViewTogglePanel("viewToggle", getViewToggleModel()) {
                     @Override
                     protected void onToggleChanged(AjaxRequestTarget target) {
-                        target.add(LocalConnectorCatalogPanel.this);
+                        target.add(CatalogPanel.this);
                     }
                 };
 
@@ -212,16 +229,5 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
                 }
             }
         };;
-    }
-
-    private void onAddApplication(AjaxRequestTarget target) {
-        var page = getPageBase();
-        ConfirmationPanel dialog = new ConfirmationPanel(
-                page.getMainPopupBodyId(),
-                createStringResource("PersonOfInterestPanel.confirmShoppingCartDataRecalculation")
-        ) {
-
-        };
-        page.showMainPopup(dialog, target);
     }
 }

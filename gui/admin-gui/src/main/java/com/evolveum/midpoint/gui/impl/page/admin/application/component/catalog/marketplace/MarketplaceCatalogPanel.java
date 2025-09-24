@@ -13,16 +13,21 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
@@ -30,28 +35,21 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
-// Proč je druhý typový parametr TemplateTile<ConnectorType> a ne ConnectorType
-// Když tam dám ConnectorType, typově to sedí, ale selže cast v TileTablePanel.createTile
-public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
-    @Serial private static final long serialVersionUID = 8850627686387495224L;
+public class MarketplaceCatalogPanel extends CatalogPanel<ConnectorType> {
+    @Serial private static final long serialVersionUID = -9159471012370264087L;
+    private static final Trace LOGGER = TraceManager.getTrace(LocalConnectorCatalogPanel.class);
 
-    public LocalConnectorCatalogPanel(String id) {
+    public MarketplaceCatalogPanel(String id) {
         super(id);
+        setOutputMarkupId(true);
     }
 
     @Override
-    protected Search<ConnectorType> createSearch() {
-        return new SearchBuilder<>(ConnectorType.class)
-                .modelServiceLocator(getPageBase())
-                .setFullTextSearchEnabled(true)
-                .build();
-    }
-
-    @Override
-    protected Component createContent(String id) {
-        return new TileTablePanel(id, viewToggleModel, null) {
+    protected WebMarkupContainer createContent(String id) {
+        return new TileTablePanel<TemplateTile<ConnectorType>, TemplateTile<ConnectorType>>(id, viewToggleModel, null) {
             @Override
             protected void onInitialize() {
                 super.onInitialize();
@@ -90,7 +88,7 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
                                 item.add(new AjaxLinkPanel(id, createStringResource("LocalConnectorTilePanel.addApplication")) {
                                     @Override
                                     public void onClick(AjaxRequestTarget target) {
-                                        LocalConnectorCatalogPanel.this.onAddApplication(target);
+                                        MarketplaceCatalogPanel.this.onAddApplication(target);
                                     }
                                 });
                             }
@@ -118,7 +116,7 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
                     @Override
                     public void onActionClick(AjaxRequestTarget target) {
                         super.onActionClick(target);
-                        LocalConnectorCatalogPanel.this.onAddApplication(target);
+                        MarketplaceCatalogPanel.this.onAddApplication(target);
                     }
                 };
             }
@@ -131,7 +129,8 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
 
             @Override
             protected IModel<Search> createSearchModel() {
-                return (Search<>) LocalConnectorCatalogPanel.super.searchModel;
+                // TODO zlobí typy, opavits
+                return (IModel<Search>) (Object) MarketplaceCatalogPanel.this.searchModel;
             }
 
             @Override
@@ -151,7 +150,7 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
 
             @Override
             protected String getTilesHeaderCssClasses() {
-                return isTileViewVisible() ? "pt-3 pr-3 pb-0 pl-3 tiles-view" : "pb-3 table-view";
+                return "p-3";
             }
 
             @Override
@@ -161,7 +160,7 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
 
             @Override
             protected Component createHeader(String id) {
-                Fragment headerContainer = new Fragment(id, "customHeaderFragment", LocalConnectorCatalogPanel.this);
+                Fragment headerContainer = new Fragment(id, "customHeaderFragment", MarketplaceCatalogPanel.this);
                 SearchBoxPanel searchBoxPanel = new SearchBoxPanel("searchBoxPanel", createStringResource("SearchBoxPanel.placeholder")) {
                     @Override
                     protected void onSearch(AjaxRequestTarget target, String query) {
@@ -184,7 +183,7 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
                 ViewTogglePanel viewToggle = new ViewTogglePanel("viewToggle", getViewToggleModel()) {
                     @Override
                     protected void onToggleChanged(AjaxRequestTarget target) {
-                        target.add(LocalConnectorCatalogPanel.this);
+                        target.add(MarketplaceCatalogPanel.this);
                     }
                 };
 
@@ -211,7 +210,15 @@ public class LocalConnectorCatalogPanel extends CatalogPanel<ConnectorType> {
                     }
                 }
             }
-        };;
+        };
+    }
+
+    @Override
+    protected Search<ConnectorType> createSearch() {
+        return new SearchBuilder<>(ConnectorType.class)
+                .modelServiceLocator(getPageBase())
+                .setFullTextSearchEnabled(true)
+                .build();
     }
 
     private void onAddApplication(AjaxRequestTarget target) {
