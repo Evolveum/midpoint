@@ -165,6 +165,24 @@ class CorrelatorEvaluator {
     }
 
     /**
+     * Inverts a mapping from shadow OIDs to sets of focus OIDs, producing a mapping
+     * from focus OIDs to sets of shadow OIDs.
+     *
+     * @param shadowToFocusesLinks a map where each key is a shadow OID and the value is the set of focus OIDs linked to it
+     * @return a map where each key is a focus OID and the value is the set of shadow OIDs linked to it
+     */
+    private static Map<String, Set<String>> invertShadowToFocusLinks(Map<String, Set<String>> shadowToFocusesLinks) {
+        Map<String, Set<String>> focusToShadows = new HashMap<>();
+        for (Map.Entry<String, Set<String>> entry : shadowToFocusesLinks.entrySet()) {
+            String shadowOid = entry.getKey();
+            for (String focusOid : entry.getValue()) {
+                focusToShadows.computeIfAbsent(focusOid, k -> new HashSet<>()).add(shadowOid);
+            }
+        }
+        return focusToShadows;
+    }
+
+    /**
      * Determines if the property at the given item path is multivalued, in either the focus or shadow definition.
      *
      * @param path Item path to check.
@@ -190,13 +208,12 @@ class CorrelatorEvaluator {
     }
 
     /**
-     * Computes the evaluation score for a single correlator suggestion, based on:
-     *   - Whether either involved path is multivalued (score 0 if so)
-     *   - Uniqueness and coverage statistics for focus and shadow attributes
-     *   - Linkage coverage and ambiguity between sampled focuses and shadows
+     * Computes the correlation score for the given correlator suggestion.
+     * The score reflects the quality and applicability of the suggested correlation
+     * between a focus item path and a resource attribute path.
      *
-     * @param suggestion The correlator suggestion to evaluate.
-     * @return A double score value (0 = unusable, 1 = ideal unique/complete mapping).
+     * @param suggestion the correlation suggestion containing potential focus and resource attribute paths
+     * @return the computed score as a {@link Double}, or -1.0 if the suggestion is not applicable
      */
     private Double computeScore(CorrelatorSuggestion suggestion) {
         ItemPath focusPath = suggestion.focusItemPath();
@@ -207,75 +224,101 @@ class CorrelatorEvaluator {
 
         if (hasFocusPath && isMultiValued(focusPath) && focusStatistics.isPathMultiValued(focusPath)) {
             LOGGER.debug("Excluded correlator {}: multi-valued focus path.", focusPath);
-            return 0.0;
+            return -1.0;
         }
         if (hasResourcePath && isMultiValued(resourcePath) && resourceStatistics.isPathMultiValued(resourcePath)) {
             LOGGER.debug("Excluded correlator {}: multi-valued resource path.", resourcePath);
-            return 0.0;
+            return -1.0;
         }
 
         Double focusScore = hasFocusPath ? focusStatistics.getScore(focusPath) : null;
         Double resourceScore = hasResourcePath ? resourceStatistics.getScore(resourcePath) : null;
 
         if (focusScore == null && resourceScore == null) {
-            return 0.0;
+            return -1.0;
         } else if (focusScore == null) {
-            return resourceScore * 0.5; // penalty for not having focus score
+            return resourceScore * 0.5; // penalty for not having focus path
         } else if (resourceScore == null) {
-            return focusScore * 0.5; // penalty for not having resourceScore score
+            return focusScore * 0.5; // penalty for not having resource path
         }
 
+        // Excluding base score to have unified score with "black-box" correlators
+
+        /*
         if (focusScore == 0 || resourceScore == 0) {
             LOGGER.debug("Excluded correlator {} - {}: either focus score or resource score is 0. Focus score: {}, Resource score: {}",
                     suggestion.focusItemPath(), suggestion.resourceAttrPath(), focusScore, resourceScore);
             return 0.0;
         }
 
-        Map<String, Set<String>> shadowToFocusLinks = collectShadowToFocusLinks(suggestion);
-        double linkCoverage = computeLinkCoverage(shadowToFocusLinks);
-
-        // Excluding base score to have unified score with "black-box" correlators
-        /*
         double baseScore = 2.0 * focusScore * resourceScore / (focusScore + resourceScore);
         double finalScore = baseScore * linkCoverage;
         LOGGER.debug("Base score: {} - Sampled focus-shadow link coverage: {} - Final score: {}",
                 baseScore, linkCoverage, finalScore);
          */
 
+        Map<String, Set<String>> shadowToFocusLinks = collectShadowToFocusLinks(suggestion);
+        double linkCoverage = computeLinkCoverage(shadowToFocusLinks);
+
         return linkCoverage;
     }
 
     /**
-     * Computes how well sampled shadow objects are covered by links to focus objects,
-     * and penalizes ambiguous mappings (one focus mapping to multiple shadows).
+     * Computes the coverage of links between "shadow" and "focus" entities. The coverage is calculated as the
+     * fraction of shadow entities that are linked to at least one focus entity,
+     * penalized for ambiguous links (i.e., shadows linked to multiple focuses and focuses linked to multiple shadows).
      *
-     * @param shadowToFocusesLinks Map from focus OID to set of linked shadow OIDs.
-     * @return Coverage/ambiguity score (0 = no mapping, 1 = perfect one-to-one coverage).
+     * 1. Count all shadows: N
+     * 2. Count "linked" shadows: L (shadow to focus links)
+     * 3. Count "ambiguous" shadows: A (how many shadows have multilinks)
+     * 4. Coverage = L / N
+     * 5. Penalty for ambiguous shadow-to-focus links = 1 - (A / L)
+     * 6. Invert mapping for focus-to-shadows
+     * 7. Count "linked" focuses: L' (focus to shadow links)
+     * 8. Count "ambiguous" focuses: A' (how many focuses have multilinks)
+     * 9. Penalty for ambiguous focus-to-shadow links = 1 - (A' / L')
+     * 10. Final score = coverage * penalty1 * penalty2
+     *
+     * @param shadowToFocusesLinks a map where each key is a shadow identifier and the value is the set of focus identifiers it is linked to.
+     * @return a double value between 0.0 and 1.0 representing the penalized link coverage.
      */
     private static double computeLinkCoverage(Map<String, Set<String>> shadowToFocusesLinks) {
         int shadowCount = shadowToFocusesLinks.size();
         if (shadowCount == 0) return 0.0;
 
-        int linked = 0;
-        int multiLinks = 0;
-
+        int linkedShadows = 0;
+        int ambiguousShadows = 0;
         for (Set<String> focusOids : shadowToFocusesLinks.values()) {
             if (!focusOids.isEmpty()) {
-                linked++;
+                linkedShadows++;
                 if (focusOids.size() > 1) {
-                    multiLinks += (focusOids.size() - 1); // ambiguity count
+                    ambiguousShadows++;
                 }
             }
         }
 
-        // Coverage: How many focus objects are linked to at least one shadow
-        double coverage = (double) linked / shadowCount;
+        double coverage = (double) linkedShadows / shadowCount;
 
-        // Multiplicities: Penalize if a focus links to multiple shadows (ambiguous mapping)
-        double avgAmbiguity = linked > 0 ? (double) multiLinks / linked : 0.0;
-        double penalty = 1.0 / (1.0 + avgAmbiguity); // 1 if always 1:1, <1 if ambiguous
+        double shadowToMultiFocusPenalty = linkedShadows > 0
+                ? 1.0 - ((double) ambiguousShadows / linkedShadows)
+                : 1.0;
 
-        return coverage * penalty;
+        Map<String, Set<String>> focusToShadowsLinks = invertShadowToFocusLinks(shadowToFocusesLinks);
+        int linkedFocuses = 0;
+        int ambiguousFocuses = 0;
+        for (Set<String> shadows : focusToShadowsLinks.values()) {
+            if (!shadows.isEmpty()) {
+                linkedFocuses++;
+                if (shadows.size() > 1) {
+                    ambiguousFocuses++;
+                }
+            }
+        }
+        double focusToMultiShadowPenalty = linkedFocuses > 0
+                ? 1.0 - ((double) ambiguousFocuses / linkedFocuses)
+                : 1.0;
+
+        return coverage * shadowToMultiFocusPenalty * focusToMultiShadowPenalty;
     }
 
     /**
