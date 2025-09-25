@@ -7,23 +7,28 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="d-flex flex-row justify-content-between align-items-start gap-2 w-100">
-        <wicket:container wicket:id="imageContainer" />
-        <div wicket:id="tags" class="justify-content-end mt-n3 mr-n3" />
-    </div>
-    <h3 wicket:id="title" class="h6 text-bold text-break p-0" />
-    <p wicket:id="description" class="p-0"/>
-    <a wicket:id="link" class="btn pl-0" href="#">
-        <!-- this span hacks CSS rule, bg-light > a that forces color for links -->
-        <span class="btn-link">
-            <wicket:message key="LocalConnectorTilePanel.moreDetails">More Details</wicket:message>
-            <i aria-hidden="true" class="fa-solid fa-arrow-right ml-2"></i>
-        </span>
-    </a>
-    <button wicket:id="action" class="btn btn-outline-secondary d-flex flex-row justify-content-center align-items-center w-100 gap-2 mt-auto">
-        <i aria-hidden="true" class="fa-solid fa-plus"></i>
-        <wicket:message key="LocalConnectorTilePanel.addApplication">Add Application</wicket:message>
-    </button>
+    <article class="d-flex flex-column align-items-start gap-3 p-4 m-0 shadow-sm border-0 rounded-xl h-100 bg-light"
+            role="listitem"
+            style="min-height: 23.75rem"
+    >
+        <div class="d-flex flex-row justify-content-between align-items-start gap-2 w-100">
+            <wicket:container wicket:id="imageContainer" />
+            <div wicket:id="tags" class="justify-content-end mt-n3 mr-n3" />
+        </div>
+        <h3 wicket:id="title" class="h6 text-bold text-break p-0" />
+        <p wicket:id="description" class="p-0"/>
+        <a wicket:id="link" class="btn pl-0" href="#">
+            <!-- this span hacks CSS rule, bg-light > a that forces color for links -->
+            <span class="btn-link">
+                <wicket:message key="LocalConnectorTilePanel.moreDetails">More Details</wicket:message>
+                <i aria-hidden="true" class="fa-solid fa-arrow-right ml-2"></i>
+            </span>
+        </a>
+        <button wicket:id="action" class="btn btn-outline-secondary d-flex flex-row justify-content-center align-items-center w-100 gap-2 mt-auto">
+            <i aria-hidden="true" class="fa-solid fa-plus"></i>
+            <wicket:message key="LocalConnectorTilePanel.addApplication">Add Application</wicket:message>
+        </button>
+    </article>
 </wicket:panel>
 
 <wicket:fragment wicket:id="iconFragment">

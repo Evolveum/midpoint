@@ -39,7 +39,6 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.visibleWhenMod
  * @param <T> The type of the tile model object, bound to the payload type O.
  */
 public abstract class ConnectorTilePanel<O extends Serializable, T extends TemplateTile<O>> extends BasePanel<T> {
-    private static final String CSS_PANEL = "d-flex flex-column align-items-start gap-3 p-4 m-0 shadow-sm border-0 rounded-xl h-100 bg-light";
     private static final String ID_ACTION = "action";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_ICON = "icon";
@@ -158,12 +157,11 @@ public abstract class ConnectorTilePanel<O extends Serializable, T extends Templ
      * Subclasses can override this method, and optionally call {@code super.onConfigurePanel()}
      * to inherit the default classes before adding their own modifications.
      */
-    protected void onConfigurePanel() {
-        add(AttributeAppender.replace("class", CSS_PANEL));
-    }
+    protected void onConfigurePanel() {}
 
     private Fragment createIconFragment(IModel<String> iconCssClassModel) {
         Fragment iconFragment = new Fragment(ID_IMAGE_CONTAINER, ID_ICON_FRAGMENT, this);
+        iconFragment.setDefaultModel(iconCssClassModel);
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(new AttributeAppender("class", iconCssClassModel));
         iconFragment.add(icon);
