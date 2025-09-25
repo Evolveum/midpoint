@@ -220,7 +220,7 @@
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
-        <opensaml.version>4.1.1</opensaml.version>
+        <opensaml.version>4.3.2</opensaml.version>
 
         <cache2k.version>2.6.1.Final</cache2k.version>
 
@@ -934,6 +934,11 @@
                 <groupId>org.codehaus.woodstox</groupId>
                 <artifactId>stax2-api</artifactId>
                 <version>4.2.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.woodstox</groupId>
+                <artifactId>woodstox-core</artifactId>
+                <version>6.5.0</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.opendj</groupId>
