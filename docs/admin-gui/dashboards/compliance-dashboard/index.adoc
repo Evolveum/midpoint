@@ -7,8 +7,11 @@ doc-type: intro
 :page-since: "4.10"
 :page-display-order: 40
 :page-upkeep-status: green
+:page-description: Learn how midPoint compliance dashboard helps you with real‑time continuous auditing to spot violations instantly and stay audit‑ready.
 
-== Description
+Find out what the built‑in compliance dashboard in midPoint is, how it derives its metrics from policies, policy rules, and marks, and how it helps you evaluate your compliance continuously.
+
+== What is compliance dashboard
 
 Compliance dashboard provides aggregated overview of information and metrics related to regulatory compliance of organization.
 MidPoint contains a pre-configured dashboard, which provides overview of basic compliance metrics, based on pre-configured policies and policy rules.
@@ -19,12 +22,12 @@ image::compliance-dashboard-screenshot.png["Example of a compliance dashboard in
 Compliance dashboard is a pre-configured object (a.k.a. xref:/midpoint/reference/deployment/ninja/command/initial-objects/[initial object]) in midPoint.
 The dashboard can be further extended and customized as needed.
 
-== Mechanism
+== How it works
 
 Functionality of compliance dashboard is heavily based on feature:policy-concept[policies], feature:policy-rule[policy rules] and xref:/midpoint/reference/concepts/mark/[marks], as is described at xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[] page.
 Policy rules, stored in xref:/midpoint/reference/schema/policy/[policy objects] are setting the xref:/midpoint/reference/concepts/mark/[marks], which are used by compliance dashboard for compliance reporting.
 
-== Continuous auditing
+== Proactive compliance with continuous auditing
 
 Continuous auditing is the practice of evaluating compliance—security, regulatory, or internal—on an ongoing, automated basis rather than through periodic manual reviews.
 
