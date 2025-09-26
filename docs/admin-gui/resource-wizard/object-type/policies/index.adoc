@@ -14,14 +14,14 @@ This page describes how to use object marks in the *Object type policies* sectio
 In midPoint GUI, you can group accounts and entitlements in resources so that you can apply policies only to such groups.
 This is done in the *Object type policies* section of the application, where you can configure the following features:
 
-* <<classsify_objects,Marking>> - Groups accounts or entitlements by filtering them and assigning marks to them.
-* <<default_operation_policy,Default Operation Policy>> - Defines the default policy for objects that have not been explicitly assigned marks in the <<classsify_objects,Marking>> section.
+* <<classify_objects,Marking>> - Groups accounts or entitlements by filtering them and assigning marks to them.
+* <<default_operation_policy,Default Operation Policy>> - Defines the default policy for objects that have not been explicitly assigned marks in the <<classify_objects,Marking>> section.
 
 image::object-type-policies.webp[link=object-type-policies.webp,70%,title=Object type policies]
 
 For more technical details on object marks, and to see how you can use them in your workflows, see xref:/midpoint/reference/concepts/mark[].
 
-[[classsify_objects]]
+[[classify_objects]]
 == Classify objects using marks
 Objects are classified by selecting a mark, and subsequently, defining a xref:/midpoint/reference/concepts/query/midpoint-query-language/[filter] that matches the objects that will be grouped under that mark.
 
@@ -71,7 +71,7 @@ For example, set it to `Unmanaged` to automatically consider all resource groups
 [[mark_manually]]
 == Mark objects manually
 
-In addition to marking objects in bulk by filtering them in the <<classsify_objects,Marking>> section, you can also mark individual objects manually in the following areas of the midPoint GUI:
+In addition to marking objects in bulk by filtering them in the <<classify_objects,Marking>> section, you can also mark individual objects manually in the following areas of the midPoint GUI:
 
 * <<accounts,Accounts>>
 * <<entitlements,Entitlements>>
