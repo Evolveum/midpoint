@@ -259,6 +259,11 @@ public class SelectorWithItems {
         return selector.isParentLess();
     }
 
+    boolean hasOverlapWith(@NotNull Class<?> requiredType) {
+        return selector.getEffectiveType().isAssignableFrom(requiredType)
+                || requiredType.isAssignableFrom(selector.getEffectiveType());
+    }
+
     private record Adjustment(@NotNull QName typeName, @NotNull ItemPath path) {
 
             // Adjustment to root should be the last one

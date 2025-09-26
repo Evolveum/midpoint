@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Authorization
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType.REQUEST;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
@@ -118,8 +120,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
         private final @NotNull PhaseSelector phaseSelector;
 
-        /** TODO */
-        @NotNull private final QueryAutzItemPaths queryItemsSpec = new QueryAutzItemPaths();
+        /** What objects/items do we need the access to (to evaluate the query), and do we have it? */
+        @NotNull private final QueryObjectsAutzCoverage queryObjectsAutzCoverage = new QueryObjectsAutzCoverage();
 
         /** TODO */
         private F securityFilterAllow = null;
@@ -145,7 +147,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
-            queryItemsSpec.addRequiredItems(origFilter); // MID-3916
+            queryObjectsAutzCoverage.addRequiredItems(filterType, origFilter); // MID-3916, MID-10206
+
             tracePartialOperationStarted();
 
             int i = 0;
@@ -186,8 +189,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                     if (authorization.isAllow()) {
                         securityFilterAllow = gizmo.or(securityFilterAllow, autzSecurityFilter);
                         if (!gizmo.isNone(autzSecurityFilter)) {
-                            // TODO resolve for shifted authorizations!
-                            queryItemsSpec.collectItems(authorization);
+                            collectItems(i, authorization, result);
                         }
                     } else { // "deny" type authorization
                         if (authorization.hasItemSpecification()) {
@@ -208,11 +210,11 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
                 }
             }
 
-            List<ItemPath> unsatisfiedItems = queryItemsSpec.evaluateUnsatisfiedItems();
-            if (!unsatisfiedItems.isEmpty()) {
+            String unsatisfiedItemsDescription = queryObjectsAutzCoverage.getUnsatisfiedItemsDescription();
+            if (unsatisfiedItemsDescription != null) {
                 F secFilter = gizmo.createDenyAll();
-                // TODO lazy string concatenation?
-                tracePartialOperationFinished(secFilter, "deny because items " + unsatisfiedItems + " are not allowed");
+                tracePartialOperationFinished(
+                        secFilter, "deny because items " + unsatisfiedItemsDescription + " are not allowed");
                 return secFilter;
             }
             securityFilterAllow = gizmo.simplify(securityFilterAllow);
@@ -233,13 +235,38 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             }
         }
 
+        private void collectItems(int i, Authorization authorization, OperationResult result) throws ConfigurationException {
+            for (var queryObjectAutzCoverageEntry : queryObjectsAutzCoverage.getAllEntries()) {
+                Class<? extends ObjectType> type = queryObjectAutzCoverageEntry.getKey();
+                var aEval = new AuthorizationSearchItemsEvaluation<>(
+                        i, type, authorization, EnforcerFilterOperation.this, result);
+
+                var authorizedSearchItems = aEval.getAuthorizedSearchItems();
+                if (authorizedSearchItems != null) {
+                    tracePartialOperationNote(
+                            "Providing path sets for '%s' authorization for %s: positives: %s, negatives: %s",
+                            authorization.getDecision(), type.getSimpleName(),
+                            authorizedSearchItems.positives(), authorizedSearchItems.negatives());
+                    queryObjectAutzCoverageEntry.getValue()
+                            .processSearchItems(authorizedSearchItems, authorization.isAllow());
+                }
+            }
+        }
+
         private void tracePartialOperationStarted() {
             if (tracer.isEnabled()) {
                 tracer.trace(
                         new PartialFilterOperationStarted<>(
                                 this,
                                 phaseSelector,
-                                queryItemsSpec.shortDump()));
+                                queryObjectsAutzCoverage.shortDump()));
+            }
+        }
+
+        private void tracePartialOperationNote(@Nullable String message, Object... arguments) {
+            if (tracer.isEnabled()) {
+                tracer.trace(
+                        new SecurityTraceEvent.PartialFilterOperationNote<>(this, message, arguments));
             }
         }
 
@@ -255,8 +282,8 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
         }
 
         /** For diagnostics purposes. */
-        @NotNull QueryAutzItemPaths getQueryItemsSpec() {
-            return queryItemsSpec;
+        @NotNull QueryObjectsAutzCoverage getQueryObjectsAutzCoverage() {
+            return queryObjectsAutzCoverage;
         }
 
         /** For diagnostics purposes. */
