@@ -286,7 +286,8 @@ public class StatisticsComputer {
 
         for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
             if (attribute.getUniqueValueCount() <= VALUE_COUNT_PAIR_HARD_LIMIT &&
-                    attribute.getUniqueValueCount() <= percentageThreshold) {
+                    attribute.getUniqueValueCount() <= percentageThreshold &&
+                    attribute.getUniqueValueCount() > 0) {
                 indices.add(fromAttributeRef(attribute.getRef()));
             }
         }
