@@ -10,14 +10,15 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for AI-related features.
@@ -106,5 +107,110 @@ public class AiUtil {
                         .originRef(SystemObjectsType.ORIGIN_ARTIFICIAL_INTELLIGENCE.value(), ServiceType.COMPLEX_TYPE));
         metadata.freeze();
         return metadata;
+    }
+
+    /**
+     * Synchronizes AI provenance metadata between the old and new value.
+     * <ul>
+     *     <li>If the old value was marked as AI-provided and the new value differs,
+     *         the AI provenance is removed from the new value.</li>
+     *     <li>If the old and new values are equal, the AI provenance mark is re-applied
+     *         to the new value.</li>
+     * </ul>
+     */
+    public static void syncAiProvenanceWithChangeIfApplied(@NotNull PrismValue newValue, @NotNull PrismValue oldValue) {
+        if (AiUtil.isMarkedAsAiProvided(oldValue)) {
+            if (!Objects.equals(oldValue.getRealValue(), newValue.getRealValue())) {
+                AiUtil.unmarkAsAiProvided(newValue);
+            } else {
+                AiUtil.markAsAiProvided(newValue);
+            }
+        }
+    }
+
+    /**
+     * Recursively removes AI provenance metadata from the given PrismValue and its children.
+     * <p>
+     * Traverses property and reference values, but skips metadata containers themselves.
+     * </p>
+     */
+    public static void unmarkAsAiProvided(@Nullable PrismValue value) {
+        if (value == null) {
+            return;
+        }
+        value.acceptVisitor(visitable -> {
+            if (visitable instanceof ValueMetadata) {
+                return false;
+            } else if (visitable instanceof PrismValue prismValue) {
+                if (prismValue instanceof PrismContainerValue<?>) {
+                    return true;
+                } else {
+                    removeAiProvenanceMetadata(prismValue);
+                    return false;
+                }
+            } else {
+                return visitable instanceof Item;
+            }
+        });
+    }
+
+    /**
+     * Removes AI provenance metadata entries from the given PrismValue.
+     * <p>
+     * Operates directly on the {@link ValueMetadata} container of the value.
+     * Returns {@code true} if at least one AI provenance entry was removed.
+     * </p>
+     */
+    private static boolean removeAiProvenanceMetadata(@NotNull PrismValue prismValue) {
+
+        ValueMetadata vmc = prismValue.getValueMetadata();
+        if (vmc.hasNoValues()) {
+            return false;
+        }
+
+        Iterator<PrismContainerValue<Containerable>> it = vmc.getValues().iterator();
+        boolean removed = false;
+
+        while (it.hasNext()) {
+            PrismContainerValue<?> pcv = it.next();
+            ValueMetadataType vmType = pcv.getRealValue();
+            if (vmType == null || vmType.getProvenance() == null) {
+                continue;
+            }
+            if (containsMatchingOriginRefMetadata(vmType.getProvenance(), AiUtil.AI_PROVENANCE_METADATA)) {
+                it.remove();
+                removed = true;
+            }
+        }
+
+        if (removed && vmc.hasNoValues()) {
+            vmc.clear();
+        }
+        return removed;
+    }
+
+    /**
+     * Compares two provenance metadata beans by their acquisition origins.
+     * <p>
+     * Returns {@code true} if both contain the same set of {@code originRef} OIDs,
+     * regardless of order. Other provenance fields are ignored.
+     * </p>
+     */
+    //TODO
+    public static boolean containsMatchingOriginRefMetadata(
+            @NotNull ProvenanceMetadataType candidateProvenance,
+            @NotNull ProvenanceMetadataType expectedProvenance) {
+
+        Set<String> candidateOids = candidateProvenance.getAcquisition().stream()
+                .map(a -> a.getOriginRef() != null ? a.getOriginRef().getOid() : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<String> expectedOids = expectedProvenance.getAcquisition().stream()
+                .map(a -> a.getOriginRef() != null ? a.getOriginRef().getOid() : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        return candidateOids.equals(expectedOids);
     }
 }

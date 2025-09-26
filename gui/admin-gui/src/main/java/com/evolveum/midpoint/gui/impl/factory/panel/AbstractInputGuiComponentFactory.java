@@ -80,14 +80,6 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
             formComponent.setLabel(label);
 
-            //TODO not work
-            boolean aiProvided = propertyWrapper.getValues().stream().anyMatch(vw -> {
-                PrismValue newVal = vw.getNewValue();
-                PrismValue valToCheck = newVal != null ? newVal : vw.getOldValue();
-                return AiUtil.isMarkedAsAiProvided(valToCheck);
-            });
-
-            //TODO it should be done using value metadata (required ai flag metadata implementation)
             markIfAiGeneratedValue(formComponent, propertyWrapper);
 
             Class<? extends Containerable> parentClass = getChoicesParentClass(panelCtx);
