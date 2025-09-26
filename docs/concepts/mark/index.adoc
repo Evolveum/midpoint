@@ -8,10 +8,10 @@ doc-type: intro
 :page-moved-from: /midpoint/reference/mark/
 :page-upkeep-status: green
 :page-keywords: object operation policy, object marks, default policy, filter, shadow policy marks, shadow, marks
-:page-description: This describes Object Marks, a midPoint feature that enables you to classify objects into groups to which you can then target policies.
+:page-description: This describes Object Marks, a midPoint feature that enables you to classify objects into groups to which you can then apply policies.
 
 
-This describes Object Marks, a midPoint feature that enables you to classify objects into groups to which you can then target policies.
+This describes Object Marks, a midPoint feature that enables you to classify objects into groups to which you can then apply policies.
 
 == Introduction
 
@@ -19,7 +19,7 @@ Object Marks are light-weight marking mechanism for objects that helps you ease 
 
 Marked objects can be filtered by marks in the Admin GUI and may receive additional policies based on effective marks.
 
-Technically, object marks are `MarkType` with the `Object Mark` archetype.
+Object marks are `MarkType` with the `Object Mark` archetype.
 
 Grouping objects with marks, and applying policies to those groups enables you to cover many business scenarios, such as:
 
@@ -36,7 +36,7 @@ Grouping objects with marks, and applying policies to those groups enables you t
 
 == How it works
 
-A typical scenario in which marks are used to control the behavior of groups of objects consists of the following steps:
+A typical scenario in which marks are used to control the behavior of groups of objects has the following steps:
 
 . Create object marks that support your use case.
 . Classify objects into marked groups by assigning marks to filtered objects.
