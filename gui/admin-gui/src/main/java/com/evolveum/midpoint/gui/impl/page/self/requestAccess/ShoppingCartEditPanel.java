@@ -405,43 +405,13 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
         try {
             PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentModel.getObject();
-            // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
-            if (containerValueWrapper == null) {
+            if (containerValueWrapper == null || containerValueWrapper.getDeltas().isEmpty()) {
                 updateSelectedAssignment(target);
                 return;
             }
 
-            PrismObjectWrapper<UserType> wrapper = containerValueWrapper.getParent().findObjectWrapper();
-            if (wrapper.getObjectDelta().isEmpty()) {
-                updateSelectedAssignment(target);
-                return;
-            }
-
-            PrismContainerWrapper<AssignmentType> assignmentWrapper = wrapper.findContainer(UserType.F_ASSIGNMENT);
-            if (assignmentWrapper == null || assignmentWrapper.getValues().isEmpty() || assignmentWrapper.getDelta().isEmpty()) {
-                updateSelectedAssignment(target);
-                return;
-            }
-
-            PrismContainerValueWrapper<AssignmentType> value = assignmentWrapper.getValues().iterator().next();
-            PrismContainerValue<AssignmentType> assignmentWithDelta = value.getContainerValueApplyDelta();
+            PrismContainerValue<AssignmentType> assignmentWithDelta = containerValueWrapper.getContainerValueApplyDelta();
             updateSelectedAssignment(assignmentWithDelta.getRealValue(), target);
-
-
-//            UserType user = wrapper.getObjectApplyDelta().asObjectable();
-//            // TODO wrappers for some reason create second assignment with (first one was passed from this shopping cart to fake user)
-//            // that second assignment contains modified extension...very nasty hack
-//            List<AssignmentType> assignments = user.getAssignment();
-//            if (assignments.size() < 2) {
-//                updateSelectedAssignment();
-//                return;
-//            }
-//            AssignmentType modified = user.getAssignment().get(1);
-//
-//            AssignmentType a = getModelObject().getAssignment();
-//            a.setExtension(modified.getExtension());
-//
-//            updateSelectedAssignment();
         } catch (CommonException ex) {
             getPageBase().error(getString("ShoppingCartEditPanel.message.couldntProcessExtension", ex.getMessage()));
             LOGGER.debug("Couldn't process extension attributes", ex);
