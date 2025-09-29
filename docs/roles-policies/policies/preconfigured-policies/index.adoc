@@ -14,27 +14,23 @@ Following polices are included in midPoint xref:/midpoint/reference/deployment/i
 | Policy | Applied to | When violated | Description
 
 | `Require owner`
-| Archetypes
+| Individual objects (assignment) +
+Archetypes (inducement)
 | Applies mark `Unowned`
-| Requires that all archetyped objects have at least one owner.
+| Requires that all affected objects have at least one owner.
 
 | `Require classification`
-| Archetypes
+| Individual objects (assignment) +
+Archetypes (inducement)
 | Applies mark `No classification`
-| Requires that all archetyped objects have a xref:/midpoint/reference/roles-policies/policies/classification/[classification].
+| Requires that all affected objects have a xref:/midpoint/reference/roles-policies/policies/classification/[classification].
 
 |===
 
-The policies can be used by assigning them to objects specified in the _Applied to_ column above.
-E.g. the `Require owner` policy can be applied by assigning this policy to the `Application` archetype, which sets the requirement that all applications must have at least one owner.
+The policies can be used by assigning/inducing them to objects specified in the _Applied to_ column above.
+E.g. the `Require owner` policy can be applied by inducing this policy in the `Application` archetype, which sets the requirement that all applications must have at least one owner.
 
 NOTE: Affected objects have to be explicitly recomputed after the policy is applied for the policy to take effect.
-
-== Limitations
-
-* The policies can be applied only to selected set of objects.
-Currently, the policies are designed to be applied to archetypes, not individual objects (applications, roles).
-This could be improved in future midPoint versions.
 
 == See Also
 

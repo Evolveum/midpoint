@@ -153,6 +153,9 @@ After these steps we have a complete session.
 Based on the analysis, begin to define potential business roles that represent a common approach patterns.
 We simply go through the list of detected patterns and select the most suitable one.
 If necessary, the structure of the proposed pattern can be fine-tuned by assigning additional rights and users falling under a specific cluster.
+Please, note that defining a new Business Role candidate (through midPoint's GUI) requires an existence of the object collection view with Business role archetype assigned.
+MidPoint's initial Business role archetype is used for these purposes.
+It's also possible to use a custom Business role archetype in case it has a super archetype reference pointing on the midPoint's initial Business role archetype.
 
 After roles are defined and refined, it's time to integrate them into the business role access management structure.
 The last step of role mining is migration to a business role.

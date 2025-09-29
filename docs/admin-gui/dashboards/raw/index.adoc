@@ -1,2 +1,0 @@
-:page-visibility: hidden
-:page-upkeep-status: green

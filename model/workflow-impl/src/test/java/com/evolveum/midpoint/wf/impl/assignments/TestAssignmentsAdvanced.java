@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.wf.impl.assignments;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -21,6 +23,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.TestDir;
@@ -84,6 +88,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final TestObject<RoleType> ROLE_EXTENSION_PROPERTY_MOD_APPROVAL = TEST_DIR.object("role-extension-property-mod-approval.xml", "60459cec-7bdb-4872-99ae-65063c9c2e82");
 
     private static final TestObject<RoleType> ROLE_SKIPPED = TEST_DIR.object("role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
+    private static final TestObject<RoleType> ROLE_AUTOCOMPLETE_FILE = TEST_DIR.object("role-autocomplete.xml", "9f4a3a87-2b9e-4e4c-9fcb-7bb2d1210a5e");
     private static final TestObject<RoleType> ROLE_APPROVE_UNASSIGN = TEST_DIR.object("role-approve-unassign.xml", "3746aa73-ae91-4326-8493-f5ac5b22f3b6");
 
     private static final TestObject<RoleType> ROLE_IDEMPOTENT = TEST_DIR.object("role-idempotent.xml", "e2f2d977-887b-4ea1-99d8-a6a030a1a6c0");
@@ -145,6 +150,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         addObject(USER_HOLDER_OF_ROLE_BEING_ENABLED, initTask, initResult);
         repoAdd(ROLE_BEING_DISABLED, initResult);
         addObject(USER_HOLDER_OF_ROLE_BEING_DISABLED, initTask, initResult);
+        repoAdd(ROLE_AUTOCOMPLETE_FILE, initResult);
         repoAdd(ROLE_BEING_DISABLED_WITH_APPROVAL, initResult);
         addObject(USER_HOLDER_OF_ROLE_BEING_DISABLED_WITH_APPROVAL, initTask, initResult);
 
@@ -1350,6 +1356,36 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .assignments()
                 .assertRole(ROLE_SELECTIVE_A.oid)
                 .assertRole(ROLE_SELECTIVE_B.oid);
+    }
+
+    //connected to #10853 which is not replicated on master, still the test is added for debugging purpose,
+    //may be will be removed in later, after resolving the ticket
+    @Test
+    public void test960CreateNewRoleWhileApprovalProcessWithAutoCompletion() throws Exception {
+        given();
+        login(userAdministrator);
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("create new role with assignment to the approval process with auto-completion");
+        String newRoleOid = "8fcb9b1c-3a6f-4e47-93c8-1c4d4379dfd0";
+        String newRoleName = "addRoleWithAutocompleteApproval";
+        RoleType newRole = new RoleType()
+                .oid(newRoleOid)
+                .name(newRoleName)
+                .assignment(ROLE_AUTOCOMPLETE_FILE.assignmentTo());
+        ObjectDelta<RoleType> addDelta = newRole.asPrismObject().createAddDelta();
+        executeChanges(addDelta, null, task, result);
+        CaseType caseObj = assertCase(result, "after")
+                .getObject().asObjectable();
+        waitForCaseClose(caseObj, 3000);
+
+        // THEN
+        then();
+        PrismObject<RoleType> createdRole = repositoryService.getObject(RoleType.class, newRoleOid, null, result);
+        String xml = getPrismContext().xmlSerializer().serialize(createdRole);
+        assertThat(xml.startsWith("<role")).isEqualTo(true);
     }
 
     private void executeAssignRoles123ToJack(boolean immediate,

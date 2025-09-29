@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.5</version>
+        <version>3.5.6</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
         -->
@@ -216,12 +216,11 @@
 
         <commons.io.version>2.18.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
-        <cxf.version>4.0.7</cxf.version>
+        <cxf.version>4.0.9</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
-        <wss4j.version>2.3.3</wss4j.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
-        <opensaml.version>4.1.1</opensaml.version>
+        <opensaml.version>4.3.2</opensaml.version>
 
         <cache2k.version>2.6.1.Final</cache2k.version>
 
@@ -269,7 +268,7 @@
         <xerces.version>2.12.2</xerces.version>
         <commons.csv.version>1.12.0</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
-        <bouncycastle.version>1.78</bouncycastle.version>
+        <bouncycastle.version>1.79</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
         <keycloak.version>26.0.6</keycloak.version>
         <keycloak.client.version>26.0.4</keycloak.client.version>
@@ -926,50 +925,20 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.apache.wss4j</groupId>
-                <artifactId>wss4j-ws-security-common</artifactId>
-                <version>${wss4j.version}</version>
-                <exclusions>
-                    <exclusion> <!-- conflict with javax.mail:mail -->
-                        <groupId>org.apache.geronimo.javamail</groupId>
-                        <artifactId>geronimo-javamail_1.4_mail</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.shibboleth.utilities</groupId>
-                        <artifactId>java-support</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.bouncycastle</groupId>
-                        <artifactId>bcprov-jdk15on</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.bouncycastle</groupId>
-                        <artifactId>bcpkix-jdk15on</artifactId>
-                    </exclusion>
-
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.wss4j</groupId>
-                <artifactId>wss4j-ws-security-dom</artifactId>
-                <version>${wss4j.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>net.shibboleth.utilities</groupId>
-                        <artifactId>java-support</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <!-- make this dependency explicit to detect conflicts with older versions -->
                 <groupId>org.codehaus.woodstox</groupId>
                 <artifactId>stax2-api</artifactId>
                 <version>4.2.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.woodstox</groupId>
+                <artifactId>woodstox-core</artifactId>
+                <version>6.5.0</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.opendj</groupId>
