@@ -222,11 +222,11 @@ class CorrelatorEvaluator {
         boolean hasFocusPath = focusPath != null;
         boolean hasResourcePath = resourcePath != null;
 
-        if (hasFocusPath && isMultiValued(focusPath) && focusStatistics.isPathMultiValued(focusPath)) {
+        if (hasFocusPath && isMultiValued(focusPath)) {
             LOGGER.debug("Excluded correlator {}: multi-valued focus path.", focusPath);
             return -1.0;
         }
-        if (hasResourcePath && isMultiValued(resourcePath) && resourceStatistics.isPathMultiValued(resourcePath)) {
+        if (hasResourcePath && isMultiValued(resourcePath)) {
             LOGGER.debug("Excluded correlator {}: multi-valued resource path.", resourcePath);
             return -1.0;
         }

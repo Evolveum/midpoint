@@ -4,9 +4,13 @@ package com.evolveum.midpoint.smart.impl;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
@@ -19,7 +23,9 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.smart.impl.DummyScenario.Account.AttributeNames.*;
 import static com.evolveum.midpoint.smart.impl.DummyScenario.on;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
@@ -31,7 +37,8 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "smart/correlator-evaluator");
 
     private static DummyScenario dummyScenario;
-    private static TypeOperationContext ctx;
+    private static Task task;
+    private static OperationResult result;
 
     private static final TestObject<UserType> USER1 = TestObject.file(TEST_DIR, "user1.xml", "00000000-0000-0000-0000-990000000001");
     private static final TestObject<UserType> USER2 = TestObject.file(TEST_DIR, "user2.xml", "00000000-0000-0000-0000-990000000002");
@@ -47,15 +54,14 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         initTestObjects(initTask, initResult, CommonInitialObjects.SERVICE_ORIGIN_ARTIFICIAL_INTELLIGENCE);
         initAndTestDummyResource(RESOURCE_DUMMY, initTask, initResult);
 
-        ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, initTask, initResult);
+        task = initTask;
+        result = initResult;
 
-        // Init focus objects
-        initTestObjects(initTask, initResult, USER1, USER2, USER3);
-        // Init shadow objects
+        initTestObjects(task, result, USER1, USER2, USER3);
         createShadows();
     }
 
-    private void refreshShadows() throws Exception {
+    private void refreshShadows(TypeOperationContext ctx) throws Exception {
         provisioningService.searchShadows(
                 Resource.of(ctx.resource)
                         .queryFor(ACCOUNT_DEFAULT)
@@ -77,8 +83,30 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         a.add("account3")
                 .addAttributeValues(PERSONAL_NUMBER.local(), "33333")
                 .addAttributeValues(EMAIL.local(), "user3@acme.com");
+    }
 
-        refreshShadows();
+    private TypeOperationContext createCtx(
+            List<ItemPath> focusPaths,
+            List<ItemPath> shadowPaths
+    ) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        if (focusPaths.size() != shadowPaths.size()) {
+            throw new IllegalArgumentException("focusPaths and shadowPaths must have the same size");
+        }
+        SiMatchSchemaResponseType matchResponse = new SiMatchSchemaResponseType();
+        for (int i = 0; i < focusPaths.size(); i++) {
+            matchResponse.attributeMatch(
+                    new SiAttributeMatchSuggestionType()
+                            .applicationAttribute(asStringSimple(shadowPaths.get(i)))
+                            .midPointAttribute(asStringSimple(focusPaths.get(i)))
+            );
+        }
+        return TypeOperationContext.init(
+                new MockServiceClientImpl(
+                        matchResponse,
+                        new SiSuggestMappingResponseType().transformationScript(null)
+                ),
+                RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result
+        );
     }
 
     private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
@@ -99,83 +127,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 null, getTestTask(), getTestOperationResult());
     }
 
+
     @Test
-    public void test010UniquePersonalNumberCorrelationScore() throws Exception {
+    public void test001MultiValuedAttributeCorrelationScore() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ItemPath focusPath = ItemPath.create(UserType.F_PERSONAL_NUMBER);
-        ItemPath shadowPath = PERSONAL_NUMBER.path();
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
-
-        List<CorrelationSuggestionOperation.CorrelatorSuggestion> suggestions = List.of(suggestion);
-
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, suggestions);
-        List<Double> scores = evaluator.evaluateSuggestions(result);
-
-        assertThat(scores).hasSize(1);
-        double score = scores.get(0);
-        assertThat(score)
-                .as("Score for unique personalNumber correlation should be 1.")
-                .isEqualTo(1.0);
-    }
-
-    @Test
-    public void test020AmbiguousEmailCorrelationScore() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        modifyUserReplace(USER2.oid, UserType.F_EMAIL_ADDRESS, "user1@acme.com");
-
-        ItemPath focusPath = ItemPath.create(UserType.F_EMAIL_ADDRESS);
-        ItemPath shadowPath = EMAIL.path();
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
-
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of(suggestion));
-        List<Double> scores = evaluator.evaluateSuggestions(result);
-
-        assertThat(scores).hasSize(1);
-        double score = scores.get(0);
-        assertThat(score)
-                .as("Score for ambiguous and empty email correlation should be low.")
-                .isEqualTo(0.33, Offset.offset(0.01));
-    }
-
-    @Test
-    public void test030IncompletePersonalNumberCorrelationScore() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER);
-
-        ItemPath focusPath = ItemPath.create(UserType.F_PERSONAL_NUMBER);
-        ItemPath shadowPath = PERSONAL_NUMBER.path();
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
-
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of(suggestion));
-        List<Double> scores = evaluator.evaluateSuggestions(result);
-
-        assertThat(scores).hasSize(1);
-        double score = scores.get(0);
-        assertThat(score)
-                .as("Score for incomplete personalNumber correlation should be 2/3")
-                .isEqualTo(0.66, Offset.offset(0.01));
-    }
-
-    @Test
-    public void test040MultiValuedAttributeCorrelationScore() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        // Add a second value to USER1 personalNumber, making it multi-valued
-        modifyUserAdd(USER1.oid, UserType.F_EMAIL, new EmailAddressType().value("user1@acme.com"));
-        modifyUserAdd(USER1.oid, UserType.F_EMAIL, new EmailAddressType().value("user2@acme.com"));
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+        refreshShadows(ctx);
 
         ItemPath focusPath = ItemPath.create(UserType.F_EMAIL);
-        ItemPath shadowPath = PERSONAL_NUMBER.path();
+        ItemPath shadowPath = EMAIL.path();
         CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
                 new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
 
@@ -190,9 +152,12 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
     }
 
     @Test
-    public void test050ResourceOnlyAttributeCorrelationScore() throws Exception {
+    public void test002ResourceOnlyAttributeCorrelationScore() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+        refreshShadows(ctx);
 
         ItemPath focusPath = null;
         ItemPath shadowPath = EMAIL.path();
@@ -210,13 +175,16 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
     }
 
     @Test
-    public void test060FocusOnlyAttributeCorrelationScore() throws Exception {
+    public void test003FocusOnlyAttributeCorrelationScore() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "11111");
         modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "22222");
         modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "33333");
+
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+        refreshShadows(ctx);
 
         ItemPath focusPath = ItemPath.create(UserType.F_PERSONAL_NUMBER);
         ItemPath shadowPath = null;
@@ -234,58 +202,12 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
     }
 
     @Test
-    public void test070AllMissingFocusAttributeCorrelationScore() throws Exception {
+    public void test004NoSuggestions() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // Remove personalNumber from all users
-        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER);
-        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER);
-        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER);
-
-        ItemPath focusPath = ItemPath.create(UserType.F_PERSONAL_NUMBER);
-        ItemPath shadowPath = PERSONAL_NUMBER.path();
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
-
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of(suggestion));
-        List<Double> scores = evaluator.evaluateSuggestions(result);
-
-        assertThat(scores).hasSize(1);
-        double score = scores.get(0);
-        assertThat(score)
-                .as("Score for all-missing focus attribute should be 0.")
-                .isEqualTo(0.0);
-    }
-
-    @Test
-    public void test080NoUniquenessAllSameValue() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        // Set the same personal number to all users
-        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "SAME");
-        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "SAME");
-        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "SAME");
-
-        ItemPath focusPath = ItemPath.create(UserType.F_PERSONAL_NUMBER);
-        ItemPath shadowPath = PERSONAL_NUMBER.path();
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
-
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of(suggestion));
-        List<Double> scores = evaluator.evaluateSuggestions(result);
-
-        assertThat(scores).hasSize(1);
-        assertThat(scores.get(0))
-                .as("Score for correlation with no uniqueness (all same value) should be 0.0")
-                .isEqualTo(0.0);
-    }
-
-    @Test
-    public void test090NoSuggestions() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+        refreshShadows(ctx);
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of());
         List<Double> scores = evaluator.evaluateSuggestions(result);
@@ -296,9 +218,12 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
     }
 
     @Test
-    public void test100NullSuggestion() throws Exception {
+    public void test005NullSuggestion() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
+        refreshShadows(ctx);
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, Arrays.asList(
                 new CorrelationSuggestionOperation.CorrelatorSuggestion(null, null, null)
@@ -311,12 +236,122 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 .isEqualTo(-1.0);
     }
 
+
     @Test
-    public void test110MaxAmbiguityAllShadowsMatchAllFocuses() throws Exception {
+    public void test010UniquePersonalNumberCorrelationScore() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // Set all users to have same email, and all shadows to have that email
+        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)), List.of(PERSONAL_NUMBER.path()));
+        refreshShadows(ctx);
+
+        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
+        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
+
+        assertThat(scores).hasSize(1);
+        double score = scores.get(0);
+        assertThat(score)
+                .as("Score for unique personalNumber correlation should be 1.")
+                .isEqualTo(1.0);
+    }
+
+    @Test
+    public void test020AmbiguousEmailCorrelationScore() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER2.oid, UserType.F_EMAIL_ADDRESS, "user1@acme.com");
+
+        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)), List.of(EMAIL.path()));
+        refreshShadows(ctx);
+
+        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
+        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
+
+        assertThat(scores).hasSize(1);
+        double score = scores.get(0);
+        assertThat(score)
+                .as("Score for ambiguous and empty email correlation should be low.")
+                .isEqualTo(0.33, Offset.offset(0.01));
+    }
+
+
+    @Test
+    public void test030IncompletePersonalNumberCorrelationScore() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER);
+
+        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)), List.of(PERSONAL_NUMBER.path()));
+        refreshShadows(ctx);
+
+        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
+        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
+
+        assertThat(scores).hasSize(1);
+        double score = scores.get(0);
+        assertThat(score)
+                .as("Score for incomplete personalNumber correlation should be 2/3")
+                .isEqualTo(0.66, Offset.offset(0.01));
+    }
+
+
+    @Test
+    public void test040AllMissingFocusAttributeCorrelationScore() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Remove personalNumber from all users
+        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER);
+        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER);
+        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER);
+
+        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)), List.of(PERSONAL_NUMBER.path()));
+        refreshShadows(ctx);
+
+        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
+        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
+
+        assertThat(scores).hasSize(1);
+        double score = scores.get(0);
+        assertThat(score)
+                .as("Score for all-missing focus attribute should be 0.")
+                .isEqualTo(0.0);
+    }
+
+
+    @Test
+    public void test050NoUniquenessAllSameValue() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "SAME");
+        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "SAME");
+        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "SAME");
+
+        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)), List.of(PERSONAL_NUMBER.path()));
+        refreshShadows(ctx);
+
+        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
+        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
+
+        assertThat(scores).hasSize(1);
+        assertThat(scores.get(0))
+                .as("Score for correlation with no uniqueness (all same value) should be 0.0")
+                .isEqualTo(0.0);
+    }
+
+    @Test
+    public void test060MaxAmbiguityAllShadowsMatchAllFocuses() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         modifyUserReplace(USER1.oid, UserType.F_EMAIL_ADDRESS, "ambiguous@acme.com");
         modifyUserReplace(USER2.oid, UserType.F_EMAIL_ADDRESS, "ambiguous@acme.com");
         modifyUserReplace(USER3.oid, UserType.F_EMAIL_ADDRESS, "ambiguous@acme.com");
@@ -326,29 +361,24 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         a.getByName("account2").replaceAttributeValue(EMAIL.local(), "ambiguous@acme.com");
         a.getByName("account3").replaceAttributeValue(EMAIL.local(), "ambiguous@acme.com");
 
-        refreshShadows();
+        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)), List.of(EMAIL.path()));
+        refreshShadows(ctx);
 
-        ItemPath focusPath = ItemPath.create(UserType.F_EMAIL_ADDRESS);
-        ItemPath shadowPath = EMAIL.path();
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
-
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of(suggestion));
-        List<Double> scores = evaluator.evaluateSuggestions(result);
+        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
+        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
-        // When all shadows match all focuses, the ambiguity penalty should bring the score down to zero
         assertThat(scores.get(0))
                 .as("Score for max ambiguity (all shadows point to all focuses) should be 0.0")
                 .isEqualTo(0.0);
     }
 
     @Test
-    public void test120MultiSuggestionList() throws Exception {
+    public void test070MultiSuggestionList() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // Prepare two suggestions: one good (personal number), one bad (all same email)
         modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "101");
         modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "102");
         modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "103");
@@ -357,7 +387,6 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         modifyUserReplace(USER2.oid, UserType.F_EMAIL_ADDRESS, "common@acme.com");
         modifyUserReplace(USER3.oid, UserType.F_EMAIL_ADDRESS, "common@acme.com");
 
-        // Make corresponding shadow attributes
         var a = dummyScenario.account;
         a.getByName("account1").replaceAttributeValue(PERSONAL_NUMBER.local(), "101");
         a.getByName("account2").replaceAttributeValue(PERSONAL_NUMBER.local(), "102");
@@ -366,18 +395,15 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         a.getByName("account2").replaceAttributeValue(EMAIL.local(), "common@acme.com");
         a.getByName("account3").replaceAttributeValue(EMAIL.local(), "common@acme.com");
 
-        refreshShadows();
+        TypeOperationContext ctx = createCtx(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER), ItemPath.create(UserType.F_EMAIL_ADDRESS)),
+                List.of(PERSONAL_NUMBER.path(), EMAIL.path())
+        );
+        refreshShadows(ctx);
 
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion1 =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(
-                        ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), null);
-
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion2 =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(
-                        ItemPath.create(UserType.F_EMAIL_ADDRESS), EMAIL.path(), null);
-
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of(suggestion1, suggestion2));
-        List<Double> scores = evaluator.evaluateSuggestions(result);
+        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
+        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(2);
         assertThat(scores.get(0))
