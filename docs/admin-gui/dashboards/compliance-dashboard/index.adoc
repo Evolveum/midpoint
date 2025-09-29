@@ -42,9 +42,17 @@ Continuous auditing also reduces your staff stress levels; they no longer wake u
 
 Jokes aside, it is the reality that compliance dashboards and continuous auditing transform and elevate compliance monitoring from a reactive, point‑in‑time activity into a proactive, always‑on control mechanism.
 
+=== How to prove your compliance claims
+
+After you move to auditing compliance continuously, you may wonder how are you to demonstrate your internal compliance review process to auditors.
+During an audit, an auditor may want to actually see how you acquire the data you use for your compliance evaluation.
+
+Your answer to the request can be very simple.
+Open midPoint on your screen and show them the live data on your compliance dashboard.
+
 == See also
 
-* xref:/midpoint/compliance/[MidPoint Compliance]
+* xref:/midpoint/compliance/[]
 
 * xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[]
 
