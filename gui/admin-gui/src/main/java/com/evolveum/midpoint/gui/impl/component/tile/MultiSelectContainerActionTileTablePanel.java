@@ -17,8 +17,10 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContaine
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -363,13 +365,12 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
                                 : super.createNoLabel();
                     }
 
-                    @Override
-                    protected boolean isYesButtonVisible() {
-                        return !selected.isEmpty();
-                    }
 
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
+                        if (selected.isEmpty()) {
+                            deleteItemPerformed(target, getMultiTableModel());
+                        }
                         deleteItemPerformed(target, selected);
                     }
                 };
@@ -380,8 +381,12 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected StringResourceModel deleteConfirmationTitle(int selectedCount) {
+        if (selectedCount == 0 && getMultiTableModel().isEmpty()) {
+            return createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title.noItems");
+        }
+
         return selectedCount == 0
-                ? createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title.empty")
+                ? createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title.empty", getMultiTableModel().size())
                 : createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title", selectedCount);
     }
 
@@ -483,8 +488,33 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
     }
 
+    public List<PrismContainerValueWrapper<C>> getCurrentPageItems(long currentPage, long itemsPerPage) {
+        long total = getProvider().size();
+        if (total == 0 || itemsPerPage <= 0) {return Collections.emptyList();}
+
+        long start = Math.max(0, currentPage * itemsPerPage);
+        if (start >= total) {return Collections.emptyList();}
+
+        long length = Math.min(itemsPerPage, total - start);
+
+        List<PrismContainerValueWrapper<C>> page = new ArrayList<>((int) length);
+        Iterator<? extends PrismContainerValueWrapper<C>> it = getProvider().iterator(start, length);
+        it.forEachRemaining(page::add);
+        return page;
+    }
+
+    protected List<PrismContainerValueWrapper<C>> getCurrentPageItems() {
+        if (isTileViewVisible()) {
+            return getTilesModel().getObject().stream()
+                    .map(TemplateTile::getValue)
+                    .toList();
+        }
+        BoxedTablePanel<?> table = getBoxedTablePanelComponent();
+        return getCurrentPageItems(table.getDataTable().getCurrentPage(), table.getDataTable().getItemsPerPage());
+    }
+
     private @NotNull IsolatedCheckBoxPanel createHeaderCheckBoxButton(String idButton) {
-        IModel<Boolean> selectModel = buildHeaderCheckboxModel(this::getMultiTableModel);
+        IModel<Boolean> selectModel = buildHeaderCheckboxModel(this::getCurrentPageItems);
 
         IsolatedCheckBoxPanel selectCheckbox = new IsolatedCheckBoxPanel(idButton, selectModel) {
             @Override
@@ -501,19 +531,22 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     private @NotNull IModel<Boolean> buildHeaderCheckboxModel(
-            @NotNull IModel<List<PrismContainerValueWrapper<C>>> multiTableModel) {
+            @NotNull IModel<List<PrismContainerValueWrapper<C>>> currentPageModel) {
+
         return new IModel<>() {
             @Override
             public @NotNull Boolean getObject() {
-                List<PrismContainerValueWrapper<C>> all = multiTableModel.getObject();
-                return all != null && !all.isEmpty() && all.stream().allMatch(PrismContainerValueWrapper::isSelected);
+                List<PrismContainerValueWrapper<C>> current = currentPageModel.getObject();
+                return current != null && !current.isEmpty()
+                        && current.stream().allMatch(PrismContainerValueWrapper::isSelected);
             }
 
             @Override
             public void setObject(Boolean value) {
-                List<PrismContainerValueWrapper<C>> all = multiTableModel.getObject();
-                if (all != null) {
-                    all.forEach(v -> v.setSelected(Boolean.TRUE.equals(value)));
+                List<PrismContainerValueWrapper<C>> current = currentPageModel.getObject();
+                if (current != null) {
+                    boolean sel = Boolean.TRUE.equals(value);
+                    current.forEach(v -> v.setSelected(sel));
                 }
             }
         };
@@ -603,15 +636,14 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         super.refresh(target);
     }
 
-
     @Contract("_, _ -> new")
     public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> getContainerModel(PrismContainerWrapper<C> value, ItemPath path) {
         return PrismContainerWrapperModel.fromContainerWrapper(Model.of(value), path);
     }
 
-    protected IModel<PrismContainerWrapper<C>> getContainerModel(){
+    protected IModel<PrismContainerWrapper<C>> getContainerModel() {
         return null;
-    };
+    }
 
     @Override
     protected String getAdditionalTableCssClasses() {

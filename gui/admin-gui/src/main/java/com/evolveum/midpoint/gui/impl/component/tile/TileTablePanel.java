@@ -143,6 +143,12 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
         NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, getTiles(), true) {
 
+            @Override
+            protected void onPageChanged(AjaxRequestTarget target, long page) {
+                super.onPageChanged(target, page);
+                TileTablePanel.this.refresh(target);
+            }
+
             @Contract(pure = true)
             @Override
             protected @Nullable String getPaginationCssClass() {
