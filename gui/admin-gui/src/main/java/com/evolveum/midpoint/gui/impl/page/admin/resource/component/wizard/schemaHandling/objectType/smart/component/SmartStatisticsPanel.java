@@ -39,7 +39,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -103,12 +102,12 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         super(id, model);
         this.resourceOid = resourceOid;
         this.objectClassName = objectClassName;
-        add(AttributeModifier.append("class", "p-0"));
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        add(AttributeModifier.append("class", "p-0"));
         initSelectionModels();
         add(buildLeftPanel(getModelObject()));
         add(buildMainPanel().setOutputMarkupId(true));

@@ -83,7 +83,7 @@ public abstract class SmartMappingTable<P extends Containerable>
     private static final String OP_DELETE_MAPPING = CLASS_DOT + "deleteMapping";
     private static final String OP_SUSPEND_SUGGESTION = CLASS_DOT + "suspendSuggestion";
 
-    private static final int MAX_TILE_COUNT = 4;
+    private static final int MAX_TILE_COUNT = 10;
 
     private final String resourceOid;
 
@@ -536,7 +536,7 @@ public abstract class SmartMappingTable<P extends Containerable>
 
     @Override
     protected String getAdditionalHeaderContainerCssClasses() {
-        return "bg-white p-3 rounded";
+        return "bg-white p-2 rounded";
     }
 
     protected ButtonInlineMenuItem createSuggestionOperationInlineMenu() {
@@ -634,8 +634,6 @@ public abstract class SmartMappingTable<P extends Containerable>
 
     @Override
     public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<MappingType>> toDelete) {
-        if (noSelectedItemsWarn(getPageBase(), target, toDelete)) {return;}
-
         Task task = getPageBase().createSimpleTask(OP_DELETE_MAPPING);
         toDelete.forEach(value -> {
             StatusInfo<MappingsSuggestionType> status = getStatusInfo(value);
