@@ -13,10 +13,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceNavigationWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping.SmartMappingTable;
 import com.evolveum.midpoint.prism.Containerable;
 
@@ -36,6 +36,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_INBOUND_MAPPINGS;
@@ -52,8 +53,9 @@ import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "AttributeMappingsTableWizardPanel.outboundTable", icon = "fa fa-arrow-right-from-bracket"))
-public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
+public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceNavigationWizardBasicPanel<P> {
 
+    private static final String ID_AI_PANEL = "aiPanel";
     private static final String ID_PANEL = "panel";
 
     private final MappingDirection initialTab;
@@ -166,6 +168,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
                 AttributeMappingsTableWizardPanel.this.redirectToSimulationTasksWizard(target);
             }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getAdditionalSplitComponentCssClass() {
+                return "ml-auto";
+            }
         };
 
         simulationActionTaskButton.setRenderBodyOnly(true);
@@ -204,7 +212,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.subText");
+        return Model.of();
     }
 
     @Override

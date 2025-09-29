@@ -103,7 +103,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
         };
         exit.showTitleAsLabel(true);
         exit.add(new VisibleBehaviour(() -> isExitButtonVisible()));
-        exit.add(AttributeAppender.append("class", "btn-default"));
+        exit.add(AttributeAppender.append("class", getExitButtonCssClass()));
         buttons.add(exit);
 
         addCustomButtons(buttons);
@@ -137,6 +137,10 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
     }
 
     protected void onSubmitPerformed(AjaxRequestTarget target) {
+    }
+
+    protected String getExitButtonCssClass() {
+        return "btn-default";
     }
 
     protected String getSubmitIcon() {

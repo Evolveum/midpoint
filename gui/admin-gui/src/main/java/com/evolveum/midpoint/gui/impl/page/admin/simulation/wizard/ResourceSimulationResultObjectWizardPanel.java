@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardNavigationBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRefsTable;
 
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "ResourceSimulationResultObjectWizardPanel.headerLabel", icon = "fa fa-bars-progress"))
-public class ResourceSimulationResultObjectWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
+public class ResourceSimulationResultObjectWizardPanel extends AbstractWizardNavigationBasicPanel<ResourceDetailsModel> {
 
     private static final String PANEL_TYPE = "rw-simulation-object-result";
 
@@ -99,12 +99,17 @@ public class ResourceSimulationResultObjectWizardPanel extends AbstractWizardBas
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("ResourceSimulationResultObjectWizardPanel.text");
+        return createStringResource("ResourceSimulationResultObjectWizardPanel.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("ResourceSimulationResultObjectWizardPanel.subText");
+        return isSubTextVisible()? createStringResource("ResourceSimulationResultObjectWizardPanel.subText")
+                : null;
+    }
+
+    protected boolean isSubTextVisible() {
+        return false;
     }
 
     protected CorrelationItemRefsTable getTable() {

@@ -45,6 +45,7 @@ public abstract class SplitButtonWithDropdownMenu extends BasePanel<DropdownButt
 
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final String ID_PRIMARY_GROUP = "primaryGroup";
     protected static final String ID_PRIMARY_BUTTON = "primaryButton";
     private static final String ID_DROPDOWN_BUTTON = "dropdownButton";
     private static final String ID_MENU_ITEMS = "menuItems";
@@ -66,15 +67,20 @@ public abstract class SplitButtonWithDropdownMenu extends BasePanel<DropdownButt
     }
 
     protected void initLayout() {
+        WebMarkupContainer primaryGroup = new WebMarkupContainer(ID_PRIMARY_GROUP);
+        primaryGroup.setOutputMarkupId(true);
+        primaryGroup.add(AttributeAppender.append("class", getAdditionalComponentCssClass()));
+        add(primaryGroup);
+
         Component primary = createPrimaryFragmentButton();
         primary.setOutputMarkupId(true);
         primary.add(new VisibleBehaviour(this::isPrimaryButtonVisible));
-        add(primary);
+        primaryGroup.add(primary);
 
         WebMarkupContainer dropdownBtn = new WebMarkupContainer(ID_DROPDOWN_BUTTON);
         dropdownBtn.setOutputMarkupId(true);
         dropdownBtn.add(new VisibleEnableBehaviour(this::isDropdownVisible, this::isDropdownEnabled));
-        add(dropdownBtn);
+        primaryGroup.add(dropdownBtn);
 
         ListView<InlineMenuItem> menuItems = new ListView<>(
                 ID_MENU_ITEMS,
@@ -86,7 +92,7 @@ public abstract class SplitButtonWithDropdownMenu extends BasePanel<DropdownButt
             }
         };
         menuItems.setOutputMarkupId(true);
-        add(menuItems);
+        primaryGroup.add(menuItems);
     }
 
     protected Fragment createPrimaryFragmentButton() {
@@ -185,5 +191,10 @@ public abstract class SplitButtonWithDropdownMenu extends BasePanel<DropdownButt
     /** Visibility/enable rules for the primary button (override if needed). */
     protected boolean isPrimaryButtonVisible() {
         return true;
+    }
+
+    /** Additional CSS class for the main container (override if needed). */
+    protected String getAdditionalComponentCssClass() {
+        return null;
     }
 }

@@ -107,6 +107,11 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
             protected boolean showIcon() {
                 return true;
             }
+
+            @Override
+            protected String getAdditionalComponentCssClass() {
+                return SimulationActionTaskButton.this.getAdditionalSplitComponentCssClass();
+            }
         };
         simulationButton.setOutputMarkupId(true);
         return simulationButton;
@@ -318,4 +323,7 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
         return resourceOidModel.getObject().getOid();
     }
 
+    protected String getAdditionalSplitComponentCssClass() {
+        return null;
+    }
 }

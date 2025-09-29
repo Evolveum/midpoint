@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  ~ Copyright (c) 2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="d-flex flex-column px-4 gap-1">
+        <ol class="breadcrumb p-0 bg-transparent m-0">
+            <li class="breadcrumb-item" wicket:id="breadcrumb">
+                <i wicket:id="bcIcon"></i>&nbsp;
+                <span wicket:id="bcName"></span>
+            </li>
+        </ol>
+
+        <i class="text-center mb-1 font-weight-bold fa-xl" wicket:id="titleIcon"></i>
+        <h2 class="text-center mb-1 font-weight-bold" wicket:id="text"></h2>
+        <h5 class="text-center text-secondary" wicket:id="subText"></h5>
+
+        <div class="d-flex gap-3 justify-content-start" wicket:id="buttonsContainer">
+            <a class="btn" wicket:id="buttons"></a>
+        </div>
+
+        <div class="col-12 p-0 mt-1">
+            <div wicket:id="feedbackContainer" class="feedbackContainer mx-auto p-0">
+                <div wicket:id="feedback" class="messagePanel"></div>
+            </div>
+            <wicket:child/>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>
