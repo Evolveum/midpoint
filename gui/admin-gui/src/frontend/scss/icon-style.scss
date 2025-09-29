@@ -213,7 +213,7 @@ i.flip-icon-margin {
   margin-right: 7px;
 }
 
-
+/** Keyframes for grow animation (scales element in/out with opacity). */
 @keyframes spinner-grow {
   0% {
     transform: scale(0.1);
@@ -229,19 +229,20 @@ i.flip-icon-margin {
   }
 }
 
-/* Speeds */
+/** Spinner grow animation speeds. */
 .spinner-grow-slow {
-  animation: spinner-grow 2.5s ease-in-out infinite;
+  animation: spinner-grow 5s ease-in-out infinite;
 }
 
 .spinner-grow-medium {
-  animation: spinner-grow 1.25s ease-in-out infinite;
+  animation: spinner-grow 2.5s ease-in-out infinite;
 }
 
 .spinner-grow-fast {
-  animation: spinner-grow 0.6s ease-in-out infinite;
+  animation: spinner-grow 1.2s ease-in-out infinite;
 }
 
+/** Keyframes for blur animation (blurs and sharpens with opacity changes). */
 @keyframes spinner-blur {
   0% {
     filter: blur(4px);
@@ -257,15 +258,42 @@ i.flip-icon-margin {
   }
 }
 
+/** Spinner blur animation speeds. */
 .spinner-blur-slow {
-  animation: spinner-blur 2.5s ease-in-out infinite;
+  animation: spinner-blur 5s ease-in-out infinite;
 }
 
 .spinner-blur-medium {
-  animation: spinner-blur 1.25s ease-in-out infinite;
+  animation: spinner-blur 2.5s ease-in-out infinite;
 }
 
 .spinner-blur-fast {
-  animation: spinner-blur 0.6s ease-in-out infinite;
+  animation: spinner-blur 1.2s ease-in-out infinite;
+}
+
+/** Keyframes for fade animation (fades element in/out). */
+@keyframes spinner-fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/** Spinner fade animation speeds. */
+.spinner-fade-slow {
+  animation: spinner-fade 5s ease-in-out infinite;
+}
+
+.spinner-fade-medium {
+  animation: spinner-fade 2.5s ease-in-out infinite;
+}
+
+.spinner-fade-fast {
+  animation: spinner-fade 1.2s ease-in-out infinite;
 }
 

@@ -229,7 +229,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
      * @return CSS class string, e.g. "fa-spin", "fa-pulse", "spinner-grow-slow" or "spinner-blur-slow" (FontAwesome classes)
      */
     protected String getIconSpecialEffectCss(){
-        return null;
+        return "spinner-fade-slow";
     }
 
     protected @Nullable String getTitleCssClass() {
