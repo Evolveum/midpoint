@@ -45,9 +45,9 @@ Jokes aside, it is the reality that compliance dashboards and continuous auditin
 === How to prove your compliance claims
 
 After you move to auditing compliance continuously, you may wonder how are you to demonstrate your internal compliance review process to auditors.
-During an audit, an auditor may ask what are your data sources when you evaluate your compliance.
+During an audit, an auditor may want to actually see how you acquire the data you use for your compliance evaluation.
 
-Your answer to the question can be very simple.
+Your answer to the request can be very simple.
 Open midPoint on your screen and show them the live data on your compliance dashboard.
 
 == See also
