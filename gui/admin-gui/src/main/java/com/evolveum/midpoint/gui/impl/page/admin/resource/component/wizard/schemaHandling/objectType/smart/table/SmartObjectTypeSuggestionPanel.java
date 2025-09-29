@@ -60,9 +60,8 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     private static final String ID_ACE_BASE = "aceEditorBaseFilter";
     private static final String ID_MORE_ACTIONS = "moreActions";
 
-    private static final String ID_FILTER_LABEL="filterLabel";
-    private static final String ID_BASE_CONTEXT_FILTER_LABEL="baseContextFilterLabel";
-    private static final String ID_BASE_CONTEXT_OBJECT_CLASS_LABEL="baseContextFilterObjectClassLabel";
+    private static final String ID_FILTER_LABEL = "filterLabel";
+    private static final String ID_BASE_CONTEXT_OBJECT_CLASS_LABEL = "baseContextFilterObjectClassLabel";
     private static final String ID_BASE_CONTEXT_OBJECT_CLASS = "baseContextFilterObjectClass";
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
@@ -93,11 +92,9 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     @Override
     protected void onConfigure() {
         super.onConfigure();
-
         if (atLeastOneSelected()) {
             selectIfNoneSelected();
         }
-
         applySelectionStyling();
     }
 
@@ -106,34 +103,13 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
         initTitle();
         initDescription();
-
         initSelectRadio();
+        initMoreActionsPanel();
+        initChipsInfoPanel();
+        initFilterPart();
+    }
 
-        AjaxIconButton moreActions = new AjaxIconButton(ID_MORE_ACTIONS,
-                getMoreActionIcon(),
-                createStringResource("SmartSuggestObjectTypeTilePanel.more.actions")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                performOnDelete(target);
-            }
-        };
-        moreActions.setOutputMarkupId(true);
-        add(moreActions);
-
-        RepeatingView chips = new RepeatingView(ID_CHIPS);
-        List<IModel<String>> chipsData = getModelObject().buildChipsData(getPageBase());
-
-        if (chipsData != null) {
-            for (IModel<String> text : chipsData) {
-                WebMarkupContainer c = new WebMarkupContainer(chips.newChildId());
-                c.add(new Label(ID_CHIP, text));
-                chips.add(c);
-            }
-        }
-        add(chips);
-
+    private void initFilterPart() {
         WebMarkupContainer filterCtn = new WebMarkupContainer(ID_FILTER_CTN);
         filterCtn.setOutputMarkupId(true);
         filterCtn.add(new VisibleBehaviour(() -> isFilterVisible));
@@ -149,33 +125,34 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         populatePropertyPanels(filterPropertyValueWrapper, filterPanels);
         filterCtn.add(filterPanels);
 
-        //TODO design whats with base context filter
-//        Label baseContextFilterLabel = new Label(ID_BASE_CONTEXT_FILTER_LABEL,
-//                createStringResource("SmartSuggestObjectTypeTilePanel.base.context.filter"));
-//        baseContextFilterLabel.setOutputMarkupId(true);
-//        filterCtn.add(baseContextFilterLabel);
-
         Label baseContextObjectClassLabel = new Label(ID_BASE_CONTEXT_OBJECT_CLASS_LABEL,
                 createStringResource("SmartSuggestObjectTypeTilePanel.base.context.object.class"));
         baseContextObjectClassLabel.setOutputMarkupId(true);
+        baseContextObjectClassLabel.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextObjectClassLabel);
 
         List<PrismPropertyValueWrapper<Object>> baseContexFilterPropertyValueWrapper = getModelObject()
                 .getBaseContexFilterPropertyValueWrapper(ResourceObjectReferenceType.F_FILTER);
         RepeatingView baseContextFilterPanels = new RepeatingView(ID_ACE_BASE);
         populatePropertyPanels(baseContexFilterPropertyValueWrapper, baseContextFilterPanels);
+        baseContextFilterPanels.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextFilterPanels);
 
         List<PrismPropertyValueWrapper<Object>> baseContexFilterObjectClassPropertyValueWrapper1 = getModelObject()
                 .getBaseContexFilterPropertyValueWrapper(ResourceObjectReferenceType.F_OBJECT_CLASS);
         RepeatingView baseContextFilterObjectClassPanels = new RepeatingView(ID_BASE_CONTEXT_OBJECT_CLASS);
         populateObjectClassPropertyPanels(baseContexFilterObjectClassPropertyValueWrapper1, baseContextFilterObjectClassPanels);
+        baseContextFilterObjectClassPanels.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextFilterObjectClassPanels);
 
+        add(createTogglePanel(filterCtn));
+    }
+
+    private @NotNull AjaxIconButton createTogglePanel(WebMarkupContainer filterCtn) {
         AjaxIconButton togglePanel = new AjaxIconButton(ID_TOGGLE,
                 () -> isFilterVisible
                         ? "fa fa-chevron-up"
-                        : "fa fa-chevron-down",() -> isFilterVisible
+                        : "fa fa-chevron-down", () -> isFilterVisible
                 ? createStringResource("SmartSuggestObjectTypeTilePanel.hide.filter").getString()
                 : createStringResource("SmartSuggestObjectTypeTilePanel.show.filter").getString()) {
             @Serial private static final long serialVersionUID = 1L;
@@ -189,11 +166,12 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         togglePanel.setOutputMarkupId(true);
         togglePanel.showTitleAsLabel(true);
         togglePanel.add(AttributeModifier.append("class", "flex-row-reverse"));
-
-        add(togglePanel);
+        return togglePanel;
     }
 
-    private static void populatePropertyPanels(List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper, RepeatingView filterPanels) {
+    private static void populatePropertyPanels(
+            @NotNull List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper,
+            @NotNull RepeatingView filterPanels) {
         for (PrismPropertyValueWrapper<Object> valueWrapper : filterPropertyValueWrapper) {
             PrismPropertyValuePanel<?> valuePanel = new PrismPropertyValuePanel<>(filterPanels.newChildId(),
                     Model.of(valueWrapper), null);
@@ -203,9 +181,11 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         }
     }
 
-    private static void populateObjectClassPropertyPanels(@NotNull List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper, RepeatingView filterPanels) {
+    private static void populateObjectClassPropertyPanels(
+            @NotNull List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper,
+            @NotNull RepeatingView filterPanels) {
         for (PrismPropertyValueWrapper<Object> valueWrapper : filterPropertyValueWrapper) {
-            if(valueWrapper.getRealValue() == null){
+            if (valueWrapper.getRealValue() == null) {
                 Label valuePanel = new Label(filterPanels.newChildId(), "N/A");
                 valuePanel.setOutputMarkupId(true);
                 valuePanel.setEnabled(false);
@@ -218,6 +198,35 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
             valuePanel.setEnabled(false);
             filterPanels.add(valuePanel);
         }
+    }
+
+    private void initMoreActionsPanel() {
+        AjaxIconButton moreActions = new AjaxIconButton(ID_MORE_ACTIONS,
+                getMoreActionIcon(),
+                createStringResource("SmartSuggestObjectTypeTilePanel.more.actions")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                performOnDelete(target);
+            }
+        };
+        moreActions.setOutputMarkupId(true);
+        add(moreActions);
+    }
+
+    private void initChipsInfoPanel() {
+        RepeatingView chips = new RepeatingView(ID_CHIPS);
+        List<IModel<String>> chipsData = getModelObject().buildChipsData(getPageBase());
+
+        if (chipsData != null) {
+            for (IModel<String> text : chipsData) {
+                WebMarkupContainer c = new WebMarkupContainer(chips.newChildId());
+                c.add(new Label(ID_CHIP, text));
+                chips.add(c);
+            }
+        }
+        add(chips);
     }
 
     private void initSelectRadio() {
@@ -271,22 +280,7 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     }
 
     protected Model<String> getMoreActionIcon() {
-//        return Model.of("fa fa-ellipsis-h");
         return Model.of(GuiStyleConstants.CLASS_ICON_TRASH);
-    }
-
-    protected boolean atLeastOneSelected() {
-        return true;
-    }
-
-    protected String getDefaultTileCss() {
-        return "simple-tile selectable clickable-by-enter tile-panel d-flex flex-column align-items-center "
-                + "rounded p-3 justify-content-center";
-    }
-
-    @Override
-    public PageBase getPageBase() {
-        return super.getPageBase();
     }
 
     protected void performOnDelete(AjaxRequestTarget target) {
@@ -323,6 +317,19 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
                     result);
             target.add(getPageBase().getFeedbackPanel());
         }
+    }
+
+    protected String getDefaultTileCss() {
+        return "simple-tile selectable clickable-by-enter tile-panel d-flex flex-column align-items-center "
+                + "rounded p-3 justify-content-center";
+    }
+
+    protected boolean atLeastOneSelected() {
+        return true;
+    }
+
+    protected boolean isBaseContextFilterVisible() {
+        return getModelObject().baseContexFilterExists();
     }
 
 }

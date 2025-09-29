@@ -8,9 +8,8 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="col-12 d-flex flex-row">
-
         <div class="d-flex align-items-center justify-content-center p-3">
-            <input wicket:id="selectRadio" type="radio" class="form-check-input mt-1 radio-lg"/>
+            <input wicket:id="selectRadio" type="radio" class="form-check-input mt-1 radio-lg" style="transform: scale(1.5)"/>
         </div>
 
         <div class="d-flex flex-column h-100 justify-content-between ">
@@ -23,18 +22,16 @@
                     <span wicket:id="chip" class="rounded border px-2"></span>
                 </div>
             </div>
-
         </div>
 
         <div class="d-flex  align-items-center gap-2  ml-auto p-2">
-            <div href="#" class="text-primary text-decoration-none d-inline-flex align-items-center gap-2 text-nowrap" wicket:id="toggleFilter"></div>
+            <div href="#" class="text-primary text-decoration-none d-inline-flex align-items-center gap-2 text-nowrap"
+                    wicket:id="toggleFilter"></div>
             <a href="#" class="text-muted text-decoration-none fs-5" wicket:id="moreActions"></a>
         </div>
     </div>
 
-
     <div class="col-12 ml-4" wicket:id="filterContainer">
-
         <hr class="mt-2 mb-3">
 
         <div class="w-100">
@@ -44,21 +41,13 @@
 
         <div class="w-100 mt-1">
             <div class="d-flex gap-2 pb-1">
-<!--                <div wicket:id="baseContextFilterLabel"></div>-->
                 <div class="d-flex badge badge-info align-items-center">
-                <div  wicket:id="baseContextFilterObjectClassLabel"></div>
-                <div  wicket:id="baseContextFilterObjectClass"></div>
+                    <div wicket:id="baseContextFilterObjectClassLabel"></div>
+                    <div wicket:id="baseContextFilterObjectClass"></div>
                 </div>
             </div>
             <div wicket:id="aceEditorBaseFilter"></div>
         </div>
-
     </div>
-
-    <style>
-        .radio-lg {
-            transform: scale(1.5);
-        }
-    </style>
 </wicket:panel>
 </html>

@@ -217,4 +217,12 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
         }
         return suggestion.getDelineation().getObjectClass();
     }
+
+    public boolean baseContexFilterExists() {
+        var resourceDef = getValue().getRealValue();
+        if (resourceDef == null || resourceDef.getDelineation() == null) {
+            return false;
+        }
+        return resourceDef.getDelineation().getBaseContext() != null;
+    }
 }
