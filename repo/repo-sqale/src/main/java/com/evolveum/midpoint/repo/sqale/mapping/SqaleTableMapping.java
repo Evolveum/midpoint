@@ -501,6 +501,7 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     public <C extends Containerable> byte[] createFullObject(C container) throws SchemaException {
         repositoryContext().normalizeAllRelations(container.asPrismContainerValue());
         return repositoryContext().createStringSerializer()
+                .definition(container.asPrismContainerValue().getDefinition())
                 .itemsToSkip(fullObjectItemsToSkip())
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
