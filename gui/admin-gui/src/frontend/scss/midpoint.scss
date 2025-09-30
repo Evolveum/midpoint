@@ -511,8 +511,6 @@ li.dropdown.user.user-menu {
 
 .info-box-icon.summary-panel-task {
   @include info-box-icon-summary-panel($object-task-color);
-  line-height: 105px;
-  height: 105px;
 }
 
 .info-box-icon.summary-panel-mining {
