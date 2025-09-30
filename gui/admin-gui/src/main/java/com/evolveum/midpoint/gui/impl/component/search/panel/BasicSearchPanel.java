@@ -122,7 +122,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
                 popoverPanel.togglePopover(target);
             }
         };
-        more.add(new VisibleBehaviour(this::morePopupPropertyListIsNotEmpty));
+        more.add(new VisibleBehaviour(this::moreDropDownButtonVisible));
         more.setOutputMarkupId(true);
         add(more);
     }
@@ -160,6 +160,10 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         });
         target.add(BasicSearchPanel.this);
         target.add(getParent());
+    }
+
+    private boolean moreDropDownButtonVisible() {
+        return morePopupPropertyListIsNotEmpty() && getModelObject().isAllowToConfigureSearchItems();
     }
 
     private boolean morePopupPropertyListIsNotEmpty() {
