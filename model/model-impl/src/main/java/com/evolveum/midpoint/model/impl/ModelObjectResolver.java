@@ -10,9 +10,7 @@ import static com.evolveum.midpoint.model.impl.controller.ModelController.getObj
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
@@ -221,6 +219,11 @@ public class ModelObjectResolver implements ObjectResolver {
 
     public <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
             Function<PrismObject<OrgType>, ObjectReferenceType> function, String shortDesc, Task task, OperationResult result) throws SchemaException {
+        return searchOrgTreeWidthFirstReference(object, function, new HashSet<>(), shortDesc,  task, result);
+    }
+
+    private <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
+            Function<PrismObject<OrgType>, ObjectReferenceType> function, Set<String> alreadyVisitedReferences, String shortDesc, Task task, OperationResult result) throws SchemaException {
         if (object == null) {
             LOGGER.trace("No object provided. Cannot find security policy specific for an object.");
             return null;
@@ -235,6 +238,11 @@ public class ModelObjectResolver implements ObjectResolver {
 
         for (PrismReferenceValue orgRefValue : orgRefValues) {
             if (orgRefValue != null) {
+                if (alreadyVisitedReferences.contains(orgRefValue.getOid())) {
+                    continue;
+                }
+
+                alreadyVisitedReferences.add(orgRefValue.getOid());
 
                 try {
                     PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, task, result);
@@ -276,7 +284,7 @@ public class ModelObjectResolver implements ObjectResolver {
 
         // go deeper
         for (PrismObject<OrgType> org : orgs) {
-            PrismObject<R> val = searchOrgTreeWidthFirstReference((PrismObject<O>) org, function, shortDesc, task, result);
+            PrismObject<R> val = searchOrgTreeWidthFirstReference((PrismObject<O>) org, function, alreadyVisitedReferences, shortDesc, task, result);
             if (val != null) {
                 return val;
             }
