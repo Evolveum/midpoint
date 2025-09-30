@@ -92,7 +92,9 @@ public class RoleAnalysisAttributeResultChartModel extends LoadableModel<ChartCo
     private @NotNull ChartOptions createChartOptions() {
         ChartOptions options = new ChartOptions();
         options.setBarPercentage(0.8);
-        options.setLegend(createLegendOptions());
+        ChartPluginsOption plugins = new ChartPluginsOption();
+        plugins.setLegend(createLegendOptions());
+        options.setPlugins(plugins);
         options.setIndexAxis(IndexAxis.AXIS_Y.getValue());
         options.setResponsive(true);
         options.setMaintainAspectRatio(false);
