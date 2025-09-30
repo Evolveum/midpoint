@@ -51,7 +51,9 @@ public class RoleAnalysisAttributeChartModel extends LoadableModel<ChartConfigur
 
     private @NotNull ChartOptions createChartOptions() {
         ChartOptions options = new ChartOptions();
-        options.setLegend(createLegendOptions());
+        ChartPluginsOption plugins = new ChartPluginsOption();
+        plugins.setLegend(createLegendOptions());
+        options.setPlugins(plugins);
         options.setIndexAxis(IndexAxis.AXIS_X.getValue());
         options.setResponsive(true);
         options.setMaintainAspectRatio(false);
