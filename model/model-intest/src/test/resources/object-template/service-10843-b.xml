@@ -1,0 +1,8 @@
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:p="http://midpoint.evolveum.com/xml/ns/samples/service"
+        oid="eb2f8eb2-139f-4637-b78d-86da3752b8dc">
+    <name>service 10843 b</name>
+    <extension>
+        <p:initialOwnerName>jack.black</p:initialOwnerName>
+    </extension>
+</service>

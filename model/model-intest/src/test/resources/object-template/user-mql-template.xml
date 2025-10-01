@@ -1,0 +1,48 @@
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    oid="6b7218fb-418a-4756-a254-792593c6e779">
+
+    <name>user mql template</name>
+
+    <mapping>
+        <name>Add initial service owner</name>
+        <strength>strong</strength>
+        <source>
+            <path>$focus/name</path>
+        </source>
+        <expression>
+            <privileges>
+                <runAsRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+            </privileges>
+            <assignmentTargetSearch>
+                <targetType>ServiceType</targetType>
+                    <filter>
+                        <q:text>extension/initialOwnerName exists and extension/initialOwnerName = $name</q:text>
+                    </filter>
+                <!--<filter>
+                    <q:text>
+                        extension/initialOwnerName exists and
+                        extension/initialOwnerName = ```
+                            log.info("Checking Add initial service owner: " + name);
+                            return name;
+                        ```
+                    </q:text>
+                </filter>-->
+                <assignmentProperties>
+                    <relation>owner</relation>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>$focus/assignment</path>
+            <set>
+                <predefined>none</predefined>
+            </set>
+        </target>
+        <condition>
+            <script>
+                <code>name != null</code>
+            </script>
+        </condition>
+    </mapping>
+</objectTemplate>
