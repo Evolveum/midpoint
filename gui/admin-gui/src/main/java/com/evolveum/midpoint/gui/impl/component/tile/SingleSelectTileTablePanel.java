@@ -159,15 +159,7 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
             @Override
             protected Item customizeNewRowItem(Item<O> item, IModel<O> model) {
                 SingleSelectTileTablePanel.this.customizeNewRowItem(model.getObject());
-
-                item.add(AttributeModifier.append("class", () ->
-                        model.getObject().isSelected() ? "cursor-pointer table-primary" : "cursor-pointer"));
-                item.add(new AjaxEventBehavior("click") {
-                    @Override
-                    protected void onEvent(AjaxRequestTarget target) {
-                        onSelectTableRow(model, target);
-                    }
-                });
+                addClickableEventIfNeeded(item, model);
                 return item;
             }
         };
@@ -176,6 +168,23 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
     }
 
     protected void customizeNewRowItem(O value) {
+    }
+
+    private void addClickableEventIfNeeded(Item<O> item, IModel<O> model) {
+        if (isTableRowSelectable()) {
+            item.add(AttributeModifier.append("class", () ->
+                    model.getObject().isSelected() ? "cursor-pointer table-primary" : "cursor-pointer"));
+            item.add(new AjaxEventBehavior("click") {
+                @Override
+                protected void onEvent(AjaxRequestTarget target) {
+                    onSelectTableRow(model, target);
+                }
+            });
+        }
+    }
+
+    protected boolean isTableRowSelectable() {
+        return true;
     }
 
     void onSelectTableRow(IModel<O> model, AjaxRequestTarget target) {
