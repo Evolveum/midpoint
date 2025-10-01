@@ -248,6 +248,7 @@ public class ObjectUpdater {
         }
 
         String xml = prismContext.serializerFor(getConfiguration().getFullObjectFormat())
+                .root(savedObject.getDefinition().getItemName())
                 .itemsToSkip(itemsToSkip)
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()

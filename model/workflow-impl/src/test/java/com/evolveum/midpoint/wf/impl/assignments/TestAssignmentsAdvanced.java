@@ -1385,7 +1385,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         then();
         PrismObject<RoleType> createdRole = repositoryService.getObject(RoleType.class, newRoleOid, null, result);
         String xml = getPrismContext().xmlSerializer().serialize(createdRole);
-        assertThat(xml.startsWith("<role")).isEqualTo(true);
+        assertThat(xml.startsWith("<role"))
+                .withFailMessage("Expected that created role object xml starts with <role> tag.")
+                .isEqualTo(true);
     }
 
     private void executeAssignRoles123ToJack(boolean immediate,
