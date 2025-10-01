@@ -1,0 +1,28 @@
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="3e8b389e-7cc4-11ef-9295-4f3d13b4c390">
+    <name>Recompute privileged user</name>
+    <taskIdentifier>3e8b389e-7cc4-11ef-9295-4f3d13b4c390</taskIdentifier>
+    <ownerRef oid="9e9d924e-54ab-47fd-8bfa-0d671a3a9f99" relation="org:default" type="c:UserType">
+    </ownerRef>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <q:value>PrivelegedUser</q:value>
+                            </q:equal>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+    </activity>
+</task>

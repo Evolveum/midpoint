@@ -6,42 +6,36 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-import com.evolveum.midpoint.model.common.LinkManager;
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
-import com.evolveum.midpoint.model.impl.security.RunAsRunner;
-import com.evolveum.midpoint.model.impl.security.RunAsRunnerFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-
-import com.evolveum.midpoint.util.exception.CommonException;
-
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
+import com.evolveum.midpoint.model.impl.security.RunAsRunner;
+import com.evolveum.midpoint.model.impl.security.RunAsRunnerFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExecutionPolicyActionType;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Executes scripts defined in scriptExecution policy action.
@@ -57,11 +51,9 @@ public class PolicyRuleScriptExecutor {
     private static final String OP_EXECUTE_SCRIPTS_FROM_RULES = PolicyRuleScriptExecutor.class + ".executeScriptsFromRules";
 
     @Autowired PrismContext prismContext;
-    @Autowired RelationRegistry relationRegistry;
     @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
     @Autowired ModelService modelService;
     @Autowired SecurityContextManager securityContextManager;
-    @Autowired ModelObjectResolver modelObjectResolver;
     @Autowired ReferenceResolver referenceResolver;
     @Autowired ExpressionFactory expressionFactory;
     @Autowired BulkActionsExecutor bulkActionsExecutor;
@@ -84,24 +76,12 @@ public class PolicyRuleScriptExecutor {
 
     private List<EvaluatedPolicyRuleImpl> collectRelevantPolicyRules(LensContext<?> context) {
         List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
-        collectFromFocus(rules, context);
-        collectFromAssignments(rules, context);
-        return rules;
-    }
 
-    private void collectFromFocus(List<EvaluatedPolicyRuleImpl> rules, LensContext<?> context) {
-        for (EvaluatedPolicyRuleImpl rule : context.getFocusContext().getObjectPolicyRules()) {
+        for (EvaluatedPolicyRuleImpl rule : context.getTriggeredObjectPolicyRules()) {
             collectRule(rules, rule);
         }
-    }
 
-    private <O extends ObjectType> void collectFromAssignments(List<EvaluatedPolicyRuleImpl> rules, LensContext<O> context) {
-        // We need to apply rules from all the assignments - even those that were deleted.
-        for (EvaluatedAssignmentImpl<?> assignment : context.getAllEvaluatedAssignments()) {
-            for (EvaluatedPolicyRuleImpl rule : assignment.getAllTargetsPolicyRules()) {
-                collectRule(rules, rule);
-            }
-        }
+        return rules;
     }
 
     private void collectRule(List<EvaluatedPolicyRuleImpl> rules, EvaluatedPolicyRuleImpl rule) {
@@ -118,17 +98,20 @@ public class PolicyRuleScriptExecutor {
 
         // Must not be minor because of background OID information.
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPTS_FROM_RULES);
-        try (RunAsRunner runAsRunner = runAsRunnerFactory.runner()) {
+        RunAsRunner runAsRunner = runAsRunnerFactory.runner();
+        try {
             for (EvaluatedPolicyRuleImpl rule : rules) {
                 var enabledActions = rule.getEnabledActions(ScriptExecutionPolicyActionType.class);
                 LOGGER.trace("Rule {} has {} enabled script execution actions", rule, enabledActions.size());
                 for (var action : enabledActions) {
                     ActionContext actx = new ActionContext(action, rule, context, task, this);
                     try {
-                        // We should consider ordering actions to be executed by runAsRef to avoid unnecessary context switches.
                         runAsRunner.runAs(
-                                () -> executeScriptingAction(actx, result),
-                                actx.action.getRunAsRef(), // FIXME privileges!
+                                (result1) -> {
+                                    executeScriptingAction(actx, result1);
+                                    return null;
+                                },
+                                actx.actionCI.getPrivileges(),
                                 result);
                     } catch (CommonException e) {
                         LoggingUtils.logUnexpectedException(

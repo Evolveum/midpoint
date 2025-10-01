@@ -66,7 +66,7 @@ public class HelpVersionTest implements NinjaTestMixin {
     @Test
     public void test300Version() throws Exception {
         StreamValidator outValidator = list -> {
-            String version = FileUtils.readFileToString(new File("./target/classes/version"), StandardCharsets.UTF_8).trim();
+            String version = FileUtils.readFileToString(new File("./target/classes/version-long"), StandardCharsets.UTF_8).trim();
             Assertions.assertThat(version).isNotEmpty();
 
             Assertions.assertThat(list).hasSize(1);

@@ -1,0 +1,53 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="9f4a3a87-2b9e-4e4c-9fcb-7bb2d1210a5e">
+    <name>wf-test</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                    <relation>default</relation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>10</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <stage>
+                            <approverRef oid="00000000-0000-0000-0000-000000000002" xsi:type="c:UserType"/>
+                            <evaluationStrategy>firstDecides</evaluationStrategy>
+                            <outcomeIfNoApprovers>approve</outcomeIfNoApprovers>
+                            <groupExpansion>onWorkItemCreation</groupExpansion>
+                            <automaticallyCompleted>
+                                <description>Admin skip</description>
+                                <runAsRef oid="00000000-0000-0000-0000-000000000002" xsi:type="c:UserType"/>
+                                <script>
+                                    <code>
+                                        import com.evolveum.midpoint.schema.constants.SchemaConstants
+
+                                        return SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE
+                                    </code>
+                                </script>
+                            </automaticallyCompleted>
+                            <duration>P14D</duration>
+                            <timedActions>
+                                <actions>
+                                    <complete>
+                                        <outcome>reject</outcome>
+                                    </complete>
+                                </actions>
+                            </timedActions>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>
+

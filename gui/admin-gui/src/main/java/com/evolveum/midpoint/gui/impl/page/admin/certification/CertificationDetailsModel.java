@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -23,6 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import java.io.Serial;
+
 public class CertificationDetailsModel extends AssignmentHolderDetailsModel<AccessCertificationCampaignType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertificationDetailsModel.class);
@@ -30,13 +31,15 @@ public class CertificationDetailsModel extends AssignmentHolderDetailsModel<Acce
     private static final String DOT_CLASS = CertificationDetailsModel.class.getName() + ".";
     private static final String OPERATION_LOAD_STATISTICS = DOT_CLASS + "loadCertificationStatistics";
 
-    private LoadableModel<AccessCertificationCasesStatisticsType> certStatisticsModel;
+    private final LoadableDetachableModel<AccessCertificationCasesStatisticsType> certStatisticsModel;
 
     public CertificationDetailsModel(LoadableDetachableModel<PrismObject<AccessCertificationCampaignType>> prismObjectModel,
             PageBase serviceLocator) {
         super(prismObjectModel, serviceLocator);
 
-        certStatisticsModel = new LoadableModel<AccessCertificationCasesStatisticsType>() {
+        certStatisticsModel = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected AccessCertificationCasesStatisticsType load() {
                 Task task = getPageBase().createSimpleTask(OPERATION_LOAD_STATISTICS);
@@ -60,7 +63,12 @@ public class CertificationDetailsModel extends AssignmentHolderDetailsModel<Acce
         };
     }
 
-    public LoadableModel<AccessCertificationCasesStatisticsType> getCertStatisticsModel() {
+    public LoadableDetachableModel<AccessCertificationCasesStatisticsType> getCertStatisticsModel() {
         return certStatisticsModel;
+    }
+
+    public void reset() {
+        super.reset();
+        certStatisticsModel.detach();
     }
 }
