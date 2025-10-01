@@ -500,7 +500,7 @@ The following items are set for the final task (so overwriting ones present in t
 |===
 
 Note that the `taskTemplateRef`  can contain object filter, even with expressions.
-Those expression can refer to `focus`, `policyAction`, `policyRule` and `connection`. variables.
+Those expression can refer to `focus`, `policyAction`, `policyRule` and `configuration`. variables.
 An example:
 
 [source,xml]
