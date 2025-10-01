@@ -7,12 +7,16 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-07-13T15:02:00.069+02:00
 :page-upkeep-status: orange
+:page-toc: top
+
+== Introduction
 
 Outbound mapping define how the data are xref:/midpoint/reference/synchronization/introduction/[synchronized] from the user to accounts or, in other words, when the data *out* of midPoint.
 See xref:/midpoint/reference/synchronization/examples/[Synchronization Examples] for a generic explanation of the synchronization mechanism.
 
 image::synchronization-outbound.png[]
 
+== Expressions
 Outbound expressions are defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] section of resource definition.
 The expression definition is inside attribute definition which is inside account type definition:
 
@@ -78,6 +82,69 @@ The actual value is determined by the iteration settings.
 
 
 |===
+
+== Troubleshooting
+
+=== Attributes cannot be both created and set in a reconciliation
+*Problem*
+
+When you create new accounts with attributes in midPoint and then run a reconciliation, your connector will only create, but not set, the new attributes.
+
+*Cause*
+
+Some connectors may not be able to combine the Add and Modify operations.
+As a result, when you add a new account with attributes in midPoint, such connectors will add the account with its attributes to the target resource.
+However, they will not be able to set (modify) its attributes within the same reconciliation.
+
+*Workaround*
+
+Define a condition for the impacted outbound mapping that halts processing once a new account is added in the target resource, and then adds a trigger for a recomputation at a later point, during which attributes will be modified for that account.
+By default, recompute operations are scheduled to occur every 5 minutes.
+
+.Example condition
+[source, xml]
+----
+<attribute>
+    <ref>ri:employeeNumber</ref>
+    <outbound>
+        <name>emplNum-out</name>
+        <strength>strong</strength>
+        <source>
+            <path>personalNumber</path>
+        </source>
+        <condition>
+            <script>
+                <code>
+                    if (focus == null) {
+                        return false
+                    }
+
+                    import com.evolveum.midpoint.prism.xml.XmlTypeConverter
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                    import javax.xml.datatype.XMLGregorianCalendar
+                    import javax.xml.datatype.Duration
+
+                    if (operation == "add") {
+                        TriggerType trigger = new TriggerType()
+                        trigger.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/model/trigger/recompute/handler-3")
+                        trigger.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar())
+
+                        midpoint.getFocusContext().addToPrimaryDelta(
+                                midpoint.deltaFor(UserType.class)
+                                        .item(UserType.F_TRIGGER).add(trigger)
+                                        .asObjectDelta(focus.getOid())
+                        )
+                        return false
+                    }
+                    return true
+                </code>
+            </script>
+        </condition>
+    </outbound>
+</attribute>
+----
 
 
 //== Examples
