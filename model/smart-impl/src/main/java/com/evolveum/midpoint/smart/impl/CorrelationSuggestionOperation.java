@@ -135,20 +135,19 @@ class CorrelationSuggestionOperation {
      * We ignore conditions: if there is a mapping, but it has a condition, we ignore the condition and consider the mapping.
      */
     private @Nullable ExistingMapping findExistingInboundMapping(ItemPath correlator) throws ConfigurationException {
-        // TODO implement (MID-10847)
-        //  - iterate through ctx.typeDefinition.getAttributeDefinitions()
-        //  - for each attribute definition, check whether it has inbound mapping with use=CORRELATION or use=DEFAULT
-
         for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : ctx.typeDefinition.getAttributeDefinitions()) {
+            ItemPath resourceAttrPath = attributeDefinition.getStandardPath();
             for (InboundMappingType inboundMappingBean : attributeDefinition.getInboundMappingBeans()) {
-                // We derive the config item just to ask about applicability
                 var mappingCI = InboundMappingConfigItem.configItem(
                         inboundMappingBean, ConfigurationItemOrigin.undeterminedSafe(), InboundMappingConfigItem.class);
-                // If the mapping is not explicitly disabled for correlation, we consider it.
-                // Even if it's not explicitly enabled, the use for correlation will cause it to be taken into account.
-                if (!Boolean.FALSE.equals(
-                        mappingCI.determineApplicability(InboundMappingEvaluationPhaseType.BEFORE_CORRELATION))) {
-                    // TODO consider this mapping, and return if it matches the correlator
+
+                if (!Boolean.FALSE.equals(mappingCI.determineApplicability(InboundMappingEvaluationPhaseType.BEFORE_CORRELATION))) {
+                    // Get the target path on the focus side (e.g., user.name)
+                    ItemPath targetPath = mappingCI.getTargetPath();
+                    if (targetPath != null && correlator.equivalent(targetPath)) {
+                            // applicable mapping for this correlator found - return resourceAttrPath
+                            return new ExistingMapping(resourceAttrPath);
+                    }
                 }
             }
         }

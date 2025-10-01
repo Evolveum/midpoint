@@ -55,6 +55,13 @@ public interface AbstractMappingConfigItem<M extends AbstractMappingType> extend
         return value().getStrength() == STRONG;
     }
 
+    default @Nullable ItemPath getTargetPath() {
+        if (value().getTarget() != null && value().getTarget().getPath() != null) {
+            return value().getTarget().getPath().getItemPath();
+        }
+        return null;
+    }
+
     default void setDefaultStrong() {
         if (value().getStrength() == null) {
             value().setStrength(STRONG);

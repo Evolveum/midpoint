@@ -42,6 +42,9 @@
             <focus>
                 <type>UserType</type>
             </focus>
+            <attribute>
+                <ref>personalNumber</ref>
+            </attribute>
         </objectType>
     </schemaHandling>
 </resource>

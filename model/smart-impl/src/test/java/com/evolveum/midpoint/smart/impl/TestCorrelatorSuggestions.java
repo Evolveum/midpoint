@@ -3,14 +3,16 @@ package com.evolveum.midpoint.smart.impl;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
-import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
@@ -23,12 +25,15 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.*;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.smart.impl.DummyScenario.Account.AttributeNames.*;
 import static com.evolveum.midpoint.smart.impl.DummyScenario.on;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceItemDefinitionType.F_INBOUND;
+
+import static com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType.F_OBJECT_TYPE;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ContextConfiguration(locations = { "classpath:ctx-smart-integration-test-main.xml" })
@@ -54,25 +59,8 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         initTestObjects(initTask, initResult, CommonInitialObjects.SERVICE_ORIGIN_ARTIFICIAL_INTELLIGENCE);
         initAndTestDummyResource(RESOURCE_DUMMY, initTask, initResult);
 
-        task = initTask;
-        result = initResult;
+        initTestObjects(initTask, initResult, USER1, USER2, USER3);
 
-        initTestObjects(task, result, USER1, USER2, USER3);
-        createShadows();
-    }
-
-    private void refreshShadows(TypeOperationContext ctx) throws Exception {
-        provisioningService.searchShadows(
-                Resource.of(ctx.resource)
-                        .queryFor(ACCOUNT_DEFAULT)
-                        .build(),
-                null,
-                getTestTask(),
-                getTestOperationResult()
-        );
-    }
-
-    private void createShadows() throws Exception {
         var a = dummyScenario.account;
         a.add("account1")
                 .addAttributeValues(PERSONAL_NUMBER.local(), "11111")
@@ -85,10 +73,18 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 .addAttributeValues(EMAIL.local(), "user3@acme.com");
     }
 
-    private TypeOperationContext createCtx(
-            List<ItemPath> focusPaths,
-            List<ItemPath> shadowPaths
-    ) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    private void refreshShadows() throws Exception {
+        provisioningService.searchShadows(
+                Resource.of(RESOURCE_DUMMY.getObjectable())
+                        .queryFor(ACCOUNT_DEFAULT)
+                        .build(),
+                null,
+                getTestTask(),
+                getTestOperationResult()
+        );
+    }
+
+    private ServiceClient createClient(List<ItemPath> focusPaths, List<ItemPath> shadowPaths) {
         if (focusPaths.size() != shadowPaths.size()) {
             throw new IllegalArgumentException("focusPaths and shadowPaths must have the same size");
         }
@@ -100,12 +96,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                             .midPointAttribute(asStringSimple(focusPaths.get(i)))
             );
         }
-        return TypeOperationContext.init(
-                new MockServiceClientImpl(
-                        matchResponse,
-                        new SiSuggestMappingResponseType().transformationScript(null)
-                ),
-                RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result
+        return new MockServiceClientImpl(
+                matchResponse,
+                new SiSuggestMappingResponseType().transformationScript(null)
         );
     }
 
@@ -118,30 +111,22 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 null, getTestTask(), getTestOperationResult());
     }
 
-    private void modifyUserAdd(String oid, ItemPath path, Object... addValues) throws Exception {
-        executeChanges(
-                deltaFor(UserType.class)
-                        .item(path)
-                        .add(addValues)
-                        .asObjectDelta(oid),
-                null, getTestTask(), getTestOperationResult());
-    }
-
-
     @Test
     public void test001MultiValuedAttributeCorrelationScore() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
-        refreshShadows(ctx);
+        refreshShadows();
 
         ItemPath focusPath = ItemPath.create(UserType.F_EMAIL);
         ItemPath shadowPath = EMAIL.path();
         CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
                 new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
 
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of(suggestion));
+        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
+                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
+                List.of(suggestion)
+        );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores).hasSize(1);
@@ -156,15 +141,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
-        refreshShadows(ctx);
+        refreshShadows();
 
         ItemPath focusPath = null;
         ItemPath shadowPath = EMAIL.path();
         CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
                 new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
 
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of(suggestion));
+        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
+                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
+                List.of(suggestion)
+        );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores).hasSize(1);
@@ -183,15 +170,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "22222");
         modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "33333");
 
-        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
-        refreshShadows(ctx);
+        refreshShadows();
 
         ItemPath focusPath = ItemPath.create(UserType.F_PERSONAL_NUMBER);
         ItemPath shadowPath = null;
         CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
                 new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
 
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of(suggestion));
+        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
+                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
+                List.of(suggestion)
+        );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores).hasSize(1);
@@ -206,10 +195,12 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
-        refreshShadows(ctx);
+        refreshShadows();
 
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, List.of());
+        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
+                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
+                List.of()
+        );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores)
@@ -222,12 +213,12 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
-        refreshShadows(ctx);
+        refreshShadows();
 
-        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(ctx, Arrays.asList(
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(null, null, null)
-        ));
+        CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
+                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
+                Arrays.asList(new CorrelationSuggestionOperation.CorrelatorSuggestion(null, null, null))
+        );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores).hasSize(1);
@@ -242,11 +233,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)), List.of(PERSONAL_NUMBER.path()));
-        refreshShadows(ctx);
+        refreshShadows();
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
-        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
-        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        var suggestions = smartIntegrationService.suggestCorrelation(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -263,11 +260,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         modifyUserReplace(USER2.oid, UserType.F_EMAIL_ADDRESS, "user1@acme.com");
 
-        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)), List.of(EMAIL.path()));
-        refreshShadows(ctx);
+        refreshShadows();
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)),
+                List.of(EMAIL.path())
+        );
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
-        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
-        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        var suggestions = smartIntegrationService.suggestCorrelation(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -285,11 +288,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER);
 
-        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)), List.of(PERSONAL_NUMBER.path()));
-        refreshShadows(ctx);
+        refreshShadows();
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
-        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
-        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        var suggestions = smartIntegrationService.suggestCorrelation(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -310,11 +319,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER);
         modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER);
 
-        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)), List.of(PERSONAL_NUMBER.path()));
-        refreshShadows(ctx);
+        refreshShadows();
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
-        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
-        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        var suggestions = smartIntegrationService.suggestCorrelation(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -334,11 +349,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "SAME");
         modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "SAME");
 
-        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)), List.of(PERSONAL_NUMBER.path()));
-        refreshShadows(ctx);
+        refreshShadows();
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
-        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
-        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        var suggestions = smartIntegrationService.suggestCorrelation(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -361,11 +382,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         a.getByName("account2").replaceAttributeValue(EMAIL.local(), "ambiguous@acme.com");
         a.getByName("account3").replaceAttributeValue(EMAIL.local(), "ambiguous@acme.com");
 
-        TypeOperationContext ctx = createCtx(List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)), List.of(EMAIL.path()));
-        refreshShadows(ctx);
+        refreshShadows();
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)),
+                List.of(EMAIL.path())
+        );
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
-        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
-        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        var suggestions = smartIntegrationService.suggestCorrelation(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -382,7 +409,6 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "101");
         modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "102");
         modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "103");
-
         modifyUserReplace(USER1.oid, UserType.F_EMAIL_ADDRESS, "common@acme.com");
         modifyUserReplace(USER2.oid, UserType.F_EMAIL_ADDRESS, "common@acme.com");
         modifyUserReplace(USER3.oid, UserType.F_EMAIL_ADDRESS, "common@acme.com");
@@ -395,14 +421,17 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         a.getByName("account2").replaceAttributeValue(EMAIL.local(), "common@acme.com");
         a.getByName("account3").replaceAttributeValue(EMAIL.local(), "common@acme.com");
 
-        TypeOperationContext ctx = createCtx(
+        refreshShadows();
+        var mockClient = createClient(
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER), ItemPath.create(UserType.F_EMAIL_ADDRESS)),
                 List.of(PERSONAL_NUMBER.path(), EMAIL.path())
         );
-        refreshShadows(ctx);
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
-        CorrelationSuggestionOperation op = new CorrelationSuggestionOperation(ctx);
-        CorrelationSuggestionsType suggestions = op.suggestCorrelation(result);
+        var suggestions = smartIntegrationService.suggestCorrelation(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(2);
@@ -412,6 +441,65 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         assertThat(scores.get(1))
                 .as("Score for all-same email correlation should be 0.0")
                 .isEqualTo(0.0);
+    }
+
+    @Test
+    public void test080FindExistingInboundMapping() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY.oid, null, result).asObjectable();
+
+        ResourceObjectTypeDefinitionType accountType = resource.getSchemaHandling().getObjectType().stream()
+                .filter(o -> ResourceObjectTypeIdentification.of(o.getKind(), o.getIntent()).equals(ACCOUNT_DEFAULT))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Could not find ACCOUNT_DEFAULT type"));
+
+        ResourceAttributeDefinitionType attr = accountType.getAttribute().stream()
+                .filter(a -> PERSONAL_NUMBER.local().equals(asStringSimple(a.getRef().getItemPath())))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("personalNumber attr not found"));
+
+        attr.getInbound().add(new InboundMappingType()
+                .target(new VariableBindingDefinitionType()
+                        .path(ItemPath.create(UserType.F_PERSONAL_NUMBER).toBean())));
+
+        executeChanges(List.of(PrismContext.get().deltaFor(ResourceType.class)
+                                .item(ResourceType.F_SCHEMA_HANDLING)
+                                .replace(CloneUtil.clone(resource.getSchemaHandling()))
+                                .asObjectDelta(RESOURCE_DUMMY.oid)),
+                null, task, result);
+
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER), ItemPath.create(UserType.F_EMAIL_ADDRESS)),
+                List.of(PERSONAL_NUMBER.path(), EMAIL.path())
+        );
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+
+        var suggestions = smartIntegrationService.suggestCorrelation(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null, task, result);
+
+        List<CorrelationSuggestionType> suggestionList = suggestions.getSuggestion();
+
+        assertThat(suggestionList).hasSize(2);
+
+        // Find the suggestion for personalNumber
+        CorrelationSuggestionType personalNumberSuggestion = suggestionList.stream()
+                .filter(s -> {
+                    // Assuming getFocusPath returns the ItemPath or its string representation
+                    String focusPath = s.getCorrelation().getCorrelators().getItems().get(0).getItem().get(0).getRef().getItemPath().toString();
+                    return focusPath != null && focusPath.endsWith("personalNumber");
+                })
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Suggestion for personalNumber not found"));
+
+        assertThat(personalNumberSuggestion.getAttributes())
+                .as("PersonalNumber should be treated as existing mapping (no AI inbound mapping suggested)")
+                .isEmpty();
+
     }
 
 }
