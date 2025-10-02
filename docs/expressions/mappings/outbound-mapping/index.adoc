@@ -83,22 +83,25 @@ The actual value is determined by the iteration settings.
 
 |===
 
+
 == Troubleshooting
 
-=== Attributes cannot be both created and set in a reconciliation
+=== Accounts are skipped during reconciliation
 *Problem*
 
-When you create new accounts with attributes in midPoint and then run a reconciliation, your connector will only create, but not set, the new attributes.
+During a reconciliation, accounts that have newly been created in midPoint are not added to the target resource.
+This happens to accounts with attributes that cannot be set upon creation.
 
 *Cause*
 
-Some connectors may not be able to combine the Add and Modify operations.
-As a result, when you add a new account with attributes in midPoint, such connectors will add the account with its attributes to the target resource.
-However, they will not be able to set (modify) its attributes within the same reconciliation.
+Attributes that cannot be set upon creation require two steps - first creating, and only then modifying.
+However, some connectors may not be able to combine the Add and Modify operations.
+As a result, when you add a new account in midPoint with attributes that cannot be modified upon creation, such connectors will not be able to both create and set the attributes during a reconciliation, and they will not add the new account in the target resource at all.
 
 *Workaround*
 
-Define a condition for the impacted outbound mapping that halts processing once a new account is added in the target resource, and then adds a trigger for a recomputation at a later point, during which attributes will be modified for that account.
+Define a condition in the troublesome outbound mapping that makes sure the mapping is ignored, and that adds a trigger for a recomputation at a later point, during which the attribute will be modified.
+This way, adding accounts to the target resource will not be interrupted during the reconciliation, and the attribute will be added during a subsequent recomputation.
 By default, recompute operations are scheduled to occur every 5 minutes.
 
 .Example condition
