@@ -16,9 +16,35 @@
             </privileges>
             <assignmentTargetSearch>
                 <targetType>ServiceType</targetType>
+                <!-- XML filter -->
+                <!--<filter>
+                    <q:and>
+                        <q:not>
+                            <q:equal>
+                                <q:path>extension/initialOwnerName</q:path>
+                            </q:equal>
+                        </q:not>
+                        <q:equal>
+                            <q:path>extension/initialOwnerName</q:path>
+                            <expression>
+                                <script>
+                                    <trace>true</trace>
+                                    <code>
+                                        log.error("Checking Add initial service owner: " + name);
+                                        return name;
+                                    </code>
+                                </script>
+                            </expression>
+                        </q:equal>
+                    </q:and>
+                </filter>-->
+
+                <!-- MQL filter -->
                 <!--<filter>
                     <q:text>extension/initialOwnerName exists and extension/initialOwnerName = $name</q:text>
                 </filter>-->
+
+                <!-- MQL filter with logging -->
                 <filter>
                     <q:text>
                         extension/initialOwnerName exists and
