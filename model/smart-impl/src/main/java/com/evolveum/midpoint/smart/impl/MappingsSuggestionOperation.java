@@ -12,12 +12,13 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPI
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
+import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
+import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -57,9 +58,11 @@ class MappingsSuggestionOperation {
     private static final String ID_SHADOWS_COLLECTION = "shadowsCollection";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
     private final TypeOperationContext ctx;
+    private final MappingsQualityAssessor qualityAssessor;
 
-    private MappingsSuggestionOperation(TypeOperationContext ctx) {
+    private MappingsSuggestionOperation(TypeOperationContext ctx, MappingsQualityAssessor qualityAssessor) {
         this.ctx = ctx;
+        this.qualityAssessor = qualityAssessor;
     }
 
     static MappingsSuggestionOperation init(
@@ -67,12 +70,14 @@ class MappingsSuggestionOperation {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable CurrentActivityState<?> activityState,
+            MappingsQualityAssessor qualityAssessor,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return new MappingsSuggestionOperation(
-                TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result));
+                TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result),
+                qualityAssessor);
     }
 
     MappingsSuggestionType suggestMappings(OperationResult result)
@@ -280,6 +285,7 @@ class MappingsSuggestionOperation {
         var hackedSerialized = serialized.replace("ext:", "");
         var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
         var suggestion = new AttributeMappingsSuggestionType()
+                .expectedQuality(this.qualityAssessor.assessMappingsQuality(valuesPairs, expression))
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.getItemPath().rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
@@ -374,25 +380,4 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
-        private SiSuggestMappingExampleType toSiExample(
-                DescriptiveItemPath applicationAttrNameBean, DescriptiveItemPath midPointPropertyNameBean) {
-            return new SiSuggestMappingExampleType()
-                    .application(toSiAttributeExample(applicationAttrNameBean, shadowValues))
-                    .midPoint(toSiAttributeExample(midPointPropertyNameBean, focusValues));
-        }
-
-        private @NotNull SiAttributeExampleType toSiAttributeExample(DescriptiveItemPath path, Collection<?> values) {
-            var example = new SiAttributeExampleType().name(path.asString());
-            example.getValue().addAll(stringify(values));
-            return example;
-        }
-
-        private Collection<String> stringify(Collection<?> values) {
-            return values.stream()
-                    .filter(Objects::nonNull)
-                    .map(Object::toString)
-                    .toList();
-        }
-    }
 }
