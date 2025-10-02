@@ -7,59 +7,10 @@
 :page-wiki-metadata-modify-date: 2018-08-06T14:25:39.119+02:00
 :page-upkeep-status: yellow
 
-== Introduction
+Dead shadows in midPoint are remnants of deleted accounts, helping prevent their accidental re-creation and ensuring data consistency.
+Discover how to use them to maintain system integrity and troubleshoot potential issues.
 
-Ordinary xref:../[shadow objects] in midPoint represent existing resource-side objects, such as accounts and groups.
-However, sometimes there is a need to represent non-existing objects, such as accounts that were recently deleted.
-We refer to such objects as _dead shadows_.
-
-Dead shadows are very similar to ordinary "live" shadows.
-They have identifiers, metadata, resource reference, kind, intent and all the other details.
-The data are mostly "frozen" in time at the moment that the corresponding resource object (e.g. account) was deleted.
-Dead shadows has a boolean flag `dead` set to true value, to clearly distinguish them.
-
-Dead shadows are usually kept in midPoint for some time.
-There are several reasons for this behavior:
-
-* Diagnostics. Dead shadows contain information about the operation that have deleted the resource object.
-If we would just delete the shadow, there would be no place to store that information.
-Dead shadows give administrator a chance to diagnose problems with delete operations.
-
-* Pending operations: manual and semi-manual resources.
-Manual resource are very slow.
-It may take days for an operation to complete.
-The state of the operation is usually kept in the shadow.
-However, this is tricky to do for delete operations.
-Once the delete operation is completed, the shadow should be gone.
-However, for semi-manual resources, even if the delete operation is completed, the deleted account will still be present in the CSV export for hours or even days.
-We need to remember that the account was deleted recently.
-Otherwise midPoint could think that the account was re-created in the meantime, and it can re-issue a command to delete the account again.
-Dead shadows are kept to make sure that this does not happen.
-
-* Consistency mechanism.
-MidPoint may discover that a resource object has disappeared.
-For example, midPoint tries to read an account linked to a user, discovering that the account was deleted in the meantime.
-MidPoint will usually try to re-create the account.
-However, new account means new shadow, as internal identifiers (e.g. `entryUUID` or `GUID`) may be different for re-created account.
-The new account does not contain any information about the old account.
-However, the old information may be useful, e.g. to investigate the case _why_ has the original account disappeared.
-Hence the old information is kept in the dead shadow.
-
-* Handling weird delete-and-recreate situations.
-MidPoint provisioning subsystem can be quite fast, perhaps a bit too fast in some situations.
-Incorrectly configured midPoint could try to delete an account, and immediately re-create it.
-This kind of problems is usually very difficult to diagnose, as the resulting situation looks quite normal.
-However, dead shadows are an evidence that something strange happened.
-
-* Future potential.
-MidPoint has to be prepared to co-exist with many kinds of resource, from well-behaving centralized databases to all kind of weird distributed monstrosities that have never heard about CAP theorem.
-There may be temporary fluctuations in data.
-For example, in case of a distributed database, an account may be successfuly deleted on one node.
-However, the following read operation may be directed to a different node, where the previous delete operation was not propagated yet.
-In that case midPoint might naively think that the account was re-created, while the truth is that is has received an outdated data.
-Dead shadows may be helpful in detecting such situations.
-MidPoint might be able to realize that this information is outdated and resolve the situation.
-Such functionality is not present in midPoint yet, but it may come in the future.
+Refer to xref:/midpoint/architecture/concepts/shadow/dead-shadow/[] for more details on what dead shadows are and why they exist.
 
 == Managing Dead Shadows
 
