@@ -571,8 +571,9 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                 return;
             }
             getModelObject().setFullText(String.join(" ", ((FullTextFilter)objectFilter).getValues()));
-        } catch (SchemaException e) {
+        } catch (Exception e) {
             LOG.error("Unable to parse filter {}, {}", fulltextSearchItem.getFilter(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse filter: " + fulltextSearchItem.getFilter() + ", {}" + e.getLocalizedMessage());
         }
     }
 
@@ -592,8 +593,9 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
 
             item.setVisible(true);
 
-        } catch (SchemaException e) {
+        } catch (Exception e) {
             LOG.error("Unable to parse filter {}, {}", searchItem.getFilter(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse filter: " + searchItem.getFilter() + ", {}" + e.getLocalizedMessage());
         }
     }
 
