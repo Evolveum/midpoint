@@ -540,7 +540,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                     getModelObject().getTypeClass(), axiomSearchItem.getFilter());
             PrismQuerySerialization serializer = PrismContext.get().querySerializer().serialize(objectFilter);
             getModelObject().setDslQuery(serializer.filterText());
-        } catch (SchemaException | PrismQuerySerialization.NotSupportedException e) {
+        } catch (Exception e) {
             LOG.error("Unable to parse filter {}, {}", axiomSearchItem.getFilter(), e.getLocalizedMessage());
         }
     }
