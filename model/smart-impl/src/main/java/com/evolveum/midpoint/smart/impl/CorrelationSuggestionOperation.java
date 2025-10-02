@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import ch.qos.logback.core.util.StringUtil;
-
+import org.apache.commons.lang3.StringUtils;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
@@ -67,7 +66,7 @@ class CorrelationSuggestionOperation {
             }
 
             String lastName = suggestion.focusItemPath.lastName().getLocalPart();
-            String correlatorName = StringUtil.capitalizeFirstLetter(lastName) + " correlator";
+            String correlatorName = StringUtils.capitalize(lastName) + " correlator";
             var correlationDefinition = new CorrelationDefinitionType()
                     .correlators(new CompositeCorrelatorType()
                             .items(new ItemsSubCorrelatorType()
@@ -152,8 +151,8 @@ class CorrelationSuggestionOperation {
                     // Get the target path on the focus side (e.g., user.name)
                     ItemPath targetPath = mappingCI.getTargetPath();
                     if (targetPath != null && correlator.equivalent(targetPath)) {
-                            // applicable mapping for this correlator found - return resourceAttrPath
-                            return new ExistingMapping(resourceAttrPath);
+                        // applicable mapping for this correlator found - return resourceAttrPath
+                        return new ExistingMapping(resourceAttrPath);
                     }
                 }
             }
