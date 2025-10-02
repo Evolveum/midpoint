@@ -119,12 +119,20 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private void initPreviewWidgets(Form mainForm) {
+         UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this) {
+
+             @Override
+             public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
+                 return getCompiledGuiProfile().getHomePage().getWidget();
+             }
+         };
+
          List<PreviewContainerPanelConfigurationType> previewWidgets = getNonStatisticWidgetList();
          ListView<PreviewContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, previewWidgets) {
 
              @Override
              protected void populateItem(ListItem<PreviewContainerPanelConfigurationType> item) {
-                 Component widget = createWidget(ID_OBJECT_COLLECTION_VIEW_WIDGET, item.getModel());
+                 Component widget = createWidget(ID_OBJECT_COLLECTION_VIEW_WIDGET, item.getModel(), userDetailsModel);
                  widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
                  widget.add(AttributeAppender.append("class", getWidgetCssClassModel(item.getModelObject())));
                  item.add(widget);
@@ -180,7 +188,7 @@ public class PageSelfDashboard extends PageSelf {
         };
     }
 
-    private Component createWidget(String markupId, IModel<PreviewContainerPanelConfigurationType> model) {
+    private Component createWidget(String markupId, IModel<PreviewContainerPanelConfigurationType> model, UserDetailsModel userDetailsModel) {
         ContainerPanelConfigurationType config = model.getObject();
         String panelType = config.getPanelType();
 
@@ -195,14 +203,6 @@ public class PageSelfDashboard extends PageSelf {
             //panel type defined, but no class found. Something strange happened.
             return createMessagePanel(markupId, MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", config.getIdentifier());
         }
-
-        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this) {
-
-            @Override
-            public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
-                return getCompiledGuiProfile().getHomePage().getWidget();
-            }
-        };
 
         Component panel = WebComponentUtil.createPanel(panelClass, markupId, userDetailsModel, config);
         if (panel == null) {
