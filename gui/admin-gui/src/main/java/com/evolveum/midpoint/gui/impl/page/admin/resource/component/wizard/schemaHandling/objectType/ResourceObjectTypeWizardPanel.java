@@ -43,7 +43,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
     protected ResourceObjectTypeBasicWizardPanel createNewTypeWizard(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         return new ResourceObjectTypeBasicWizardPanel(id, helper) {
             @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
+            protected void postSubmitPerformed(AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel.this.showTypePreviewFragment(target);
             }
         };
