@@ -39,6 +39,8 @@ Resource Object Shadows are also called simply "shadows" or "shadow objects".
 
 |===
 
+Refer to xref:/midpoint/architecture/concepts/shadow/[] to learn more about the concept of shadows.
+
 Following figure illustrates the way how user, shadows and resource objects work together.
 User (`<user>`) and account shadow (`<account>`) are midPoint objects stored in midPoint identity repository.
 More precisely only the parts shown in black are stored in the repository, the parts shown in blue and fetched from the resource on demand.
