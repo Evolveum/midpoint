@@ -41,7 +41,12 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
 
     @Override
     protected ResourceObjectTypeBasicWizardPanel createNewTypeWizard(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
-        return new ResourceObjectTypeBasicWizardPanel(id, helper);
+        return new ResourceObjectTypeBasicWizardPanel(id, helper) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceObjectTypeWizardPanel.this.showTypePreviewFragment(target);
+            }
+        };
     }
 
     @Override
@@ -105,8 +110,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
     private void showResourceObjectTypeBasic(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new ResourceObjectTypeBasicWizardPanel(getIdOfChoicePanel(), createHelper(true))
-        );
+                createNewTypeWizard(getIdOfChoicePanel(), createHelper(true)));
     }
 
     private void showCredentialsWizardPanel(AjaxRequestTarget target) {
