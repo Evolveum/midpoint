@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.smart.impl.activities;
 
+import com.evolveum.midpoint.schema.util.AiUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -25,9 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusS
 
 class RemoteServiceCallFocusTypeActivityRun
         extends LocalActivityRun<
-            ObjectTypesSuggestionWorkDefinition,
-            ObjectTypesSuggestionActivityHandler,
-            ObjectTypesSuggestionWorkStateType> {
+        ObjectTypesSuggestionWorkDefinition,
+        ObjectTypesSuggestionActivityHandler,
+        ObjectTypesSuggestionWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RemoteServiceCallFocusTypeActivityRun.class);
 
@@ -52,9 +54,11 @@ class RemoteServiceCallFocusTypeActivityRun
             try {
                 var focusType =
                         SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(resourceOid, objectTypeBean, task, result);
-                objectTypeBean.setFocus(
-                        new ResourceObjectFocusSpecificationType()
-                                .type(focusType.getFocusType()));
+                var resourceFocusSpecification = new ResourceObjectFocusSpecificationType()
+                        .type(focusType.getFocusType());
+                //TODO marked as ai multiple times, should be generalized
+                AiUtil.markAsAiProvided(resourceFocusSpecification, ResourceObjectFocusSpecificationType.F_TYPE);
+                objectTypeBean.setFocus(resourceFocusSpecification);
             } catch (Exception e) {
                 LoggingUtils.logException(LOGGER, "Couldn't determine focus type for resource {} and object type {}",
                         e, resourceOid, ResourceObjectTypeIdentification.of(objectTypeBean));
