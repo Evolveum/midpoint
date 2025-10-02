@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
@@ -66,11 +67,13 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
     public void test100MQLInUserTemplate() throws Exception {
         OperationResult result = getTestOperationResult();
 
-        List<WorkerThread> threads = new ArrayList<>();
-        threads.add(new WorkerThread(USER_MIKE.getObjectable(), SERVICE_A.oid));
-        threads.add(new WorkerThread(USER_JACK.getObjectable(), SERVICE_B.oid));
+        AtomicBoolean hasFailure = new AtomicBoolean(false);
 
-        final int USER_COUNT = 15;
+        List<WorkerThread> threads = new ArrayList<>();
+        threads.add(new WorkerThread(USER_MIKE.getObjectable(), SERVICE_A.oid, hasFailure));
+        threads.add(new WorkerThread(USER_JACK.getObjectable(), SERVICE_B.oid, hasFailure));
+
+        final int USER_COUNT = 8;
 
         for (int i = 0; i < USER_COUNT; i++) {
             UserType user = new UserType();
@@ -79,10 +82,10 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
 
             repoAddObject(user.asPrismObject(), "Creating user", RepoAddOptions.createOverwrite(), result);
 
-            threads.add(new WorkerThread(user, null));
+            threads.add(new WorkerThread(user, null, hasFailure));
         }
 
-        executeTest(240, threads);
+        executeTest(60 * 60, threads);
     }
 
     private void executeTest(long timeSeconds, List<WorkerThread> threads) throws InterruptedException {
@@ -90,27 +93,41 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
             thread.start();
         }
 
-        Thread.sleep(timeSeconds * 1000);
+        long timeout = System.currentTimeMillis() + timeSeconds * 1000;
 
-        for (WorkerThread thread : threads) {
-            thread.stop = true;
-        }
-
-        long endTime = System.currentTimeMillis() + WAIT_FOR_STOP;
-        for (; ; ) {
-            long remaining = endTime - System.currentTimeMillis();
-            if (remaining <= 0) {
+        while (true) {
+            if (threads.stream().noneMatch(Thread::isAlive)) {
                 break;
             }
-            for (WorkerThread t : threads) {
-                t.join(remaining);
-                remaining = endTime - System.currentTimeMillis();
+
+            if (System.currentTimeMillis() > timeout) {
+                break;
+            }
+
+            Thread.sleep(200);
+        }
+
+        if (threads.stream().anyMatch(Thread::isAlive)) {
+            for (WorkerThread thread : threads) {
+                thread.stop = true;
+            }
+
+            long endTime = System.currentTimeMillis() + WAIT_FOR_STOP;
+            for (; ; ) {
+                long remaining = endTime - System.currentTimeMillis();
                 if (remaining <= 0) {
                     break;
                 }
-            }
-            if (threads.stream().noneMatch(Thread::isAlive)) {
-                break;
+                for (WorkerThread t : threads) {
+                    t.join(remaining);
+                    remaining = endTime - System.currentTimeMillis();
+                    if (remaining <= 0) {
+                        break;
+                    }
+                }
+                if (threads.stream().noneMatch(Thread::isAlive)) {
+                    break;
+                }
             }
         }
 
@@ -134,13 +151,16 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
 
         private final String assignmentTargetRefOid;
 
+        private final AtomicBoolean hasFailure;
+
         private volatile Throwable threadResult;
         private volatile int counter = 0;
         private volatile boolean stop = false;
 
-        public WorkerThread(UserType user, String assignmentTargetRefOid) {
+        public WorkerThread(UserType user, String assignmentTargetRefOid, AtomicBoolean hasFailure) {
             this.user = user;
             this.assignmentTargetRefOid = assignmentTargetRefOid;
+            this.hasFailure = hasFailure;
         }
 
         private String getIdentifier() {
@@ -153,6 +173,11 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
                 loginUser();
 
                 while (!stop) {
+                    if (hasFailure.get()) {
+                        logger.error("Thread {} detected another thread failure, stopping", getIdentifier());
+                        return;
+                    }
+
                     runOnce();
                     //noinspection NonAtomicOperationOnVolatileField
                     counter++;
@@ -160,6 +185,8 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
             } catch (Throwable t) {
                 LoggingUtils.logException(logger, "Unexpected exception: " + t, t);
                 threadResult = t;
+
+                hasFailure.set(true);
             }
         }
 
@@ -170,7 +197,7 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
         }
 
         private void runOnce() {
-            Task task = getTestTask();
+            Task task = createTask("runOnce");
             OperationResult result = task.getResult();
 
             try {

@@ -28,7 +28,6 @@
                             <q:path>extension/initialOwnerName</q:path>
                             <expression>
                                 <script>
-                                    <trace>true</trace>
                                     <code>
                                         log.error("Checking Add initial service owner: " + name);
                                         return name;
