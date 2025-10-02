@@ -20,7 +20,6 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -31,6 +30,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -71,13 +71,22 @@ import org.jetbrains.annotations.Nullable;
 public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable, T extends TemplateTile<PrismContainerValueWrapper<C>>>
         extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, T> {
 
-    private final IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
+    private IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
 
     public MultiSelectContainerActionTileTablePanel(
             String id,
             UserProfileStorage.TableId tableId,
             IModel<ViewToggle> toggleView) {
         super(id, toggleView, tableId);
+    }
+
+    public MultiSelectContainerActionTileTablePanel(
+            String id,
+            UserProfileStorage.TableId tableId,
+            IModel<ViewToggle> toggleView,
+            IModel<Boolean> switchToggleModel) {
+        super(id, toggleView, tableId);
+        this.switchToggleModel = switchToggleModel;
     }
 
     @Override
@@ -235,6 +244,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             protected @NotNull String getSpecialButtonClass() {
                 return "btn btn-default mr-2";
             }
+
+            @Override
+            protected String getSpecialDropdownMenuClass() {
+                return "dropdown-menu-end";
+            }
         };
 
         inlineMenu.setOutputMarkupPlaceholderTag(true);
@@ -347,7 +361,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (getRowModel() != null) {
-                    deleteItemPerformed(target, List.of(getRowModel().getObject()));
+                    deleteItemPerformed(target, List.of(getRowModel().getObject()), true);
                     return;
                 }
 
@@ -365,13 +379,12 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
                                 : super.createNoLabel();
                     }
 
-
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         if (selected.isEmpty()) {
-                            deleteItemPerformed(target, getMultiTableModel());
+                            deleteItemPerformed(target, getMultiTableModel(), true);
                         }
-                        deleteItemPerformed(target, selected);
+                        deleteItemPerformed(target, selected, true);
                     }
                 };
 
@@ -390,10 +403,22 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
                 : createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title", selectedCount);
     }
 
-    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
+    protected StringResourceModel acceptConfirmationTitle(int selectedCount) {
+        if (selectedCount == 0 && getMultiTableModel().isEmpty()) {
+            return createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.noItems");
+        }
+
+        return selectedCount == 0
+                ? createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.empty")
+                : createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title", selectedCount);
+    }
+
+    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete, boolean refresh) {
         if (noSelectedItemsWarn(getPageBase(), target, toDelete)) {return;}
         toDelete.forEach(this::resolveDeletedItem);
-        refreshAndDetach(target);
+        if (refresh) {
+            refreshAndDetach(target);
+        }
     }
 
     protected static <C extends Containerable> boolean noSelectedItemsWarn(PageBase pageBase, AjaxRequestTarget target,
@@ -511,6 +536,35 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         }
         BoxedTablePanel<?> table = getBoxedTablePanelComponent();
         return getCurrentPageItems(table.getDataTable().getCurrentPage(), table.getDataTable().getItemsPerPage());
+    }
+
+    /**
+     * Ensures the table or tile view does not remain on an invalid (empty) page.
+     * Adjusts current page if it exceeds the last available page,
+     * or resets to 0 if there are no items.
+     */
+    protected void adjustPagingIfEmpty() {
+        if (isTileViewVisible()) {
+            adjustPagingIfEmpty(getTiles(), getTiles().getItemCount(), getTiles().getItemsPerPage());
+        } else {
+            BoxedTablePanel<?> table = getBoxedTablePanelComponent();
+            if (table != null && table.getDataTable() != null) {
+                adjustPagingIfEmpty(table.getDataTable(),
+                        table.getDataTable().getItemCount(),
+                        table.getDataTable().getItemsPerPage());
+            }
+        }
+    }
+
+    private void adjustPagingIfEmpty(IPageable pageable, long total, long pageSize) {
+        if (total > 0) {
+            long maxPage = (total - 1) / pageSize;
+            if (pageable.getCurrentPage() > maxPage) {
+                pageable.setCurrentPage(maxPage);
+            }
+        } else {
+            pageable.setCurrentPage(0);
+        }
     }
 
     private @NotNull IsolatedCheckBoxPanel createHeaderCheckBoxButton(String idButton) {
@@ -633,6 +687,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         if (getProvider() instanceof MultivalueContainerListDataProvider<C> provider) {
             provider.getModel().detach();
         }
+        adjustPagingIfEmpty();
         super.refresh(target);
     }
 

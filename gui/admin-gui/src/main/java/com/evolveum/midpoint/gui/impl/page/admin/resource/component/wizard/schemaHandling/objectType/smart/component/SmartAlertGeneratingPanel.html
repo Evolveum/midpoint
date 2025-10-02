@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="d-flex flex-row alert purple-light alert-dismissible fade show" role="alert" wicket:id="alertContainer">
+        <div wicket:id="message" class="col-8 d-flex align-items-center text-bold text-purple-dark"></div>
+
+        <div wicket:id="primaryPanel" class="ml-auto d-flex align-items-center flex-column">
+            <div class="d-flex flex-row gap-2 ml-auto">
+                <div wicket:id="progressPanel" class="bg-light p-2 rounded d-flex align-items-center px-3 gap-1">
+                    <i wicket:id="icon" class="text-purple"></i>
+                    <span wicket:id="text" class="text-start text-purple"></span>
+                    <button type="button" class="ml-4 btn btn-sm text-purple d-flex align-items-center" wicket:id="stopSuggestion"></button>
+                    <div wicket:id="info" class="ml-4 btn btn-link btn-sm ml-auto text-purple"></div>
+                </div>
+                <button type="button" class="btn text-purple d-flex align-items-center" wicket:id="buttons"></button>
+            </div>
+            <div class="text-muted small" wicket:id="suggestionInfo"></div>
+        </div>
+
+        <button type="button" class="close d-flex h-100 align-items-center" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+</wicket:panel>
+</html>

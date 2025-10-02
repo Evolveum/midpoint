@@ -409,7 +409,7 @@ public class SmartCorrelationTable
                 createStringResource("SmartCorrelationTilePanel.discardButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()));
+                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()),true);
             }
         };
         discardButton.setOutputMarkupId(true);
@@ -693,7 +693,7 @@ public class SmartCorrelationTable
     }
 
     @Override
-    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> toDelete) {
+    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> toDelete, boolean refresh) {
         if (noSelectedItemsWarn(getPageBase(), target, toDelete)) {return;}
 
         Task task = getPageBase().createSimpleTask(OP_DELETE_CORRELATION_RULES);
@@ -710,7 +710,9 @@ public class SmartCorrelationTable
                 resolveDeletedItem(value);
             }
         });
-        refreshAndDetach(target);
+        if (refresh) {
+            refreshAndDetach(target);
+        }
     }
 
     @SuppressWarnings("rawtypes")

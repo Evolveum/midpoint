@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import java.util.Collections;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SimulationActionTaskButton;
@@ -18,9 +20,15 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceNavigationWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping.SmartMappingTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -38,7 +46,9 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadMappingTypeSuggestion;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_INBOUND_MAPPINGS;
 
 /**
@@ -54,6 +64,9 @@ import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "AttributeMappingsTableWizardPanel.outboundTable", icon = "fa fa-arrow-right-from-bracket"))
 public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceNavigationWizardBasicPanel<P> {
+
+    private static final String CLASS_DOT = AttributeMappingsTableWizardPanel.class.getName() + ".";
+    private static final String OP_SUGGEST_MAPPING = CLASS_DOT + "suggestMapping";
 
     private static final String ID_AI_PANEL = "aiPanel";
     private static final String ID_PANEL = "panel";
@@ -75,26 +88,63 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     private void initLayout() {
-
+        IModel<Boolean> switchToggleModel = Model.of(Boolean.FALSE);
         String resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
-        SmartMappingTable<P> smartMappingTable = new SmartMappingTable<P>(ID_PANEL,
+
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL, () -> {
+            Task task = getPageBase().createSimpleTask("Load generation statusInfo");
+            OperationResult result = task.getResult();
+            LoadableModel<StatusInfo<?>> statusModel = new LoadableModel<>() {
+                @Override
+                protected StatusInfo<MappingsSuggestionType> load() {
+                    return loadMappingTypeSuggestion(getPageBase(), resourceOid, task, result);
+                }
+            };
+            return new SmartGeneratingAlertDto(statusModel, switchToggleModel, getPageBase());
+        }) {
+            @Override
+            protected void performSuggestOperation(AjaxRequestTarget target) {
+                PageBase pageBase = getPageBase();
+                ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
+                SmartIntegrationService service = pageBase.getSmartIntegrationService();
+                pageBase.taskAwareExecutor(target, OP_SUGGEST_MAPPING)
+                        .runVoid((task, result) -> {
+                            service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, task, result);
+                        });
+            }
+
+            @Override
+            protected void refreshAssociatedComponents(@NotNull AjaxRequestTarget target) {
+                SmartMappingTable<?> smartMappingTable = getSmartMappingTable();
+                smartMappingTable.refreshAndDetach(target);
+            }
+        };
+
+        aiPanel.setOutputMarkupId(true);
+        add(aiPanel);
+
+        SmartMappingTable<P> smartMappingTable = new SmartMappingTable<>(ID_PANEL,
                 TABLE_SMART_INBOUND_MAPPINGS,
                 Model.of(ViewToggle.TILE),
                 Model.of(initialTab),
+                switchToggleModel,
                 getValueModel(),
                 resourceOid) {
             @Override
             public void refreshAndDetach(AjaxRequestTarget target) {
                 super.refreshAndDetach(target);
                 //rerender also feedback panel
+                target.add(getAiPanel());
                 target.add(AttributeMappingsTableWizardPanel.this);
             }
 
             @Override
-            public void acceptSuggestionItemPerformed(@NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel, StatusInfo<MappingsSuggestionType> statusInfo, @NotNull AjaxRequestTarget target) {
-                PrismContainerValueWrapper<MappingType> newValue = createNewValue(rowModel.getObject().getNewValue(), target);
-                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()));
-                refreshAndDetach(target);
+            public void acceptSuggestionItemPerformed(
+                    @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel,
+                    StatusInfo<MappingsSuggestionType> statusInfo,
+                    @NotNull AjaxRequestTarget target) {
+                createNewValue(rowModel.getObject().getNewValue(), target);
+                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()),false);
             }
 
             @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -146,7 +196,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             }
         };
         showOverrides.showTitleAsLabel(true);
-        showOverrides.add(AttributeAppender.append("class", "btn btn-primary"));
+        showOverrides.add(AttributeAppender.append("class", "btn  btn-outline-primary"));
         return showOverrides;
     }
 
@@ -228,5 +278,27 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
 
+    }
+
+    private @Nullable ResourceObjectTypeIdentification getResourceObjectTypeIdentification() {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
+        if (parentWrapper == null || parentWrapper.getRealValue() == null) {
+            return null;
+        }
+        ResourceObjectTypeDefinitionType realValue = parentWrapper.getRealValue();
+        return ResourceObjectTypeIdentification.of(realValue.getKind(), realValue.getIntent());
+    }
+
+    protected PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> findResourceObjectTypeDefinition() {
+        return getValueModel().getObject()
+                .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+    }
+
+    protected SmartMappingTable<?> getSmartMappingTable() {
+        return (SmartMappingTable<?>) get(ID_PANEL);
+    }
+
+    protected SmartAlertGeneratingPanel getAiPanel() {
+        return (SmartAlertGeneratingPanel) get(ID_AI_PANEL);
     }
 }
