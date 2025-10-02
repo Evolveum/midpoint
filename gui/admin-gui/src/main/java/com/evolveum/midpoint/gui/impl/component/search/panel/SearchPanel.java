@@ -17,8 +17,9 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AxiomQueryWrapper;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.search.Property;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -294,7 +295,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                 item.add(itemLabel);
 
                 AjaxLink removeButton = new AjaxLink<>(ID_SAVED_FILTER_REMOVE_BUTTON) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                         removeFilterButtonClicked(findFilterById(item.getModelObject().getId()),
@@ -518,12 +519,21 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
             return;
         }
         try {
-            ObjectFilter objectFilter = getPageBase().getQueryConverter().createObjectFilter(
-                    getModelObject().getTypeClass(), axiomSearchItem.getFilter());
+            SearchFilterType configuredFilter = axiomSearchItem.getFilter();
+            ObjectFilter objectFilter;
+            if (StringUtils.isEmpty(configuredFilter.getText())) {
+                //we try to parse xml query into axiom
+                objectFilter = getPageBase().getQueryConverter().parseFilter(configuredFilter, getModelObject().getTypeClass());
+                getPageBase().warn(createStringResource("SearchPanel.saved.filter.wrong.configuration").getString());
+            } else {
+                objectFilter = getPageBase().getQueryConverter().createObjectFilter(
+                        getModelObject().getTypeClass(), axiomSearchItem.getFilter());
+            }
             PrismQuerySerialization serializer = PrismContext.get().querySerializer().serialize(objectFilter);
             getModelObject().setDslQuery(serializer.filterText());
         } catch (Exception e) {
             LOG.error("Unable to parse filter {}, {}", axiomSearchItem.getFilter(), e.getLocalizedMessage());
+            getPageBase().error("Unable to parse filter: " + axiomSearchItem.getFilter() + ", {}" + e.getLocalizedMessage());
         }
     }
 
