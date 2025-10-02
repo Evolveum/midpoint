@@ -16,18 +16,18 @@
             </privileges>
             <assignmentTargetSearch>
                 <targetType>ServiceType</targetType>
-                    <filter>
-                        <q:text>extension/initialOwnerName exists and extension/initialOwnerName = $name</q:text>
-                    </filter>
                 <!--<filter>
+                    <q:text>extension/initialOwnerName exists and extension/initialOwnerName = $name</q:text>
+                </filter>-->
+                <filter>
                     <q:text>
                         extension/initialOwnerName exists and
                         extension/initialOwnerName = ```
-                            log.info("Checking Add initial service owner: " + name);
+                            log.error("Checking Add initial service owner: " + name);
                             return name;
                         ```
                     </q:text>
-                </filter>-->
+                </filter>
                 <assignmentProperties>
                     <relation>owner</relation>
                 </assignmentProperties>

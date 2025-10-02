@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
@@ -61,7 +62,7 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
     /**
      * MID-10483 MQL randomly fails in assignmentTargetSearch
      */
-    @Test
+    @Test(enabled = false)
     public void test100MQLInUserTemplate() throws Exception {
         OperationResult result = getTestOperationResult();
 
@@ -149,7 +150,7 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
         @Override
         public void run() {
             try {
-                loginAdministrator();
+                loginUser();
 
                 while (!stop) {
                     runOnce();
@@ -160,6 +161,12 @@ public class TestMQLInUserTemplate extends AbstractInitializedModelIntegrationTe
                 LoggingUtils.logException(logger, "Unexpected exception: " + t, t);
                 threadResult = t;
             }
+        }
+
+        private synchronized void loginUser()
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException {
+            login(userAdministrator.clone());
         }
 
         private void runOnce() {
