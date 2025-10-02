@@ -1,4 +1,4 @@
-= Shadow objects
+= Shadow Objects
 :page-wiki-name: Shadow Objects
 :page-wiki-id: 655431
 :page-wiki-metadata-create-user: semancik
@@ -41,7 +41,7 @@ Resource object shadows are also called simply "shadows" or "shadow objects".
 
 Refer to xref:/midpoint/architecture/concepts/shadow/[] to learn more about the concept of shadows.
 
-== How object references work in midPoint
+== How Object References Work in MidPoint
 
 The figure below illustrates the way how references between user, shadows connected to the user, and the resource objects represented by the shadows work together.
 
@@ -58,7 +58,7 @@ In fact, shadows are little more than a projections of resource objects.
 Only the most important parts of a shadow are stored in midPoint repository.
 Usually, only the identifiers are stored and therefore the shadow acts as a "mapping" object between xref:/midpoint/devel/prism/concepts/object-identifier/[OID] and native resource identifiers (e.g. LDAP DN, UUID, ...).
 
-== What is the structure of a resource object shadow
+== What Is the Structure of a Resource Object Shadow
 
 Resource object shadows have a fixed schema.
 They are defined in xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/[midPoint common schema] and are (indirect) subtypes of xref:/midpoint/devel/prism/schema/[object].
@@ -72,7 +72,7 @@ These attributes can have different form and different meaning for each individu
 The schema for the `attributes` element is not fixed, it is just an `xsd:any` wild card.
 However, midPoint expects that all the elements under the `attributes` tag are in the form of xref:/midpoint/devel/prism/schema/[properties].
 
-=== Resource object shadow example
+=== Resource Object Shadow Example
 
 The following form of shadow object is provided by the xref:/midpoint/architecture/archive/subsystems/provisioning/provisioning-service-interface/[provisioning service interface].
 It has most of the interesting attributes that were probably freshly fetched from the resource.
@@ -118,7 +118,7 @@ It may contain cached data as well, but that is not mandatory.
 Default namespace in both examples points to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/[midPoint common schema]. The `ds1` prefix is bound to the resource schema namespace, schema specific to the resource instance.
 See the xref:/midpoint/reference/resources/resource-schema/[Resource Schema] page for more details.
 
-== Resource object
+== Resource Object
 
 Resource objects are native objects on the resource represented as XML.
 They have no fixed structure, except that they should be constructed from xref:/midpoint/devel/prism/schema/[properties].
@@ -140,7 +140,7 @@ The operations that work with resource objects are not yet implemented in provis
 ====
 
 
-=== Resource object example
+=== Resource Object Example
 
 The following example shows the same object but represented as resource object using xref:/midpoint/reference/resources/resource-schema/[resource schema].
 This is really not a typical example, it is provided here only for comparison with the shadow object.
@@ -179,7 +179,7 @@ If we could define appropriate type, stereotype or class of typical resource obj
 We would create appropriate (static) type of shadow objects for them.
 But, similarly to the fact that kangaroos are not frequently used in IDM deployments, the resource objects are really designed only to support the unexpected, strange, and exotic cases.
 
-=== Resource object identification
+=== Resource Object Identification
 
 Resource objects are identified by whatever native identifier the resource uses.
 It may be `DN` for LDAP, `username` and `groupname` for traditional systems, numeric `uids`, `guid`, `UUIDs`, `GUID`, `nsUniqueIds` or even some combination of several identifiers.
