@@ -502,7 +502,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return new LoadableDetachableModel<>() {
             @Override
             protected List<PrismContainerValueWrapper<C>> load() {
-                List<PrismContainerValueWrapper<C>> all = getMultiTableModel();
+                List<PrismContainerValueWrapper<C>> all = getCurrentPageItems();
                 if (all == null || all.isEmpty()) {
                     return List.of();
                 }
