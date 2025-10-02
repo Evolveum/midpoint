@@ -238,7 +238,7 @@
 
         <wicket.version>10.4.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
-        <wicket.chartjs.version>0.6-SNAPSHOT</wicket.chartjs.version>
+        <wicket.chartjs.version>0.6</wicket.chartjs.version>
         <!-- Groovy 4.0.24 is also default for Spring Boot 3.4.0 -->
         <groovy.version>4.0.24</groovy.version>
         <xmlsec.version>2.2.6</xmlsec.version>
