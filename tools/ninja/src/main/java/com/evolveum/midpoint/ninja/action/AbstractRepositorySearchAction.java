@@ -130,7 +130,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
             return producers;
         }
 
-        List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
+        List<ObjectTypes> types = NinjaUtils.getTypes(options.getType(), supportedObjectTypes());
         for (ObjectTypes type : types) {
             ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context, type.getClassDefinition());
             ObjectQuery query = queryFactory.createQuery(filter);
@@ -145,6 +145,15 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
         }
 
         return producers;
+    }
+
+    /**
+     * Returns list of object types supported by this repository action
+     *
+     * @return
+     */
+    protected Iterable<ObjectTypes> supportedObjectTypes() {
+        return List.of(ObjectTypes.values());
     }
 
     /**
