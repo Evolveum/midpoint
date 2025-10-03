@@ -68,7 +68,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 /**
  * @author lskublik
  */
-public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationItemType, ItemsSubCorrelatorType> {
+public abstract class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationItemType, ItemsSubCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemRefsTable.class);
 
@@ -187,7 +187,10 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                     return;
                 }
 
-                PrismContainerValueWrapper<MappingType> relatedInboundMapping = findRelatedInboundMapping(getPageBase(), row);
+                PrismContainerValueWrapper<MappingType> relatedInboundMapping = findRelatedInboundMapping(
+                        getPageBase(),
+                        row,
+                        getResourceObjectTypeDefWrapper());
                 if (relatedInboundMapping == null) {
                     LOGGER.warn("Cannot find related inbound mapping for correlation item: {}", row.getRealValue());
                     getPageBase().warn(getString("CorrelationItem.relatedMappingNotFound"));
@@ -296,8 +299,54 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                 getDefaultColumnType(),
                 getPageBase()) {
             @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CorrelationItemType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<CorrelationItemType>> rowModel) {
+            public void populateItem(
+                    Item<ICellPopulator<PrismContainerValueWrapper<CorrelationItemType>>> cellItem,
+                    String componentId,
+                    IModel<PrismContainerValueWrapper<CorrelationItemType>> rowModel) {
                 super.populateItem(cellItem, componentId, rowModel);
+            }
+
+            @Override
+            public String getCssClass() {
+                return isCorrelationForAssociation() ? null : "col-3";
+            }
+        });
+
+        columns.add(new AbstractColumn<>(
+                getPageBase().createStringResource("CorrelationItemRefsTable.column.mapping.resource.attribute")) {
+
+            @Override
+            public void populateItem(
+                    Item<ICellPopulator<PrismContainerValueWrapper<CorrelationItemType>>> item,
+                    String id,
+                    IModel<PrismContainerValueWrapper<CorrelationItemType>> iModel) {
+                var relatedInboundMapping = findRelatedInboundMapping(
+                        getPageBase(),
+                        iModel.getObject(),
+                        getResourceObjectTypeDefWrapper());
+                if (relatedInboundMapping != null && relatedInboundMapping.getRealValue() != null) {
+                    PrismPropertyWrapperColumnPanel<MappingType> panel = createColumnPanel(id, relatedInboundMapping);
+                    item.add(panel);
+                } else {
+                    item.add(new Label(id, getPageBase().getString("-")));
+                }
+            }
+
+            private @NotNull PrismPropertyWrapperColumnPanel<MappingType> createColumnPanel(
+                    String id,
+                    PrismContainerValueWrapper<MappingType> relatedInboundMapping) {
+                PrismPropertyWrapperColumnPanel<MappingType> panel = new PrismPropertyWrapperColumnPanel<>(id,
+                        () -> {
+                            try {
+                                return relatedInboundMapping.findProperty(ResourceAttributeDefinitionType.F_REF);
+                            } catch (SchemaException e) {
+                                LOGGER.warn("Couldn't find property for target in {}", relatedInboundMapping, e);
+                                return null;
+                            }
+                        },
+                        getDefaultColumnType());
+                panel.setOutputMarkupId(true);
+                return panel;
             }
 
             @Override
@@ -352,20 +401,20 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
 
                 @Override
                 public String getCssClass() {
-                    return "col-3";
+                    return "col-2";
                 }
             });
 
             columns.add(createColumnForPropertyOfFuzzyContainer(
                     LevenshteinDistanceSearchDefinitionType.F_THRESHOLD,
                     "CorrelationItemRefsTable.column.threshold.label",
-                    "CorrelationItemRefsTable.column.threshold.help",
-                    "col-3"));
+                    "CorrelationItemRefsTable.column.threshold.help"
+            ));
             columns.add(createColumnForPropertyOfFuzzyContainer(
                     LevenshteinDistanceSearchDefinitionType.F_INCLUSIVE,
                     "CorrelationItemRefsTable.column.inclusive.label",
-                    "CorrelationItemRefsTable.column.inclusive.help",
-                    "col-2"));
+                    "CorrelationItemRefsTable.column.inclusive.help"
+            ));
         }
 
         return columns;
@@ -376,9 +425,9 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
         return associationParent != null;
     }
 
-    @Contract("_, _, _, _ -> new")
+    @Contract("_, _, _ -> new")
     private @NotNull IColumn<PrismContainerValueWrapper<CorrelationItemType>, String> createColumnForPropertyOfFuzzyContainer(
-            ItemName propertyName, String labelKey, String helpKey, String cssClass) {
+            ItemName propertyName, String labelKey, String helpKey) {
         return new AbstractColumn<>(
                 getPageBase().createStringResource(labelKey)) {
 
@@ -401,7 +450,8 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                     AtomicReference<ItemName> container = new AtomicReference<>();
                     cellItem.getParent().visitChildren(
                             ContainersDropDownPanel.class,
-                            (component, objectIVisit) -> container.set(((ContainersDropDownPanel<?>) component).getDropDownModel().getObject()));
+                            (component, objectIVisit) -> container.set((
+                                    (ContainersDropDownPanel<?>) component).getDropDownModel().getObject()));
 
                     if (container.get() != null) {
                         ItemPath path = ItemPath.create(
@@ -413,7 +463,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                         try {
                             return rowModel.getObject().findProperty(path);
                         } catch (SchemaException e) {
-                            LOGGER.error("Couldn't find property of fuzzy container, path:" + path, e);
+                            LOGGER.error("Couldn't find property of fuzzy container, path:{}", path, e);
                         }
                     }
 
@@ -443,7 +493,7 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
 
             @Override
             public String getCssClass() {
-                return cssClass;
+                return "col-2";
             }
         };
     }
@@ -538,6 +588,11 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                         target
                 );
 
+        if (newMappingValue == null) {
+            LOGGER.warn("Couldn't create new mapping value.");
+            return;
+        }
+
         CorrelationMappingFormPanel<MappingType> formCorrelationMappingPanel = new CorrelationMappingFormPanel<>(
                 getPageBase().getMainPopupBodyId(),
                 () -> newMappingValue) {
@@ -583,22 +638,32 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
     }
 
     protected void addExistingMappingPerformed(AjaxRequestTarget target) {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentContainerValue = getValueModel().getObject()
-                .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentContainerValue = getResourceObjectTypeDefModel()
+                .getObject();
 
         CorrelationExistingMappingTable<?> correlationExistingMappingTable = new CorrelationExistingMappingTable<>(
                 getPageBase().getMainPopupBodyId(),
                 () -> parentContainerValue) {
             @Override
-            protected void onAddSelectedMappings(AjaxRequestTarget target, List<PrismContainerValueWrapper<MappingType>> selectedObjects) {
+            protected void onAddSelectedMappings(
+                    AjaxRequestTarget target,
+                    List<PrismContainerValueWrapper<MappingType>> selectedObjects) {
                 if (selectedObjects == null || selectedObjects.isEmpty()) {
                     return;
                 }
-                selectedObjects.forEach(mappingWrapper -> transformAndAddMappingIntoCorrelationItemContainer(
-                        getPageBase(), getValueModel(), mappingWrapper, target));
+                selectedObjects.forEach(
+                        mappingWrapper ->
+                                transformAndAddMappingIntoCorrelationItemContainer(
+                                        getPageBase(), getValueModel(), mappingWrapper, target));
                 refreshTablePanel(target);
             }
         };
         getPageBase().showMainPopup(correlationExistingMappingTable, target);
     }
+
+    private PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> getResourceObjectTypeDefWrapper() {
+        return getResourceObjectTypeDefModel().getObject();
+    }
+
+    public abstract @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefModel();
 }

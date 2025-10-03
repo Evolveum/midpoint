@@ -65,13 +65,16 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
     private static final String ID_ALERT_BADGE = "badgeAlert";
 
     IModel<StatusInfo<CorrelationSuggestionsType>> statusInfoModel;
+    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition;
 
     public CorrelationItemRuleWizardPanel(
             String id,
+            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
             WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> superHelper,
             IModel<StatusInfo<CorrelationSuggestionsType>> statusInfoModel) {
         super(id, superHelper);
         this.statusInfoModel = statusInfoModel;
+        this.resourceObjectTypeDefinition = resourceObjectTypeDefinition;
     }
 
     @Override
@@ -147,14 +150,24 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
         add(panel);
         valueModel.getObject().getRealValue().asPrismContainerValue();
 
+        CorrelationItemRefsTable table = buildCorrelationitemRefsTable();
+        add(table);
+    }
+
+    private @NotNull CorrelationItemRefsTable buildCorrelationitemRefsTable() {
         CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getValueModel(), getConfiguration()) {
             @Override
             boolean isReadOnlyTable() {
                 return isSuggestionApplied();
             }
+
+            @Override
+            public @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefModel() {
+                return CorrelationItemRuleWizardPanel.this.getResourceObjectTypeDefinitionModel();
+            }
         };
         table.setOutputMarkupId(true);
-        add(table);
+        return table;
     }
 
     @Override
@@ -260,6 +273,10 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
             @NotNull AjaxRequestTarget target,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
             @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
+    }
+
+    protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefinitionModel() {
+        return resourceObjectTypeDefinition;
     }
 
 }
