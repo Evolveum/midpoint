@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 
 public abstract class ReferenceNameResolver {
 
-    protected abstract <S> S resolve(S object, JdbcSession session);
+    public abstract <S> S resolve(S object, JdbcSession session);
 
     public static ReferenceNameResolver from(Collection<SelectorOptions<GetOperationOptions>> options) {
         @NotNull
@@ -54,7 +54,7 @@ public abstract class ReferenceNameResolver {
     private static final class Noop extends ReferenceNameResolver {
 
         @Override
-        protected <S> S resolve(S object, JdbcSession session) {
+        public <S> S resolve(S object, JdbcSession session) {
             return object;
         }
     }
@@ -71,7 +71,7 @@ public abstract class ReferenceNameResolver {
         }
 
         @Override
-        protected <S> S resolve(S object, JdbcSession session) {
+        public <S> S resolve(S object, JdbcSession session) {
             if (!(object instanceof Containerable)) {
                 return object;
             }

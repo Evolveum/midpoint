@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.EnumExpression;
 import com.querydsl.core.types.dsl.EnumPath;
 
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -61,5 +62,9 @@ public class EnumItemFilterProcessor<E extends Enum<E>>
             throw new QueryException("Can't translate filter '" + filter + "' to operation."
                     + " Enumeration value supports only equals with no matching rule.");
         }
+    }
+    
+    public EnumPath<E> getPath() {
+        return path;
     }
 }

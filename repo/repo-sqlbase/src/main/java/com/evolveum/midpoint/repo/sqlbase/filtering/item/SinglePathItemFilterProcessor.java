@@ -17,6 +17,8 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
+import com.querydsl.sql.AbstractSQLQuery;
+
 /**
  * Item filter processor related to one table column represented by the {@link #path}.
  * The path is typically obtained from query context using the provided mapping function.
@@ -40,6 +42,10 @@ public abstract class SinglePathItemFilterProcessor<T, P extends Path<?>>
 
     @Override
     public Expression<?> rightHand(ValueFilter<?, ?> filter) throws RepositoryException {
+        return path;
+    }
+
+    public P getPath() {
         return path;
     }
 }

@@ -12,7 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachesStateInformati
 /**
  * Registry of all local caches (various caching components/services).
  */
-public interface CacheRegistry {
+public interface  CacheRegistry {
 
     void registerCache(Cache cache);
 
