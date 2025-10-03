@@ -50,11 +50,26 @@ public class ExportConsumerWorker extends AbstractWriterConsumerWorker<ExportOpt
     protected void write(Writer writer, ObjectType object) throws SchemaException, IOException {
         PrismObject<? extends ObjectType> prismObject = object.asPrismObject();
 
+        if (shouldSkipObject(prismObject)) {
+            return;
+        }
+
+        editObject(prismObject);
+
         @NotNull List<ItemPath> itemsPaths = getExcludeItemsPaths();
         removeItemPathsIfPresent(itemsPaths, prismObject);
 
         String xml = serializer.serialize(object.asPrismObject());
         writer.write(xml);
+    }
+
+    protected boolean shouldSkipObject(PrismObject<? extends ObjectType> prismObject) {
+        return false;
+    }
+
+    // Allows to customize / hardcode object before exporting
+    protected void editObject(PrismObject<? extends ObjectType> prismObject) {
+        // INtentionally Noop for normal export
     }
 
     @Override

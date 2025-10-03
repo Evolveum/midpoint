@@ -209,13 +209,13 @@ public class NinjaUtils {
         return optionsBuilder;
     }
 
-    public static List<ObjectTypes> getTypes(Set<ObjectTypes> selected) {
+    public static List<ObjectTypes> getTypes(Set<ObjectTypes> selected, Iterable<ObjectTypes> supported) {
         List<ObjectTypes> types = new ArrayList<>();
 
         if (selected != null && !selected.isEmpty()) {
             types.addAll(selected);
         } else {
-            for (ObjectTypes type : ObjectTypes.values()) {
+            for (ObjectTypes type : supported) {
                 Class<? extends ObjectType> clazz = type.getClassDefinition();
                 if (Modifier.isAbstract(clazz.getModifiers())) {
                     continue;

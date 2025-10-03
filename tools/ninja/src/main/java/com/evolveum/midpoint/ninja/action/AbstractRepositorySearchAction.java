@@ -133,7 +133,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
             return producers;
         }
 
-        List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
+        List<ObjectTypes> types = NinjaUtils.getTypes(options.getType(), supportedObjectTypes());
         for (ObjectTypes type : types) {
             if (!context.getRepository().supports(type.getClassDefinition())) {
                 log.warn("Repository doesn't support operation '{}' for objects of type '{}'",
@@ -154,6 +154,15 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
         }
 
         return producers;
+    }
+
+    /**
+     * Returns list of object types supported by this repository action
+     *
+     * @return
+     */
+    protected Iterable<ObjectTypes> supportedObjectTypes() {
+        return List.of(ObjectTypes.values());
     }
 
     /**

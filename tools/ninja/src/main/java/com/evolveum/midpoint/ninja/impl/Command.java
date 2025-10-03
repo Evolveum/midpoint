@@ -25,6 +25,15 @@ public enum Command {
 
     EXPORT("export", ExportOptions.class, ExportRepositoryAction.class),
 
+    EXPORT_CONFIGURATION("export-configuration", ExportOptions.class, ExportConfigurationAction.class),
+
+    EXPORT_RESOURCE_SCHEMA("export-resource-schema", ExportOptions.class, ExportResourceSchemaAction.class),
+
+    EXPORT_SHADOW_STATISTICS("export-shadow-statistics", ExportShadowStatisticsOptions.class, ExportShadowStatisticsAction.class),
+
+    EXPORT_FOCUS_STATISTICS("export-focus-statistics", ExportOptions.class, ExportFocusStatisticsAction.class),
+
+
     DELETE("delete", DeleteOptions.class, DeleteRepositoryAction.class),
 
     COUNT("count", CountOptions.class, CountRepositoryAction.class),
