@@ -52,6 +52,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -59,6 +60,7 @@ import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +82,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
                         description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DESCRIPTION)
         })
 public class PageCertCampaign extends PageAdminCertification {
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaign.class);
 
@@ -122,7 +126,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
     private static final String ID_OUTCOMES_TABLE = "outcomesTable";
 
-    private LoadableModel<AccessCertificationCasesStatisticsType> statModel;
+    private LoadableDetachableModel<AccessCertificationCasesStatisticsType> statModel;
     private NonEmptyLoadableModel<CertCampaignDto> campaignModel;
 
     private String campaignOid;
@@ -139,13 +143,17 @@ public class PageCertCampaign extends PageAdminCertification {
     }
 
     private void initModels() {
-        statModel = new LoadableModel<AccessCertificationCasesStatisticsType>(false) {
+        statModel = new LoadableDetachableModel<AccessCertificationCasesStatisticsType>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected AccessCertificationCasesStatisticsType load() {
                 return loadStatistics();
             }
         };
         campaignModel = new NonEmptyLoadableModel<CertCampaignDto>(false) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @NotNull
             @Override
             protected CertCampaignDto load() {
@@ -220,6 +228,8 @@ public class PageCertCampaign extends PageAdminCertification {
         mainForm.add(new Label(ID_CAMPAIGN_ITERATION, new PropertyModel<>(campaignModel, CertCampaignDto.F_ITERATION)));
         mainForm.add(new Label(ID_CAMPAIGN_CURRENT_STATE, new PropertyModel<>(campaignModel, CertCampaignDto.F_CURRENT_STATE)));
         mainForm.add(new Label(ID_CAMPAIGN_TIME, new IModel<String>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public String getObject() {
                 CertCampaignDto dto = campaignModel.getObject();
@@ -227,6 +237,8 @@ public class PageCertCampaign extends PageAdminCertification {
             }
         }));
         mainForm.add(new Label(ID_STAGE_TIME, new IModel<String>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public String getObject() {
                 CertCampaignDto dto = campaignModel.getObject();
@@ -312,7 +324,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
         column = new AbstractColumn<CertCaseDto, String>(new Model<>()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<CertCaseDto>> cellItem, String componentId,
@@ -320,7 +332,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
                 cellItem.add(new MultiButtonPanel<CertCaseDto>(componentId, rowModel, responses + 1) {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected Component createButton(int index, String componentId, IModel<CertCaseDto> model) {
@@ -381,6 +393,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
     private void initButtons(final Form mainForm) {
         AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCertCampaign.button.back")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -391,12 +404,16 @@ public class PageCertCampaign extends PageAdminCertification {
 
         AjaxSubmitButton startCampaignButton = new AjaxSubmitButton(ID_START_CAMPAIGN_BUTTON,
                 createStringResource("PageCertCampaign.button.startCampaign")) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 executeCampaignStateOperation(target, OP_OPEN_NEXT_STAGE);
             }
         };
         startCampaignButton.add(new VisibleEnableBehaviour() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return campaignModel.getObject().getState() == AccessCertificationCampaignStateType.CREATED;
@@ -405,6 +422,8 @@ public class PageCertCampaign extends PageAdminCertification {
         mainForm.add(startCampaignButton);
 
         AjaxButton nextStageButton = new AjaxButton(ID_OPEN_NEXT_STAGE_BUTTON, createStringResource("PageCertCampaign.button.openNextStage")) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 executeCampaignStateOperation(target, OP_OPEN_NEXT_STAGE);
@@ -421,6 +440,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
         AjaxButton closeStageButton = new AjaxButton(ID_CLOSE_STAGE_BUTTON,
                 createStringResource("PageCertCampaign.button.closeStage")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -437,6 +457,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
         AjaxButton startRemediationButton = new AjaxButton(ID_START_REMEDIATION_BUTTON,
                 createStringResource("PageCertCampaign.button.startRemediation")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -444,6 +465,8 @@ public class PageCertCampaign extends PageAdminCertification {
             }
         };
         startRemediationButton.add(new VisibleEnableBehaviour() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return campaignModel.getObject().getState() == AccessCertificationCampaignStateType.REVIEW_STAGE_DONE
@@ -504,7 +527,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         showResult(result);
-        statModel.reset();
+        statModel.detach();
         campaignModel.reset();
         target.add(get(createComponentPath(ID_MAIN_FORM)));
         target.add((Component) getOutcomesTable());        // ???

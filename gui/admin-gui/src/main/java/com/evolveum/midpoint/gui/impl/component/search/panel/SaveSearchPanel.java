@@ -210,7 +210,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
             ObjectFilter axiomFilter = PrismContext.get()
                     .createQueryParser(PrismContext.get().getSchemaRegistry().staticNamespaceContext().allPrefixes())
                     .parseFilter(getModelObject().getTypeClass(), getModelObject().getDslQuery());
-            axiomSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(axiomFilter));
+            axiomSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(axiomFilter, true));
             return axiomSearchItem;
         } catch (SchemaException e) {
             LOGGER.error("Unable to parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
@@ -225,7 +225,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
 
             SearchFilterType search = PrismContext.get().parserFor(getModelObject().getAdvancedQuery()).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
             ObjectFilter advancedFilter = PrismContext.get().getQueryConverter().parseFilter(search, getModelObject().getTypeClass());
-            advancedSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(advancedFilter));
+            advancedSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(advancedFilter, true));
             return advancedSearchItem;
         } catch (Exception e) {
             LOGGER.error("Unable to parse advanced filter from query: {}, {}", getModelObject().getAdvancedQuery(), e.getLocalizedMessage());

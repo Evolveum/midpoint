@@ -1338,7 +1338,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     }
 
     //covers #10853
-    @Test(enabled = false)
+    @Test
     public void test950CreateNewRoleWhileApprovalProcessWithAutoCompletion() throws Exception {
         given();
         login(userAdministrator);
@@ -1363,8 +1363,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         then();
         PrismObject<RoleType> createdRole = repositoryService.getObject(RoleType.class, newRoleOid, null, result);
         String xml = getPrismContext().xmlSerializer().serialize(createdRole);
-        display("Created role:", createdRole);
-        assertThat(xml.startsWith("<role")).isEqualTo(true);
+        display("Created role: ", createdRole);
+        assertThat(xml.startsWith("<role"))
+                .withFailMessage("Expected that created role object xml starts with <role> tag.")
+                .isEqualTo(true);
     }
 
 

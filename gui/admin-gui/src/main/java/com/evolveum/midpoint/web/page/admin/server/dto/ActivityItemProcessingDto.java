@@ -228,7 +228,9 @@ public class ActivityItemProcessingDto implements Serializable {
     private ChartOptions createChartOptions() {
         ChartOptions options = new ChartOptions();
         options.setAnimation(createAnimation());
-        options.setLegend(createChartLegend());
+        ChartPluginsOption plugins = new ChartPluginsOption();
+        plugins.setLegend(createChartLegend());
+        options.setPlugins(plugins);
         options.setResponsive(true);
         options.setMaintainAspectRatio(false);
         return options;
