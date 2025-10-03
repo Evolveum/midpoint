@@ -39,10 +39,10 @@ public class MappingsQualityAssessor {
         }
 
         if (totalShadowValues == 0) {
-            return (float) -1.0;
+            return -1.0f;
         }
         float quality = (float) matchedShadowValues / totalShadowValues;
-        return (float) (Math.round(quality * 100.0) / 100.0);
+        return Math.round(quality * 100.0f) / 100.0f;
     }
 
     private String applyExpression(ExpressionType expressionType, String input) {
