@@ -9,15 +9,21 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.link.ExternalLink;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -26,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
+import java.io.Serializable;
+import java.util.List;
 
 public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
 
@@ -36,8 +44,45 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
     private static final String ID_LEARN_MORE = "learnMore";
     private static final String ID_INFO_MESSAGE = "infoMessage";
 
+    private static final String ID_PERMISSION_CONTAINER = "permissionContainer";
+    private static final String ID_PERMISSION_LABEL = "permissionLabel";
+    private static final String ID_LIST_VIEW = "listView";
+    private static final String ID_PERMISSION_CHECK = "check";
+    private static final String ID_PERMISSION_TITLE = "title";
+    private static final String ID_PERMISSION_DESCRIPTION = "description";
+    private static final String ID_PERMISSION_ACTION = "action";
+
+    // TODO Dummy data for permissions (replace later with real dto structured data)
+    List<PermissionRecord> permissions = List.of(
+            new PermissionRecord(
+                    createStringResource("SmartSuggestConfirmationPanel.permission.title.schema").getObject(),
+                    createStringResource("SmartSuggestConfirmationPanel.permission.record.description.schema").getObject(),
+                    true,
+                    null
+            ),
+            new PermissionRecord(
+                    createStringResource("SmartSuggestConfirmationPanel.permission.record.title.statistical.data").getObject(),
+                    createStringResource("SmartSuggestConfirmationPanel.permission.record.description.statistical.data").getObject(),
+                    false,
+                    null
+            ),
+            new PermissionRecord(
+                    createStringResource("SmartSuggestConfirmationPanel.permission.record.title.raw.data").getObject(),
+                    createStringResource("SmartSuggestConfirmationPanel.permission.record.description.raw.data").getObject(),
+                    false,
+                    null)
+    );
+
     public SmartSuggestConfirmationPanel(String id, IModel<String> message) {
         super(id, message);
+    }
+
+    record PermissionRecord(
+            String title,
+            String description,
+            boolean selected,
+            SerializableFunction<PermissionRecord, Void> onClick) implements Serializable {
+        @Serial private static final long serialVersionUID = 1L;
     }
 
     @Override
@@ -49,6 +94,7 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
         add(subtitleLabel);
 
         initInfoMessage();
+        initPermissionPart();
     }
 
     private void initInfoMessage() {
@@ -85,6 +131,60 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
         learnMoreButton.setOutputMarkupId(true);
 
         panel.add(learnMoreButton);
+    }
+
+    /**
+     * Permission part contains a list of permissions with checkboxes and action button.
+     */
+    private void initPermissionPart() {
+        WebMarkupContainer permissionContainer = new WebMarkupContainer(ID_PERMISSION_CONTAINER);
+        permissionContainer.setOutputMarkupId(true);
+        permissionContainer.add(new VisibleBehaviour(this::isPermissionPartVisible));
+        add(permissionContainer);
+
+        Label permissionLabel = new Label(ID_PERMISSION_LABEL, createStringResource(
+                "SmartSuggestConfirmationPanel.permission.component.title"));
+        permissionLabel.setOutputMarkupId(true);
+        permissionContainer.add(permissionLabel);
+
+        ListView<PermissionRecord> listView = new ListView<>(ID_LIST_VIEW, () -> permissions) {
+            @Override
+            protected void populateItem(@NotNull ListItem<PermissionRecord> item) {
+                PermissionRecord record = item.getModelObject();
+
+                CheckBox checkBox = new CheckBox(ID_PERMISSION_CHECK, Model.of(record.selected()));
+                checkBox.setOutputMarkupId(true);
+                item.add(checkBox);
+
+                item.add(new Label(ID_PERMISSION_TITLE, record.title()));
+                item.add(new Label(ID_PERMISSION_DESCRIPTION, record.description()));
+                item.add(buildActionComponent());
+
+                if (item.getIndex() < permissions.size() - 1) {
+                    item.add(AttributeModifier.append("class", "border-bottom"));
+                }
+            }
+
+            private @NotNull AjaxIconButton buildActionComponent() {
+                AjaxIconButton action = new AjaxIconButton(ID_PERMISSION_ACTION,
+                        Model.of("fa fa-info-circle"),
+                        createStringResource("SmartSuggestConfirmationPanel.permission.record.action.more.info")) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        //TODO
+                    }
+                };
+                action.showTitleAsLabel(true);
+                action.setOutputMarkupId(true);
+                return action;
+            }
+        };
+        listView.setOutputMarkupId(true);
+        permissionContainer.add(listView);
+    }
+
+    protected boolean isPermissionPartVisible() {
+        return permissions != null && !permissions.isEmpty();
     }
 
     @Override
