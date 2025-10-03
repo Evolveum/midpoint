@@ -139,12 +139,13 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             }
 
             @Override
-            public void acceptSuggestionItemPerformed(
+            public PrismContainerValueWrapper<MappingType> acceptSuggestionItemPerformed(
                     @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel,
                     StatusInfo<MappingsSuggestionType> statusInfo,
                     @NotNull AjaxRequestTarget target) {
-                createNewValue(rowModel.getObject().getNewValue(), target);
-                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()),false);
+                PrismContainerValueWrapper<MappingType> newValue = createNewValue(rowModel.getObject().getNewValue(), target);
+                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()), false);
+                return newValue;
             }
 
             @SuppressWarnings({ "rawtypes", "unchecked" })

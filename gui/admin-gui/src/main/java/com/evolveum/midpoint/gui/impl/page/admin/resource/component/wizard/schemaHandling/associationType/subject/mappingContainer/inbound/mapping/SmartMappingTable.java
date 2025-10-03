@@ -94,6 +94,9 @@ public abstract class SmartMappingTable<P extends Containerable>
 
     IModel<MappingUsedFor> mappingUsedForIModel = new Model<>(MappingUsedFor.ALL);
 
+    // Cache of accepted suggestions to keep them shown on the same place after refresh
+    private final Set<PrismContainerValueWrapper<MappingType>> acceptedSuggestionsCache = new HashSet<>();
+
     public SmartMappingTable(
             @NotNull String id,
             @NotNull UserProfileStorage.TableId tableId,
@@ -195,7 +198,8 @@ public abstract class SmartMappingTable<P extends Containerable>
             @Override
             public void onClick(AjaxRequestTarget target) {
                 @Nullable StatusInfo<MappingsSuggestionType> statusInfo = getStatusInfo(rowModel.getObject());
-                acceptSuggestionItemPerformed(rowModel, statusInfo, target);
+                PrismContainerValueWrapper<MappingType> value = acceptSuggestionItemPerformed(rowModel, statusInfo, target);
+                acceptedSuggestionsCache.add(value);
                 refreshAndDetach(target);
             }
         };
@@ -286,29 +290,71 @@ public abstract class SmartMappingTable<P extends Containerable>
                     protected @NotNull List<PrismContainerValueWrapper<MappingType>> load() {
                         suggestionsIndex.clear();
 
-                        List<PrismContainerValueWrapper<MappingType>> allValues = new ArrayList<>();
+                        List<PrismContainerValueWrapper<MappingType>> suggestions = new ArrayList<>();
+                        List<PrismContainerValueWrapper<MappingType>> accepted = new ArrayList<>();
+                        List<PrismContainerValueWrapper<MappingType>> normal = new ArrayList<>();
 
                         if (Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
-                            Task task = getPageBase().createSimpleTask("Loading mappings type suggestions");
-                            OperationResult result = task.getResult();
-
-                            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
-                            ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
-                            SmartIntegrationStatusInfoUtils.@NotNull MappingSuggestionProviderResult suggestionWrappers =
-                                    loadMappingSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition,
-                                            getMappingType(), task, result);
-
-                            suggestionWrappers.wrappers().forEach(WebPrismUtil::setReadOnlyRecursively);
-
-                            allValues.addAll(suggestionWrappers.wrappers());
-                            suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
+                            loadSuggestions(suggestions);
                         }
 
                         PrismContainerWrapper<MappingType> container = getContainerModel().getObject();
                         if (container != null && !container.getValues().isEmpty()) {
-                            allValues.addAll(container.getValues());
+                            for (PrismContainerValueWrapper<MappingType> value : container.getValues()) {
+                                if (acceptedSuggestionsCache.contains(value)) {
+                                    accepted.add(value);
+                                } else {
+                                    normal.add(value);
+                                }
+                            }
                         }
-                        return allValues;
+
+                        return new ArrayList<>(initialSort(suggestions, accepted)) {{
+                            addAll(normal);
+                        }};
+                    }
+
+                    private void loadSuggestions(@NotNull List<PrismContainerValueWrapper<MappingType>> suggestions) {
+                        Task task = getPageBase().createSimpleTask("Loading mappings type suggestions");
+                        OperationResult result = task.getResult();
+
+                        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
+                        ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
+
+                        SmartIntegrationStatusInfoUtils.@NotNull MappingSuggestionProviderResult suggestionWrappers =
+                                loadMappingSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition,
+                                        getMappingType(), task, result);
+
+                        suggestionWrappers.wrappers().forEach(WebPrismUtil::setReadOnlyRecursively);
+
+                        suggestions.addAll(suggestionWrappers.wrappers());
+                        suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
+                    }
+
+                    /** Sort suggestions and accepted suggestions by old name.
+                     * Normal mappings are added after that, unsorted.
+                     * Ensure that accepted suggestions are show on the same place after refresh.
+                     */
+                    private @NotNull List<PrismContainerValueWrapper<MappingType>> initialSort(
+                            List<PrismContainerValueWrapper<MappingType>> suggestions,
+                            List<PrismContainerValueWrapper<MappingType>> accepted) {
+                        List<PrismContainerValueWrapper<MappingType>> suggestionsRelated = new ArrayList<>();
+                        suggestionsRelated.addAll(suggestions);
+                        suggestionsRelated.addAll(accepted);
+
+                        Comparator<PrismContainerValueWrapper<MappingType>> byName = Comparator.comparing(
+                                v -> String.valueOf(getOldName(v)),
+                                String.CASE_INSENSITIVE_ORDER);
+                        suggestionsRelated.sort(byName);
+                        return suggestionsRelated;
+                    }
+
+                    private static String getOldName(@NotNull PrismContainerValueWrapper<MappingType> mappingValueWrapper) {
+                        PrismValue oldValue = mappingValueWrapper.getOldValue();
+                        if (oldValue.getRealValue() instanceof MappingType mapping && mapping.getName() != null) {
+                            return mapping.getName();
+                        }
+                        return "";
                     }
                 };
 
@@ -317,8 +363,7 @@ public abstract class SmartMappingTable<P extends Containerable>
                 resourceOid,
                 Model.of(),
                 valuesModel,
-                suggestionsIndex::get
-        ) {
+                suggestionsIndex::get) {
             @Override
             protected List<PrismContainerValueWrapper<MappingType>> searchThroughList() {
                 if (getMappingType() != MappingDirection.INBOUND) {
@@ -790,7 +835,7 @@ public abstract class SmartMappingTable<P extends Containerable>
         return newObjectPerformButton;
     }
 
-    public abstract void acceptSuggestionItemPerformed(
+    public abstract PrismContainerValueWrapper<MappingType> acceptSuggestionItemPerformed(
             @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel,
             StatusInfo<MappingsSuggestionType> statusInfo,
             @NotNull AjaxRequestTarget target);
@@ -881,7 +926,8 @@ public abstract class SmartMappingTable<P extends Containerable>
         toDelete.forEach(value -> {
             StatusInfo<MappingsSuggestionType> status = getStatusInfo(value);
             if (status != null) {
-                acceptSuggestionItemPerformed(() -> value, status, target);
+                PrismContainerValueWrapper<MappingType> newValue = acceptSuggestionItemPerformed(() -> value, status, target);
+                acceptedSuggestionsCache.add(newValue);
             }
         });
         refreshAndDetach(target);
