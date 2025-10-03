@@ -38,7 +38,7 @@ public abstract class AbstractSmartIntegrationTest extends AbstractModelIntegrat
     static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
 
     // Override the service client factory with our mocked version
-    @TestBean(methodName = "com.evolveum.midpoint.model.intest.smart.TestServiceClientFactory#create")
+    @TestBean(methodName = "com.evolveum.midpoint.smart.impl.TestServiceClientFactory#create")
     ServiceClientFactory clientFactoryMock;
 
     @Autowired

@@ -55,7 +55,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     private static final int TIMEOUT = 20000;
 
     // Override the service client factory with our mocked version
-    @TestBean(methodName = "com.evolveum.midpoint.model.intest.smart.TestServiceClientFactory#create")
+    @TestBean(methodName = "com.evolveum.midpoint.smart.impl.TestServiceClientFactory#create")
     private ServiceClientFactory clientFactoryMock;
 
     /** Using the implementation in order to set mock service client for testing. */
