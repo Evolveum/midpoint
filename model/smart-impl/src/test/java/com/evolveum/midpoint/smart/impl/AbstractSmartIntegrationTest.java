@@ -13,14 +13,15 @@ import java.io.File;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Abstract superclass for Smart Integration tests.
@@ -36,8 +37,12 @@ public abstract class AbstractSmartIntegrationTest extends AbstractModelIntegrat
 
     static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
 
-    /** Using the implementation in order to set mock service client for testing. */
-    @Autowired SmartIntegrationServiceImpl smartIntegrationService;
+    // Override the service client factory with our mocked version
+    @TestBean(methodName = "com.evolveum.midpoint.smart.impl.TestServiceClientFactory#create")
+    ServiceClientFactory clientFactoryMock;
+
+    @Autowired
+    SmartIntegrationServiceImpl smartIntegrationService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

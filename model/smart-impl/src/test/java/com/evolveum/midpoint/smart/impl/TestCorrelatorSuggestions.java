@@ -4,8 +4,6 @@ package com.evolveum.midpoint.smart.impl;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -30,9 +28,6 @@ import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimpl
 import static com.evolveum.midpoint.smart.impl.DummyScenario.Account.AttributeNames.*;
 import static com.evolveum.midpoint.smart.impl.DummyScenario.on;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceItemDefinitionType.F_INBOUND;
-
-import static com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType.F_OBJECT_TYPE;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -238,7 +233,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
                 List.of(PERSONAL_NUMBER.path())
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -265,7 +260,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)),
                 List.of(EMAIL.path())
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -293,7 +288,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
                 List.of(PERSONAL_NUMBER.path())
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -324,7 +319,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
                 List.of(PERSONAL_NUMBER.path())
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -354,7 +349,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
                 List.of(PERSONAL_NUMBER.path())
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -387,7 +382,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)),
                 List.of(EMAIL.path())
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -426,7 +421,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER), ItemPath.create(UserType.F_EMAIL_ADDRESS)),
                 List.of(PERSONAL_NUMBER.path(), EMAIL.path())
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -475,7 +470,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER), ItemPath.create(UserType.F_EMAIL_ADDRESS)),
                 List.of(PERSONAL_NUMBER.path(), EMAIL.path())
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,

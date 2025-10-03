@@ -7,37 +7,37 @@
 
 package com.evolveum.midpoint.model.intest.smart;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
-
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.convention.TestBean;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.ServiceClientFactory;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.impl.DefaultServiceClientImpl;
-import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
+import com.evolveum.midpoint.smart.impl.TestServiceClientFactory;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Integration tests for the Smart Integration Service implementation.
@@ -52,25 +52,29 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
     private static final int TIMEOUT = 500_000;
 
-    /** Using the implementation in order to set mock service client for testing. */
-    @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
+    // Override the service client factory with our mocked version
+    @TestBean(methodName = "com.evolveum.midpoint.smart.impl.TestServiceClientFactory#create")
+    private ServiceClientFactory clientFactoryMock;
+
+    @Autowired private SmartIntegrationService smartIntegrationService;
 
     private static DummyBasicScenario dummyForSuggestCorrelationAndMappings;
 
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-object-types.xml", "0c59d761-bea9-4342-bbc7-ee0e199d275b",
             "for-suggest-object-types",
-            c -> DummyBasicScenario.on(c).initialize());
+            resourceController -> DummyBasicScenario.on(resourceController).initialize());
 
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-focus-type.xml", "1e97ba6f-90a7-4764-954b-6a29ed5eb597",
             "for-suggest-focus-type",
-            c -> DummyBasicScenario.on(c).initialize());
+            resourceController -> DummyBasicScenario.on(resourceController).initialize());
 
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-correlation-and-mappings.xml", "20d4fca9-bf28-4165-b71b-392172a4b6b2",
             "for-suggest-correlation-and-mappings",
-            c -> dummyForSuggestCorrelationAndMappings = DummyBasicScenario.on(c).initialize());
+            resourceController -> dummyForSuggestCorrelationAndMappings = DummyBasicScenario.on(resourceController)
+                    .initialize());
 
     private static final TestObject<?> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
     private static final TestObject<?> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
@@ -151,7 +155,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                                     .description("Catch-all rule for ri:account objects with no specific attribute values available.")),
                     new SiSuggestFocusTypeResponseType()
                             .focusTypeName(UserType.COMPLEX_TYPE));
-            smartIntegrationService.setServiceClientSupplier(() -> serviceClient);
+            TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, serviceClient);
         }
 
         var task = getTestTask();
@@ -206,7 +210,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                 new RuntimeException("LLM went crazy here"),
                 new SiSuggestFocusTypeResponseType()
                         .focusTypeName(UserType.COMPLEX_TYPE));
-        smartIntegrationService.setServiceClientSupplier(() -> serviceClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, serviceClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -245,10 +249,9 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
-            smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl(
-                            new SiSuggestFocusTypeResponseType()
-                                    .focusTypeName(UserType.COMPLEX_TYPE)));
+            TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, new MockServiceClientImpl(
+                    new SiSuggestFocusTypeResponseType()
+                            .focusTypeName(UserType.COMPLEX_TYPE)));
         }
 
         var task = getTestTask();
@@ -280,15 +283,15 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
-            smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl(
-                            new SiMatchSchemaResponseType()
-                                    .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
-                                            .midPointAttribute(asStringSimple(UserType.F_NAME)))
-                                    .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
-                                            .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER))))); // TODO other matches
+            TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, new MockServiceClientImpl(
+                    new SiMatchSchemaResponseType()
+                            .attributeMatch(new SiAttributeMatchSuggestionType()
+                                    .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                    .midPointAttribute(asStringSimple(UserType.F_NAME)))
+                            .attributeMatch(new SiAttributeMatchSuggestionType()
+                                    .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
+                                    .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER))))
+            ); // TODO other matches
         }
 
         var task = getTestTask();
@@ -322,17 +325,16 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
-            smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl(
-                            new SiMatchSchemaResponseType()
-                                    .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
-                                            .midPointAttribute(asStringSimple(UserType.F_NAME)))
-                                    .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
-                                            .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER))),
-                            new SiSuggestMappingResponseType().transformationScript(null),
-                            new SiSuggestMappingResponseType().transformationScript(null))); // TODO other matches
+            TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, new MockServiceClientImpl(
+                    new SiMatchSchemaResponseType()
+                            .attributeMatch(new SiAttributeMatchSuggestionType()
+                                    .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                    .midPointAttribute(asStringSimple(UserType.F_NAME)))
+                            .attributeMatch(new SiAttributeMatchSuggestionType()
+                                    .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
+                                    .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER))),
+                    new SiSuggestMappingResponseType().transformationScript(null),
+                    new SiSuggestMappingResponseType().transformationScript(null))); // TODO other matches
         }
 
         var task = getTestTask();
@@ -360,23 +362,23 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
     @Test
     public void test310SuggestMappingsWithFailure() throws CommonException {
         skipIfRealService();
-        smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl(
-                        new SiMatchSchemaResponseType()
-                                .attributeMatch(new SiAttributeMatchSuggestionType()
-                                        .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
-                                        .midPointAttribute(asStringSimple(UserType.F_NAME)))
-                                .attributeMatch(new SiAttributeMatchSuggestionType()
-                                        .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
-                                        .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER)))
-                                .attributeMatch(new SiAttributeMatchSuggestionType()
-                                        .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.TYPE.path()))
-                                        .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
-                                .attributeMatch(new SiAttributeMatchSuggestionType()
-                                        .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PHONE.path()))
-                                        .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
-                        new RuntimeException("LLM went crazy here"),
-                        new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")));
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, new MockServiceClientImpl(
+                new SiMatchSchemaResponseType()
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
+                                .midPointAttribute(asStringSimple(UserType.F_NAME)))
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_PERSONAL_NUMBER)))
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.TYPE.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PHONE.path()))
+                                .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
+                new RuntimeException("LLM went crazy here"),
+                new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')"))
+        );
 
         var task = getTestTask();
         var result = task.getResult();
@@ -411,4 +413,5 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
     private void skipIfRealService() {
         skipTestIf(DefaultServiceClientImpl.hasServiceUrlOverride(), "Not applicable with a real service");
     }
+
 }
