@@ -116,7 +116,7 @@ public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertifica
 
     @Override
     protected boolean isDataTableVisible() {
-        return getDataProvider().size() > 1;
+        return getDataProvider().size() > 0;
     }
 
 }
