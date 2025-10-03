@@ -86,6 +86,15 @@ public interface ItemWrapper<I extends Item<?, ?>, VW extends PrismValueWrapper>
 
     <PV extends PrismValue> void add(PV newValueWrapper, ModelServiceLocator locator) throws SchemaException;
 
+    /**
+     * Handles the situation when e.g. new (empty) value is added to a wrapper with just empty value
+     * @param newValueWrapper
+     * @param locator
+     * @param <PV>
+     * @throws SchemaException
+     */
+    <PV extends PrismValue> void addIgnoringEquivalents(PV newValueWrapper, ModelServiceLocator locator) throws SchemaException;
+
     boolean isMetadata();
     void setMetadata(boolean isMetadata);
 

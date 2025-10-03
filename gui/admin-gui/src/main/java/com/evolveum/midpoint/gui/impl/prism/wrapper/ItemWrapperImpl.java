@@ -771,7 +771,15 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     @Override
     public <PV extends PrismValue> void add(PV newValue, ModelServiceLocator locator) throws SchemaException {
         //noinspection unchecked,rawtypes
-        ((Item) getItem()).add(newValue);
+        ((Item) getItem()).addIgnoringEquivalents(newValue);
+        VW newItemValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
+        values.add(newItemValue);
+    }
+
+    @Override
+    public <PV extends PrismValue> void addIgnoringEquivalents(PV newValue, ModelServiceLocator locator) throws SchemaException {
+        //noinspection unchecked,rawtypes
+        ((Item) getItem()).addIgnoringEquivalents(newValue);
         VW newItemValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
         values.add(newItemValue);
     }
