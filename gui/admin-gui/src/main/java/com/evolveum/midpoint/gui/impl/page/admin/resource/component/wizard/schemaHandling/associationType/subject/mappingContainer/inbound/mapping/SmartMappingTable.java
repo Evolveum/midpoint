@@ -284,11 +284,9 @@ public abstract class SmartMappingTable<P extends Containerable>
                 new LoadableDetachableModel<>() {
                     @Override
                     protected @NotNull List<PrismContainerValueWrapper<MappingType>> load() {
-                        PrismContainerWrapper<MappingType> container = getContainerModel().getObject();
                         suggestionsIndex.clear();
 
-                        List<PrismContainerValueWrapper<MappingType>> allValues = new ArrayList<>(
-                                container != null ? container.getValues() : List.of());
+                        List<PrismContainerValueWrapper<MappingType>> allValues = new ArrayList<>();
 
                         if (Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
                             Task task = getPageBase().createSimpleTask("Loading mappings type suggestions");
@@ -304,6 +302,11 @@ public abstract class SmartMappingTable<P extends Containerable>
 
                             allValues.addAll(suggestionWrappers.wrappers());
                             suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
+                        }
+
+                        PrismContainerWrapper<MappingType> container = getContainerModel().getObject();
+                        if (container != null && !container.getValues().isEmpty()) {
+                            allValues.addAll(container.getValues());
                         }
                         return allValues;
                     }
