@@ -36,7 +36,7 @@ However, if there is need to completely disable the _dead shadow_ functionality,
 * There must be at most one "live" shadow for each resource object (account).
 There may be any number of dead shadows.
 
-* Shadows are never reused.
+* Dead shadows are never reused.
 
 ** Once shadow is dead it stays dead.
 There is no way to resurrect it.
