@@ -269,6 +269,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                navigateToLastPage();
                 onCreateNewObjectPerform(target);
             }
         };
