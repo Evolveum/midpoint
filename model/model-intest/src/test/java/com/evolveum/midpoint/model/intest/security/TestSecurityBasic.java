@@ -3881,6 +3881,8 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
      * is authorized only for services.
      *
      * MID-10206
+     *
+     * See also {@link TestSecurityAdvanced#test390AutzJackCannotFilterUnpermittedItems()}
      */
     @Test
     public void test500SearchForAbstractRolesWithLimitedAuthorizations() throws Exception {

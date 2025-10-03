@@ -3419,21 +3419,26 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
     /**
      * MID-10206
+     *
+     * See also {@link TestSecurityBasic#test500SearchForAbstractRolesWithLimitedAuthorizations()}
      */
     @Test
     public void test390AutzJackCannotFilterUnpermittedItems() throws Exception {
         given();
 
         cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, "40000000-1000-0000-0000-000000000000");
+        assignRole(USER_JACK_OID, ROLE_REQUESTER.oid);
 
         login(USER_JACK_USERNAME);
 
         when("Search for role type objects by non-permitted items (requestable, riskLevel)");
 
         assertSearchByNonPermittedItems(RoleType.class, "assert search for role type");
-        assertSearchByNonPermittedItems(ServiceType.class, "assert search for service type", "629bafd6-8b5e-4a7c-94fa-36813984c5c3");
-        // todo service probably should be there -> "629bafd6-8b5e-4a7c-94fa-36813984c5c3"
+        assertSearchByNonPermittedItems(ServiceType.class, "assert search for service type", SERVICE_REQUESTABLE_LOW_RISK.oid);
+
+        // todo service probably should be there -> SERVICE_REQUESTABLE_LOW_RISK.oid
+        // currently not doable since QueryObjectsAutzCoverage handles required/allowed/denied item paths based on type,
+        // however doesn't take into account it such items are used in composite filters (OR/AND)
         assertSearchByNonPermittedItems(AbstractRoleType.class, "assert search for abstract role type");
     }
 
