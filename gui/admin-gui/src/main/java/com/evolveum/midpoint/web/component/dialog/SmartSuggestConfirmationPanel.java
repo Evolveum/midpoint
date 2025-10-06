@@ -262,14 +262,6 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
     }
 
     @Override
-    public @Nullable Component getTitleComponent() {
-        Label titleComponent = new Label(ID_TITLE, getTitle());
-        titleComponent.setOutputMarkupId(true);
-        titleComponent.add(AttributeModifier.append("class", "align-self-center"));
-        return titleComponent;
-    }
-
-    @Override
     public IModel<String> getTitleIconClass() {
         return Model.of(GuiStyleConstants.CLASS_INFO_CIRCLE + " text-info fa-xl");
     }

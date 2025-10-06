@@ -185,8 +185,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         WebPrismUtil.cleanupEmptyContainerValue(originalObject);
 
         PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(
-                originalObject,
-                containerModel.getObject().getItem());
+                originalObject);
 
         //TODO should be after save
         Task task = getPageBase().createSimpleTask(OP_DELETE_SUGGESTIONS);

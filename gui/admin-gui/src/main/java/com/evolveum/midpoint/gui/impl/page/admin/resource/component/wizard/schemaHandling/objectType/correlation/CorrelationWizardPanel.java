@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author lskublik
  */
-public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefinitionType, ResourceDetailsModel> {
+public abstract class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefinitionType, ResourceDetailsModel> {
 
     public CorrelationWizardPanel(String id, WizardPanelHelper<CorrelationDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
@@ -35,6 +35,11 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
 
     protected CorrelationItemsTableWizardPanel createTablePanel() {
         return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
+
+            @Override
+            public void showSynchronizationConfigWizard(AjaxRequestTarget target) {
+                CorrelationWizardPanel.this.showSynchronizationConfigWizard(target);
+            }
 
             @Override
             protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
@@ -99,4 +104,6 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
             }
         };
     }
+
+    public abstract void showSynchronizationConfigWizard(AjaxRequestTarget target);
 }

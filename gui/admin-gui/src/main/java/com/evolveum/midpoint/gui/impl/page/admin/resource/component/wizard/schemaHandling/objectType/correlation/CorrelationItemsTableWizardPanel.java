@@ -22,12 +22,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.dialog.ConfigureSynchronizationConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -55,10 +56,6 @@ import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "CorrelationWizardPanelWizardPanel.headerLabel", icon = "fa fa-code-branch"))
 public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceWizardBasicPanel<CorrelationDefinitionType> {
-
-    private static final String DOT_CLASS = CorrelationItemsTableWizardPanel.class.getName() + ".";
-    private static final String OP_COUNT_TASKS = DOT_CLASS + "countTasks";
-    private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemsTableWizardPanel.class);
 
@@ -291,6 +288,39 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     }
 
     @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        PageBase pageBase = getPageBase();
+        super.onSubmitPerformed(target);
+        displaySynchronizationDialog(pageBase, target);
+    }
+
+    protected void displaySynchronizationDialog(@NotNull PageBase pageBase, AjaxRequestTarget target) {
+        ResourceObjectTypeDefinitionType resourceObjectDefinition = getResourceObjectDefinition();
+        if (resourceObjectDefinition == null) {
+            return;
+        }
+        SynchronizationReactionsType synchronization = getResourceObjectDefinition().getSynchronization();
+        if (synchronization == null
+                || synchronization.getReaction() == null
+                || synchronization.getReaction().isEmpty()) {
+
+            ConfigureSynchronizationConfirmationPanel confirmationPanel = new ConfigureSynchronizationConfirmationPanel(
+                    pageBase.getMainPopupBodyId(),
+                    pageBase.createStringResource("ConfigureSynchronizationConfirmationPanel.infoMessage"),
+                    this::getResourceObjectTypeDefinitionWrapper) {
+
+                @Override
+                protected void navigateToSynchronizationConfigWizard(AjaxRequestTarget target) {
+                    showSynchronizationConfigWizard(target);
+                }
+            };
+            pageBase.showMainPopup(confirmationPanel, target);
+        }
+    }
+
+    public abstract void showSynchronizationConfigWizard(AjaxRequestTarget target);
+
+    @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
         SimulationActionTaskButton simulationActionTaskButton = createSimulationMenuButton(buttons);
         buttons.add(simulationActionTaskButton);
@@ -317,11 +347,13 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     }
 
     private @Nullable ResourceObjectTypeDefinitionType getResourceObjectDefinition() {
-        PrismContainerValueWrapper<CorrelationDefinitionType> object = getValueModel().getObject();
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentContainerValue = object.getParentContainerValue(
-                ResourceObjectTypeDefinitionType.class);
-
+        var parentContainerValue = getResourceObjectTypeDefinitionWrapper();
         return parentContainerValue != null ? parentContainerValue.getRealValue() : null;
+    }
+
+    private PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> getResourceObjectTypeDefinitionWrapper() {
+        var valueWrapper = getValueModel().getObject();
+        return valueWrapper.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
     }
 
     @Override

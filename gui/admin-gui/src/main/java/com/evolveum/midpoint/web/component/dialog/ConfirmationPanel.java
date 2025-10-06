@@ -112,7 +112,7 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
      * this is not good way to extend confirmation panel.
      * whole html of parent panel has to be copied and maintained (it should be "internal" thing).
      *
-     * @param panel
+     * @param panel panel to add custom components
      */
     @Deprecated
     protected void customInitLayout(WebMarkupContainer panel) {
