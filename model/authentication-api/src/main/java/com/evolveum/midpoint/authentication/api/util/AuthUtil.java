@@ -107,7 +107,13 @@ public class AuthUtil {
             OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
             RegistrationsPolicyType registrationPolicyType;
             try {
-                registrationPolicyType = modelInteractionService.getFlowPolicy(focus.asPrismObject(), task, parentResult);
+                if (midpointPrincipal.isSecurityPolicyComputed()) {
+                    SecurityPolicyType securityPolicy = midpointPrincipal.getApplicableSecurityPolicy();
+                    registrationPolicyType = securityPolicy != null ? securityPolicy.getFlow() : null;
+                } else {
+                    registrationPolicyType = modelInteractionService.getFlowPolicy(focus.asPrismObject(), task, parentResult);
+                }
+
                 if (registrationPolicyType == null) {
                     return false;
                 }
