@@ -123,6 +123,7 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
         RepeatingView filterPanels = new RepeatingView(ID_ACE);
         populatePropertyPanels(filterPropertyValueWrapper, filterPanels);
+        filterPanels.add(new VisibleBehaviour(this::isFilterExists));
         filterCtn.add(filterPanels);
 
         Label baseContextFilterLabel = new Label(ID_BASE_CONTEXT_LABEL,

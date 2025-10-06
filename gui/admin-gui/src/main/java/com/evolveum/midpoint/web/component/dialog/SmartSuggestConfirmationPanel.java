@@ -4,19 +4,19 @@
  *    This work is dual-licensed under the Apache License 2.0
  *    and European Union Public License. See LICENSE file for details.
  */
-
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
+package com.evolveum.midpoint.web.component.dialog;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -32,12 +33,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.List;
 
-public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
+/**
+ * Popup panel showing a confirmation message with optional permissions, info note, and "learn more" link for smart suggestions.
+ */
+public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionRecordDto> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
+
+    private static final String ID_BUTTONS = "buttons";
+    protected static final String ID_YES = "yes";
+    private static final String ID_NO = "no";
 
     private static final String ID_SUBTITLE = "subtitle";
 
@@ -52,42 +59,16 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
     private static final String ID_PERMISSION_DESCRIPTION = "description";
     private static final String ID_PERMISSION_ACTION = "action";
 
-    // TODO Dummy data for permissions (replace later with real dto structured data)
-    List<PermissionRecord> permissions = List.of(
-            new PermissionRecord(
-                    createStringResource("SmartSuggestConfirmationPanel.permission.title.schema").getObject(),
-                    createStringResource("SmartSuggestConfirmationPanel.permission.record.description.schema").getObject(),
-                    true,
-                    null
-            ),
-            new PermissionRecord(
-                    createStringResource("SmartSuggestConfirmationPanel.permission.record.title.statistical.data").getObject(),
-                    createStringResource("SmartSuggestConfirmationPanel.permission.record.description.statistical.data").getObject(),
-                    false,
-                    null
-            ),
-            new PermissionRecord(
-                    createStringResource("SmartSuggestConfirmationPanel.permission.record.title.raw.data").getObject(),
-                    createStringResource("SmartSuggestConfirmationPanel.permission.record.description.raw.data").getObject(),
-                    false,
-                    null)
-    );
+    Fragment footer;
 
-    public SmartSuggestConfirmationPanel(String id, IModel<String> message) {
+    public SmartSuggestConfirmationPanel(String id, IModel<SmartPermissionRecordDto> message) {
         super(id, message);
-    }
-
-    record PermissionRecord(
-            String title,
-            String description,
-            boolean selected,
-            SerializableFunction<PermissionRecord, Void> onClick) implements Serializable {
-        @Serial private static final long serialVersionUID = 1L;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initFooter();
 
         Label subtitleLabel = createLabelComponent(getSubtitleModel());
         subtitleLabel.setOutputMarkupId(true);
@@ -95,6 +76,64 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
 
         initInfoMessage();
         initPermissionPart();
+    }
+
+    private void initFooter() {
+        footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
+        createNoButton(footer);
+        createYesButton(footer);
+        initLearnMoreLink(footer);
+        add(footer);
+    }
+
+    @Override
+    public @NotNull Component getFooter() {
+        return footer;
+    }
+
+    private void createNoButton(@NotNull Fragment footer) {
+        AjaxButton noButton = new AjaxButton(ID_NO, createNoLabel()) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                noPerformed(target);
+            }
+        };
+        noButton.add(AttributeAppender.append("class", getNoButtonCssClass()));
+        footer.add(noButton);
+    }
+
+    public void noPerformed(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
+    }
+
+    protected void createYesButton(@NotNull Fragment footer) {
+        AjaxButton yesButton = new AjaxButton(ID_YES, createYesLabel()) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+                yesPerformed(target);
+            }
+        };
+        yesButton.add(AttributeAppender.append("class", getYesButtonCssClass()));
+        yesButton.add(new VisibleBehaviour(this::isYesButtonVisible));
+        footer.add(yesButton);
+    }
+
+    public void yesPerformed(AjaxRequestTarget target) {
+    }
+
+    protected boolean isYesButtonVisible() {
+        return true;
+    }
+
+    protected String getYesButtonCssClass() {
+        return "btn btn-primary";
+    }
+
+    protected String getNoButtonCssClass() {
+        return "btn btn-default";
     }
 
     private void initInfoMessage() {
@@ -116,11 +155,6 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
         infoMessage.setOutputMarkupId(true);
         infoMessage.add(new VisibleBehaviour(() -> getInfoMessageModel() != null));
         add(infoMessage);
-    }
-
-    @Override
-    protected void customInitLayout(WebMarkupContainer panel) {
-        initLearnMoreLink(panel);
     }
 
     private void initLearnMoreLink(@NotNull WebMarkupContainer panel) {
@@ -147,10 +181,11 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
         permissionLabel.setOutputMarkupId(true);
         permissionContainer.add(permissionLabel);
 
-        ListView<PermissionRecord> listView = new ListView<>(ID_LIST_VIEW, () -> permissions) {
+        ListView<SmartPermissionRecordDto.PermissionRecord> listView = new ListView<>(ID_LIST_VIEW,
+                () -> getModelObject().getRecords()) {
             @Override
-            protected void populateItem(@NotNull ListItem<PermissionRecord> item) {
-                PermissionRecord record = item.getModelObject();
+            protected void populateItem(@NotNull ListItem<SmartPermissionRecordDto.PermissionRecord> item) {
+                SmartPermissionRecordDto.PermissionRecord record = item.getModelObject();
 
                 CheckBox checkBox = new CheckBox(ID_PERMISSION_CHECK, Model.of(record.selected()));
                 checkBox.setOutputMarkupId(true);
@@ -160,7 +195,7 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
                 item.add(new Label(ID_PERMISSION_DESCRIPTION, record.description()));
                 item.add(buildActionComponent());
 
-                if (item.getIndex() < permissions.size() - 1) {
+                if (item.getIndex() < getPermissions().size() - 1) {
                     item.add(AttributeModifier.append("class", "border-bottom"));
                 }
             }
@@ -183,16 +218,27 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
         permissionContainer.add(listView);
     }
 
+    protected List<SmartPermissionRecordDto.PermissionRecord> getPermissions() {
+        return getModelObject() != null && getModelObject().getRecords() != null
+                ? getModelObject().getRecords()
+                : List.of();
+    }
+
+    protected IModel<String> getConfirmationMessage() {
+        return getModelObject() != null && getModelObject().getConfirmationMessage() != null
+                ? getModelObject().getConfirmationMessage()
+                : createStringResource("SmartSuggestConfirmationPanel.title");
+    }
+
     protected boolean isPermissionPartVisible() {
+        List<SmartPermissionRecordDto.PermissionRecord> permissions = getPermissions();
         return permissions != null && !permissions.isEmpty();
     }
 
-    @Override
     protected IModel<String> createYesLabel() {
         return getAllowAndContinueModel();
     }
 
-    @Override
     protected IModel<String> createNoLabel() {
         return getCancelButtonModel();
     }
@@ -212,7 +258,7 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("SmartSuggestConfirmationPanel.title", this, null);
+        return getConfirmationMessage();
     }
 
     @Override
@@ -275,6 +321,11 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
     @Override
     public String getHeightUnit() {
         return "%";
+    }
+
+    @Override
+    public Component getContent() {
+        return this;
     }
 
 }

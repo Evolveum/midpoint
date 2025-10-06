@@ -40,6 +40,8 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
+import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
+import com.evolveum.midpoint.web.component.dialog.SmartSuggestConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -301,7 +303,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         showSuggestConfirmDialog(getPageBase(),
-                                createStringResource("SchemaHandlingObjectsPanel.suggestNew"), target);
+                                () -> new SmartPermissionRecordDto(null, null), target);
                     }
                 };
                 suggestObjectButton.showTitleAsLabel(true);
@@ -658,10 +660,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         return typesContainer.getValues() == null || typesContainer.getValues().isEmpty();
     }
 
-    protected void showSuggestConfirmDialog(
-            @NotNull PageBase pageBase,
-            StringResourceModel confirmModel, AjaxRequestTarget target) {
-        SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(pageBase.getMainPopupBodyId(), confirmModel) {
+    protected void showSuggestConfirmDialog(@NotNull PageBase pageBase, IModel<SmartPermissionRecordDto> permissionRecordDtoIModel,
+            AjaxRequestTarget target) {
+        SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(
+                pageBase.getMainPopupBodyId(),
+                permissionRecordDtoIModel) {
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
