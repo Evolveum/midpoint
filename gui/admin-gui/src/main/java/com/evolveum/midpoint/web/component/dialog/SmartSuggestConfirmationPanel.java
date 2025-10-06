@@ -30,7 +30,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.util.List;
@@ -193,14 +192,14 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
 
                 item.add(new Label(ID_PERMISSION_TITLE, record.title()));
                 item.add(new Label(ID_PERMISSION_DESCRIPTION, record.description()));
-                item.add(buildActionComponent());
+                item.add(buildActionComponent(record));
 
                 if (item.getIndex() < getPermissions().size() - 1) {
                     item.add(AttributeModifier.append("class", "border-bottom"));
                 }
             }
 
-            private @NotNull AjaxIconButton buildActionComponent() {
+            private @NotNull AjaxIconButton buildActionComponent(SmartPermissionRecordDto.PermissionRecord record) {
                 AjaxIconButton action = new AjaxIconButton(ID_PERMISSION_ACTION,
                         Model.of("fa fa-info-circle"),
                         createStringResource("SmartSuggestConfirmationPanel.permission.record.action.more.info")) {
@@ -211,6 +210,7 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
                 };
                 action.showTitleAsLabel(true);
                 action.setOutputMarkupId(true);
+                action.add(new VisibleBehaviour(() -> record.onClick() != null));
                 return action;
             }
         };

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
+import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -73,6 +74,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadCorrelationSuggestionWrappers;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
+import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyCorrelationPermissionData;
 
 /**
  * Multi-select tile table for correlation items.
@@ -104,6 +106,11 @@ public class SmartCorrelationTable
         this.correlationWrapper = correlationWrapper;
         setDefaultPagingSize(tableId, MAX_TILE_COUNT);
         this.setOutputMarkupId(true);
+    }
+
+    @Override
+    protected IModel<SmartPermissionRecordDto> buildSmartPermissionRecordDto() {
+        return () -> new SmartPermissionRecordDto(null,initDummyCorrelationPermissionData());
     }
 
     @Override

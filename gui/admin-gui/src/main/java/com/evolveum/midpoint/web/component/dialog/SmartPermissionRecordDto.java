@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.dialog;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -22,6 +23,7 @@ public class SmartPermissionRecordDto implements Serializable {
 
     /** Confirmation message displayed at the top of the smart suggestion dialog. */
     IModel<String> confirmationMessage;
+    List<PermissionRecord> records;
 
     /** Represents a single permission entry with title, description, selection state, and optional click handler. */
     public record PermissionRecord(
@@ -32,15 +34,9 @@ public class SmartPermissionRecordDto implements Serializable {
         @Serial private static final long serialVersionUID = 1L;
     }
 
-    List<PermissionRecord> records;
-
     public SmartPermissionRecordDto(IModel<String> confirmationMessage, List<PermissionRecord> records) {
         this.confirmationMessage = confirmationMessage;
         this.records = records;
-        //TODO remove
-        if (this.records == null) {
-            initDummyData();
-        }
     }
 
     public IModel<String> getConfirmationMessage() {
@@ -59,25 +55,37 @@ public class SmartPermissionRecordDto implements Serializable {
     }
 
     // TODO Dummy data for permissions (replace later with real dto structured data)
-    public void initDummyData() {
-        this.records = new ArrayList<>();
-        this.records.add(new PermissionRecord(
+    public static List<PermissionRecord> initDummyObjectTypePermissionData() {
+        List<PermissionRecord> records = initDummyCorrelationPermissionData();
+        records.add(new PermissionRecord(
+                "Statistical data",
+                "Allow collection of statistical data about resource usage patterns.",
+                true,
+                null
+        ));
+        return records;
+    }
+
+    public static @NotNull List<PermissionRecord> initDummyCorrelationPermissionData() {
+        List<PermissionRecord> records = new ArrayList<>();
+        records.add(new PermissionRecord(
                 "Schema access",
                 "Allow access to the resource schema for analysis and suggestions.",
                 true,
                 null
         ));
-        this.records.add(new PermissionRecord(
-                "Statistical data",
-                "Allow collection of statistical data about resource usage patterns.",
-                false,
-                null
-        ));
-        this.records.add(new PermissionRecord(
+        return records;
+    }
+
+    public static @NotNull List<PermissionRecord> initDummyMappingPermissionData() {
+        List<PermissionRecord> records = initDummyCorrelationPermissionData();
+
+        records.add(new PermissionRecord(
                 "Raw data",
                 "Allow access to raw data on the resource for detailed analysis.",
-                false,
+                true,
                 null
         ));
+        return records;
     }
 }

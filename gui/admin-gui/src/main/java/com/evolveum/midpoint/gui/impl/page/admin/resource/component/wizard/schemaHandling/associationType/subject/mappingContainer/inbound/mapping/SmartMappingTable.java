@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadMappingSuggestionWrappers;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyMappingPermissionData;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -129,6 +131,11 @@ public abstract class SmartMappingTable<P extends Containerable>
     @Override
     protected Class<? extends Containerable> getType() {
         return MappingType.class;
+    }
+
+    @Override
+    protected IModel<SmartPermissionRecordDto> buildSmartPermissionRecordDto() {
+        return () -> new SmartPermissionRecordDto(null,initDummyMappingPermissionData());
     }
 
     @Override

@@ -618,7 +618,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             @Override
             public void onClick(AjaxRequestTarget target) {
                 SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                        () -> new SmartPermissionRecordDto(null, null)) {
+                        buildSmartPermissionRecordDto()) {
 
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
@@ -634,6 +634,10 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         suggestObjectButton.add(new VisibleBehaviour(this::isSuggestButtonVisible));
         suggestObjectButton.setOutputMarkupId(true);
         return suggestObjectButton;
+    }
+
+    protected IModel<SmartPermissionRecordDto> buildSmartPermissionRecordDto() {
+        return () -> new SmartPermissionRecordDto(null, null);
     }
 
     @NotNull

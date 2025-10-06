@@ -104,6 +104,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         }) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target) {
+                //TODO add permission check
                 PageBase pageBase = getPageBase();
                 ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
                 SmartIntegrationService service = pageBase.getSmartIntegrationService();

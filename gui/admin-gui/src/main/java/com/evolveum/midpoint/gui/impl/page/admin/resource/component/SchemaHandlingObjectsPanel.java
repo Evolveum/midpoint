@@ -76,6 +76,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyObjectTypePermissionData;
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
@@ -303,7 +304,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         showSuggestConfirmDialog(getPageBase(),
-                                () -> new SmartPermissionRecordDto(null, null), target);
+                                () -> new SmartPermissionRecordDto(null, initDummyObjectTypePermissionData()),
+                                target);
                     }
                 };
                 suggestObjectButton.showTitleAsLabel(true);
