@@ -63,7 +63,8 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                     }
                 };
 
-                showChoiceFragment(target, new CorrelationItemRuleWizardPanel(getIdOfChoicePanel(), helper, () -> statusInfo) {
+                showChoiceFragment(target, new CorrelationItemRuleWizardPanel(getIdOfChoicePanel(),
+                        resourceObjectTypeDefinition, helper, () -> statusInfo) {
                     @Override
                     protected void acceptSuggestionPerformed(
                             @NotNull AjaxRequestTarget target,

@@ -267,6 +267,34 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         };
     }
 
+    public void navigateToLastPage() {
+        if (!isTileViewVisible()) {
+            BoxedTablePanel<?> tiles = getBoxedTablePanelComponent();
+            tiles.goToLastPage();
+        } else {
+            navigateToLastTilePage();
+        }
+    }
+
+    private void navigateToLastTilePage() {
+        PageableListView<?, ?> tiles = getTiles();
+        long total = tiles.getItemCount();
+        long pageSize = tiles.getItemsPerPage();
+
+        if (pageSize <= 0) {
+            tiles.setCurrentPage(0);
+            return;
+        }
+
+        if (total == 0) {
+            tiles.setCurrentPage(0);
+            return;
+        }
+
+        long lastPage = (total - 1) / pageSize;
+        tiles.setCurrentPage(lastPage);
+    }
+
     protected String getAdditionalFooterCss() {
         return null;
     }
@@ -337,6 +365,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     protected String getTilesFooterCssClasses() {
         return "pt-3";
     }
+
     /** Be aware. Model need to be detached after remove operation. (Usually happens in tilePanelOperations) */
     public IModel<List<T>> getTilesModel() {
         PageableListView view = getTiles();

@@ -7,20 +7,18 @@
 
 package com.evolveum.midpoint.model.intest.smart;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.time.ZonedDateTime;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.convention.TestBean;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
@@ -28,10 +26,12 @@ import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
-import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
+import com.evolveum.midpoint.smart.impl.TestServiceClientFactory;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -54,8 +54,12 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
 
     private static final int TIMEOUT = 20000;
 
+    // Override the service client factory with our mocked version
+    @TestBean(methodName = "com.evolveum.midpoint.smart.impl.TestServiceClientFactory#create")
+    private ServiceClientFactory clientFactoryMock;
+
     /** Using the implementation in order to set mock service client for testing. */
-    @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
+    @Autowired private SmartIntegrationService smartIntegrationService;
 
     private static final ResourceObjectTypeIdentification HR_PERSON =
             ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "person");
@@ -151,7 +155,6 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     /** Obtains suggestions for object types for HR persons. */
     @Test
     public void test100SuggestObjectTypesForHrPerson() throws CommonException {
-        //noinspection resource
         var mockServiceClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
@@ -159,7 +162,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
                                 .intent(HR_PERSON.getIntent())),
                 new SiSuggestFocusTypeResponseType()
                         .focusTypeName(UserType.COMPLEX_TYPE));
-        smartIntegrationService.setServiceClientSupplier(() -> mockServiceClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockServiceClient);
 
         when("submitting 'suggest object types' operation request and waiting for the result");
         var task = getTestTask();
@@ -194,7 +197,6 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     /** Obtains suggestions for object types for HR departments. */
     @Test
     public void test110SuggestObjectTypesForHrDepartments() throws CommonException {
-        //noinspection resource
         var mockServiceClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
@@ -202,7 +204,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
                                 .intent(HR_DEPARTMENT.getIntent())),
                 new SiSuggestFocusTypeResponseType()
                         .focusTypeName(OrgType.COMPLEX_TYPE));
-        smartIntegrationService.setServiceClientSupplier(() -> mockServiceClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockServiceClient);
 
         when("submitting 'suggest object types' operation request and waiting for the result");
         var task = getTestTask();
@@ -256,8 +258,8 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
         var result = task.getResult();
 
         when("suggesting focus type for HR person object type");
-        smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl(
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock,
+                new MockServiceClientImpl(
                         new SiSuggestFocusTypeResponseType()
                                 .focusTypeName(UserType.COMPLEX_TYPE)));
         var focusTypeForPerson = smartIntegrationService
@@ -270,8 +272,8 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
                 .isEqualTo(UserType.COMPLEX_TYPE);
 
         when("suggesting focus type for HR department object type");
-        smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl(
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock,
+                new MockServiceClientImpl(
                         new SiSuggestFocusTypeResponseType()
                                 .focusTypeName(OrgType.COMPLEX_TYPE)));
         var focusTypeForDepartment = smartIntegrationService

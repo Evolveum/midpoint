@@ -99,6 +99,16 @@ public interface SmartIntegrationService {
             String token, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
+    /** Invokes the service client to suggest object types for the given resource and object class. */
+    ObjectTypesSuggestionType suggestObjectTypes(
+            String resourceOid,
+            QName objectClassName,
+            ShadowObjectClassStatisticsType statistics,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
+
     /** Suggests a discrete focus type for the application (resource) object type. */
     FocusTypeSuggestionType suggestFocusType(
             String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)

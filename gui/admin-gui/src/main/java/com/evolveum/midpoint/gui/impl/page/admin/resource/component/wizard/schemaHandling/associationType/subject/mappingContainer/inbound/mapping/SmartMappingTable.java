@@ -17,6 +17,7 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
+import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -56,7 +58,6 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
@@ -93,14 +94,18 @@ public abstract class SmartMappingTable<P extends Containerable>
 
     IModel<MappingUsedFor> mappingUsedForIModel = new Model<>(MappingUsedFor.ALL);
 
+    // Cache of accepted suggestions to keep them shown on the same place after refresh
+    private final Set<PrismContainerValueWrapper<MappingType>> acceptedSuggestionsCache = new HashSet<>();
+
     public SmartMappingTable(
             @NotNull String id,
             @NotNull UserProfileStorage.TableId tableId,
             @NotNull IModel<ViewToggle> toggleView,
             @NotNull IModel<MappingDirection> mappingDirection,
+            @NotNull IModel<Boolean> switchToggleModel,
             IModel<PrismContainerValueWrapper<P>> refAttributeDefValue,
             @NotNull String resourceOid) {
-        super(id, tableId, toggleView);
+        super(id, tableId, toggleView, switchToggleModel);
         this.resourceOid = resourceOid;
         this.refAttributeDefValue = refAttributeDefValue;
         this.mappingDirectionIModel = mappingDirection;
@@ -177,7 +182,7 @@ public abstract class SmartMappingTable<P extends Containerable>
                 createStringResource("SmartCorrelationTilePanel.discardButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()));
+                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()), true);
             }
         };
         discardButton.setOutputMarkupId(true);
@@ -193,7 +198,9 @@ public abstract class SmartMappingTable<P extends Containerable>
             @Override
             public void onClick(AjaxRequestTarget target) {
                 @Nullable StatusInfo<MappingsSuggestionType> statusInfo = getStatusInfo(rowModel.getObject());
-                acceptSuggestionItemPerformed(rowModel, statusInfo, target);
+                PrismContainerValueWrapper<MappingType> value = acceptSuggestionItemPerformed(rowModel, statusInfo, target);
+                acceptedSuggestionsCache.add(value);
+                refreshAndDetach(target);
             }
         };
         acceptButton.setOutputMarkupId(true);
@@ -281,28 +288,73 @@ public abstract class SmartMappingTable<P extends Containerable>
                 new LoadableDetachableModel<>() {
                     @Override
                     protected @NotNull List<PrismContainerValueWrapper<MappingType>> load() {
-                        PrismContainerWrapper<MappingType> container = getContainerModel().getObject();
                         suggestionsIndex.clear();
 
-                        List<PrismContainerValueWrapper<MappingType>> allValues = new ArrayList<>(
-                                container != null ? container.getValues() : List.of());
+                        List<PrismContainerValueWrapper<MappingType>> suggestions = new ArrayList<>();
+                        List<PrismContainerValueWrapper<MappingType>> accepted = new ArrayList<>();
+                        List<PrismContainerValueWrapper<MappingType>> normal = new ArrayList<>();
 
                         if (Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
-                            Task task = getPageBase().createSimpleTask("Loading mappings type suggestions");
-                            OperationResult result = task.getResult();
-
-                            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
-                            ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
-                            SmartIntegrationStatusInfoUtils.@NotNull MappingSuggestionProviderResult suggestionWrappers =
-                                    loadMappingSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition,
-                                            getMappingType(), task, result);
-
-                            suggestionWrappers.wrappers().forEach(WebPrismUtil::setReadOnlyRecursively);
-
-                            allValues.addAll(suggestionWrappers.wrappers());
-                            suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
+                            loadSuggestions(suggestions);
                         }
-                        return allValues;
+
+                        PrismContainerWrapper<MappingType> container = getContainerModel().getObject();
+                        if (container != null && !container.getValues().isEmpty()) {
+                            for (PrismContainerValueWrapper<MappingType> value : container.getValues()) {
+                                if (acceptedSuggestionsCache.contains(value)) {
+                                    accepted.add(value);
+                                } else {
+                                    normal.add(value);
+                                }
+                            }
+                        }
+
+                        return new ArrayList<>(initialSort(suggestions, accepted)) {{
+                            addAll(normal);
+                        }};
+                    }
+
+                    private void loadSuggestions(@NotNull List<PrismContainerValueWrapper<MappingType>> suggestions) {
+                        Task task = getPageBase().createSimpleTask("Loading mappings type suggestions");
+                        OperationResult result = task.getResult();
+
+                        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
+                        ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
+
+                        SmartIntegrationStatusInfoUtils.@NotNull MappingSuggestionProviderResult suggestionWrappers =
+                                loadMappingSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition,
+                                        getMappingType(), task, result);
+
+                        suggestionWrappers.wrappers().forEach(WebPrismUtil::setReadOnlyRecursively);
+
+                        suggestions.addAll(suggestionWrappers.wrappers());
+                        suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
+                    }
+
+                    /** Sort suggestions and accepted suggestions by old name.
+                     * Normal mappings are added after that, unsorted.
+                     * Ensure that accepted suggestions are show on the same place after refresh.
+                     */
+                    private @NotNull List<PrismContainerValueWrapper<MappingType>> initialSort(
+                            List<PrismContainerValueWrapper<MappingType>> suggestions,
+                            List<PrismContainerValueWrapper<MappingType>> accepted) {
+                        List<PrismContainerValueWrapper<MappingType>> suggestionsRelated = new ArrayList<>();
+                        suggestionsRelated.addAll(suggestions);
+                        suggestionsRelated.addAll(accepted);
+
+                        Comparator<PrismContainerValueWrapper<MappingType>> byName = Comparator.comparing(
+                                v -> String.valueOf(getOldName(v)),
+                                String.CASE_INSENSITIVE_ORDER);
+                        suggestionsRelated.sort(byName);
+                        return suggestionsRelated;
+                    }
+
+                    private static String getOldName(@NotNull PrismContainerValueWrapper<MappingType> mappingValueWrapper) {
+                        PrismValue oldValue = mappingValueWrapper.getOldValue();
+                        if (oldValue.getRealValue() instanceof MappingType mapping && mapping.getName() != null) {
+                            return mapping.getName();
+                        }
+                        return "";
                     }
                 };
 
@@ -311,8 +363,7 @@ public abstract class SmartMappingTable<P extends Containerable>
                 resourceOid,
                 Model.of(),
                 valuesModel,
-                suggestionsIndex::get
-        ) {
+                suggestionsIndex::get) {
             @Override
             protected List<PrismContainerValueWrapper<MappingType>> searchThroughList() {
                 if (getMappingType() != MappingDirection.INBOUND) {
@@ -450,12 +501,21 @@ public abstract class SmartMappingTable<P extends Containerable>
         buttonsList.add(newObjectPerformButton);
 
         AjaxIconButton suggestObjectButton = createSuggestObjectButton(idButton);
-        suggestObjectButton.add(new VisibleBehaviour(this::displayNoValuePanel));
+        suggestObjectButton.add(new VisibleBehaviour(() -> displayNoValuePanel() && isSuggestButtonVisible()));
         buttonsList.add(suggestObjectButton);
 
         buttonsList.add(createToggleMappingDirectionButton(idButton));
         buttonsList.add(createMappingTypeDropdownButton(idButton));
+
+        ToggleCheckBoxPanel toggleSuggestionButton = createToggleSuggestionButton(idButton, getSwitchToggleModel());
+        toggleSuggestionButton.add(AttributeModifier.append("class", "ml-2"));
+        buttonsList.add(toggleSuggestionButton);
         return buttonsList;
+    }
+
+    @Override
+    protected boolean isSuggestButtonVisible() {
+        return false;
     }
 
     @Override
@@ -468,6 +528,11 @@ public abstract class SmartMappingTable<P extends Containerable>
                 getItemNameOfRefAttribute(),
                 getPageBase(),
                 target);
+    }
+
+    @Override
+    protected boolean isToggleSuggestionVisible() {
+        return getSwitchToggleModel().getObject().equals(Boolean.TRUE);
     }
 
     @Override
@@ -633,7 +698,7 @@ public abstract class SmartMappingTable<P extends Containerable>
     }
 
     @Override
-    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<MappingType>> toDelete) {
+    public void deleteItemPerformed(AjaxRequestTarget target, @NotNull List<PrismContainerValueWrapper<MappingType>> toDelete, boolean refresh) {
         Task task = getPageBase().createSimpleTask(OP_DELETE_MAPPING);
         toDelete.forEach(value -> {
             StatusInfo<MappingsSuggestionType> status = getStatusInfo(value);
@@ -648,7 +713,9 @@ public abstract class SmartMappingTable<P extends Containerable>
                 resolveDeletedItem(value);
             }
         });
-        refreshAndDetach(target);
+        if (refresh) {
+            refreshAndDetach(target);
+        }
     }
 
     @SuppressWarnings("rawtypes")
@@ -764,11 +831,11 @@ public abstract class SmartMappingTable<P extends Containerable>
     @Override
     protected @NotNull AjaxIconButton createNewObjectPerformButton(String idButton, PrismContainerValueWrapper<MappingType> modelObject) {
         AjaxIconButton newObjectPerformButton = super.createNewObjectPerformButton(idButton, modelObject);
-        newObjectPerformButton.add(AttributeAppender.replace("class", "btn btn-primary rounded mr-2 ml-auto"));
+        newObjectPerformButton.add(AttributeAppender.replace("class", "btn btn-outline-primary rounded mr-2 ml-auto"));
         return newObjectPerformButton;
     }
 
-    public abstract void acceptSuggestionItemPerformed(
+    public abstract PrismContainerValueWrapper<MappingType> acceptSuggestionItemPerformed(
             @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel,
             StatusInfo<MappingsSuggestionType> statusInfo,
             @NotNull AjaxRequestTarget target);
@@ -781,6 +848,89 @@ public abstract class SmartMappingTable<P extends Containerable>
     @Override
     protected String getTileCssClasses() {
         return "col-12";
+    }
+
+    @Override
+    public List<InlineMenuItem> getDefaultMenuActions(PrismContainerValueWrapper<MappingType> model) {
+        List<InlineMenuItem> defaultMenuActions = super.getDefaultMenuActions(model);
+        defaultMenuActions.add(createAcceptItemMenu(model));
+        return defaultMenuActions;
+    }
+
+    protected InlineMenuItem createAcceptItemMenu(PrismContainerValueWrapper<MappingType> model) {
+        return new InlineMenuItem(createStringResource("pageAdminFocus.button.accept")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                ColumnMenuAction<PrismContainerValueWrapper<MappingType>> acceptColumnAction = createAcceptSuggestionColumnAction();
+                if (model != null) {
+                    acceptColumnAction.setRowModel(() -> model);
+                }
+                return acceptColumnAction;
+            }
+
+            @Override
+            public @NotNull IModel<Boolean> getVisible() {
+                return () -> isAcceptInlineMenuVisible();
+            }
+        };
+    }
+
+    protected boolean isAcceptInlineMenuVisible() {
+        return getSwitchToggleModel().getObject().equals(Boolean.TRUE);
+    }
+
+    public ColumnMenuAction<PrismContainerValueWrapper<MappingType>> createAcceptSuggestionColumnAction() {
+        return new ColumnMenuAction<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                final List<PrismContainerValueWrapper<MappingType>> selected = Optional.ofNullable(getSelectedContainerItemsModel()
+                        .getObject()).orElse(List.of());
+
+                final List<PrismContainerValueWrapper<MappingType>> selectedSuggestions = selected.stream()
+                        .filter(v -> getStatusInfo(v) != null)
+                        .toList();
+
+                ConfirmationPanel dialog = new ConfirmationPanel(
+                        getPageBase().getMainPopupBodyId(),
+                        acceptConfirmationTitle(selectedSuggestions.size())) {
+
+                    @Override
+                    protected IModel<String> createNoLabel() {
+                        return selectedSuggestions.isEmpty()
+                                ? createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.cancel")
+                                : super.createNoLabel();
+                    }
+
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        if (selectedSuggestions.isEmpty()) {
+                            List<PrismContainerValueWrapper<MappingType>> allSuggestedItems = getMultiTableModel().stream()
+                                    .filter(v -> getStatusInfo(v) != null)
+                                    .toList();
+                            acceptSuggestionItemPerformed(target, allSuggestedItems);
+                        }
+                        acceptSuggestionItemPerformed(target, selectedSuggestions);
+                    }
+                };
+
+                getPageBase().showMainPopup(dialog, target);
+            }
+        };
+    }
+
+    protected void acceptSuggestionItemPerformed(AjaxRequestTarget target, @NotNull List<PrismContainerValueWrapper<MappingType>> toDelete) {
+        toDelete.forEach(value -> {
+            StatusInfo<MappingsSuggestionType> status = getStatusInfo(value);
+            if (status != null) {
+                PrismContainerValueWrapper<MappingType> newValue = acceptSuggestionItemPerformed(() -> value, status, target);
+                acceptedSuggestionsCache.add(newValue);
+            }
+        });
+        refreshAndDetach(target);
     }
 }
 

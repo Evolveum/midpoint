@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
@@ -61,7 +60,7 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     private static final String ID_MORE_ACTIONS = "moreActions";
 
     private static final String ID_FILTER_LABEL = "filterLabel";
-    private static final String ID_BASE_CONTEXT_OBJECT_CLASS_LABEL = "baseContextFilterObjectClassLabel";
+    private static final String ID_BASE_CONTEXT_LABEL = "baseContextLabel";
     private static final String ID_BASE_CONTEXT_OBJECT_CLASS = "baseContextFilterObjectClass";
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
@@ -69,7 +68,7 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     private static final String OP_DETERMINE_STATUS =
             SmartObjectTypeSuggestionPanel.class.getName() + ".determineStatus";
 
-    boolean isFilterVisible = false;
+    boolean isShowFilter = false;
 
     public SmartObjectTypeSuggestionPanel(@NotNull String id,
             @NotNull IModel<SmartObjectTypeSuggestionTileModel<C>> model,
@@ -112,24 +111,25 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     private void initFilterPart() {
         WebMarkupContainer filterCtn = new WebMarkupContainer(ID_FILTER_CTN);
         filterCtn.setOutputMarkupId(true);
-        filterCtn.add(new VisibleBehaviour(() -> isFilterVisible));
+        filterCtn.add(new VisibleBehaviour(() -> isShowFilter));
         add(filterCtn);
 
         List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper = getModelObject().getFilterPropertyValueWrapper();
 
         Label filterLabel = new Label(ID_FILTER_LABEL, createStringResource("SmartSuggestObjectTypeTilePanel.filter"));
         filterLabel.setOutputMarkupId(true);
+        filterLabel.add(new VisibleBehaviour(this::isFilterExists));
         filterCtn.add(filterLabel);
 
         RepeatingView filterPanels = new RepeatingView(ID_ACE);
         populatePropertyPanels(filterPropertyValueWrapper, filterPanels);
         filterCtn.add(filterPanels);
 
-        Label baseContextObjectClassLabel = new Label(ID_BASE_CONTEXT_OBJECT_CLASS_LABEL,
-                createStringResource("SmartSuggestObjectTypeTilePanel.base.context.object.class"));
-        baseContextObjectClassLabel.setOutputMarkupId(true);
-        baseContextObjectClassLabel.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
-        filterCtn.add(baseContextObjectClassLabel);
+        Label baseContextFilterLabel = new Label(ID_BASE_CONTEXT_LABEL,
+                createStringResource("SmartSuggestObjectTypeTilePanel.base.context.filter"));
+        baseContextFilterLabel.setOutputMarkupId(true);
+        baseContextFilterLabel.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
+        filterCtn.add(baseContextFilterLabel);
 
         List<PrismPropertyValueWrapper<Object>> baseContexFilterPropertyValueWrapper = getModelObject()
                 .getBaseContexFilterPropertyValueWrapper(ResourceObjectReferenceType.F_FILTER);
@@ -150,22 +150,23 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
     private @NotNull AjaxIconButton createTogglePanel(WebMarkupContainer filterCtn) {
         AjaxIconButton togglePanel = new AjaxIconButton(ID_TOGGLE,
-                () -> isFilterVisible
+                () -> isShowFilter
                         ? "fa fa-chevron-up"
-                        : "fa fa-chevron-down", () -> isFilterVisible
+                        : "fa fa-chevron-down", () -> isShowFilter
                 ? createStringResource("SmartSuggestObjectTypeTilePanel.hide.filter").getString()
                 : createStringResource("SmartSuggestObjectTypeTilePanel.show.filter").getString()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
-                isFilterVisible = !isFilterVisible;
+                isShowFilter = !isShowFilter;
                 target.add(filterCtn.getParent(), this);
             }
         };
         togglePanel.setOutputMarkupId(true);
         togglePanel.showTitleAsLabel(true);
         togglePanel.add(AttributeModifier.append("class", "flex-row-reverse"));
+        togglePanel.add(new VisibleBehaviour(this::isAnyFilterExists));
         return togglePanel;
     }
 
@@ -330,6 +331,14 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
     protected boolean isBaseContextFilterVisible() {
         return getModelObject().baseContexFilterExists();
+    }
+
+    protected boolean isFilterExists() {
+        return getModelObject().filterExists();
+    }
+
+    protected boolean isAnyFilterExists() {
+        return getModelObject().isAnyFilterExists();
     }
 
 }

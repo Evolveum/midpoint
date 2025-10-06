@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
@@ -63,12 +64,15 @@ class CorrelationSuggestionOperation {
                 // no need to mark it as AI-provided, as it should already marked as such
                 suggestionBean.getAttributes().add(suggestion.attributeDefinitionBean());
             }
+
+            String lastName = suggestion.focusItemPath.lastName().getLocalPart();
+            String correlatorName = StringUtils.capitalize(lastName) + " correlator";
             var correlationDefinition = new CorrelationDefinitionType()
                     .correlators(new CompositeCorrelatorType()
                             .items(new ItemsSubCorrelatorType()
-                                    .name("Dummy name") //TODO change after (v2) correlation LLM integration
-                                    .displayName("Dummy display name") //TODO
-                                    .description("Dummy description. Suggested based on matching of "
+                                    .name(correlatorName) //TODO change after (v2) correlation LLM integration
+                                    .displayName(correlatorName) //TODO
+                                    .description("Suggested based on matching of "
                                             + suggestion.resourceAttrPath() + " to "
                                             + suggestion.focusItemPath()) //TODO
                                     .composition(new CorrelatorCompositionDefinitionType()
@@ -110,6 +114,8 @@ class CorrelationSuggestionOperation {
                         var resourceAttrPath = matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute());
                         var resourceAttrName = resourceAttrPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
                         var inbound = new InboundMappingType()
+                                .name(resourceAttrPath.lastName().getLocalPart()
+                                        + "-to-" + focusItemPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusItemPath.toBean()))
                                 .use(InboundMappingUseType.CORRELATION);
@@ -145,8 +151,8 @@ class CorrelationSuggestionOperation {
                     // Get the target path on the focus side (e.g., user.name)
                     ItemPath targetPath = mappingCI.getTargetPath();
                     if (targetPath != null && correlator.equivalent(targetPath)) {
-                            // applicable mapping for this correlator found - return resourceAttrPath
-                            return new ExistingMapping(resourceAttrPath);
+                        // applicable mapping for this correlator found - return resourceAttrPath
+                        return new ExistingMapping(resourceAttrPath);
                     }
                 }
             }

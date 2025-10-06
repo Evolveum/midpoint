@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.StatusRowRecord;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -181,7 +182,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         listViewContainer.add(new VisibleBehaviour(this::isListViewVisible));
         bodyContainer.add(listViewContainer);
 
-        ListView<SmartGeneratingDto.StatusRow> listView = createStatusListView();
+        ListView<StatusRowRecord> listView = createStatusListView();
         listView.setOutputMarkupId(true);
         listView.setReuseItems(false);
         listViewContainer.add(listView);
@@ -236,19 +237,19 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         return isWizardPanel ? "h3" : "h5";
     }
 
-    private @NotNull ListView<SmartGeneratingDto.StatusRow> createStatusListView() {
+    private @NotNull ListView<StatusRowRecord> createStatusListView() {
 
-        IModel<List<SmartGeneratingDto.StatusRow>> rowsModel = new LoadableDetachableModel<>() {
+        IModel<List<StatusRowRecord>> rowsModel = new LoadableDetachableModel<>() {
             @Override
-            protected List<SmartGeneratingDto.StatusRow> load() {
+            protected List<StatusRowRecord> load() {
                 return getSafeRows();
             }
         };
 
-        ListView<SmartGeneratingDto.StatusRow> listView = new ListView<>(ID_LIST_VIEW, rowsModel) {
+        ListView<StatusRowRecord> listView = new ListView<>(ID_LIST_VIEW, rowsModel) {
             @Override
-            protected void populateItem(@NotNull ListItem<SmartGeneratingDto.StatusRow> item) {
-                SmartGeneratingDto.StatusRow row = item.getModelObject();
+            protected void populateItem(@NotNull ListItem<StatusRowRecord> item) {
+                StatusRowRecord row = item.getModelObject();
 
                 item.add(new Label(ID_LIST_ITEM_TEXT, row.text()));
 
@@ -260,8 +261,8 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             }
 
             private void initInfoButton(
-                    @NotNull ListItem<SmartGeneratingDto.StatusRow> item,
-                    SmartGeneratingDto.@NotNull StatusRow row) {
+                    @NotNull ListItem<StatusRowRecord> item,
+                    @NotNull StatusRowRecord row) {
                 AjaxIconButton info = new AjaxIconButton(ID_LIST_INFO, Model.of("fa fa-info-circle"),
                         createStringResource("SmartGeneratingPanel.button.info")) {
                     @Serial private static final long serialVersionUID = 1L;
@@ -317,7 +318,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     }
 
     /** Null-safe accessor for rows. */
-    protected List<SmartGeneratingDto.StatusRow> getSafeRows() {
+    protected List<StatusRowRecord> getSafeRows() {
         SmartGeneratingDto dto = getModelObject();
         return dto != null ? dto.getStatusRows(getPageBase()) : Collections.emptyList();
     }

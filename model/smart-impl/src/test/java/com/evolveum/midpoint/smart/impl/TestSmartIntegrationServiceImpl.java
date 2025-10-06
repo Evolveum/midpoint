@@ -7,28 +7,27 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-
-import org.assertj.core.data.Offset;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
@@ -559,12 +559,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
-            smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl(
-                            new SiSuggestObjectTypesResponseType()
-                                    .objectType(new SiSuggestedObjectTypeType()
-                                            .kind("account")
-                                            .intent("default"))));
+            TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, new MockServiceClientImpl(
+                    new SiSuggestObjectTypesResponseType()
+                            .objectType(new SiSuggestedObjectTypeType()
+                                    .kind("account")
+                                    .intent("default"))));
         }
 
         var task = getTestTask();
@@ -599,7 +598,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test110SuggestObjectTypesWithFiltersAndBaseContext() throws CommonException, IOException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
@@ -612,7 +610,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .kind("account")
                                 .intent("other")
                                 .filter("attributes/type != 'employee'")));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -674,14 +672,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test120SuggestObjectTypesWithErrorInFilter() throws CommonException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
                                 .kind("account")
                                 .intent("employee")
                                 .filter("attributes/unknown-attribute = 'employee'")));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -703,7 +700,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test130SuggestObjectTypesWithErrorInBaseContextObjectClass() throws CommonException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
@@ -711,7 +707,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .intent("employee")
                                 .baseContextFilter("attributes/cn = 'evolveum'")
                                 .baseContextObjectClassName("unknownObjectClass")));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -733,7 +729,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test140ConflictingObjectTypes() throws CommonException, IOException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
@@ -752,7 +747,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .kind("account")
                                 .intent("employee") // the same as above, but different base context
                                 .filter("attributes/type = 'employee3'")));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -1109,7 +1104,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test300SuggestMappings() throws CommonException, ActivityInterruptedException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
@@ -1129,7 +1123,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 new RuntimeException("LLM went crazy here"),
                 new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -1193,9 +1187,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test310SuggestMappingsForOrg() throws CommonException, ActivityInterruptedException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(new SiMatchSchemaResponseType()); // not important for this test
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -1220,7 +1213,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test400SuggestCorrelationRules() throws CommonException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
@@ -1232,7 +1224,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                         .attributeMatch(new SiAttributeMatchSuggestionType()
                                 .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
                                 .midPointAttribute(asStringSimple(UserType.F_NAME))));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();

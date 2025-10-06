@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.StatusRowRecord;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -238,6 +238,38 @@ public class SmartIntegrationStatusInfoUtils {
         } catch (Throwable t) {
             result.recordException(t);
             LoggingUtils.logException(LOGGER, "Couldn't load correlation status for {}", t, resourceOid);
+            return null;
+        } finally {
+            result.close();
+        }
+    }
+
+    //  TODO this should be use-case for rewriting suggestion tasks
+
+    /**
+     * Loads the mapping type suggestion status for the given resource.
+     * <p>
+     * This method queries the {@code SmartIntegrationService} for mapping suggestion operation
+     * statuses related to the specified {@code resourceOid}. Although the service may return
+     * multiple statuses, only the first one is relevant and returned here.
+     */
+    public static @Nullable StatusInfo<MappingsSuggestionType> loadMappingTypeSuggestion(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        var smart = pageBase.getSmartIntegrationService();
+
+        try {
+            List<StatusInfo<MappingsSuggestionType>> statusInfos = smart.listSuggestMappingsOperationStatuses(
+                    resourceOid, task, result);
+            if (statusInfos == null || statusInfos.isEmpty()) {
+                return null;
+            }
+            return statusInfos.get(0);
+        } catch (Throwable t) {
+            result.recordException(t);
+            LoggingUtils.logException(LOGGER, "Couldn't load Mapping status for {}", t, resourceOid);
             return null;
         } finally {
             result.close();
@@ -647,10 +679,10 @@ public class SmartIntegrationStatusInfoUtils {
     }
 
     /** Builds display rows depending on the suggestion status. */
-    public static @NotNull List<SmartGeneratingDto.StatusRow> buildStatusRows(PageBase pageBase, StatusInfo<?> suggestion, boolean addDefaultRow) {
-        List<SmartGeneratingDto.StatusRow> rows = new ArrayList<>();
+    public static @NotNull List<StatusRowRecord> buildStatusRows(PageBase pageBase, StatusInfo<?> suggestion, boolean addDefaultRow) {
+        List<StatusRowRecord> rows = new ArrayList<>();
         if (suggestion != null && suggestion.getStatus() == OperationResultStatusType.FATAL_ERROR) {
-            rows.add(new SmartGeneratingDto.StatusRow(pageBase.createStringResource(
+            rows.add(new StatusRowRecord(pageBase.createStringResource(
                     "SmartGeneratingDto.status.failed"),
                     ActivityProgressInformation.RealizationState.UNKNOWN,
                     suggestion));
@@ -660,10 +692,14 @@ public class SmartIntegrationStatusInfoUtils {
         if (addDefaultRow && (suggestion == null
                 || suggestion.getProgressInformation() == null
                 || suggestion.getProgressInformation().getChildren().isEmpty())) {
-            rows.add(new SmartGeneratingDto.StatusRow(pageBase.createStringResource(
+            rows.add(new StatusRowRecord(pageBase.createStringResource(
                     "SmartGeneratingDto.no.suggestion"),
                     ActivityProgressInformation.RealizationState.UNKNOWN,
                     suggestion));
+            return rows;
+        }
+
+        if (suggestion == null) {
             return rows;
         }
 
@@ -677,7 +713,7 @@ public class SmartIntegrationStatusInfoUtils {
         for (ActivityProgressInformation child : children) {
             String activityIdentifier = child.getActivityIdentifier();
             ActivityProgressInformation.RealizationState realizationState = child.getRealizationState();
-            rows.add(new SmartGeneratingDto.StatusRow(
+            rows.add(new StatusRowRecord(
                     buildProgressMessageModel(pageBase, activityIdentifier), realizationState, suggestion));
         }
         return rows;
@@ -708,5 +744,27 @@ public class SmartIntegrationStatusInfoUtils {
             return suggestionValue.getExpectedQuality() != null ? (suggestionValue.getExpectedQuality() * 100) : null;
         }
         return null;
+    }
+
+    public static int computeSuggestedObjectsCount(StatusInfo<?> statusInfo) {
+        if (statusInfo == null || statusInfo.getResult() == null) {
+            return 0;
+        }
+
+        if (statusInfo.getResult() instanceof MappingsSuggestionType mappingsSuggestion) {
+            return Optional.ofNullable(mappingsSuggestion.getAttributeMappings())
+                    .map(List::size).orElse(0);
+        } else if (statusInfo.getResult() instanceof ObjectTypesSuggestionType objectTypesSuggestion) {
+            return Optional.ofNullable(objectTypesSuggestion.getObjectType())
+                    .map(List::size).orElse(0);
+        } else if (statusInfo.getResult() instanceof CorrelationSuggestionsType correlationSuggestions) {
+            return Optional.ofNullable(correlationSuggestions.getSuggestion())
+                    .map(List::size).orElse(0);
+        } else if (statusInfo.getResult() instanceof AssociationsSuggestionType associationsSuggestion) {
+            return Optional.ofNullable(associationsSuggestion.getAssociation())
+                    .map(List::size).orElse(0);
+        }
+
+        return 0;
     }
 }

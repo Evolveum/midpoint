@@ -258,6 +258,11 @@ class MappingsSuggestionOperation {
         if (valuesPairs.isEmpty()) {
             LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
             expression = null;
+        } else if (valuesPairs.stream().allMatch(pair ->
+                (pair.shadowValues() == null || pair.shadowValues().stream().allMatch(Objects::isNull))
+                        || (pair.focusValues() == null || pair.focusValues().stream().allMatch(Objects::isNull)))) {
+            LOGGER.trace(" -> all shadow or focus values are null, using 'asIs' mapping (without calling LLM)");
+            expression = null;
         } else if (doesAsIsSuffice(valuesPairs, propertyDef)) {
             LOGGER.trace(" -> 'asIs' does suffice according to the data, so we'll use it (without calling LLM)");
             expression = null;
