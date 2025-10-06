@@ -119,6 +119,9 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private void initPreviewWidgets(Form mainForm) {
+         // MID-10885 user details model that should be reused in all widgets, since it can be quite expensive to create.
+         // If user has many assignments, too many db queries are executed and creating prism object wrapper takes forever.
+         // If new instance of user details model is created, then probably clone this one somehow.
          UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this) {
 
              @Override
