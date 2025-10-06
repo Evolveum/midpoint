@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -61,7 +61,8 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
     private static final String ID_FILTER_LABEL = "filterLabel";
     private static final String ID_BASE_CONTEXT_LABEL = "baseContextLabel";
-    private static final String ID_BASE_CONTEXT_OBJECT_CLASS = "baseContextFilterObjectClass";
+    private static final String ID_BASE_CONTEXT_OBJECT_CLASS_LABEL = "baseContextObjectClassLabel";
+    private static final String ID_BASE_CONTEXT_OBJECT_CLASS_VALUE = "baseContextObjectClassValue";
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
 
@@ -139,9 +140,15 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         baseContextFilterPanels.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextFilterPanels);
 
+        Label baseContextObjectClassLabel = new Label(ID_BASE_CONTEXT_OBJECT_CLASS_LABEL,
+                createStringResource("SmartSuggestObjectTypeTilePanel.base.context.object.class"));
+        baseContextObjectClassLabel.setOutputMarkupId(true);
+        baseContextObjectClassLabel.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
+        filterCtn.add(baseContextObjectClassLabel);
+
         List<PrismPropertyValueWrapper<Object>> baseContexFilterObjectClassPropertyValueWrapper1 = getModelObject()
                 .getBaseContexFilterPropertyValueWrapper(ResourceObjectReferenceType.F_OBJECT_CLASS);
-        RepeatingView baseContextFilterObjectClassPanels = new RepeatingView(ID_BASE_CONTEXT_OBJECT_CLASS);
+        RepeatingView baseContextFilterObjectClassPanels = new RepeatingView(ID_BASE_CONTEXT_OBJECT_CLASS_VALUE);
         populateObjectClassPropertyPanels(baseContexFilterObjectClassPropertyValueWrapper1, baseContextFilterObjectClassPanels);
         baseContextFilterObjectClassPanels.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextFilterObjectClassPanels);
@@ -175,7 +182,7 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
             @NotNull List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper,
             @NotNull RepeatingView filterPanels) {
         for (PrismPropertyValueWrapper<Object> valueWrapper : filterPropertyValueWrapper) {
-            PrismPropertyValuePanel<?> valuePanel = new PrismPropertyValuePanel<>(filterPanels.newChildId(),
+            VerticalFormPrismPropertyValuePanel<?> valuePanel = new VerticalFormPrismPropertyValuePanel<>(filterPanels.newChildId(),
                     Model.of(valueWrapper), null);
             valuePanel.setOutputMarkupId(true);
             valuePanel.setEnabled(false);
