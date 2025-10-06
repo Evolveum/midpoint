@@ -133,9 +133,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
             public void refreshAndDetach(AjaxRequestTarget target) {
                 super.refreshAndDetach(target);
-                //rerender also feedback panel
                 target.add(getAiPanel());
-                target.add(AttributeMappingsTableWizardPanel.this);
+
+                //rerender also feedback panel only if there is an error message
+                if (getFeedback().hasErrorMessage()) {
+                    target.add(AttributeMappingsTableWizardPanel.this);
+                }
             }
 
             @Override

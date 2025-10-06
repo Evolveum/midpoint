@@ -62,19 +62,19 @@ public class SmartPermissionRecordDto implements Serializable {
     public void initDummyData() {
         this.records = new ArrayList<>();
         this.records.add(new PermissionRecord(
-                "Schema Access",
+                "Schema access",
                 "Allow access to the resource schema for analysis and suggestions.",
                 true,
                 null
         ));
         this.records.add(new PermissionRecord(
-                "Statistical Data",
+                "Statistical data",
                 "Allow collection of statistical data about resource usage patterns.",
                 false,
                 null
         ));
         this.records.add(new PermissionRecord(
-                "Raw Data",
+                "Raw data",
                 "Allow access to raw data on the resource for detailed analysis.",
                 false,
                 null

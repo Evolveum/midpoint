@@ -343,18 +343,16 @@ public abstract class SmartMappingTable<P extends Containerable>
                         suggestionsRelated.addAll(accepted);
 
                         Comparator<PrismContainerValueWrapper<MappingType>> byName = Comparator.comparing(
-                                v -> String.valueOf(getOldName(v)),
+                                v -> String.valueOf(getTargetValue(v)),
                                 String.CASE_INSENSITIVE_ORDER);
                         suggestionsRelated.sort(byName);
                         return suggestionsRelated;
                     }
 
-                    private static String getOldName(@NotNull PrismContainerValueWrapper<MappingType> mappingValueWrapper) {
-                        PrismValue oldValue = mappingValueWrapper.getOldValue();
-                        if (oldValue.getRealValue() instanceof MappingType mapping && mapping.getName() != null) {
-                            return mapping.getName();
-                        }
-                        return "";
+                    private static String getTargetValue(@NotNull PrismContainerValueWrapper<MappingType> mappingValueWrapper) {
+                        MappingType mapping = mappingValueWrapper.getRealValue();
+                        VariableBindingDefinitionType targetValue = mapping.getTarget();
+                        return targetValue != null && targetValue.getPath() != null ? targetValue.getPath().toString() : "";
                     }
                 };
 
