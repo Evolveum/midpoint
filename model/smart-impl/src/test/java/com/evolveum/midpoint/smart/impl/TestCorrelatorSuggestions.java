@@ -152,8 +152,8 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         assertThat(scores).hasSize(1);
         double score = scores.get(0);
         assertThat(score)
-                .as("Score for resource-only attribute correlation should be 0.5")
-                .isEqualTo(0.5);
+                .as("Score with missing attribute should be -1.0")
+                .isEqualTo(-1.0);
     }
 
     @Test

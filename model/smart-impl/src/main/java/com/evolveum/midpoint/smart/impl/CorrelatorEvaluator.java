@@ -219,27 +219,20 @@ class CorrelatorEvaluator {
         ItemPath focusPath = suggestion.focusItemPath();
         ItemPath resourcePath = suggestion.resourceAttrPath();
 
-        boolean hasFocusPath = focusPath != null;
-        boolean hasResourcePath = resourcePath != null;
-
-        if (hasFocusPath && isMultiValued(focusPath)) {
+        if (focusPath == null) {
+            LOGGER.debug("Excluded correlator {}: missing focus path.", suggestion);
+            return -1.0;
+        } else if (isMultiValued(focusPath)) {
             LOGGER.debug("Excluded correlator {}: multi-valued focus path.", focusPath);
             return -1.0;
         }
-        if (hasResourcePath && isMultiValued(resourcePath)) {
+
+        if (resourcePath == null) {
+            LOGGER.debug("Excluded correlator {}: missing resource path.", suggestion);
+            return -1.0;
+        } else if (isMultiValued(resourcePath)) {
             LOGGER.debug("Excluded correlator {}: multi-valued resource path.", resourcePath);
             return -1.0;
-        }
-
-        Double focusScore = hasFocusPath ? focusStatistics.getScore(focusPath) : null;
-        Double resourceScore = hasResourcePath ? resourceStatistics.getScore(resourcePath) : null;
-
-        if (focusScore == null && resourceScore == null) {
-            return -1.0;
-        } else if (focusScore == null) {
-            return resourceScore * 0.5; // penalty for not having focus path
-        } else if (resourceScore == null) {
-            return focusScore * 0.5; // penalty for not having resource path
         }
 
         // Excluding base score to have unified score with "black-box" correlators
