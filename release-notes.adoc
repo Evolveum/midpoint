@@ -203,8 +203,7 @@ See bug:MID-10824[].
 * Fixed intent dropdown on Accounts/Entitlements page to persist after navigation . See bug:MID-10697[].
 * Fixed default sort property for "My requests" widget on Self Dashboard page. See bug:MID-10772[].
 * Fixed authorization re-initialization during CompiledGuiProfile refresh functionality.
-Made a restructuring of the code.
-The goal is to decrease the time period between clearing the authorizations (and other privileges limitations) and filling them in.
+Authorizations list is wrapped into atomic reference in order to avoid calls to cleaned up authorizations list while refreshing the principal.
 See bug:MID-10781[].
 * Fixed inconsistent type of input variable after passing ObjectTemplate validation. See bug:MID-10773[].
 * Fixed the possibility to modify the filter in the marking rule. See bug:MID-10405[].
@@ -221,6 +220,25 @@ See bug:MID-10800[].
 * Fixed name and display name columns' values on the Certification items page. See bug:MID-10806[].
 * Fixed full-text search in the role catalog. See bug:MID-10819[].
 * Fixed case-insensitive search for shadow association definitions. See bug:MID-10477[].
+* Improved the time of the certification items list processing (e.g. during cert. items report creating or during displaying in the GUI). See bug:MID-10811[], bug:MID-10812[].
+* Fixed some bugs in the Role mining GUI. See bug:MID-10842[].
+* Fixed the error while creating a new resource as a copy of the template resource. See bug:MID-10476[].
+* Fixed the relation dependent behavior while adding an item into shopping cart. See bug:MID-10851[].
+* Fixed the extension attribute update behavior within Shopping cart step in the Request access wizard. See bug:MID-10861[].
+* Fixed _allowToConfigureSearchItems_ configuration usage on the search panel. See bug:MID-10883[].
+* Fixed style issue on the task summary panel. See bug:MID-10884[].
+* Fixed reloading of the certification (responses) statistics model. See bug:MID-10882[].
+* Fixed Back button behavior from the Certification items page. See bug:MID-10879[].
+* Improved exception handling while using the saved filter on the search panel.
+From now,  if the user selects the filter saved for Advanced mode, and this filter has xml query configured instead of midPoint query, midPoint will parse such a (correct xml) query and apply it to the search.
+Warning message that the filter should be reconfigured with a midPoint (Advanced) query will be displayed on the panel.
+If the xml query cannot be parsed, the error message will be shown on the page. See bug:MID-10876[].
+* Fixed creating an object with <dummy> tag. See bug:MID-10853[].
+* Fixed visibility of the Certification items table in case there is only one row on the Self Dashboard page.
+Previously, the implementation didn't show table's row in case there was only one active campaign.
+It was decided that even one row can be informative for the user so that the user sees the name of the campaign from the Dashboard page, also sees its deadline and progress.
+Therefore, the visibility for the Certification items table was changed from false to true in case of just one row in the table.
+See bug:MID-10889[].
 
 === Releases Of Other Components
 
