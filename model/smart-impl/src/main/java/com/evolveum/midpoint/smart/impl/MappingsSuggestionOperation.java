@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPI
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -164,7 +165,8 @@ class MappingsSuggestionOperation {
                                     m.shadowAttrDef,
                                     m.focusPropDescPath,
                                     m.focusPropDef,
-                                    pairs));
+                                    pairs,
+                                    result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (Throwable t) {
                     // TODO Shouldn't we create an unfinished mapping with just error info?
@@ -249,7 +251,10 @@ class MappingsSuggestionOperation {
             ShadowSimpleAttributeDefinition<?> attrDef,
             DescriptiveItemPath focusPropPath,
             PrismPropertyDefinition<?> propertyDef,
-            Collection<ValuesPair> valuesPairs) throws SchemaException {
+            Collection<ValuesPair> valuesPairs,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
 
         LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
                 shadowAttrPath, focusPropPath, valuesPairs.size());
@@ -290,7 +295,8 @@ class MappingsSuggestionOperation {
         var hackedSerialized = serialized.replace("ext:", "");
         var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
         var suggestion = new AttributeMappingsSuggestionType()
-                .expectedQuality(this.qualityAssessor.assessMappingsQuality(valuesPairs, expression))
+                .expectedQuality(this.qualityAssessor.assessMappingsQuality(valuesPairs, expression, this.ctx.task,
+                        parentResult))
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.getItemPath().rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
