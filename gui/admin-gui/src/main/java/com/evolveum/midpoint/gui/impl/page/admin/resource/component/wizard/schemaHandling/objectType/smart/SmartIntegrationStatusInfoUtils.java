@@ -723,15 +723,17 @@ public class SmartIntegrationStatusInfoUtils {
         return pageBase.createStringResource("Activity.explanation." + operationKey);
     }
 
-    public static Double extractEfficiencyFromSuggestedCorrelationItemWrapper(
+    public static @NotNull String extractEfficiencyFromSuggestedCorrelationItemWrapper(
             @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> valueWrapper) {
         PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueWrapper.getParentContainerValue(
                 CorrelationSuggestionType.class);
         if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
             CorrelationSuggestionType suggestionValue = parentContainerValue.getRealValue();
-            return suggestionValue.getQuality() != null ? (suggestionValue.getQuality() * 100) : null;
+
+            Double quality = suggestionValue.getQuality();
+            return (quality != null && quality != -1) ? String.valueOf((suggestionValue.getQuality() * 100)) : "-";
         }
-        return null;
+        return "-";
     }
 
     public static @Nullable Float extractEfficiencyFromSuggestedMappingItemWrapper(

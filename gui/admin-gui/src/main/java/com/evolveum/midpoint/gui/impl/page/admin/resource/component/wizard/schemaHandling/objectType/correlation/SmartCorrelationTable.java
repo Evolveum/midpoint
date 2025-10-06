@@ -322,8 +322,8 @@ public class SmartCorrelationTable
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> item, String s,
                     IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> iModel) {
-                Double efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(iModel.getObject());
-                Label label = new Label(s, () -> efficiency != null ? String.format("%.2f%%", efficiency) : " - ");
+                @NotNull String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(iModel.getObject());
+                Label label = new Label(s, () -> efficiency);
                 label.setOutputMarkupId(true);
                 item.add(label);
             }
