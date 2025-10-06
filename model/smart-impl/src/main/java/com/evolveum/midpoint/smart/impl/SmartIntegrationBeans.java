@@ -9,6 +9,8 @@ package com.evolveum.midpoint.smart.impl;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
+
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,8 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelService;
+
+import org.springframework.stereotype.Repository;
 
 /**
  * Commonly-used beans for smart-impl module.
@@ -30,6 +34,7 @@ public class SmartIntegrationBeans {
     private static SmartIntegrationBeans instance;
 
     @Autowired public ModelService modelService;
+    @Autowired public RepositoryService repositoryService;
     @Autowired public SmartIntegrationServiceImpl smartIntegrationService;
     @Autowired public Clock clock;
     @Autowired public LocalizationService localizationService;

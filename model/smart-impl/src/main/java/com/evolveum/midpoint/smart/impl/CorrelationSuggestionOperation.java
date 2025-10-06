@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.Resource;
+
 import org.apache.commons.lang3.StringUtils;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -22,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,6 +120,16 @@ class CorrelationSuggestionOperation {
                 for (var siAttributeMatch : siResponse.getAttributeMatch()) {
                     var focusItemPath = matchingOp.getFocusItemPath(siAttributeMatch.getMidPointAttribute());
                     if (correlator.equivalent(focusItemPath)) {
+                        // TO_DO: move somewhere else - temporary hack for demo purposes
+                        var query = Resource.of(resource).queryFor(objectTypeDef.getKind(), objectTypeDef.getIntent())
+                                .and()
+                                .not()
+                                .item(matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute()))
+                                .isNull()
+                                .build();
+                        Integer count = SmartIntegrationBeans.get().repositoryService.countObjects(ShadowType.class, query, null, ctx.task.getResult());
+                        if (count == 0) continue;
+
                         var resourceAttrPath = matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute());
                         var resourceAttrName = resourceAttrPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
                         var inbound = new InboundMappingType()
