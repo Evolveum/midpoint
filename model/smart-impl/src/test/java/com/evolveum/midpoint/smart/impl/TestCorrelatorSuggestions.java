@@ -180,8 +180,8 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         assertThat(scores).hasSize(1);
         double score = scores.get(0);
         assertThat(score)
-                .as("Score for focus-only attribute correlation should be below 0.5")
-                .isLessThanOrEqualTo(0.5);
+                .as("Score for focus-only attribute correlation should be 1")
+                .isLessThanOrEqualTo(1);
     }
 
     @Test

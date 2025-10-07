@@ -234,7 +234,7 @@ class CorrelatorEvaluator {
 
         if (resourcePath == null) {
             LOGGER.debug("Excluded correlator {}: missing resource path.", suggestion);
-            return -1.0;
+            return focusStatistics.getScore(focusPath);
         }
 
         // Excluding base score to have unified score with "black-box" correlators
