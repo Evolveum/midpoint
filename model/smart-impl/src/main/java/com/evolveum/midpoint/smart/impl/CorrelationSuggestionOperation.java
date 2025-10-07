@@ -62,12 +62,28 @@ class CorrelationSuggestionOperation {
         var correlators = KnownCorrelator.getAllFor(ctx.getFocusTypeDefinition().getCompileTimeClass());
         var suggestions = suggestCorrelationMappings(ctx.typeDefinition, ctx.getFocusTypeDefinition(), correlators, ctx.resource);
 
-        var evaluationsIterator = new CorrelatorEvaluator(ctx, suggestions)
-                .evaluateSuggestions(result)
-                .iterator();
+        var allScores = new CorrelatorEvaluator(ctx, suggestions)
+                .evaluateSuggestions(result);
+
+        // For each correlator, select the attribute with highest score
+        var bestSuggestionsMap = new java.util.HashMap<ItemPath, CorrelatedSuggestionWithScore>();
+        for (int i = 0; i < suggestions.size(); i++) {
+            var suggestion = suggestions.get(i);
+            double score = allScores.get(i);
+            var correlated = new CorrelatedSuggestionWithScore(suggestion, score);
+
+            // For this correlator, keep only the highest score
+            var prev = bestSuggestionsMap.get(suggestion.focusItemPath());
+            if ((correlated.score > 0) && (prev == null || correlated.score > prev.score)) {
+                bestSuggestionsMap.put(suggestion.focusItemPath(), correlated);
+            }
+        }
 
         var suggestionsBean = new CorrelationSuggestionsType();
-        for (var suggestion : suggestions) {
+        for (CorrelatedSuggestionWithScore correlated : bestSuggestionsMap.values()) {
+            var suggestion = correlated.suggestion;
+            double score = correlated.score;
+
             var suggestionBean = new CorrelationSuggestionType();
             if (suggestion.attributeDefinitionBean() != null) {
                 // no need to mark it as AI-provided, as it should already marked as such
@@ -92,7 +108,7 @@ class CorrelationSuggestionOperation {
                                             .ref(suggestion.focusItemPath().toBean()))));
             AiUtil.markAsAiProvided(correlationDefinition);
             suggestionBean.setCorrelation(correlationDefinition);
-            suggestionBean.setQuality(evaluationsIterator.next());
+            suggestionBean.setQuality(score);
             suggestionsBean.getSuggestion().add(suggestionBean);
         }
         return suggestionsBean;
@@ -120,16 +136,6 @@ class CorrelationSuggestionOperation {
                 for (var siAttributeMatch : siResponse.getAttributeMatch()) {
                     var focusItemPath = matchingOp.getFocusItemPath(siAttributeMatch.getMidPointAttribute());
                     if (correlator.equivalent(focusItemPath)) {
-                        // TO_DO: move somewhere else - temporary hack for demo purposes
-                        var query = Resource.of(resource).queryFor(objectTypeDef.getKind(), objectTypeDef.getIntent())
-                                .and()
-                                .not()
-                                .item(matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute()))
-                                .isNull()
-                                .build();
-                        Integer count = SmartIntegrationBeans.get().repositoryService.countObjects(ShadowType.class, query, null, ctx.task.getResult());
-                        if (count == 0) continue;
-
                         var resourceAttrPath = matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute());
                         var resourceAttrName = resourceAttrPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
                         var inbound = new InboundMappingType()
@@ -146,7 +152,6 @@ class CorrelationSuggestionOperation {
                         // Use is not provided by AI, it is set to CORRELATION by default.
                         response.add(
                                 new CorrelatorSuggestion(focusItemPath, resourceAttrPath, attrDefBean));
-                        break; // we don't want to suggest multiple attributes for the same correlator
                     }
                 }
             }
@@ -200,5 +205,14 @@ class CorrelationSuggestionOperation {
             ItemPath focusItemPath,
             @Nullable ItemPath resourceAttrPath,
             @Nullable ResourceAttributeDefinitionType attributeDefinitionBean) {
+    }
+
+    private static class CorrelatedSuggestionWithScore {
+        final CorrelatorSuggestion suggestion;
+        final double score;
+        CorrelatedSuggestionWithScore(CorrelatorSuggestion suggestion, double score) {
+            this.suggestion = suggestion;
+            this.score = score;
+        }
     }
 }
