@@ -76,16 +76,18 @@ public class GenerateConnectorArtifactActivityHandler
 
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
             backend.ensureDocumentationIsProcessed();
+            var resultObj = new ConnDevGenerateArtifactResultType();
             ConnDevArtifactType script = backend.generateArtifact(getWorkDefinition().typedDefinition);
-            if (script.getContent() != null) {
-                // Mark as AI
-                AiUtil.markAsAiProvided(script.asPrismContainerValue().findItem(ConnDevArtifactType.F_CONTENT).getValue());
+            if (script != null) {
+                if (script.getContent() != null) {
+                    // Mark as AI
+                    AiUtil.markAsAiProvided(script.asPrismContainerValue().findItem(ConnDevArtifactType.F_CONTENT).getValue());
+                }
+                resultObj.artifact(script);
             }
             var state = getActivityState();
             // FIXME: Write connectorRef + connectorDirectory to ConnectorDevelopmentType
-
-            state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT,new ConnDevGenerateArtifactResultType()
-                    .artifact(script));
+            state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT,resultObj);
             state.flushPendingTaskModifications(result);
             return ActivityRunResult.success();
         }

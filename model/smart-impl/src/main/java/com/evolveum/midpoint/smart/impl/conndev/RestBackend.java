@@ -148,12 +148,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
         return switch (classification) {
-            case AUTHENTICATION_CUSTOMIZATION -> ret.content("""
-                        authentication {
-                            // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
-                            // how to write authentication part of the script.
-                        }
-                        """);
+            case AUTHENTICATION_CUSTOMIZATION -> generateAuthorizationScript(input, classification);
             case TEST_CONNECTION_DEFINITION -> ret.content("""
                         test {
                             // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
@@ -164,6 +159,24 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                         """);
             default -> throw new IllegalStateException("Unexpected value: " + artifactSpec.getIntent());
         };
+    }
+
+    private ConnDevArtifactType generateAuthorizationScript(ConnDevGenerateArtifactDefinitionType input, ConnectorDevelopmentArtifacts.KnownArtifactType classification) {
+        if (hasAuthenticationQuirks()) {
+            // FIXME: Here should be LLM call
+            return classification.create().content("""
+                    authentication {
+                        // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
+                        // how to write authentication part of the script.
+                    }
+                    """);
+        }
+        return null;
+    }
+
+    private boolean hasAuthenticationQuirks() {
+        return developmentObject().getConnector().getAuth().stream()
+                .anyMatch(auth -> auth.getQuirks() != null && !auth.getQuirks().isBlank());
     }
 
     @Override
