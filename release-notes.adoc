@@ -239,6 +239,7 @@ Previously, the implementation didn't show table's row in case there was only on
 It was decided that even one row can be informative for the user so that the user sees the name of the campaign from the Dashboard page, also sees its deadline and progress.
 Therefore, the visibility for the Certification items table was changed from false to true in case of just one row in the table.
 See bug:MID-10889[].
+* Fixed _runPrivileged_ configuration usage for scripting policy actions. See bug:MID-10820[].
 
 === Releases Of Other Components
 
