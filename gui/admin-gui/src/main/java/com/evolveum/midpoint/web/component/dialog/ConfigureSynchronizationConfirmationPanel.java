@@ -91,7 +91,7 @@ public abstract class ConfigureSynchronizationConfirmationPanel extends Confirma
         return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
     }
 
-    //TODO check it
+    //TODO wrong way of setting default values, should be done using container wrapper model? Check it.
     public void setDefaultSynchronizationValues(
             @NotNull AjaxRequestTarget target) {
         var wrapper = getResourceObjectTypeDefinitionWrapperModel();

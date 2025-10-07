@@ -318,6 +318,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         }
     }
 
+    //TODO remove
     public abstract void showSynchronizationConfigWizard(AjaxRequestTarget target);
 
     @Override

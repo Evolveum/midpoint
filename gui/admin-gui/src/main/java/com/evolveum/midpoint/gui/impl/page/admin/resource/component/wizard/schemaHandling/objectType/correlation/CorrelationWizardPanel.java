@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.synchronization.SynchronizationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.*;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author lskublik
  */
-public abstract class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefinitionType, ResourceDetailsModel> {
+public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefinitionType, ResourceDetailsModel> {
 
     public CorrelationWizardPanel(String id, WizardPanelHelper<CorrelationDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
@@ -105,5 +107,12 @@ public abstract class CorrelationWizardPanel extends AbstractWizardPanel<Correla
         };
     }
 
-    public abstract void showSynchronizationConfigWizard(AjaxRequestTarget target);
+    //TODO remove
+    public void showSynchronizationConfigWizard(AjaxRequestTarget target) {
+        IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> valueModel = getValueModel();
+        var resourceObjectDef = valueModel.getObject().getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+        if (resourceObjectDef != null) {
+            getAssignmentHolderModel().getPageResource().showSynchronizationWizard(target, resourceObjectDef.getPath());
+        }
+    }
 }
