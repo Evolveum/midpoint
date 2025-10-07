@@ -99,9 +99,10 @@ public class SmartCorrelationTable
             @NotNull String id,
             @NotNull UserProfileStorage.TableId tableId,
             @NotNull IModel<ViewToggle> toggleView,
+            @NotNull IModel<Boolean> switchToggleModel,
             IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> correlationWrapper,
             @NotNull String resourceOid) {
-        super(id, tableId, toggleView);
+        super(id, tableId, toggleView, switchToggleModel);
         this.resourceOid = resourceOid;
         this.correlationWrapper = correlationWrapper;
         setDefaultPagingSize(tableId, MAX_TILE_COUNT);
@@ -110,7 +111,7 @@ public class SmartCorrelationTable
 
     @Override
     protected IModel<SmartPermissionRecordDto> buildSmartPermissionRecordDto() {
-        return () -> new SmartPermissionRecordDto(null,initDummyCorrelationPermissionData());
+        return () -> new SmartPermissionRecordDto(null, initDummyCorrelationPermissionData());
     }
 
     @Override
@@ -245,7 +246,8 @@ public class SmartCorrelationTable
                             PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
                             ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
                             @NotNull SmartIntegrationStatusInfoUtils.CorrelationSuggestionProviderResult suggestionWrappers =
-                                    loadCorrelationSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition, task, result);
+                                    loadCorrelationSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition,
+                                            false, task, result);
 
                             allValues.addAll(suggestionWrappers.wrappers());
                             suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
@@ -416,7 +418,7 @@ public class SmartCorrelationTable
                 createStringResource("SmartCorrelationTilePanel.discardButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()),true);
+                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()), true);
             }
         };
         discardButton.setOutputMarkupId(true);
@@ -802,6 +804,16 @@ public class SmartCorrelationTable
 
     public void acceptSuggestionItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
             StatusInfo<CorrelationSuggestionsType> statusInfo) {
+    }
+
+    @Override
+    protected boolean isToggleSuggestionVisible() {
+        return getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel();
+    }
+
+    @Override
+    protected boolean isSuggestButtonVisible() {
+        return false;
     }
 }
 

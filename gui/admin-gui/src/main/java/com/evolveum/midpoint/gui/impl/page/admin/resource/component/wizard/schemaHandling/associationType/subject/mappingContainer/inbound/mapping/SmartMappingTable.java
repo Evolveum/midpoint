@@ -135,7 +135,7 @@ public abstract class SmartMappingTable<P extends Containerable>
 
     @Override
     protected IModel<SmartPermissionRecordDto> buildSmartPermissionRecordDto() {
-        return () -> new SmartPermissionRecordDto(null,initDummyMappingPermissionData());
+        return () -> new SmartPermissionRecordDto(null, initDummyMappingPermissionData());
     }
 
     @Override
@@ -330,7 +330,7 @@ public abstract class SmartMappingTable<P extends Containerable>
 
                         SmartIntegrationStatusInfoUtils.@NotNull MappingSuggestionProviderResult suggestionWrappers =
                                 loadMappingSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition,
-                                        getMappingType(), task, result);
+                                        getMappingType(), false, task, result);
 
                         suggestionWrappers.wrappers().forEach(WebPrismUtil::setReadOnlyRecursively);
 
@@ -537,7 +537,7 @@ public abstract class SmartMappingTable<P extends Containerable>
 
     @Override
     protected boolean isToggleSuggestionVisible() {
-        return getSwitchToggleModel().getObject().equals(Boolean.TRUE);
+        return getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel();
     }
 
     @Override
@@ -820,7 +820,7 @@ public abstract class SmartMappingTable<P extends Containerable>
                 refreshAndDetach(target);
             }
         });
-        dropdown.add(new VisibleBehaviour(() -> MappingDirection.INBOUND == getMappingType()));
+        dropdown.add(new VisibleBehaviour(() -> MappingDirection.INBOUND == getMappingType() && !displayNoValuePanel()));
         return dropdown;
     }
 
@@ -836,7 +836,7 @@ public abstract class SmartMappingTable<P extends Containerable>
     @Override
     protected @NotNull AjaxIconButton createNewObjectPerformButton(String idButton, PrismContainerValueWrapper<MappingType> modelObject) {
         AjaxIconButton newObjectPerformButton = super.createNewObjectPerformButton(idButton, modelObject);
-        newObjectPerformButton.add(AttributeAppender.replace("class", "btn btn-outline-primary rounded mr-2 ml-auto"));
+        newObjectPerformButton.add(AttributeAppender.replace("class", "btn btn-primary rounded mr-2 ml-auto"));
         return newObjectPerformButton;
     }
 

@@ -27,6 +27,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -80,6 +82,7 @@ import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDt
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
+    private static final String ID_AI_PANEL = "aiPanel";
     private static final String ID_TABLE = "table";
     private static final String ID_FORM = "form";
 
@@ -94,9 +97,34 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         form.setOutputMarkupId(true);
         add(form);
 
+        SmartAlertGeneratingPanel smartAlertGeneratingPanel = createSmartAlertGeneratingPanel();
+        form.add(smartAlertGeneratingPanel);
+
         WebMarkupContainer objectTypesPanel = createMultiValueListPanel();
         objectTypesPanel.setOutputMarkupId(true);
         form.add(objectTypesPanel);
+    }
+
+    private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel() {
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
+                () -> new SmartGeneratingAlertDto(null, Model.of(), getPageBase())) {
+            @Override
+            protected void performSuggestOperation(AjaxRequestTarget target) {
+                switchSuggestion.setObject(Boolean.TRUE);
+                showSuggestConfirmDialog(getPageBase(),
+                        () -> new SmartPermissionRecordDto(null, initDummyObjectTypePermissionData()),
+                        target);
+            }
+
+            @Override
+            protected void refreshAssociatedComponents(@NotNull AjaxRequestTarget target) {
+                MultivalueContainerListPanel<?> smartMappingTable = getTable();
+                smartMappingTable.refreshTable(target);
+            }
+        };
+
+        aiPanel.setOutputMarkupId(true);
+        return aiPanel;
     }
 
     public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel() {
@@ -228,7 +256,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             protected List<Component> createToolbarButtonsList(String idButton) {
                 List<Component> bar = new ArrayList<>();
                 createNewObjectPerformButton(idButton, bar);
-                createSuggestObjectButton(idButton, bar);
+//                createSuggestObjectButton(idButton, bar);
                 createToggleSuggestionButton(idButton, bar);
                 return bar;
             }
