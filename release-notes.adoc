@@ -63,8 +63,7 @@ See bug:MID-10748[], bug:MID-10744[].
 * Fixed 500 error while creating an application role with a lack of permission. See bug:MID-10778[].
 * Fixed default sort property for "My requests" widget on Self Dashboard page. See bug:MID-10772[].
 * Fixed authorization re-initialization during CompiledGuiProfile refresh functionality.
-Made a restructuring of the code.
-The goal is to decrease the time period between clearing the authorizations (and other privileges limitations) and filling them in.
+Authorizations list is wrapped into atomic reference in order to avoid calls to cleaned up authorizations list while refreshing the principal.
 See bug:MID-10781[].
 * Fixed inconsistent type of input variable after passing ObjectTemplate validation. See bug:MID-10773[].
 * Fixed oppportunistic synchronization, see bug:MID-10729[].
@@ -72,6 +71,20 @@ See bug:MID-10781[].
 * Fix for delete of the wrong object when entitlement doesn't exist. See bug:MID-9866[].
 * Fixed "Description column in role/service tables is too wide" - column customization for RoleCatalogPanel added. See bug:MID-10315[].
 * Fixed boolean column values for Quartz tables in Oracle 23 - "Quartz broken after DB upgrade". See bug:MID-10715[].
+* Improved the time of the certification items list processing (e.g. during cert. items report creating or during displaying in the GUI). See bug:MID-10811[], bug:MID-10812[].
+* Fixed _runPrivileged_ configuration usage for scripting policy actions. See bug:MID-10820[].
+* Fixed creating an object with <dummy> tag. See bug:MID-10853[].
+* Fixed the extension attribute update behavior within Shopping cart step in the Request access wizard. See bug:MID-10861[].
+* Fixed _allowToConfigureSearchItems_ configuration usage on the search panel. See bug:MID-10883[].
+* Fixed style issue on the task summary panel. See bug:MID-10884[].
+* Fixed reloading of the certification (responses) statistics model. See bug:MID-10882[].
+* Upgraded chartjs version to 0.6.
+* Fixed saving the filter on the search panel for Advanced search mode.
+If the filter is saved for Advanced mode, it is saved now correctly within <text> tag within a filter.
+Improved exception handling while parsing incorrect filter on the search panel.
+From now,  if the user selects the filter saved for Advanced mode, and this filter has xml query configured instead of midPoint query, midPoint will parse such a (correct xml) query and apply it to the search.
+Warning message that the filter should be reconfigured with a midPoint (Advanced) query will be displayed on the panel.
+If the xml query cannot be parsed, the error message will be shown on the page. See bug:MID-10876[].
 
 == Changes with Respect To Version 4.8.7
 
