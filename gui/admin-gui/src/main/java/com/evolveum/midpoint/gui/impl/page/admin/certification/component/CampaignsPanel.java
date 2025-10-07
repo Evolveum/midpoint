@@ -181,11 +181,8 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                     }
 
                     @Override
-                    protected void onSelectTableRow(IModel<SelectableBean<AccessCertificationCampaignType>> model,
-                            AjaxRequestTarget target) {
-                        if (model.getObject().isSelected()) {
-                            ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());
-                        }
+                    protected boolean isTableRowSelectable() {
+                        return false;
                     }
 
                     @Override

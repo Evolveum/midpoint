@@ -5,7 +5,7 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<object xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<shadow xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         oid="f17ab2a1-a6ce-4ad1-b057-6537bfc49cc8"
         version="6"
@@ -45,4 +45,4 @@
     <intent>default</intent>
     <iteration>0</iteration>
     <iterationToken/>
-</object>
+</shadow>

@@ -246,7 +246,7 @@
 
         <wicket.version>10.5.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
-        <wicket.chartjs.version>0.6-SNAPSHOT</wicket.chartjs.version>
+        <wicket.chartjs.version>0.6</wicket.chartjs.version>
 
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->

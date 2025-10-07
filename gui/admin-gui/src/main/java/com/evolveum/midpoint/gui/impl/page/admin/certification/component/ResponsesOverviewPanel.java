@@ -12,12 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.CertificationDetailsModel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.behavior.AttributeAppender;
@@ -137,8 +134,8 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
         return getObjectDetailsModels().getCertStatisticsModel().getObject();
     }
 
-    private @NotNull LoadableModel<List<ProgressBar>> createResponseStatisticsModel() {
-        return new LoadableModel<>() {
+    private @NotNull LoadableDetachableModel<List<ProgressBar>> createResponseStatisticsModel() {
+        return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -229,7 +226,7 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
 
     private void addOrReplaceCertItemsTabbedPanel() {
         CertificationItemsTabbedPanel items = new CertificationItemsTabbedPanel(ID_ITEMS_TABBED_PANEL,
-                new LoadableDetachableModel<PrismObjectWrapper<AccessCertificationCampaignType>>() {
+                new LoadableDetachableModel<>() {
                     @Override
                     protected PrismObjectWrapper<AccessCertificationCampaignType> load() {
                         return getObjectWrapper();

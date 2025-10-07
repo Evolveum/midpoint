@@ -292,23 +292,6 @@ public class PrismContainerWrapperImpl<C extends Containerable>
                         break;
                     }
 
-                    //fix for #10624
-                    //just to ensure that all deltas are applied to valueToAdd
-                    Collection<ItemDelta> itemDeltas = new ArrayList<>();
-                    for (ItemWrapper<?, ?> itemWrapper : pVal.getItems()) {
-                        Collection<? extends ItemDelta> itemDelta = itemWrapper.getDelta();
-                        if (itemDelta == null || itemDelta.isEmpty()) {
-                            continue;
-                        }
-                        itemDeltas.addAll(itemDelta);
-                    }
-                    for (ItemDelta d : itemDeltas) {
-                        if (d instanceof ContainerDeltaImpl<?>) {
-                            continue;
-                        }
-                        d.applyTo(valueToAdd);
-                    }
-                    //end fix for #10624
                     delta.addValueToAdd(valueToAdd);
                     deltas.add((D) delta);
                     LOGGER.trace("Computed delta: \n {}", delta);

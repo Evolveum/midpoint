@@ -12,6 +12,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.security.api.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -82,9 +84,29 @@ public class GuiProfileCompiler {
 
     @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
+    @Autowired private CacheConfigurationManager cacheConfigurationManager;
+
     private static final String STATISTIC_WIDGET_PANEL_TYPE = "statisticWidget";
 
     void compileFocusProfile(
+            GuiProfiledPrincipal principal,
+            PrismObject<SystemConfigurationType> systemConfiguration,
+            AuthorizationTransformer authorizationTransformer,
+            ProfileCompilerOptions options,
+            Task task,
+            OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, ObjectNotFoundException {
+
+        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
+        try {
+            compileFocusProfileCached(principal, systemConfiguration, authorizationTransformer, options, task, result);
+        } finally {
+            RepositoryCache.exitLocalCaches();
+        }
+    }
+
+    private void compileFocusProfileCached(
             GuiProfiledPrincipal principal,
             PrismObject<SystemConfigurationType> systemConfiguration,
             AuthorizationTransformer authorizationTransformer,

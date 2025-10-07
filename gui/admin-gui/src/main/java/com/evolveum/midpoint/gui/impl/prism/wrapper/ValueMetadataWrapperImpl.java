@@ -411,6 +411,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public <PV extends PrismValue> void addIgnoringEquivalents(PV newValue, ModelServiceLocator locator) throws SchemaException {
+        throw new UnsupportedOperationException("Add value not supported");
+    }
+
+    @Override
     public void setVirtual(boolean virtual) {
         metadataValueWrapper.setVirtual(virtual);
     }

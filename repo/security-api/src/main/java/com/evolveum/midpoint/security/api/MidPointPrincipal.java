@@ -74,6 +74,12 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     private SecurityPolicyType applicableSecurityPolicy;
 
+    /**
+     * True if the {@link #applicableSecurityPolicy} was computed (even if it is null).
+     * False if it was not computed yet.
+     */
+    private boolean securityPolicyComputed = false;
+
     /** Delegations with privileges limitations; TODO better name
      *  Contains the information about "membership delegations",
      *  i.e. that this principal is a delegate of given user(s)
@@ -274,6 +280,11 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     public void setApplicableSecurityPolicy(SecurityPolicyType applicableSecurityPolicy) {
         this.applicableSecurityPolicy = applicableSecurityPolicy;
+        this.securityPolicyComputed = true;
+    }
+
+    public boolean isSecurityPolicyComputed() {
+        return securityPolicyComputed;
     }
 
     /**
@@ -298,6 +309,7 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     protected void copyValues(MidPointPrincipal clone) {
         clone.effectivePrivilegesModification = this.effectivePrivilegesModification;
         clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
+        clone.securityPolicyComputed = this.securityPolicyComputed;
         clone.authorizations.get().addAll(authorizations.get());
         clone.effectiveActivationStatus = this.effectiveActivationStatus;
         clone.otherPrivilegesLimitations.get().copyValuesFrom(this.otherPrivilegesLimitations.get());
