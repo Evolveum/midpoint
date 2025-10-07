@@ -1,0 +1,121 @@
+= Shadow Purpose
+:page-upkeep-status: green
+
+== Introduction
+
+Each shadow object in the repository keeps an information about the purpose for existence (or non-existence) of the resource object referenced by it.
+E.g. it specifies whether the resource object is fully operational, whether it is not completely prepared yet, it may indicate why we are keeping the resource object instead of deleting it, and so on.
+It can be thought of as a kind of "business lifecycle", specifying the reason for this object or shadow.
+(But different from the `lifecycleState`, as described below.)
+
+This information is maintained by midPoint.
+It is not directly projected to the resource.
+It supplements the resource object data by keeping additional information that the resource does not have.
+
+Currently, it can have the following two values:
+
+[%autowidth]
+|===
+| Value | Meaning
+
+| `regular`
+| Regular, completely ordinary resource object.
+It is in full working condition, everything works normally.
+
+| `incomplete`
+| Resource object is not complete, it is not yet fully usable.
+Some kind of action is necessary to complete the process.
+
+May be used for shadows that are technically in perfect working conditions, however user is not able to fully use them.
+For example, an account that was created with random password, the password was not delivered to the user.
+The user is expected to "activate" the account by resetting the password.
+However, technically, the account is in perfect working condition, enabled, password is set and so on.
+This `purpose` value is stored by midPoint to remember that additional action is needed to make this account fully operation on user level.
+
+For more detailed description of such an action please see xref:/midpoint/reference/security/credentials/password-storage-configuration/#_account_purpose_and_initialization[Account Purpose and Initialization] section.
+|===
+
+== Differences To Related Items
+
+=== `shadowLifecycleState`
+
+The `shadowLifecycleState` specifies the technical state in which resource object is, e.g. not created yet, not deleted yet.
+On the other hand, the `purpose` represents the business information, the reason or intention that we have with the object.
+For example, `incomplete` purpose describes an account that is technically in a perfect shape, technically fully operational, yet user is not able to use that account yet.
+
+=== `lifecycleState`
+
+The `lifecycleState` of a shadow is an information meant to be reflected directly from/to resource object, similarly to `administrativeStatus`.
+E.g. `lifecycleState` of a shadow should be taken from lifecycle state of account (if supported by the connector), or from one of its attributes, just like administrative status is.
+On the other hand, `purpose` is an information kept only by midPoint, not directly synchronized to the resource.
+The "purpose" will work for all resources, regardless of whether they support lifecycle state (and with what fidelity), activation, or any other details.
+
+== Setting the Values
+
+There is a default algorithm that provides the value for the `purpose` property.
+However, you can define your own, in the form of an outbound mapping:
+
+.An example of outbound mapping for the `purpose` property
+[source,xml]
+----
+<resource>
+    ...
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            ...
+            <lifecycle>
+                <purpose>
+                    <outbound>
+                        <source>
+                            <path>$focus/name</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowPurposeType
+
+                                    if (name.startsWith('temp:')) {
+                                        return ShadowPurposeType.INCOMPLETE
+                                    } else {
+                                        // default algorithm
+                                        return midpoint.computeDefaultProjectionPurpose(focus, shadow, resource)
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </purpose>
+            </lifecycle>
+            ...
+        </objectType>
+    </schemaHandling>
+</resource>
+----
+
+The outbound mapping is similar to other activation-related outbound mappings.
+Its primary input is the focus; but the shadow is available as well.
+(However, without any guarantees regarding whether it's loaded from the resource, or just from the repository.
+Also, whether it exists on the resource, or is just to be created yet.)
+
+The above artificial example sets the purpose of `incomplete` if the focus name starts with `temp:`.
+If not, the standard built-in algorithm is invoked by calling `midpoint.computeDefaultProjectionPurpose` method.
+
+== Future
+
+The following values of the `purpose` property are considered to be used in the future:
+
+* `reserved`: Resource object exists for the sole purpose of reserving identifiers or other resources.
+E.g., an account that exists only to make sure the username is not taken by any other account, or that a username is not re-used.
+It can be used both for existing and non-existing resource objects.
+I.e., it may be only a shadow, reserving identifier at midPoint level, or it may be a real account (probably inactive), reserving identifier at resource level.
+May also be used for (non-existent or disabled) accounts that are yet to be "claimed" by the user.
+
+* `suspended`: Resource object is inactivated (disabled) for a longer period of time.
+E.g., used for maternal leave or sabbatical.
+This purpose may be used to avoid deleting such accounts, e.g. in delayed delete scenarios.
+
+* `lingering`: Resource object is still there, even though it should be gone already.
+E.g., an account exists (although it is disabled), even though it should be deleted.
+This can be used to mark shadows that are kept due to disable-instead-of-delete scenarios.
