@@ -229,7 +229,7 @@ See bug:MID-10800[].
 * Fixed style issue on the task summary panel. See bug:MID-10884[].
 * Fixed reloading of the certification (responses) statistics model. See bug:MID-10882[].
 * Fixed Back button behavior from the Certification items page. See bug:MID-10879[].
-* Improved exception handling while using the saved filter on the search panel.
+* Improved exception handling while parsing incorrect filter on the search panel.
 From now,  if the user selects the filter saved for Advanced mode, and this filter has xml query configured instead of midPoint query, midPoint will parse such a (correct xml) query and apply it to the search.
 Warning message that the filter should be reconfigured with a midPoint (Advanced) query will be displayed on the panel.
 If the xml query cannot be parsed, the error message will be shown on the page. See bug:MID-10876[].
@@ -240,6 +240,7 @@ It was decided that even one row can be informative for the user so that the use
 Therefore, the visibility for the Certification items table was changed from false to true in case of just one row in the table.
 See bug:MID-10889[].
 * Fixed _runPrivileged_ configuration usage for scripting policy actions. See bug:MID-10820[].
+* Upgraded chartjs version to 0.6.
 
 === Releases Of Other Components
 
