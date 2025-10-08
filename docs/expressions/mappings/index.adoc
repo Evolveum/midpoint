@@ -355,14 +355,14 @@ Following table summarizes the outputs and inputs for mappings in individual sta
  +
 Note that the attribute, for which this inbound mapping si applied, is automatically added to sources and is presented as `input` variable in the mapping expression.
 | N/A
-| `$focus/givenName` +
-`$projection/attributes/firstName`
+| [.nowrap]#`$focus/givenName`# +
+[.nowrap]#`$projection/attributes/firstName`#
 
 | Target
 | Focus
 | `$focus`
 | `$focus`
-| `$focus/givenName` +
+| [.nowrap]#`$focus/givenName`# +
 `givenName`
 
 .2+| Object template
@@ -370,14 +370,14 @@ Note that the attribute, for which this inbound mapping si applied, is automatic
 | Focus
 | `$focus`
 | `$focus`
-| `$focus/givenName` +
+| [.nowrap]#`$focus/givenName`# +
 `givenName`
 
 | Target
 | Focus
 | `$focus`
 | `$focus`
-| `$focus/givenName` +
+| [.nowrap]#`$focus/givenName`# +
 `givenName`
 
 .2+| Outbound
@@ -386,9 +386,9 @@ Note that the attribute, for which this inbound mapping si applied, is automatic
 | `$focus` +
 `$projection`
 | `$focus`
-| `$focus/givenName` +
+| [.nowrap]#`$focus/givenName`# +
 `givenName` +
-`$projection/attributes/firstName`
+[.nowrap]#`$projection/attributes/firstName`#
 
 | Target
 | Projection (Shadow)
