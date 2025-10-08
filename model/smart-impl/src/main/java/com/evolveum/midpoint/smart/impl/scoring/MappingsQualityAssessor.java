@@ -62,12 +62,14 @@ public class MappingsQualityAssessor {
             }
 
             final String shadowValue = shadowValues.iterator().next().toString();
-            final String focusValue = focusValues.iterator().next().toString();
+            String focusValue = focusValues.iterator().next().toString();
 
-            final String result = applyExpression(suggestedExpression, focusValue, task, parentResult);
+            if (suggestedExpression != null) {
+                focusValue = applyExpression(suggestedExpression, focusValue, task, parentResult);
+            }
 
             totalShadowValues++;
-            if (shadowValue.equals(result)) {
+            if (shadowValue.equals(focusValue)) {
                 matchedShadowValues++;
             }
         }
