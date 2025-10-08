@@ -166,6 +166,7 @@ public abstract class ConfigureSynchronizationConfirmationPanel extends Confirma
                 .situation(SynchronizationSituationType.LINKED)
                 .beginActions()
                 .beginSynchronize()
+                .synchronize(true)
                 .end();
 
         WebPrismUtil.createNewValueWrapper(container, newValue, getPageBase(), target);
@@ -176,6 +177,7 @@ public abstract class ConfigureSynchronizationConfirmationPanel extends Confirma
                 .situation(SynchronizationSituationType.UNLINKED)
                 .beginActions()
                 .beginLink()
+                .synchronize(true)
                 .end();
         WebPrismUtil.createNewValueWrapper(container, newValue, getPageBase(), target);
 
@@ -185,6 +187,7 @@ public abstract class ConfigureSynchronizationConfirmationPanel extends Confirma
                 .situation(SynchronizationSituationType.UNMATCHED)
                 .beginActions()
                 .beginAddFocus()
+                .synchronize(true)
                 .end();
         WebPrismUtil.createNewValueWrapper(container, newValue, getPageBase(), target);
     }

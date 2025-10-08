@@ -40,6 +40,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.excludeUnwantedMappings;
+
 /**
  * @author lskublik
  */
@@ -200,16 +202,7 @@ public abstract class AssociationInboundAttributeMappingsTable extends Attribute
                     return list;
                 }
 
-                list.removeIf(valueWrapper -> {
-                    InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
-                    InboundMappingUseType valueUse = realValue.getUse();
-                    if (valueUse == null) {
-                        valueUse = InboundMappingUseType.ALL;
-                    }
-                    MappingUsedFor valueUsedFor = MappingUsedFor.valueOf(valueUse.name());
-
-                    return !usedFor.equals(valueUsedFor);
-                });
+                excludeUnwantedMappings(list, usedFor);
                 return list;
             }
         };

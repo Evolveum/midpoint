@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -25,10 +26,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -86,12 +85,12 @@ public class SmartIntegrationUtils {
 
     /**
      * Returns names of standalone (i.e. not embedded) + structural (i.e. not auxiliary) object classes.
-     *
+     * <p>
      * Those are the only object classes that can be directly mapped to object types.
      * Also, we can reasonably assume that we can count objects for these classes.
-     *
+     * <p>
      * NOTE: This method requires that the schema does exist for the resource and that the resource can be fetched
-     * via model API (which should be fine even for slightly malformed resources). Otherwise it will return an empty set.
+     * via model API (which should be fine even for slightly malformed resources). Otherwise, it will return an empty set.
      * Anyway, if we want to e.g. count objects on this resource, it must be at least minimally functional.
      */
     public static @NotNull Set<QName> getStandaloneStructuralObjectClassesNames(
@@ -192,6 +191,9 @@ public class SmartIntegrationUtils {
 
         if (executeTaskAction) {
             pageBase.taskAwareExecutor(target, operationName)
+                    .withOpResultOptions(OpResult.Options.create()
+                            .withHideSuccess(true)
+                            .withHideInProgress(true))
                     .runVoid((activityTask, activityResult) -> {
                         var oid = pageBase.getSmartIntegrationService().submitSuggestObjectTypesOperation(
                                 resourceOid, objectClassName, activityTask, activityResult);
@@ -206,7 +208,7 @@ public class SmartIntegrationUtils {
      * If suggestions exist, no background task is started.
      * Returns {@code true} if the task was executed, {@code false} otherwise.
      */
-    public static boolean runAssociationSuggestionAction(
+    public static void runAssociationSuggestionAction(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull Collection<ResourceObjectTypeIdentification> subjectTypes,
@@ -223,7 +225,7 @@ public class SmartIntegrationUtils {
             opResult.recordFatalError("Error loading association suggestions: " + opResult.getMessage());
             LOGGER.error("Error loading association suggestions for resource {}: {}",
                     resourceOid, opResult.getMessage());
-            return false;
+            return;
         }
 
         // TBD: fine-tune when we allow to execute the task action
@@ -235,6 +237,9 @@ public class SmartIntegrationUtils {
 
         if (executeTaskAction) {
             pageBase.taskAwareExecutor(target, operationName)
+                    .withOpResultOptions(OpResult.Options.create()
+                            .withHideSuccess(true)
+                            .withHideInProgress(true))
                     .runVoid((activityTask, activityResult) -> {
                         var oid = pageBase.getSmartIntegrationService()
                                 .submitSuggestAssociationsOperation(resourceOid, subjectTypes, objectTypes,
@@ -243,7 +248,6 @@ public class SmartIntegrationUtils {
                     });
         }
 
-        return executeTaskAction;
     }
 
     public static @NotNull IModel<Badge> getAiBadgeModel() {
@@ -597,29 +601,6 @@ public class SmartIntegrationUtils {
             }
         }
         return strategy;
-    }
-
-    public static @NotNull AjaxIconButton createStatisticsButton(
-            @NotNull String id,
-            @NotNull PageBase pageBase,
-            @NotNull String resourceOid,
-            ResourceObjectTypeDefinitionType objectTypeDefinition) {
-        AjaxIconButton statisticsButton = new AjaxIconButton(id,
-                Model.of("fa fa-solid fa-chart-bar"),
-                pageBase.createStringResource("Statistics.button.label")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (objectTypeDefinition == null) {
-                    return;
-                }
-
-                showStatisticsPanel(target, objectTypeDefinition, pageBase, resourceOid);
-            }
-        };
-        statisticsButton.add(AttributeModifier.replace("class", "btn btn-default rounded mr-2"));
-        statisticsButton.setOutputMarkupId(true);
-        statisticsButton.showTitleAsLabel(true);
-        return statisticsButton;
     }
 
     public static void showStatisticsPanel(

@@ -25,13 +25,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +46,9 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.resumeSuggestionTask;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.suspendSuggestionTask;
 
 public class SmartIntegrationStatusInfoUtils {
 
@@ -730,8 +739,7 @@ public class SmartIntegrationStatusInfoUtils {
         }
 
         if (addDefaultRow && (suggestion == null
-                || suggestion.getProgressInformation() == null
-                || suggestion.getProgressInformation().getChildren().isEmpty())) {
+                || suggestion.getProgressInformation() == null)) {
             rows.add(new StatusRowRecord(pageBase.createStringResource(
                     "SmartGeneratingDto.no.suggestion"),
                     ActivityProgressInformation.RealizationState.UNKNOWN,
@@ -744,12 +752,18 @@ public class SmartIntegrationStatusInfoUtils {
         }
 
         ActivityProgressInformation progressInformation = suggestion.getProgressInformation();
-
         if (progressInformation == null) {
             return rows;
         }
 
         List<ActivityProgressInformation> children = progressInformation.getChildren();
+        if (children.isEmpty()) {
+            rows.add(new StatusRowRecord(pageBase.createStringResource(
+                    "SmartGeneratingDto." + progressInformation.getRealizationState()),
+                    progressInformation.getRealizationState(),
+                    suggestion));
+            return rows;
+        }
         for (ActivityProgressInformation child : children) {
             String activityIdentifier = child.getActivityIdentifier();
             ActivityProgressInformation.RealizationState realizationState = child.getRealizationState();
@@ -808,5 +822,50 @@ public class SmartIntegrationStatusInfoUtils {
         }
 
         return 0;
+    }
+
+    public static void showSuggestionInfoPanelPopup(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @Nullable StatusInfo<?> statusInfo) {
+        HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
+                pageBase.getMainPopupBodyId(),
+                statusInfo != null ? statusInfo::getLocalizedMessage : null) {
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("ResourceObjectTypesPanel.suggestion.details.title");
+            }
+
+            @Override
+            protected @NotNull Label initLabel(IModel<String> messageModel) {
+                Label label = super.initLabel(messageModel);
+                label.add(AttributeModifier.append("class", "alert alert-danger"));
+                return label;
+            }
+
+            @Override
+            public @NotNull Component getFooter() {
+                Component footer = super.getFooter();
+                footer.add(new VisibleBehaviour(() -> false));
+                return footer;
+            }
+        };
+
+        target.add(pageBase.getMainPopup());
+
+        pageBase.showMainPopup(
+                helpInfoPanel, target);
+    }
+
+    public static void handleSuggestionSuspendResumeOperation(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<?> statusInfo,
+            @NotNull Task task, @NotNull OperationResult result) {
+        if (statusInfo.isSuspended() && statusInfo.getStatus() != OperationResultStatusType.FATAL_ERROR) {
+            resumeSuggestionTask(pageBase, statusInfo, task, result);
+        } else if (!statusInfo.isSuspended() && statusInfo.getStatus() != OperationResultStatusType.FATAL_ERROR) {
+            suspendSuggestionTask(
+                    pageBase, statusInfo, task, result);
+        }
     }
 }

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.dialog.ConfigureSynchronizationConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
-import com.evolveum.midpoint.web.component.dialog.SmartSuggestConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -53,7 +53,6 @@ import java.util.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createMappingsValueIfRequired;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestionNew;
-import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyCorrelationPermissionData;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
 /**
@@ -213,26 +212,6 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         return table;
     }
 
-    protected void showSuggestConfirmDialog(@NotNull PageBase pageBase,
-            IModel<SmartPermissionRecordDto> permissionRecordDtoIModel,
-            IModel<Boolean> switchToggleModel, String resourceOid, AjaxRequestTarget target) {
-        SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(
-                pageBase.getMainPopupBodyId(),
-                permissionRecordDtoIModel) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                switchToggleModel.setObject(false);
-                ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
-                SmartIntegrationService service = pageBase.getSmartIntegrationService();
-                pageBase.taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
-                        .runVoid((task, result) -> service
-                                .submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, task, result));
-            }
-        };
-        pageBase.showMainPopup(dialog, target);
-    }
-
     private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
             String resourceOid,
             IModel<Boolean> switchToggleModel) {
@@ -240,11 +219,21 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 () -> new SmartGeneratingAlertDto(loadExistingSuggestion(resourceOid), switchToggleModel, getPageBase())) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target) {
-                showSuggestConfirmDialog(getPageBase(),
-                        () -> new SmartPermissionRecordDto(null, initDummyCorrelationPermissionData()),
-                        switchToggleModel,
-                        resourceOid,
-                        target);
+                switchToggleModel.setObject(false);
+                ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
+                SmartIntegrationService service = getPageBase().getSmartIntegrationService();
+                getPageBase().taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
+                        .withOpResultOptions(OpResult.Options.create()
+                                .withHideSuccess(true)
+                                .withHideInProgress(true))
+                        .runVoid((task, result) -> service
+                                .submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, task, result));
+            }
+
+            @Override
+            protected @NotNull IModel<SmartPermissionRecordDto> getPermissionRecordDtoIModel() {
+                return () -> new SmartPermissionRecordDto(null,
+                        SmartPermissionRecordDto.initDummyCorrelationPermissionData());
             }
 
             @Override

@@ -10,8 +10,12 @@ import java.io.Serial;
 import java.time.Duration;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+
+import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
+import com.evolveum.midpoint.web.component.dialog.SmartSuggestConfirmationPanel;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
@@ -30,6 +34,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyMappingPermissionData;
 
 /**
  * Panel for monitoring and controlling a "smart generating" task.
@@ -112,10 +118,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                 createStringResource("SmartGeneratingPanel.button.ai.suggestions.suggest")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                performSuggestOperation(target);
-                target.add(SmartAlertGeneratingPanel.this);
-                refreshAssociatedComponents(target);
-                restartTimeBehavior(target);
+                showSuggestConfirmDialog(getPageBase(), target);
             }
         };
         suggestButton.add(AttributeModifier.append(
@@ -182,7 +185,11 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     /** Restarts the polling timer if it exists. */
     private void restartTimeBehavior(AjaxRequestTarget target) {
         if (timerBehavior != null) {
-            timerBehavior.restart(target);
+            try {
+                timerBehavior.restart(target);
+            } catch (Exception e) {
+                LOGGER.debug("Unable to restart timer for {}: {}", getId(), e.getMessage());
+            }
         }
     }
 
@@ -237,6 +244,28 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                 }
             }
         };
+    }
+
+    private void showSuggestConfirmDialog(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target) {
+        SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(
+                pageBase.getMainPopupBodyId(),
+                getPermissionRecordDtoIModel()) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                performSuggestOperation(target);
+                target.add(SmartAlertGeneratingPanel.this);
+                refreshAssociatedComponents(target);
+                restartTimeBehavior(target);
+            }
+        };
+        pageBase.showMainPopup(dialog, target);
+    }
+
+    protected IModel<SmartPermissionRecordDto> getPermissionRecordDtoIModel() {
+        return Model.of(new SmartPermissionRecordDto(null, initDummyMappingPermissionData()));
     }
 
     /** Called when task finishes successfully. Default no-op. */
