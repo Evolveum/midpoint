@@ -101,7 +101,7 @@ Once you're done with the changes to the object type:
 . At the bottom of the object list, click icon:rotate-right[] btn:[Reclassify].
 . Click btn:[Yes] in the modal dialog that appears to confirm the reclassification.
 
-image::../shadow-reclassification-task-launch-button-on-resource-objects-list.webp[link=../shadow-reclassification-task-launch-button-on-resource-objects-list.webp, 100%, title=Shadow reclassification button in the resource object list view]
+image::../shadow-reclassification-task-launch-button-on-resource-objects-list.webp[100%, title=Shadow reclassification button in the resource object list view]
 
 The resource object list contents won't change after this action.
 Navigate to icon:male[] *Accounts* to check the result of the reclassification.

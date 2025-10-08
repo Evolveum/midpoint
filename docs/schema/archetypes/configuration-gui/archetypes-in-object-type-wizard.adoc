@@ -17,6 +17,6 @@ The list of archetypes you see here is considerably shorter than the list of all
 That's because the list here is filtered so that you see only archetypes that can be used for the currently edited object type.
 ====
 
-image::../object-type-midpoint-data-archetype-selection.webp[link=../object-type-midpoint-data-archetype-selection.webp, 100%]
+image::../object-type-midpoint-data-archetype-selection.webp[100%]
 
 
