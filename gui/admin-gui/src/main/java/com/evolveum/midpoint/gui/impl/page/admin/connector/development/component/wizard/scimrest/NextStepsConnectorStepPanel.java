@@ -186,7 +186,7 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
         WizardModel wizardModel = getWizard();
         wizardModel.addStepAfter(step, ObjectClassConnectorStepPanel.class);
         if (wizardModel instanceof WizardModelWithParentSteps wizardModelWithParentSteps) {
-            wizardModelWithParentSteps.setActiveChildStepById(step.getDefaultStepId());
+            wizardModelWithParentSteps.setActiveParentStepById(step.getDefaultStepId());
         } else {
             wizardModel.setActiveStepById(step.getDefaultStepId());
         }

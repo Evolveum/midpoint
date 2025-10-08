@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.StatusRowRecord;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -337,8 +339,65 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         if (allowShowInBackground()) {
             initRunInBackgroundButton(buttonsView);
         }
-        initActionButton(buttonsView);
-        initDiscardButton(buttonsView);
+        if (allowActionButton()) {
+            initActionButton(buttonsView);
+        }
+        if (allowRerun()) {
+            initReRunButton(buttonsView);
+        } else {
+            initDiscardButton(buttonsView);
+        }
+    }
+
+    protected boolean allowActionButton() {
+        return true;
+    }
+
+    private void initReRunButton(@NotNull RepeatingView buttonsView) {
+        AjaxIconButton reRunButton = new AjaxIconButton(
+                buttonsView.newChildId(),
+                Model.of("fa fa-refresh"),
+                createStringResource("SmartGeneratingPanel.button.reRun")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onReRunPerform(target, getPageBase());
+            }
+        };
+
+        reRunButton.setOutputMarkupId(true);
+        reRunButton.showTitleAsLabel(true);
+        reRunButton.add(AttributeModifier.append("class", "btn btn-primary"));
+        reRunButton.add(new VisibleBehaviour(() -> {
+            SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
+            return dto != null && (dto.isFailed() || dto.isSuspended());
+        }));
+        buttonsView.add(reRunButton);
+    }
+
+    public void onReRunPerform(AjaxRequestTarget target, PageBase pageBase) {
+        SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
+        if (dto == null) {
+            return;
+        }
+        TaskType taskObject = dto.getTaskObject();
+        if (taskObject == null) {
+            return;
+        }
+
+        TaskOperationUtils.runNowPerformed(ObjectTypeUtil.getOids(Collections.singletonList(taskObject)), pageBase);
+
+        timerBehavior.restart(target);
+        if (target != null) {
+            target.add(SmartGeneratingPanel.this);
+        }
+        getModel().detach();
+    }
+
+    protected boolean allowRerun() {
+        return false;
     }
 
     protected boolean allowShowInBackground() {

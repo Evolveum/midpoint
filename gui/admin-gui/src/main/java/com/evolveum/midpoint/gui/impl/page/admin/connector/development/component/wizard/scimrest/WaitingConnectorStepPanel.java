@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -64,7 +63,8 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         statusModel = new LoadableModel<>() {
             @Override
             protected SmartGeneratingDto load() {
-                Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
+
+                Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_DETERMINE_STATUS);
                 OperationResult result = task.getResult();
 
                 String token = getTaskToken(task, result);
@@ -94,7 +94,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                     };
                 }
 
-                PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, token, getPageBase(), task, result);
+                PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, token, getDetailsModel().getPageAssignmentHolder(), task, result);
                 return new SmartGeneratingDto(statusInfoModel, () -> taskTypePrismObject){
                     @Override
                     protected boolean addDefaultRow() {
@@ -119,7 +119,13 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
-        SmartGeneratingPanel waitingPanel = new SmartGeneratingPanel(ID_PANEL, statusModel, true) {
+        SmartGeneratingPanel waitingPanel = createWaitingPanel();
+        waitingPanel.setOutputMarkupId(true);
+        add(waitingPanel);
+    }
+
+    protected final @NotNull SmartGeneratingPanel createWaitingPanel() {
+        return new SmartGeneratingPanel(ID_PANEL, statusModel, true) {
             @Override
             protected void onFinishActionPerform(AjaxRequestTarget target) {
                 onNextPerformed(target);
@@ -132,6 +138,16 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
             @Override
             protected boolean allowShowInBackground() {
+                return false;
+            }
+
+            @Override
+            protected boolean allowRerun() {
+                return true;
+            }
+
+            @Override
+            protected boolean allowActionButton() {
                 return false;
             }
 
@@ -155,8 +171,6 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                         AttributeAppender.replace("class", "text-center text-secondary mb-2 col-6 lh-2"));
             }
         };
-        waitingPanel.setOutputMarkupId(true);
-        add(waitingPanel);
     }
 
     protected @NotNull Model<String> getIconModel() {
@@ -188,6 +202,10 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         };
     }
 
+    protected final LoadableModel<SmartGeneratingDto> getStatusModel() {
+        return statusModel;
+    }
+
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         String oid = getDetailsModel().getObjectWrapper().getOid();
@@ -211,5 +229,9 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
     protected final Object getResult(){
         return statusModel.getObject().getStatusInfo().getObject().getResult();
+    }
+
+    public SmartGeneratingPanel getPanel() {
+        return (SmartGeneratingPanel) get(ID_PANEL);
     }
 }

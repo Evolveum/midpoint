@@ -8,7 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardListener;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionResourceObjectTypeStepPanel;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -19,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -49,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.resourceTest", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
+public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardListener {
 
     private static final String PANEL_TYPE = "cdw-resource-test";
 
@@ -67,6 +72,12 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
         super.onInitialize();
         createValuesModel();
         initLayout();
+    }
+
+    @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+        wizard.addWizardListener(this);
     }
 
     private void createValuesModel() {
@@ -95,6 +106,11 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
             protected void onFinishActionPerform(AjaxRequestTarget target) {
                 nextButtonVisible = true;
                 target.add(getButtonContainer());
+            }
+
+            @Override
+            public Component getFeedbackPanel() {
+                return getFeedback();
             }
         };
         waitingPanel.setOutputMarkupId(true);
@@ -138,5 +154,14 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
     @Override
     public String getStepId() {
         return PANEL_TYPE;
+    }
+
+    @Override
+    public void onStepChanged(WizardStep newStep) {
+        if (!ResourceTestConnectorStepPanel.this.equals(newStep)) {
+            return;
+        }
+
+        ((ResourceTestPanel)get(ID_PANEL)).refresh();
     }
 }

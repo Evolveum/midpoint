@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -103,6 +105,10 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType, M extends Ob
 
     protected PageBase getPageBase() {
         return WebComponentUtil.getPageBase(this);
+    }
+
+    public Component getFeedbackPanel() {
+        return getPageBase().getFeedbackPanel();
     }
 
     protected PrismContext getPrismContext() {
