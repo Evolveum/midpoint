@@ -7,14 +7,13 @@
 package com.evolveum.midpoint.gui.impl.page.self.dashboard;
 
 import java.io.Serial;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.DashboardSearchPanel;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -74,6 +74,7 @@ public class PageSelfDashboard extends PageSelf {
 
     private static final String LINK_WIDGET_IDENTIFIER = "linkWidget";
 
+    private static final int DEFAULT_DASHBOARD_PREVIEW_SIZE = 5;
 
     public PageSelfDashboard() {
         initLayout();
@@ -99,7 +100,7 @@ public class PageSelfDashboard extends PageSelf {
         initPreviewWidgets(mainForm);
      }
 
-    private void initStatisticWidgets(Form mainForm) {
+    private void initStatisticWidgets(Form<?> mainForm) {
         LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> statisticWidgetListModel =
                 getStatisticWidgetListModel();
         ListView<PreviewContainerPanelConfigurationType> statisticWidgetsPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL,
@@ -119,11 +120,15 @@ public class PageSelfDashboard extends PageSelf {
         mainForm.add(statisticWidgetsPanel);
     }
 
-    private void initPreviewWidgets(Form mainForm) {
+    private void initPreviewWidgets(Form<?> mainForm) {
+        LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> previewWidgetsModel =
+                getNonStatisticWidgetListModel();
+
         // MID-10885 user details model that should be reused in all widgets, since it can be quite expensive to create.
         // If user has many assignments, too many db queries are executed and creating prism object wrapper takes forever.
         // If new instance of user details model is created, then probably clone this one somehow.
-        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this) {
+        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(previewWidgetsModel),
+                PageSelfDashboard.this) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -132,8 +137,6 @@ public class PageSelfDashboard extends PageSelf {
             }
         };
 
-        LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> previewWidgetsModel =
-                getNonStatisticWidgetListModel();
         ListView<PreviewContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL,
                 previewWidgetsModel) {
             @Serial private static final long serialVersionUID = 1L;
@@ -195,7 +198,8 @@ public class PageSelfDashboard extends PageSelf {
         };
      }
 
-    private LoadableDetachableModel<PrismObject<UserType>> createSelfModel() {
+    private LoadableDetachableModel<PrismObject<UserType>> createSelfModel(
+            LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> previewWidgetsModel) {
         return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -204,13 +208,48 @@ public class PageSelfDashboard extends PageSelf {
                 MidPointPrincipal principal;
                 try {
                     principal = SecurityUtil.getPrincipal();
+                    if (principal == null || !(principal.getFocus() instanceof UserType principalUser)) {
+                        LOGGER.error("Dashboard panels don't support other than UserType principal object.");
+                        return null;
+                    }
+                    return getPrincipalUserWithRestrictedAssignments(principalUser, previewWidgetsModel).asPrismObject();
                 } catch (SecurityViolationException e) {
                     LOGGER.error("Cannot load logged in focus");
                     return null;
                 }
-                return (PrismObject<UserType>) principal.getFocus().asPrismObject().clone();
             }
         };
+    }
+
+    private UserType getPrincipalUserWithRestrictedAssignments(UserType principalUser,
+            LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> previewWidgetsModel) {
+        int assignmentsPreviewSize = getAssignmentsPreviewSize(previewWidgetsModel);
+        UserType restrictedUser = principalUser.clone();
+        restrictedUser.getAssignment().clear();
+        List<AssignmentType> originalAssignments = principalUser.getAssignment();
+        List<AssignmentType> restrictedAssignments = originalAssignments.stream()
+                .limit(Math.min(assignmentsPreviewSize, originalAssignments.size()))
+                .map(AssignmentType::clone)
+                .toList();
+        restrictedUser.getAssignment().addAll(restrictedAssignments);
+        return restrictedUser;
+    }
+
+    private int getAssignmentsPreviewSize(
+            LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> previewWidgetsModel) {
+        List<PreviewContainerPanelConfigurationType> widgets = previewWidgetsModel.getObject();
+        int assignmentsPreviewSize = DEFAULT_DASHBOARD_PREVIEW_SIZE;
+        for (var widget : widgets) {
+            if (StringUtils.isEmpty(widget.getPanelType())) {
+                continue;
+            }
+            Class<?> widgetPanel = findObjectPanel(widget.getPanelType());
+            if (AbstractAssignmentTypePanel.class.isAssignableFrom(widgetPanel)) {
+                int widgetPreviewSize = Objects.requireNonNullElse(widget.getPreviewSize(), 0);
+                assignmentsPreviewSize = Math.max(assignmentsPreviewSize, widgetPreviewSize);
+            }
+        }
+        return assignmentsPreviewSize;
     }
 
     private Component createWidget(String markupId, IModel<PreviewContainerPanelConfigurationType> model, UserDetailsModel userDetailsModel) {
