@@ -19,14 +19,15 @@
                 </wicket:enclosure>
             </div>
             <wicket:container class="ml-auto" wicket:id="header">
-                    <span class="btn-group  m-auto">
+                <span wicket:id="deleteStatusMessage" role="status" class="sr-only" aria-live="polite"></span>
+                <span class="btn-group  m-auto">
                         <a class="btn btn-tool" wicket:id="removeButton" wicket:message="title:PageBase.button.delete">
                             <i class="fa fa-minus-circle"></i>
                         </a>
                         <button class="btn btn-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.metadata">
                             <i class="fa fa-tag"></i>
                         </button>
-                    </span>
+                </span>
             </wicket:container>
         </div>
         <wicket:enclosure child="metadata">
