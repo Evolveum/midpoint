@@ -258,9 +258,9 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
                     return;
                 }
 
-                if (i == 0) {
-
-                }
+//                if (i == 0) {
+//
+//                }
             }
             useOriginal = false;
             valueModel.detach();
