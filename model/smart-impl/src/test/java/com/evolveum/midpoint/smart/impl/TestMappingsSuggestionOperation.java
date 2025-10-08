@@ -2,6 +2,7 @@ package com.evolveum.midpoint.smart.impl;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -11,6 +12,7 @@ import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -18,6 +20,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
@@ -61,15 +64,18 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         initTestObjects(initTask, initResult, USER1, USER2, USER3);
 
         var a = dummyScenario.account;
-        a.add("account1")
+        a.add("user1")
                 .addAttributeValues(PERSONAL_NUMBER.local(), "11111")
                 .addAttributeValues(EMAIL.local(), "user1@acme.com");
-        a.add("account2")
+        linkAccount(USER1, initTask, initResult);
+        a.add("user2")
                 .addAttributeValues(PERSONAL_NUMBER.local(), "22222")
                 .addAttributeValues(EMAIL.local(), "user2@acme.com");
-        a.add("account3")
+        linkAccount(USER2, initTask, initResult);
+        a.add("user3")
                 .addAttributeValues(PERSONAL_NUMBER.local(), "33333")
                 .addAttributeValues(EMAIL.local(), "user3@acme.com");
+        linkAccount(USER3, initTask, initResult);
     }
 
     private void refreshShadows() throws Exception {
@@ -78,6 +84,20 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                         .queryFor(ACCOUNT_DEFAULT)
                         .build(),
                 null, getTestTask(), getTestOperationResult());
+    }
+
+    private void linkAccount(TestObject<?> user, Task task, OperationResult result) throws CommonException, IOException {
+        var shadow = findShadowRequest()
+                .withResource(RESOURCE_DUMMY.getObjectable())
+                .withDefaultAccountType()
+                .withNameValue(user.getNameOrig())
+                .build().findRequired(task, result);
+        executeChanges(
+                PrismContext.get().deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .add(shadow.getRef())
+                        .asObjectDelta(user.oid),
+                null, task, result);
     }
 
     private ServiceClient createClient(List<ItemPath> focusPaths, List<ItemPath> shadowPaths, String script) {
@@ -93,6 +113,15 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 matchResponse,
                 new SiSuggestMappingResponseType().transformationScript(script)
         );
+    }
+
+    private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(path)
+                        .replace(newValues)
+                        .asObjectDelta(oid),
+                null, getTestTask(), getTestOperationResult());
     }
 
     @Test
@@ -128,6 +157,38 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
                 .as("Should be asIs (null)")
                 .isNull();
+    }
+
+    @Test
+    public void test002TransformationMappingWhenScriptProvided() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "1-1-1-1-1");
+        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "2-222-2");
+        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "33-3-33");
+
+        refreshShadows();
+
+        String script = "input.replaceAll('-', '')";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                script
+        );
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                qualityAssessor(),
+                task,
+                result);
+
+        MappingsSuggestionType suggestion = op.suggestMappings(result);
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+
     }
 
 }
