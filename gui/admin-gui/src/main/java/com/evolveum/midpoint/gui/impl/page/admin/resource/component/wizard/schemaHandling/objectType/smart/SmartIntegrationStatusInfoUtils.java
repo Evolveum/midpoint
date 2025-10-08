@@ -160,6 +160,7 @@ public class SmartIntegrationStatusInfoUtils {
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull ResourceObjectTypeDefinitionType rotDef,
+            boolean includeNonCompletedSuggestions,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -175,6 +176,10 @@ public class SmartIntegrationStatusInfoUtils {
 
             for (StatusInfo<CorrelationSuggestionsType> suggestionStatusInfo : statuses) {
                 if (!isCorrelationSuggestionEligible(suggestionStatusInfo, rotDef)) {continue;}
+
+                if (!includeNonCompletedSuggestions && isNotCompletedSuggestion(suggestionStatusInfo)) {
+                    continue;
+                }
 
                 CorrelationSuggestionsType suggestionParent = ensureCorrelationSuggestionsPresent(suggestionStatusInfo);
 
@@ -244,8 +249,6 @@ public class SmartIntegrationStatusInfoUtils {
         }
     }
 
-    //  TODO this should be use-case for rewriting suggestion tasks
-
     /**
      * Loads the mapping type suggestion status for the given resource.
      * <p>
@@ -276,6 +279,29 @@ public class SmartIntegrationStatusInfoUtils {
         }
     }
 
+    public static @Nullable StatusInfo<CorrelationSuggestionsType> loadCorrelationTypeSuggestion(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        var smart = pageBase.getSmartIntegrationService();
+
+        try {
+            List<StatusInfo<CorrelationSuggestionsType>> statusInfos = smart.listSuggestCorrelationOperationStatuses(
+                    resourceOid, task, result);
+            if (statusInfos == null || statusInfos.isEmpty()) {
+                return null;
+            }
+            return statusInfos.get(0);
+        } catch (Throwable t) {
+            result.recordException(t);
+            LoggingUtils.logException(LOGGER, "Couldn't load Correlation status for {}", t, resourceOid);
+            return null;
+        } finally {
+            result.close();
+        }
+    }
+
     public record MappingSuggestionProviderResult(
             @NotNull List<PrismContainerValueWrapper<MappingType>> wrappers,
             @NotNull Map<PrismContainerValueWrapper<MappingType>, StatusInfo<MappingsSuggestionType>> suggestionByWrapper) {
@@ -287,6 +313,7 @@ public class SmartIntegrationStatusInfoUtils {
             @NotNull String resourceOid,
             @NotNull ResourceObjectTypeDefinitionType rotDef,
             @NotNull MappingDirection mappingDirection,
+            boolean includeNonCompletedSuggestions,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -302,6 +329,10 @@ public class SmartIntegrationStatusInfoUtils {
 
             for (StatusInfo<MappingsSuggestionType> suggestionStatusInfo : statuses) {
                 if (!isMappingSuggestionEligible(suggestionStatusInfo, rotDef)) {
+                    continue;
+                }
+
+                if (!includeNonCompletedSuggestions && isNotCompletedSuggestion(suggestionStatusInfo)) {
                     continue;
                 }
 
@@ -365,6 +396,15 @@ public class SmartIntegrationStatusInfoUtils {
         } finally {
             result.close();
         }
+    }
+
+    public static boolean isNotCompletedSuggestion(@Nullable StatusInfo<?> suggestionStatusInfo) {
+        if (suggestionStatusInfo == null) {
+            return false;
+        }
+        return suggestionStatusInfo.isExecuting() ||
+                (suggestionStatusInfo.getStatus() == OperationResultStatusType.IN_PROGRESS
+                        || suggestionStatusInfo.getStatus() == OperationResultStatusType.FATAL_ERROR);
     }
 
     private static boolean isCorrelationSuggestionEligible(

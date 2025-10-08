@@ -33,6 +33,8 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 
+import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
+import com.evolveum.midpoint.web.component.dialog.SmartSuggestConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,7 +50,9 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.isNotCompletedSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadMappingTypeSuggestion;
+import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyMappingPermissionData;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_INBOUND_MAPPINGS;
 
 /**
@@ -88,42 +92,21 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     private void initLayout() {
-        IModel<Boolean> switchToggleModel = Model.of(Boolean.FALSE);
         String resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
 
-        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL, () -> {
-            Task task = getPageBase().createSimpleTask("Load generation statusInfo");
-            OperationResult result = task.getResult();
-            LoadableModel<StatusInfo<?>> statusModel = new LoadableModel<>() {
-                @Override
-                protected StatusInfo<MappingsSuggestionType> load() {
-                    return loadMappingTypeSuggestion(getPageBase(), resourceOid, task, result);
-                }
-            };
-            return new SmartGeneratingAlertDto(statusModel, switchToggleModel, getPageBase());
-        }) {
-            @Override
-            protected void performSuggestOperation(AjaxRequestTarget target) {
-                //TODO add permission check
-                PageBase pageBase = getPageBase();
-                ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
-                SmartIntegrationService service = pageBase.getSmartIntegrationService();
-                pageBase.taskAwareExecutor(target, OP_SUGGEST_MAPPING)
-                        .runVoid((task, result) -> {
-                            service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, task, result);
-                        });
-            }
+        IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
+        if (isNotCompletedSuggestion(loadExistingSuggestion(resourceOid).getObject())) {
+            switchToggleModel.setObject(Boolean.FALSE);
+        }
 
-            @Override
-            protected void refreshAssociatedComponents(@NotNull AjaxRequestTarget target) {
-                SmartMappingTable<?> smartMappingTable = getSmartMappingTable();
-                smartMappingTable.refreshAndDetach(target);
-            }
-        };
-
-        aiPanel.setOutputMarkupId(true);
+        SmartAlertGeneratingPanel aiPanel = createSmartAlertGeneratingPanel(resourceOid, switchToggleModel);
         add(aiPanel);
 
+        SmartMappingTable<P> smartMappingTable = createSmartMappingTable(switchToggleModel, resourceOid);
+        add(smartMappingTable);
+    }
+
+    private @NotNull SmartMappingTable<P> createSmartMappingTable(IModel<Boolean> switchToggleModel, String resourceOid) {
         SmartMappingTable<P> smartMappingTable = new SmartMappingTable<>(ID_PANEL,
                 TABLE_SMART_INBOUND_MAPPINGS,
                 Model.of(ViewToggle.TILE),
@@ -163,7 +146,63 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             }
         };
         smartMappingTable.setOutputMarkupId(true);
-        add(smartMappingTable);
+        return smartMappingTable;
+    }
+
+    protected LoadableModel<StatusInfo<?>> loadExistingSuggestion(String resourceOid) {
+        Task task = getPageBase().createSimpleTask("Load generation statusInfo");
+        OperationResult result = task.getResult();
+        return new LoadableModel<>() {
+            @Override
+            protected StatusInfo<MappingsSuggestionType> load() {
+                return loadMappingTypeSuggestion(getPageBase(), resourceOid, task, result);
+            }
+        };
+    }
+
+    protected void showSuggestConfirmDialog(@NotNull PageBase pageBase,
+            IModel<SmartPermissionRecordDto> permissionRecordDtoIModel,
+            IModel<Boolean> switchToggleModel, String resourceOid, AjaxRequestTarget target) {
+        SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(
+                pageBase.getMainPopupBodyId(),
+                permissionRecordDtoIModel) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                switchToggleModel.setObject(false);
+                ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
+                SmartIntegrationService service = pageBase.getSmartIntegrationService();
+                pageBase.taskAwareExecutor(target, OP_SUGGEST_MAPPING)
+                        .runVoid((task, result) -> {
+                            service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, task, result);
+                        });
+            }
+        };
+        pageBase.showMainPopup(dialog, target);
+    }
+
+    private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(String resourceOid, IModel<Boolean> switchToggleModel) {
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
+                () -> new SmartGeneratingAlertDto(loadExistingSuggestion(resourceOid), switchToggleModel, getPageBase())) {
+            @Override
+            protected void performSuggestOperation(AjaxRequestTarget target) {
+                showSuggestConfirmDialog(getPageBase(),
+                        () -> new SmartPermissionRecordDto(null, initDummyMappingPermissionData()),
+                        switchToggleModel,
+                        resourceOid,
+                        target);
+            }
+
+            @Override
+            protected void refreshAssociatedComponents(@NotNull AjaxRequestTarget target) {
+                SmartMappingTable<?> smartMappingTable = getSmartMappingTable();
+                smartMappingTable.refreshAndDetach(target);
+            }
+        };
+
+        aiPanel.setOutputMarkupId(true);
+        aiPanel.setOutputMarkupPlaceholderTag(true);
+        return aiPanel;
     }
 
     boolean isInboundTabSelected = true;
