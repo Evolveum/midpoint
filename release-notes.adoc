@@ -48,6 +48,7 @@ See bug:MID-10824[], bug:MID-10748[].
 * Fixed some bugs in the Role mining GUI. See bug:MID-10842[].
 * Improved the time of the certification items list processing (e.g. during cert. items report creating or during displaying in the GUI). See bug:MID-10811[], bug:MID-10812[].
 * Fixed Back button behavior from the Certification items page. See bug:MID-10879[].
+* Upgraded chartjs version to 0.6.
 
 == Changes with Respect To Version 4.9.3
 
