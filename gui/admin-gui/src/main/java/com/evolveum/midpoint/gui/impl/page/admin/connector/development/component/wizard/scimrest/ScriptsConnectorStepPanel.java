@@ -251,20 +251,23 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
                 if (step instanceof WaitingScriptConnectorStepPanel waitingPanel) {
                     idOfFound = step.getStepId();
                     waitingPanel.resetScript(getPageBase());
+                    if (i == 0) {
+                        setActiveStepById(target, parentWizardModel, idOfFound);
+                    }
                 } else if (StringUtils.isNotEmpty(idOfFound)) {
-                    parentWizardModel.setActiveStepById(idOfFound);
-                    parentWizardModel.fireActiveStepChanged();
-                    target.add(getWizard().getPanel());
+                    setActiveStepById(target, parentWizardModel, idOfFound);
                     return;
                 }
-
-//                if (i == 0) {
-//
-//                }
             }
             useOriginal = false;
             valueModel.detach();
         }
+    }
+
+    private void setActiveStepById(AjaxRequestTarget target, WizardModelWithParentSteps parentWizardModel, String idOfFound) {
+        parentWizardModel.setActiveStepById(idOfFound);
+        parentWizardModel.fireActiveStepChanged();
+        target.add(getWizard().getPanel());
     }
 
 }
