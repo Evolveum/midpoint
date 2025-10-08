@@ -319,7 +319,7 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
         if (isSuggestion()) {
             buttonContainer.add(initActionSuggestionButton(buttonContainer.newChildId()));
         } else {
-            buttonContainer.add(initEditButton(buttonContainer.newChildId()));
+//            buttonContainer.add(initEditButton(buttonContainer.newChildId()));
         }
 
         DropdownButtonPanel buttonPanel = new DropdownButtonPanel(buttonContainer.newChildId(), new DropdownButtonDto(

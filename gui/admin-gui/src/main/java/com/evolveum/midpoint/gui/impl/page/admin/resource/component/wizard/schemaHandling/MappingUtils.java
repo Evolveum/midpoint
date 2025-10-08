@@ -464,4 +464,20 @@ public class MappingUtils {
         pcv.getValue().setRef(null);
     }
 
+    /**
+     *	Filters the given list in place, keeping only mappings matching the specified usage type.
+     *	Mappings whose {@code use} value differs from {@code usedFor} are removed.
+     */
+    public static void excludeUnwantedMappings(@NotNull List<PrismContainerValueWrapper<MappingType>> list, MappingUsedFor usedFor) {
+        list.removeIf(valueWrapper -> {
+            InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
+            InboundMappingUseType valueUse = realValue.getUse();
+            if (valueUse == null) {
+                valueUse = InboundMappingUseType.ALL;
+            }
+            MappingUsedFor valueUsedFor = MappingUsedFor.valueOf(valueUse.name());
+
+            return !usedFor.equals(valueUsedFor);
+        });
+    }
 }

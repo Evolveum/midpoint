@@ -36,12 +36,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -60,7 +58,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,8 +67,7 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.util.*;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadCorrelationSuggestionWrappers;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
 import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyCorrelationPermissionData;
@@ -502,33 +498,7 @@ public class SmartCorrelationTable
                         IModel<Serializable> rowModel = getRowModel();
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
                             StatusInfo<CorrelationSuggestionsType> statusInfo = getStatusInfo(valueWrapper);
-                            HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
-                                    getPageBase().getMainPopupBodyId(),
-                                    statusInfo != null ? statusInfo::getLocalizedMessage : null) {
-                                @Override
-                                public StringResourceModel getTitle() {
-                                    return createStringResource("ResourceObjectTypesPanel.suggestion.details.title");
-                                }
-
-                                @Override
-                                protected @NotNull Label initLabel(IModel<String> messageModel) {
-                                    Label label = super.initLabel(messageModel);
-                                    label.add(AttributeModifier.append("class", "alert alert-danger"));
-                                    return label;
-                                }
-
-                                @Override
-                                public @NotNull Component getFooter() {
-                                    Component footer = super.getFooter();
-                                    footer.add(new VisibleBehaviour(() -> false));
-                                    return footer;
-                                }
-                            };
-
-                            target.add(getPageBase().getMainPopup());
-
-                            getPageBase().showMainPopup(
-                                    helpInfoPanel, target);
+                            showSuggestionInfoPanelPopup(getPageBase(), target, statusInfo);
                         }
                     }
                 };
@@ -602,12 +572,7 @@ public class SmartCorrelationTable
                         if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
                             StatusInfo<CorrelationSuggestionsType> statusInfo = getStatusInfo(valueWrapper);
                             if (statusInfo != null) {
-                                if (statusInfo.isSuspended() && statusInfo.getStatus() != OperationResultStatusType.FATAL_ERROR) {
-                                    resumeSuggestionTask(getPageBase(), statusInfo, task, result);
-                                } else if (!statusInfo.isSuspended() && statusInfo.getStatus() != OperationResultStatusType.FATAL_ERROR) {
-                                    suspendSuggestionTask(
-                                            getPageBase(), statusInfo, task, result);
-                                }
+                                handleSuggestionSuspendResumeOperation(getPageBase(), statusInfo, task, result);
                                 refreshAndDetach(target);
                             }
                         }

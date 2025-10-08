@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.component.ButtonBar;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -54,6 +55,7 @@ public abstract class NoValuePanel extends BasePanel<NoValuePanelDto> {
 
     private void initLayout() {
         WebMarkupContainer panel = new WebMarkupContainer(ID_PANEL);
+        panel.add(AttributeModifier.append("class", getPanelAdditionalCssClass()));
         panel.setOutputMarkupId(true);
         add(panel);
 
@@ -91,4 +93,7 @@ public abstract class NoValuePanel extends BasePanel<NoValuePanelDto> {
         return label;
     }
 
+    protected String getPanelAdditionalCssClass() {
+        return "card";
+    }
 }

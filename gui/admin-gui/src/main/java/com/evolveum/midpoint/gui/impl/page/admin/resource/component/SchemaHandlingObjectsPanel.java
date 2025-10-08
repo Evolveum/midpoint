@@ -43,7 +43,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
-import com.evolveum.midpoint.web.component.dialog.SmartSuggestConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -111,15 +110,17 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target) {
                 switchSuggestion.setObject(Boolean.TRUE);
-                showSuggestConfirmDialog(getPageBase(),
-                        () -> new SmartPermissionRecordDto(null, initDummyObjectTypePermissionData()),
-                        target);
+                onSuggestValue(null, createContainerModel(), target);
+            }
+
+            @Override
+            protected @NotNull IModel<SmartPermissionRecordDto> getPermissionRecordDtoIModel() {
+                return () -> new SmartPermissionRecordDto(null, initDummyObjectTypePermissionData());
             }
 
             @Override
             protected void refreshAssociatedComponents(@NotNull AjaxRequestTarget target) {
-                MultivalueContainerListPanel<?> smartMappingTable = getTable();
-                smartMappingTable.refreshTable(target);
+                target.add(SchemaHandlingObjectsPanel.this);
             }
         };
 
@@ -320,26 +321,6 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 togglePanel.setOutputMarkupId(true);
                 togglePanel.add(new VisibleBehaviour(() -> isToggleSuggestionVisible()));
                 bar.add(togglePanel);
-            }
-
-            private void createSuggestObjectButton(String idButton, @NotNull List<Component> bar) {
-                AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton,
-                        Model.of("fa-solid fa-wand-magic-sparkles"),
-                        createStringResource("SchemaHandlingObjectsPanel.suggestNew")) {
-
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        showSuggestConfirmDialog(getPageBase(),
-                                () -> new SmartPermissionRecordDto(null, initDummyObjectTypePermissionData()),
-                                target);
-                    }
-                };
-                suggestObjectButton.showTitleAsLabel(true);
-                suggestObjectButton.add(AttributeAppender.replace("class", "btn btn-default btn-sm mr-2"));
-                suggestObjectButton.add(new VisibleBehaviour(() -> isSuggestButtonVisible()));
-                bar.add(suggestObjectButton);
             }
 
             private void createNewObjectPerformButton(String idButton, @NotNull List<Component> bar) {
@@ -688,21 +669,6 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         }
 
         return typesContainer.getValues() == null || typesContainer.getValues().isEmpty();
-    }
-
-    protected void showSuggestConfirmDialog(@NotNull PageBase pageBase, IModel<SmartPermissionRecordDto> permissionRecordDtoIModel,
-            AjaxRequestTarget target) {
-        SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(
-                pageBase.getMainPopupBodyId(),
-                permissionRecordDtoIModel) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                onSuggestValue(
-                        null, createContainerModel(), target);
-            }
-        };
-        pageBase.showMainPopup(dialog, target);
     }
 
     protected boolean isSuggestButtonVisible() {

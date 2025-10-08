@@ -531,9 +531,18 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             protected @NotNull @Unmodifiable List<Component> createToolbarButtons(String buttonsId) {
                 return createNoValueButtonToolbar(buttonsId);
             }
+
+            @Override
+            protected String getPanelAdditionalCssClass() {
+                return getNoValuePanelAdditionalCssClass();
+            }
         };
         components.setOutputMarkupId(true);
         components.add(new VisibleBehaviour(this::displayNoValuePanel));
         return components;
+    }
+
+    protected String getNoValuePanelAdditionalCssClass() {
+        return "card";
     }
 }
