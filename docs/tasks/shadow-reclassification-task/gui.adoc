@@ -48,8 +48,8 @@ If you opt in for simulation, you'll see also the *Execution* screen in the wiza
 
 [%autowidth, cols="a,a,a", frame=none, grid=none, role=center]
 |====
-| image::../gui-shadow-reclassify-task-resource-objects-overview.webp[link=../gui-shadow-reclassify-task-resource-objects-overview.webp, title=Resource objects overview with tasks menu]
-| image::../gui-shadow-reclassify-task-wizard-start.webp[link=../gui-shadow-reclassify-task-wizard-start.webp, title=Initial screen of the task wizard]
-| image::../gui-shadow-reclassify-task-wizard-resource-objects.webp[link=../gui-shadow-reclassify-task-wizard-resource-objects.webp, title=Specify resource objects to be processed]
+| image::../gui-shadow-reclassify-task-resource-objects-overview.webp[title=Resource objects overview with tasks menu]
+| image::../gui-shadow-reclassify-task-wizard-start.webp[title=Initial screen of the task wizard]
+| image::../gui-shadow-reclassify-task-wizard-resource-objects.webp[title=Specify resource objects to be processed]
 |====
 
