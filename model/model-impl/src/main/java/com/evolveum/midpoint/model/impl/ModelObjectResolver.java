@@ -8,11 +8,16 @@ package com.evolveum.midpoint.model.impl;
 
 import static com.evolveum.midpoint.model.impl.controller.ModelController.getObjectManager;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +37,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -39,10 +45,12 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class ModelObjectResolver implements ObjectResolver {
+
+    private static final int ORG_TREE_SEARCH_WIDTH_BATCH_SIZE = 50;
+    private static final int ORG_TREE_SEARCH_WIDTH_BATCH_THRESHOLD = 5;
 
     @Autowired private ProvisioningService provisioning;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
@@ -217,13 +225,156 @@ public class ModelObjectResolver implements ObjectResolver {
         return config;
     }
 
-    public <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
-            Function<PrismObject<OrgType>, ObjectReferenceType> function, String shortDesc, Task task, OperationResult result) throws SchemaException {
-        return searchOrgTreeWidthFirstReference(object, function, new HashSet<>(), shortDesc,  task, result);
+    /**
+     * @param object organization for which we're currently resolving parentOrgRefs while searching for reference defined by `function` parameter
+     * @param resultObject previously found object (if any)
+     * @param resolvedOrgs already resolved orgs (to avoid resolving the same org multiple times)
+     * @param function function that extracts specific reference from org
+     */
+    private <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstResolveBatched(
+            PrismObject<O> object,
+            PrismObject<R> resultObject,
+            List<PrismReferenceValue> toResolve,
+            List<PrismObject<OrgType>> resolvedOrgs, Function<PrismObject<OrgType>, ObjectReferenceType> function,
+            String shortDesc,
+            Task task,
+            OperationResult result)
+            throws SchemaException {
+
+        for (int i = 0; i < toResolve.size(); i += ORG_TREE_SEARCH_WIDTH_BATCH_SIZE) {
+            int end = Math.min(i + ORG_TREE_SEARCH_WIDTH_BATCH_SIZE, toResolve.size());
+            List<PrismReferenceValue> batch = toResolve.subList(i, end);
+            String[] oids = batch.stream()
+                    .map(PrismReferenceValue::getOid)
+                    .filter(Objects::nonNull)
+                    .toArray(String[]::new);
+
+            ObjectQuery query = prismContext.queryFor(OrgType.class)
+                    .id(oids)
+                    .build();
+
+            try {
+                SearchResultList<PrismObject<OrgType>> searchResult = searchObjects(OrgType.class, query, null, task, result);
+                if (searchResult.size() != oids.length) {
+                    // check whether we found all the orgs we were looking for
+                    Set<String> foundOids = searchResult.stream()
+                            .map(PrismObject::getOid)
+                            .collect(Collectors.toSet());
+                    for (String oid : oids) {
+                        if (!foundOids.contains(oid)) {
+                            LOGGER.warn("Cannot find organization {} referenced in {} while resolving {}", oid, object, shortDesc);
+                        }
+                    }
+                }
+
+                for (PrismObject<OrgType> org : searchResult) {
+                    resultObject =
+                            searchOrgTreeWithFirstResolve(object, resultObject, org, resolvedOrgs, function, shortDesc, task, result);
+                }
+            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
+                    | SecurityViolationException | ExpressionEvaluationException ex) {
+                // Just log the error, but do not fail on that. Failing would prohibit login
+                // and that may mean the misconfiguration could not be easily fixed.
+                LoggingUtils.logException(LOGGER, "Error resolving parent org refs in batch {} while resolving {}", ex, Arrays.toString(oids), shortDesc);
+                result.muteLastSubresultError();
+            }
+        }
+
+        return resultObject;
     }
 
-    private <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
-            Function<PrismObject<OrgType>, ObjectReferenceType> function, Set<String> alreadyVisitedReferences, String shortDesc, Task task, OperationResult result) throws SchemaException {
+    /**
+     * @param object organization for which we're currently resolving parentOrgRefs while searching for reference defined by `function` parameter
+     * @param resultObject previously found object (if any)
+     * @param resolvedOrgs already resolved orgs (to avoid resolving the same org multiple times)
+     * @param function function that extracts specific reference from org
+     */
+    private <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWithFirstResolveIterative(
+            PrismObject<O> object,
+            PrismObject<R> resultObject,
+            List<PrismReferenceValue> toResolve,
+            List<PrismObject<OrgType>> resolvedOrgs,
+            Function<PrismObject<OrgType>, ObjectReferenceType> function,
+            String shortDesc,
+            Task task,
+            OperationResult result)
+            throws SchemaException {
+
+        for (PrismReferenceValue orgRefValue : toResolve) {
+            try {
+                PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, task, result);
+
+                resultObject =
+                        searchOrgTreeWithFirstResolve(object, resultObject, org, resolvedOrgs, function, shortDesc, task, result);
+            } catch (ObjectNotFoundException ex) {
+                // Just log the error, but do not fail on that. Failing would prohibit login
+                // and that may mean the misconfiguration could not be easily fixed.
+                LOGGER.warn("Cannot find organization {} referenced in {}", orgRefValue.getOid(), object);
+                result.muteLastSubresultError();
+            }
+        }
+        return resultObject;
+    }
+
+    /**
+     * @param object organization for which we're currently resolving parentOrgRefs while searching for reference defined by `function` parameter
+     * @param resultObject previously found object (if any)
+     * @param org currently resolved parentOrgRef object where we're searching for reference defined by `function` parameter
+     * @param resolvedOrgs already resolved orgs (to avoid resolving the same org multiple times)
+     * @param function function that extracts specific reference from org
+     */
+    private <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWithFirstResolve(
+            PrismObject<O> object,
+            PrismObject<R> resultObject,
+            PrismObject<OrgType> org,
+            List<PrismObject<OrgType>> resolvedOrgs,
+            Function<PrismObject<OrgType>, ObjectReferenceType> function,
+            String shortDesc,
+            Task task,
+            OperationResult result)
+            throws SchemaException {
+
+        resolvedOrgs.add(org);
+        ObjectReferenceType ref = function.apply(org);
+        if (ref == null) {
+            return resultObject;
+        }
+
+        PrismObject<R> resolvedObject;
+        try {
+            resolvedObject = resolve(ref.asReferenceValue(), shortDesc, task, result);
+        } catch (ObjectNotFoundException ex) {
+            // Just log the error, but do not fail on that. Failing would prohibit login
+            // and that may mean the misconfiguration could not be easily fixed.
+            LOGGER.warn("Cannot find object {} referenced in {} while resolving {}", ref.getOid(), object, shortDesc);
+            return resultObject;
+        }
+
+        if (resolvedObject != null) {
+            if (resultObject == null) {
+                resultObject = resolvedObject;
+            } else if (!StringUtils.equals(resolvedObject.getOid(), resultObject.getOid())) {
+                throw new SchemaException(
+                        "Found more than one object (" + resolvedObject + ", " + resultObject + ") while " + shortDesc);
+            }
+        }
+
+        return resultObject;
+    }
+
+    public <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
+            Function<PrismObject<OrgType>, ObjectReferenceType> function, String shortDesc, Task task, OperationResult result) throws SchemaException {
+        return searchOrgTreeWidthFirstReference(object, function, new HashSet<>(), shortDesc, task, result);
+    }
+
+    private <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(
+            PrismObject<O> object,
+            Function<PrismObject<OrgType>, ObjectReferenceType> function,
+            Set<String> alreadyVisitedReferences,
+            String shortDesc,
+            Task task,
+            OperationResult result) throws SchemaException {
+
         if (object == null) {
             LOGGER.trace("No object provided. Cannot find security policy specific for an object.");
             return null;
@@ -236,46 +387,19 @@ public class ModelObjectResolver implements ObjectResolver {
         List<PrismObject<OrgType>> orgs = new ArrayList<>();
         PrismObject<R> resultObject = null;
 
-        for (PrismReferenceValue orgRefValue : orgRefValues) {
-            if (orgRefValue != null) {
-                if (alreadyVisitedReferences.contains(orgRefValue.getOid())) {
-                    continue;
-                }
+        List<PrismReferenceValue> toResolve = orgRefValues.stream()
+                .filter(Objects::nonNull)
+                .filter(r -> !alreadyVisitedReferences.contains(r.getOid()))
+                .toList();
 
-                alreadyVisitedReferences.add(orgRefValue.getOid());
+        toResolve.forEach(r -> alreadyVisitedReferences.add(r.getOid()));
 
-                try {
-                    PrismObject<OrgType> org = resolve(orgRefValue, "resolving parent org ref", null, task, result);
-                    orgs.add(org);
-                    ObjectReferenceType ref = function.apply(org);
-
-                    if (ref != null) {
-                        PrismObject<R> resolvedObject;
-                        try {
-                            resolvedObject = resolve(ref.asReferenceValue(), shortDesc, task, result);
-                        } catch (ObjectNotFoundException ex) {
-                            // Just log the error, but do not fail on that. Failing would prohibit login
-                            // and that may mean the misconfiguration could not be easily fixed.
-                            LOGGER.warn("Cannot find object {} referenced in {} while resolving {}", orgRefValue.getOid(), object, shortDesc);
-                            continue;
-                        }
-                        if (resolvedObject != null) {
-                            if (resultObject == null) {
-                                resultObject = resolvedObject;
-                            } else if (!StringUtils.equals(resolvedObject.getOid(), resultObject.getOid())) {
-                                throw new SchemaException(
-                                        "Found more than one object (" + resolvedObject + ", " + resultObject + ") while " + shortDesc);
-                            }
-                        }
-                    }
-
-                } catch (ObjectNotFoundException ex) {
-                    // Just log the error, but do not fail on that. Failing would prohibit login
-                    // and that may mean the misconfiguration could not be easily fixed.
-                    LOGGER.warn("Cannot find organization {} referenced in {}", orgRefValue.getOid(), object);
-                    result.muteLastSubresultError();
-                }
-            }
+        if (toResolve.size() > ORG_TREE_SEARCH_WIDTH_BATCH_THRESHOLD) {
+            resultObject = searchOrgTreeWidthFirstResolveBatched(
+                    object, resultObject, toResolve, orgs, function, shortDesc, task, result);
+        } else {
+            resultObject = searchOrgTreeWithFirstResolveIterative(
+                    object, resultObject, toResolve, orgs, function, shortDesc, task, result);
         }
 
         if (resultObject != null) {
