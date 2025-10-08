@@ -95,9 +95,9 @@ public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<Co
                                     ConnDevConnectorType.F_OBJECT_CLASS));
 
                     return container.getValues().stream().filter(value ->
-                        objectClassesContainer.getValues().stream().anyMatch(objectclass ->
-                            Strings.CS.equals(value.getRealValue().getObject(), objectclass.getRealValue().getName())
-                                    || Strings.CS.equals(value.getRealValue().getSubject(), objectclass.getRealValue().getName()))
+                        objectClassesContainer.getValues().stream().anyMatch(objectClass ->
+                            Strings.CS.equals(value.getRealValue().getObject(), objectClass.getRealValue().getName())
+                                    || Strings.CS.equals(value.getRealValue().getSubject(), objectClass.getRealValue().getName()))
                     ).toList();
                 } catch (SchemaException e) {
                     throw new RuntimeException(e);
