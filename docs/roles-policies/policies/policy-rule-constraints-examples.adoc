@@ -1,0 +1,418 @@
+= Policy Rule Constraints Examples
+:page-toc: top
+:page-description: This page presents examples of policy rule constraints.
+:page-keywords: policy rule constraints examples
+
+This page presents examples of policy rule constraints.
+
+Refer to xref:/midpoint/reference/roles-policies/policies/policy-rules/#policy_constraints[policy rule constraints] for details on individual constraints.
+
+== objectState
+
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <objectState>
+        <name>fwEmailValidation</name>
+        <expression>
+            <script>
+                <code>
+                    boolean returnValue = false
+                    if (basic.getExtensionPropertyValue(user, "http://example.org/midpoint", "forwardEmailAddress") != null) {
+                        returnValue = true
+                    }
+                    return returnValue
+                </code>
+            </script>
+        </expression>
+    </objectState>
+</policyConstraints>
+----
+
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <objectState>
+        <name>active lifecycleState</name>
+        <filter>
+            <q:text>lifecycleState = "active"</q:text>
+        </filter>
+    </objectState>
+</policyConstraints>
+----
+
+== assignmentState
+.Example
+[source,xml]
+----
+
+----
+
+== hasAssignment
+
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <hasAssignment>
+        <targetRef relation="org:default" type="c:RoleType">
+            <filter>
+                <q:text>name = 'accessRole1' or name = 'accessRole2'</q:text>
+            </filter>
+            <resolutionTime>run</resolutionTime>
+        </targetRef>
+    </hasAssignment>
+</policyConstraints>
+----
+
+== hasNoAssignment
+
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <hasNoAssignment>
+        <presentation>
+            <message>
+                <fallbackMessage>NDA required</fallbackMessage>
+            </message>
+        </presentation>
+        <!-- NDA clearance -->
+        <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="RoleType" />
+    </hasNoAssignment>
+</policyConstraints>
+----
+
+== requirement
+.Example
+[source,xml]
+<policyConstraints>
+    <requirement>
+        <!-- NDA clearance -->
+        <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="PolicyType" />
+    </requirement>
+</policyConstraints>
+
+
+== exclusion
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <name>excluded-role-constraint</name>
+        <exclusion>
+            <targetRef type="RoleType">
+                <filter>
+                    <q:text>name = 'perm.m365license.all' or name = 'perm.m365license.exchange'</q:text>
+                </filter>
+                <resolutionTime>run</resolutionTime>
+            </targetRef>
+            <presentation>
+                <message>
+                    <fallbackMessage>Violation: perm.m365license roles are assigned for active users, could not be assigned for this user.</fallbackMessage>
+                </message>
+            </presentation>
+        </exclusion>
+</policyConstraints>
+----
+
+== minAssignees
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <minAssignees>
+        <name>constraint-require-approver</name>
+        <multiplicity>1</multiplicity>
+        <relation>org:approver</relation>
+    </minAssignees>
+</policyConstraints>
+----
+
+== maxAssignees
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <maxAssignees>
+        <multiplicity>5</multiplicity>
+    </maxAssignees>
+</policyConstraints>
+----
+
+== objectMinAssigneesViolation
+.Example - require at least 2 approvers
+[source,xml]
+----
+<policyConstraints>
+    <objectMinAssigneesViolation>
+        <multiplicity>2</multiplicity>
+        <relation>approver</relation>
+    </objectMinAssigneesViolation>
+</policyConstraints>
+----
+
+== objectMaxAssigneesViolation
+.Example
+[source,xml]
+----
+
+----
+
+== modification
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <modification>
+        <operation>modify</operation>
+    </modification>
+</policyConstraints>
+----
+
+// how does "modify" work?
+
+== assignment
+.Example
+[source,xml]
+----
+
+----
+
+== objectTimeValidity
+.Example
+[source,xml]
+----
+
+----
+
+== assignmentTimeValidity
+.Example
+[source,xml]
+----
+
+----
+
+== situation
+.Example
+[source,xml]
+----
+
+----
+
+== custom
+.Example
+[source,xml]
+----
+
+----
+
+== collectionStats
+.Example
+[source,xml]
+----
+<policyRule>
+    <policyConstraints>
+        <collectionStats>
+            <collection>
+                <interpretation>explicit</interpretation>
+            </collection>
+        </collectionStats>
+    </policyConstraints>
+    <policySituation>#resourceHealthDanger</policySituation>
+    <policyThreshold>
+        <highWaterMark>
+            <percentage>99.9</percentage>
+        </highWaterMark>
+    </policyThreshold>
+</policyRule>
+----
+
+== alwaysTrue
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <alwaysTrue/>
+</policyConstraints>
+----
+
+== orphaned
+.Example
+[source,xml]
+----
+<globalPolicyRule>
+    <policyConstraints>
+        <orphaned/>
+    </policyConstraints>
+    <policySituation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#orphaned</policySituation>
+    <policyActions>
+        <record/>
+    </policyActions>
+    <focusSelector>
+        <type>TaskType</type>
+    </focusSelector>
+</globalPolicyRule>
+----
+
+See xref:/midpoint/reference/tasks/orphaned-tasks/[] for more examples of the _orphaned_ constraint.
+
+== and
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <and>
+        <hasAssignment>
+            ...
+        </hasAssignment>
+        <modification>
+            ...
+        </modification>
+    </and>
+</policyConstraints>
+----
+
+.Example - require at least 2 approvers for high-risk roles
+[source,xml]
+----
+<and>
+    <name>less-than-2-approvers-for-high-risk-role</name>
+    <objectState>
+        <name>high-risk-role</name>
+        <filter>
+            <q:text>riskLevel = "high"</q:text>
+        </filter>
+    </objectState>
+    <objectMinAssigneesViolation>
+        <multiplicity>2</multiplicity>
+        <relation>approver</relation>
+    </objectMinAssigneesViolation>
+</and>
+----
+
+== or
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <name>excluded-role-constraint</name>
+    <or>
+        <objectState>
+            ...
+        </objectState>
+        <exclusion>
+            ...
+        </exclusion>
+    </or>
+</policyConstraints>
+----
+
+== not
+.Example
+[source,xml]
+----
+<policyConstraints>
+    <not>
+        <objectState>
+            <name>active lifecycleState</name>
+            <filter>
+                <q:text>lifecycleState = "active"</q:text>
+            </filter>
+        </objectState>
+    </not>
+</policyConstraints>
+----
+
+// is this correct?
+
+== transition
+.Example - switching to the active state must be approved
+[source,xml]
+----
+<policyRule>
+    <name>approve-role-activation</name>
+    <policyConstraints>
+        <transition>
+            <name>role-switched-to-active</name>
+            <stateBefore>false</stateBefore>
+            <stateAfter>true</stateAfter>
+            <constraints>
+                <objectState>
+                    <name>active lifecycleState</name>
+                    <filter>
+                        <q:text>lifecycleState = "active"</q:text>
+                    </filter>
+                </objectState>
+            </constraints>
+        </transition>
+    </policyConstraints>
+    <policyActions>
+        <approval> ... </approval>
+    </policyActions>
+</policyRule>
+----
+
+== ref
+.Example - forbidding activation of incomplete roles, and allowing activation (requires approval) of complete roles
+
+[source,xml]
+----
+<inducement>
+    <policyRule>
+        <!-- here we simply state that it's not possible to have active role with no description or no owner or no approver -->
+        <name>disallow-incomplete-role-activation</name>
+        <policyConstraints>
+            <objectState>
+                <name>active lifecycleState</name>
+                <filter>
+                    <q:text>lifecycleState = "active"</q:text>
+                </filter>
+            </objectState>
+            <or>
+                <name>incomplete-role</name>
+                <minAssignees>
+                    <multiplicity>1</multiplicity>
+                    <relation>owner</relation>
+                    <relation>approver</relation>
+                </minAssignees>
+                <objectState>
+                    <name>no description</name>
+                    <filter>
+                        <q:text>description not exists</q:text>
+                    </filter>
+                </objectState>
+            </or>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <evaluationTarget>focus</evaluationTarget>
+    </policyRule>
+</inducement>
+<inducement>
+    <policyRule>
+        <name>approve-role-activation</name>
+        <policyConstraints>
+            <transition>
+                <name>role-switched-to-active</name>
+                <stateBefore>false</stateBefore>
+                <stateAfter>true</stateAfter>
+                <constraints>
+                    <ref>active lifecycleState</ref>
+                </constraints>
+            </transition>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <compositionStrategy>
+                    <order>10</order>
+                </compositionStrategy>
+                <approverRelation>owner</approverRelation>
+            </approval>
+        </policyActions>
+    </policyRule>
+</inducement>
+----

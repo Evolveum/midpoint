@@ -97,16 +97,6 @@ For example, to grant access to high-risk users (i.e. users in more sensitive po
 [[policy_constraints]]
 === Policy Rule Constraints
 
-[TIP]
-.TODO
-====
-This section needs to be expanded.
-However, documentation work is similar to the development work in that it takes time and that it needs funding.
-
-If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
-Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
-====
-
 Policy rule constraints are conditions that determine when a policy rule should be activated.
 
 Rather than acting directly, policies first evaluate their constraints, and only if those constraints are met, the rule triggers the defined action, such as removing a conflicting role, requiring an approval, etc.
@@ -116,23 +106,131 @@ Some evaluate the state of the user or object, such as the lifecycle status or s
 
 Policy constraints are convenient in scenarios such as segregation of duties, dynamic role eligibility, user offboarding, or regulatory compliance, where conditions vary depending on the user's attributes, history, or your existing role structure.
 
-.Example policy constraint
-[source,xml]
-----
-<policyRule>
-    <name>Limit number of assigned licenses</name>
-    <policyConstraints>
-        <maxAssignees>
-            <multiplicity>5</multiplicity>
-        </maxAssignees>
-    </policyConstraints>
-    <policyActions>
-        <enforcement/>
-    </policyActions>
-</policyRule>
-----
+.Available policy constraints
+[cols="25%,55%,20%"]
+|===
+| Policy constraint | Description | Example
 
-For more examples of policy constraints, see xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/[policy rule examples].
+| `objectState`
+| Triggers when an object is in a particular state described by a filter or an expression.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#objectstate[Example]
+
+| `assignmentState`
+| Triggers when an assignment is in a particular state described by a filter or an expression.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#assignmentstate[Example]
+
+| `hasAssignment`
+| Triggers when an object has a particular assignment.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#hasassignment[Example]
+
+| `hasNoAssignment`
+| Triggers when an object does not have a particular assignment.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#hasnoassignment[Example]
+// Or does it trigger when it has no assignment at all?
+
+| `requirement`
+| Mandates that an object has to be assigned together with another object.
+This can be used to require the presence of clearances, job roles, assignments of specific organizational units, etc.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#requirement[Example]
+
+| `exclusion`
+| Forbids an object to be assigned together with another object.
+This is typically used to enforce segregation of duty (SoD) policies.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#exclusion[Example]
+
+| `minAssignees`
+| Triggers when the number of an object's assignees is lower than the specified value.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#minassignees[Example]
+
+| `maxAssignees`
+| Triggers when the number of an object's assignees exceeds the specified value.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#maxassignees[Example]
+
+| `objectMinAssigneesViolation`
+| Triggers when the number of objects that have this object (e.g., role) assigned is lower than the specified value.
+This is similar to minAssignees, however, it indicates that the constraint should be evaluated against an object when evaluating object constraints. +
+HIGHLY EXPERIMENTAL
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#objectminassigneesviolation[Example]
+// what is "this object"? How is it different from minAssignees?
+
+| `objectMaxAssigneesViolation`
+| Triggers when the number of objects that have this object (e.g., role) assigned exceeds the specified value.
+This is similar to maxAssignees, however, it indicates that the constraint should be evaluated against an object when evaluating object constraints. +
+HIGHLY EXPERIMENTAL
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#objectmaxassigneesviolation[Example]
+// what is "this object"? How is it different from maxAssignees?
+
+| `modification`
+| Triggers when an object is modified (Add, Modify, or Delete actions).
+This is used to implement change management.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#modification[Example]
+
+| `assignment`
+| Triggers when an object is assigned, unassigned, or when the assignment is modified, i.e., if the object is the target of an assignment that is being modified.
+This is used to implement role request approval.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#assignment[Example]
+
+| `objectTimeValidity`
+| Triggers when the validity of an object, or any of its time-sensitive items (such as passwords) is about to end.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#objecttimevalidity[Example]
+// how far ahead?
+
+| `assignmentTimeValidity`
+| Triggers when the validity of an assignment, or any of its time-sensitive items (such as passwords) is about to end.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#assignmenttimevalidity[Example]
+// how far ahead?
+
+| `situation`
+| Triggers when a policy triggering situation, such as when a user's role changes, occurs within an object or an assignment.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#situation[Example]
+
+| `custom`
+| A custom way of evaluating a policy constraint. Used typically for transitional constraints.
+(State-based custom constraints can always be evaluated using an `objectState` constraint.)
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#custom[Example]
+// This is unclear
+
+| `collectionStats`
+| Implements constraints based on statistical properties of collections, such as the number of objects or their percentage distribution.
+Policy rules with this constraint are ignored during normal processing.
+Evaluation of such policy rules requires special handling, e.g., using scanner task.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#collectionstats[Example]
+
+| `alwaysTrue`
+| This constraint always applies.
+This can be used to make sure a policy remains always active without specifying rigorous conditions.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#alwaystrue[Example]
+
+| `orphaned`
+| Triggers if an object is orphaned, i.e., it has declared a parent but the parent does not exist.
+This is currently supported for tasks.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#orphaned[Example]
+
+| `and`
+| Triggers when all defined constraints apply.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#and[Example]
+
+| `or`
+| Triggers when at least one of the constraints applies.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#or[Example]
+
+| `not`
+| Triggers when the constraint does not apply.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#not[Example]
+
+| `transition`
+| Specifies how the inner constraints are to be evaluated with regard to operation start and end state.
+May not include any transitional constraints itself.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#transition[Example]
+// This is unclear
+
+| `ref`
+| References another constraint, e.g., by its name.
+The referenced constraint must be a part of policy rules gathered for a given assignment or object.
+Global constraints are also available for referencing, regardless of which objects they are attached to or whether they are active or not.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#ref[Example]
+
+|===
 
 
 ==== Using Multiple Policy Rule Constraints
@@ -354,6 +452,10 @@ Policy exceptions are stored in the assignments that triggered the respective po
 As long as an exception is stored there, the referenced policy rule is deactivated for that specific user and that specific assignment.
 The rule will not be subject to re-approvals, it will not be raised as an issue in compliance reports and so on.
 The exceptions information can then also be used to report approved rule exceptions, to re-certify and so on.
+
+== Policy Rule Examples
+
+For examples of policy rules, see a separate page xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/[].
 
 == See Also
 
