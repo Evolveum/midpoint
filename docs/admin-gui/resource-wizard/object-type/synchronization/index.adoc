@@ -24,9 +24,9 @@ You can access a more complex configurations for each reaction using the icon:ed
 
 [%autowidth, cols="a,a,a", frame=none, grid=none, role=center]
 |===
-| image::step-3-synch-detail-basic.png[link=step-3-synch-detail-basic.png, 100%, title=Basic configuration of synchronizatio rule]
-| image::step-3-synch-detail-action.png[link=step-3-synch-detail-action.png, 100%, title=Action for synchronization rule]
-| image::step-3-synch-detail-optional.png[link=step-3-synch-detail-optional.png, 100%, title=Optional attributes for synchronization rule]
+| image::step-3-synch-detail-basic.png[100%, title=Basic configuration of synchronizatio rule]
+| image::step-3-synch-detail-action.png[100%, title=Action for synchronization rule]
+| image::step-3-synch-detail-optional.png[100%, title=Optional attributes for synchronization rule]
 |===
 
 == Possible situations and actions

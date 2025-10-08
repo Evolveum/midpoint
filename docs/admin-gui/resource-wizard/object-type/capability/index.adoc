@@ -12,6 +12,6 @@ Capabilities can be also _configured_, e.g. for LDAP resources, you can define w
 TIP: Capabilities can be configured also on the resource level, not just for specific object types by navigating to resource's *Details* panel.
 
 .Capabilities configuration
-image::step-5-capabilities.png[link=step-5-capabilities.png,100%,title=Capabilities configuration]
+image::step-5-capabilities.png[100%,title=Capabilities configuration]
 
 Click btn:[Save capabilities] when done to return to the previous page from which you started the capabilities editor.

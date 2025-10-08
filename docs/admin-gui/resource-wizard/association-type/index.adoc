@@ -13,13 +13,13 @@ Typically, this is used to configure how account/group membership is defined and
 
 After clicking on btn:[Configure association type], you will see a table of association types.
 
-image::association-type-table.png[link=association-type-table.png,100%,title=Table of association types]
+image::association-type-table.png[100%,title=Table of association types]
 
 Click btn:[Add association type] to start configuring new association type.
 
 The first step in creating a new association is to select the type of association (by clicking on it), which is predefined by capabilities or connector.
 
-image::choice-association-type.png[link=choice-association-type.png,100%,title=Select association]
+image::choice-association-type.png[100%,title=Select association]
 
 After selecting the association, you will see a four-step wizard. The first step allows you to configure the basic settings:
 
@@ -27,20 +27,20 @@ After selecting the association, you will see a four-step wizard. The first step
 * *Description* allows a short description to be entered
 * *Lifecycle state* allows defining the lifecycle state, e.g. `Proposed` for xref:/midpoint/reference/admin-gui/simulations/[simulation] of the association configuration
 
-image::step-1-association-type-basic-config.png[link=step-1-association-type-basic-config.png,100%,title=Basic configuration]
+image::step-1-association-type-basic-config.png[100%,title=Basic configuration]
 
 Click btn:[Next: Subjects] to continue in the association type definition wizard.
 
 In the second step you have to select the subject (as the object type of the resource) of the association.
 If there is only one option, it will be selected and you can proceed to the next step.
 
-image::step-1-select-subject.png[link=step-1-select-subject.png,100%,title=Select subject]
+image::step-1-select-subject.png[100%,title=Select subject]
 
 Click btn:[Next: Objects] to continue in the association type definition wizard.
 
 The next step is very similar to the previous one, but you select the object (as the object type of the resource) of association.
 
-image::step-1-select-object.png[link=step-1-select-object.png,100%,title=Select object]
+image::step-1-select-object.png[100%,title=Select object]
 
 Click btn:[Next: Data for association] to continue in the association type definition wizard.
 
@@ -56,7 +56,7 @@ TIP: If in doubt, use `Undefined` or `True`.
 
 NOTE: /midpoint/reference/concepts/mark/[] can redefine association (membership) tolerance.
 
-image::step-1-specify-data-for-association.png[link=step-1-specify-data-for-association.png,100%,title=Specify the data for association]
+image::step-1-specify-data-for-association.png[100%,title=Specify the data for association]
 
 Click btn:[Save settings] to save the association type configuration.
 
@@ -70,7 +70,7 @@ allowing to access the first and last steps without parts for selecting subjects
 
 *Object* tile allows to return back to object selection.
 
-image::choice-part.png[link=choice-part.png,100%,title=Association wizard]
+image::choice-part.png[100%,title=Association wizard]
 
 include::../configuration-resource-panels.adoc[]
 

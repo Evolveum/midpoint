@@ -28,7 +28,7 @@ If you need to *edit an existing object type*:
 . Select the icon:circle[] *Basic attributes* tile to get into the same wizard as when you set up a new object type. +
     The other options are covered by different resource wizard tutorials.
 
-image::object-type-table.webp[link=object-type-table.webp,100%,title=List of object types]
+image::object-type-table.webp[100%,title=List of object types]
 
 == Basic attributes
 
@@ -54,7 +54,7 @@ Later, when you set up roles and more account types, you'll also use the entitle
 Learn more about kinds, intents, and object classes: xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[]
 ====
 
-image::step-1-object-type-basic-config.webp[link=step-1-object-type-basic-config.webp, 100%, title=Basic configuration of object type]
+image::step-1-object-type-basic-config.webp[100%, title=Basic configuration of object type]
 
 == Specify the Resource Data
 
@@ -90,7 +90,7 @@ If you change filtering conditions for an existing object type, you then need to
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/classification/[]
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/delineation/[]
 
-image::step-1-object-type-resource-data.webp[link=step-1-object-type-resource-data.webp, 100%,title=Resource data]
+image::step-1-object-type-resource-data.webp[100%,title=Resource data]
 
 == Specify the midPoint Data
 
@@ -121,17 +121,17 @@ You can xref:/midpoint/reference/schema/archetypes/configuration-gui/[modify the
 
 .See also details on the built-in xref:/midpoint/reference/schema/archetypes/person/[].
 
-image::step-1-object-type-midpoint-data.webp[link=step-1-object-type-midpoint-data.webp, 100%, title=Midpoint data]
+image::step-1-object-type-midpoint-data.webp[100%, title=Midpoint data]
 
 == Further Object Type Configuration
 
 Further configuration is required.
 
-image::choice-part.png[link=choice-part.png,100%,title=Parts of object type configuration]
+image::choice-part.png[100%,title=Parts of object type configuration]
 
 First of all, we suggest you click btn:[Preview data] to display resource data according to the configuration of this particular object type.
 
-image::data-preview.png[link=data-preview.png,100%,title=Data preview of object type]
+image::data-preview.png[100%,title=Data preview of object type]
 
 After you confirm whether your settings produce expected results, you can choose your next steps to configure other parts of your object type:
 

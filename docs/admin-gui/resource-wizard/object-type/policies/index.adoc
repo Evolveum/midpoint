@@ -17,7 +17,7 @@ This is done in the *Object type policies* section of the application, where you
 * <<classify_objects,Marking>> - Groups accounts or entitlements by filtering them and assigning marks to them.
 * <<default_operation_policy,Default Operation Policy>> - Defines the default policy for objects that have not been explicitly assigned marks in the <<classify_objects,Marking>> section.
 
-image::object-type-policies.webp[link=object-type-policies.webp,70%,title=Object type policies]
+image::object-type-policies.webp[70%,title=Object type policies]
 
 For more technical details on object marks, and to see how you can use them in your workflows, see xref:/midpoint/reference/concepts/mark[].
 
@@ -33,7 +33,7 @@ Once you have all marks created and ready to be used, classify your objects:
 . In the resource, depending on which objects you want to group, click [.nowrap]#icon:male[] *Accounts*# or [.nowrap]#icon:users[] *Entitlements*#.
 . Click [.nowrap]#icon:cog[] btn:[Configure]# and select [.nowrap]#icon:balance-scale[] *Policies*#.
 +
-image::resource-account.webp[link=resource-account.webp,100%,title=Access marks in a resource]
+image::resource-account.webp[100%,title=Access marks in a resource]
 . Click [.nowrap]#icon:tag[] btn:[Marking]#.
 . Click [.nowrap]#icon:circle-plus[] btn:[New marking rule]#.
 . Select the mark that you want to use for your group of objects.
@@ -82,11 +82,11 @@ In addition to marking objects in bulk by filtering them in the <<classify_objec
 . Go to [.nowrap]#icon:database[] *Resources*# > [.nowrap]#icon:database[] *All resources*# > resource.
 . In the resource, click [.nowrap]#icon:male[] *Accounts*#.
 +
-image::object-add-mark-01.webp[link=object-add-mark-01.webp,100%,title=Navigate to accounts]
+image::object-add-mark-01.webp[100%,title=Navigate to accounts]
 . Click the name of the account that you want to mark.
 . Go to the [.nowrap]#icon:circle[] *Marks*# tab.
 +
-image::object-add-mark-02.webp[link=object-add-mark-02.webp,100%,title=Add marks to accounts]
+image::object-add-mark-02.webp[100%,title=Add marks to accounts]
 . Click [.nowrap]#icon:plus[] btn:[Add mark]# to add a new mark.
 
 [[entitlements]]
@@ -95,7 +95,7 @@ image::object-add-mark-02.webp[link=object-add-mark-02.webp,100%,title=Add marks
 . In the resource, click [.nowrap]#icon:users[] *Entitlements*#.
 . Click the dropdown button at the far right for the entitlement you want to mark and select [.nowrap]#*Modify marks*#.
 +
-image::object-add-mark-03.webp[link=object-add-mark-03.webp,100%,title=Add marks to entitlements]
+image::object-add-mark-03.webp[100%,title=Add marks to entitlements]
 . Click [.nowrap]#icon:plus[] btn:[Add mark]# to add a new mark.
 
 [[simulations]]
@@ -106,14 +106,14 @@ image::object-add-mark-03.webp[link=object-add-mark-03.webp,100%,title=Add marks
 . For the object to which you want to assign marks, you can:
 ** Mark the object directly as _Protected_ by clicking the [.nowrap]#icon:shield-alt[] btn:[Mark as Protected]# button.
 +
-image::simulations-add-mark.webp[link=simulations-add-mark.webp,100%,title=Add marks in simulation results]
+image::simulations-add-mark.webp[100%,title=Add marks in simulation results]
 ** Assign other marks by clicking the dropdown button next to the [.nowrap]#icon:shield-alt[] btn:[Mark as Protected]# button, and selecting *Modify marks*.
 
 == Review marks
 
 You can review marked objects by going to [.nowrap]#icon:tag[] *Marks*# > [.nowrap]#icon:tag[] *Object marks*# > mark > [.nowrap]#icon:circle[] *Marked shadows*#.
 
-image::object-marks-review.webp[link=object-marks-review.webp,100%,title=Review object marks]
+image::object-marks-review.webp[100%,title=Review object marks]
 
 
 include::../../see-also.adoc[]
