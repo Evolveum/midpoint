@@ -81,7 +81,7 @@ public abstract class SmartMappingTable<P extends Containerable>
     private static final String OP_DELETE_MAPPING = CLASS_DOT + "deleteMapping";
     private static final String OP_SUSPEND_SUGGESTION = CLASS_DOT + "suspendSuggestion";
 
-    private static final int MAX_TILE_COUNT = 8;
+    private static final int MAX_TILE_COUNT = 10;
 
     private final String resourceOid;
 
