@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRelationInfoType;
 
 import org.apache.wicket.model.IModel;
@@ -38,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingRelationScript", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class WaitingRelationScriptConnectorStepPanel extends WaitingConnectorStepPanel {
+public class WaitingRelationScriptConnectorStepPanel extends WaitingScriptConnectorStepPanel {
 
     private static final String PANEL_TYPE = "cdw-connector-waiting-relation";
     private final IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel;

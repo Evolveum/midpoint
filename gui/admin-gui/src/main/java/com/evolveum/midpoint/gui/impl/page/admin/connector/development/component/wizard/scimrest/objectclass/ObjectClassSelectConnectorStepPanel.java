@@ -149,9 +149,19 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
         moreClasses.showTitleAsLabel(true);
         add(moreClasses);
 
+        String cssClass;
+        if (valuesModel.getObject().size() == 1) {
+            cssClass = "";
+        } else if (valuesModel.getObject().size() == 2) {
+            cssClass = "col-6";
+        } else {
+            cssClass = "col-4";
+        }
         ListView<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> panel = new ListView<>(ID_PANEL, valuesModel) {
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> listItem) {
+                listItem.add(AttributeAppender.append("class", cssClass));
+
                 Radio<String> radio = new Radio<>(ID_RADIO, Model.of(listItem.getModelObject().getRealValue().getName()), radioGroup);
                 radio.setOutputMarkupId(true);
                 listItem.add(radio);

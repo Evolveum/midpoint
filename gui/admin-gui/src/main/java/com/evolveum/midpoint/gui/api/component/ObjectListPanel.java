@@ -7,17 +7,18 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.io.Serial;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +60,20 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     public ObjectListPanel(String id, Class<O> defaultType, ContainerPanelConfigurationType config) {
         super(id, defaultType, config);
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+        if (showErrorResultInFeedbackPanel()
+                && getDataProvider() instanceof SelectableBeanDataProvider<?> selectableBeanDataProvider
+                && selectableBeanDataProvider.getErrorResult() != null) {
+            getPageBase().showResult(selectableBeanDataProvider.getErrorResult());
+        }
+    }
+
+    protected boolean showErrorResultInFeedbackPanel() {
+        return false;
     }
 
     protected String getSearchByNameParameterValue() {

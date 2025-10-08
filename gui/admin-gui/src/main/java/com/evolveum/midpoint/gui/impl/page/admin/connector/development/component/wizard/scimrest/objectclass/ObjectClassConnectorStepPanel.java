@@ -280,11 +280,11 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
                 new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), valueModel),
                 new WaitingNativeSchemaConnectorStepPanel(getHelper(), valueModel),
                 new WaitingConnIdSchemaConnectorStepPanel(getHelper(), valueModel),
-                new SchemaScriptConnectorStepPanel(getHelper()),
+                new SchemaScriptConnectorStepPanel(getHelper(), valueModel),
                 new ShowSchemaConnectorStepPanel(getHelper(), valueModel),
                 new EndpointsConnectorStepPanel(getHelper(), valueModel),
                 new WaitingSearchAllConnectorStepPanel(getHelper(), valueModel),
-                new SearchAllScriptConnectorStepPanel(getHelper()),
+                new SearchAllScriptConnectorStepPanel(getHelper(), valueModel),
                 new SearchObjectsConnectorStepPanel(getHelper(), valueModel));
     }
 

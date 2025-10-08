@@ -6,11 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.AuthScriptsConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPan
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtifactResultType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -34,6 +36,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author lskublik
@@ -47,16 +50,17 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     private static final String OP_SAVE_AUTH_SCRIPT_DOCS = CLASS_DOT + "saveAuthScript";
 
     private LoadableModel<ConnDevArtifactType> valueModel;
+    private boolean useOriginal = false;
 
     public ScriptConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
+        createModels();
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        createModels();
         initLayout();
     }
 
@@ -64,9 +68,20 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         valueModel = new LoadableModel<>() {
             @Override
             protected ConnDevArtifactType load() {
-                Task task = getPageBase().createSimpleTask(OP_LOAD_DOCS);
+//                if (useOriginal) {
+//                    ConnDevArtifactType origValue = getOriginalContainerValue();
+//                    if (origValue != null) {
+//                        return origValue;
+//                    }
+//                }
+
+                Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_DOCS);
                 OperationResult result = task.getResult();
                 String token = getHelper().getVariable(getTokenForTaskForObtainResult());
+
+                if (StringUtils.isEmpty(token)) {
+                    return null;
+                }
 
                 StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
                 try {
@@ -84,6 +99,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             }
         };
     }
+
+    protected abstract ConnDevArtifactType getOriginalContainerValue();
 
     protected abstract String getTokenForTaskForObtainResult();
 
@@ -155,6 +172,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 target.add(getFeedback());
                 return false;
             }
+            useOriginal = true;
+            valueModel.detach();
         } catch (IOException | CommonException e) {
             throw new RuntimeException(e);
         }
@@ -167,6 +186,56 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             target.add(getFeedback());
         }
         return false;
+    }
+
+    protected final LoadableModel<ConnDevArtifactType> getValueModel() {
+        return valueModel;
+    }
+
+    @Override
+    protected void initCustomButtons(RepeatingView customButtons) {
+        AjaxIconButton testResource = new AjaxIconButton(
+                customButtons.newChildId(),
+                Model.of("fa fa-refresh "),
+                getPageBase().createStringResource("ScriptConnectorStepPanel.regenerate")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onRefreshPerformed(target);
+            }
+        };
+        testResource.showTitleAsLabel(true);
+        testResource.add(AttributeAppender.append("class", "ml-auto"));
+        customButtons.add(testResource);
+    }
+
+    private void onRefreshPerformed(AjaxRequestTarget target) {
+        if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
+            List<WizardStep> steps = parentWizardModel.getActiveChildrenSteps();
+            int activeStepIndex = parentWizardModel.getActiveStepIndex();
+            String idOfFound = null;
+            for (int i = activeStepIndex - 1; i >= 0; i--) {
+                if (i < 0) {
+                    return;
+                }
+
+                WizardStep step = steps.get(i);
+                if (step instanceof WaitingScriptConnectorStepPanel waitingPanel) {
+                    idOfFound = step.getStepId();
+                    waitingPanel.resetScript(getPageBase());
+                } else if (StringUtils.isNotEmpty(idOfFound)) {
+                    parentWizardModel.setActiveStepById(idOfFound);
+                    parentWizardModel.fireActiveStepChanged();
+                    target.add(getWizard().getPanel());
+                    return;
+                }
+
+                if (i == 0) {
+
+                }
+            }
+            useOriginal = false;
+            valueModel.detach();
+        }
     }
 
     protected abstract void saveScript(ConnDevArtifactType object, Task task, OperationResult result) throws IOException, CommonException;

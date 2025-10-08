@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -37,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingNativeSchema", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class WaitingNativeSchemaConnectorStepPanel extends WaitingConnectorStepPanel {
+public class WaitingNativeSchemaConnectorStepPanel extends WaitingScriptConnectorStepPanel {
 
     private static final String PANEL_TYPE = "cdw-connector-waiting-native-schema";
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;

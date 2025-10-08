@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -31,6 +32,7 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,9 +52,11 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
     private static final String PANEL_TYPE = "cdw-schema-script";
     static final String TASK_NATIVE_SCRIPTS_KEY = "taskNativeScriptKey";
     static final String TASK_CONNID_SCRIPTS_KEY = "taskConnIdScriptKey";
+    private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
 
-    public SchemaScriptConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    public SchemaScriptConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper, IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
         super(helper);
+        this.valueModel = valueModel;
     }
 
     @Override
@@ -105,5 +109,30 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    protected List<ConnDevArtifactType> getOriginalContainerValues() {
+        List<ConnDevArtifactType> list = new ArrayList<>();
+        try {
+            PrismContainerWrapper<ConnDevArtifactType> container = valueModel.getObject().findContainer(ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT);
+            if (container != null) {
+                list.add(container.getValue().getRealValue());
+            }
+        } catch (SchemaException e) {
+            //todo
+            return null;
+        }
+
+        try {
+            PrismContainerWrapper<ConnDevArtifactType> container = valueModel.getObject().findContainer(ConnDevObjectClassInfoType.F_CONNID_SCHEMA_SCRIPT);
+            if (container != null) {
+                list.add(container.getValue().getRealValue());
+            }
+        } catch (SchemaException e) {
+            //todo
+            return null;
+        }
+        return list;
     }
 }

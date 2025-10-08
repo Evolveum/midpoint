@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -34,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingAuthScript", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class WaitingAuthScriptsConnectorStepPanel extends WaitingConnectorStepPanel {
+public class WaitingAuthScriptsConnectorStepPanel extends WaitingScriptConnectorStepPanel {
 
     private static final String PANEL_TYPE = "cdw-connector-waiting-auth-script";
 

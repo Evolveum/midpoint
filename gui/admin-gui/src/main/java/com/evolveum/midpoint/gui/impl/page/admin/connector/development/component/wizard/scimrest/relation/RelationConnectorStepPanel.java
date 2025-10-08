@@ -266,6 +266,6 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
         return List.of(
                 new RelationSelectConnectorStepPanel(getHelper(), valueModel),
                 new WaitingRelationScriptConnectorStepPanel(getHelper(), valueModel),
-                new RelationScriptConnectorStepPanel(getHelper()));
+                new RelationScriptConnectorStepPanel(getHelper(), valueModel));
     }
 }

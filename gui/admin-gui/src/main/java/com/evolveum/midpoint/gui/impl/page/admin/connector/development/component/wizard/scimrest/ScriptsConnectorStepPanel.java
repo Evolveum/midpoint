@@ -6,10 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -19,18 +21,22 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtifactResultType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.io.IOException;
@@ -49,6 +55,7 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
     private static final String OP_SAVE_AUTH_SCRIPT_DOCS = CLASS_DOT + "saveAuthScript";
 
     private LoadableModel<List<ConnDevArtifactType>> valueModel;
+    private boolean useOriginal = false;
 
     public ScriptsConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
@@ -66,6 +73,14 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
         valueModel = new LoadableModel<>() {
             @Override
             protected List<ConnDevArtifactType> load() {
+
+//                if (useOriginal) {
+//                    List<ConnDevArtifactType> origValues = getOriginalContainerValues();
+//                    if (origValues != null && !origValues.isEmpty()) {
+//                        return origValues;
+//                    }
+//                }
+
                 List<String> tokens = getTokensForTasksForObtainResults();
                 List<ConnDevArtifactType> list = new ArrayList<>();
                 tokens.forEach(token -> {
@@ -90,6 +105,8 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
             }
         };
     }
+
+    protected abstract List<ConnDevArtifactType> getOriginalContainerValues();
 
     protected abstract List<String> getTokensKeys();
 
@@ -181,6 +198,7 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
                     target.add(getFeedback());
                     return false;
                 }
+                useOriginal = true;
             } catch (IOException | CommonException e) {
                 throw new RuntimeException(e);
             }
@@ -202,4 +220,51 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
     }
 
     protected abstract void saveScript(ConnDevArtifactType object, Task task, OperationResult result) throws IOException, CommonException;
+
+    @Override
+    protected void initCustomButtons(RepeatingView customButtons) {
+        AjaxIconButton testResource = new AjaxIconButton(
+                customButtons.newChildId(),
+                Model.of("fa fa-refresh "),
+                getPageBase().createStringResource("ScriptConnectorStepPanel.regenerate")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onRefreshPerformed(target);
+            }
+        };
+        testResource.showTitleAsLabel(true);
+        testResource.add(AttributeAppender.append("class", "ml-auto"));
+        customButtons.add(testResource);
+    }
+
+    private void onRefreshPerformed(AjaxRequestTarget target) {
+        if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
+            List<WizardStep> steps = parentWizardModel.getActiveChildrenSteps();
+            int activeStepIndex = parentWizardModel.getActiveStepIndex();
+            String idOfFound = null;
+            for (int i = activeStepIndex - 1; i >= 0; i--) {
+                if (i < 0) {
+                    return;
+                }
+
+                WizardStep step = steps.get(i);
+                if (step instanceof WaitingScriptConnectorStepPanel waitingPanel) {
+                    idOfFound = step.getStepId();
+                    waitingPanel.resetScript(getPageBase());
+                } else if (StringUtils.isNotEmpty(idOfFound)) {
+                    parentWizardModel.setActiveStepById(idOfFound);
+                    parentWizardModel.fireActiveStepChanged();
+                    target.add(getWizard().getPanel());
+                    return;
+                }
+
+                if (i == 0) {
+
+                }
+            }
+            useOriginal = false;
+            valueModel.detach();
+        }
+    }
+
 }
