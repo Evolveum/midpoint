@@ -36,6 +36,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 It is possible to set custom max-part-header-size and max-part-count properties to AJP connector in application.yml.
 If no multi-parts request configuration is set for AJP server, these properties will be taken from Tomcat server configuration.
 See bug:MID-10824[], bug:MID-10748[].
+* Fixed full-text search in the role catalog. See bug:MID-10819[].
 
 == Changes with Respect To Version 4.8.8
 
