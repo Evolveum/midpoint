@@ -359,18 +359,19 @@ Following table summarizes the outputs and inputs for mappings in individual sta
 | Stage |  | Object | Variables | Default Context | Examples
 
 .2+| Inbound
-| Source (shadow)
-| Projection
-| N/A +
-fixed to projection attribute, presented as `input` variable
-| N/A +
-fixed to projection attribute
-|
+| Source
+| Projection (Shadow)
+| `$focus` +
+`$projection` +
+ +
+Note that the attribute, for which this inbound mapping si applied, is automatically added to sources and is presented as `input` variable in the mapping expression.
+| N/A
+| `$focus/givenName` +
+`$projection/attributes/firstName`
 
 | Target
 | Focus
-| `$focus` +
-`$projection`
+| `$focus`
 | `$focus`
 | `$focus/givenName` +
 `givenName`
@@ -397,14 +398,14 @@ fixed to projection attribute
 `$projection`
 | `$focus`
 | `$focus/givenName` +
-`givenName`
+`givenName` +
+`$projection/attributes/firstName`
 
 | Target
-| Projection (shadow)
+| Projection (Shadow)
 | N/A +
-fixed to projection attribute
-| N/A +
-fixed to projection attribute
+(target is fixed to projection attribute)
+| N/A
 |
 
 |===

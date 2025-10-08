@@ -7,12 +7,16 @@
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-07-13T15:02:00.069+02:00
 :page-upkeep-status: orange
+:page-toc: top
+
+== Introduction
 
 Outbound mapping define how the data are xref:/midpoint/reference/synchronization/introduction/[synchronized] from the user to accounts or, in other words, when the data *out* of midPoint.
 See xref:/midpoint/reference/synchronization/examples/[Synchronization Examples] for a generic explanation of the synchronization mechanism.
 
 image::synchronization-outbound.png[]
 
+== Expressions
 Outbound expressions are defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling] section of resource definition.
 The expression definition is inside attribute definition which is inside account type definition:
 
@@ -78,6 +82,72 @@ The actual value is determined by the iteration settings.
 
 
 |===
+
+
+== Troubleshooting
+
+=== Accounts are skipped during reconciliation
+*Problem*
+
+During a reconciliation, accounts that have newly been created in midPoint are not added to the target resource.
+This happens to accounts with attributes that cannot be set upon creation.
+
+*Cause*
+
+Attributes that cannot be set upon creation require two steps - first creating, and only then modifying.
+However, some connectors may not be able to combine the Add and Modify operations.
+As a result, when you add a new account in midPoint with attributes that cannot be modified upon creation, such connectors will not be able to both create and set the attributes during a reconciliation, and they will not add the new account in the target resource at all.
+
+*Workaround*
+
+Define a condition in the troublesome outbound mapping that makes sure the mapping is ignored, and that adds a trigger for a recomputation at a later point, during which the attribute will be modified.
+This way, adding accounts to the target resource will not be interrupted during the reconciliation, and the attribute will be added during a subsequent recomputation.
+By default, recompute operations are scheduled to occur every 5 minutes.
+
+.Example condition
+[source, xml]
+----
+<attribute>
+    <ref>ri:employeeNumber</ref>
+    <outbound>
+        <name>emplNum-out</name>
+        <strength>strong</strength>
+        <source>
+            <path>personalNumber</path>
+        </source>
+        <condition>
+            <script>
+                <code>
+                    if (focus == null) {
+                        return false
+                    }
+
+                    import com.evolveum.midpoint.prism.xml.XmlTypeConverter
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                    import javax.xml.datatype.XMLGregorianCalendar
+                    import javax.xml.datatype.Duration
+
+                    if (operation == "add") {
+                        TriggerType trigger = new TriggerType()
+                        trigger.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/model/trigger/recompute/handler-3")
+                        trigger.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar())
+
+                        midpoint.getFocusContext().addToPrimaryDelta(
+                                midpoint.deltaFor(UserType.class)
+                                        .item(UserType.F_TRIGGER).add(trigger)
+                                        .asObjectDelta(focus.getOid())
+                        )
+                        return false
+                    }
+                    return true
+                </code>
+            </script>
+        </condition>
+    </outbound>
+</attribute>
+----
 
 
 //== Examples
