@@ -42,6 +42,12 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 It is possible to set custom max-part-header-size and max-part-count properties to AJP connector in application.yml.
 If no multi-parts request configuration is set for AJP server, these properties will be taken from Tomcat server configuration.
 See bug:MID-10824[], bug:MID-10748[].
+* Removed unnecessary blank row from Certification items export dialog. See bug:MID-10809[].
+* Fixed name and display name columns' values on the Certification items page. See bug:MID-10806[].
+* Fixed the relation dependent behavior while adding an item into shopping cart. See bug:MID-10851[].
+* Fixed some bugs in the Role mining GUI. See bug:MID-10842[].
+* Improved the time of the certification items list processing (e.g. during cert. items report creating or during displaying in the GUI). See bug:MID-10811[], bug:MID-10812[].
+* Fixed Back button behavior from the Certification items page. See bug:MID-10879[].
 
 == Changes with Respect To Version 4.9.3
 
