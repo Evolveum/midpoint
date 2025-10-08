@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -66,7 +67,7 @@ public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<Co
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevRelationInfoType>>> valuesModel;
 
     public RelationSelectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
-                                            IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel) {
+            IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel) {
         super(helper);
         this.valueModel = valueModel;
     }
@@ -82,17 +83,25 @@ public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<Co
         valuesModel = new LoadableModel<>() {
             @Override
             protected List<PrismContainerValueWrapper<ConnDevRelationInfoType>> load() {
-                PrismContainerWrapper<ConnDevRelationInfoType> container;
                 try {
-                    container = getDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
-                                    ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
-                                    ConnDevSchemaType.F_RELATION));
+                    PrismContainerWrapper<ConnDevRelationInfoType> container =
+                            getDetailsModel().getObjectWrapper().findContainer(
+                                    ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
+                                            ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
+                                            ConnDevSchemaType.F_RELATION));
+
+                    PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassesContainer = getDetailsModel().getObjectWrapper().findContainer(
+                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR,
+                                    ConnDevConnectorType.F_OBJECT_CLASS));
+
+                    return container.getValues().stream().filter(value ->
+                        objectClassesContainer.getValues().stream().anyMatch(objectclass ->
+                            Strings.CS.equals(value.getRealValue().getObject(), objectclass.getRealValue().getName())
+                                    || Strings.CS.equals(value.getRealValue().getSubject(), objectclass.getRealValue().getName()))
+                    ).toList();
                 } catch (SchemaException e) {
                     throw new RuntimeException(e);
                 }
-
-                return container.getValues();
             }
         };
     }
