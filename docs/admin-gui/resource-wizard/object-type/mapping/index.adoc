@@ -25,7 +25,7 @@ For a more in-depth description, see the following pages:
 == Inbound Mappings
 Inbound mapping transforms data from authoritative sources to midPoint. Typically, it is used to populate new user objects with data from an HR system.
 
-image::step-2-mappings-inbound.png[link=step-2-mappings-inbound.png, 100%, title=Table of inbound mappings]
+image::step-2-mappings-inbound.png[100%, title=Table of inbound mappings]
 
 To add an inbound mapping:
 
@@ -64,7 +64,7 @@ Click icon:shuffle[] btn:[Attribute overrides] if you need to <<attribute_overr
 
 Outbound mappings are used to populate target resource attribute values by midPoint properties.
 
-image::step-2-mappings-outbound.png[link=step-2-mappings-outbound.png, 100%, title=Table of outbound mappings]
+image::step-2-mappings-outbound.png[100%, title=Table of outbound mappings]
 
 To add an outbound mapping:
 
@@ -88,7 +88,7 @@ Click icon:shuffle[] btn:[Attribute overrides] if you need to <<attribute_overr
 Attribute configuration can be overridden beyond the context of the mappings to give you more maneuvering space, for example to override the default connector behavior.
 For more details on attributes, see the xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/[] page.
 
-image::step-2-mappings-override.png[link=step-2-mappings-override.png, 100%, title=Table of attribute overrides]
+image::step-2-mappings-override.png[100%, title=Table of attribute overrides]
 
 . On the inbound/outbound mappings page, click icon:shuffle[] btn:[Attribute overrides].
 You can then override the following attribute parameters:

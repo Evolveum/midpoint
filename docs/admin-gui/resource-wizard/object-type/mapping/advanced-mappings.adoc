@@ -11,7 +11,7 @@ For basic options and a general description of mappings, refer to xref:/midpoint
 [[advanced_inbound_mappings]]
 == Advanced Inbound Mappings
 
-image::step-2-mappings-inbound.png[link=step-2-mappings-inbound.png, 100%, title=Table of inbound mappings]
+image::step-2-mappings-inbound.png[100%, title=Table of inbound mappings]
 
 In addition to the xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/index.adoc#inbound_mappings[basic inbound mapping settings], you can use a more advanced configuration:
 
