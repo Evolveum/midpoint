@@ -112,10 +112,12 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
     private static <T> void markIfAiGeneratedValue(
             @NotNull FormComponent<T> formComponent,
             @NotNull PrismPropertyWrapper<T> propertyWrapper) {
-        List<PrismPropertyValueWrapper<T>> values = propertyWrapper.getValues();
-        if (values == null || values.isEmpty()) {
-            return;
-        }
+
+        formComponent.add(AttributeModifier.append("class", () -> {
+            List<PrismPropertyValueWrapper<T>> values = propertyWrapper.getValues();
+            if (values == null || values.isEmpty()) {
+                return "";
+            }
 
         boolean hasAiProvidedValue = values.stream().anyMatch(vw -> {
             PrismPropertyValue<T> oldValue = vw.getOldValue();
@@ -124,9 +126,11 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             return markedAsAiProvided && oldValue.getValue().equals(newValue.getValue());
         });
 
-        if (hasAiProvidedValue) {
-            formComponent.add(AttributeModifier.append("class", IS_AI_FLAG_FIELD_CLASS));
-        }
+            if (hasAiProvidedValue) {
+                return IS_AI_FLAG_FIELD_CLASS;
+            }
+            return "";
+        }));
     }
 
     private Class<? extends Containerable> getChoicesParentClass(PrismPropertyPanelContext<T> panelCtx) {
