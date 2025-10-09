@@ -37,7 +37,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9.4
 
-* Upgraded Spring Boot to version 3.5.5.
+* Updated dependencies, mainly spring Boot (3.5.6).
 * Extended multi-parts request configuration for AJP server.
 It is possible to set custom max-part-header-size and max-part-count properties to AJP connector in application.yml.
 If no multi-parts request configuration is set for AJP server, these properties will be taken from Tomcat server configuration.
@@ -49,6 +49,8 @@ See bug:MID-10824[], bug:MID-10748[].
 * Improved the time of the certification items list processing (e.g. during cert. items report creating or during displaying in the GUI). See bug:MID-10811[], bug:MID-10812[].
 * Fixed Back button behavior from the Certification items page. See bug:MID-10879[].
 * Upgraded chartjs version to 0.6.
+* Fixed global policy rules not being triggered under some circumstances, see bug:MID-10779[].
+* Improved pre upgrade check for node version in ninja, bug:MID-10829[].
 
 == Changes with Respect To Version 4.9.3
 
