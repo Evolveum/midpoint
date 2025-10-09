@@ -347,7 +347,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
     /**
      * MID-10813
      */
-    @Test(enabled = false)
+    @Test
     public void test200LifecycleArchived() throws Exception {
         assumeAssignmentPolicy(null);
 

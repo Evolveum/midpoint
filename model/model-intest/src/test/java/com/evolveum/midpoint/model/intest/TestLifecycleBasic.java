@@ -16,7 +16,7 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -399,7 +399,7 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
                 ROLE_MEMBERSHIP_REF_NOT_PRESENT,
                 MAPPINGS_NOT_APPLIED,
                 AUTHORIZATIONS_NOT_PRESENT,
-                OBJECT_POLICY_RULES_APPLIED, // FIXME
+                OBJECT_POLICY_RULES_NOT_APPLIED,
                 ASSIGNMENT_POLICY_RULES_APPLIED,
                 ACCOUNTS_NOT_PRESENT);
         assertAssignment(user, principal, ROLE_ASSIGNED_IN_DRAFT,
@@ -408,7 +408,7 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
                 ROLE_MEMBERSHIP_REF_NOT_PRESENT,
                 MAPPINGS_NOT_APPLIED,
                 AUTHORIZATIONS_NOT_PRESENT,
-                OBJECT_POLICY_RULES_APPLIED, // FIXME
+                OBJECT_POLICY_RULES_NOT_APPLIED,
                 ASSIGNMENT_POLICY_RULES_APPLIED,
                 ACCOUNTS_NOT_PRESENT);
 
@@ -493,7 +493,7 @@ public class TestLifecycleBasic extends AbstractEmptyModelIntegrationTest {
     private Set<String> getAuthorizations(MidPointPrincipal principal) {
         return principal.getAuthorities().stream()
                 .flatMap(a -> a.getAction().stream())
-                .map(a -> StringUtils.removeStart(a, "http://test.evolveum.com/authorization#"))
+                .map(a -> Strings.CS.removeStart(a, "http://test.evolveum.com/authorization#"))
                 .collect(Collectors.toSet());
     }
 

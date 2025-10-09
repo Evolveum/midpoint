@@ -332,4 +332,9 @@ public class AssignmentPathImpl implements AssignmentPath {
         stateCheck(!isEmpty(), "Empty assignment path");
         return Objects.requireNonNull(computePathVariables());
     }
+
+    /** Returns {@code true} if all _assignments_ are active. Intentionally ignores objects on the path. */
+    boolean areAllAssignmentsActive() {
+        return segments.stream().allMatch(segment -> segment.isAssignmentActive());
+    }
 }
