@@ -1,9 +1,8 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2010-2020 Evolveum and contributors
+# Copyright (c) 2010-2025 Evolveum and contributors
 #
-# This work is dual-licensed under the Apache License 2.0
-# and European Union Public License. See LICENSE file for details.
+# Licensed under the EUPL-1.2 or later.
 #
 # Hack to set copyright headers
 # TODO: maybe it needs fix... or removal?
@@ -210,6 +209,9 @@ my $fileconfig = {
         "skip" => 1,
     },
     'jceks' => {
+        "skip" => 1,
+    },
+    'jks' => {
         "skip" => 1,
     },
     'names' => {
