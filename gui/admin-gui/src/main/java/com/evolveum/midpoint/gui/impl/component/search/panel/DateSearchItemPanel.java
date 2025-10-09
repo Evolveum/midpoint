@@ -12,9 +12,11 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.DateSearchItemWrapper;
 
+import java.io.Serial;
+
 public class DateSearchItemPanel extends PropertySearchItemPanel<DateSearchItemWrapper> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public DateSearchItemPanel(String id, IModel<DateSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);
