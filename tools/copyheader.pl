@@ -28,7 +28,7 @@ my $debug = 0;
 
 $SIG{__DIE__} = sub { Carp::confess(@_) };
 
-my @excludes = qw(target .*\.versionsBackup .*~ .*\.iml \.project);
+my @excludes = qw(target .*\.versionsBackup .*~ .*\.iml \.project .*\.old);
 my $newLicensePattern = 'Licensed under the EUPL-1.2 or later';
 my $oldLicensePattern = 'This\\s+work\\s+is\\s+dual\\-licensed\\s+under\\s+the\\s+Apache\\s+License';
 my $evoCopyrightPattern = "Copyright\\s+\\([Cc]\\).*Evolveum";
@@ -104,6 +104,10 @@ my $fileconfig = {
         'cbodyp' => '\\#',
         'prologp' => '^---'
     },
+    'properties' => {
+        'cbody' => '#',
+        'cbodyp' => '\\#',
+    },
     'axiom' => {
         'cbody' => '//',
         'cbodyp' => '//',
@@ -117,7 +121,61 @@ my $fileconfig = {
     'zip' => {
         "skip" => 1,
     },
+    'gz' => {
+        "skip" => 1,
+    },
     'ser' => {
+        "skip" => 1,
+    },
+    'lock' => {
+        "skip" => 1,
+    },
+    'lck' => {
+        "skip" => 1,
+    },
+    'template' => {
+        "skip" => 1,
+    },
+    '0' => {
+        "skip" => 1,
+    },
+    '-1' => {
+        "skip" => 1,
+    },
+    'csv' => {
+        "skip" => 1,
+    },
+    'txt' => {
+        "skip" => 1,
+    },
+    'out' => {
+        "skip" => 1,
+    },
+    'pin' => {
+        "skip" => 1,
+    },
+    'ldif' => {
+        "skip" => 1,
+    },
+    'startok' => {
+        "skip" => 1,
+    },
+    'current' => {
+        "skip" => 1,
+    },
+    'save' => {
+        "skip" => 1,
+    },
+    'jdb' => {
+        "skip" => 1,
+    },
+    'jceks' => {
+        "skip" => 1,
+    },
+    'names' => {
+        "skip" => 1,
+    },
+    'dtd' => {
         "skip" => 1,
     },
 };
@@ -184,6 +242,10 @@ sub header {
 
   my ($filename, $dirs, $suffix) = fileparse($path, qr/\.[^.]*/);
   $suffix =~ s/^\.//;
+  if ($suffix eq "") {
+      print("$path: SKIP empty suffix\n") if $verbose;
+      return;
+  }
   my $suffixconfig = $fileconfig->{$suffix};
   if (!$suffixconfig) {
     warn("$path: UNKNOWN suffix $suffix, skipping");
