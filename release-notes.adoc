@@ -37,6 +37,11 @@ It is possible to set custom max-part-header-size and max-part-count properties 
 If no multi-parts request configuration is set for AJP server, these properties will be taken from Tomcat server configuration.
 See bug:MID-10824[], bug:MID-10748[].
 * Fixed full-text search in the role catalog. See bug:MID-10819[].
+* Fixed slow authentication issue. See bug:MID-10885[].
+* Fixed projection not deleted when lifecycleState is set to `archived`. See bug:MID-10813[].
+* Improved pre upgrade check for node version in ninja, bug:MID-10829[].
+* Updated dependencies, mainly spring boot (3.5.6).
+* Optimized repeated logins for policy scripting rules, bug:MID-10864[].
 
 == Changes with Respect To Version 4.8.8
 
