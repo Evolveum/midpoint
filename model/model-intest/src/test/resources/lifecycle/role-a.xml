@@ -1,0 +1,13 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="1d954756-6e95-11f0-8ff0-0050568cc7f8">
+    <name>role-a</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="d9c71b78-6d25-11f0-bff2-0050568cc7f8" relation="org:default" type="ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <focusType>UserType</focusType>
+    </inducement>
+</role>
