@@ -135,12 +135,13 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
                                 SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(
                                         id,
                                         new PropertyModel<>(scriptArtifact, ConnDevArtifactType.F_CONTENT.getLocalPart()),
-                                        450) {
+                                        400) {
 
                                     protected AceEditor createEditor(String id, IModel<String> model, int minSize) {
                                         AceEditor editor = new AceEditor(id, model);
                                         editor.setReadonly(false);
                                         editor.setMinHeight(minSize);
+                                        editor.setHeight(minSize);
                                         editor.setResizeToMaxHeight(false);
                                         editor.setMode(AceEditor.Mode.GROOVY);
                                         add(editor);
