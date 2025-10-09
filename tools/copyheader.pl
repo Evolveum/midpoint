@@ -118,6 +118,9 @@ my $fileconfig = {
     'gif' => {
         "skip" => 1,
     },
+    'jpg' => {
+        "skip" => 1,
+    },
     'zip' => {
         "skip" => 1,
     },
