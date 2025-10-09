@@ -316,4 +316,59 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertTelephoneNumber(userAfter, null);
     }
 
+    /**
+     * MID-10813
+     */
+    @Test
+    public void test200LifecycleArchived() throws Exception {
+        assumeAssignmentPolicy(null);
+
+        try {
+            UserType userA = new UserType();
+            userA.setOid("64da8f2e-78b1-11f0-850f-0050568cc7f8");
+            userA.setName(PolyStringType.fromOrig("user-a"));
+            userA.setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
+            userA.beginAssignment()
+                    .targetRef(ROLE_A.oid, RoleType.COMPLEX_TYPE);
+
+            testUserLifecycleChange(userA);
+
+            UserType userB = new UserType();
+            userB.setOid("ba1a9fb8-78b3-11f0-b929-0050568cc7f8");
+            userB.setName(PolyStringType.fromOrig("user-b"));
+            userB.setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
+            userB.beginAssignment()
+                    .targetRef(ROLE_B.oid, RoleType.COMPLEX_TYPE);
+
+            testUserLifecycleChange(userB);
+        } finally {
+            // same as during test class initialization
+            assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        }
+    }
+
+    private void testUserLifecycleChange(UserType user) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given();
+
+        Assertions.assertThat(dummyResourceCtl.getDummyResource().listAccounts()).isEmpty();
+
+        addObject(user.asPrismObject(), task, result);
+
+        Assertions.assertThat(dummyResourceCtl.getDummyResource().listAccounts()).hasSize(1);
+
+        when();
+
+        ObjectDelta<UserType> deltaA = PrismTestUtil.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ARCHIVED)
+                .asObjectDelta(user.getOid());
+
+        executeChanges(deltaA, ModelExecuteOptions.create(), task, result);
+
+        then();
+
+        Assertions.assertThat(dummyResourceCtl.getDummyResource().listAccounts()).isEmpty();
+    }
 }
