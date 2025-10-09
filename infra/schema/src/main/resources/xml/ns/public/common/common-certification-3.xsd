@@ -429,6 +429,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:AccessCertificationDefinitionType</a:objectReferenceTargetType>
+                                <a:displayName>AccessCertificationCampaignType.definitionRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -493,6 +494,9 @@
                             <xsd:documentation>
                                 When this campaign has to start (or has started).
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AccessCertificationCampaignType.startTimestamp</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -500,6 +504,9 @@
                             <xsd:documentation>
                                 When this campaign has finished.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AccessCertificationCampaignType.endTimestamp</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="repetition" type="xsd:int" minOccurs="0" default="1">
@@ -518,6 +525,9 @@
                             <xsd:documentation>
                                 In which state is the current campaign.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AccessCertificationCampaignType.state</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
@@ -536,6 +546,9 @@
                             <xsd:documentation>
                                 Stages for this campaign (already finished, current, or planned).
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AccessCertificationCampaignType.stage</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="case" type="tns:AccessCertificationCaseType" minOccurs="0" maxOccurs="unbounded">
