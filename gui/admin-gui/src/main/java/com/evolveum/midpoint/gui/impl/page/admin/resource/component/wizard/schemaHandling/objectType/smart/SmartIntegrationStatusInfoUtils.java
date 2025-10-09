@@ -728,7 +728,7 @@ public class SmartIntegrationStatusInfoUtils {
     }
 
     /** Builds display rows depending on the suggestion status. */
-    public static @NotNull List<StatusRowRecord> buildStatusRows(PageBase pageBase, StatusInfo<?> suggestion, boolean addDefaultRow) {
+    public static @NotNull List<StatusRowRecord> buildStatusRows(PageBase pageBase, StatusInfo<?> suggestion, boolean rejectEmptyProgress) {
         List<StatusRowRecord> rows = new ArrayList<>();
         if (suggestion != null && suggestion.getStatus() == OperationResultStatusType.FATAL_ERROR) {
             rows.add(new StatusRowRecord(pageBase.createStringResource(
@@ -738,7 +738,7 @@ public class SmartIntegrationStatusInfoUtils {
             return rows;
         }
 
-        if (addDefaultRow && (suggestion == null
+        if (rejectEmptyProgress && (suggestion == null
                 || suggestion.getProgressInformation() == null)) {
             rows.add(new StatusRowRecord(pageBase.createStringResource(
                     "SmartGeneratingDto.no.suggestion"),
@@ -757,6 +757,11 @@ public class SmartIntegrationStatusInfoUtils {
         }
 
         List<ActivityProgressInformation> children = progressInformation.getChildren();
+
+        if (!rejectEmptyProgress && progressInformation.getChildren().isEmpty()) {
+            return rows;
+        }
+
         if (children.isEmpty()) {
             rows.add(new StatusRowRecord(pageBase.createStringResource(
                     "SmartGeneratingDto." + progressInformation.getRealizationState()),
