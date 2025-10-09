@@ -28,7 +28,7 @@ my $debug = 0;
 
 $SIG{__DIE__} = sub { Carp::confess(@_) };
 
-my @excludes = qw(target .*\.versionsBackup .*~ .*\.iml \.project .*\.old node_modules);
+my @excludes = qw(target .*\.versionsBackup .*~ .*\.iml \.project .*\.old .*\.orig node_modules);
 my $newLicensePattern = 'Licensed under the EUPL-1.2 or later';
 my $oldLicensePattern = 'This\\s+work\\s+is\\s+dual\\-licensed\\s+under\\s+the\\s+Apache\\s+License';
 my $evoCopyrightPattern = "Copyright\\s+\\([Cc]\\).*Evolveum";
@@ -232,6 +232,10 @@ my $fileconfig = {
     },
     'logging' => {
         # org.identityconnectors.common.logging
+        "skip" => 1,
+    },
+    'LOGGER' => {
+        # org.apache.cxf.Logger
         "skip" => 1,
     },
 };
