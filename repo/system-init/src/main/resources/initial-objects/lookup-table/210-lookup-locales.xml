@@ -89,4 +89,8 @@
         <key>tr</key>
         <label>Yкраїнська</label>
     </row>
+    <row id="21">
+        <key>sl</key>
+        <label>Slovenščina</label>
+    </row>
 </lookupTable>

@@ -84,6 +84,7 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * xrefv:/midpoint/reference/master/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
 * Updated various libraries, mainly: Spring Boot, Tomcat, Hibernate, PostgresSQL JDBC driver.
 * Add OAuth 2 credential flow to mail servers notification configuration
+* Added Slovenian language into repo/system-init/src/main/resources/initial-objects/lookup-table/200-lookup-languages.xml and repo/system-init/src/main/resources/initial-objects/210-lookup-locales.xml
 
 === Other Bug Fixes
 
