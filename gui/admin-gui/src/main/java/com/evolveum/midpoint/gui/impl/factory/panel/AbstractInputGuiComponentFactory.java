@@ -23,13 +23,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -131,10 +133,36 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
                         : "";
             }));
 
-            formComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            formComponent.setOutputMarkupId(true);
+            formComponent.getParent().setOutputMarkupId(true);
+
+            formComponent.add(new OnChangeAjaxBehavior() {
+                @Override
+                protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                    super.updateAjaxAttributes(attributes);
+                    attributes.getDynamicExtraParameters().add(
+                            "var el = Wicket.$('" + formComponent.getMarkupId() + "');" +
+                                    "return el ? { caretStart: el.selectionStart, caretEnd: el.selectionEnd } : {};"
+                    );
+                }
+
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
-                    target.add(formComponent);
+                    var params = RequestCycle.get().getRequest().getRequestParameters();
+                    int start = params.getParameterValue("caretStart").toInt(0);
+                    int end = params.getParameterValue("caretEnd").toInt(0);
+
+                    target.add(formComponent.getParent());
+                    target.appendJavaScript(String.format(
+                            "setTimeout(function() {" +
+                                    "  var el = Wicket.$('%s');" +
+                                    "  if (el && el.setSelectionRange) {" +
+                                    "    el.focus();" +
+                                    "    el.setSelectionRange(%d, %d);" +
+                                    "  }" +
+                                    "}, 0);",
+                            formComponent.getMarkupId(), start, end
+                    ));
                 }
             });
         }
