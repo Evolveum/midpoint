@@ -1,11 +1,9 @@
 <!--
   ~ Copyright (c) 2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
 
-<!-- This is a meta-role. A Role indented to be assigned to other roles.
      I really mean assigned, not included or induced. -->
 
 <role oid="4ab1e1aa-d0c4-11e5-b0c2-3c970e44b9e2"

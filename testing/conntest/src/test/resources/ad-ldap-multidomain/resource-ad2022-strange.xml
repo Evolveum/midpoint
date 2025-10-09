@@ -2,11 +2,9 @@
 <!--
   ~ Copyright (c) 2016-2020 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
 
-<!-- AD resource, but with slightly stranger configuration:
      * SPR is used instead of VLV for paging.
      -->
 
