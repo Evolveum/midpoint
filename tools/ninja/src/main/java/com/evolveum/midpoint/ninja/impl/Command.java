@@ -10,6 +10,7 @@ import com.evolveum.midpoint.ninja.action.*;
 import com.evolveum.midpoint.ninja.action.audit.*;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningOptions;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningRepositoryAction;
+import com.evolveum.midpoint.ninja.action.stats.ExportFocusStatisticsAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceOptions;
 import com.evolveum.midpoint.ninja.action.upgrade.action.*;
