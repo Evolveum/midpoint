@@ -90,15 +90,35 @@ public class AiUtil {
         }
     }
 
-    // TODO methods for clearing the AI mark
-
     /**
      * Returns {@code true} if the value is not {@code null} and is marked (at the root level) as provided by AI.
      */
     public static boolean isMarkedAsAiProvided(@Nullable PrismValue value) {
         return value != null
                 && value.hasValueMetadata()
-                && ValueMetadataTypeUtil.getMetadata(value, AI_PROVENANCE_METADATA) != null;
+                && (ValueMetadataTypeUtil.getMetadata(value, AI_PROVENANCE_METADATA) != null || hasAiProvenance(value));
+    }
+
+    /**
+     * Checks whether the given value contains AI provenance metadata (by matching originRef OIDs).
+     * Needed for cases like {@code newValue}, where cloned metadata differs from the static AI_PROVENANCE_METADATA instance.
+     */
+    private static boolean hasAiProvenance(@NotNull PrismValue value) {
+        if (!value.hasValueMetadata()) {
+            return false;
+        }
+        ValueMetadata vmc = value.getValueMetadata();
+        if (vmc.hasNoValues()) {
+            return false;
+        }
+        for (PrismContainerValue<Containerable> pcv : vmc.getValues()) {
+            ValueMetadataType vmType = pcv.getRealValue();
+            if (vmType != null && vmType.getProvenance() != null
+                    && containsMatchingOriginRefMetadata(vmType.getProvenance(), AI_PROVENANCE_METADATA)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ProvenanceMetadataType createAiProvenanceMetadata() {

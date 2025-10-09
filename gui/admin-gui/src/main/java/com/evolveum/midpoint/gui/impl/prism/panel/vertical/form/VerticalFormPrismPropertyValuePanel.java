@@ -66,16 +66,6 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
                             updateFeedbackPanel(target);
                             target.focusComponent(null);
                         }
-
-                        //TODO improve
-                        PrismPropertyValue<T> oldValue = getModelObject().getOldValue();
-                        PrismPropertyValue<T> newValue = getModelObject().getNewValue();
-                        if (AiUtil.isMarkedAsAiProvided(oldValue)) {
-//                            if(!Objects.equals(oldValue.getRealValue(), newValue.getRealValue())){
-                                target.add(this.getComponent());
-//                            }
-                        }
-
                     }
 
                     @Override

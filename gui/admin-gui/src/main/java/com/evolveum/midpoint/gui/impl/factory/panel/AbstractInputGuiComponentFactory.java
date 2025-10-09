@@ -10,10 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.validator.ChoiceRequiredValidator;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
@@ -24,6 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -109,28 +109,43 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
 
     }
 
+    /**
+     * Adds a CSS class to the given form component if any of the property values are marked as AI-provided.
+     * <p>
+     * If the field was originally AI-generated (based on the old value), attaches an AJAX "blur" behavior
+     * that refreshes the component after the user leaves the field, ensuring smooth UI updates without
+     * affecting cursor position while typing.
+     */
     private static <T> void markIfAiGeneratedValue(
             @NotNull FormComponent<T> formComponent,
             @NotNull PrismPropertyWrapper<T> propertyWrapper) {
 
-        formComponent.add(AttributeModifier.append("class", () -> {
-            List<PrismPropertyValueWrapper<T>> values = propertyWrapper.getValues();
-            if (values == null || values.isEmpty()) {
-                return "";
-            }
+        boolean isAiRelated = hasAiMark(propertyWrapper, false);
+        if (isAiRelated) {
+            formComponent.setOutputMarkupId(true);
 
-        boolean hasAiProvidedValue = values.stream().anyMatch(vw -> {
-            PrismPropertyValue<T> oldValue = vw.getOldValue();
-            PrismPropertyValue<T> newValue = vw.getNewValue();
-            boolean markedAsAiProvided = AiUtil.isMarkedAsAiProvided(oldValue);
-            return markedAsAiProvided && oldValue.getValue().equals(newValue.getValue());
-        });
+            formComponent.add(AttributeModifier.append("class", () -> {
+                boolean hasAiProvidedValue = hasAiMark(propertyWrapper, true);
+                return hasAiProvidedValue && !formComponent.hasErrorMessage()
+                        ? IS_AI_FLAG_FIELD_CLASS
+                        : "";
+            }));
 
-            if (hasAiProvidedValue) {
-                return IS_AI_FLAG_FIELD_CLASS;
-            }
-            return "";
-        }));
+            formComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    target.add(formComponent);
+                }
+            });
+        }
+    }
+
+    private static <T> boolean hasAiMark(
+            @NotNull PrismPropertyWrapper<T> propertyWrapper, boolean newValue) {
+        return propertyWrapper.getValues() != null &&
+                propertyWrapper.getValues().stream()
+                        .anyMatch(vw -> AiUtil.isMarkedAsAiProvided(
+                                newValue ? vw.getNewValue() : vw.getOldValue()));
     }
 
     private Class<? extends Containerable> getChoicesParentClass(PrismPropertyPanelContext<T> panelCtx) {
