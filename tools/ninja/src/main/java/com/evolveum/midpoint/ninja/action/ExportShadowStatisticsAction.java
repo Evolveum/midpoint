@@ -3,8 +3,6 @@ package com.evolveum.midpoint.ninja.action;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -15,9 +13,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCorrelationStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ExportShadowStatisticsAction extends RepositoryAction<ExportShadowStatisticsOptions, Void>{
 
@@ -32,7 +28,6 @@ public class ExportShadowStatisticsAction extends RepositoryAction<ExportShadowS
 
     @Override
     public Void execute() throws Exception {
-        // FIXME: Here we should do execute
         RepositoryService repository = context.getRepository();
 
         FileReference fileReference = options.getFilter();
@@ -58,7 +53,6 @@ public class ExportShadowStatisticsAction extends RepositoryAction<ExportShadowS
 
         var results = repository.searchAggregate(query, result);
 
-
         var writer = NinjaUtils.createWriter(
                 options.getOutput(), context.getCharset(), options.isZip(), options.isOverwrite(), context.out);
 
@@ -80,7 +74,5 @@ public class ExportShadowStatisticsAction extends RepositoryAction<ExportShadowS
 
         return null;
     }
-
-
 
 }
