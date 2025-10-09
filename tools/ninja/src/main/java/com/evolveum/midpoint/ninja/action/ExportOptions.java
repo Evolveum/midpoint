@@ -7,9 +7,14 @@
 package com.evolveum.midpoint.ninja.action;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+
+import com.evolveum.midpoint.ninja.util.ItemPathConverter;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -26,6 +31,12 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
     public static final String P_NO_IDS = "-ni";
     public static final String P_NO_IDS_LONG = "--no-container-ids";
 
+    public static final String P_EXCLUDE_ITEMS = "-ei";
+    public static final String P_EXCLUDE_ITEMS_LONG = "--exclude-item";
+
+    public static final String P_SPLIT_FILES = "-sf";
+    public static final String P_SPLIT_FILES_LONG = "--split-files";
+
     @Parameter(names = { P_OUTPUT, P_OUTPUT_LONG }, descriptionKey = "export.output")
     private File output;
 
@@ -34,6 +45,13 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
 
     @Parameter(names = { P_NO_IDS, P_NO_IDS_LONG }, descriptionKey = "export.skipids")
     private boolean skipIds;
+
+    @Parameter(names = { P_EXCLUDE_ITEMS, P_EXCLUDE_ITEMS_LONG }, descriptionKey = "export.exclude.items",
+            validateWith = ItemPathConverter.class, converter = ItemPathConverter.class)
+    private List<ItemPath> excludeItems = new ArrayList<>();
+
+    @Parameter(names = { P_SPLIT_FILES, P_SPLIT_FILES_LONG }, descriptionKey = "split.files")
+    private boolean splitFiles;
 
     @Override
     public File getOutput() {
@@ -49,6 +67,8 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
         return skipIds;
     }
 
+    public boolean isSplitFiles() { return splitFiles; }
+
     public ExportOptions setOutput(File output) {
         this.output = output;
         return this;
@@ -61,6 +81,19 @@ public class ExportOptions extends BaseImportExportOptions implements BasicExpor
 
     public ExportOptions setSkipIds(boolean skipIds) {
         this.skipIds = skipIds;
+        return this;
+    }
+
+    public List<ItemPath> getExcludeItems() {
+        return excludeItems;
+    }
+
+    public void setExcludeItems(List<ItemPath> excludeItems) {
+        this.excludeItems = excludeItems;
+    }
+
+    public ExportOptions setSplitFiles(boolean splitFiles) {
+        this.splitFiles = splitFiles;
         return this;
     }
 }
