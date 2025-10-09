@@ -2,11 +2,8 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-
-<!-- Resource with predefined (simple) pre-create, disable-instead-of-delete, and delayed-delete mappings. -->
 
 <resource oid="2b1c05f1-8b70-43e6-ac46-3e5ee621ee88"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

@@ -1,9 +1,9 @@
 <!--
   ~ Copyright (c) 2017-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <role oid="16813ae6-2c0a-11e7-91fc-8333c244329e"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Persona: admin</name>

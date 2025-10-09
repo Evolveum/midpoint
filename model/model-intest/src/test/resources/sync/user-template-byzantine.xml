@@ -1,11 +1,10 @@
 <?xml version="1.0"?>
-
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <objectTemplate oid="c287436b-1269-4a5f-83cd-a7ba1ef1c048"
                 xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

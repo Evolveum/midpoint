@@ -1,9 +1,9 @@
 <!--
   ~ Copyright (c) 2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <role oid="9f65f4b6-199b-11e9-a4c1-2f6b7eb1ebae"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Business Captain</name>

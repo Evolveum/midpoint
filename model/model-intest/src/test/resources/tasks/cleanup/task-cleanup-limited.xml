@@ -2,9 +2,9 @@
 <!--
   ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <task oid="08f630d0-0459-49c7-9c70-a813ba2e9da6"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>cleanup-new-limited</name>

@@ -1,4 +1,8 @@
 ---
+# Copyright (c) 2010-2025 Evolveum and contributors
+#
+# Licensed under the EUPL-1.2 or later.
+
 role:
   oid: 0d70504c-d094-11e8-b0cc-675c492577e7
   name: One

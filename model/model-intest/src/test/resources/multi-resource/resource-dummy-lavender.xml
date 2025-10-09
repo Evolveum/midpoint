@@ -2,11 +2,9 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
 
-<!-- LAVENDER dummy resource for testing. It is used in multi-resource tests.
       If has dependency on default dummy resource. -->
 
 <resource oid="10000000-0000-0000-0000-000000000504"
