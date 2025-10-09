@@ -5,7 +5,7 @@
 
 Configuration for a subject starts with a screen with three options.
 
-image::choice-part.png[link=choice-part.png,100%,title=Subject wizard]
+image::choice-part.png[100%,title=Subject wizard]
 
 *Select Subject* tile allows selecting the subject.
 

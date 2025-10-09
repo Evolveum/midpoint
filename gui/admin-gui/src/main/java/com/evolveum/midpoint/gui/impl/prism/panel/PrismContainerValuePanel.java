@@ -83,7 +83,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 "aria-label",
                 () -> {
                     String key = "PrismContainerPanel.container";
-                    if (getModelObject().getDefinition().isMultiValue()) {
+                    if (getModelObject().getDefinition() != null && getModelObject().getDefinition().isMultiValue()) {
                         key = "PrismContainerValuePanel.container";
                     }
                     LoadableDetachableModel<String> labelModel = getLabelModel();

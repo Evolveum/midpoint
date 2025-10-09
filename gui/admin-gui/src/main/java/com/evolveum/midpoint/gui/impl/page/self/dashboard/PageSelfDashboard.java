@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self.dashboard;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -98,53 +99,57 @@ public class PageSelfDashboard extends PageSelf {
         initPreviewWidgets(mainForm);
      }
 
-     private void initStatisticWidgets(Form mainForm) {
-        List<PreviewContainerPanelConfigurationType> statisticWidgets = getStatisticWidgetList();
-         ListView<PreviewContainerPanelConfigurationType> statisticWidgetsPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL,
-                 statisticWidgets) {
+    private void initStatisticWidgets(Form mainForm) {
+        LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> statisticWidgetListModel =
+                getStatisticWidgetListModel();
+        ListView<PreviewContainerPanelConfigurationType> statisticWidgetsPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL,
+                statisticWidgetListModel) {
 
-             private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
-             @Override
-             protected void populateItem(ListItem<PreviewContainerPanelConfigurationType> item) {
-                 StatisticDashboardWidget widget = new StatisticDashboardWidget(ID_STATISTIC_WIDGET, item.getModel());
-                 widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
-                 item.add(widget);
-             }
-         };
-         statisticWidgetsPanel.setOutputMarkupId(true);
-         statisticWidgetsPanel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(statisticWidgets)));
-         mainForm.add(statisticWidgetsPanel);
+            @Override
+            protected void populateItem(ListItem<PreviewContainerPanelConfigurationType> item) {
+                StatisticDashboardWidget widget = new StatisticDashboardWidget(ID_STATISTIC_WIDGET, item.getModel());
+                widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
+                item.add(widget);
+            }
+        };
+        statisticWidgetsPanel.setOutputMarkupId(true);
+        statisticWidgetsPanel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(statisticWidgetListModel.getObject())));
+        mainForm.add(statisticWidgetsPanel);
+    }
 
-     }
+    private void initPreviewWidgets(Form mainForm) {
+        // MID-10885 user details model that should be reused in all widgets, since it can be quite expensive to create.
+        // If user has many assignments, too many db queries are executed and creating prism object wrapper takes forever.
+        // If new instance of user details model is created, then probably clone this one somehow.
+        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this) {
+            @Serial private static final long serialVersionUID = 1L;
 
-     private void initPreviewWidgets(Form mainForm) {
-         // MID-10885 user details model that should be reused in all widgets, since it can be quite expensive to create.
-         // If user has many assignments, too many db queries are executed and creating prism object wrapper takes forever.
-         // If new instance of user details model is created, then probably clone this one somehow.
-         UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this) {
+            @Override
+            public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
+                return getCompiledGuiProfile().getHomePage().getWidget();
+            }
+        };
 
-             @Override
-             public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
-                 return getCompiledGuiProfile().getHomePage().getWidget();
-             }
-         };
+        LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> previewWidgetsModel =
+                getNonStatisticWidgetListModel();
+        ListView<PreviewContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL,
+                previewWidgetsModel) {
+            @Serial private static final long serialVersionUID = 1L;
 
-         List<PreviewContainerPanelConfigurationType> previewWidgets = getNonStatisticWidgetList();
-         ListView<PreviewContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, previewWidgets) {
-
-             @Override
-             protected void populateItem(ListItem<PreviewContainerPanelConfigurationType> item) {
-                 Component widget = createWidget(ID_OBJECT_COLLECTION_VIEW_WIDGET, item.getModel(), userDetailsModel);
-                 widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
-                 widget.add(AttributeAppender.append("class", getWidgetCssClassModel(item.getModelObject())));
-                 item.add(widget);
-             }
-         };
-         viewWidgetsPanel.setOutputMarkupId(true);
-         viewWidgetsPanel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(previewWidgets)));
-         mainForm.add(viewWidgetsPanel);
-     }
+            @Override
+            protected void populateItem(ListItem<PreviewContainerPanelConfigurationType> item) {
+                Component widget = createWidget(ID_OBJECT_COLLECTION_VIEW_WIDGET, item.getModel(), userDetailsModel);
+                widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
+                widget.add(AttributeAppender.append("class", getWidgetCssClassModel(item.getModelObject())));
+                item.add(widget);
+            }
+        };
+        viewWidgetsPanel.setOutputMarkupId(true);
+        viewWidgetsPanel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(previewWidgetsModel.getObject())));
+        mainForm.add(viewWidgetsPanel);
+    }
 
      private IModel<String> getWidgetCssClassModel(PreviewContainerPanelConfigurationType panelConfig) {
         return () -> {
@@ -156,27 +161,44 @@ public class PageSelfDashboard extends PageSelf {
         };
      }
 
-     private List<PreviewContainerPanelConfigurationType> getStatisticWidgetList() {
-         HomePageType homePageType = getCompiledGuiProfile().getHomePage();
-         List<PreviewContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
-         if (allWidgetList == null) {
-             return null;
-         }
-         return allWidgetList.stream().filter(w -> LINK_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
+     private LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> getStatisticWidgetListModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<PreviewContainerPanelConfigurationType> load() {
+                HomePageType homePageType = getCompiledGuiProfile().getHomePage();
+                List<PreviewContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
+                if (allWidgetList == null) {
+                    return null;
+                }
+                return allWidgetList.stream()
+                        .filter(w -> LINK_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
+            }
+        };
      }
 
-     private List<PreviewContainerPanelConfigurationType> getNonStatisticWidgetList() {
-         HomePageType homePageType = getCompiledGuiProfile().getHomePage();
-         List<PreviewContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
-         if (allWidgetList == null) {
-             return Collections.emptyList();
-         }
-         return allWidgetList.stream().filter(w -> w.getPanelType() != null &&
-                 !LINK_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
+     private LoadableDetachableModel<List<PreviewContainerPanelConfigurationType>> getNonStatisticWidgetListModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<PreviewContainerPanelConfigurationType> load() {
+                HomePageType homePageType = getCompiledGuiProfile().getHomePage();
+                List<PreviewContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
+                if (allWidgetList == null) {
+                    return Collections.emptyList();
+                }
+                return allWidgetList.stream().filter(w -> w.getPanelType() != null &&
+                        !LINK_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
+            }
+        };
      }
 
     private LoadableDetachableModel<PrismObject<UserType>> createSelfModel() {
         return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected PrismObject<UserType> load() {
                 MidPointPrincipal principal;
