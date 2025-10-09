@@ -303,6 +303,9 @@
                     <xsd:documentation>
                         When was this work item created?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractWorkItemType.createTimestamp</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="deadline" type="xsd:dateTime" minOccurs="0">
@@ -349,6 +352,9 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                        <xsd:appinfo>
+                            <a:displayName>AbstractWorkItemType.candidateRef</a:displayName>
+                        </xsd:appinfo>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

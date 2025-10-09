@@ -95,6 +95,9 @@
                                     must have valid task identifier.
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TaskType.taskIdentifier</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="taskRunRecord" type="tns:TaskRunRecordType" minOccurs="0" maxOccurs="unbounded"/>
@@ -248,6 +251,9 @@
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
                                 <a:displayHint>regular</a:displayHint>
+                                <xsd:appinfo>
+                                    <a:displayName>TaskType.node</a:displayName>
+                                </xsd:appinfo>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
