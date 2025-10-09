@@ -28,7 +28,7 @@ my $debug = 0;
 
 $SIG{__DIE__} = sub { Carp::confess(@_) };
 
-my @excludes = qw(target .*\.versionsBackup .*~ .*\.iml \.project .*\.old);
+my @excludes = qw(target .*\.versionsBackup .*~ .*\.iml \.project .*\.old node_modules);
 my $newLicensePattern = 'Licensed under the EUPL-1.2 or later';
 my $oldLicensePattern = 'This\\s+work\\s+is\\s+dual\\-licensed\\s+under\\s+the\\s+Apache\\s+License';
 my $evoCopyrightPattern = "Copyright\\s+\\([Cc]\\).*Evolveum";
@@ -64,6 +64,14 @@ my $fileconfig = {
         'cend' => ' */',
         'cendp' => '\\*/',
     },
+    'scss' => {
+        'cstart' => '/*',
+        'cstartp' => '/\\*',
+        'cbody' => ' *',
+        'cbodyp' => '\\*',
+        'cend' => ' */',
+        'cendp' => '\\*/',
+    },
     'xml' => {
         'cstart' => '<!--',
         'cstartp' => '<\\!--',
@@ -91,6 +99,15 @@ my $fileconfig = {
         'cendp' => '-->',
         'prologp' => '<\\?xml',
     },
+    'html' => {
+        'cstart' => '<!--',
+        'cstartp' => '<\\!--',
+        'cbody' => '  ~',
+        'cbodyp' => '\\~',
+        'cend' => '  -->',
+        'cendp' => '-->',
+        'prologp' => '\\<\\!DOCTYPE',
+    },
     'vm' => {
         'cstart' => '#*',
         'cstartp' => '\\#\\*',
@@ -100,6 +117,11 @@ my $fileconfig = {
         'cendp' => '\\*\\#',
     },
     'yaml' => {
+        'cbody' => '#',
+        'cbodyp' => '\\#',
+        'prologp' => '^---'
+    },
+    'yml' => {
         'cbody' => '#',
         'cbodyp' => '\\#',
         'prologp' => '^---'
@@ -119,6 +141,18 @@ my $fileconfig = {
         "skip" => 1,
     },
     'jpg' => {
+        "skip" => 1,
+    },
+    'png' => {
+        "skip" => 1,
+    },
+    'svg' => {
+        "skip" => 1,
+    },
+    'ico' => {
+        "skip" => 1,
+    },
+    'ttf' => {
         "skip" => 1,
     },
     'zip' => {
@@ -146,6 +180,9 @@ my $fileconfig = {
         "skip" => 1,
     },
     'csv' => {
+        "skip" => 1,
+    },
+    'data' => {
         "skip" => 1,
     },
     'txt' => {
@@ -179,6 +216,22 @@ my $fileconfig = {
         "skip" => 1,
     },
     'dtd' => {
+        "skip" => 1,
+    },
+    'patch' => {
+        "skip" => 1,
+    },
+    'cer' => {
+        "skip" => 1,
+    },
+    'woff' => {
+        "skip" => 1,
+    },
+    'eot' => {
+        "skip" => 1,
+    },
+    'logging' => {
+        # org.identityconnectors.common.logging
         "skip" => 1,
     },
 };
