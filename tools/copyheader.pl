@@ -29,15 +29,26 @@ my $debug = 0;
 $SIG{__DIE__} = sub { Carp::confess(@_) };
 
 my @excludes = qw(target .*\.versionsBackup .*~ .*\.iml \.project);
-my $licencePattern = 'Licensed under the EUPL-1.2 or later';
-my $copyrightPattern = "Copyright \\([Cc]\\)";
+my $newLicensePattern = 'Licensed under the EUPL-1.2 or later';
+my $oldLicensePattern = 'This\\s+work\\s+is\\s+dual\\-licensed\\s+under\\s+the\\s+Apache\\s+License';
+my $evoCopyrightPattern = "Copyright\\s+\\([Cc]\\).*Evolveum";
+my $copyrightPattern = "[Cc]opyright";
 
 # Taken from "European Union Public Licence EUPL Guidelines July 2021"
-my $licenseText = 'Licensed under the EUPL-1.2 or later.';
+my $newLicenseText = 'Licensed under the EUPL-1.2 or later.';
+my $licensePattern = '[Ll]icensed';
 my $copyrightText = 'Copyright (c) 2010-2025 Evolveum and contributors';
 
 my $fileconfig = {
     'java' => {
+        'cstart' => '/*',
+        'cstartp' => '/\\*',
+        'cbody' => ' *',
+        'cbodyp' => '\\*',
+        'cend' => ' */',
+        'cendp' => '\\*/',
+    },
+    'js' => {
         'cstart' => '/*',
         'cstartp' => '/\\*',
         'cbody' => ' *',
@@ -71,6 +82,44 @@ my $fileconfig = {
         'cendp' => '-->',
         'prologp' => '<\\?xml',
     },
+    'wsdl' => {
+        'cstart' => '<!--',
+        'cstartp' => '<\\!--',
+        'cbody' => '  ~',
+        'cbodyp' => '\\~',
+        'cend' => '  -->',
+        'cendp' => '-->',
+        'prologp' => '<\\?xml',
+    },
+    'vm' => {
+        'cstart' => '#*',
+        'cstartp' => '\\#\\*',
+        'cbody' => ' *',
+        'cbodyp' => '\\*',
+        'cend' => ' *#',
+        'cendp' => '\\*\\#',
+    },
+    'yaml' => {
+        'cbody' => '#',
+        'cbodyp' => '\\#',
+        'prologp' => '^---'
+    },
+    'axiom' => {
+        'cbody' => '//',
+        'cbodyp' => '//',
+    },
+    'json' => {
+        "skip" => 1,
+    },
+    'gif' => {
+        "skip" => 1,
+    },
+    'zip' => {
+        "skip" => 1,
+    },
+    'ser' => {
+        "skip" => 1,
+    },
 };
 
 my $dir;
@@ -95,7 +144,7 @@ if (!defined($dir)) {
 if (!$dir) { usage(); }
 if ($dir eq "--help") { usage(); }
 
-print "dir: $dir, recursive=$recursive, regexp=$fileregexp\n";
+print "dir: $dir, recursive=$recursive, regexp=$fileregexp\n" if $verbose;
 
 if (-f $dir) {
   header($dir);
@@ -140,6 +189,11 @@ sub header {
     warn("$path: UNKNOWN suffix $suffix, skipping");
     return;
   }
+  if ($suffixconfig->{"skip"}) {
+    print("$path: SKIP suffix $suffix\n") if $verbose;
+    return;
+  }
+
   my $cstart = $suffixconfig->{'cstart'};
   my $cend = $suffixconfig->{'cend'};
   my $cbody = $suffixconfig->{'cbody'};
@@ -151,8 +205,6 @@ sub header {
   open(my $fh, $path) or die("Cannot open $path: $!\n");
   my (@lines) = <$fh>;
   close $fh;
-
-print ("PPP: prologp $prologp\n");
 
   my $hasLicense = 0;
   my $copyrightLine = undef;
@@ -170,21 +222,34 @@ print ("PPP: prologp $prologp\n");
             $prologLine = $line;
         } elsif (isComment($line, $cstartp, $cbodyp, $cendp)) {
           print("->C ".$line) if $debug;
-          if ($line =~ /$licencePattern/) {
-            $hasLicense = 1;
+          if (!$hasLicense) {
+              if ($line =~ /$newLicensePattern/) {
+                $hasLicense = 1;
+              } elsif ($line =~ /$oldLicensePattern/) {
+                print("$path: old license detected: $line") if $verbose;
+              } elsif ($line =~ /$licensePattern/) {
+                print("$path: OTHER LICENSE detected: $line");
+                # DO NOT TOUCH this file, we may be ruining other people's copyright
+                return;
+              }
           }
-          if ($line =~ /$copyrightPattern/) {
+          if ($line =~ /$evoCopyrightPattern/) {
             $copyrightLine = $line;
+          } elsif ($line =~ /$copyrightPattern/) {
+            print("$path: OTHER COPYRIGHT detected: $line");
+            # DO NOT TOUCH this file, we may be ruining other people's copyright
+            return;
           }
         } else {
           print("->X ".$line) if $debug;
           $reachedFileBody = 1;
+          push @linesToKeep, $line;
         }
     }
   }
 
   if ($hasLicense && $copyrightLine) {
-    print "$path: OK\n";
+    print "$path: OK\n" if $verbose;
   } else {
     print "$path: FIX ".scalar(@lines)."/".scalar(@linesToKeep)." lines\n";
 
@@ -204,7 +269,7 @@ print ("PPP: prologp $prologp\n");
 
       print $fh $cbody."\n";
 
-      foreach my $lline (split("\n",$licenseText)) {
+      foreach my $lline (split("\n",$newLicenseText)) {
         print $fh $cbody." ".$lline."\n";
       }
 
