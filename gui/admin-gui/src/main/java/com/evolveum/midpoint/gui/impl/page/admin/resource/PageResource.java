@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -58,12 +59,11 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceSummaryPanel;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @PageDescriptor(
         urls = {
@@ -78,8 +78,6 @@ import org.jetbrains.annotations.NotNull;
                         description = "PageResource.auth.resource.description")
         })
 public class PageResource extends PageAssignmentHolderDetails<ResourceType, ResourceDetailsModel> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
@@ -126,7 +124,9 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     @Override
-    protected ResourceOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<ResourceType>> wrapperModel) {
+    protected ResourceOperationalButtonsPanel createButtonsPanel(
+            String id,
+            LoadableModel<PrismObjectWrapper<ResourceType>> wrapperModel) {
         return new ResourceOperationalButtonsPanel(id, wrapperModel) {
 
             @Override
@@ -187,12 +187,16 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showResourceObjectTypePreviewWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        ResourceObjectTypeWizardPanel wizard = showObjectTypeWizard(null, target, pathToValue);
+        ResourceObjectTypeWizardPanel wizard = showObjectTypeWizard(null, target, pathToValue, null);
         wizard.setShowChoicePanel(true);
     }
 
-    public ResourceObjectTypeWizardPanel showObjectTypeWizard(PrismContainerValue<ResourceObjectTypeDefinitionType> value, AjaxRequestTarget target, ItemPath pathToValue) {
-        return showWizard(value, target, pathToValue, ResourceObjectTypeWizardPanel.class);
+    public ResourceObjectTypeWizardPanel showObjectTypeWizard(
+            PrismContainerValue<ResourceObjectTypeDefinitionType> value,
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            @Nullable SerializableConsumer<AjaxRequestTarget> afterSaveAction) {
+        return showWizard(value, target, pathToValue, ResourceObjectTypeWizardPanel.class, null, afterSaveAction);
     }
 
     public void showResourceAssociationTypePreviewWizard(AjaxRequestTarget target, ItemPath pathToValue) {
@@ -200,30 +204,36 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         wizard.setShowChoicePanel(true);
     }
 
-    public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, AjaxRequestTarget target, ItemPath pathToValue) {
+    public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(
+            PrismContainerValue<ShadowAssociationTypeDefinitionType> value,
+            AjaxRequestTarget target,
+            ItemPath pathToValue) {
         return showWizard(value, target, pathToValue, ResourceAssociationTypeWizardPanel.class);
     }
 
-    public ResourceAssociationTypeWizardPanel showAssociationTypeWizardForDuplicate(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, AjaxRequestTarget target, ItemPath pathToValue) {
-        ResourceAssociationTypeWizardPanel panel = showWizard(value, target, pathToValue, ResourceAssociationTypeWizardPanel.class);
+    public void showAssociationTypeWizardForDuplicate(
+            PrismContainerValue<ShadowAssociationTypeDefinitionType> value,
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
+        ResourceAssociationTypeWizardPanel panel = showWizard(
+                value, target, pathToValue, ResourceAssociationTypeWizardPanel.class, null, postSaveHandler);
         panel.setPanelForDuplicate(true);
-        return panel;
-    }
-
-    public ResourceAssociationTypeWizardPanel showAssociationTypeWizardForSuggestion(@NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
-        ResourceAssociationTypeWizardPanel panel = showWizard(valueModel, target, ResourceAssociationTypeWizardPanel.class, null);
-        panel.setPanelForDuplicate(true);
-        return panel;
     }
 
     public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(AjaxRequestTarget target, IModel<String> exitLabel) {
-        return showWizard(target, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE), ResourceAssociationTypeWizardPanel.class, exitLabel);
+        return showWizard(
+                target,
+                ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE),
+                ResourceAssociationTypeWizardPanel.class,
+                exitLabel);
     }
 
     public void showResourceObjectTypeBasicWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         showContainerWizardForObjectType(target, pathToValue, ResourceObjectTypeBasicWizardPanel.class);
     }
 
+    @SuppressWarnings("unchecked")
     public void showSynchronizationWizard(
             @NotNull IModel<PrismContainerValueWrapper<SynchronizationReactionsType>> valueModel,
             @NotNull AjaxRequestTarget target) {
@@ -236,12 +246,15 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         addWizardBreadcrumbsForObjectType(synchronizationWizardPanel, 0);
     }
 
-    public void showSynchronizationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_SYNCHRONIZATION), SynchronizationWizardPanel.class);
+    public void showSynchronizationWizard(AjaxRequestTarget target, @NotNull ItemPath pathToValue) {
+        showContainerWizardForObjectType(
+                target,
+                pathToValue.append(ResourceObjectTypeDefinitionType.F_SYNCHRONIZATION),
+                SynchronizationWizardPanel.class);
     }
 
     public void showSuggestObjectTypeWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectTypeSuggestion(target, pathToValue, SmartObjectTypeSuggestionWizardPanel.class);
+        showContainerWizardForObjectTypeSuggestion(target, pathToValue);
     }
 
     public void showAttributeMappingWizard(AjaxRequestTarget target, ItemPath pathToValue) {
@@ -249,78 +262,120 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showCorrelationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerCorrelationWizard(target, pathToValue, CorrelationWizardPanel.class);
+        showContainerCorrelationWizard(target, pathToValue);
     }
 
-    public void showCapabilitiesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CONFIGURED_CAPABILITIES), CapabilitiesWizardPanel.class);
+    public void showCapabilitiesWizard(AjaxRequestTarget target, @NotNull ItemPath pathToValue) {
+        showContainerWizardForObjectType(
+                target,
+                pathToValue.append(ResourceObjectTypeDefinitionType.F_CONFIGURED_CAPABILITIES),
+                CapabilitiesWizardPanel.class);
     }
 
-    public void showCredentialsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CREDENTIALS), CredentialsWizardPanel.class);
+    public void showCredentialsWizard(AjaxRequestTarget target, @NotNull ItemPath pathToValue) {
+        showContainerWizardForObjectType(
+                target,
+                pathToValue.append(ResourceObjectTypeDefinitionType.F_CREDENTIALS),
+                CredentialsWizardPanel.class);
     }
 
-    public void showActivationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_ACTIVATION), ActivationsWizardPanel.class);
+    public void showActivationsWizard(AjaxRequestTarget target, @NotNull ItemPath pathToValue) {
+        showContainerWizardForObjectType(
+                target,
+                pathToValue.append(ResourceObjectTypeDefinitionType.F_ACTIVATION),
+                ActivationsWizardPanel.class);
     }
 
     public void showPoliciesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         showContainerWizardForObjectType(target, pathToValue, PoliciesObjectTypeWizardPanel.class);
     }
 
-    public void showAssociationInboundsWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association, IModel<String> exitLabel) {
+    public void showAssociationInboundsWizard(
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            ShadowAssociationTypeDefinitionType association,
+            IModel<String> exitLabel) {
         showWizard(target, pathToValue, AssociationInboundMappingContainerWizardPanel.class, exitLabel);
-        addWizardBreadcrumbsForAssociationType(association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
+        addWizardBreadcrumbsForAssociationType(
+                association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
     }
 
-    public void showAssociationInboundWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association, IModel<String> exitLabel) {
-        AssociationInboundEvaluatorWizardPanel panel = showWizard(target, pathToValue, AssociationInboundEvaluatorWizardPanel.class, exitLabel);
+    public void showAssociationInboundWizard(
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            ShadowAssociationTypeDefinitionType association,
+            IModel<String> exitLabel) {
+        AssociationInboundEvaluatorWizardPanel panel = showWizard(
+                target,
+                pathToValue,
+                AssociationInboundEvaluatorWizardPanel.class,
+                exitLabel);
         panel.setShowChoicePanel(true);
-        addWizardBreadcrumbsForAssociationType(association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
+        addWizardBreadcrumbsForAssociationType(
+                association, LocalizationUtil.translate("PageResource.association.wizard.inbound"));
     }
 
-    public void showAssociationOutboundsWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association, IModel<String> exitLabel) {
+    public void showAssociationOutboundsWizard(
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            ShadowAssociationTypeDefinitionType association,
+            IModel<String> exitLabel) {
         showWizard(target, pathToValue, AssociationOutboundMappingContainerWizardPanel.class, exitLabel);
-        addWizardBreadcrumbsForAssociationType(association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
+        addWizardBreadcrumbsForAssociationType(
+                association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
     }
 
-    public void showAssociationOutboundWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association, IModel<String> exitLabel) {
-        AssociationOutboundEvaluatorWizardPanel panel = showWizard(target, pathToValue, AssociationOutboundEvaluatorWizardPanel.class, exitLabel);
+    public void showAssociationOutboundWizard(
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            ShadowAssociationTypeDefinitionType association,
+            IModel<String> exitLabel) {
+        AssociationOutboundEvaluatorWizardPanel panel = showWizard(
+                target,
+                pathToValue,
+                AssociationOutboundEvaluatorWizardPanel.class,
+                exitLabel);
         panel.setShowChoicePanel(true);
-        addWizardBreadcrumbsForAssociationType(association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
+        addWizardBreadcrumbsForAssociationType(
+                association, LocalizationUtil.translate("PageResource.association.wizard.outbound"));
     }
 
-    public ResourceSchemaWizardPanel showComplexOrEnumerationTypeWizard(AjaxRequestTarget target) {
-        return showWizard(
+    public void showComplexOrEnumerationTypeWizard(AjaxRequestTarget target) {
+        showWizard(
                 target,
                 ItemPath.EMPTY_PATH,
                 ResourceSchemaWizardPanel.class);
     }
 
-    private <P extends AbstractWizardPanel> P showContainerWizardForObjectType(
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private <P extends AbstractWizardPanel> void showContainerWizardForObjectType(
             AjaxRequestTarget target, ItemPath pathToValue, Class<P> wizardClass) {
         P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
         addWizardBreadcrumbsForObjectType(wizardPanel, 0);
-        return wizardPanel;
     }
 
-    private <P extends AbstractWizardPanel> P showContainerCorrelationWizard(
-            AjaxRequestTarget target, @NotNull ItemPath pathToValue, Class<P> wizardClass) {
-        P wizardPanel = (P) showWizard(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CORRELATION), wizardClass);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private <P extends AbstractWizardPanel> void showContainerCorrelationWizard(
+            AjaxRequestTarget target, @NotNull ItemPath pathToValue) {
+        P wizardPanel = (P) showWizard(
+                target,
+                pathToValue.append(ResourceObjectTypeDefinitionType.F_CORRELATION),
+                (Class<P>) CorrelationWizardPanel.class);
         addWizardBreadcrumbsResourceName(wizardPanel);
-        return wizardPanel;
     }
 
-    private <P extends AbstractWizardPanel> P showContainerWizardForObjectTypeSuggestion(
-            AjaxRequestTarget target, ItemPath pathToValue, Class<P> wizardClass) {
-        P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private <P extends AbstractWizardPanel> void showContainerWizardForObjectTypeSuggestion(
+            AjaxRequestTarget target,
+            ItemPath pathToValue) {
+        P wizardPanel = (P) showWizard(target, pathToValue, (Class<P>) SmartObjectTypeSuggestionWizardPanel.class);
         addWizardBreadcrumbsResourceName(wizardPanel);
         addWizardBreadcrumbsForObjectType(wizardPanel, 1);
-        return wizardPanel;
     }
 
     private <C extends Containerable> void addWizardBreadcrumbsForObjectType(
-            @NotNull AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel, int index) {
+            @NotNull AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel,
+            int index) {
         List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();
         Containerable containerable = wizardPanel.getValueModel().getObject().getRealValue();
         String displayName = "";
@@ -346,7 +401,9 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         breadcrumbs.add(0, new Breadcrumb(breadcrumbLabel));
     }
 
-    private void addWizardBreadcrumbsForAssociationType(ShadowAssociationTypeDefinitionType association, String mappingDirection) {
+    private void addWizardBreadcrumbsForAssociationType(
+            ShadowAssociationTypeDefinitionType association,
+            String mappingDirection) {
         List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();
         String displayName = GuiDisplayNameUtil.getDisplayName(association);
         IModel<String> breadcrumbLabelModel = Model.of(displayName + " (" + mappingDirection + ")");

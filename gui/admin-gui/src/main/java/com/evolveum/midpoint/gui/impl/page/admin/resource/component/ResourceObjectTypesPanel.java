@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -162,9 +164,13 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
     @Override
     protected void onNewValue(
-            PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target, boolean isDuplicate) {
+            PrismContainerValue<ResourceObjectTypeDefinitionType> value,
+            IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel,
+            AjaxRequestTarget target,
+            boolean isDuplicate,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
         ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
-        objectDetailsModels.getPageResource().showObjectTypeWizard(value, target, newWrapperModel.getObject().getPath());
+        objectDetailsModels.getPageResource().showObjectTypeWizard(value, target, newWrapperModel.getObject().getPath(), postSaveHandler);
     }
 
     @Override
@@ -187,7 +193,6 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     protected @Nullable StatusInfo<ObjectTypesSuggestionType> getStatusInfo(PrismContainerValueWrapper<?> value) {
         StatusInfo<?> statusInfo = super.getStatusInfo(value);
         if (statusInfo != null) {
@@ -254,21 +259,23 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return !suggestions.wrappers().isEmpty();
     }
 
-    protected boolean performOnDeleteSuggestion(AjaxRequestTarget target, PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> valueWrapper) {
-        Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
+    protected boolean performOnDeleteSuggestion(
+            @NotNull PageBase pageBase,
+            AjaxRequestTarget target,
+            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> valueWrapper,
+            @Nullable StatusInfo<?> statusInfo) {
+        Task task = pageBase.createSimpleTask(OP_DETERMINE_STATUSES);
         OperationResult result = task.getResult();
-
-        StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(valueWrapper);
         if (statusInfo == null) {
             return false;
         }
         SmartIntegrationUtils.removeObjectTypeSuggestionNew(
-                getPageBase(),
+                pageBase,
                 statusInfo,
                 valueWrapper.getRealValue(),
                 task,
                 result);
-        target.add(getPageBase().getFeedbackPanel());
+        target.add(pageBase.getFeedbackPanel());
         return true;
     }
 
@@ -282,9 +289,11 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(
                 originalObject);
 
-        //TODO temporary
-        performOnDeleteSuggestion(target, (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) valueWrapper);
-        onNewValue(suggestionToAdd, containerModel, target, false);
+        PageBase pageBase = getPageBase();
+        var statusInfo = getStatusInfo(valueWrapper);
+        onNewValue(suggestionToAdd, containerModel, target, false,
+                ajaxRequestTarget -> performOnDeleteSuggestion(pageBase, ajaxRequestTarget,
+                        (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) valueWrapper, statusInfo));
     }
 
     @Override
