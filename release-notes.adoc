@@ -84,6 +84,7 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * xrefv:/midpoint/reference/master/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
 * Updated various libraries, mainly: Spring Boot, Tomcat, Hibernate, PostgresSQL JDBC driver.
 * Add OAuth 2 credential flow to mail servers notification configuration
+* Added languages, specifically Korean, Dutch, and Ukrainian.
 
 === Other Bug Fixes
 
@@ -241,6 +242,12 @@ Therefore, the visibility for the Certification items table was changed from fal
 See bug:MID-10889[].
 * Fixed _runPrivileged_ configuration usage for scripting policy actions. See bug:MID-10820[].
 * Upgraded chartjs version to 0.6.
+* Fixed slow authentication issue. See bug:MID-10885[].
+* Fixed global policy rules not being triggered under some circumstances, see bug:MID-10779[].
+* Updated dependencies, mainly spring boot (3.5.6), removed wss4j.
+* Improved pre upgrade check for node version in ninja, bug:MID-10829[].
+* Fixed projection not deleted when lifecycleState is set to `archived`. See bug:MID-10813[].
+* Optimized repeated logins for policy scripting rules, bug:MID-10864[].
 
 === Releases Of Other Components
 
