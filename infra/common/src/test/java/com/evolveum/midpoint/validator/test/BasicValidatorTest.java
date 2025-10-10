@@ -165,7 +165,7 @@ public class BasicValidatorTest extends AbstractUnitTest
         String message = result.getMessage();
         AssertJUnit.assertTrue(message.contains("Element type \"ri:Account\" must be followed by either attribute specifications, \">\" or \"/>\"."));
         // Check if line number is in the error
-        AssertJUnit.assertTrue("Line number not found in error message: " + message, message.contains("28"));
+        AssertJUnit.assertTrue("Line number not found in error message: " + message, message.contains("25"));
 
     }
 
