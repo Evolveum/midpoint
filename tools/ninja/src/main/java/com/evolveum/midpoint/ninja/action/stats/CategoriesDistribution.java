@@ -10,14 +10,14 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public record CategoriesDistribution(Collection<Integer> distribution) implements PrismTransformableRecord {
+public record CategoriesDistribution(Collection<Float> distribution) implements PrismTransformableRecord {
     private static final ItemName F_VALUE = new ItemName(SchemaConstants.NS_C, "value");
 
     @Override
     public PrismContainerValue<Containerable> asPrismContainerValue(ItemFactory itemFactory)
             throws SchemaException {
-        final PrismProperty<Object> valueProperty = itemFactory.createProperty(F_VALUE);
-        for (int value : this.distribution) {
+        final PrismProperty<Float> valueProperty = itemFactory.createProperty(F_VALUE);
+        for (float value : this.distribution) {
             valueProperty.addRealValueSkipUniquenessCheck(value);
         }
 
