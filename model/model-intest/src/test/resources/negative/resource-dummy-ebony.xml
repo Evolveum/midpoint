@@ -2,9 +2,11 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ Licensed under the EUPL-1.2 or later.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!-- Ebony dummy resource for testing tolerant attributes
      there are provisioning scripts that may fail (low criticality)
      Similar to BLACK resource, but the provisioning scripts have lower criticality. it is also a bit simpler.
       -->

@@ -2,9 +2,11 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ Licensed under the EUPL-1.2 or later.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!-- Complex OpenDJ Resource:
    * special polystring mapping all the way to the connector (MID-5210)
    * search scope limited to "one" (MID-5485)
    -->

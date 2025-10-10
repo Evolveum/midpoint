@@ -2,9 +2,11 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ Licensed under the EUPL-1.2 or later.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!-- LDAP Tests with LDAP content that is completely mutilated. It is all wrong.
      Wrong capitalization in objectClass attributes, spaces in DNs and so on.  -->
 
 <resource oid="10000000-0000-0000-0000-000000000003"

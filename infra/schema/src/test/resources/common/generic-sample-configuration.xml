@@ -2,9 +2,11 @@
 <!--
   ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
-  ~ Licensed under the EUPL-1.2 or later.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!-- Sample custom configuration object. Object of the genericObject type are
          in fact free-form objects. They can contain almost any XML data in the
          extension part. They are supposed to hold data structures that parametrize
          the IDM custom business logic or IDM expressions. -->

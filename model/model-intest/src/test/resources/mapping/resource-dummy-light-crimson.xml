@@ -2,9 +2,11 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ Licensed under the EUPL-1.2 or later.
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!-- LIGHT CRIMSON dummy resource for testing. Has mostly STRONG, non-tolerant mappings.
      Also some strange absolute-like mappings. It is stripped down to test proper loading
      of full shadows for these absolute-like mappings. E.g. it has no iteration expression.
      MID-3674 -->
