@@ -10,7 +10,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
 import com.evolveum.midpoint.ninja.action.worker.ExportConsumerWorker;
-import com.evolveum.midpoint.ninja.action.worker.ExportPerObjectWorker;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -26,16 +25,9 @@ public class ExportRepositoryAction extends AbstractRepositorySearchAction<Expor
 
     @Override
     protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
-        if (options.isSplitFiles()) {
-            return () -> {
-                new ExportPerObjectWorker(context, options, queue, operation).run();
-                return null;
-            };
-        } else {
-            return () -> {
-                new ExportConsumerWorker(context, options, queue, operation).run();
-                return null;
-            };
-        }
+        return () -> {
+            new ExportConsumerWorker(context, options, queue, operation).run();
+            return null;
+        };
     }
 }
