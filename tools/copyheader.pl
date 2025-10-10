@@ -27,7 +27,7 @@ my $debug = 0;
 
 $SIG{__DIE__} = sub { Carp::confess(@_) };
 
-my @excludes = qw(target .*\.versionsBackup .*~ .*\.iml \.project .*\.old .*\.orig node_modules);
+my @excludes = qw(target .*\.versionsBackup .*~ .*\.iml \.project .*\.old .*\.orig node_modules .*\.adoc docs \..*);
 my $newLicensePattern = 'Licensed under the EUPL-1.2 or later';
 my $oldLicensePattern = 'This\\s+work\\s+is\\s+dual\\-licensed\\s+under\\s+the\\s+Apache\\s+License';
 my $evoCopyrightPattern = "Copyright\\s+\\([Cc]\\).*Evolveum";
@@ -355,6 +355,9 @@ sub header {
                 print("$path: OTHER LICENSE detected: $line");
                 # DO NOT TOUCH this file, we may be ruining other people's copyright
                 return;
+              }
+              if ($cendp && $line =~ /^\s*$cendp/) {
+                $reachedFileBody = 1;
               }
           }
           if ($line =~ /$evoCopyrightPattern/) {
