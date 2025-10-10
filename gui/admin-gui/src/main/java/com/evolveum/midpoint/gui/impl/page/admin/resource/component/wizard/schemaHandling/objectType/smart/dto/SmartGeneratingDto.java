@@ -75,10 +75,10 @@ public class SmartGeneratingDto implements Serializable {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return List.of();
         }
-        return buildStatusRows(pageBase, statusInfo.getObject(), addDefaultRow());
+        return buildStatusRows(pageBase, statusInfo.getObject(), rejectEmptyProgress());
     }
 
-    protected boolean addDefaultRow() {
+    protected boolean rejectEmptyProgress() {
         return true;
     }
 
