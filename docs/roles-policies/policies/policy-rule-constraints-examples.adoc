@@ -88,12 +88,14 @@ Refer to xref:/midpoint/reference/roles-policies/policies/policy-rules/#policy_c
 == requirement
 .Example
 [source,xml]
+----
 <policyConstraints>
     <requirement>
         <!-- NDA clearance -->
         <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="PolicyType" />
     </requirement>
 </policyConstraints>
+----
 
 
 == exclusion
