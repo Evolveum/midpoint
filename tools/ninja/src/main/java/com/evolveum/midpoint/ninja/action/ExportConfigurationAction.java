@@ -1,8 +1,7 @@
 package com.evolveum.midpoint.ninja.action;
 
+import com.evolveum.midpoint.ninja.action.worker.ExportConfigurationSeparateWorker;
 import com.evolveum.midpoint.ninja.action.worker.ExportConfigurationWorker;
-import com.evolveum.midpoint.ninja.action.worker.ExportConsumerWorker;
-import com.evolveum.midpoint.ninja.action.worker.ExportPerObjectWorker;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -17,7 +16,7 @@ public class ExportConfigurationAction extends AbstractRepositorySearchAction<Ex
     protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
         if (options.isSplitFiles()) {
             return () -> {
-                new ExportPerObjectWorker(context, options, queue, operation).run();
+                new ExportConfigurationSeparateWorker(context, options, queue, operation).run();
                 return null;
             };
         } else {
