@@ -92,6 +92,10 @@ For example, to grant access to high-risk users (i.e. users in more sensitive po
 
 * Flexible notifications, ad-hoc re-certification and other governance and compliance features that are planned for future midPoint versions.
 
+The following webinar recording summarizes the application of policy rules in midPoint:
+
+video::RyPPiY4_690[youtube,title="Policies and Rules in midPoint",width="852",height="480"]
+
 == Rule Content
 
 [[policy_constraints]]
