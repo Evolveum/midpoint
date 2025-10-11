@@ -14,7 +14,8 @@ public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<
     @Override
     protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
         return () -> {
-            new ExportFocusStatisticsWorker(context, options, queue, operation, new StatsCounter()).run();
+            final StatsCounter statsCounter = new StatsCounter(options.getExcludeItems());
+            new ExportFocusStatisticsWorker(context, options, queue, operation, statsCounter).run();
             return null;
         };
     }
