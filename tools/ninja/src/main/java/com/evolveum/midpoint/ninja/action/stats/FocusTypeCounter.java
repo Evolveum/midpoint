@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
@@ -16,20 +17,19 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 class FocusTypeCounter {
 
     private final String focusType;
-    private final Collection<ItemPath> itemsToExclude;
+    private final Predicate<ItemDefinition<?>> itemsIncludePredicate;
     private final Map<String, PropertyStatsCounter> statsCounterMap;
     private final MagnitudeCounter totalCount;
 
-    FocusTypeCounter(String focusType, Collection<ItemPath> itemsToExclude) {
+    FocusTypeCounter(String focusType, Predicate<ItemDefinition<?>> itemsIncludePredicate) {
         this.focusType = focusType;
-        this.itemsToExclude = itemsToExclude;
+        this.itemsIncludePredicate = itemsIncludePredicate;
         this.totalCount = new MagnitudeCounter();
         this.statsCounterMap = new HashMap<>();
     }
@@ -60,7 +60,7 @@ class FocusTypeCounter {
     }
 
     private Collection<PrismProperty<?>> flatten(PrismContainer<?> container) {
-        if (isExcluded(container.getPath())) {
+        if (isExcluded(container.getDefinition())) {
             return Collections.emptyList();
         }
 
@@ -96,7 +96,7 @@ class FocusTypeCounter {
             Collection<PrismPropertyDefinition<?>> propertyDefinitions) {
         final List<PrismProperty<?>> properties = new ArrayList<>();
         for (PrismPropertyDefinition<?> definition : propertyDefinitions) {
-            if (isExcluded(definition.getItemName())) {
+            if (isExcluded(definition)) {
                 continue;
             }
 
@@ -109,7 +109,7 @@ class FocusTypeCounter {
         return properties;
     }
 
-    private boolean isExcluded(ItemPath path) {
-        return this.itemsToExclude.stream().anyMatch(path::equivalent);
+    private boolean isExcluded(ItemDefinition<?> definition) {
+        return ! this.itemsIncludePredicate.test(definition);
     }
 }
