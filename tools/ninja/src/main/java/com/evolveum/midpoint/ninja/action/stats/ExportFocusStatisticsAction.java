@@ -1,22 +1,21 @@
-package com.evolveum.midpoint.ninja.action;
-
-import com.evolveum.midpoint.ninja.action.worker.ExportConfigurationWorker;
-import com.evolveum.midpoint.ninja.action.worker.ExportFocusStatisticsWorker;
-import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+package com.evolveum.midpoint.ninja.action.stats;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
-public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<ExportOptions, Void>{
+import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
+import com.evolveum.midpoint.ninja.action.ExportOptions;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<ExportOptions, Void> {
     @Override
     protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
-        // FIXME: Here should be statistic counting consumer
-
         return () -> {
-            new ExportFocusStatisticsWorker(context, options, queue, operation).run();
+            final StatsCounter statsCounter = new StatsCounter(options.getExcludeItems());
+            new ExportFocusStatisticsWorker(context, options, queue, operation, statsCounter).run();
             return null;
         };
     }
