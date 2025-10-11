@@ -1,20 +1,20 @@
 package com.evolveum.midpoint.ninja.action.stats;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class StatsCounter {
     private final Map<Class<? extends ObjectType>, FocusTypeCounter> typesCounters;
-    private final Collection<ItemPath> itemsToExclude;
+    private final Predicate<ItemDefinition<?>> itemsToIncludePredicate;
 
-    public StatsCounter(Collection<ItemPath> itemsToExclude) {
-        this.itemsToExclude = itemsToExclude;
+    public StatsCounter(Predicate<ItemDefinition<?>> itemsToIncludePredicate) {
+        this.itemsToIncludePredicate = itemsToIncludePredicate;
         typesCounters = new HashMap<>();
     }
 
@@ -22,7 +22,7 @@ public class StatsCounter {
         final PrismObject<? extends ObjectType> prismObject = object.asPrismObject();
         final String objectName = prismObject.getElementName().getLocalPart();
         final FocusTypeCounter counter = this.typesCounters.computeIfAbsent(object.getClass(),
-                key -> new FocusTypeCounter(objectName, itemsToExclude));
+                key -> new FocusTypeCounter(objectName, itemsToIncludePredicate));
 
         counter.count(prismObject);
     }
