@@ -2,6 +2,7 @@ package com.evolveum.midpoint.ninja.action.stats;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,17 +16,20 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 class FocusTypeCounter {
 
     private final String focusType;
+    private final Collection<ItemPath> itemsToExclude;
     private final Map<String, PropertyStatsCounter> statsCounterMap;
     private final MagnitudeCounter totalCount;
 
-    FocusTypeCounter(String focusType) {
+    FocusTypeCounter(String focusType, Collection<ItemPath> itemsToExclude) {
         this.focusType = focusType;
+        this.itemsToExclude = itemsToExclude;
         this.totalCount = new MagnitudeCounter();
         this.statsCounterMap = new HashMap<>();
     }
@@ -55,7 +59,11 @@ class FocusTypeCounter {
         return new FocusTypeStats(this.focusType, this.totalCount.toOrderOfMagnitude(), propertiesStats);
     }
 
-    private static Collection<PrismProperty<?>> flatten(PrismContainer<?> container) {
+    private Collection<PrismProperty<?>> flatten(PrismContainer<?> container) {
+        if (isExcluded(container.getPath())) {
+            return Collections.emptyList();
+        }
+
         final ComplexTypeDefinition complexTypeDefinition = container.getComplexTypeDefinition();
         final PrismContainerValue<?> containerValue = container.hasNoValues()
                 ? container.createNewValue()
@@ -66,9 +74,9 @@ class FocusTypeCounter {
         final List<PrismProperty<?>> nestedProperties = new ArrayList<>();
         for (final ItemDefinition<?> definition : complexTypeDefinition.getDefinitions()) {
             if (definition instanceof PrismContainerDefinition<?> containerDefinition) {
-                // We decided to not calculate stats for multivalued containers, because it complicates calculation, and we are
-                // not even sure if we would use such stats. We also MUST NOT work with "elaborate" containers,
-                // because they may contain cycles.
+                // We decided to not calculate stats for multivalued containers, because it complicates calculation,
+                // and we are  not even sure if we would use such stats. We also MUST NOT work with "elaborate"
+                // containers, because they may contain cycles.
                 if (definition.isSingleValue() && !definition.isElaborate()) {
                     try {
                         final PrismContainer<Containerable> innerContainer = containerValue.findOrCreateContainer(
@@ -84,10 +92,14 @@ class FocusTypeCounter {
         return currentLevelProperties;
     }
 
-    private static Collection<PrismProperty<?>> collectProperties(PrismContainerValue<?> containerValue,
+    private Collection<PrismProperty<?>> collectProperties(PrismContainerValue<?> containerValue,
             Collection<PrismPropertyDefinition<?>> propertyDefinitions) {
         final List<PrismProperty<?>> properties = new ArrayList<>();
         for (PrismPropertyDefinition<?> definition : propertyDefinitions) {
+            if (isExcluded(definition.getItemName())) {
+                continue;
+            }
+
             try {
                 properties.add(containerValue.findOrCreateProperty(definition));
             } catch (SchemaException e) {
@@ -97,4 +109,7 @@ class FocusTypeCounter {
         return properties;
     }
 
+    private boolean isExcluded(ItemPath path) {
+        return this.itemsToExclude.stream().anyMatch(path::equivalent);
+    }
 }
