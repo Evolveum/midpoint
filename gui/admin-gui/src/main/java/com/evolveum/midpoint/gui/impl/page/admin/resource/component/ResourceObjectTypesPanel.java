@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -16,10 +15,11 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -205,40 +205,13 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
     protected ISelectableDataProvider<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> createProvider() {
         PrismContainerWrapperModel<ResourceType, ResourceObjectTypeDefinitionType> resourceDefWrapper =
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
+        var suggestionsModelDto = StatusAwareDataFactory.createObjectTypeModel(
+                this,
+                getSwitchSuggestionModel(),
+                resourceDefWrapper,
+                getObjectWrapperObject().getOid());
 
-        final Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, StatusInfo<ObjectTypesSuggestionType>>
-                suggestionsIndex = new HashMap<>();
-
-        LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> containerModel =
-                new LoadableModel<>() {
-                    @Override
-                    protected @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> load() {
-                        List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> out = new ArrayList<>();
-
-                        suggestionsIndex.clear();
-                        if (Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
-                            final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-                            final OperationResult result = task.getResult();
-
-                            final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
-
-                            SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions =
-                                    loadObjectTypeSuggestionWrappers(getPageBase(), resourceOid, task, result);
-                            out.addAll(suggestions.wrappers());
-                            suggestionsIndex.putAll(suggestions.suggestionByWrapper());
-                        }
-
-                        List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resource = resourceDefWrapper
-                                .getObject().getValues();
-                        if (resource != null) {
-                            out.addAll(resource);
-                        }
-                        return out;
-                    }
-                };
-
-        String resourceOid = getObjectWrapperObject().getOid();
-        return new StatusAwareDataProvider<>(this, resourceOid, Model.of(), containerModel, suggestionsIndex::get);
+        return new StatusAwareDataProvider<>(this, Model.of(), suggestionsModelDto);
     }
 
     @Override
@@ -253,7 +226,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
         final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
 
-        SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadObjectTypeSuggestionWrappers(
+        SuggestionProviderResult<ResourceObjectTypeDefinitionType, ObjectTypesSuggestionType> suggestions = loadObjectTypeSuggestionWrappers(
                 getPageBase(), resourceOid, task, result);
 
         return !suggestions.wrappers().isEmpty();

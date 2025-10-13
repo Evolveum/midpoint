@@ -18,10 +18,9 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -50,7 +49,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
@@ -274,94 +273,19 @@ public abstract class SmartMappingTable<P extends Containerable>
 
     @Override
     protected MultivalueContainerListDataProvider<MappingType> createDataProvider() {
-        final Map<PrismContainerValueWrapper<MappingType>, StatusInfo<MappingsSuggestionType>> suggestionsIndex = new HashMap<>();
-
-        LoadableDetachableModel<List<PrismContainerValueWrapper<MappingType>>> valuesModel =
-                new LoadableDetachableModel<>() {
-                    @Override
-                    protected @NotNull List<PrismContainerValueWrapper<MappingType>> load() {
-                        suggestionsIndex.clear();
-
-                        List<PrismContainerValueWrapper<MappingType>> suggestions = new ArrayList<>();
-                        List<PrismContainerValueWrapper<MappingType>> accepted = new ArrayList<>();
-                        List<PrismContainerValueWrapper<MappingType>> normal = new ArrayList<>();
-
-                        if (Boolean.TRUE.equals(getSwitchToggleModel().getObject())
-                                && getMappingType() == MappingDirection.INBOUND) {
-                            loadSuggestions(suggestions);
-                        }
-
-                        PrismContainerWrapper<MappingType> container = getContainerModel().getObject();
-                        if (container != null && !container.getValues().isEmpty()) {
-                            for (PrismContainerValueWrapper<MappingType> value : container.getValues()) {
-                                if (acceptedSuggestionsCache.contains(value)) {
-                                    accepted.add(value);
-                                } else {
-                                    normal.add(value);
-                                }
-                            }
-                        }
-
-                        return new ArrayList<>(initialSort(suggestions, accepted)) {{
-                            addAll(normal);
-                        }};
-                    }
-
-                    private void loadSuggestions(@NotNull List<PrismContainerValueWrapper<MappingType>> suggestions) {
-                        Task task = getPageBase().createSimpleTask("Loading mappings type suggestions");
-                        OperationResult result = task.getResult();
-
-                        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
-                        ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
-
-                        SmartIntegrationStatusInfoUtils.@NotNull MappingSuggestionProviderResult suggestionWrappers =
-                                loadMappingSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition,
-                                        getMappingType(), false, task, result);
-
-                        suggestionWrappers.wrappers().forEach(WebPrismUtil::setReadOnlyRecursively);
-
-                        suggestions.addAll(suggestionWrappers.wrappers());
-                        suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
-                    }
-
-                    /** Sort suggestions and accepted suggestions by old name.
-                     * Normal mappings are added after that, unsorted.
-                     * Ensure that accepted suggestions are show on the same place after refresh.
-                     */
-                    private @NotNull List<PrismContainerValueWrapper<MappingType>> initialSort(
-                            List<PrismContainerValueWrapper<MappingType>> suggestions,
-                            List<PrismContainerValueWrapper<MappingType>> accepted) {
-                        List<PrismContainerValueWrapper<MappingType>> suggestionsRelated = new ArrayList<>();
-                        suggestionsRelated.addAll(suggestions);
-                        suggestionsRelated.addAll(accepted);
-
-                        Comparator<PrismContainerValueWrapper<MappingType>> byName = Comparator.comparing(
-                                v -> String.valueOf(getTargetValue(v)),
-                                String.CASE_INSENSITIVE_ORDER);
-                        suggestionsRelated.sort(byName);
-                        return suggestionsRelated;
-                    }
-
-                    private static String getTargetValue(@NotNull PrismContainerValueWrapper<MappingType> mappingValueWrapper) {
-                        MappingType mapping = mappingValueWrapper.getRealValue();
-                        VariableBindingDefinitionType targetValue = mapping.getTarget();
-                        return targetValue != null && targetValue.getPath() != null ? targetValue.getPath().toString() : "";
-                    }
-                };
-
-        return new StatusAwareDataProvider<>(
+        var dto = StatusAwareDataFactory.createMappingModel(
                 this,
                 resourceOid,
-                Model.of(),
-                valuesModel,
-                suggestionsIndex::get) {
+                getSwitchToggleModel(),
+                getContainerModel(),
+                findResourceObjectTypeDefinition(),
+                getMappingType(),
+                acceptedSuggestionsCache);
+
+        return new StatusAwareDataProvider<>(this, Model.of(), dto) {
             @Override
             protected List<PrismContainerValueWrapper<MappingType>> searchThroughList() {
-                if (getMappingType() != MappingDirection.INBOUND) {
-                    super.searchThroughList();
-                }
                 List<PrismContainerValueWrapper<MappingType>> list = super.searchThroughList();
-
                 if (list == null || list.isEmpty()) {
                     return null;
                 }

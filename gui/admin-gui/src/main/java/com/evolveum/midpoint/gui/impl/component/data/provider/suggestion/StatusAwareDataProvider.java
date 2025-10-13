@@ -1,6 +1,7 @@
-package com.evolveum.midpoint.gui.impl.component.data.provider;
+package com.evolveum.midpoint.gui.impl.component.data.provider.suggestion;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
@@ -37,24 +38,22 @@ public class StatusAwareDataProvider<C extends Containerable>
         extends MultivalueContainerListDataProvider<C> {
 
     /** Cache of status information keyed by token. */
-    private final Map<String, StatusInfo<?>> statusByToken = new HashMap<>();
+    protected final Map<String, StatusInfo<?>> statusByToken = new HashMap<>();
 
     /** Cache of wrappers mapped to their status token (identity-based). */
-    private final Map<PrismContainerValueWrapper<C>, String> tokenByWrapper = new IdentityHashMap<>();
+    protected final Map<PrismContainerValueWrapper<C>, String> tokenByWrapper = new IdentityHashMap<>();
 
     private final SerializableFunction<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionResolver;
 
     private final String resourceOid;
 
     public StatusAwareDataProvider(
-            Component component,
-            String resourceOid,
+            @NotNull Component component,
             @NotNull IModel<Search<C>> search,
-            IModel<List<PrismContainerValueWrapper<C>>> model,
-            SerializableFunction<PrismContainerValueWrapper<C>, StatusInfo<?>> suggestionResolver) {
-        super(component, search, model);
-        this.resourceOid = resourceOid;
-        this.suggestionResolver = Objects.requireNonNull(suggestionResolver, "suggestionResolver must not be null");
+            @NotNull StatusAwareDataFactory.SuggestionsModelDto<C> suggestionsModelDto) {
+        super(component, search, suggestionsModelDto.getModel());
+        this.suggestionResolver = suggestionsModelDto.getSuggestionResolver();
+        this.resourceOid = suggestionsModelDto.getResourceOid();
     }
 
     @Override

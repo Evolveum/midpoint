@@ -15,14 +15,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -223,39 +223,15 @@ public class SmartCorrelationTable
 
     @Override
     protected MultivalueContainerListDataProvider<ItemsSubCorrelatorType> createDataProvider() {
-        final Map<PrismContainerValueWrapper<ItemsSubCorrelatorType>, StatusInfo<CorrelationSuggestionsType>> suggestionsIndex = new HashMap<>();
+        var dto = StatusAwareDataFactory.createCorrelationModel(
+                this,
+                getSwitchToggleModel(),
+                getContainerModel(),
+                findResourceObjectTypeDefinition(),
+                resourceOid);
 
-        LoadableDetachableModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> containerModel =
-                new LoadableDetachableModel<>() {
-                    @Override
-                    protected @NotNull List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> load() {
-                        IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = getContainerModel();
-                        PrismContainerWrapper<ItemsSubCorrelatorType> container = containerModel.getObject();
-
-                        suggestionsIndex.clear();
-                        List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> allValues = new ArrayList<>(container != null
-                                ? container.getValues() : List.of());
-                        if (Boolean.TRUE.equals(getSwitchToggleModel().getObject())) {
-                            Task task = getPageBase().createSimpleTask("Loading correlation type suggestions");
-                            OperationResult result = task.getResult();
-
-                            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentWrapper = findResourceObjectTypeDefinition();
-                            ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = parentWrapper.getRealValue();
-                            @NotNull SmartIntegrationStatusInfoUtils.CorrelationSuggestionProviderResult suggestionWrappers =
-                                    loadCorrelationSuggestionWrappers(getPageBase(), resourceOid, resourceObjectTypeDefinition,
-                                            false, task, result);
-
-                            allValues.addAll(suggestionWrappers.wrappers());
-                            suggestionsIndex.putAll(suggestionWrappers.suggestionByWrapper());
-                        }
-
-                        return allValues;
-                    }
-                };
-
-        return new StatusAwareDataProvider<>(this, resourceOid, Model.of(), containerModel, suggestionsIndex::get);
+        return new StatusAwareDataProvider<>(this, Model.of(), dto);
     }
-
     @Override
     protected List<IColumn<PrismContainerValueWrapper<ItemsSubCorrelatorType>, String>> createDomainColumns() {
         List<IColumn<PrismContainerValueWrapper<ItemsSubCorrelatorType>, String>> columns = new ArrayList<>();

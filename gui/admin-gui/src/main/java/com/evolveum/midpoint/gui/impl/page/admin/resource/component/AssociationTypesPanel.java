@@ -16,12 +16,13 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.factory.duplicateresolver.AssociationDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPopupPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.*;
@@ -323,39 +324,13 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         PrismContainerWrapperModel<ResourceType, ShadowAssociationTypeDefinitionType> resourceDefWrapper =
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
 
-        final Map<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>, StatusInfo<AssociationsSuggestionType>>
-                suggestionsIndex = new HashMap<>();
+        var suggestionsModelDto = StatusAwareDataFactory.createAssociationModel(
+                this,
+                getSwitchSuggestionModel(),
+                resourceDefWrapper,
+                getObjectWrapperObject().getOid());
 
-        LoadableModel<List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>>> containerModel =
-                new LoadableModel<>() {
-                    @Override
-                    protected @NotNull List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> load() {
-                        List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> out = new ArrayList<>();
-
-                        suggestionsIndex.clear();
-                        if (Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
-                            final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-                            final OperationResult result = task.getResult();
-
-                            final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
-
-                            SmartIntegrationStatusInfoUtils.@NotNull AssociationTypeSuggestionProviderResult suggestions =
-                                    loadAssociationTypeSuggestionWrappers(getPageBase(), resourceOid, task, result);
-                            out.addAll(suggestions.wrappers());
-                            suggestionsIndex.putAll(suggestions.suggestionByWrapper());
-                        }
-
-                        List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> resource = resourceDefWrapper
-                                .getObject().getValues();
-                        if (resource != null) {
-                            out.addAll(resource);
-                        }
-                        return out;
-                    }
-                };
-
-        String resourceOid = getObjectWrapperObject().getOid();
-        return new StatusAwareDataProvider<>(this, resourceOid, Model.of(), containerModel, suggestionsIndex::get);
+        return new StatusAwareDataProvider<>(this, Model.of(), suggestionsModelDto);
     }
 
     @Override
@@ -370,8 +345,8 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
         final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
 
-        SmartIntegrationStatusInfoUtils.@NotNull AssociationTypeSuggestionProviderResult suggestions = loadAssociationTypeSuggestionWrappers(
-                getPageBase(), resourceOid, task, result);
+        SuggestionProviderResult<ShadowAssociationTypeDefinitionType, AssociationsSuggestionType> suggestions =
+                loadAssociationTypeSuggestionWrappers(getPageBase(), resourceOid, task, result);
 
         return !suggestions.wrappers().isEmpty();
     }
