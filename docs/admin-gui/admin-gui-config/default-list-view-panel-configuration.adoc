@@ -52,12 +52,14 @@ If not set, the value of `0` is assumed.
 If not specified, unlimited maximum size is assumed.
 If configured for a list view, this value is taken as the default page size on the list view panel.
 If the configured value is not present in the set of the available page sizes (see `pagingOptions` below), it will be added to this set as one of the options.
+The maximum allowed value is 1000.
 
 | `pagingOptions`
 | NO
 | `PagingOptionsType`
 a| Paging options which can be applied to list view in GUI.
 Contains a multi-value element `availablePageSize` which defines the set of available page size values that will be suggested to users on table panels.
+The maximum value for availablePageSize is programmed to 1000, any bigger configured value will be ignored.
 
 |===
 
