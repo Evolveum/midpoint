@@ -33,8 +33,8 @@ We can add governance users, member users, create inducement for a resource or v
 Members panels:
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::arw-step-3-governance.png[link=arw-step-3-governance.png, 100%, title=Panel for adding governance user]
-| image::arw-step-3-member.png[link=arw-step-3-member.png, 100%, title=Panel for adding user as member]
+| image::arw-step-3-governance.png[100%, title=Panel for adding governance user]
+| image::arw-step-3-member.png[100%, title=Panel for adding user as member]
 |===
 
 {empty} +
@@ -42,11 +42,11 @@ Configuration of provisioning:
 
 [%autowidth, cols="1a,1a", frame=none, grid=none, role=center]
 |===
-| image::arw-step-4-select-resource.png[link=arw-step-4-select-resource.png, 100%, title=Selecting of resource]
-| image::arw-step-4-select-object-type.png[link=arw-step-4-select-object-type.png,100%, title=Selecting of resource object type]
+| image::arw-step-4-select-resource.png[100%, title=Selecting of resource]
+| image::arw-step-4-select-object-type.png[100%, title=Selecting of resource object type]
 
-| image::arw-step-4-selecting-of-association.png[link=arw-step-4-selecting-of-association.png, 100%, title=Selecting of associations]
-| image::arw-step-4-configuration-of-outbound-mappings.png[link=arw-step-4-configuration-of-outbound-mappings.png, 100%, title=Configuration of outbound mappings]
+| image::arw-step-4-selecting-of-association.png[100%, title=Selecting of associations]
+| image::arw-step-4-configuration-of-outbound-mappings.png[100%, title=Configuration of outbound mappings]
 |===
 
 == Business role wizard

@@ -59,17 +59,32 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         }
 
         if (!segment.isAssignmentActive() && !segment.direct) {
-            LOGGER.trace("Skipping evaluation of payload (other than constructions) of assignment {} because it is not valid"
-                    + "and it's not a directly assigned one", segment.assignment);
+            LOGGER.trace("Skipping evaluation of payload (other than constructions) of the assignment because it is not valid"
+                    + " and it's not a directly assigned one");
             return;
         }
 
         if (segment.isMatchingOrder) {
-            if (segment.isFullPathActive()) {
-                collectFocusMappings(); // But mappings from invalid assignments are ignored. TODO what about relativity here?
+            if (!segment.isFullPathActive()) {
+                LOGGER.trace("Skipping focus mappings because the assignment path is not fully valid"); // This is obvious
+            } else {
+                collectFocusMappings();
             }
-            if (segment.isNonNegativeRelativeRelativityMode()) {
-                // object policy rules from invalid direct assignments are collected (why?) but only if non-negative (why?)
+
+            if (!segment.isNonNegativeRelativeRelativityMode()) {
+                LOGGER.trace("Skipping object policy rules because the condition is negative or zero");
+            } else if (!ctx.assignmentPath.areAllAssignmentsActive()) {
+                // Eventually, we should check also the validity of objects, at least intermediate roles.
+                // But some scenarios (TestLinkedObjects.test120) require that the assigned object policy rules
+                // should be applied also when the role (HW button in that case) is itself disabled.
+                // We could perhaps distinguish being disabled because of activation/administrativeStatus from
+                // being disabled because of lifecycle state (e.g. draft): in the former case, the intermediate role
+                // should be taken into account, whereas in the latter, we should ignore it. But we're not there yet.
+                // This is something to be discussed.
+                //
+                // Hence, here we skip the object policy rules only if there's an invalid assignment.
+                LOGGER.trace("Skipping object policy rules because there's an inactive (not valid) assignment on the path");
+            } else {
                 collectObjectPolicyRule();
             }
         }

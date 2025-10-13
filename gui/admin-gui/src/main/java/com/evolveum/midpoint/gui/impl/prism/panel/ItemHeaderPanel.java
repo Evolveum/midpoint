@@ -187,7 +187,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     private void addValue(AjaxRequestTarget target) {
         IW parentWrapper = getModelObject();
         try {
-            parentWrapper.add(createNewValue(parentWrapper), getPageBase());
+            parentWrapper.addIgnoringEquivalents(createNewValue(parentWrapper), getPageBase());
         } catch (SchemaException e) {
             getSession().error(getString("ItemHeaderPanel.value.add.failed", e.getMessage()));
             LOGGER.error("Failed to add new value for {}, reason: {}", parentWrapper, e.getMessage(), e);
