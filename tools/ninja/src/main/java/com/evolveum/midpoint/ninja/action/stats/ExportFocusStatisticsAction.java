@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
 import com.evolveum.midpoint.ninja.action.ExportOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -39,10 +40,10 @@ public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<
         return () -> {
             final List<ItemPath> excludeItems = this.options.getExcludeItems();
 
-            Predicate<ItemDefinition<?>> includePredicate =
-                    definition -> INCLUDE_ITEMS.stream().anyMatch(definition.getItemName()::isSuperPathOrEquivalent);
+            Predicate<Item<?, ?>> includePredicate =
+                    definition -> INCLUDE_ITEMS.stream().anyMatch(definition.getPath()::isSuperPathOrEquivalent);
             includePredicate = includePredicate.and(
-                    definition -> excludeItems.stream().noneMatch(definition.getItemName()::isSuperPathOrEquivalent));
+                    definition -> excludeItems.stream().noneMatch(definition.getPath()::isSuperPathOrEquivalent));
             final StatsCounter statsCounter = new StatsCounter(includePredicate);
             new ExportFocusStatisticsWorker(context, options, queue, operation, statsCounter).run();
             return null;
