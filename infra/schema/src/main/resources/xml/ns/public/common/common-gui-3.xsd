@@ -5087,7 +5087,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines a set of available page size values which will be suggested to the user
-                        on the table panels.
+                        on the table panels. The maximum value for availablePageSize is programmed to 1000,
+                        any bigger configured value will be ignored.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
