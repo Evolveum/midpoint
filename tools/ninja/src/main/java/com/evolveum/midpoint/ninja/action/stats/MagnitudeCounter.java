@@ -4,8 +4,12 @@ public class MagnitudeCounter {
 
     private int count;
 
-    MagnitudeCounter() {
+    public MagnitudeCounter() {
         this.count = 0;
+    }
+
+    public MagnitudeCounter(int startFrom) {
+        this.count = startFrom;
     }
 
     public void increment() {

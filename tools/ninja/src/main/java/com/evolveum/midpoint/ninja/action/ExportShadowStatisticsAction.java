@@ -1,9 +1,11 @@
 package com.evolveum.midpoint.ninja.action;
 
+import com.evolveum.midpoint.ninja.action.stats.MagnitudeCounter;
 import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -59,6 +61,11 @@ public class ExportShadowStatisticsAction extends RepositoryAction<ExportShadowS
         var wrapper = context.getPrismContext().itemFactory().createContainer(F_SHADOW_STATISTICS);
         for (PrismContainerValue prismContainerValue : results) {
             try {
+                final PrismProperty<Long> count = prismContainerValue.findProperty(
+                        new ItemName(SchemaConstants.NS_C, "count"));
+                final long orderOfMagnitude = new MagnitudeCounter(Math.toIntExact(count.getRealValue(Long.class)))
+                        .toOrderOfMagnitude();
+                count.setRealValue(orderOfMagnitude);
                 wrapper.addIgnoringEquivalents(prismContainerValue);
             } catch (SchemaException e) {
                 log.error("Couldn't add shadow statistics", e);
