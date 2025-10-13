@@ -690,11 +690,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
 
         var defaultListViewConfigurations = getDefaultObjectListConfiguration();
-        if (defaultListViewConfigurations == null) {
+        if (defaultListViewConfigurations == null || defaultListViewConfigurations.getPaging() == null) {
             return null;
         }
-        return defaultListViewConfigurations.getPaging() != null ?
-                defaultListViewConfigurations.getPaging().getMaxSize() : null;
+        return Math.min(UserProfileStorage.DEFAULT_MAX_PAGING_SIZE, defaultListViewConfigurations.getPaging().getMaxSize());
     }
 
     protected @Nullable List<Integer> getAvailablePageSizes() {
@@ -742,7 +741,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             availablePageSizes.add(pagingMaxSize);
         }
 
-        return availablePageSizes;
+        //restrict the largest page size to be less than allowed maximum
+        return availablePageSizes
+                .stream()
+                .filter(s -> s <= UserProfileStorage.DEFAULT_MAX_PAGING_SIZE)
+                .toList();
     }
 
     private <DC extends DefaultGuiObjectListPanelConfigurationType> boolean availablePageSizesListExist(DC config) {
