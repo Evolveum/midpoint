@@ -18,11 +18,12 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 
+import java.io.Serial;
 import java.util.List;
 
 public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregorianCalendar> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String F_FROM_DATE = "singleDate";
     public static final String F_TO_DATE = "intervalSecondDate";
@@ -96,6 +97,8 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
     public void clearValue() {
         singleDate = getDefaultValue() != null ? getDefaultValue().getValue() : null;
         intervalSecondDate = null;
+        selectedIntervalPreset = null;
+        intervalPresets = NamedIntervalPreset.DEFAULT_PRESETS;
     }
 
     @Override

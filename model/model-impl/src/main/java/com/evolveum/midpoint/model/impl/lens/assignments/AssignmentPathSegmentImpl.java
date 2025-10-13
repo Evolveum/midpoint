@@ -343,6 +343,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         }
     }
 
+    /** Deals only with the validity of the assignment itself, see also {@link #isFullPathActive()}. */
     boolean isAssignmentActive() {
         return assignmentActive;
     }
@@ -352,6 +353,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         this.assignmentActive = assignmentActive;
     }
 
+    /** Returns the validity of the assignment in full. Conditions are not treated here. */
     boolean isFullPathActive() {
         return pathToSourceActive && assignmentActive;
     }

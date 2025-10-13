@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.Duration;
@@ -35,7 +36,7 @@ import com.evolveum.midpoint.web.util.DateValidator;
 
 public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_FROM_DATE_CONTAINER = "fromDateContainer";
     private static final String ID_FROM_LABEL = "fromLabel";
@@ -49,13 +50,13 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
     private static final String CLASS_PRESET_SELECTED = "bg-primary rounded";
 
-    private IModel<XMLGregorianCalendar> fromDateModel;
+    private final IModel<XMLGregorianCalendar> fromDateModel;
 
-    private IModel<XMLGregorianCalendar> toDateModel;
+    private final IModel<XMLGregorianCalendar> toDateModel;
 
-    private IModel<List<NamedIntervalPreset>> intervalPresetsModel;
+    private final IModel<List<NamedIntervalPreset>> intervalPresetsModel;
 
-    private IModel<NamedIntervalPreset> selectedIntervalPreset;
+    private final IModel<NamedIntervalPreset> selectedIntervalPreset;
 
     public DateIntervalSearchPopupPanel(
             String id,
@@ -85,7 +86,7 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
         WebMarkupContainer fromLabel = new WebMarkupContainer(ID_FROM_LABEL);
         fromLabel.add(createLabelClassBehavior());
-        fromLabel.add(new VisibleBehaviour(() -> isInterval()));
+        fromLabel.add(new VisibleBehaviour(this::isInterval));
         fromDateContainer.add(fromLabel);
 
         DateTimePickerPanel fromDatePanel = DateTimePickerPanel.createByXMLGregorianCalendarModel(ID_DATE_FROM_VALUE, fromDateModel);
@@ -105,7 +106,7 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
         WebMarkupContainer toContainer = new WebMarkupContainer(ID_DATE_TO_CONTAINER);
         toContainer.add(createDateContainerClassBehavior());
-        toContainer.add(new VisibleBehaviour(() -> isInterval()));
+        toContainer.add(new VisibleBehaviour(this::isInterval));
         popoverForm.add(toContainer);
 
         WebMarkupContainer toLabel = new WebMarkupContainer(ID_TO_LABEL);

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 import java.io.Serial;
 import java.util.Collections;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -47,6 +48,15 @@ public abstract class CampaignActionButton extends ReloadableButton {
                 pageBase, target, result);
         OpResult opResult = OpResult.getOpResult(pageBase, result);
         return opResult.getBackgroundTaskOid();
+    }
+
+    @Override
+    public void onClick(AjaxRequestTarget target) {
+        if (!StringUtils.isEmpty(getRunningTaskOid())) {
+            return;
+        }
+
+        super.onClick(target);
     }
 
     @Override

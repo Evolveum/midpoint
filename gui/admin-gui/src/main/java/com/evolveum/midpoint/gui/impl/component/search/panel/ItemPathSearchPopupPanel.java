@@ -14,9 +14,11 @@ import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import java.io.Serial;
+
 public class ItemPathSearchPopupPanel extends PopoverSearchPopupPanel {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ITEM_PATH = "itemPath";
 
