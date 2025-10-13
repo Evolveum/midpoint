@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2010-2021 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.validator.test;
 
 import static org.testng.AssertJUnit.*;
@@ -165,7 +165,7 @@ public class BasicValidatorTest extends AbstractUnitTest
         String message = result.getMessage();
         AssertJUnit.assertTrue(message.contains("Element type \"ri:Account\" must be followed by either attribute specifications, \">\" or \"/>\"."));
         // Check if line number is in the error
-        AssertJUnit.assertTrue("Line number not found in error message: " + message, message.contains("28"));
+        AssertJUnit.assertTrue("Line number not found in error message: " + message, message.contains("25"));
 
     }
 

@@ -1,5 +1,9 @@
-/* required LIB STYLES */
-/* .Treant se automatski dodaje na svaki chart conatiner */
+/*
+ * Copyright (c) 2010-2025 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
 .Treant { position: relative; overflow: hidden; padding: 0 !important; }
 .Treant > .node,
 .Treant > .pseudo { position: absolute; display: block; visibility: hidden; }

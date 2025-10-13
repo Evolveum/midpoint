@@ -1,10 +1,9 @@
 <!--
   ~ Copyright (c) 2017-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-  <!-- MID-3647 -->
+
 <role oid="7b4a3880-e167-11e6-b38b-2b6a550a03e7"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Read some roles</name>

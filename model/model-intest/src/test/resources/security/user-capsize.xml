@@ -2,9 +2,9 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <user oid="bab2c6a8-5f2a-11e8-97d2-4fc12ba39043"
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
         xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'

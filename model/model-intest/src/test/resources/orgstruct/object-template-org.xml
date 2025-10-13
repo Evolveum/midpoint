@@ -2,9 +2,9 @@
 <!--
   ~ Copyright (c) 2014-2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <objectTemplate oid="3e62558c-ca0f-11e3-ba83-001e8c717e5b"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'

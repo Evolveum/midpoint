@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2021 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import org.apache.wicket.Component;
@@ -12,9 +12,11 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.DateSearchItemWrapper;
 
+import java.io.Serial;
+
 public class DateSearchItemPanel extends PropertySearchItemPanel<DateSearchItemWrapper> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public DateSearchItemPanel(String id, IModel<DateSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);

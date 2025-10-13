@@ -1,4 +1,11 @@
 @echo off
+
+rem
+rem Copyright (C) 2010-2025 Evolveum and contributors
+rem
+rem Licensed under the EUPL-1.2 or later.
+rem
+
 set SERVICE_NAME=MidPoint
 set "BIN_DIR=%~dp0%~2"
 

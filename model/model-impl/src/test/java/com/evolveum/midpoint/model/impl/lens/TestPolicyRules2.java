@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
@@ -639,12 +639,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertTargetTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 1);
         assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
-        assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
-        assertFocusTriggers(context, null, 6);
+        assertEvaluatedFocusPolicyRules(context, 0); // disabled assignment cannot induce any object policy rules
+        assertFocusTriggers(context, null, 0);
         assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 0);
-        assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 3);
-        assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
-        assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 2);
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 0);
 
         assertSerializable(context);
     }

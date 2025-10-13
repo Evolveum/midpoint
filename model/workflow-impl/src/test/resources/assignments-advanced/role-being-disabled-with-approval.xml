@@ -1,9 +1,9 @@
 <!--
   ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="04c8d15f-da0a-4553-9b43-af835a7c8b82">
     <name>role-being-disabled-with-approval</name>

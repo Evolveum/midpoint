@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2015-2022 Evolveum and contributors
- * <p>
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ *
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.testing.conntest.ad.simple;
 
 import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.getRootSyncTokenRealValueRequired;

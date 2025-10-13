@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
+#
 # Portions Copyright (C) 2017-2023 Evolveum and contributors
 #
-# This work is dual-licensed under the Apache License 2.0
-# and European Union Public License. See LICENSE file for details.
+# Licensed under the EUPL-1.2 or later.
 #
 # Script should run on bash 3.2 to allow OS X usage.
 

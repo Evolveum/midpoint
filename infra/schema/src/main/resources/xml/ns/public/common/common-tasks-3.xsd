@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
--->
-<!--suppress XmlUnusedNamespaceDeclaration, HttpUrlsUsage -->
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -95,6 +93,9 @@
                                     must have valid task identifier.
                                 </p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TaskType.taskIdentifier</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="taskRunRecord" type="tns:TaskRunRecordType" minOccurs="0" maxOccurs="unbounded"/>
@@ -248,6 +249,9 @@
                             <xsd:appinfo>
                                 <a:operational>true</a:operational>
                                 <a:displayHint>regular</a:displayHint>
+                                <xsd:appinfo>
+                                    <a:displayName>TaskType.node</a:displayName>
+                                </xsd:appinfo>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

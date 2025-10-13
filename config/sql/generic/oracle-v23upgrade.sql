@@ -1,3 +1,9 @@
+--
+-- Copyright (C) 2010-2023 Evolveum and contributors
+--
+-- Licensed under the EUPL-1.2 or later.
+--
+
 -- 1.
 ALTER TABLE qrtz_job_details ADD (
   is_durable_tmp        BOOLEAN,

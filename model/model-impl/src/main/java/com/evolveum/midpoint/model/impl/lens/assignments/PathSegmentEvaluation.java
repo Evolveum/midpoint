@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2020-2022 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import static java.util.Collections.emptyList;
@@ -114,16 +114,16 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
             targetsEvaluation = new TargetsEvaluation<>(segment, ctx, result);
             targetsEvaluation.evaluate();
         } else {
-            LOGGER.trace("Skipping evaluation of a target of {} because it's not active, not directly attached to the focus, and not a target of the archetype hierarchy",
+            LOGGER.trace("Skipping evaluation of a target of {} because it's not active,"
+                            + " not directly attached to the focus, and not a target of the archetype hierarchy",
                     segment);
         }
     }
 
     private void computeActivity() {
         boolean active;
-        if (segment.isMatchingOrder) {
-            // Validity of segment that is sourced at focus (either directly or indirectly i.e. through inducements)
-            // is determined using focus lifecycle state model.
+        if (segment.direct) {
+            // Validity of segment that is sourced directly at focus is determined using focus lifecycle state model.
             AH focusNewOrCurrent = ctx.ae.lensContext.getFocusContextRequired().getObjectNewOrCurrentRequired().asObjectable();
             active = LensUtil.isAssignmentValid(
                     focusNewOrCurrent, segment.assignment,
@@ -186,11 +186,13 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
                         + "--------------------------------------------------------------------\n"
                         + "\n"
                         + "{}\n\n"
-                        + "Assignment active:                           {}\n"
+                        + "Assignment active (valid):                   {}\n"
+                        + "Assignment path active (valid):              {}\n"
                         + "Assignment condition state:                  {}\n"
                         + "Overall source + assignment condition state: {}\n\n",
                 ctx.assignmentPath.debugDumpLazily(),
                 segment.isAssignmentActive(),
+                segment.isFullPathActive(),
                 segment.getAssignmentConditionState(),
                 segment.getOverallConditionState());
     }

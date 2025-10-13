@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2010-2022 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import java.util.ArrayList;
@@ -331,5 +331,10 @@ public class AssignmentPathImpl implements AssignmentPath {
     @NotNull AssignmentPathVariables computePathVariablesRequired() throws SchemaException {
         stateCheck(!isEmpty(), "Empty assignment path");
         return Objects.requireNonNull(computePathVariables());
+    }
+
+    /** Returns {@code true} if all _assignments_ are active. Intentionally ignores objects on the path. */
+    boolean areAllAssignmentsActive() {
+        return segments.stream().allMatch(segment -> segment.isAssignmentActive());
     }
 }

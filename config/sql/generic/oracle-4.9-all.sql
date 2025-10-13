@@ -1,3 +1,9 @@
+--
+-- Copyright (C) 2010-2023 Evolveum and contributors
+--
+-- Licensed under the EUPL-1.2 or later.
+--
+
 CREATE TABLE m_acc_cert_campaign (
   definitionRef_relation    VARCHAR2(157 CHAR),
   definitionRef_targetOid   VARCHAR2(36 CHAR),

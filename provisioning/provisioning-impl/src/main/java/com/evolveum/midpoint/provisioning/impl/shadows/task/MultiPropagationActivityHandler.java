@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2010-2021 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.provisioning.impl.shadows.task;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;

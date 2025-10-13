@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2010-2021 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
@@ -16,10 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -31,6 +28,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.test.TestObject;
@@ -43,6 +41,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -509,5 +510,41 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
                         () -> new AssertionError("Unexpected multiple values returned: " + nonNegativeValues),
                         () -> new AssertionError("No values returned"));
         return value.getRealValue();
+    }
+
+    @Test
+    public void test320getManagersOfOrg() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given();
+
+        final String orgOid = UUID.randomUUID().toString();
+        OrgType org = new OrgType();
+        org.setOid(orgOid);
+        org.setName(PolyStringType.fromOrig("myOrg"));
+
+        addObject(org.asPrismObject());
+
+        final String managerOid = UUID.randomUUID().toString();
+        UserType manager = new UserType();
+        manager.setOid(managerOid);
+        manager.setName(PolyStringType.fromOrig("myManager"));
+        manager.beginAssignment()
+                .targetRef(orgOid, OrgType.COMPLEX_TYPE, SchemaConstants.ORG_MANAGER)
+                .end();
+
+        addObject(manager.asPrismObject());
+
+        when();
+        Collection<UserType> managers = execute(task, result, () -> libraryMidpointFunctions.getManagersOfOrg(orgOid));
+
+        then();
+        assertSuccess(result);
+        Assertions.assertThat(managers).isNotNull()
+                .hasSize(1)
+                .first()
+                .extracting(UserType::getOid)
+                .isEqualTo(managerOid);
     }
 }

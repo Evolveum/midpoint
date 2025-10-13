@@ -1,3 +1,9 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
 <roleAnalysisSession xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="c0d74ad2-f92a-40f0-b661-3c0a6a5dc225">
     <name>role_based_analysis_session</name>

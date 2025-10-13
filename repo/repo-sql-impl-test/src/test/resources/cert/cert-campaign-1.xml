@@ -2,9 +2,9 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <accessCertificationCampaign oid="e8c07a7a-1b11-11e8-9b32-1715a2e8273b"
                              xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                              xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"

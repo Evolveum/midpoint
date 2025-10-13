@@ -1,9 +1,9 @@
-/**
- * Represents a keyboard for checking adjacency on.
+/*
+ * Copyright (c) 2010-2025 Evolveum and contributors
  *
- * @param {object} object
- * @param {number} average
+ * Licensed under the EUPL-1.2 or later.
  */
+
 function Keyboard(object, average) {
     this.keyboard = object;
     this.averageNeighbours = average;

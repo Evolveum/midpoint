@@ -1,3 +1,9 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
 <archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            oid="3bb58e36-04b3-4601-a57a-4aaaa3b64458">
     <name>person</name>

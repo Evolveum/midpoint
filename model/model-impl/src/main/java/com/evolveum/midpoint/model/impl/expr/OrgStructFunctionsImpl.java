@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
+
 package com.evolveum.midpoint.model.impl.expr;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -306,13 +306,10 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         Set<UserType> retval = new HashSet<>();
         OperationResult result = new OperationResult("getManagerOfOrg");
 
-        ObjectQuery objectQuery = ObjectTypeUtil.createManagerQuery(ObjectType.class, orgOid, relationRegistry);
-        List<PrismObject<ObjectType>> members = searchObjects(ObjectType.class, objectQuery, result, preAuthorized);
-        for (PrismObject<ObjectType> member : members) {
-            if (member.asObjectable() instanceof UserType) {
-                UserType user = (UserType) member.asObjectable();
-                retval.add(user);
-            }
+        ObjectQuery objectQuery = ObjectTypeUtil.createManagerQuery(UserType.class, orgOid, relationRegistry);
+        List<PrismObject<UserType>> members = searchObjects(UserType.class, objectQuery, result, preAuthorized);
+        for (PrismObject<UserType> member : members) {
+            retval.add(member.asObjectable());
         }
         return retval;
     }

@@ -1,10 +1,8 @@
-#
+---
 # Copyright (c) 2010-2020 Evolveum and contributors
 #
-# This work is dual-licensed under the Apache License 2.0
-# and European Union Public License. See LICENSE file for details.
-#
----
+# Licensed under the EUPL-1.2 or later.
+
 '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 role:
   oid: "82005ae4-d90b-11e4-bdcc-001e8c717e5b"

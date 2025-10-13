@@ -1,9 +1,9 @@
 <!--
   ~ Copyright (c) 2024-2025 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <org oid="1d0ce5fc-cf45-4c0f-b1d6-781476242a6e"
      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
