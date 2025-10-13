@@ -51,6 +51,7 @@ See bug:MID-10824[], bug:MID-10748[].
 * Upgraded chartjs version to 0.6.
 * Fixed global policy rules not being triggered under some circumstances, see bug:MID-10779[].
 * Improved pre upgrade check for node version in ninja, bug:MID-10829[].
+* Fixed the query for the certification items while loading self dashboard page. See bug:MID-10753[].
 
 == Changes with Respect To Version 4.9.3
 
