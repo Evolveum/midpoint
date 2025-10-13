@@ -51,7 +51,6 @@ public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<
 
     @Override
     protected Iterable<ObjectTypes> supportedObjectTypes() {
-        // FIXME: Add types you are interested in
         return List.of(ObjectTypes.USER,
                 ObjectTypes.ROLE,
                 ObjectTypes.SERVICE,
@@ -62,6 +61,6 @@ public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<
 
     @Override
     public String getOperationName() {
-        return "";
+        return "Focus statistics counter";
     }
 }
