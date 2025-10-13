@@ -248,6 +248,9 @@ See bug:MID-10889[].
 * Improved pre upgrade check for node version in ninja, bug:MID-10829[].
 * Fixed projection not deleted when lifecycleState is set to `archived`. See bug:MID-10813[].
 * Optimized repeated logins for policy scripting rules, bug:MID-10864[].
+* Fixed missing messages for "More..." items in Access Certification search boxes. See bug:MID-10898[].
+* Improved campaign operation button behavior not to start campaign action while running previous action task. See bug:MID-10897[].
+* Fixed startTimestamp filter on campaign list page. See bug:MID-10900[].
 
 === Releases Of Other Components
 
