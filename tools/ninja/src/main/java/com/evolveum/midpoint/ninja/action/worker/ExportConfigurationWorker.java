@@ -1,16 +1,25 @@
 package com.evolveum.midpoint.ninja.action.worker;
 
-import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.function.Consumer;
+
+import com.evolveum.midpoint.common.cleanup.CleanupPath;
+import com.evolveum.midpoint.common.cleanup.CleanupPathAction;
+import com.evolveum.midpoint.common.cleanup.ObjectCleaner;
 import com.evolveum.midpoint.ninja.action.ExportOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import java.util.concurrent.BlockingQueue;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismVisitor;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 
 public class ExportConfigurationWorker extends ExportConsumerWorker {
 
@@ -20,9 +29,6 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
 
     @Override
     protected boolean shouldSkipObject(PrismObject<? extends ObjectType> prismObject) {
-        // FIXME: Allows you to skip exporting object (eg. no interesting information inside)
-        // This is called before edit object
-        // eg. we can see if object contains mapping / expressions
         return false;
 
     }
@@ -30,16 +36,41 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
     @Override
     protected void editObject(PrismObject<? extends ObjectType> prismObject) {
 
-        // FIXME here we can manually edit object / remove items we do not want for export
-        prismObject.removeItem(ObjectType.F_METADATA, PrismContainer.class);
-        prismObject.removeItem(ObjectType.F_OPERATION_EXECUTION, PrismContainer.class);
+        final ObjectCleaner objectCleaner = new ObjectCleaner();
+        objectCleaner.setRemoveMetadata(true);
+        objectCleaner.setPaths(List.of(
+                new CleanupPath(ResourceType.COMPLEX_TYPE,
+                        ResourceType.F_CONNECTOR_CONFIGURATION, CleanupPathAction.REMOVE),
+                new CleanupPath(AssignmentHolderType.COMPLEX_TYPE,
+                        AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, CleanupPathAction.REMOVE)));
+        objectCleaner.process(prismObject);
 
-        // FIXME: maybe we want to remove value metadata (there is probably already some utility method existing)
+        final List<ItemName> include = List.of(
+                SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, SystemConfigurationType.F_MODEL_HOOKS,
+                SystemConfigurationType.F_CORRELATION);
 
-        if (AssignmentHolderType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
-             prismObject.removeItem(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, PrismReference.class);
+        if (prismObject.isOfType(SystemConfigurationType.class)) {
+            prismObject.getValue().getItems().forEach(item -> item.removeIf(
+                    val -> !ItemPathCollectionsUtil.containsSubpathOrEquivalent(include, val.getPath())));
         }
+
+        final Collection<ItemPath> excludeItems = options.getExcludeItems();
+        prismObject.acceptVisitor(sensitiveDataCollector(excludeItems::add));
+        excludeItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
+
 
         // Based on object type we can remove additional items, which are not interesting to us
     }
+
+    private PrismVisitor sensitiveDataCollector(Consumer<ItemPath> pathConsumer) {
+        return item -> {
+            if (item instanceof PrismPropertyValue<?> property
+                    && property.getTypeName().equals(ProtectedDataType.COMPLEX_TYPE)) {
+                pathConsumer.accept(property.getPath());
+                return false;
+            }
+            return true;
+        };
+    }
+
 }
