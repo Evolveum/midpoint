@@ -47,7 +47,7 @@ public class ExportShadowStatisticsAction extends RepositoryAction<ExportShadowS
                 .retrieve(ShadowType.F_OBJECT_CLASS)
                 .retrieve(ShadowType.F_KIND)
                 .retrieve(ShadowType.F_INTENT)
-                .retrieve(F_CORRELATION_SITUATION, ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION))
+                .retrieve(ShadowType.F_SYNCHRONIZATION_SITUATION)
                 .count(F_COUNT, ShadowType.F_RESOURCE_REF);
         if (shadowQuery != null) {
             query = query.filter(shadowQuery.getFilter());
