@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 class PropertyStatsCounter {
 
     private static final int FIXED_DISTRIBUTION_THRESHOLD = 20;
+    private static final int MAP_SIZE_LIMIT = 1000;
 
     private final String propertyPath;
     private final Map<String, Integer> valuesCount;
@@ -32,10 +33,9 @@ class PropertyStatsCounter {
     void count(PrismProperty<?> property) {
         this.propertiesCount++;
         if (property.size() > 1) {
-            // I am not sure, if it is possible to have more values in property where some of them are null. But if it
-            // happens, we don't want to consider it as a missing property. On the other hand, if all values are null
-            // (again, I am not sure if this scenario is possible), then we want to count the missing property just
-            // once.
+            // I am not sure, if it is possible to have also null values in multivalue property. But if it happens, we
+            // don't want to consider it as a missing property, unless all its values are null. If all values are null
+            // then we want to count the missing property just once.
             final List<?> nonNullValues = property.getRealValues().stream()
                     .filter(Objects::isNull)
                     .toList();
@@ -60,13 +60,16 @@ class PropertyStatsCounter {
 
         CategoriesDistribution categoriesDistribution = null;
         Float cardinality = null;
-        // If we have distribution, we don't want to display cardinality, because it could be used to calculate total
-        // amount of object (what we don't want because of potential sensitivity of the data).
-        if (isDistributionMeaningful(missingPropertiesRatio, categoriesCount)) {
-            categoriesDistribution = calculateCategoriesDistribution(totalValuesCount);
-        } else {
-            cardinality = calculateCardinality(totalValuesCount, categoriesCount);
+        if (this.valuesCount.size() <= MAP_SIZE_LIMIT) {
+            // If we have distribution, we don't want to display cardinality, because it could be used to calculate total
+            // amount of object (what we don't want because of potential sensitivity of the data).
+            if (isDistributionMeaningful(missingPropertiesRatio, categoriesCount)) {
+                categoriesDistribution = calculateCategoriesDistribution(totalValuesCount);
+            } else {
+                cardinality = calculateCardinality(totalValuesCount, categoriesCount);
+            }
         }
+
         final float multiValuedPropertiesRatio = (float) this.multiValuedPropertiesCount / this.propertiesCount;
         return new PropertyStats(this.propertyPath, multiValuedPropertiesRatio, missingPropertiesRatio, cardinality,
                 categoriesDistribution);
@@ -85,7 +88,9 @@ class PropertyStatsCounter {
         } else {
             value = realValue.toString();
         }
-        this.valuesCount.merge(value, 1, Integer::sum);
+        if (this.valuesCount.size() <= MAP_SIZE_LIMIT) {
+            this.valuesCount.merge(value, 1, Integer::sum);
+        }
     }
 
     private static boolean isDistributionMeaningful(float missingPropertiesRatio, int uniqueValuesCount) {
