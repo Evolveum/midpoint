@@ -2,11 +2,8 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-
-<!-- Creates account only if the focus is enabled. Keeps the account on unassign. Deletes only when focus is deleted. -->
 
 <resource oid="306555be-3e38-11e8-bd96-7b572e4e7d89"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

@@ -2,10 +2,9 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-<?xml version="1.0" encoding="UTF-8"?>
+
 <object xsi:type="UserType" oid="f65963e3-9d47-4b18-aaf3-bfc98bdfaf0b" version="1.0"
     xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/model/password-1.wsdl" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

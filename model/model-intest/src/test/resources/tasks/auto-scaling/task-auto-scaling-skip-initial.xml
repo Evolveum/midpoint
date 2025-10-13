@@ -2,9 +2,9 @@
 <!--
   ~ Copyright (C) 2010-2021 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <task oid="8eda5dcd-2394-4ac2-a936-c32231ce6f22"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>task-auto-scaling-skip-initial</name>

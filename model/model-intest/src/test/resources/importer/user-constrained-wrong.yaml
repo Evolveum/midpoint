@@ -1,4 +1,8 @@
 ---
+# Copyright (c) 2010-2025 Evolveum and contributors
+#
+# Licensed under the EUPL-1.2 or later.
+
 '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 user:
   oid: "bedf19c4-06f6-4651-a599-b8a3089e6a4d"

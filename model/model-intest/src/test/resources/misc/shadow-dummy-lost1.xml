@@ -2,11 +2,8 @@
 <!--
   ~ Copyright (c) 2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-
-<!-- Shadow without primaryIdentifierValue, e.g. shadow how it would look like in midPoint 3.9. -->
 
 <shadow oid="69ec62da-65a3-11e9-9aa7-8b3feffc5f05"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

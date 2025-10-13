@@ -2,9 +2,9 @@
 <!--
   ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 
 <!-- Sample custom configuration object. Object of the genericObject type are
          in fact free-form objects. They can contain almost any XML data in the

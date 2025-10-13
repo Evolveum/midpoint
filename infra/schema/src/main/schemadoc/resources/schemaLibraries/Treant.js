@@ -1,20 +1,7 @@
 /*
- * Treant-js
+ * Copyright (c) 2010-2025 Evolveum and contributors
  *
- * (c) 2013 Fran Peručić
- * Treant-js may be freely distributed under the MIT license.
- * For all details and documentation:
- * http://fperucic.github.io/treant-js
- *
- * Treant is an open-source JavaScipt library for visualization of tree diagrams.
- * It implements the node positioning algorithm of John Q. Walker II "Positioning nodes for General Trees".
- *
- * References:
- * Emilio Cortegoso Lobato: ECOTree.js v1.0 (October 26th, 2006)
- *
- * Contributors:
- * Fran Peručić, https://github.com/fperucic
- * Dave Goodchild, https://github.com/dlgoodchild
+ * Licensed under the EUPL-1.2 or later.
  */
 
 ;( function() {

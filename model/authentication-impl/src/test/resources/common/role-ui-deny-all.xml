@@ -2,8 +2,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
 
 <role oid="c4a5923c-d02b-11e7-9ac5-13b0d906fa81" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

@@ -1,9 +1,9 @@
 <!--
   ~ Copyright (C) 2010-2023 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <role oid="2c25f0b8-0f72-4fdd-95e7-1e2ec41f9a3b"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>show-roles-inducing-my-role</name>

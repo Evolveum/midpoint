@@ -1,11 +1,8 @@
 <!--
   ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-
-<!-- Contains elements that are deprecated and planned for removal, but still valid. -->
 
 <role oid="0d70504c-d094-11e8-b0cc-675c492577e7"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
