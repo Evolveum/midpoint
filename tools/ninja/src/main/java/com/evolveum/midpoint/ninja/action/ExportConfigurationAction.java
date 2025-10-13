@@ -1,14 +1,14 @@
 package com.evolveum.midpoint.ninja.action;
 
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+
 import com.evolveum.midpoint.ninja.action.worker.ExportConfigurationSeparateWorker;
 import com.evolveum.midpoint.ninja.action.worker.ExportConfigurationWorker;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ExportConfigurationAction extends AbstractRepositorySearchAction<ExportOptions, Void>{
 
@@ -35,8 +35,12 @@ public class ExportConfigurationAction extends AbstractRepositorySearchAction<Ex
     @Override
     protected Iterable<ObjectTypes> supportedObjectTypes() {
         return List.of(ObjectTypes.SYSTEM_CONFIGURATION,
+            ObjectTypes.FUNCTION_LIBRARY,
+            ObjectTypes.OBJECT_TEMPLATE,
+            ObjectTypes.POLICY,
             ObjectTypes.ARCHETYPE,
             ObjectTypes.RESOURCE,
+            ObjectTypes.SCHEMA,
             ObjectTypes.CONNECTOR
         );
     }

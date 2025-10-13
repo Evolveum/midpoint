@@ -48,12 +48,12 @@ public class ExportConfigurationSeparateWorker extends ExportConfigurationWorker
 
     @Override
     protected String getProlog() {
-        return null;
+        return "";
     }
 
     @Override
     protected String getEpilog() {
-        return null;
+        return "";
     }
 
     @Override
