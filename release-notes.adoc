@@ -42,6 +42,9 @@ See bug:MID-10824[], bug:MID-10748[].
 * Improved pre upgrade check for node version in ninja, bug:MID-10829[].
 * Updated dependencies, mainly spring boot (3.5.6).
 * Optimized repeated logins for policy scripting rules, bug:MID-10864[].
+* Improved search authorization dealing w/ multiple obj. types, bug:MID-10206[].
+This change slightly affects authorization evaluation is such cases.
+For more information see commit message https://github.com/Evolveum/midpoint/commit/28ab1c8196a66caba9a7aeb76b6ad29e890bd5f6[28ab1c81].
 
 == Changes with Respect To Version 4.8.8
 
