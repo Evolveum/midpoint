@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2025 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;

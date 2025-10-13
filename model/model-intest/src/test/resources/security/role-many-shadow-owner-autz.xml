@@ -1,9 +1,9 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <role oid="c8c99194-3e5c-439b-bf98-c71146d3e1b5"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>many-shadow-owner-autz</name>

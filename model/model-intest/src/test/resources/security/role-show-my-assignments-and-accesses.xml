@@ -1,9 +1,9 @@
 <!--
   ~ Copyright (C) 2010-2023 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <role oid="1e4d06bd-eacf-4e17-b5c6-d97b4ab6b6e0"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>show-my-assignments-and-accesses</name>

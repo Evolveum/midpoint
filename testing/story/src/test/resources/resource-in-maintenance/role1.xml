@@ -1,3 +1,9 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="6ec32c86-66d4-4101-a25f-931db8d1e999">
     <name>CSV1 LR</name>
     <inducement>

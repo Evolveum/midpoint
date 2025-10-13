@@ -1,9 +1,9 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <org oid="e015eb10-1426-4104-86c0-eb0cf9dc423f"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Security Team</name>

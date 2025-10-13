@@ -2,11 +2,8 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-
-<!-- Light recompute. Efficient recompute that only recomputes the focus. -->
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="b7b6af78-fffe-11e6-ac04-2fdd62641ce2">

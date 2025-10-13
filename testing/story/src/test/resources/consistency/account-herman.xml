@@ -2,11 +2,8 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-
-<!-- Object modification description that is changing user "jack" by adding a new account -->
 
 <account oid="22220000-2200-0000-0000-333300003333"
     xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'

@@ -1,9 +1,9 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
+
 <role oid="0379f623-a3e9-405a-ba52-b1f7ecd2d46f"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>One: Manual</name>

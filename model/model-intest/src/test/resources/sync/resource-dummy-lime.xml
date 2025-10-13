@@ -2,11 +2,8 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-
-<!-- LIME dummy resource. This is a pure authoritative resource. It has only inbound mappings. -->
 
 <resource oid="10000000-0000-0000-0000-000000131404"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

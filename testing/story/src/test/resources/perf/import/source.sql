@@ -1,3 +1,9 @@
+--
+-- Copyright (C) 2010-2023 Evolveum and contributors
+--
+-- Licensed under the EUPL-1.2 or later.
+--
+
 CREATE TABLE PEOPLE (
   THE_NAME VARCHAR(255) NOT NULL,
   GIVEN_NAME VARCHAR(255),

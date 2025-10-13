@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <org oid="020e866e-a5ac-40bb-8644-24525203bb03">
         <name>Security officers</name>

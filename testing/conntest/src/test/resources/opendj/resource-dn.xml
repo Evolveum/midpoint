@@ -2,11 +2,8 @@
 <!--
   ~ Copyright (c) 2010-2021 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
-
-<!-- OpenDJ conntest, using DN as the only identifier (NOT using entryUUID). MID-6884 -->
 
 <object xsi:type="ResourceType" oid="371ffc38-c424-11e4-8467-001e8c717e5b"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

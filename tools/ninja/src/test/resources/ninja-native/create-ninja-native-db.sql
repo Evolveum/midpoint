@@ -1,9 +1,8 @@
-/*
- * Copyright (C) 2010-2023 Evolveum and contributors
- *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
- */
+--
+-- Copyright (C) 2010-2023 Evolveum and contributors
+--
+-- Licensed under the EUPL-1.2 or later.
+--
 
 CREATE USER ninja_native_tests WITH PASSWORD 'ninja_native_tests' LOGIN SUPERUSER;
 

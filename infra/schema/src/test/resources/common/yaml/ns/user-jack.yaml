@@ -1,4 +1,8 @@
 ---
+# Copyright (c) 2010-2025 Evolveum and contributors
+#
+# Licensed under the EUPL-1.2 or later.
+
 '@ns' : 'http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 object: !http://midpoint.evolveum.com/xml/ns/public/common/common-3/UserType
   oid: 2f9b9299-6f45-498f-bc8e-8d17c6b93b20
