@@ -30,6 +30,6 @@ Click name of an archetype to open it for editing and inspect its settings.
 	** Select a *Super archetype* if you wish the new archetype to inherit some settings of an existing archetype.
 . Click icon:save[] btn:[Save] at the top of the screen.
 
-image::archetype-gui-basic-01.webp[link=archetype-gui-basic-01.webp,100%]
+image::archetype-gui-basic-01.webp[100%]
 
 
