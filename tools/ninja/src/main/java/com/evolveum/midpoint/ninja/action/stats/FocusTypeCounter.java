@@ -70,8 +70,15 @@ class FocusTypeCounter {
                 ? container.createNewValue()
                 : container.getValue();
 
+        final List<PrismPropertyDefinition<?>> propertyDefinitions = new ArrayList<>();
+        complexTypeDefinition.getDefinitions().forEach(def -> {
+            if (def instanceof PrismPropertyDefinition) {
+
+               propertyDefinitions.add((PrismPropertyDefinition<?>) def);
+            }
+        });
         final Collection<PrismProperty<?>> currentLevelProperties = collectProperties(containerValue,
-                complexTypeDefinition.getPropertyDefinitions());
+                propertyDefinitions);
         final List<PrismProperty<?>> nestedProperties = new ArrayList<>();
         for (final ItemDefinition<?> definition : complexTypeDefinition.getDefinitions()) {
             if (definition instanceof PrismContainerDefinition<?> containerDefinition) {

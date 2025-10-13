@@ -5,16 +5,15 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.common.cleanup.CleanupPath;
-import com.evolveum.midpoint.common.cleanup.CleanupPathAction;
-import com.evolveum.midpoint.common.cleanup.ObjectCleaner;
 import com.evolveum.midpoint.ninja.action.ExportOptions;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismVisitor;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -35,15 +34,16 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
 
     @Override
     protected void editObject(PrismObject<? extends ObjectType> prismObject) {
+        prismObject.removeItem(ObjectType.F_METADATA, PrismContainer.class);
+        prismObject.removeItem(ObjectType.F_OPERATION_EXECUTION, PrismContainer.class);
 
-        final ObjectCleaner objectCleaner = new ObjectCleaner();
-        objectCleaner.setRemoveMetadata(true);
-        objectCleaner.setPaths(List.of(
-                new CleanupPath(ResourceType.COMPLEX_TYPE,
-                        ResourceType.F_CONNECTOR_CONFIGURATION, CleanupPathAction.REMOVE),
-                new CleanupPath(AssignmentHolderType.COMPLEX_TYPE,
-                        AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, CleanupPathAction.REMOVE)));
-        objectCleaner.process(prismObject);
+        if (prismObject.isOfType(AssignmentHolderType.class)) {
+            prismObject.removeItem(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, PrismContainer.class);
+        }
+
+        if (prismObject.isOfType(ResourceType.class)) {
+            prismObject.removeItem(ResourceType.F_CONNECTOR_CONFIGURATION, PrismContainer.class);
+        }
 
         final List<ItemName> include = List.of(
                 SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, SystemConfigurationType.F_MODEL_HOOKS,
@@ -55,21 +55,19 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
         }
 
         final Collection<ItemPath> excludeItems = options.getExcludeItems();
-        prismObject.acceptVisitor(sensitiveDataCollector(excludeItems::add));
+        prismObject.accept(sensitiveDataCollector(excludeItems::add));
         excludeItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
 
 
         // Based on object type we can remove additional items, which are not interesting to us
     }
 
-    private PrismVisitor sensitiveDataCollector(Consumer<ItemPath> pathConsumer) {
+    private <T extends Visitable<T>> Visitor<T> sensitiveDataCollector(Consumer<ItemPath> pathConsumer) {
         return item -> {
             if (item instanceof PrismPropertyValue<?> property
                     && property.getTypeName().equals(ProtectedDataType.COMPLEX_TYPE)) {
                 pathConsumer.accept(property.getPath());
-                return false;
             }
-            return true;
         };
     }
 

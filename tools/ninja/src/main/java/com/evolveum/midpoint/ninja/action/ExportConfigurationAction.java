@@ -37,10 +37,8 @@ public class ExportConfigurationAction extends AbstractRepositorySearchAction<Ex
         return List.of(ObjectTypes.SYSTEM_CONFIGURATION,
             ObjectTypes.FUNCTION_LIBRARY,
             ObjectTypes.OBJECT_TEMPLATE,
-            ObjectTypes.POLICY,
             ObjectTypes.ARCHETYPE,
             ObjectTypes.RESOURCE,
-            ObjectTypes.SCHEMA,
             ObjectTypes.CONNECTOR
         );
     }
