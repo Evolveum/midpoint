@@ -5,15 +5,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class StatsCounter {
     private final Map<Class<? extends ObjectType>, FocusTypeCounter> typesCounters;
-    private final Predicate<ItemDefinition<?>> itemsToIncludePredicate;
+    private final Predicate<Item<?, ?>> itemsToIncludePredicate;
 
-    public StatsCounter(Predicate<ItemDefinition<?>> itemsToIncludePredicate) {
+    public StatsCounter(Predicate<Item<?, ?>> itemsToIncludePredicate) {
         this.itemsToIncludePredicate = itemsToIncludePredicate;
         typesCounters = new HashMap<>();
     }

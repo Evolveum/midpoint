@@ -10,6 +10,7 @@ import java.util.function.Predicate;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -23,11 +24,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 class FocusTypeCounter {
 
     private final String focusType;
-    private final Predicate<ItemDefinition<?>> itemsIncludePredicate;
+    private final Predicate<Item<?, ?>> itemsIncludePredicate;
     private final Map<String, PropertyStatsCounter> statsCounterMap;
     private final MagnitudeCounter totalCount;
 
-    FocusTypeCounter(String focusType, Predicate<ItemDefinition<?>> itemsIncludePredicate) {
+    FocusTypeCounter(String focusType, Predicate<Item<?, ?>> itemsIncludePredicate) {
         this.focusType = focusType;
         this.itemsIncludePredicate = itemsIncludePredicate;
         this.totalCount = new MagnitudeCounter();
@@ -60,7 +61,7 @@ class FocusTypeCounter {
     }
 
     private Collection<PrismProperty<?>> flatten(PrismContainer<?> container) {
-        if (isExcluded(container.getDefinition())) {
+        if (isExcluded(container)) {
             return Collections.emptyList();
         }
 
@@ -96,20 +97,22 @@ class FocusTypeCounter {
             Collection<PrismPropertyDefinition<?>> propertyDefinitions) {
         final List<PrismProperty<?>> properties = new ArrayList<>();
         for (PrismPropertyDefinition<?> definition : propertyDefinitions) {
-            if (isExcluded(definition)) {
-                continue;
-            }
-
+            final PrismProperty<Object> property;
             try {
-                properties.add(containerValue.findOrCreateProperty(definition));
+                property = containerValue.findOrCreateProperty(definition);
             } catch (SchemaException e) {
                 throw new RuntimeException(e);
             }
+            if (isExcluded(property)) {
+                continue;
+            }
+            properties.add(property);
+
         }
         return properties;
     }
 
-    private boolean isExcluded(ItemDefinition<?> definition) {
-        return ! this.itemsIncludePredicate.test(definition);
+    private boolean isExcluded(Item<?, ?> item) {
+        return ! this.itemsIncludePredicate.test(item);
     }
 }
