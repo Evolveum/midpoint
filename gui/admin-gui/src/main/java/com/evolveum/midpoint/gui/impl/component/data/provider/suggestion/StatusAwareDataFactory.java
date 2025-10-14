@@ -6,13 +6,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping.SmartMappingTable;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.util.SerializableBiFunction;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -22,8 +23,6 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 /**
  * Centralized utility for building {@link SuggestionsModelDto} for various Smart Integration suggestion types.
@@ -33,7 +32,7 @@ import java.util.function.Supplier;
  */
 public final class StatusAwareDataFactory {
 
-    private static final String CLASS_DOT = SmartMappingTable.class.getName() + ".";
+    private static final String CLASS_DOT = StatusAwareDataFactory.class.getName() + ".";
     private static final String OP_LOAD_SUGGESTIONS = CLASS_DOT + "loadSuggestions";
 
     private StatusAwareDataFactory() {
@@ -47,8 +46,8 @@ public final class StatusAwareDataFactory {
             @NotNull Component component,
             @NotNull IModel<Boolean> toggleModel,
             @NotNull String resourceOid,
-            @NotNull Supplier<List<PrismContainerValueWrapper<C>>> baseValuesSupplier,
-            @NotNull BiFunction<PageBase, Task, SmartIntegrationStatusInfoUtils.SuggestionProviderResult<C, S>> loader) {
+            @NotNull SerializableSupplier<List<PrismContainerValueWrapper<C>>> baseValuesSupplier,
+            @NotNull SerializableBiFunction<PageBase, Task, SmartIntegrationStatusInfoUtils.SuggestionProviderResult<C, S>> loader) {
 
         final Map<PrismContainerValueWrapper<C>, StatusInfo<S>> suggestionsIndex = new HashMap<>();
 
