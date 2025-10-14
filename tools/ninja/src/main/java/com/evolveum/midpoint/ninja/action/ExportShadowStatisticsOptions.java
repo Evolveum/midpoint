@@ -1,13 +1,14 @@
 package com.evolveum.midpoint.ninja.action;
 
+import java.io.File;
+
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.FileReferenceConverter;
 
-import java.io.File;
-import java.io.Serializable;
-
+@Parameters(resourceBundle = "messages", commandDescriptionKey = "exportShadowStatistics")
 public class ExportShadowStatisticsOptions implements BasicExportOptions {
 
 
