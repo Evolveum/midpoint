@@ -10,7 +10,7 @@ import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ExportConfigurationAction extends AbstractRepositorySearchAction<ExportOptions, Void>{
+public class ExportConfigurationAction extends AbstractRepositorySearchAction<ExportConfigurationOptions, Void>{
 
     @Override
     protected Callable<Void> createConsumer(BlockingQueue<ObjectType> queue, OperationStatus operation) {
