@@ -5,9 +5,8 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator;
+package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -42,6 +41,7 @@ public class WizardWithNavigationPanel extends WizardPanel {
     private static final String ID_STEP_BADGE = "stepBadge";
     private static final String ID_STEP_IN_PROGRESS = "stepInProgress";
     private static final String ID_PARENT_STEP_LABEL = "parentStepLabel";
+    private static final String ID_COLLAPSED_INFO_PANEL = "collapsedInfoPanel";
 
     public WizardWithNavigationPanel(String id, WizardModel wizardModel) {
         super(id, wizardModel);
