@@ -33,12 +33,16 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
     @Override
     protected void editObject(PrismObject<? extends ObjectType> prismObject) {
 
+        prismObject.getValue().removeOperationalItems();
+
         // removal of the connector configuration (two places)
         remove(prismObject, ResourceType.class, ResourceType.F_CONNECTOR_CONFIGURATION);
         remove(prismObject, ResourceType.class, ResourceType.F_ADDITIONAL_CONNECTOR,
                 ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION);
 
         // removal of other items
+        remove(prismObject, ResourceType.class, ResourceType.F_OPERATIONAL_STATE); // not marked operational in 4.8
+        remove(prismObject, ResourceType.class, ResourceType.F_OPERATIONAL_STATE_HISTORY); // not marked operational in 4.8
         remove(prismObject, AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF);
         remove(prismObject, AbstractRoleType.class, AbstractRoleType.F_ADMIN_GUI_CONFIGURATION);
         remove(prismObject, ArchetypeType.class, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_DISPLAY);
