@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -16,7 +19,6 @@ import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
@@ -30,54 +32,105 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
 
     @Override
     protected void editObject(PrismObject<? extends ObjectType> prismObject) {
-        prismObject.removeItem(ObjectType.F_METADATA, PrismContainer.class);
-        prismObject.removeItem(ObjectType.F_OPERATION_EXECUTION, PrismContainer.class);
 
-        if (prismObject.isOfType(AssignmentHolderType.class)) {
-            prismObject.removeItem(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, PrismContainer.class);
-        }
+        // removal of the connector configuration (two places)
+        remove(prismObject, ResourceType.class, ResourceType.F_CONNECTOR_CONFIGURATION);
+        remove(prismObject, ResourceType.class, ResourceType.F_ADDITIONAL_CONNECTOR,
+                ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION);
 
-        if (prismObject.isOfType(ResourceType.class)) {
-            prismObject.removeItem(ResourceType.F_CONNECTOR_CONFIGURATION, PrismContainer.class);
-        }
+        // removal of other items
+        remove(prismObject, AssignmentHolderType.class, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF);
+        remove(prismObject, AbstractRoleType.class, AbstractRoleType.F_ADMIN_GUI_CONFIGURATION);
+        remove(prismObject, ArchetypeType.class, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_DISPLAY);
+        remove(prismObject, ArchetypeType.class, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_ITEM_CONSTRAINT);
+        remove(prismObject, ArchetypeType.class, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_ADMIN_GUI_CONFIGURATION);
+        remove(prismObject, ObjectType.class, ObjectType.F_EXTENSION);
+        remove(prismObject, ObjectType.class, ObjectType.F_METADATA);
+        remove(prismObject, ObjectType.class, ObjectType.F_OPERATION_EXECUTION);
 
-        keepOnly(prismObject,
+        removeAllExcept(prismObject,
                 SystemConfigurationType.class,
                 SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
                 SystemConfigurationType.F_MODEL_HOOKS,
                 SystemConfigurationType.F_CORRELATION);
 
-        keepOnly(prismObject,
+        removeAllExcept(prismObject,
                 ConnectorType.class,
                 ConnectorType.F_NAME,
                 ConnectorType.F_AVAILABLE);
 
         // Remove items specified by the user.
         final Collection<ItemPath> explicitlyExcludedItems = options.getExcludeItems();
-        explicitlyExcludedItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
+        explicitlyExcludedItems.forEach(path -> removeItem(prismObject, path));
 
         // Remove items that contains ProtectedDataType values.
         final Collection<ItemPath> sensitiveItems = new ArrayList<>();
-        prismObject.accept(sensitiveDataCollector(sensitiveItems::add));
-        sensitiveItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
+        prismObject.accept(sensitivePropertiesCollector(sensitiveItems::add));
+        sensitiveItems.forEach(path -> removeItem(prismObject, path));
 
         // Mask other ProtectedDataType values (it is quite hard to remove them, because they are not "normal"
         // properties)
-        prismObject.accept(new SensitiveDataRemovingVisitor(context.getLog()));
+        //noinspection unchecked
+        prismObject.accept(new SensitiveDataRemovingVisitor<>(context.getLog()));
     }
 
-    private static void keepOnly(
-            PrismObject<? extends ObjectType> prismObject, Class<? extends ObjectType> type, ItemName... itemNames) {
+    /** If object is of given type, we keep only the specified root-level items. */
+    private static void removeAllExcept(
+            PrismObject<? extends ObjectType> prismObject, Class<? extends ObjectType> type, ItemName... rootItemNames) {
         if (prismObject.isOfType(type)) {
-            final List<ItemName> itemNamesList = List.of(itemNames);
-            prismObject.getValue().getItems().forEach(item -> item.removeIf(
-                    val -> !ItemPathCollectionsUtil.containsSubpathOrEquivalent(itemNamesList, val.getPath())));
+            var rootItemNamesToKeep = List.of(rootItemNames);
+            for (QName rootItemName : prismObject.getValue().getItemNames()) {
+                if (!QNameUtil.matchAny(rootItemName, rootItemNamesToKeep)) {
+                    removeItem(prismObject, ItemName.fromQName(rootItemName));
+                }
+            }
         }
     }
 
-        // Based on object type we can remove additional items, which are not interesting to us
+    /** If object is of given type, we remove item with given path (specified as path segments). */
+    private static void remove(
+            PrismObject<? extends ObjectType> prismObject, Class<? extends ObjectType> type, ItemName... pathSegments) {
+        if (prismObject.isOfType(type)) {
+            removeItem(prismObject, ItemPath.create(List.of(pathSegments)));
+        }
+    }
 
-    private static <T extends Visitable<T>> Visitor<T> sensitiveDataCollector(Consumer<ItemPath> pathConsumer) {
+    private static void removeItem(PrismObject<?> object, ItemPath path) {
+        removeItem(object.getValue(), path);
+    }
+
+    /**
+     * Removes all items matching given (name-only) path.
+     *
+     * Similar to {@link PrismContainerValue#removeItems(List)} but deals not only with a single value, but
+     * can treat multi-valued intermediate containers.
+     *
+     * Similar to PrismContainerValue.removePaths but that method is more complex + not available in 4.8.
+     */
+    private static void removeItem(PrismContainerValue<?> pcv, ItemPath path) {
+        if (path.isEmpty()) {
+            return; // shouldn't occur
+        }
+        var first = path.firstToName();
+        var rest = path.rest();
+        if (rest.isEmpty()) {
+            pcv.removeItems(List.of(first)); // Just remove the item, there's nothing to descend to
+        } else {
+            var subItem = pcv.findItem(first);
+            if (subItem != null) {
+                // Remove the item from all values of the subItem
+                for (PrismValue value : subItem.getValues()) {
+                    if (value instanceof PrismContainerValue<?> subPcv) {
+                        removeItem(subPcv, rest);
+                    }
+                }
+            } else {
+                // Intermediate item is not present; nothing to do here.
+            }
+        }
+    }
+
+    private static <T extends Visitable<T>> Visitor<T> sensitivePropertiesCollector(Consumer<ItemPath> pathConsumer) {
         return item -> {
             if (item instanceof PrismPropertyValue<?> propertyValue) {
                 var typeName = propertyValue.getTypeName();
