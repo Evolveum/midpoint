@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ExportResourceSchemaAction extends AbstractRepositorySearchAction<ExportOptions, Void>{
+public class ExportResourceSchemaAction extends AbstractRepositorySearchAction<ExportResourceSchemaOptions, Void>{
 
     private static final Set<ItemName> ITEMS_TO_KEEP = Set.of(
             ResourceType.F_CONNECTOR_REF,
