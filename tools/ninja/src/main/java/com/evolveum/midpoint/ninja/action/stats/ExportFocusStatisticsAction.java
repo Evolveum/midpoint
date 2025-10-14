@@ -6,17 +6,15 @@ import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 import com.evolveum.midpoint.ninja.action.AbstractRepositorySearchAction;
-import com.evolveum.midpoint.ninja.action.ExportOptions;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<ExportOptions, Void> {
+public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<ExportFocusStatisticsOptions, Void> {
     private static final List<ItemName> INCLUDE_ITEMS = List.of(
             new ItemName(SchemaConstants.NS_C, "description"), new ItemName(SchemaConstants.NS_C, "documentation"),
             new ItemName(SchemaConstants.NS_C, "subtype"), new ItemName(SchemaConstants.NS_C, "lifecycleState"),
