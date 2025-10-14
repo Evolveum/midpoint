@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.ninja.action.worker;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -9,6 +10,7 @@ import java.util.function.Consumer;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.evolveum.midpoint.ninja.action.ExportOptions;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
@@ -24,12 +26,6 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
 
     public ExportConfigurationWorker(NinjaContext context, ExportOptions options, BlockingQueue<ObjectType> queue, OperationStatus operation) {
         super(context, options, queue, operation);
-    }
-
-    @Override
-    protected boolean shouldSkipObject(PrismObject<? extends ObjectType> prismObject) {
-        return false;
-
     }
 
     @Override
@@ -56,13 +52,18 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
                 ConnectorType.F_NAME,
                 ConnectorType.F_AVAILABLE);
 
-        // Remove items that contains ProtectedDataType values directly
-        final Collection<ItemPath> excludeItems = options.getExcludeItems();
-        prismObject.accept(sensitiveDataCollector(excludeItems::add));
-        excludeItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
+        // Remove items specified by the user.
+        final Collection<ItemPath> explicitlyExcludedItems = options.getExcludeItems();
+        explicitlyExcludedItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
 
-        // Mask other ProtectedDataType values (it is quite hard to remove them)
-        prismObject.accept(new SensitiveDataRemovingVisitor(context));
+        // Remove items that contains ProtectedDataType values.
+        final Collection<ItemPath> sensitiveItems = new ArrayList<>();
+        prismObject.accept(sensitiveDataCollector(sensitiveItems::add));
+        sensitiveItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
+
+        // Mask other ProtectedDataType values (it is quite hard to remove them, because they are not "normal"
+        // properties)
+        prismObject.accept(new SensitiveDataRemovingVisitor(context.getLog()));
     }
 
     private static void keepOnly(
@@ -76,27 +77,28 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
 
         // Based on object type we can remove additional items, which are not interesting to us
 
-    private <T extends Visitable<T>> Visitor<T> sensitiveDataCollector(Consumer<ItemPath> pathConsumer) {
+    private static <T extends Visitable<T>> Visitor<T> sensitiveDataCollector(Consumer<ItemPath> pathConsumer) {
         return item -> {
-            if (item instanceof PrismPropertyValue<?> property) {
-                var typeName = property.getTypeName();
+            if (item instanceof PrismPropertyValue<?> propertyValue) {
+                var typeName = propertyValue.getTypeName();
                 if (ProtectedDataType.COMPLEX_TYPE.equals(typeName)
                         || ProtectedStringType.COMPLEX_TYPE.equals(typeName)) {
                     // Note: ProtectedByteArrayType has the same type name as ProtectedDataType (why?)
                     // TODO we might also check using getRealValue() but that may be too fragile - what would we do if
                     //  that check failed?
-                    pathConsumer.accept(property.getPath());
+                    pathConsumer.accept(propertyValue.getPath());
                 }
             }
         };
     }
 
-    private static class SensitiveDataRemovingVisitor implements ConfigurableVisitor, JaxbVisitor {
+    private static class SensitiveDataRemovingVisitor<T extends Visitable<T>>
+            implements ConfigurableVisitor<T>, JaxbVisitor {
 
-        private final NinjaContext context;
+        private final Log logger;
 
-        private SensitiveDataRemovingVisitor(NinjaContext context) {
-            this.context = context;
+        private SensitiveDataRemovingVisitor(Log logger) {
+            this.logger = logger;
         }
 
         @Override
@@ -125,7 +127,7 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
                         jaxbVisitable.accept(this);
                     }
                 } catch (Exception e) {
-                    context.getLog().warn("Couldn't get real value of item @{}: {}", propertyValue, e.getMessage());
+                    this.logger.warn("Couldn't get real value of item @{}: {}", propertyValue, e.getMessage());
                 }
             }
         }
