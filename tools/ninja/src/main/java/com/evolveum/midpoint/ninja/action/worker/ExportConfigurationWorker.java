@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.ninja.action.worker;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -13,6 +14,7 @@ import com.evolveum.midpoint.common.cleanup.CleanupPath;
 import com.evolveum.midpoint.common.cleanup.CleanupPathAction;
 import com.evolveum.midpoint.common.cleanup.ObjectCleaner;
 import com.evolveum.midpoint.ninja.action.ExportOptions;
+import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
@@ -31,25 +33,21 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
     }
 
     @Override
-    protected boolean shouldSkipObject(PrismObject<? extends ObjectType> prismObject) {
-        return false;
-
-    }
-
-    @Override
     protected void editObject(PrismObject<? extends ObjectType> prismObject) {
 
         final ObjectCleaner objectCleaner = new ObjectCleaner();
         objectCleaner.setRemoveMetadata(true);
         objectCleaner.setPaths(List.of(
                 remove(ResourceType.COMPLEX_TYPE, ResourceType.F_CONNECTOR_CONFIGURATION),
-                remove(ResourceType.COMPLEX_TYPE,
-                        ResourceType.F_ADDITIONAL_CONNECTOR, ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION),
+                remove(ResourceType.COMPLEX_TYPE, ResourceType.F_ADDITIONAL_CONNECTOR,
+                        ConnectorInstanceSpecificationType.F_CONNECTOR_CONFIGURATION),
                 remove(AssignmentHolderType.COMPLEX_TYPE, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF),
                 remove(AbstractRoleType.COMPLEX_TYPE, AbstractRoleType.F_ADMIN_GUI_CONFIGURATION),
                 remove(ArchetypeType.COMPLEX_TYPE, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_DISPLAY),
-                remove(ArchetypeType.COMPLEX_TYPE, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_ITEM_CONSTRAINT),
-                remove(ArchetypeType.COMPLEX_TYPE, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_ADMIN_GUI_CONFIGURATION),
+                remove(ArchetypeType.COMPLEX_TYPE, ArchetypeType.F_ARCHETYPE_POLICY,
+                        ArchetypePolicyType.F_ITEM_CONSTRAINT),
+                remove(ArchetypeType.COMPLEX_TYPE, ArchetypeType.F_ARCHETYPE_POLICY,
+                        ArchetypePolicyType.F_ADMIN_GUI_CONFIGURATION),
                 remove(ObjectType.COMPLEX_TYPE, ObjectType.F_EXTENSION),
                 keep(ResourceType.COMPLEX_TYPE, ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION) // operational data - must be explicitly allowed
         ));
@@ -66,13 +64,18 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
                 ConnectorType.F_NAME,
                 ConnectorType.F_AVAILABLE);
 
-        // Remove items that contains ProtectedDataType values directly
-        final Collection<ItemPath> excludeItems = options.getExcludeItems();
-        prismObject.acceptVisitor(sensitiveDataCollector(excludeItems::add));
-        excludeItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
+        // Remove items specified by the user.
+        final Collection<ItemPath> explicitlyExcludedItems = options.getExcludeItems();
+        explicitlyExcludedItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
 
-        // Mask other ProtectedDataType values (it is quite hard to remove them)
-        prismObject.accept(new SensitiveDataRemovingVisitor(context));
+        // Remove items that contains ProtectedDataType values.
+        final Collection<ItemPath> sensitiveItems = new ArrayList<>();
+        prismObject.acceptVisitor(sensitivePropertiesCollector(sensitiveItems::add));
+        sensitiveItems.forEach(path -> prismObject.removeItem(path, PrismProperty.class));
+
+        // Mask other ProtectedDataType values (it is quite hard to remove them, because they are not "normal"
+        // properties)
+        prismObject.accept(new SensitiveDataRemovingVisitor(context.getLog()));
     }
 
     private static void keepOnly(
@@ -84,15 +87,15 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
         }
     }
 
-    private CleanupPath remove(QName type, ItemName... pathSegments) {
+    private static CleanupPath remove(QName type, ItemName... pathSegments) {
         return new CleanupPath(type, ItemPath.create(List.of(pathSegments)), CleanupPathAction.REMOVE);
     }
 
-    private CleanupPath keep(QName type, ItemName... pathSegments) {
+    private static CleanupPath keep(QName type, ItemName... pathSegments) {
         return new CleanupPath(type, ItemPath.create(List.of(pathSegments)), CleanupPathAction.IGNORE);
     }
 
-    private PrismVisitor sensitiveDataCollector(Consumer<ItemPath> pathConsumer) {
+    private static PrismVisitor sensitivePropertiesCollector(Consumer<ItemPath> pathConsumer) {
         return object -> {
             if (object instanceof PrismPropertyValue<?> propertyValue) {
                 var typeName = propertyValue.getTypeName();
@@ -109,12 +112,13 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
         };
     }
 
-    private static class SensitiveDataRemovingVisitor implements ConfigurableVisitor, JaxbVisitor {
+    private static class SensitiveDataRemovingVisitor<T extends Visitable<T>>
+            implements ConfigurableVisitor<T>, JaxbVisitor {
 
-        private final NinjaContext context;
+        private final Log logger;
 
-        private SensitiveDataRemovingVisitor(NinjaContext context) {
-            this.context = context;
+        private SensitiveDataRemovingVisitor(Log logger) {
+            this.logger = logger;
         }
 
         @Override
@@ -144,7 +148,7 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
                         jaxbVisitable.accept(this);
                     }
                 } catch (Exception e) {
-                    context.getLog().warn("Couldn't get real value of item @{}: {}", propertyValue, e.getMessage());
+                    this.logger.warn("Couldn't get real value of item @{}: {}", propertyValue, e.getMessage());
                 }
             }
         }
