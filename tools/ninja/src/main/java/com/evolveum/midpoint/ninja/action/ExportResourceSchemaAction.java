@@ -1,20 +1,17 @@
 package com.evolveum.midpoint.ninja.action;
 
-import com.evolveum.midpoint.ninja.action.worker.ExportConfigurationWorker;
-import com.evolveum.midpoint.ninja.action.worker.ExportConsumerWorker;
-import com.evolveum.midpoint.ninja.util.OperationStatus;
-import com.evolveum.midpoint.prism.FreezableList;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+
+import com.evolveum.midpoint.ninja.action.worker.ExportConsumerWorker;
+import com.evolveum.midpoint.ninja.util.OperationStatus;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ExportResourceSchemaAction extends AbstractRepositorySearchAction<ExportOptions, Void>{
 
