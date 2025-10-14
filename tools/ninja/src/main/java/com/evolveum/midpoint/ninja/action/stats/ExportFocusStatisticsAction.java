@@ -29,7 +29,7 @@ public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<
             new ItemName(SchemaConstants.NS_C, "employeeNumber"), new ItemName(SchemaConstants.NS_C, "personalNumber"),
             new ItemName(SchemaConstants.NS_C, "organization"),
             new ItemName(SchemaConstants.NS_C, "organizationalUnit"), new ItemName(SchemaConstants.NS_C, "displayName"),
-            new ItemName(SchemaConstants.NS_C, "identifier"), new ItemName(SchemaConstants.NS_C, "riskLevel"),
+            new ItemName(SchemaConstants.NS_C, "identifier"),
             new ItemName(SchemaConstants.NS_C, "mailDomain"), new ItemName(SchemaConstants.NS_C, "displayOrder"),
             new ItemName(SchemaConstants.NS_C, "url"), new ItemName(SchemaConstants.NS_C, "extension"));
 
