@@ -21,7 +21,8 @@ public class ExportResourceSchemaAction extends AbstractRepositorySearchAction<E
     private static final Set<ItemName> ITEMS_TO_KEEP = Set.of(
             ResourceType.F_CONNECTOR_REF,
             ResourceType.F_NAME,
-            ResourceType.F_SCHEMA
+            ResourceType.F_SCHEMA,
+            ResourceType.F_CAPABILITIES
     );
 
     @Override
