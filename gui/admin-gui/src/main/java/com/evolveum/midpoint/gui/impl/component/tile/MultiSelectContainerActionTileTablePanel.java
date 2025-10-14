@@ -660,7 +660,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             @Contract(pure = true)
             @Override
             public @NotNull String getContainerCssClass() {
-                return "d-flex flex-row-reverse align-items-center gap-1  btn btn-default btn-sm";
+                return "d-flex flex-row-reverse align-items-center gap-1";
             }
         };
         togglePanel.setOutputMarkupId(true);

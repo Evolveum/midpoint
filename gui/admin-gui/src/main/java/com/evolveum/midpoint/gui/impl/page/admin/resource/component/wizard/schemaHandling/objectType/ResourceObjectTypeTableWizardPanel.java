@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObje
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -57,7 +59,12 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
             }
 
             @Override
-            protected void onNewValue(PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, AjaxRequestTarget target, boolean isDuplicate) {
+            protected void onNewValue(
+                    PrismContainerValue<ResourceObjectTypeDefinitionType> value,
+                    IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
+                    AjaxRequestTarget target,
+                    boolean isDuplicate,
+                    @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
                 ResourceObjectTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
             }
         };

@@ -496,7 +496,7 @@ public class SmartIntegrationUtils {
      */
     public static void removeObjectTypeSuggestionNew(
             @NotNull PageBase pageBase,
-            @NotNull StatusInfo<ObjectTypesSuggestionType> statusInfo,
+            @NotNull StatusInfo<?> statusInfo,
             @NotNull ResourceObjectTypeDefinitionType suggestionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -538,7 +538,7 @@ public class SmartIntegrationUtils {
      */
     public static void removeAssociationTypeSuggestionNew(
             @NotNull PageBase pageBase,
-            @NotNull StatusInfo<AssociationsSuggestionType> statusInfo,
+            @NotNull StatusInfo<?> statusInfo,
             @NotNull AssociationSuggestionType suggestionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {

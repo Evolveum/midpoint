@@ -58,8 +58,6 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
     private static final String OP_DETERMINE_STATUS =
             ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".determineStatus";
-    private static final String OP_DELETE_SUGGESTIONS =
-            ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".deleteSuggestions";
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedModel = Model.of();
     QName selectedObjectClassName;
@@ -186,11 +184,6 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
         PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(
                 originalObject);
-
-        //TODO should be after save
-        Task task = getPageBase().createSimpleTask(OP_DELETE_SUGGESTIONS);
-        OperationResult result = task.getResult();
-        removeObjectTypeSuggestionNew(getPageBase(), statusInfo, suggestedValue, task, result);
 
         onContinueWithSelected(selectedModel, suggestionToAdd, containerModel, target);
     }

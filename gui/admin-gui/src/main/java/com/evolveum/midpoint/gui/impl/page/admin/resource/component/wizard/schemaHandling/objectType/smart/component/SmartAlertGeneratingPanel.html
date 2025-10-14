@@ -8,16 +8,16 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="d-flex flex-row alert purple-light alert-dismissible fade show px-3" role="alert" wicket:id="alertContainer">
-        <div class="d-flex py-2 align-items-start">
+    <div class="d-flex flex-row flex-wrap alert purple-light alert-dismissible fade show px-3" role="alert" wicket:id="alertContainer">
+        <div class="d-flex py-2 pr-2 align-items-start">
             <i wicket:id="icon"></i>
         </div>
-        <div class="d-flex flex-column align-items-start justify-content-center col-10">
+        <div class="d-flex flex-column justify-content-center align-items-start">
             <div wicket:id="text" class="text-purple-dark text-bold"></div>
             <div wicket:id="subText" class="text-purple-dark"></div>
         </div>
 
-        <div class="ml-auto d-flex justify-content-center flex-column">
+        <div class="ml-auto d-flex flex-column justify-content-center">
             <div class="d-flex flex-row gap-2 ml-auto">
                 <button type="button" class="btn d-flex align-items-center" wicket:id="buttons"></button>
             </div>

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -374,8 +375,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 }
 
                 toDelete.forEach(value -> {
-
-                    if (performOnDeleteSuggestion(target, value)) {
+                    var statusInfo = getStatusInfo(value);
+                    if (performOnDeleteSuggestion(getPageBase(), target, value, statusInfo)) {
                         return;
                     }
 
@@ -446,7 +447,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             @Override
             protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target,
                     AssignmentObjectRelation relationSpec, boolean isDuplicate) {
-                onNewValue(value, getContainerModel(), target, isDuplicate);
+                onNewValue(value, getContainerModel(), target, isDuplicate, null);
             }
 
         };
@@ -608,7 +609,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     protected abstract Class<C> getSchemaHandlingObjectsType();
 
     protected abstract void onNewValue(
-            PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> newWrapperModel, AjaxRequestTarget target, boolean isDuplicate);
+            PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> newWrapperModel, AjaxRequestTarget target,
+            boolean isDuplicate, @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler);
 
     protected abstract void onSuggestValue(
             PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> newWrapperModel, AjaxRequestTarget target);
@@ -919,7 +921,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         };
     }
 
-    protected boolean performOnDeleteSuggestion(AjaxRequestTarget target, PrismContainerValueWrapper<C> rowModel) {
+    protected boolean performOnDeleteSuggestion(
+            @NotNull PageBase pageBase,
+            AjaxRequestTarget target,
+            PrismContainerValueWrapper<C> rowModel,
+            @Nullable StatusInfo<?> statusInfo) {
         return false;
     }
 

@@ -83,7 +83,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
         if (newValue == null) {
             newValue = container.getItem().createNewValue();
         }
-        PrismContainerValueWrapper newWrapper = null;
+        PrismContainerValueWrapper<C> newWrapper = null;
         try {
             newWrapper = WebPrismUtil.createNewValueWrapper(
                     container, newValue, pageBase, context);

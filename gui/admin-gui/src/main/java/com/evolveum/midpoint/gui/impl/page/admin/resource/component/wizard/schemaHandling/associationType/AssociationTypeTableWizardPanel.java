@@ -15,11 +15,13 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -51,7 +53,12 @@ public abstract class AssociationTypeTableWizardPanel extends SchemaHandlingType
             }
 
             @Override
-            protected void onNewValue(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel, AjaxRequestTarget target, boolean isDuplicate) {
+            protected void onNewValue(
+                    PrismContainerValue<ShadowAssociationTypeDefinitionType> value,
+                    IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel,
+                    AjaxRequestTarget target,
+                    boolean isDuplicate,
+                    @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
                 AssociationTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
             }
         };

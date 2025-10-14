@@ -7,61 +7,57 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 
-public abstract class ConfigureSynchronizationConfirmationPanel extends ConfirmationPanel {
+/**
+ * Confirmation dialog shown when synchronization configuration is missing for a resource object type.
+ * Allows the user to automatically create default synchronization reactions or open the configuration wizard.
+ */
+public class ConfigureSynchronizationConfirmationPanel extends ConfirmationPanel {
 
     @Serial private static final long serialVersionUID = 1L;
+
     private static final String ID_CONFIGURE = "configure";
 
-    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinitionWrapperModel;
-    private IModel<String> infoMessage = null;
+    ItemPath synchronizationContainerPath;
+    IModel<ResourceDetailsModel> resourceDetailsModel;
 
     public ConfigureSynchronizationConfirmationPanel(
             String id,
             IModel<String> message,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinitionWrapperModel) {
+            ItemPath synchronizationContainerPath,
+            IModel<ResourceDetailsModel> resourceDetailsModel) {
         super(id, message);
-//        infoMessage = createInfoMessageModel();
-        this.resourceObjectTypeDefinitionWrapperModel = resourceObjectTypeDefinitionWrapperModel;
+        this.synchronizationContainerPath = synchronizationContainerPath;
+        this.resourceDetailsModel = resourceDetailsModel;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
-        MessagePanel<?> infoMessagePanel = new MessagePanel<>("infoMessage", MessagePanel.MessagePanelType.INFO, infoMessage);
-        infoMessagePanel.setOutputMarkupId(true);
-        infoMessagePanel.add(new VisibleBehaviour(() -> infoMessage != null));
-        add(infoMessagePanel);
+        initPreviewRecommendedButton();
     }
 
-    @Override
-    protected void customInitLayout(@NotNull WebMarkupContainer panel) {
+    private void initPreviewRecommendedButton() {
+        WebMarkupContainer footer = (WebMarkupContainer) getFooter();
         AjaxButton previewRecommended = new AjaxButton(ID_CONFIGURE,
-                new StringResourceModel("ConfigureSynchronizationConfirmationPanel.useDefault", this, null)) {
+                createStringResource("ConfigureSynchronizationConfirmationPanel.useDefault")) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -76,39 +72,27 @@ public abstract class ConfigureSynchronizationConfirmationPanel extends Confirma
             }
         };
         previewRecommended.setOutputMarkupId(true);
-        previewRecommended.add(new VisibleBehaviour((this::isConfigurationTaskVisible)));
-        panel.add(previewRecommended);
+        footer.add(previewRecommended);
     }
 
     protected void onPreviewRecommendedPerformed(AjaxRequestTarget target) throws SchemaException {
-        setDefaultSynchronizationValues(target);
-        navigateToSynchronizationConfigWizard(target);
-    }
-
-    @Contract("_, _ -> new")
-    public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> createSynchronizationItemContainerModel(
-            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model, @Nullable ItemPath path) {
-        return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
-    }
-
-    //TODO wrong way of setting default values, should be done using container wrapper model? Check it.
-    public void setDefaultSynchronizationValues(
-            @NotNull AjaxRequestTarget target) {
-        var wrapper = getResourceObjectTypeDefinitionWrapperModel();
-        IModel<PrismContainerWrapper<SynchronizationReactionType>> containerModel = createSynchronizationItemContainerModel(
-                wrapper, ItemPath.create(
-                        ResourceObjectTypeDefinitionType.F_SYNCHRONIZATION, SynchronizationReactionsType.F_REACTION));
-
-        PrismContainerWrapper<SynchronizationReactionType> container = containerModel.getObject();
-        addDefaultSynchronizationReactions(container, target);
+        performSynchronizationConfiguration(target);
     }
 
     @Override
     public void yesPerformed(AjaxRequestTarget target) {
-        navigateToSynchronizationConfigWizard(target);
+        performSynchronizationConfiguration(target);
     }
 
-    protected abstract void navigateToSynchronizationConfigWizard(AjaxRequestTarget target);
+    protected void performSynchronizationConfiguration(AjaxRequestTarget target) {
+        var synchronizationWrapper = createDefaultSynchronizationWrapper(target);
+        navigateToSynchronizationWizard(target, synchronizationWrapper);
+    }
+
+    private void navigateToSynchronizationWizard(AjaxRequestTarget target,
+            LoadableModel<PrismContainerValueWrapper<SynchronizationReactionsType>> synchronizationWrapper) {
+        getAssignmentHolderDetailsModel().getPageResource().showSynchronizationWizard(synchronizationWrapper, target);
+    }
 
     @Override
     protected IModel<String> createYesLabel() {
@@ -120,21 +104,9 @@ public abstract class ConfigureSynchronizationConfirmationPanel extends Confirma
         return createStringResource("ConfigureSynchronizationConfirmationPanel.cancel");
     }
 
-    protected PrismObject<TaskType> createTask(AjaxRequestTarget target) {
-        return null;
-    }
-
-    protected IModel<String> createInfoMessageModel() {
-        return createStringResource("ConfigureSynchronizationConfirmationPanel.infoMessage");
-    }
-
     @Override
     public IModel<String> getTitle() {
         return createStringResource("CorrelationWizardPanelWizardPanel.synchronizationDialog.missing.message");
-    }
-
-    public boolean isConfigurationTaskVisible() {
-        return true;
     }
 
     @Override
@@ -142,8 +114,27 @@ public abstract class ConfigureSynchronizationConfirmationPanel extends Confirma
         return 800;
     }
 
-    private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefinitionWrapperModel() {
-        return resourceObjectTypeDefinitionWrapperModel;
+    /**
+     * Creates a lazy model that loads the synchronization container value wrapper,
+     * initializing it with a default set of synchronization reactions if none exist.
+     */
+    protected @NotNull LoadableModel<PrismContainerValueWrapper<SynchronizationReactionsType>> createDefaultSynchronizationWrapper(
+            @NotNull AjaxRequestTarget target) {
+        return new LoadableModel<>(false) {
+            @Override
+            protected PrismContainerValueWrapper<SynchronizationReactionsType> load() {
+                try {
+                    var objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+                    PrismContainerWrapper<SynchronizationReactionsType> container = objectWrapper
+                            .findContainer(getSynchronizationContainerPath());
+                    initDefaultSynchronizationReaction(container, target);
+                    return container.getValue();
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+        };
     }
 
     /**
@@ -157,38 +148,47 @@ public abstract class ConfigureSynchronizationConfirmationPanel extends Confirma
      * </ul>
      * These defaults are meant as a starting point for basic synchronization scenarios.
      */
-    private void addDefaultSynchronizationReactions(PrismContainerWrapper<SynchronizationReactionType> container, @NotNull AjaxRequestTarget target) {
-        PrismContainer<SynchronizationReactionType> item = container.getItem();
+    private void initDefaultSynchronizationReaction(
+            @NotNull PrismContainerWrapper<SynchronizationReactionsType> reactionsContainer,
+            @NotNull AjaxRequestTarget target) throws SchemaException {
+        PrismContainerWrapper<SynchronizationReactionType> reactionContainer = reactionsContainer
+                .findContainer(SynchronizationReactionsType.F_REACTION);
+        PrismContainer<SynchronizationReactionType> reactionItem = reactionContainer.getItem();
 
-        var newValue = item.createNewValue();
-        @NotNull SynchronizationReactionType bean = newValue.asContainerable();
-        bean.name("linked-synchronize")
+        var linkedSynchronize = reactionItem.createNewValue();
+        linkedSynchronize.asContainerable().name("linked-synchronize")
                 .situation(SynchronizationSituationType.LINKED)
                 .beginActions()
                 .beginSynchronize()
                 .synchronize(true)
                 .end();
 
-        WebPrismUtil.createNewValueWrapper(container, newValue, getPageBase(), target);
+        WebPrismUtil.createNewValueWrapper(reactionContainer, linkedSynchronize, getPageBase(), target);
 
-        newValue = item.createNewValue();
-        bean = newValue.asContainerable();
-        bean.name("unlinked-link")
+        var unlinkedLink = reactionItem.createNewValue();
+        unlinkedLink.asContainerable().name("unlinked-link")
                 .situation(SynchronizationSituationType.UNLINKED)
                 .beginActions()
                 .beginLink()
                 .synchronize(true)
                 .end();
-        WebPrismUtil.createNewValueWrapper(container, newValue, getPageBase(), target);
+        WebPrismUtil.createNewValueWrapper(reactionContainer, unlinkedLink, getPageBase(), target);
 
-        newValue = item.createNewValue();
-        bean = newValue.asContainerable();
-        bean.name("unmatched-add-focus")
+        var unmatchedAddFocus = reactionItem.createNewValue();
+        unmatchedAddFocus.asContainerable().name("unmatched-add-focus")
                 .situation(SynchronizationSituationType.UNMATCHED)
                 .beginActions()
                 .beginAddFocus()
                 .synchronize(true)
                 .end();
-        WebPrismUtil.createNewValueWrapper(container, newValue, getPageBase(), target);
+        WebPrismUtil.createNewValueWrapper(reactionContainer, unmatchedAddFocus, getPageBase(), target);
+    }
+
+    private ItemPath getSynchronizationContainerPath() {
+        return synchronizationContainerPath;
+    }
+
+    private ResourceDetailsModel getAssignmentHolderDetailsModel() {
+        return resourceDetailsModel.getObject();
     }
 }

@@ -123,13 +123,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
     private void showCorrelationItemsTable(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new CorrelationWizardPanel(getIdOfChoicePanel(), createHelper(ResourceObjectTypeDefinitionType.F_CORRELATION, false)) {
-                    @Override
-                    public void showSynchronizationConfigWizard(AjaxRequestTarget target) {
-                        ResourceObjectTypeWizardPanel.this.showSynchronizationConfigWizard(target);
-                    }
-                }
-        );
+                new CorrelationWizardPanel(getIdOfChoicePanel(), createHelper(ResourceObjectTypeDefinitionType.F_CORRELATION, false)));
     }
 
     private void showCapabilitiesConfigWizard(AjaxRequestTarget target) {

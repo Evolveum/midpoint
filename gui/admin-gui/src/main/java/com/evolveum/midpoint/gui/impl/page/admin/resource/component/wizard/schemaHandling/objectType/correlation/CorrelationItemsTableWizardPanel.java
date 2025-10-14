@@ -392,19 +392,12 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             ConfigureSynchronizationConfirmationPanel confirmationPanel = new ConfigureSynchronizationConfirmationPanel(
                     pageBase.getMainPopupBodyId(),
                     pageBase.createStringResource("ConfigureSynchronizationConfirmationPanel.infoMessage"),
-                    this::getResourceObjectTypeDefinitionWrapper) {
+                    getSynchronizationContainerPath(),
+                    this::getAssignmentHolderDetailsModel);
 
-                @Override
-                protected void navigateToSynchronizationConfigWizard(AjaxRequestTarget target) {
-                    showSynchronizationConfigWizard(target);
-                }
-            };
             pageBase.showMainPopup(confirmationPanel, target);
         }
     }
-
-    //TODO remove
-    public abstract void showSynchronizationConfigWizard(AjaxRequestTarget target);
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
@@ -426,6 +419,12 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
         simulationActionTaskButton.setRenderBodyOnly(true);
         return simulationActionTaskButton;
+    }
+
+    protected ItemPath getSynchronizationContainerPath() {
+        return ItemPath.create(
+                getResourceObjectTypeDefinitionWrapper().getPath(),
+                ResourceObjectTypeDefinitionType.F_SYNCHRONIZATION);
     }
 
     protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
