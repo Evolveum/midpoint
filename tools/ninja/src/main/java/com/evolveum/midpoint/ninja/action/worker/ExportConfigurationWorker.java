@@ -50,6 +50,7 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
                 remove(ArchetypeType.COMPLEX_TYPE, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_DISPLAY),
                 remove(ArchetypeType.COMPLEX_TYPE, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_ITEM_CONSTRAINT),
                 remove(ArchetypeType.COMPLEX_TYPE, ArchetypeType.F_ARCHETYPE_POLICY, ArchetypePolicyType.F_ADMIN_GUI_CONFIGURATION),
+                remove(ObjectType.COMPLEX_TYPE, ObjectType.F_EXTENSION),
                 keep(ResourceType.COMPLEX_TYPE, ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION) // operational data - must be explicitly allowed
         ));
         objectCleaner.process(prismObject);
