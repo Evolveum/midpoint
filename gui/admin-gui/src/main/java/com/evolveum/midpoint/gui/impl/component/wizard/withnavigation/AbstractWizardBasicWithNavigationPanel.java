@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator;
+package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicInitializer;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;

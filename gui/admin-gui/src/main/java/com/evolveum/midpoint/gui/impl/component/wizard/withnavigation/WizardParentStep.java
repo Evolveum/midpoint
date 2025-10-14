@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator;
+package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 
