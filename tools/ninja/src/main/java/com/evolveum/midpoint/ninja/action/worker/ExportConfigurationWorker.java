@@ -120,20 +120,19 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
             return; // shouldn't occur
         }
         var first = path.firstToName();
+        var subItem = pcv.findItem(first);
+        if (subItem == null) {
+            return; // Final or intermediate item is not present; nothing to do here.
+        }
         var rest = path.rest();
         if (rest.isEmpty()) {
-            pcv.removeItem(first); // Just remove the item, there's nothing to descend to
+            pcv.remove(subItem);
         } else {
-            var subItem = pcv.findItem(first);
-            if (subItem != null) {
-                // Remove the item from all values of the subItem
-                for (PrismValue value : subItem.getValues()) {
-                    if (value instanceof PrismContainerValue<?> subPcv) {
-                        removeItem(subPcv, rest);
-                    }
+            // Remove the item from all values of the subItem
+            for (PrismValue value : subItem.getValues()) {
+                if (value instanceof PrismContainerValue<?> subPcv) {
+                    removeItem(subPcv, rest);
                 }
-            } else {
-                // Intermediate item is not present; nothing to do here.
             }
         }
     }
