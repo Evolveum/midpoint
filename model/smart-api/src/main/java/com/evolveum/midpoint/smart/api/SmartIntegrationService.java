@@ -175,6 +175,7 @@ public interface SmartIntegrationService {
     MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            ShadowObjectClassStatisticsType statistics,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             @Nullable CurrentActivityState<?> activityState,

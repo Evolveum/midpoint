@@ -8,8 +8,7 @@
 package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_EXTENSION_RESOURCE_OID;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,6 +73,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private static final String OP_CREATE_NEW_RESOURCE = "createNewResource";
     private static final String OP_ESTIMATE_OBJECT_CLASS_SIZE = "estimateObjectClassSize";
     private static final String OP_GET_LATEST_STATISTICS = "getLatestStatistics";
+    private static final String OP_GET_LATEST_OBJECT_TYPE_STATISTICS = "getLatestObjectTypeStatistics";
     private static final String OP_SUGGEST_OBJECT_TYPES = "suggestObjectTypes";
     private static final String OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION = "suggestObjectTypesOperation";
     private static final String OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS = "getSuggestObjectTypesOperationStatus";
@@ -241,6 +241,39 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                             .eq(resourceOid)
                             .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME)
                             .eq(objectClassName.getLocalPart())
+                            .build(),
+                    null,
+                    result);
+            return objects.stream()
+                    .max(Comparator.comparing(
+                            o -> toMillis(ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(o).getTimestamp())))
+                    .map(o -> o.asObjectable())
+                    .orElse(null);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+            throws SchemaException {
+        var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
+                .addParam("resourceOid", resourceOid)
+                .addParam("kind", kind)
+                .addParam("intent", intent)
+                .build();
+        try {
+            var objects = repositoryService.searchObjects(
+                    GenericObjectType.class,
+                    PrismContext.get().queryFor(GenericObjectType.class)
+                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
+                            .eq(resourceOid)
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
+                            .eq(kind)
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
+                            .eq(intent)
                             .build(),
                     null,
                     result);
@@ -547,6 +580,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            ShadowObjectClassStatisticsType statistics,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             @Nullable CurrentActivityState<?> activityState,
@@ -562,7 +596,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var mappings = MappingsSuggestionOperation
                     .init(serviceClient, resourceOid, typeIdentification, activityState, task, result)
-                    .suggestMappings(result);
+                    .suggestMappings(result, statistics);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;
         } catch (Throwable t) {

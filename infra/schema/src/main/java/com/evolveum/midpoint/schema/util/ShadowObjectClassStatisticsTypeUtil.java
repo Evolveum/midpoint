@@ -36,6 +36,12 @@ public class ShadowObjectClassStatisticsTypeUtil {
                 "No statistics in %s", holder);
     }
 
+    public static ShadowObjectClassStatisticsType getObjectTypeStatisticsRequired(PrismObject<GenericObjectType> holder) {
+        return MiscUtil.argNonNull(
+                getExtensionItemRealValue(holder.asObjectable().getExtension(), SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE_STATISTICS),
+                "No statistics in %s", holder);
+    }
+
     public static GenericObjectType createStatisticsObject(
             String resourceOid, String resourceName, QName objectClassName, ShadowObjectClassStatisticsType statistics)
             throws SchemaException {
@@ -46,6 +52,20 @@ public class ShadowObjectClassStatisticsTypeUtil {
         setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, resourceOid);
         setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, objectClassName.getLocalPart());
         setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
+        return object;
+    }
+
+    public static GenericObjectType createObjectTypeStatisticsObject(
+            String resourceOid, String resourceName, String kind, String intent, ShadowObjectClassStatisticsType statistics)
+            throws SchemaException {
+        var object = new GenericObjectType()
+                .name("Statistics for %s:%s,%s (%s)".formatted(
+                        resourceName, kind, intent, statistics.getTimestamp()));
+        var holderPcv = object.asPrismContainerValue();
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, resourceOid);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_KIND_NAME, kind);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_INTENT_NAME, intent);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_TYPE_STATISTICS, statistics);
         return object;
     }
 }
