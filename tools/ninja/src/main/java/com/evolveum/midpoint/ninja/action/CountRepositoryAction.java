@@ -47,7 +47,7 @@ public class CountRepositoryAction extends RepositoryAction<CountOptions, Void> 
             throw new NinjaException("Type must be defined");
         }
 
-        List<ObjectTypes> types = NinjaUtils.getTypes(options.getType());
+        List<ObjectTypes> types = NinjaUtils.getTypes(options.getType(), List.of(ObjectTypes.values()));
 
         int total = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT);
