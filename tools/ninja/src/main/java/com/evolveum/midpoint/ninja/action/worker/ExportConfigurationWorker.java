@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -80,13 +79,13 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
     private <T extends Visitable<T>> Visitor<T> sensitiveDataCollector(Consumer<ItemPath> pathConsumer) {
         return item -> {
             if (item instanceof PrismPropertyValue<?> property) {
-                var typeName = propertyValue.getTypeName();
+                var typeName = property.getTypeName();
                 if (ProtectedDataType.COMPLEX_TYPE.equals(typeName)
                         || ProtectedStringType.COMPLEX_TYPE.equals(typeName)) {
                     // Note: ProtectedByteArrayType has the same type name as ProtectedDataType (why?)
                     // TODO we might also check using getRealValue() but that may be too fragile - what would we do if
                     //  that check failed?
-                    pathConsumer.accept(propertyValue.getPath());
+                    pathConsumer.accept(property.getPath());
                 }
             }
         };
@@ -104,7 +103,6 @@ public class ExportConfigurationWorker extends ExportConsumerWorker {
         public void visit(JaxbVisitable visitable) {
             if (visitable instanceof ProtectedDataType<?> protectedData) {
                 protectedData.setEncryptedData(null);
-                protectedData.setExternalData(null);
                 protectedData.setHashedData(null);
                 if (protectedData instanceof ProtectedStringType protectedString) {
                     protectedString.setClearValue("REDACTED");
