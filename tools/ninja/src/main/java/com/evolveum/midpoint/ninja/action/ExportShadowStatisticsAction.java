@@ -5,6 +5,7 @@ import com.evolveum.midpoint.ninja.impl.NinjaException;
 import com.evolveum.midpoint.ninja.util.FileReference;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -72,7 +73,11 @@ public class ExportShadowStatisticsAction extends RepositoryAction<ExportShadowS
             }
         }
         var obj = new GenericObjectType();
-        obj.asPrismObject().findOrCreateContainer(GenericObjectType.F_EXTENSION).add(wrapper);
+        var extension = obj.asPrismObject().findOrCreateContainer(GenericObjectType.F_EXTENSION);
+        var extensionValue = PrismContext.get().itemFactory().createContainerValue();
+        extensionValue.add(wrapper);
+        // Hack for 4.8
+        extension.getValues().add(extensionValue);
         var serializer = context.getPrismContext()
                 .xmlSerializer()
                 .options(SerializationOptions.createSerializeForExport());

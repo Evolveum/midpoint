@@ -63,7 +63,7 @@ public class EnumItemFilterProcessor<E extends Enum<E>>
                     + " Enumeration value supports only equals with no matching rule.");
         }
     }
-    
+
     public EnumPath<E> getPath() {
         return path;
     }
