@@ -188,7 +188,11 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         MappingsSuggestionType suggestion = op.suggestMappings(result);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
-
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getExpectedQuality()).as("Transformed mapping should have perfect quality").isEqualTo(1.0f);
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Should contain a script expression returned by the service")
+                .isNotNull();
     }
 
 }

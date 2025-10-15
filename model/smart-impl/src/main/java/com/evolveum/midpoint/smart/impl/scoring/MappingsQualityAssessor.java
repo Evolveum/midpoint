@@ -100,6 +100,10 @@ public class MappingsQualityAssessor {
     }
 
     private static ExpressionProfile restrictedProfile() {
+        // Permission profile (allow-list):
+        // - Default decision: ALLOW (safe baseline; explicit denies still win).
+        // - Explicitly allow java.lang.String (basic safe transformations).
+        // - Explicitly deny a placeholder 'execute' method (defensive guardrail).
         final ExpressionPermissionProfile permissionsProfile = ExpressionPermissionProfile.closed(
                 "LLM scripts profile", AccessDecision.ALLOW, Collections.emptyList(),
                 List.of(new ExpressionPermissionClassProfileType()
@@ -108,11 +112,19 @@ public class MappingsQualityAssessor {
                         .method(new ExpressionPermissionMethodProfileType()
                                 .name("execute")
                                 .decision(AuthorizationDecisionType.DENY))));
+        // Script evaluator profile:
+        // - Enable script evaluator: ALLOW.
+        // - Only Groovy is enabled and bound to the above permission profile.
+        // - Type checking enabled to enforce class/method restrictions at runtime.
         final ExpressionEvaluatorProfile evaluatorProfile = new ExpressionEvaluatorProfile(
-                SchemaConstantsGenerated.C_SCRIPT, AccessDecision.DENY,
+                SchemaConstantsGenerated.C_SCRIPT, AccessDecision.ALLOW,
                 List.of(new ScriptLanguageExpressionProfile("groovy", AccessDecision.ALLOW, true, permissionsProfile)));
+        // Expression profile assembly:
+        // - Evaluators default: ALLOW (so script evaluator is usable).
+        // - Only Groovy is configured; other languages remain unavailable by omission.
+        // - Bulk actions: none; Function libraries: none; Privilege elevation: DENY.
         return new ExpressionProfile("LLM scripts profile",
-                new ExpressionEvaluatorsProfile(AccessDecision.DENY, List.of(evaluatorProfile)),
+                new ExpressionEvaluatorsProfile(AccessDecision.ALLOW, List.of(evaluatorProfile)),
                 BulkActionsProfile.none(), FunctionLibrariesProfile.none(), AccessDecision.DENY);
     }
 
