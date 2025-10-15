@@ -4,14 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
@@ -27,10 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -45,7 +41,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,10 +50,18 @@ import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.TITLE_CSS;
 
+/**
+ * Tile panel for suggested mapping.
+ *
+ * @param <C> Type of value wrapper that contains suggested mapping.
+ */
 public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingType>>
         extends TemplateTilePanel<C, SmartMappingTileModel<C>> {
 
     @Serial private static final long serialVersionUID = 1L;
+
+    private static final String CLASS_DOT = SmartMappingTilePanel.class.getName() + ".";
+    private static final String OP_LOAD_MAPPING_SUGGESTIONS = CLASS_DOT + "loadMappingSuggestions";
 
     private static final String ID_TILE_CONTENT = "tileContent";
     private static final String ID_GENERATING_TILE_FRAGMENT = "generatingTileFragment";
@@ -86,15 +89,16 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
         super.onInitialize();
         this.setOutputMarkupId(true);
 
-        statusModel = new LoadableModel<>(true) {
-            @Override
-            protected StatusInfo<CorrelationSuggestionsType> load() {
-                Task task = getPageBase().createSimpleTask("Load generation status");
-                OperationResult result = task.getResult();
-                return getModelObject().getStatusInfo(getPageBase(), task, result);
-            }
-        };
+        loadModel();
+        initFragment();
+    }
 
+    /**
+     * Initialize fragment according to the status of suggestion generation.
+     * If the suggestion is being generated, show the generating fragment.
+     * Otherwise, show the basic fragment with suggestion details.
+     */
+    private void initFragment() {
         StatusInfo<?> statusInfo = statusModel.getObject();
         if (statusInfo != null && statusInfo.getStatus() != null
                 && (statusInfo.isExecuting() || statusInfo.getStatus() == OperationResultStatusType.FATAL_ERROR)) {
@@ -102,7 +106,20 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
         } else {
             add(createBasicFragment());
         }
+    }
 
+    /**
+     * Load the status model to check the status of suggestion generation.
+     */
+    private void loadModel() {
+        statusModel = new LoadableModel<>(true) {
+            @Override
+            protected StatusInfo<CorrelationSuggestionsType> load() {
+                Task task = getPageBase().createSimpleTask(OP_LOAD_MAPPING_SUGGESTIONS);
+                OperationResult result = task.getResult();
+                return getModelObject().getStatusInfo(getPageBase(), task, result);
+            }
+        };
     }
 
     private @NotNull Fragment createBasicFragment() {
@@ -145,7 +162,7 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
 
     protected Component createGeneratingPanelComponent() {
         return new SmartGeneratingVerticalPanel(ID_GENERATION_PANEL, () -> {
-            Task task = getPageBase().createSimpleTask("Load generation statusInfo");
+            Task task = getPageBase().createSimpleTask(OP_LOAD_MAPPING_SUGGESTIONS);
             OperationResult result = task.getResult();
 
             String token = statusModel.getObject().getToken();
@@ -175,21 +192,6 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
 
     protected void onFinishGeneration(AjaxRequestTarget target) {
         // Override to implement finish generation behavior
-    }
-
-    protected AjaxIconButton initEditButton(String id) {
-        AjaxIconButton editButton = new AjaxIconButton(id, Model.of(GuiStyleConstants.CLASS_EDIT_MENU_ITEM),
-                createStringResource("Edit.configuration.button.title")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onEditButton(target);
-            }
-        };
-        editButton.setOutputMarkupId(true);
-        editButton.showTitleAsLabel(true);
-        editButton.add(AttributeModifier.append("class", "flex-row-reverse"
-                + " gap-2 btn btn-default btn-sm"));
-        return editButton;
     }
 
     private @NotNull PrismPropertyPanel<Object> createPropertyPanel(
@@ -318,10 +320,17 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
 
         if (isSuggestion()) {
             buttonContainer.add(initActionSuggestionButton(buttonContainer.newChildId()));
-        } else {
-//            buttonContainer.add(initEditButton(buttonContainer.newChildId()));
         }
 
+        DropdownButtonPanel buttonPanel = createDropdownButton(buttonContainer);
+        buttonPanel.add(AttributeModifier.replace(TITLE_CSS, createStringResource("RoleAnalysis.menu.moreOptions")));
+        buttonPanel.add(new TooltipBehavior());
+        buttonPanel.add(new VisibleBehaviour(() -> !isSuggestion()));
+        buttonContainer.add(buttonPanel);
+        fragment.add(buttonContainer);
+    }
+
+    private @NotNull DropdownButtonPanel createDropdownButton(@NotNull RepeatingView buttonContainer) {
         DropdownButtonPanel buttonPanel = new DropdownButtonPanel(buttonContainer.newChildId(), new DropdownButtonDto(
                 null, "fa-ellipsis-h ml-1", null, buildMenuItems())) {
             @Override
@@ -336,18 +345,14 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
             }
         };
         buttonPanel.setOutputMarkupId(true);
-        buttonPanel.add(AttributeModifier.replace(TITLE_CSS, createStringResource("RoleAnalysis.menu.moreOptions")));
-        buttonPanel.add(new TooltipBehavior());
-        buttonPanel.add(new VisibleBehaviour(() -> !isSuggestion()));
-        buttonContainer.add(buttonPanel);
-        fragment.add(buttonContainer);
+        return buttonPanel;
     }
 
     private boolean isSuggestion() {
         return statusModel.getObject() != null;
     }
 
-    protected List<InlineMenuItem> buildMenuItems() {
+    private @NotNull List<InlineMenuItem> buildMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
         List<InlineMenuItem> menuItems = createMenuItems();
         for (InlineMenuItem menuItem : menuItems) {
@@ -360,24 +365,7 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
     }
 
     public List<InlineMenuItem> createMenuItems() {
-        List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.delete")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        // Implement the logic to delete the correlation
-                    }
-                };
-            }
-
-        });
-        return items;
+        return List.of();
     }
 
     @Override
@@ -385,8 +373,5 @@ public class SmartMappingTilePanel<C extends PrismContainerValueWrapper<MappingT
         // nothing to add
     }
 
-    protected void onEditButton(AjaxRequestTarget target) {
-        // Implement the logic to edit the correlation
-    }
 }
 

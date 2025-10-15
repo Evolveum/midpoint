@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
@@ -22,7 +21,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -33,15 +31,11 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -56,28 +50,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
 import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyObjectTypePermissionData;
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
@@ -143,9 +134,9 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             });
         }
 
-        inlineMenuItems.add(createSuggestionOperationInlineMenu());
-        inlineMenuItems.add(createSuggestionDetailsInlineMenu());
-        inlineMenuItems.add(createSuggestionReviewInlineMenu());
+        inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshForm));
+        inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
+        inlineMenuItems.add(createSuggestionReviewInlineMenu(getPageBase(), this::getStatusInfo, this::performOnReview));
     }
 
     private @NotNull MultivalueContainerListPanel<C> createMultiValueListPanel() {
@@ -197,38 +188,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             @Override
             protected IColumn<PrismContainerValueWrapper<C>, String> createActionsColumn() {
                 List<InlineMenuItem> inlineMenuItems = getInlineMenuItems();
-                return createCustomActionsColumn(getPageBase(), inlineMenuItems);
-            }
-
-            private @Nullable IColumn<PrismContainerValueWrapper<C>, String> createCustomActionsColumn(
-                    @NotNull PageBase pageBase,
-                    @NotNull List<InlineMenuItem> allItems) {
-                return !allItems.isEmpty() ? new InlineMenuButtonColumn<>(allItems, pageBase) {
-                    @Override
-                    public String getCssClass() {
-                        return "inline-menu-column";
-                    }
-
-                    @Override
-                    protected String getDropDownButtonIcon() {
-                        return "fa fa-ellipsis-h";
-                    }
-
-                    @Override
-                    protected String getSpecialButtonClass() {
-                        return "btn btn-link btn-sm";
-                    }
-
-                    @Override
-                    protected String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
-                        return "btn btn-link btn-sm text-nowrap";
-                    }
-
-                    @Override
-                    protected String getAdditionalMultiButtonPanelCssClass() {
-                        return "justify-content-end";
-                    }
-                } : null;
+                return createLinkStyleActionsColumn(getPageBase(), inlineMenuItems);
             }
 
             @Override
@@ -240,7 +200,6 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     inlineMenuItems.add(createStatisticsInlineMenu());
                 }
                 inlineMenuItems.add(createDeleteInlineMenu());
-
                 return inlineMenuItems;
             }
 
@@ -258,8 +217,10 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             protected List<Component> createToolbarButtonsList(String idButton) {
                 List<Component> bar = new ArrayList<>();
                 createNewObjectPerformButton(idButton, bar);
-//                createSuggestObjectButton(idButton, bar);
-                createToggleSuggestionButton(idButton, bar);
+                ToggleCheckBoxPanel togglePanel = createToggleSuggestionVisibilityButton(getPageBase(),idButton, switchSuggestion,
+                        (target) -> refreshForm(target), SchemaHandlingObjectsPanel.this);
+                togglePanel.add(new VisibleBehaviour(() -> isToggleSuggestionVisible()));
+                bar.add(togglePanel);
                 return bar;
             }
 
@@ -278,10 +239,9 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                                     ResourceType resource = getObjectDetailsModels().getObjectType();
                                     String resourceOid = resource.getOid();
 
-                                    PrismContainerValueWrapper<?> object = (PrismContainerValueWrapper<?>) getRowModel().getObject();
-
-                                    if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType objectTypeDefinition) {
-                                        showStatisticsPanel(target, objectTypeDefinition, getPageBase(), resourceOid);
+                                    var object = (PrismContainerValueWrapper<?>) getRowModel().getObject();
+                                    if (object.getRealValue() instanceof ResourceObjectTypeDefinitionType objectDef) {
+                                        showStatisticsPanel(target, objectDef, getPageBase(), resourceOid);
                                     }
 
                                 }
@@ -294,34 +254,6 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             @Override
             public boolean displayNoValuePanel() {
                 return allowNoValuePanel() && hasNoValues();
-            }
-
-            private void createToggleSuggestionButton(String idButton, @NotNull List<Component> bar) {
-                ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton,
-                        switchSuggestion) {
-                    @Override
-                    public @NotNull Component getTitleComponent(String id) {
-                        Label label = new Label(id, createStringResource("SchemaHandlingObjectsPanel.show.suggestion.label"));
-                        label.add(AttributeAppender.append("class", "m-0 font-weight-normal text-body"));
-                        label.setOutputMarkupId(true);
-                        return label;
-                    }
-
-                    @Override
-                    protected void onToggle(@NotNull AjaxRequestTarget target) {
-                        refreshForm(target);
-                        target.add(SchemaHandlingObjectsPanel.this);
-                    }
-
-                    @Contract(pure = true)
-                    @Override
-                    public @NotNull String getContainerCssClass() {
-                        return "d-flex flex-row-reverse align-items-center gap-1";
-                    }
-                };
-                togglePanel.setOutputMarkupId(true);
-                togglePanel.add(new VisibleBehaviour(() -> isToggleSuggestionVisible()));
-                bar.add(togglePanel);
             }
 
             private void createNewObjectPerformButton(String idButton, @NotNull List<Component> bar) {
@@ -343,7 +275,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
-            protected String getIconForNewObjectButton() {
+            protected @NotNull String getIconForNewObjectButton() {
                 return "fa fa-circle-plus";
             }
 
@@ -432,11 +364,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 }
                 if ((listItems != null && !listItems.isEmpty()) || rowModel != null) {
                     IModel<PrismContainerValueWrapper<C>> valueModel;
-                    if (rowModel == null) {
-                        valueModel = () -> listItems.iterator().next();
-                    } else {
-                        valueModel = rowModel;
-                    }
+                    valueModel = Objects.requireNonNullElseGet(rowModel, () -> () -> listItems.iterator().next());
                     onEditValue(valueModel, target);
                 } else {
                     warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
@@ -459,76 +387,44 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
     /**
      * This method is called when the name column is populated.
-     * It allows for custom behavior or additional components to be added
-     * to the name column item.
-     *
-     * @param cellItem The item being populated.
-     * @param componentId The ID of the component being populated.
-     * @param rowModel The model for the row being populated.
-     * @return A component to be added to the cell, or null if no custom component is needed.
+     * It allows for custom rendering of the name column, e.g. to show status badges.
      */
     protected Component onNameColumnPopulateItem(
             Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem,
             String componentId,
             @NotNull IModel<PrismContainerValueWrapper<C>> rowModel) {
-        PrismContainerValueWrapper<C> object = rowModel.getObject();
-        StatusInfo<?> suggestionTypeStatusInfo = getStatusInfo(object);
 
-        C realValue = object.getRealValue();
-        if (suggestionTypeStatusInfo != null) {
-            OperationResultStatusType status = suggestionTypeStatusInfo.getStatus();
-
-            LoadableModel<String> displayNameModel = new LoadableModel<>() {
-                @Override
-                protected String load() {
-                    if (status.equals(OperationResultStatusType.IN_PROGRESS)
-                            || status.equals(OperationResultStatusType.UNKNOWN)) {
-                        return createStringResource("Generating.suggestion").getString();
-                    }
-
-                    if (realValue != null) {
-                        if (realValue instanceof ResourceObjectTypeDefinitionType value) {
-                            return value.getDisplayName();
-                        }
-                        if (realValue instanceof ShadowAssociationTypeDefinitionType value && value.getName() != null) {
-                            return value.getName().getLocalPart();
-                        }
-                    }
-                    return " - ";
-                }
-            };
-
-            LabelWithBadgePanel labelWithBadgePanel = new LabelWithBadgePanel(
-                    componentId, getAiBadgeModel(), displayNameModel) {
-                @Override
-                protected boolean isIconVisible() {
-                    return status.equals(OperationResultStatusType.IN_PROGRESS);
-                }
-
-                @Contract(pure = true)
-                @Override
-                protected @NotNull String getIconCss() {
-                    return GuiStyleConstants.ICON_FA_SPINNER + " fa-spin  text-info";
-                }
-
-                @Contract(pure = true)
-                @Override
-                protected @Nullable String getLabelCss() {
-                    return status.equals(OperationResultStatusType.IN_PROGRESS)
-                            ? " text-info"
-                            : null;
-                }
-
-                @Override
-                protected boolean isBadgeVisible() {
-                    return status.equals(OperationResultStatusType.SUCCESS);
-                }
-            };
-            labelWithBadgePanel.setOutputMarkupId(true);
-            cellItem.add(labelWithBadgePanel);
-            return labelWithBadgePanel;
+        PrismContainerValueWrapper<C> wrapper = rowModel.getObject();
+        StatusInfo<?> statusInfo = getStatusInfo(wrapper);
+        if (statusInfo == null) {
+            return null;
         }
-        return null;
+
+        OperationResultStatusType status = statusInfo.getStatus();
+        C realValue = wrapper.getRealValue();
+
+        LoadableModel<String> displayNameModel = new LoadableModel<>() {
+            @Override
+            protected String load() {
+                if (status == OperationResultStatusType.IN_PROGRESS || status == OperationResultStatusType.UNKNOWN) {
+                    return createStringResource("Generating.suggestion").getString();
+                }
+
+                if (realValue instanceof ResourceObjectTypeDefinitionType typeDef) {
+                    return typeDef.getDisplayName();
+                }
+
+                if (realValue instanceof ShadowAssociationTypeDefinitionType assocDef) {
+                    return assocDef.getName() != null ? assocDef.getName().getLocalPart() : " - ";
+                }
+
+                return " - ";
+            }
+        };
+
+        LabelWithBadgePanel label = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel, status);
+        cellItem.add(label);
+        return label;
     }
 
     @Nullable
@@ -553,7 +449,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         return info != null ? info.getStatus() : null;
     }
 
-    private InlineMenuItem createShowLifecycleStatesInlineMenu() {
+    private @NotNull InlineMenuItem createShowLifecycleStatesInlineMenu() {
         return new InlineMenuItem(createStringResource("SchemaHandlingObjectsPanel.button.showLifecycleStates")) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -642,17 +538,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
     /**
      * Checks whether the container at the specified path has any values.
-     * <p>
-     * This method inspects the {@link PrismObjectWrapper} associated with the current resource
-     * and attempts to retrieve the {@link PrismContainerWrapper} at the path defined by
-     * {@link #getTypesContainerPath()}. If the container does not exist or contains no values,
-     * the method returns {@code true}.
-     * </p>
-     *
-     * <p>This is typically used to decide whether to display the "no values" fallback panel.</p>
-     *
-     * @return {@code true} if the container is null or contains no values; {@code false} otherwise.
-     * @throws IllegalStateException if the container cannot be found due to schema issues.
+     * If the container does not exist or has no values, returns true.
      */
     protected boolean hasNoValues() {
         PrismObjectWrapper<ResourceType> object = getObjectWrapperModel().getObject();
@@ -673,34 +559,10 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         return typesContainer.getValues() == null || typesContainer.getValues().isEmpty();
     }
 
-    protected boolean isSuggestButtonVisible() {
-        return true;
-    }
-
     private void addAjaxTimeBehaviorIfRequested(
-            PrismContainerValueWrapper<?> value,
+            PrismContainerValueWrapper<C> value,
             Item<PrismContainerValueWrapper<C>> item) {
-        @Nullable StatusInfo<?> statusInfo = getStatusInfo(value);
-        if (statusInfo != null && statusInfo.getStatus() != null) {
-            item.add(AttributeModifier.append("class", SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).rowClass));
-
-            boolean executing = statusInfo.isExecuting() && !statusInfo.isSuspended();
-            if (executing) {
-                AbstractAjaxTimerBehavior timer = new AbstractAjaxTimerBehavior(Duration.ofSeconds(3)) {
-                    @Override
-                    protected void onTimer(@NotNull AjaxRequestTarget target) {
-                        target.add(item);
-                        StatusInfo<?> statusInfo = getStatusInfo(value);
-                        if (statusInfo == null || !statusInfo.isExecuting() || statusInfo.isSuspended()) {
-                            stop(target);
-                            refreshForm(target);
-                            target.add(item);
-                        }
-                    }
-                };
-                item.add(timer);
-            }
-        }
+        applySuggestionAutoRefresh(value, item, Duration.ofSeconds(3), this::getStatusInfo, this::refreshForm);
     }
 
     protected IModel<Boolean> getSwitchSuggestionModel() {
@@ -716,209 +578,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     }
 
     protected boolean isToggleSuggestionVisible() {
-        return isSuggestButtonVisible() && !hasNoValues();
-    }
-
-    protected ButtonInlineMenuItem createSuggestionDetailsInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.details.suggestion.inlineMenu")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_SEARCH);
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> {
-                    if (rowModel == null || rowModel.getObject() == null) {
-                        return false;
-                    }
-
-                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                        StatusInfo<?> suggestionStatus = getStatusInfo(valueWrapper);
-                        return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.FATAL_ERROR;
-                    }
-                    return false;
-                };
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        IModel<Serializable> rowModel = getRowModel();
-                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                            StatusInfo<?> statusInfo = getStatusInfo(valueWrapper);
-                            if (statusInfo == null) {
-                                return;
-                            }
-
-                            HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
-                                    getPageBase().getMainPopupBodyId(),
-                                    statusInfo::getLocalizedMessage) {
-                                @Override
-                                public StringResourceModel getTitle() {
-                                    return createStringResource("ResourceObjectTypesPanel.suggestion.details.title");
-                                }
-
-                                @Override
-                                protected @NotNull Label initLabel(IModel<String> messageModel) {
-                                    Label label = super.initLabel(messageModel);
-                                    label.add(AttributeModifier.append("class", "alert alert-danger"));
-                                    return label;
-                                }
-
-                                @Override
-                                public @NotNull Component getFooter() {
-                                    Component footer = super.getFooter();
-                                    footer.add(new VisibleBehaviour(() -> false));
-                                    return footer;
-                                }
-                            };
-
-                            target.add(getPageBase().getMainPopup());
-
-                            getPageBase().showMainPopup(
-                                    helpInfoPanel, target);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public boolean isLabelVisible() {
-                return true;
-            }
-        };
-    }
-
-    protected ButtonInlineMenuItem createSuggestionOperationInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.suspend.generating.inlineMenu")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public IModel<String> getLabel() {
-                ColumnMenuAction<?> action = (ColumnMenuAction<?>) getAction();
-                IModel<?> rowModel = action.getRowModel();
-                if (rowModel != null && rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
-                    StatusInfo<?> suggestionStatus = getStatusInfo(wrapper);
-                    if (suggestionStatus != null && suggestionStatus.isSuspended()) {
-                        return createStringResource("ResourceObjectTypesPanel.resume.generating.inlineMenu");
-                    }
-                }
-                return super.getLabel();
-            }
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_STOP_MENU_ITEM);
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> {
-                    if (rowModel == null || rowModel.getObject() == null) {
-                        return false;
-                    }
-
-                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
-                        StatusInfo<?> suggestionStatus = getStatusInfo(wrapper);
-                        if (suggestionStatus == null) {
-                            return false;
-                        }
-                        OperationResultStatusType status = suggestionStatus.getStatus();
-                        return !suggestionStatus.isComplete() && status != OperationResultStatusType.FATAL_ERROR;
-                    }
-
-                    return false;
-                };
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        Task task = getPageBase().getPageTask();
-                        OperationResult result = task.getResult();
-
-                        IModel<Serializable> rowModel = getRowModel();
-                        if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper) {
-                            StatusInfo<?> statusInfo = getStatusInfo(wrapper);
-                            if (statusInfo != null) {
-                                if (statusInfo.isSuspended() && statusInfo.getStatus() != OperationResultStatusType.FATAL_ERROR) {
-                                    resumeSuggestionTask(getPageBase(), statusInfo, task, result);
-                                } else {
-                                    suspendSuggestionTask(getPageBase(), statusInfo, task, result);
-                                }
-                                refreshForm(target);
-                            }
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public boolean isLabelVisible() {
-                return true;
-            }
-        };
-    }
-
-    protected ButtonInlineMenuItem createSuggestionReviewInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("ResourceObjectTypesPanel.review.suggestion.inlineMenu")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_SEARCH);
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> {
-                    if (rowModel == null || rowModel.getObject() == null) {
-                        return false;
-                    }
-
-                    if (rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper) {
-                        StatusInfo<?> suggestionStatus = getStatusInfo(valueWrapper);
-                        return suggestionStatus != null && suggestionStatus.getStatus() == OperationResultStatusType.SUCCESS;
-                    }
-                    return false;
-                };
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        IModel<Serializable> rowModel = getRowModel();
-                        if (!(rowModel.getObject() instanceof PrismContainerValueWrapper<?> valueWrapper)) {
-                            getPageBase().warn("Couldn't get value from the row model.");
-                            target.add(getPageBase().getFeedbackPanel().getParent());
-                            return;
-                        }
-
-                        performOnReview(target, valueWrapper);
-                    }
-                };
-            }
-
-            @Override
-            public boolean isLabelVisible() {
-                return true;
-            }
-        };
+        return !hasNoValues();
     }
 
     protected boolean performOnDeleteSuggestion(

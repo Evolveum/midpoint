@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -20,27 +20,28 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedMappingItemWrapper;
-
+/**
+ * Tile model for suggested mapping.
+ *
+ * @param <T> Type of value wrapper that contains suggested mapping.
+ */
 public class SmartMappingTileModel<T extends PrismContainerValueWrapper<MappingType>> extends TemplateTile<T> {
 
     String icon;
-    @Nullable Float efficiency;
-
+    Float efficiency;
     String resourceOid;
     String statusInfoToken;
 
     public SmartMappingTileModel(T valueWrapper, String resourceOid, String statusInfoToken) {
         super(valueWrapper);
-        setValue(valueWrapper);
-
         this.resourceOid = resourceOid;
         this.statusInfoToken = statusInfoToken;
-
-
         this.efficiency = extractEfficiencyFromSuggestedMappingItemWrapper(valueWrapper);
-
     }
 
+    /**
+     * Get updated status info from smart integration service.
+     */
     protected StatusInfo<CorrelationSuggestionsType> getStatusInfo(@NotNull PageBase pageBase, Task task, OperationResult result) {
         SmartIntegrationService smartService = pageBase.getSmartIntegrationService();
         if (statusInfoToken != null) {
@@ -52,7 +53,6 @@ public class SmartMappingTileModel<T extends PrismContainerValueWrapper<MappingT
         }
         return null;
     }
-
 
     @Override
     public String getIcon() {

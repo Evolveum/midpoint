@@ -16,16 +16,15 @@ import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.panel.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceNavigationWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping.SmartMappingTable;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -80,7 +79,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     private static final String OP_SUGGEST_MAPPING = CLASS_DOT + "suggestMapping";
 
     private static final String ID_AI_PANEL = "aiPanel";
-
     private static final String ID_TAB_TABLE = "panel";
 
     private final MappingDirection initialTab;
@@ -206,6 +204,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             IModel<Boolean> switchToggleModel,
             String resourceOid,
             MappingDirection initialTab) {
+
         SmartMappingTable<P> smartMappingTable = new SmartMappingTable<>(panelId,
                 TABLE_SMART_INBOUND_MAPPINGS,
                 Model.of(ViewToggle.TILE),
@@ -260,7 +259,9 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         };
     }
 
-    private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(String resourceOid, IModel<Boolean> switchToggleModel) {
+    private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
+            String resourceOid,
+            IModel<Boolean> switchToggleModel) {
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
                 () -> new SmartGeneratingAlertDto(loadExistingSuggestion(resourceOid), switchToggleModel, getPageBase())) {
             @Override
