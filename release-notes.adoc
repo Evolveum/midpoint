@@ -44,7 +44,6 @@ See bug:MID-10824[], bug:MID-10748[].
 This change slightly affects authorization evaluation is such cases.
 For more information see commit message https://github.com/Evolveum/midpoint/commit/28ab1c8196a66caba9a7aeb76b6ad29e890bd5f6[28ab1c81].
 * Ninja has new export commands: export-configuration, export-focus-statistics, export-shadow-statistics.
-For more information see commit message https://github.com/Evolveum/midpoint/commit/28ab1c8196a66caba9a7aeb76b6ad29e890bd5f6[28ab1c81].
 
 == Changes with Respect To Version 4.8.8
 
