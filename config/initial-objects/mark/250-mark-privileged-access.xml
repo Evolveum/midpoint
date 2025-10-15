@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<mark oid="c58394cd-c883-4e41-927c-f90a7c7a0c97"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Privileged access</name>
+    <description>Mark for objects that provide privileged access (roles), or have privileged access (users).</description>
+    <documentation>
+        The mark is usually set by "Privileged access" classification.
+        The mark is used for easier searching of objects (as opposed to classification), also for GUI visibility.
+        Unlike the classification (which is an assignment), the mark can mark objects that are indirectly affected by the classification.
+        (ISO27001/A.5.15,ISO27001/A.5.18,ISO27001/A.8.2,ISO27001/A.8.9)
+    </documentation>
+    <display>
+        <icon>
+            <cssClass>fa fa-circle-radiation</cssClass>
+        </icon>
+    </display>
+</mark>
