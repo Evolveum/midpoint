@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class ObjectTypeRelatedStatisticsComputer {
 
-    private final Map<QName, LinkedList<List<?>>> shadowStorage = new HashMap<>();
+    private final Map<QName, LinkedList<List<?>>> shadowCache = new HashMap<>();
 
     /**
      * JAXB statistics object being built.
@@ -29,13 +29,13 @@ public class ObjectTypeRelatedStatisticsComputer {
         List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions = typeDefinition.getAttributeDefinitions();
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
             createAttributeStatisticsIfNeeded(attrDef.getItemName());
-            shadowStorage.put(attrDef.getItemName(), new LinkedList<>());
+            shadowCache.put(attrDef.getItemName(), new LinkedList<>());
         }
     }
 
     public void process(ShadowType shadow) {
         statistics.setSize(statistics.getSize() + 1);
-        updateShadowStorage(shadow);
+        updateShadowCache(shadow);
     }
 
     /**
@@ -43,13 +43,13 @@ public class ObjectTypeRelatedStatisticsComputer {
      * to JAXB-compatible statistics.
      */
     public void postProcessStatistics() {
-        assert shadowStorage.values().stream().map(List::size).distinct().count() <= 1;
+        assert shadowCache.values().stream().map(List::size).distinct().count() <= 1;
 
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(stats.getRef());
 
-            setMissingValueCountStatistics(attrKey, stats);
-            setValueCountStatistics(attrKey, stats);
+            stats.setMissingValueCount(getCountOfMissing(attrKey));
+            stats.setUniqueValueCount(getValueCounts(attrKey).size());
         }
     }
 
@@ -92,8 +92,8 @@ public class ObjectTypeRelatedStatisticsComputer {
      * If the number of value-count pairs for a particular key exceeds the allowed limit,
      * the entry is removed from the storage.
      */
-    private void updateShadowStorage(ShadowType shadow) {
-        for (Map.Entry<QName, LinkedList<List<?>>> entry : shadowStorage.entrySet()) {
+    private void updateShadowCache(ShadowType shadow) {
+        for (Map.Entry<QName, LinkedList<List<?>>> entry : shadowCache.entrySet()) {
             entry.getValue().add(ShadowUtil.getAttributeValues(shadow, entry.getKey()));
         }
     }
@@ -102,11 +102,10 @@ public class ObjectTypeRelatedStatisticsComputer {
      * Calculates and sets the count of missing (null or empty) values for each attribute
      * in the statistics object, updating the corresponding statistics entry.
      */
-    private void setMissingValueCountStatistics(QName attrKey, ShadowAttributeStatisticsType stats) {
-        int emptyCount = (int) shadowStorage.get(attrKey).stream()
+    private int getCountOfMissing(QName attrKey) {
+        return (int) shadowCache.get(attrKey).stream()
                 .filter(list -> list == null || list.isEmpty())
                 .count();
-        stats.setMissingValueCount(emptyCount);
     }
 
     /**
@@ -118,7 +117,7 @@ public class ObjectTypeRelatedStatisticsComputer {
      */
     private Map<String, Integer> getValueCounts(QName attrKey) {
         Map<String, Integer> result = new HashMap<>();
-        for (List<?> list : shadowStorage.get(attrKey)) {
+        for (List<?> list : shadowCache.get(attrKey)) {
             if (list == null) {
                 continue;
             }
@@ -131,15 +130,6 @@ public class ObjectTypeRelatedStatisticsComputer {
             }
         }
         return result;
-    }
-
-    /**
-     * Calculates and sets unique value counts for each attribute
-     * in the statistics object, updating the corresponding statistics entry.
-     */
-    private void setValueCountStatistics(QName attrKey, ShadowAttributeStatisticsType stats) {
-        Map<String, Integer> valueCounts = getValueCounts(attrKey);
-        stats.setUniqueValueCount(valueCounts.size());
     }
 
 }
