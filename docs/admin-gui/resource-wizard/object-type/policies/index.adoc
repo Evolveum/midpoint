@@ -3,6 +3,7 @@
 :page-toc: top
 :page-since: "4.9"
 :experimental:
+:page-moved-from: /midpoint/reference/concepts/mark/manual-marking/
 :page-keywords: object type policy, marks, default policy, filter
 :page-description: This page describes how to use object marks in the Object type policies section of the midPoint graphical user interface (GUI), thus enabling you to control the behavior of groups of accounts and entitlements in resources.
 
