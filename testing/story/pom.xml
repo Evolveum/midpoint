@@ -73,12 +73,6 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>cases-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-impl</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
