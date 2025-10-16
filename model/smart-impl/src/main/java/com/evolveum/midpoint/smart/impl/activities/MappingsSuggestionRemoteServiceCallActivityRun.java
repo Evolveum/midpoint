@@ -8,6 +8,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -47,7 +48,7 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
 
         LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}; statistics in: {}",
                 resourceOid, kind, intent, statisticsOid);
-        var statistics = ShadowObjectClassStatisticsTypeUtil.getObjectTypeStatisticsRequired(
+        var statistics = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(
                 getBeans().repositoryService.getObject(GenericObjectType.class, statisticsOid, null, result));
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(

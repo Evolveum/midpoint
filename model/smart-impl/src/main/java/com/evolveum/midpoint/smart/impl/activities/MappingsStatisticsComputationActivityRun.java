@@ -9,6 +9,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -22,8 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil.createObjectTypeStatisticsObject;
 
 public class MappingsStatisticsComputationActivityRun extends SearchBasedActivityRun<
         ShadowType,
@@ -100,7 +99,7 @@ public class MappingsStatisticsComputationActivityRun extends SearchBasedActivit
                     .coverage(1.0f) // TODO: compute coverage properly
                     .timestamp(beans.clock.currentTimeXMLGregorianCalendar());
 
-            var statisticsObject = createObjectTypeStatisticsObject(
+            var statisticsObject = ShadowObjectTypeStatisticsTypeUtil.createObjectTypeStatisticsObject(
                     resource.getOid(),
                     resource.getName().getOrig(),
                     getWorkDefinition().getKind(),
