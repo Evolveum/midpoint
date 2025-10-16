@@ -251,6 +251,8 @@ See bug:MID-10889[].
 * Fixed missing messages for "More..." items in Access Certification search boxes. See bug:MID-10898[].
 * Improved campaign operation button behavior not to start campaign action while running previous action task. See bug:MID-10897[].
 * Fixed startTimestamp filter on campaign list page. See bug:MID-10900[].
+* Fixed campaigns filtering by created timestamp.
+Create metadata were added to campaign object while its creation. See bug:MID-10901[].
 
 === Releases Of Other Components
 
