@@ -48,4 +48,5 @@ public class ShadowObjectClassStatisticsTypeUtil {
         setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
         return object;
     }
+
 }

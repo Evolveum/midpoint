@@ -44,6 +44,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
 import com.evolveum.midpoint.smart.impl.activities.StatisticsComputer;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeRelatedStatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
@@ -1096,6 +1097,26 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         return PrismContext.get().parserFor(file).parseRealValue(clazz);
     }
 
+    /** Computes statistics for a specific type identification (kind/intent) using ObjectTypeRelatedStatisticsComputer. */
+    private ShadowObjectClassStatisticsType computeStatistics(
+            DummyTestResource resource,
+            ResourceObjectTypeIdentification typeIdentification,
+            Task task,
+            OperationResult result) throws CommonException {
+        var res = Resource.of(resource.get());
+        var typeDefinition = res.getCompleteSchemaRequired().getObjectTypeDefinitionRequired(typeIdentification);
+        var computer = new ObjectTypeRelatedStatisticsComputer(typeDefinition);
+        var shadows = provisioningService.searchShadows(
+                res.queryFor(typeIdentification).build(),
+                null,
+                task, result);
+        for (var shadow : shadows) {
+            computer.process(shadow.getBean());
+        }
+        computer.postProcessStatistics();
+        return computer.getStatistics();
+    }
+
     private void skipIfRealService() {
         skipTestIf(DefaultServiceClientImpl.hasServiceUrlOverride(), "Not applicable with a real service");
     }
@@ -1129,10 +1150,15 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var result = task.getResult();
 
         when("suggesting mappings");
+        // Compute kind/intent statistics with ObjectTypeRelatedStatisticsComputer and pass them to the call
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestedMappings = smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                null, null, null, task, result);
+                statistics, null, null, null, task, result);
 
         then("suggestion is correct");
         displayValueAsXml("suggested mappings", suggestedMappings);
@@ -1194,10 +1220,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var result = task.getResult();
 
         when("suggesting mappings");
+        var statisticsForOrg = computeStatistics(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
+                GENERIC_ORGANIZATIONAL_UNIT,
+                task, result);
         smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 GENERIC_ORGANIZATIONAL_UNIT,
-                null, null, null, task, result);
+                statisticsForOrg, null, null, null, task, result);
 
         then("the number of attributes in the request is appropriate");
         var request = (SiMatchSchemaRequestType) mockClient.getLastRequest();
