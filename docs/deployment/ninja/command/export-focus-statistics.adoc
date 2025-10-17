@@ -1,0 +1,78 @@
+= Export Focus Statistics
+
+Export focus statistics command allows users to export statistics about focus objects and their properties.
+
+**All exported statistics are intentionally approximations.**
+Counts of objects are given in the form of scale as the maximum number in that particular scale "level".
+
+.Count scale example
+[options="header"]
+|===
+| Exact count | Approximate value
+
+| 1
+| 99
+
+| 10
+| 99
+
+| 100
+| 999
+
+| 998
+| 999
+
+| 1004
+| 9999
+|===
+
+Cardinality and distributions are in form of a ratio to the total amount of values across all objects of given type (multivalued properties are counted as many times as they have values).
+Missing values and count of multivalued properties are in form of a ratio to the total amount of objects of given type.
+
+NOTE: Cardinality and distribution are calculated/shown only when they are useful enough.
+For the distribution, it means there are not more than 20 "categories" of values.
+For the cardinality, we specified a limit of 1000 categories, which is there mainly for performance reasons.
+Cardinality and distribution are mutually exclusive (to avoid exposure of more precise counts through external calculations).
+
+Statistic are exported only about following focus types:
+
+* User
+* Role
+* Service
+* Org
+
+And only for following properties of above objects:
+
+* Description
+* Documentation
+* Subtype
+* Lifecycle state
+* Jpeg photo
+* Cost center
+* Locality
+* Preferred language
+* Locale
+* Timezone
+* Email address
+* Telephone number
+* Full name
+* Given name
+* Family name
+* Additional name
+* Nickname
+* Honorific prefix
+* Honorific suffix
+* Title
+* Employee number
+* Personal number
+* Organization
+* Organizational unit
+* Display name
+* Identifier
+* Mail domain
+* Display order
+* All properties in extensions if not explicitly excluded
+
+Any of above properties can be explicitly excluded (`-ei`, `--exclude-item`).
+Statistics can be exported to `SYSOUT` or to file (`-o`, `--output`).
+Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.
