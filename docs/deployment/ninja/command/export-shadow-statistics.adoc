@@ -1,0 +1,31 @@
+= Export Shadow Statistics
+
+Export shadow statistics command allows users to export statistics about shadow objects.
+In particular, it exports counts of shadow objects grouped by resource, object class, kind and intent.
+
+**All exported statistics are intentionally approximations.**
+Counts of objects are given in the form of scale as the maximum number in that particular scale "level".
+
+.Count scale example
+[options="header"]
+|===
+| Exact count | Approximate value
+
+| 1
+| 99
+
+| 10
+| 99
+
+| 100
+| 999
+
+| 998
+| 999
+
+| 1004
+| 9999
+|===
+
+Statistics can be exported to `SYSOUT` or to file (`-o`, `--output`).
+Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.

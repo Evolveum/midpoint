@@ -1,0 +1,31 @@
+= Export Configuration
+
+Export configuration command allows users to export selected configuration objects.
+The configuration export excludes:
+
+* Operational data
+* Metadata
+* Connector configuration in resources
+* Connector configuration in additional connector
+* Role membership ref
+* Admin gui configuration
+* Display and Item constraint from archetype
+* Extensions
+
+From the System configuration object the only included items are:
+
+* Default object policy configuration
+* Model hooks
+* Correlation
+
+From the Connector object it includes only these items:
+
+* Name
+* Available
+
+You can also specify other items to exclude (`-ei`, `--exclude-items`).
+Object can be exported to `SYSOUT` or to file (`-o`, `--output`).
+You can also decide to export each object to individual file (`-sf`, `--split-files`).
+In that case the `-o` tells the destination directory.
+If `-sf` is specified, but the `-o` is not, then the files will be exported to `/tmp/export-midpoint-config`.
+Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file/directory.
