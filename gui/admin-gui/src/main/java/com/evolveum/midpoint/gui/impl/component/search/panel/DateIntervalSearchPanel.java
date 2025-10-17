@@ -70,6 +70,7 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
             protected void removeSearchValue(AjaxRequestTarget target) {
                 fromDateModel.setObject(null);
                 toDateModel.setObject(null);
+                selectedIntervalPreset.setObject(null);
                 target.add(this);
             }
         };

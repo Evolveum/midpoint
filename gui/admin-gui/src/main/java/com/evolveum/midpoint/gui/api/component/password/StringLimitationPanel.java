@@ -10,10 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -21,6 +18,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,9 +28,10 @@ import java.util.List;
 
 public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
 
+    @Serial private static final long serialVersionUID = 1L;
+
     private static final String ID_ICON = "icon";
-    private static final String ID_NAME = "name";
-    private static final String ID_RULES = "rules";
+    private static final String ID_LIMITATION = "limitation";
 
     private boolean addTabIndex = false;
 
@@ -51,7 +50,7 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
         Label icon = new Label(ID_ICON);
         icon.add(AttributeModifier.append("class", (IModel<String>) () -> {
             String cssClass;
-            if (Boolean.TRUE.equals(getModelObject().isSuccess())) {
+            if (getModelObject().isSuccess()) {
                 cssClass = " fa-check";
             } else {
                 cssClass = " fa-times";
@@ -61,32 +60,32 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
         icon.setOutputMarkupId(true);
         icon.add(AttributeModifier.append(
                 "title",
-                (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + Boolean.TRUE.equals(getModelObject().isSuccess()))));
+                (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + getModelObject().isSuccess())));
         icon.add(AttributeModifier.append(
                 "aria-label",
-                (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + Boolean.TRUE.equals(getModelObject().isSuccess()))));
+                (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + getModelObject().isSuccess())));
         icon.add(AttributeModifier.append("tabindex", () -> addTabIndex ? "0" : null));
         add(icon);
 
-        LabelWithHelpPanel label = new LabelWithHelpPanel(ID_NAME, Model.of(WebComponentUtil.getTranslatedPolyString(getModelObject().getName()))){
+        LabelWithHelpPanel label = new LabelWithHelpPanel(ID_LIMITATION, getLimitationLabelModel()){
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected IModel<String> getHelpModel() {
-                return Model.of(WebComponentUtil.getTranslatedPolyString(StringLimitationPanel.this.getModelObject().getHelp()));
+                return Model.of(LocalizationUtil.translatePolyString(StringLimitationPanel.this.getModelObject().getHelp()));
             }
         };
         label.setOutputMarkupId(true);
         label.add(AttributeModifier.append("tabindex", () -> addTabIndex ? "0" : null));
         add(label);
-
-        IModel<String> rulesModel = getRulesModel();
-        Label rules = new Label(ID_RULES, rulesModel);
-        rules.setOutputMarkupId(true);
-        rules.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(rulesModel.getObject())));
-        rules.add(AttributeModifier.append("tabindex", () -> addTabIndex ? "0" : null));
-        add(rules);
     }
 
-    private IModel<String> getRulesModel() {
+    private IModel<String> getLimitationLabelModel() {
+        return () -> StringUtils.joinWith(
+                " ", LocalizationUtil.translatePolyString(getModelObject().getName()), getRulesLabel());
+    }
+
+    private String getRulesLabel() {
         List<String> rules = new ArrayList<>();
         if (getModelObject().getMinOccurs() != null) {
             rules.add(PageBase.createStringResourceStatic("StringLimitationPanel.min", getModelObject().getMinOccurs()).getString());
@@ -97,7 +96,7 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
         if (Boolean.TRUE.equals(getModelObject().isMustBeFirst())) {
             rules.add(PageBase.createStringResourceStatic("StringLimitationPanel.mustBeFirst").getString());
         }
-        StringBuilder sb = new StringBuilder("");
+        StringBuilder sb = new StringBuilder();
         if (!rules.isEmpty()) {
             for(int i = 0; i < rules.size(); i++){
                 if (i != 0) {
@@ -111,12 +110,7 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
             }
 
         }
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                return sb.toString();
-            }
-        };
+        return sb.toString();
     }
 
     public void enableTabIndex() {
