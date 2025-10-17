@@ -62,7 +62,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private static final String ID_METADATA = "metadata";
 
-    private static final String ID_DELETE_STATUS = "deleteStatusMessage";
+    protected static final String ID_DELETE_STATUS = "deleteStatusMessage";
 
     private final ItemPanelSettings settings;
 
@@ -94,7 +94,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
         buttonContainer.add(new VisibleBehaviour(() -> getSettings() != null && !getSettings().isDisplayedInColumn()));
 
-        Label statusMessage = new Label(ID_DELETE_STATUS, Model.of(""));
+        WebMarkupContainer statusMessage = new WebMarkupContainer(ID_DELETE_STATUS);
         statusMessage.setOutputMarkupId(true);
         statusMessage.add(AttributeAppender.append("data-component-id", statusMessage::getPageRelativePath));
         buttonContainer.add(statusMessage);
