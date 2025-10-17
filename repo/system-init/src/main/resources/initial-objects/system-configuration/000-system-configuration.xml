@@ -211,6 +211,12 @@
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>
                         </label>
+                        <help>
+                            <orig>Redirects to the all assignments panel on the user's profile page.</orig>
+                            <translation>
+                                <key>PageSelfDashboard.widget.myAccesses.viewAll.help</key>
+                            </translation>
+                        </help>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
                         </icon>
@@ -229,6 +235,12 @@
                                 <key>PageRequestAccess.title</key>
                             </translation>
                         </label>
+                        <help>
+                            <orig>Redirects to the Request access wizard.</orig>
+                            <translation>
+                                <key>PageSelfDashboard.widget.requestAccess.wizard.help</key>
+                            </translation>
+                        </help>
                         <icon>
                             <cssClass>fas fa-plus-circle</cssClass>
                         </icon>
@@ -264,6 +276,12 @@
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>
                         </label>
+                        <help>
+                            <orig>Redirects to the approval cases table with a requestor set to the logged in user.</orig>
+                            <translation>
+                                <key>PageSelfDashboard.widget.myRequests.viewAll.help</key>
+                            </translation>
+                        </help>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
                         </icon>
@@ -300,6 +318,12 @@
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>
                         </label>
+                        <help>
+                            <orig>Redirects to work items table where assignee is set to the logged in user.</orig>
+                            <translation>
+                                <key>PageSelfDashboard.widget.myWorkItems.viewAll.help</key>
+                            </translation>
+                        </help>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
                         </icon>
@@ -335,6 +359,12 @@
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>
                         </label>
+                        <help>
+                            <orig>Redirects to the Projections panel on the user's profile page.</orig>
+                            <translation>
+                                <key>PageSelfDashboard.widget.myAccounts.viewAll.help</key>
+                            </translation>
+                        </help>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
                         </icon>

@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -80,10 +81,21 @@ public class ButtonBar<C extends Containerable, PO extends SelectableRow> extend
         List<Component> buttonsList = new ArrayList<>();
         for (GuiActionType action : previewConfig.getAction()) {
             AjaxIconButton button = createViewAllButton(idButton, action, pageParametersModel);
+            button.add(AttributeAppender.append("aria-label", getActionButtonAriaLabel(action)));
             buttonsList.add(button);
         }
 
         return buttonsList;
+    }
+
+    private String getActionButtonAriaLabel(GuiActionType action) {
+        var display = action.getDisplay();
+        StringBuilder sb = new StringBuilder(createButtonLabel(display).getObject());
+        if (!sb.isEmpty()) {
+            sb.append(". ");
+        }
+        sb.append(GuiDisplayTypeUtil.getHelp(display));
+        return sb.toString();
     }
 
     private AjaxIconButton createViewAllButton(String buttonId, GuiActionType action,
