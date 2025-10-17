@@ -18,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -279,7 +281,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     result);
             return objects.stream()
                     .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(o).getTimestamp())))
+                            o -> toMillis(ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(o).getTimestamp())))
                     .map(o -> o.asObjectable())
                     .orElse(null);
         } catch (Throwable t) {
