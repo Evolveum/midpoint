@@ -170,13 +170,15 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         header.add(AttributeAppender.append("class", () -> isMenuExpanded(model.getObject()) ? "" : "closed"));
         header.add(AttributeAppender.append("aria-expanded", () -> isMenuExpanded(model.getObject())));
 
-        Label name = new Label(ID_NAME, () -> {
-            String key = model.getObject().getName();
-            return getString(key, null, key);
-        });
+        Label name = new Label(ID_NAME, () -> getHeaderMenuItemName(model));
         header.add(name);
         header.add(new VisibleBehaviour(() -> model.getObject().isVisible()));
         return header;
+    }
+
+    private String getHeaderMenuItemName(IModel<SideBarMenuItem> model) {
+        String key = model.getObject().getName();
+        return getString(key, null, key);
     }
 
     private Component createMenuItems(IModel<SideBarMenuItem> model) {
