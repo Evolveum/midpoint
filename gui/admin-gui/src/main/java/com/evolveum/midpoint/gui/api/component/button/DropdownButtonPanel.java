@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
+import java.io.Serializable;
 
 /**
  * Universal button to display drop-down menus. The button itself can have numerous decorations: icon, label and tag with count (info)
@@ -170,7 +171,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     }
 
     @FunctionalInterface
-    public interface OnBeforeClickHandler<T extends InlineMenuItem> {
+    public interface OnBeforeClickHandler<T extends InlineMenuItem> extends Serializable {
         void handle(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item);
     }
 
