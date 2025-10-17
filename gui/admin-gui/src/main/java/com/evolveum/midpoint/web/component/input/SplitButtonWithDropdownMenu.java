@@ -10,11 +10,8 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.IconMenuLinkPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -30,6 +27,8 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel.createMenuLinkPanel;
 
 /**
  * Split button with a primary action (left) and a dropdown (right).
@@ -126,44 +125,13 @@ public abstract class SplitButtonWithDropdownMenu extends BasePanel<DropdownButt
     private void populateInlineMenuItems(@NotNull ListItem<InlineMenuItem> item) {
         item.setRenderBodyOnly(true);
 
-        MenuLinkPanel<?> body;
-        InlineMenuItem mi = item.getModelObject();
+        Component menuItemBody = createMenuLinkPanel(ID_MENU_ITEM,
+                item.getModel(),
+                showIcon(),
+                this::onBeforeClickMenuItem);
 
-        if (showIcon() && mi instanceof ButtonInlineMenuItem) {
-            @SuppressWarnings("unchecked")
-            IModel<ButtonInlineMenuItem> m = (IModel<ButtonInlineMenuItem>) (IModel<?>) item.getModel();
-            body = new IconMenuLinkPanel(ID_MENU_ITEM, m) {
-                @Override
-                protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<ButtonInlineMenuItem> model) {
-                    onBeforeClickMenuItem(target, action, model);
-                    super.onClick(target, action, model);
-                }
-
-                @Override
-                protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<ButtonInlineMenuItem> model) {
-                    onBeforeClickMenuItem(target, action, model);
-                    super.onSubmit(target, action, model);
-                }
-
-            };
-        } else {
-            body = new MenuLinkPanel<>(ID_MENU_ITEM, item.getModel()) {
-                @Override
-                protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> model) {
-                    onBeforeClickMenuItem(target, action, model);
-                    super.onClick(target, action, model);
-                }
-
-                @Override
-                protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> model) {
-                    onBeforeClickMenuItem(target, action, model);
-                    super.onSubmit(target, action, model);
-                }
-            };
-        }
-
-        body.setRenderBodyOnly(true);
-        item.add(body);
+        menuItemBody.setRenderBodyOnly(true);
+        item.add(menuItemBody);
         item.add(new VisibleBehaviour(() -> item.getModelObject().getVisible().getObject()));
     }
 
