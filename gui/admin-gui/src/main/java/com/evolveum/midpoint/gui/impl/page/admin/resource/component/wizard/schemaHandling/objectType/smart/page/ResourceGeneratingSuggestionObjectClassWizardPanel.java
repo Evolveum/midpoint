@@ -43,7 +43,8 @@ import javax.xml.namespace.QName;
 public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable>
         extends AbstractResourceWizardBasicPanel<P> {
 
-    private static final String OP_DETERMINE_STATUS = ResourceGeneratingSuggestionObjectClassWizardPanel.class.getName() + ".determineStatus";
+    private static final String CLASS_DOT = ResourceGeneratingSuggestionObjectClassWizardPanel.class.getName() + ".";
+    private static final String OP_DETERMINE_STATUS = CLASS_DOT + ".determineStatus";
 
     private static final String ID_PANEL_COMPONENT = "panelComponent";
 
@@ -65,14 +66,14 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
     }
 
     private void initLayout() {
-        Component panelComponent = createPanelComponent(ID_PANEL_COMPONENT);
+        Component panelComponent = createPanelComponent();
         panelComponent.setOutputMarkupId(true);
         add(panelComponent);
     }
 
     /** Creates the generating panel with pre-filled data. */
-    protected Component createPanelComponent(String id) {
-        return new SmartGeneratingPanel(id, () -> {
+    protected Component createPanelComponent() {
+        return new SmartGeneratingPanel(ResourceGeneratingSuggestionObjectClassWizardPanel.ID_PANEL_COMPONENT, () -> {
             Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
             OperationResult result = task.getResult();
 
@@ -89,7 +90,9 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
             }
 
             String token = latest.getToken();
-            PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, token, getPageBase(), task, result);
+            PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, token, getPageBase(),
+                    task, result);
+
             return new SmartGeneratingDto(statusInfoModel, () -> taskTypePrismObject);
         }, true) {
             @Override
@@ -113,10 +116,14 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
     private StatusInfo<ObjectTypesSuggestionType> loadObjectClassSuggestions() {
         PageBase pageBase = getPageBase();
         var task = pageBase.createSimpleTask(OP_DETERMINE_STATUS);
-        var result = task.getResult();
         var resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
 
-        return SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions(pageBase, resourceOid, objectClassName, task, result);
+        return SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions(
+                pageBase,
+                resourceOid,
+                objectClassName,
+                task,
+                task.getResult());
     }
 
     @Override

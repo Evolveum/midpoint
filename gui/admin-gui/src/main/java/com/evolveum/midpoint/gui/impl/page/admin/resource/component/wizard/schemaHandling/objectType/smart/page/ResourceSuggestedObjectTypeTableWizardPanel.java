@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectTypeSuggestionTable;
@@ -44,24 +43,23 @@ import javax.xml.namespace.QName;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeObjectTypeSuggestionNew;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 @PanelType(name = "rw-suggested-object-type")
-@PanelInstance(identifier = "w-suggested-object-type",
+@PanelInstance(identifier = "rw-suggested-object-type",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "ResourceObjectClassTableWizardPanel.headerLabel", icon = "fa fa-arrows-rotate"))
-public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
+        display = @PanelDisplay(label = "ResourceSuggestedObjectTypeTableWizardPanel.headerLabel", icon = "fa fa-solid fa-wand-magic-sparkles"))
+public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Containerable> extends AbstractResourceWizardBasicPanel<P> {
+
+    private static final String CLASS_DOT = ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".";
+    private static final String OP_DETERMINE_STATUS = CLASS_DOT + ".determineStatus";
 
     private static final String ID_PANEL = "panel";
 
-    private static final String OP_DETERMINE_STATUS =
-            ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".determineStatus";
-
-    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedModel = Model.of();
     QName selectedObjectClassName;
     StatusInfo<ObjectTypesSuggestionType> statusInfo;
+    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedModel = Model.of();
 
     public ResourceSuggestedObjectTypeTableWizardPanel(
             String id,
@@ -78,38 +76,27 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
     }
 
     private void initLayout() {
-        SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> table = buildTableComponent();
-        add(table);
+        initTable();
     }
 
-    private @NotNull SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> buildTableComponent() {
-        LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> suggestionModel = createPrismContainerValueWrapperModel();
-        ResourceDetailsModel assignmentHolderDetailsModel = getAssignmentHolderDetailsModel();
-        ResourceType resource = assignmentHolderDetailsModel.getObjectType();
-        SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> smartObjectTypeSuggestionTable
-                = new SmartObjectTypeSuggestionTable<>(
+    private void initTable() {
+
+        var smartObjectTypeSuggestionTable = new SmartObjectTypeSuggestionTable<>(
                 ID_PANEL,
                 UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_TYPES_SUGGESTIONS,
-                suggestionModel,
+                createValueWrapperModel(),
                 selectedModel,
-                resource.getOid()) {
-            @Override
-            public void refresh(AjaxRequestTarget target) {
-                super.refresh(target);
-                selectedModel = Model.of();
-                SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newTable =
-                        buildTableComponent();
-                newTable.setOutputMarkupId(true);
-
-                ResourceSuggestedObjectTypeTableWizardPanel.this.addOrReplace(newTable);
-                target.add(newTable);
-            }
-        };
+                getResourceOid());
         smartObjectTypeSuggestionTable.setOutputMarkupId(true);
-        return smartObjectTypeSuggestionTable;
+        add(smartObjectTypeSuggestionTable);
     }
 
-    private @NotNull LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> createPrismContainerValueWrapperModel() {
+    private String getResourceOid() {
+        ResourceDetailsModel assignmentHolderDetailsModel = getAssignmentHolderDetailsModel();
+        return assignmentHolderDetailsModel.getObjectType().getOid();
+    }
+
+    private @NotNull LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> createValueWrapperModel() {
         return new LoadableModel<>() {
             @Override
             protected List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> load() {
@@ -157,7 +144,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
     @SuppressWarnings("unchecked")
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> suggestionValueWrapper = selectedModel.getObject();
+        var suggestionValueWrapper = selectedModel.getObject();
         if (suggestionValueWrapper == null || suggestionValueWrapper.getRealValue() == null) {
             getPageBase().warn(getPageBase().createStringResource("Smart.suggestion.noSelection")
                     .getString());
@@ -176,28 +163,24 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
             return;
         }
 
-        IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-        ResourceObjectTypeDefinitionType suggestedValue = suggestionValueWrapper.getRealValue();
-        PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject =
-                (PrismContainerValue<ResourceObjectTypeDefinitionType>) suggestedValue.asPrismContainerValue();
+        var originalObject = (PrismContainerValue<ResourceObjectTypeDefinitionType>) suggestionValueWrapper.getRealValue()
+                .asPrismContainerValue();
         WebPrismUtil.cleanupEmptyContainerValue(originalObject);
-
-        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(
+        var suggestionToAdd = processSuggestedContainerValue(
                 originalObject);
 
-        onContinueWithSelected(selectedModel, suggestionToAdd, containerModel, target);
+        onContinueWithSelected(selectedModel, suggestionToAdd, createContainerModel(), target);
     }
 
     public <R extends Containerable> IModel<PrismContainerWrapper<R>> createContainerModel() {
-        LoadableModel<PrismObjectWrapper<ResourceType>> objectWrapperModel = getAssignmentHolderDetailsModel()
-                .getObjectWrapperModel();
+        var objectWrapperModel = getAssignmentHolderDetailsModel().getObjectWrapperModel();
         return PrismContainerWrapperModel.fromContainerWrapper(
                 objectWrapperModel, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
     }
 
     @Override
     protected String getSaveLabelKey() {
-        return "ResourceObjectClassTableWizardPanel.saveButton";
+        return "ResourceSuggestedObjectTypeTableWizardPanel.review.selected";
     }
 
     protected abstract void onContinueWithSelected(
@@ -208,7 +191,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
-        return getPageBase().createStringResource("ResourceObjectClassTableWizardPanel.breadcrumbLabel");
+        return createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.breadcrumbLabel");
     }
 
     @Override
@@ -218,12 +201,12 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("ResourceObjectClassTableWizardPanel.text");
+        return createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("ResourceObjectClassTableWizardPanel.subText");
+        return createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.subText");
     }
 
     @Override

@@ -209,29 +209,41 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
         }));
         panelContainer.add(titleIcon);
 
-        AjaxLinkPanel title = new AjaxLinkPanel(ID_TEXT, getTitleModel()) {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                SmartGeneratingDto modelObject = SmartGeneratingPanel.this.getModelObject();
-                String taskToken = modelObject.getToken();
-                DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskToken, this, false);
-            }
-        };
-        title.setOutputMarkupId(true);
-        title.add(AttributeAppender.append("class", getTitleCssClass()));
-        panelContainer.add(title);
+        initTitleTextPanel(panelContainer);
 
         Label subTitle = new Label(ID_SUBTEXT, getSubTitleModel());
         subTitle.setOutputMarkupId(true);
         panelContainer.add(subTitle);
     }
 
+    private void initTitleTextPanel(@NotNull WebMarkupContainer panelContainer) {
+        Component titlePanel = !isLinkTitle()
+                ? new Label(ID_TEXT, getTitleModel())
+                : new AjaxLinkPanel(ID_TEXT, getTitleModel()) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                navigateToTaskDetails();
+            }
+        };
+
+        titlePanel.setOutputMarkupId(true);
+        titlePanel.add(AttributeAppender.append("class", getTitleCssClass()));
+        panelContainer.add(titlePanel);
+    }
+
+    private void navigateToTaskDetails() {
+        SmartGeneratingDto modelObject = SmartGeneratingPanel.this.getModelObject();
+        String taskToken = modelObject.getToken();
+        DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskToken, this, false);
+    }
+
     /**
      * Override to provide special effect CSS classes for the icon.
      * Effects are applied only when the task is running (not failed or suspended).
+     *
      * @return CSS class string, e.g. "fa-spin", "fa-pulse", "spinner-grow-slow" or "spinner-blur-slow" (FontAwesome classes)
      */
-    protected String getIconSpecialEffectCss(){
+    protected String getIconSpecialEffectCss() {
         return "spinner-fade-slow";
     }
 
@@ -568,5 +580,9 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
     protected Label getSubTextLabelPanel() {
         return (Label) get(createComponentPath(ID_PANEL_CONTAINER, ID_SUBTEXT));
+    }
+
+    protected boolean isLinkTitle() {
+        return false;
     }
 }

@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -66,7 +66,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
-import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyCorrelationPermissionData;
+import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyCorrelationPermissionData;
 
 /**
  * Multi-select tile table for correlation items.
@@ -102,8 +102,8 @@ public class SmartCorrelationTable
     }
 
     @Override
-    protected IModel<SmartPermissionRecordDto> buildSmartPermissionRecordDto() {
-        return () -> new SmartPermissionRecordDto(null, initDummyCorrelationPermissionData());
+    protected IModel<RequestDetailsRecordDto> buildSmartPermissionRecordDto() {
+        return () -> new RequestDetailsRecordDto(null, initDummyCorrelationPermissionData());
     }
 
     @Override

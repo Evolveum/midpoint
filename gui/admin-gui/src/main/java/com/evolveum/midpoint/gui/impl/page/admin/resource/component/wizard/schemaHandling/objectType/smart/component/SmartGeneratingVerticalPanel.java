@@ -39,7 +39,11 @@ public class SmartGeneratingVerticalPanel extends SmartGeneratingPanel {
         super(id, model, isWizardPanel);
     }
 
-    /** Null-safe accessor for rows. */
+    /**
+     * Null-safe accessor for rows.
+     *
+     * @return List with the last row, or empty list if no rows available.
+     */
     protected List<StatusRowRecord> getSafeRows() {
         SmartGeneratingDto dto = getModelObject();
         if (dto != null) {
@@ -54,5 +58,10 @@ public class SmartGeneratingVerticalPanel extends SmartGeneratingPanel {
     @Override
     protected @Nullable String getTitleCssClass() {
         return null;
+    }
+
+    @Override
+    protected boolean isLinkTitle() {
+        return true;
     }
 }
