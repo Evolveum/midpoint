@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.net.URL;
 import java.util.Base64;
 import java.util.List;
@@ -15,18 +16,16 @@ import java.util.Map;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.wicket.AttributeModifier;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -40,14 +39,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
-import org.w3c.dom.Attr;
-
 /**
  * @author Viliam Repan (lazyman)
  */
 public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SideBarMenuPanel.class);
 
@@ -77,7 +74,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         //NonCachingImage img = new NonCachingImage(ID_MENU_PHOTO, loadJpegPhotoUrlModel());
         //add(img);
         IModel<String> photoUrlModel = loadJpegPhotoUrlModel();
-        WebMarkupContainer photoContainer = new WebMarkupContainer("menuPhoto");
+        WebMarkupContainer photoContainer = new WebMarkupContainer(ID_MENU_PHOTO);
         photoContainer.add(AttributeAppender.append("style", "background-image: url('" + photoUrlModel.getObject() + "');"));
         add(photoContainer);
 
@@ -85,7 +82,8 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         username.add(AttributeAppender.append("title", this::getShortUserName));
         add(username);
 
-        Label usernameDescription = new Label(ID_USERNAME_DESCRIPTION, () -> getUsernameDescription());
+        Label usernameDescription = new Label(ID_USERNAME_DESCRIPTION, this::getUsernameDescription);
+        usernameDescription.add(new VisibleBehaviour(this::isUsernameDescriptionNotEmpty));
         add(usernameDescription);
 
         WebMarkupContainer sidebar = new WebMarkupContainer(ID_SIDEBAR);
@@ -93,7 +91,7 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         add(sidebar);
 
         ListView<SideBarMenuItem> menuItems = new ListView<>(ID_MENU_ITEMS, getModel()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final ListItem<SideBarMenuItem> item) {
@@ -107,29 +105,32 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
     }
 
     private String getUsernameDescription() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(principal instanceof MidPointPrincipal)) {
+        Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principalObj instanceof MidPointPrincipal principal)) {
             return null;
         }
 
-        MidPointPrincipal princ = (MidPointPrincipal) principal;
         // todo improve?
-        return princ.getFocus().getDescription();
+        return principal.getFocus().getDescription();
+    }
+
+    private boolean isUsernameDescriptionNotEmpty() {
+        var usernameDescription = getUsernameDescription();
+        return StringUtils.isNotEmpty(usernameDescription);
     }
 
     private String getShortUserName() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (principal == null) {
+        if (principalObj == null) {
             return "Unknown";
         }
 
-        if (principal instanceof MidPointPrincipal) {
-            MidPointPrincipal princ = (MidPointPrincipal) principal;
-            return WebComponentUtil.getOrigStringFromPoly(princ.getName());
+        if (principalObj instanceof MidPointPrincipal principal) {
+            return WebComponentUtil.getOrigStringFromPoly(principal.getName());
         }
 
-        return principal.toString();
+        return principalObj.toString();
     }
 
     private IModel<String> loadJpegPhotoUrlModel() {
