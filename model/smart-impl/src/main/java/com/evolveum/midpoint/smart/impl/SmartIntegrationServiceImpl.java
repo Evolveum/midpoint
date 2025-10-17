@@ -279,7 +279,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     result);
             return objects.stream()
                     .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(o).getTimestamp())))
+                            o -> toMillis(ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(o).getTimestamp())))
                     .map(o -> o.asObjectable())
                     .orElse(null);
         } catch (Throwable t) {
