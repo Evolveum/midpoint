@@ -38,21 +38,25 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var resourceOid = getWorkDefinition().getResourceOid();
         var kind = getWorkDefinition().getKind();
         var intent = getWorkDefinition().getIntent();
+        var typeDef = getWorkDefinition().getTypeIdentification();
         var state = getActivityState();
-        var statisticsOid =
-                MiscUtil.stateNonNull(
-                        Referencable.getOid(parentState.getWorkStateReferenceRealValue(
-                                MappingsSuggestionWorkStateType.F_STATISTICS_REF)),
-                        "Statistics object reference is not set in the work state in %s", task);
+        var statisticsOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
+                MappingsSuggestionWorkStateType.F_STATISTICS_REF)),
+                "Statistics object reference is not set in the work state in %s", task);
+        var schemaMatchOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
+                        MappingsSuggestionWorkStateType.F_SCHEMA_MATCH_REF)),
+                "Schema match object reference is not set in the work state in %s", task);
 
+        LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}; statistics in: {}; schema match in: {}",
+                resourceOid, kind, intent, statisticsOid, schemaMatchOid);
 
-        LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}; statistics in: {}",
-                resourceOid, kind, intent, statisticsOid);
         var statistics = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(
                 getBeans().repositoryService.getObject(GenericObjectType.class, statisticsOid, null, result));
+        var schemaMatch = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeSchemaMatchRequired(
+                getBeans().repositoryService.getObject(GenericObjectType.class, schemaMatchOid, null, result));
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, getWorkDefinition().getTypeIdentification(), statistics, null, null, state, task, result);
+                resourceOid, typeDef, statistics, schemaMatch, null, null, state, task, result);
 
         parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
         parentState.flushPendingTaskModifications(result);

@@ -470,6 +470,7 @@ public abstract class SchemaConstants {
     public static final ItemName MODEL_EXTENSION_INTENT_NAME = ItemName.from(NS_MODEL_EXTENSION, "intentName");
     public static final ItemName MODEL_EXTENSION_STATISTICS = ItemName.from(NS_MODEL_EXTENSION, "statistics");
     public static final ItemName MODEL_EXTENSION_OBJECT_TYPE_STATISTICS = ItemName.from(NS_MODEL_EXTENSION, "objectTypeStatistics");
+    public static final ItemName MODEL_EXTENSION_OBJECT_TYPE_SCHEMA_MATCH = ItemName.from(NS_MODEL_EXTENSION, "objectTypeSchemaMatch");
 
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ID = new ItemName(NS_MODEL_EXTENSION, "workItemId");
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTIONS = new ItemName(NS_MODEL_EXTENSION, "workItemActions");
