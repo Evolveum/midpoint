@@ -73,7 +73,7 @@
                         <expression>
                             <script>
                                 <code>
-                                    Thread.sleep(500)
+                                    Thread.sleep(300)
 
                                     return input
                                 </code>
@@ -95,14 +95,6 @@
                         </target>
                     </inbound>
                 </attribute>
-                <!--<attribute>-->
-                <!--    <ref>ri:fullname</ref>-->
-                <!--    <inbound>-->
-                <!--        <target>-->
-                <!--            <path>fullName</path>-->
-                <!--        </target>-->
-                <!--    </inbound>-->
-                <!--</attribute>-->
                 <synchronization>
                     <reaction>
                         <situation>unmatched</situation>

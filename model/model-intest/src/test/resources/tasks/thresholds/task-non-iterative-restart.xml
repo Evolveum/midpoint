@@ -28,6 +28,7 @@
                                     println "No-op iteration ${i}"
                                     log.info("No-op iteration ${i}")
 
+                                    // todo fix null item processing result if necessary
                                     ActivityPolicyProcessorHelper.evaluateAndEnforceRules(null, new OperationResult("sample"))
 
                                     Thread.sleep(500)

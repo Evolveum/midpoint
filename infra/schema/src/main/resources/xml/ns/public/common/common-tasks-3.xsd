@@ -2299,7 +2299,7 @@
     <xsd:complexType name="RestartActivityPolicyActionType">
         <xsd:annotation>
             <xsd:documentation>
-                Restart activity that triggered policy constraint.
+                Restart the run and realization of the activity that triggered policy constraint.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.10</a:since>
@@ -2317,7 +2317,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="restartCounters" type="xsd:boolean" minOccurs="0" default="false">
+                    <xsd:element name="restartCounters" type="xsd:boolean" minOccurs="0" default="true">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Whether to reset counters for the activity when it is restarted.
@@ -3619,11 +3619,11 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO group by execution full/simulation, same as counters [viliam] -->
             <xsd:element name="policies" type="tns:ActivityPoliciesStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         State of the policies related to the execution of the activity, grouped into related categories.
-                        One of the categories are policies needed to implement thresholds for policy rules.
 
                         Note: The policies may be moved to separate repository object later to improve performance.
                     </xsd:documentation>
@@ -3683,6 +3683,20 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="policyRef" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the restarting policy that caused the activity to be restarted.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reactionRef" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the reaction within the restarting policy that caused the activity to be restarted.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="restartCounters" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -9145,13 +9159,6 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Counters for policy rules in full execution mode.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="activityPolicyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Counters for policy rules in activity.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

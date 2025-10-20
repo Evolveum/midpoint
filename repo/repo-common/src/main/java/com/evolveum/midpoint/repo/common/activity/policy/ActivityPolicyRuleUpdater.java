@@ -7,10 +7,15 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
+
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.FULL_EXECUTION_MODE_POLICY_RULES;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.PREVIEW_MODE_POLICY_RULES;
 
 public class ActivityPolicyRuleUpdater extends PolicyRuleCounterUpdater {
 
@@ -24,7 +29,8 @@ public class ActivityPolicyRuleUpdater extends PolicyRuleCounterUpdater {
 
     @Override
     protected ExecutionSupport.CountersGroup getCountersGroup() {
-        return ExecutionSupport.CountersGroup.ACTIVITY_POLICY_RULES;
+        return activityRun.getActivityExecutionMode() == ExecutionModeType.FULL ?
+                        FULL_EXECUTION_MODE_POLICY_RULES : PREVIEW_MODE_POLICY_RULES;
     }
 
     @Override

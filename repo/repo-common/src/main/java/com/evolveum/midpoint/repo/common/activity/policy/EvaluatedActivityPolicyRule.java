@@ -46,6 +46,10 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         this.path = path;
     }
 
+    public @NotNull ActivityPath getPath() {
+        return path;
+    }
+
     @Override
     public String getRuleIdentifier() {
         return ActivityPolicyUtils.createIdentifier(path, policy);

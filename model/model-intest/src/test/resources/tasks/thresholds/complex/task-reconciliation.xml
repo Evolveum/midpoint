@@ -68,6 +68,24 @@
                     </workers>
                     <workerThreads>2</workerThreads>
                 </distribution>
+                <policies>
+                    <policy>
+                        <name>notification policy</name>
+                        <policyConstraints>
+                            <executionTime/>
+                        </policyConstraints>
+                        <policyReaction>
+                            <threshold>
+                                <lowWaterMark>
+                                    <duration>PT1S</duration>
+                                </lowWaterMark>
+                            </threshold>
+                            <action>
+                                <notification/>
+                            </action>
+                        </policyReaction>
+                    </policy>
+                </policies>
             </change>
         </tailoring>
     </activity>
