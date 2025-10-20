@@ -146,7 +146,7 @@ public class PageSmartIntegrationDefiningType extends PageAdminConfiguration {
                             MappingsSuggestionType suggestion;
                             try {
                                 suggestion = getSmartIntegrationService().suggestMappings(
-                                        getResourceOid(), typeIdentification, null, null, null, null,
+                                        getResourceOid(), typeIdentification, null, null, null, null, null,
                                         task, result);
                             } catch (ActivityInterruptedException e) {
                                 throw new SystemException(e); // This is temporary code anyway; the call should execute asynchronously.

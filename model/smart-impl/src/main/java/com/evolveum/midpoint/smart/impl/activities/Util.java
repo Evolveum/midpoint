@@ -12,16 +12,17 @@ import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionWorkStateType;
 
 class Util {
 
     static ActivityState getParentState(AbstractActivityRun<?, ?, ?> run, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
+        // Use the root work state type from the current activity handler to fetch the parent state correctly.
+        // This works for both ObjectTypes and Mappings suggestion trees.
         return ActivityState.getActivityStateUpwards(
                 run.getActivity().getPath().allExceptLast(),
                 run.getRunningTask(),
-                ObjectTypesSuggestionWorkStateType.COMPLEX_TYPE,
+                run.getActivityHandler().getRootActivityStateDefinition().getWorkStateTypeName(),
                 result);
     }
 }

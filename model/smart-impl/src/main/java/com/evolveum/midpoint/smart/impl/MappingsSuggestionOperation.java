@@ -81,56 +81,12 @@ class MappingsSuggestionOperation {
                 qualityAssessor);
     }
 
-    MappingsSuggestionType suggestMappings(OperationResult result, ShadowObjectClassStatisticsType statistics)
+    MappingsSuggestionType suggestMappings(OperationResult result, ShadowObjectClassStatisticsType statistics, SchemaMatchResultType schemaMatch)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
-        var focusTypeDefinition = ctx.getFocusTypeDefinition();
-        var shadowDefinition = ctx.getShadowDefinition();
-
-        var matchingOp = new SchemaMatchingOperation(ctx);
-
-        var schemaMatchingState = ctx.stateHolderFactory.create(ID_SCHEMA_MATCHING, result);
-        schemaMatchingState.flush(result);
-        SiMatchSchemaResponseType match;
-        try {
-            match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource);
-        } catch (Throwable t) {
-            schemaMatchingState.recordException(t);
-            throw t;
-        } finally {
-            schemaMatchingState.close(result);
-        }
-
         ctx.checkIfCanRun();
 
-        var attributeMatchToMapCollection = new ArrayList<AttributeMatchToMap>(match.getAttributeMatch().size());
-        for (var attributeMatch : match.getAttributeMatch()) {
-            var shadowAttrPath = matchingOp.getApplicationItemPath(attributeMatch.getApplicationAttribute());
-            if (shadowAttrPath.size() != 2 || !shadowAttrPath.startsWith(ShadowType.F_ATTRIBUTES)) {
-                LOGGER.warn("Ignoring attribute {}. It is not a traditional attribute.", shadowAttrPath);
-                continue; // TODO implement support for activation etc
-            }
-            var shadowAttrName = shadowAttrPath.rest().asSingleNameOrFail();
-            var shadowAttrDef = ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
-            if (shadowAttrDef == null) {
-                LOGGER.warn("No shadow attribute definition found for {}. Skipping mapping suggestion.", shadowAttrName);
-                continue;
-            }
-            var focusPropPath = matchingOp.getFocusItemPath(attributeMatch.getMidPointAttribute());
-            var focusPropDef = focusTypeDefinition.findPropertyDefinition(focusPropPath);
-            if (focusPropDef == null) {
-                LOGGER.warn("No focus property definition found for {}. Skipping mapping suggestion.", focusPropPath);
-                continue;
-            }
-            attributeMatchToMapCollection.add(
-                    new AttributeMatchToMap(
-                            DescriptiveItemPath.of(shadowAttrPath, shadowDefinition),
-                            shadowAttrDef,
-                            DescriptiveItemPath.of(focusPropPath, focusTypeDefinition),
-                            focusPropDef));
-        }
-
-        if (attributeMatchToMapCollection.isEmpty()) {
+        if (schemaMatch.getSchemaMatchResult().isEmpty()) {
             LOGGER.warn("No schema match found for {}. Returning empty suggestion.", this);
             return new MappingsSuggestionType();
         }
@@ -151,26 +107,23 @@ class MappingsSuggestionOperation {
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
-        mappingsSuggestionState.setExpectedProgress(attributeMatchToMapCollection.size());
+        mappingsSuggestionState.setExpectedProgress(schemaMatch.getSchemaMatchResult().size());
         try {
             var suggestion = new MappingsSuggestionType();
-            for (AttributeMatchToMap m : attributeMatchToMapCollection) {
-                var op = mappingsSuggestionState.recordProcessingStart(m.shadowAttrDescPath.asString());
+            for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
+                var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
                 mappingsSuggestionState.flush(result);
-                var pairs = getValuesPairs(m, ownedShadows);
+                var pairs = getValuesPairs(matchPair, ownedShadows);
                 try {
                     suggestion.getAttributeMappings().add(
                             suggestMapping(
-                                    m.shadowAttrDescPath,
-                                    m.shadowAttrDef,
-                                    m.focusPropDescPath,
-                                    m.focusPropDef,
+                                    matchPair,
                                     pairs,
                                     result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (Throwable t) {
                     // TODO Shouldn't we create an unfinished mapping with just error info?
-                    LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", t, m.shadowAttrDescPath);
+                    LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", t, matchPair.getShadowAttributePath());
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.FAILURE);
 
                     // Normally, the activity framework makes sure that the activity result status is computed properly at the end.
@@ -189,16 +142,11 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private Collection<ValuesPair> getValuesPairs(AttributeMatchToMap m, Collection<OwnedShadow> ownedShadows) {
+    private Collection<ValuesPair> getValuesPairs(SchemaMatchOneResultType m, Collection<OwnedShadow> ownedShadows) {
         return extractPairs(
-                ownedShadows, m.shadowAttrDescPath.getItemPath(), m.focusPropDescPath.getItemPath());
-    }
-
-    private record AttributeMatchToMap(
-            DescriptiveItemPath shadowAttrDescPath,
-            ShadowSimpleAttributeDefinition<?> shadowAttrDef,
-            DescriptiveItemPath focusPropDescPath,
-            PrismPropertyDefinition<?> focusPropDef) {
+                ownedShadows,
+                PrismContext.get().itemPathParser().asItemPath(m.getShadowAttributePath()),
+                PrismContext.get().itemPathParser().asItemPath(m.getFocusPropertyPath()));
     }
 
     private Collection<ValuesPair> extractPairs(
@@ -247,18 +195,16 @@ class MappingsSuggestionOperation {
     }
 
     private AttributeMappingsSuggestionType suggestMapping(
-            DescriptiveItemPath shadowAttrPath,
-            ShadowSimpleAttributeDefinition<?> attrDef,
-            DescriptiveItemPath focusPropPath,
-            PrismPropertyDefinition<?> propertyDef,
+            SchemaMatchOneResultType matchPair,
             Collection<ValuesPair> valuesPairs,
-            OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            OperationResult parentResult) throws SchemaException {
 
         LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
-                shadowAttrPath, focusPropPath, valuesPairs.size());
+                matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath(), valuesPairs.size());
 
+        ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
+        ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
+        var propertyDef = ctx.getFocusTypeDefinition().findPropertyDefinition(focusPropPath);
         ExpressionType expression;
         if (valuesPairs.isEmpty()) {
             LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
@@ -276,7 +222,7 @@ class MappingsSuggestionOperation {
             expression = null;
         } else {
             LOGGER.trace(" -> going to ask LLM about mapping script");
-            var transformationScript = askMicroservice(shadowAttrPath, attrDef, focusPropPath, propertyDef, valuesPairs);
+            var transformationScript = askMicroservice(matchPair, valuesPairs);
             if (transformationScript == null || transformationScript.equals("input")) {
                 LOGGER.trace(" -> LLM returned '{}', using 'asIs'", transformationScript);
                 expression = null;
@@ -289,19 +235,18 @@ class MappingsSuggestionOperation {
             }
         }
 
-        ItemPath focusPropRealPath = focusPropPath.getItemPath();
         // TODO remove this ugly hack
-        var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropRealPath);
+        var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropPath);
         var hackedSerialized = serialized.replace("ext:", "");
         var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
         var suggestion = new AttributeMappingsSuggestionType()
                 .expectedQuality(this.qualityAssessor.assessMappingsQuality(valuesPairs, expression, this.ctx.task,
                         parentResult))
                 .definition(new ResourceAttributeDefinitionType()
-                        .ref(shadowAttrPath.getItemPath().rest().toBean()) // FIXME! what about activation, credentials, etc?
+                        .ref(shadowAttrPath.rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
-                                .name(shadowAttrPath.getItemPath().lastName().getLocalPart()
-                                        + "-to-" + focusPropRealPath) //TODO TBD
+                                .name(shadowAttrPath.lastName().getLocalPart()
+                                        + "-to-" + focusPropPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(hackedReal.toBean()))
                                 .expression(expression)));
@@ -310,29 +255,17 @@ class MappingsSuggestionOperation {
     }
 
     private String askMicroservice(
-            DescriptiveItemPath shadowAttrPath,
-            ShadowSimpleAttributeDefinition<?> attrDef,
-            DescriptiveItemPath focusPropPath,
-            PrismPropertyDefinition<?> propertyDef,
+            SchemaMatchOneResultType matchPair,
             Collection<ValuesPair> valuesPairs) throws SchemaException {
-        var applicationAttrDefBean = new SiAttributeDefinitionType()
-                .name(shadowAttrPath.asString())
-                .type(getTypeName(attrDef))
-                .minOccurs(attrDef.getMinOccurs())
-                .maxOccurs(attrDef.getMaxOccurs());
-        var midPointPropertyDefBean = new SiAttributeDefinitionType()
-                .name(focusPropPath.asString())
-                .type(getTypeName(propertyDef))
-                .minOccurs(propertyDef.getMinOccurs())
-                .maxOccurs(propertyDef.getMaxOccurs());
         var siRequest = new SiSuggestMappingRequestType()
-                .applicationAttribute(applicationAttrDefBean)
-                .midPointAttribute(midPointPropertyDefBean)
+                .applicationAttribute(matchPair.getShadowAttribute())
+                .midPointAttribute(matchPair.getFocusProperty())
                 .inbound(true);
         valuesPairs.forEach(pair ->
                 siRequest.getExample().add(
                         pair.toSiExample(
-                                shadowAttrPath, focusPropPath)));
+                                matchPair.getShadowAttribute().getName(),
+                                matchPair.getFocusProperty().getName())));
         return ctx.serviceClient
                 .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class)
                 .getTransformationScript();
@@ -373,22 +306,6 @@ class MappingsSuggestionOperation {
     /** Returns {@code true} if there are no target data altogether. */
     private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs) {
         return valuesPairs.stream().allMatch(pair -> pair.focusValues().isEmpty());
-    }
-
-    private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
-        if (propertyDefinition.isEnum()) {
-            // We don't want to bother Python microservice with enums; maybe later.
-            // It should work with the values as with simple strings.
-            return DOMUtil.XSD_STRING;
-        }
-        var typeName = propertyDefinition.getTypeName();
-        if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, typeName)) {
-            return DOMUtil.XSD_STRING; // We don't want to bother Python microservice with polystrings.
-        } else if (QNameUtil.match(ProtectedStringType.COMPLEX_TYPE, typeName)) {
-            return DOMUtil.XSD_STRING; // the same
-        } else {
-            return typeName;
-        }
     }
 
 }

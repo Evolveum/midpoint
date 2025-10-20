@@ -67,6 +67,20 @@ public interface SmartIntegrationService {
             String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
             throws SchemaException;
 
+    /** Returns the object holding last known schema match for the given resource, kind and intent. */
+    public GenericObjectType getLatestObjectTypeSchemaMatch(
+            String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+            throws SchemaException;
+
+    /** Computes schema match pairs for the given resource and object type. */
+    SchemaMatchResultType computeSchemaMatch(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
+
     /** Submits "suggest object types" request. Returns a token used to query the status. */
     String submitSuggestObjectTypesOperation(String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws CommonException;
@@ -181,6 +195,7 @@ public interface SmartIntegrationService {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             ShadowObjectClassStatisticsType statistics,
+            SchemaMatchResultType schemaMatch,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             @Nullable CurrentActivityState<?> activityState,

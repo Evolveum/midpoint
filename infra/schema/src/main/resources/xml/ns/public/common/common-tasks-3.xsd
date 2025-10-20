@@ -10304,6 +10304,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="schemaMatchRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, the particular schema match file should be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypesRelatedSuggestionWorkDefinitionType.schemaMatchRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -10521,6 +10532,17 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>MappingsSuggestionWorkDefinitionType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="schemaMatchRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The schema match file to be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingsSuggestionWorkDefinitionType.schemaMatchRef</a:displayName>
                                 <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
                             </xsd:appinfo>
                         </xsd:annotation>

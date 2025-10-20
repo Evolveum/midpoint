@@ -1155,10 +1155,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
                 ACCOUNT_DEFAULT,
                 task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestedMappings = smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                statistics, null, null, null, task, result);
+                statistics, match, null, null, null, task, result);
 
         then("suggestion is correct");
         displayValueAsXml("suggested mappings", suggestedMappings);
@@ -1224,10 +1228,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
                 GENERIC_ORGANIZATIONAL_UNIT,
                 task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 GENERIC_ORGANIZATIONAL_UNIT,
-                statisticsForOrg, null, null, null, task, result);
+                statisticsForOrg, match, null, null, null, task, result);
 
         then("the number of attributes in the request is appropriate");
         var request = (SiMatchSchemaRequestType) mockClient.getLastRequest();

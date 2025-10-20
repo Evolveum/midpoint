@@ -69,6 +69,7 @@
             <xsd:element name="intentName" type="xsd:string" minOccurs="0"/>
             <xsd:element name="statistics" type="c:ShadowObjectClassStatisticsType" minOccurs="0"/>
             <xsd:element name="objectTypeStatistics" type="c:ShadowObjectClassStatisticsType" minOccurs="0"/>
+            <xsd:element name="objectTypeSchemaMatch" type="c:SchemaMatchResultType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

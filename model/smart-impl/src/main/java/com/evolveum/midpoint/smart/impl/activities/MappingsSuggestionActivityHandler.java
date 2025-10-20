@@ -24,6 +24,7 @@ public class MappingsSuggestionActivityHandler
 
     private static final String ID_MAPPING_STATISTICS_COMPUTATION = "mappingStatisticsComputation";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
+    private static final String ID_SCHEMA_MATCHING = "schemaMatching";
 
     @PostConstruct
     public void register() {
@@ -62,6 +63,13 @@ public class MappingsSuggestionActivityHandler
                 (context, result) -> new MappingsStatisticsComputationActivityRun(context, "Statistics computation"),
                 null,
                 (i) -> ID_MAPPING_STATISTICS_COMPUTATION,
+                ActivityStateDefinition.normal(),
+                parentActivity));
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().cloneWithoutId(),
+                (context, result) -> new MappingsSchemaMatchingActivityRun(context),
+                null,
+                (i) -> ID_SCHEMA_MATCHING,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(

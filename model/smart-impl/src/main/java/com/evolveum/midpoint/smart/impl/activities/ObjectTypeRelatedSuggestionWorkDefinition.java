@@ -37,6 +37,7 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
     private final String resourceOid;
     private final ResourceObjectTypeIdentification typeIdentification;
     @Nullable private final String statisticsObjectOid;
+    @Nullable private final String schemaMatchObjectOid;
 
     ObjectTypeRelatedSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
@@ -47,6 +48,7 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
                 ResourceObjectTypeIdentification.of(
                         configNonNull(typedDefinition.getObjectType(), "No object type specified"));
         statisticsObjectOid = Referencable.getOid(typedDefinition.getStatisticsRef());
+        schemaMatchObjectOid = Referencable.getOid(typedDefinition.getSchemaMatchRef());
     }
 
     public String getResourceOid() {
@@ -67,6 +69,10 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
 
     public @Nullable String getStatisticsObjectOid() {
         return statisticsObjectOid;
+    }
+
+    public @Nullable String getSchemaMatchObjectOid() {
+        return schemaMatchObjectOid;
     }
 
     @Override
