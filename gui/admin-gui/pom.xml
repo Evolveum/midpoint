@@ -205,12 +205,6 @@
         <!-- MIDPOINT RUNTIME DEPENDENCIES -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sql-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sqale</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
