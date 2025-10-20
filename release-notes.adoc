@@ -82,9 +82,10 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * Built-in archetypes for organizational structures and locations.
 * xrefv:/midpoint/reference/master/roles-policies/policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
 * xrefv:/midpoint/reference/master/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
-* Updated various libraries, mainly: Spring Boot, Tomcat, Hibernate, PostgresSQL JDBC driver.
+* Updated various libraries, mainly: Spring Boot, Tomcat, PostgresSQL JDBC driver.
 * Add OAuth 2 credential flow to mail servers notification configuration
 * Added languages, specifically Korean, Dutch, and Ukrainian.
+* Removed support for deprecated generic repository implementation (Oracle, SQL Server). See bug:MID-10866[].
 
 === Other Bug Fixes
 

@@ -182,49 +182,39 @@ For non-indexed extension items, all data types are supported.
 
 For indexed items, the following types are fully supported:
 
-[%autowidth,cols=3]
+[%autowidth,cols=2]
 |===
 h| XML type (Java type)
 h| How is it stored in xref:/midpoint/reference/repository/native-postgresql/[Native repository]?
-h| How is it stored in xref:/midpoint/reference/repository/generic/[Generic repository]?
 
 | xsd:string (String)
 a| stored in `ext` JSONB column as string value
-a| table `m_object_ext_string`
 
 | xsd:int (Integer)
 .3+a| stored in `ext` JSONB as numeric
 
 This is not JSON/EcmaScript limited number, but virtually limitless PostgreSQL numeric value.
-.2+a| table `m_object_ext_long`
 
 | xsd:long (Long)
 
 | xsd:integer (BigInteger)
-a| table `m_object_ext_string`: This type is stored as strings because it doesn't fit into "long" type range.
-This means that the support is *very limited* and especially comparison operations are not numerically correct!
 
 | xsd:boolean (Boolean)
 a| stored in `ext` JSONB as boolean
-a| table `m_object_ext_boolean`
 
 | xsd:dateTime (XMLGregorianCalendar)
 a| stored in `ext` JSONB as string, formatted as https://en.wikipedia.org/wiki/ISO_8601[ISO 8601]
 long date and time with `Z` timezone
-a| table `m_object_ext_date`
 
 | t:PolyStringType
 a| stored in `ext` JSONB as object `{"o":"orig value","n":"normvalue"}`
-a| table `m_object_ext_poly`
 
 | c:ObjectReferenceType
 a| stored in `ext` JSONB as object `{"o":"oid","t":"type","r":relationUrlId}`,
 type uses ObjectType DB enum values, relation is URL ID from `m_uri` table
-a| table `m_object_ext_reference`
 
 | enumerations
 a| stored in `ext` JSONB as string
-a| table `m_object_ext_string`
 
 |===
 
@@ -256,20 +246,10 @@ The following table lists partially supported types, describing the limitations:
 | xsd:short (Short)
 a| Not fully supported by Prism API, no support on GUI.
 a| Full support.
-Native repo stores it in `ext` JSONB as numeric.
-
-Generic repo stores it in `m_object_ext_long`.
-
+Native repository stores it in `ext` JSONB as numeric.
 | xsd:decimal (BigDecimal)
 a| Not fully supported by Prism API
-.3+a| Full support in the Native repo, stored in `ext` JSONB as numeric.
-
-Generic repo stores it in `m_object_ext_string`, because the types do not fit into "long" type range.
-This means the support for these types is *very limited*:
-
-* comparisons like "less than", "more than" don't work at all (or provide wrong results),
-* equality test is to be used with a great care, as it can provide false negative results (e.g. 0.4999999999 vs. 0.5 vs 0.5000000001).
-
+.3+a| Full support in the Native repository, stored in `ext` JSONB as numeric.
 | xsd:double (Double)
 .2+a| No support on GUI.
 
