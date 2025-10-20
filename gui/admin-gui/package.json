@@ -10,7 +10,7 @@
     "sbom_maven": "cyclonedx-npm --output-format ${OUTPUT_FORMAT} --output-file ${OUTPUT_BOM_DIRECTORY}/${OUTPUT_BOM_NAME}.${OUTPUT_FORMAT}"
   },
   "author": "Evolveum",
-  "license": "Apache License 2.0 and European Union Public License",
+  "license": "EUPL-1.2 or later.",
   "devDependencies": {
     "@babel/traverse": "^7.27.0",
     "@cyclonedx/cyclonedx-npm": "^2.0.0",
