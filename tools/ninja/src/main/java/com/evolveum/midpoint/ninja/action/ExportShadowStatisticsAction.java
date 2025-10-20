@@ -12,7 +12,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -37,8 +36,7 @@ public class ExportShadowStatisticsAction extends RepositoryAction<ExportShadowS
         // The repository needs to be retrieved before the query is created (using the AggregateQuery.forType)!
         // Otherwise, you may get NPE when you call the `forType` method.
         final RepositoryService repository = context.getRepository();
-        ObjectQuery shadowQuery = NinjaUtils.createObjectQuery(this.options.getFilter(), context, ShadowType.class);
-        final var query = createAggregationQuery(shadowQuery);
+        final var query = createAggregationQuery();
 
         final OperationResult result = new OperationResult("Shadow Statistics");
         final SearchResultList<PrismContainerValue<?>> aggregationResults = repository.searchAggregate(query, result);
@@ -83,18 +81,14 @@ public class ExportShadowStatisticsAction extends RepositoryAction<ExportShadowS
         return statisticsContainer;
     }
 
-    private static AggregateQuery<ShadowType> createAggregationQuery(ObjectQuery shadowQuery) {
-        final AggregateQuery<ShadowType> query = AggregateQuery.forType(ShadowType.class)
+    private static AggregateQuery<ShadowType> createAggregationQuery() {
+        return AggregateQuery.forType(ShadowType.class)
                 .retrieve(ShadowType.F_RESOURCE_REF)
                 .retrieve(ShadowType.F_OBJECT_CLASS)
                 .retrieve(ShadowType.F_KIND)
                 .retrieve(ShadowType.F_INTENT)
                 .retrieve(ShadowType.F_SYNCHRONIZATION_SITUATION)
                 .count(F_COUNT, ShadowType.F_RESOURCE_REF);
-        if (shadowQuery != null) {
-            return query.filter(shadowQuery.getFilter());
-        }
-        return query;
     }
 
     private static void changeCountsToMagnitude(PrismContainerValue<?> aggregation) {
