@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 
+import java.io.Serial;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -112,14 +113,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider) {
         setOutputMarkupId(true);
         add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
-        add(AttributeAppender.append("class", () -> getAdditionalBoxCssClasses()));
+        add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.setOutputMarkupId(true);
 
         int pageSize = getItemsPerPage(tableId);
         DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, pageSize) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {

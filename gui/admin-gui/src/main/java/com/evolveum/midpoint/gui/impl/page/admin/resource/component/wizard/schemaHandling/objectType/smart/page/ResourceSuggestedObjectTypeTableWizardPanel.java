@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectTypeSuggestionTable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -21,11 +22,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +44,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
@@ -86,9 +91,39 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                 UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_TYPES_SUGGESTIONS,
                 createValueWrapperModel(),
                 selectedModel,
-                getResourceOid());
+                getResourceOid()) {
+            @Override
+            protected @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getExistingObjectTypeDefinitions(
+                    QName objectClassName) {
+                return loadExistingAssociatedObjectTypes(objectClassName);
+            }
+        };
         smartObjectTypeSuggestionTable.setOutputMarkupId(true);
         add(smartObjectTypeSuggestionTable);
+    }
+
+    /**
+     * Load existing object type definitions for the given object class name.
+     */
+    private @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> loadExistingAssociatedObjectTypes(
+            QName objectClassName) {
+        List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> existingValues = new ArrayList<>();
+        PrismObjectWrapper<ResourceType> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+        try {
+            PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = objectWrapper.findContainer(
+                    ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+            List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> values = container.getValues();
+            for (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> valueWrapper : values) {
+                ResourceObjectTypeDefinitionType realValue = valueWrapper.getRealValue();
+                QName objectClass = realValue.getDelineation().getObjectClass();
+                if (objectClassName.equals(objectClass)) {
+                    existingValues.add(valueWrapper);
+                }
+            }
+            return existingValues;
+        } catch (SchemaException e) {
+            throw new RuntimeException("Error retrieving existing object type definitions", e);
+        }
     }
 
     private String getResourceOid() {
@@ -208,6 +243,24 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
     protected IModel<String> getSubTextModel() {
         return createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.subText");
     }
+
+    @Override
+    protected void addCustomButtons(@NotNull RepeatingView buttons) {
+        AjaxIconButton refreshSuggestionButton = new AjaxIconButton(
+                buttons.newChildId(),
+                Model.of("fa fa-refresh"),
+                createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.refreshSuggestionButton.title")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                refreshSuggestionPerform(target);
+            }
+        };
+        refreshSuggestionButton.showTitleAsLabel(true);
+        refreshSuggestionButton.add(AttributeAppender.append("class", "btn btn-default"));
+        buttons.add(refreshSuggestionButton);
+    }
+
+    public abstract void refreshSuggestionPerform(AjaxRequestTarget target);
 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {

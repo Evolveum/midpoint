@@ -9,12 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareObjectDto;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartStatisticsPanel;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,6 +36,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -638,5 +642,42 @@ public class SmartIntegrationUtils {
                 pageBase.getMainPopupBodyId(), () -> statisticsRequired, resourceOid, objectClass);
 
         pageBase.showMainPopup(statisticsPanel, target);
+    }
+
+    /**
+     * Returns the default set of item paths used for comparison and visibility.
+     */
+    public static @NotNull @Unmodifiable List<ItemPath> getDefaultObjectTypeComparePaths() {
+        return List.of(
+                ResourceObjectTypeDefinitionType.F_DESCRIPTION,
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_OBJECT_CLASS),
+                ResourceObjectTypeDefinitionType.F_KIND,
+                ResourceObjectTypeDefinitionType.F_INTENT,
+                ResourceObjectTypeDefinitionType.F_DEFAULT,
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_FILTER),
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_BASE_CONTEXT, ResourceObjectReferenceType.F_OBJECT_CLASS),
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_BASE_CONTEXT, ResourceObjectReferenceType.F_FILTER),
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_FOCUS, ResourceObjectFocusSpecificationType.F_TYPE)
+        );
+    }
+
+    /**
+     * Creates a CompareObjectDto with the standard configuration.
+     */
+    public static @NotNull CompareObjectDto<ResourceObjectTypeDefinitionType> createCompareObjectDto(
+            @NotNull PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> selectedDefinition,
+            @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> existingDefinitions,
+            @NotNull List<ItemPath> paths) {
+
+        return new CompareObjectDto<>(
+                () -> selectedDefinition,
+                () -> existingDefinitions,
+                ResourceObjectTypeDefinitionType.F_DISPLAY_NAME,
+                paths
+        );
     }
 }

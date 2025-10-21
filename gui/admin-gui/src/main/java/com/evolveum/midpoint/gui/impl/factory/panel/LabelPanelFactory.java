@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -75,6 +76,10 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
         }
         if (panelCtx.getDefinitionName().equivalent(MappingType.F_EXPRESSION)) {
             return createExpressionReadOnlyPanel(panelCtx);
+        }
+
+        if (object instanceof SearchFilterType) {
+            return new Label(panelCtx.getComponentId(), ((SearchFilterType) object).getText());
         }
 
         return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());

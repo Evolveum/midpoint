@@ -139,6 +139,11 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
                 selectedTileModel.setObject(null);
                 refresh(target);
             }
+
+            @Override
+            protected List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getExistingObjectTypeDefinitions(QName objectClassName) {
+                return SmartObjectTypeSuggestionTable.this.getExistingObjectTypeDefinitions(objectClassName);
+            }
         };
     }
 
@@ -241,5 +246,10 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
         getTilesModel().detach();
         initializeSelectedTile(provider);
         super.refresh(target);
+    }
+
+    protected List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getExistingObjectTypeDefinitions(
+            QName objectClassName) {
+        return null;
     }
 }

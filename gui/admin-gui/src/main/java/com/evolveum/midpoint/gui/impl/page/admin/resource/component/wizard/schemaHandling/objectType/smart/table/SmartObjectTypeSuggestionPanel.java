@@ -13,8 +13,10 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -26,9 +28,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,10 +53,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
-public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>
+public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>
         extends TemplateTilePanel<C, SmartObjectTypeSuggestionTileModel<C>> {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -286,21 +287,32 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         };
     }
 
-    protected ButtonInlineMenuItem createCompareWithExistingItemMenu() {
+    private @NotNull ButtonInlineMenuItem createCompareWithExistingItemMenu() {
         return new ButtonInlineMenuItem(createStringResource("SmartSuggestObjectTypeTilePanel.compare.with.existing")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder("fa fa-balance-scale");
             }
 
-            @Serial private static final long serialVersionUID = 1L;
-
             @Override
             public InlineMenuItemAction initAction() {
+                List<ItemPath> requiredPaths = getDefaultObjectTypeComparePaths();
+
                 return new InlineMenuItemAction() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        //TODO implement comparison logic
+                        C selectedDefinition = getModelObject().getValue();
+                        QName targetObjectClass = selectedDefinition.getRealValue()
+                                .getDelineation()
+                                .getObjectClass();
+
+                        var existingObjectClassDefs = getExistingObjectTypeDefinitions(targetObjectClass);
+                        var compareDto = createCompareObjectDto(selectedDefinition, existingObjectClassDefs, requiredPaths);
+                        var comparePanel = new CompareContainerPanel<>(getPageBase().getMainPopupBodyId(), () -> compareDto);
+                        getPageBase().showMainPopup(comparePanel, target);
                     }
                 };
             }
@@ -485,5 +497,14 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     protected boolean isAnyFilterExists() {
         return getModelObject().isAnyFilterExists();
     }
+
+    /**
+     * Get existing object type definitions for the given object class name.
+     *
+     * @param objectClassName QName of the object class.
+     * @return List of existing object type definitions.
+     */
+    protected abstract List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getExistingObjectTypeDefinitions(
+            QName objectClassName);
 
 }
