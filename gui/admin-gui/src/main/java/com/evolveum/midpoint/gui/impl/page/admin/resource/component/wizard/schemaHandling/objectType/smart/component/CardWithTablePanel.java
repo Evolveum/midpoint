@@ -118,11 +118,6 @@ public class CardWithTablePanel<T extends Serializable> extends BasePanel<T> imp
     }
 
     @Override
-    public @Nullable Component getTitleComponent() {
-        return new Label(Popupable.ID_TITLE, getTitle());
-    }
-
-    @Override
     public IModel<String> getTitleIconClass() {
         return Model.of(GuiStyleConstants.CLASS_ICON_PREVIEW);
     }

@@ -98,12 +98,12 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
         infoPanel.add(new Label(ID_ALERT_DESCRIPTION,
                 createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.description")));
 
-        Double efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(getValueModel().getObject());
+        String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(getValueModel().getObject());
 
         BadgePanel badge = new BadgePanel(ID_ALERT_BADGE,
                 getAiEfficiencyBadgeModel(
                         createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.efficiency",
-                                efficiency != null ? efficiency : "-").getString()));
+                                efficiency).getString()));
         badge.setOutputMarkupId(true);
         infoPanel.add(badge);
         add(infoPanel);

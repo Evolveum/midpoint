@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectContainerTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
@@ -30,9 +29,11 @@ import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.io.Serial;
 import java.util.Iterator;
 import java.util.List;
@@ -49,6 +50,7 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
     private static final int MAX_TILE_COUNT = 6;
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
+    IModel<Boolean> forceDeleteEnabled = Model.of(false);
     String resourceOid;
 
     public SmartObjectTypeSuggestionTable(
@@ -128,20 +130,16 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected Component createTile(String id, IModel<TemplateTile<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> model) {
-        return new SmartObjectTypeSuggestionPanel(id, model, selectedTileModel) {
+        return new SmartObjectTypeSuggestionPanel(id, model, selectedTileModel, forceDeleteEnabled) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void performOnDelete(AjaxRequestTarget target) {
                 super.performOnDelete(target);
+                selectedTileModel.setObject(null);
                 refresh(target);
             }
         };
-    }
-
-    @Override
-    protected MultivalueContainerListDataProvider<ResourceObjectTypeDefinitionType> createProvider() {
-        return super.createProvider();
     }
 
     protected void createToolbarButtons(RepeatingView repeatingView) {
@@ -232,7 +230,16 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
     }
 
     @Override
+    public boolean displayNoValuePanel() {
+        return getProvider().size() == 0;
+    }
+
+    @Override
     public void refresh(AjaxRequestTarget target) {
+        var provider = getProvider();
+        provider.getModel().detach();
+        getTilesModel().detach();
+        initializeSelectedTile(provider);
         super.refresh(target);
     }
 }

@@ -83,8 +83,9 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
         }
 
         getNewValue().setValue(newRealValue);
-        //TODO find better place for this (remember that we need directly update gui mark)
+
         AiUtil.syncAiProvenanceWithChangeIfApplied(getNewValue(),getOldValue());
+
         setStatus(ValueStatus.MODIFIED);
     }
 

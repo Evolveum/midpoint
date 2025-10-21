@@ -10,15 +10,20 @@ package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 /**
  * @author lskublik
@@ -53,7 +58,7 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
         return createPrismPropertyValuePanel(item);
     }
 
-    private @NotNull PrismPropertyValuePanel<T> createPrismPropertyValuePanel(ListItem<PrismPropertyValueWrapper<T>> item) {
+    private @NotNull Component createPrismPropertyValuePanel(@NotNull ListItem<PrismPropertyValueWrapper<T>> item) {
         PrismPropertyValuePanel<T> panel = new VerticalFormPrismPropertyValuePanel<T>(ID_VALUE, item.getModel(), getSettings()) {
 
             @Override
@@ -66,6 +71,14 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
     }
 
     protected String getCssClassForValueContainer() {
+        PrismPropertyWrapper<T> modelObject = getModelObject();
+        ItemPath path = modelObject.getPath();
+        //What's if there are other multivalue properties that need special styling? should we check
+        // if multivalue then apply/implement something like prism-property-values instead of prism-property-value?
+        if (path != null && Objects.equals(path.last(), ResourceObjectTypeDelineationType.F_FILTER)) {
+            return "d-flex flex-column gap-2";
+        }
+
         return "";
     }
 

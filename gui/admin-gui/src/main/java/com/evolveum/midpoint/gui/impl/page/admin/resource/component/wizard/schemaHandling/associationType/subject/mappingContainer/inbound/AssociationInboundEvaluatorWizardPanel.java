@@ -88,8 +88,7 @@ public class AssociationInboundEvaluatorWizardPanel extends AbstractWizardChoice
                                 ItemPath.create(
                                         SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION,
                                         AssociationSynchronizationExpressionEvaluatorType.F_CORRELATION),
-                                false))
-        );
+                                false)));
     }
 
     private void showSynchronizationConfigWizard(AjaxRequestTarget target) {

@@ -15,7 +15,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.icon.RoundedImageObj
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApplicationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;

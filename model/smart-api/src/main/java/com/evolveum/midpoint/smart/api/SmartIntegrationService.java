@@ -62,6 +62,11 @@ public interface SmartIntegrationService {
             String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws SchemaException;
 
+    /** Returns the object holding last known statistics for the given resource, kind and intent. */
+    public GenericObjectType getLatestObjectTypeStatistics(
+            String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+            throws SchemaException;
+
     /** Submits "suggest object types" request. Returns a token used to query the status. */
     String submitSuggestObjectTypesOperation(String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws CommonException;
@@ -175,6 +180,7 @@ public interface SmartIntegrationService {
     MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            ShadowObjectClassStatisticsType statistics,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             @Nullable CurrentActivityState<?> activityState,

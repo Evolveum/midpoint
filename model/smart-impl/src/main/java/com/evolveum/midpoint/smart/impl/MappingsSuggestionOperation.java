@@ -81,7 +81,7 @@ class MappingsSuggestionOperation {
                 qualityAssessor);
     }
 
-    MappingsSuggestionType suggestMappings(OperationResult result)
+    MappingsSuggestionType suggestMappings(OperationResult result, ShadowObjectClassStatisticsType statistics)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         var focusTypeDefinition = ctx.getFocusTypeDefinition();

@@ -8,25 +8,21 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="d-flex flex-row alert purple-light alert-dismissible fade show" role="alert" wicket:id="alertContainer">
-        <div wicket:id="message" class="col-8 d-flex align-items-center text-bold text-purple-dark"></div>
+    <div class="d-flex flex-row flex-wrap alert purple-light alert-dismissible fade show px-3" role="alert" wicket:id="alertContainer">
+        <div class="d-flex py-2 pr-2 align-items-start">
+            <i wicket:id="icon"></i>
+        </div>
+        <div class="d-flex flex-column justify-content-center align-items-start">
+            <div wicket:id="text" class="text-purple-dark text-bold"></div>
+            <div wicket:id="subText" class="text-purple-dark"></div>
+        </div>
 
-        <div wicket:id="primaryPanel" class="ml-auto d-flex align-items-center flex-column">
+        <div class="ml-auto d-flex flex-column justify-content-center">
             <div class="d-flex flex-row gap-2 ml-auto">
-                <div wicket:id="progressPanel" class="bg-light p-2 rounded d-flex align-items-center px-3 gap-1">
-                    <i wicket:id="icon" class="text-purple"></i>
-                    <span wicket:id="text" class="text-start text-purple"></span>
-                    <button type="button" class="ml-4 btn btn-sm text-purple d-flex align-items-center" wicket:id="stopSuggestion"></button>
-                    <div wicket:id="info" class="ml-4 btn btn-link btn-sm ml-auto text-purple"></div>
-                </div>
-                <button type="button" class="btn text-purple d-flex align-items-center" wicket:id="buttons"></button>
+                <button type="button" class="btn d-flex align-items-center" wicket:id="buttons"></button>
             </div>
             <div class="text-muted small" wicket:id="suggestionInfo"></div>
         </div>
-
-        <button type="button" class="close d-flex h-100 align-items-center" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
     </div>
 
 </wicket:panel>

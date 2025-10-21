@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.StatusRowRecord;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -25,13 +26,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.HelpInfoPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,11 +48,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.resumeSuggestionTask;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.suspendSuggestionTask;
+
 public class SmartIntegrationStatusInfoUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationStatusInfoUtils.class);
 
-    /*OBJECT_TYPE_SUGGESTIONS*/
+    public record SuggestionProviderResult<C extends Containerable, T>(
+            @NotNull List<PrismContainerValueWrapper<C>> wrappers,
+            @NotNull Map<PrismContainerValueWrapper<C>, StatusInfo<T>> suggestionByWrapper) {
+    }
 
     /**
      * Loads the current status of a resource, initializing it via smart integration services.
@@ -111,7 +124,8 @@ public class SmartIntegrationStatusInfoUtils {
         }
 
         List<StatusInfo<ObjectTypesSuggestionType>> suggestionsPerObjectClass = statuses.stream()
-                .filter(s -> s.getObjectClassName() != null && s.getObjectClassName().equals(objectClassName))
+                .filter(s -> s.getObjectClassName() != null
+                        && s.getObjectClassName().equals(objectClassName))
                 .toList();
 
         return findLatestSuggestion(suggestionsPerObjectClass);
@@ -130,9 +144,7 @@ public class SmartIntegrationStatusInfoUtils {
                 .orElse(null);
     }
 
-    /*CORRELATION_TYPE_SUGGESTIONS*/
-
-    public static List<StatusInfo<CorrelationSuggestionsType>> loadCorrelationTypeSuggestions(
+    public static @Nullable List<StatusInfo<CorrelationSuggestionsType>> loadCorrelationTypeSuggestions(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull Task task,
@@ -150,16 +162,11 @@ public class SmartIntegrationStatusInfoUtils {
         }
     }
 
-    public record CorrelationSuggestionProviderResult(
-            @NotNull List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> wrappers,
-            @NotNull Map<PrismContainerValueWrapper<ItemsSubCorrelatorType>, StatusInfo<CorrelationSuggestionsType>> suggestionByWrapper) {
-
-    }
-
-    public static @NotNull CorrelationSuggestionProviderResult loadCorrelationSuggestionWrappers(
+    public static @NotNull SuggestionProviderResult<ItemsSubCorrelatorType, CorrelationSuggestionsType> loadCorrelationSuggestionWrappers(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull ResourceObjectTypeDefinitionType rotDef,
+            boolean includeNonCompletedSuggestions,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -170,11 +177,15 @@ public class SmartIntegrationStatusInfoUtils {
             List<StatusInfo<CorrelationSuggestionsType>> statuses =
                     loadCorrelationTypeSuggestions(pageBase, resourceOid, task, result);
             if (statuses == null || statuses.isEmpty()) {
-                return new CorrelationSuggestionProviderResult(Collections.emptyList(), byWrapper);
+                return new SuggestionProviderResult<>(Collections.emptyList(), byWrapper);
             }
 
             for (StatusInfo<CorrelationSuggestionsType> suggestionStatusInfo : statuses) {
                 if (!isCorrelationSuggestionEligible(suggestionStatusInfo, rotDef)) {continue;}
+
+                if (!includeNonCompletedSuggestions && isNotCompletedSuggestion(suggestionStatusInfo)) {
+                    continue;
+                }
 
                 CorrelationSuggestionsType suggestionParent = ensureCorrelationSuggestionsPresent(suggestionStatusInfo);
 
@@ -217,7 +228,7 @@ public class SmartIntegrationStatusInfoUtils {
                     }
                 }
             }
-            return new CorrelationSuggestionProviderResult(wrappers, byWrapper);
+            return new SuggestionProviderResult<>(wrappers, byWrapper);
 
         } catch (SchemaException e) {
             throw new IllegalStateException("Failed to wrap correlation suggestions", e);
@@ -226,7 +237,7 @@ public class SmartIntegrationStatusInfoUtils {
         }
     }
 
-    public static List<StatusInfo<MappingsSuggestionType>> loadMappingTypeSuggestions(
+    public static @Nullable List<StatusInfo<MappingsSuggestionType>> loadMappingTypeSuggestions(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull Task task,
@@ -243,8 +254,6 @@ public class SmartIntegrationStatusInfoUtils {
             result.close();
         }
     }
-
-    //  TODO this should be use-case for rewriting suggestion tasks
 
     /**
      * Loads the mapping type suggestion status for the given resource.
@@ -276,17 +285,35 @@ public class SmartIntegrationStatusInfoUtils {
         }
     }
 
-    public record MappingSuggestionProviderResult(
-            @NotNull List<PrismContainerValueWrapper<MappingType>> wrappers,
-            @NotNull Map<PrismContainerValueWrapper<MappingType>, StatusInfo<MappingsSuggestionType>> suggestionByWrapper) {
+    public static @Nullable StatusInfo<CorrelationSuggestionsType> loadCorrelationTypeSuggestion(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        var smart = pageBase.getSmartIntegrationService();
 
+        try {
+            List<StatusInfo<CorrelationSuggestionsType>> statusInfos = smart.listSuggestCorrelationOperationStatuses(
+                    resourceOid, task, result);
+            if (statusInfos == null || statusInfos.isEmpty()) {
+                return null;
+            }
+            return statusInfos.get(0);
+        } catch (Throwable t) {
+            result.recordException(t);
+            LoggingUtils.logException(LOGGER, "Couldn't load Correlation status for {}", t, resourceOid);
+            return null;
+        } finally {
+            result.close();
+        }
     }
 
-    public static @NotNull MappingSuggestionProviderResult loadMappingSuggestionWrappers(
+    public static @NotNull SuggestionProviderResult<MappingType, MappingsSuggestionType> loadMappingSuggestionWrappers(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull ResourceObjectTypeDefinitionType rotDef,
             @NotNull MappingDirection mappingDirection,
+            boolean includeNonCompletedSuggestions,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -297,11 +324,15 @@ public class SmartIntegrationStatusInfoUtils {
             List<StatusInfo<MappingsSuggestionType>> statuses =
                     loadMappingTypeSuggestions(pageBase, resourceOid, task, result);
             if (statuses == null || statuses.isEmpty()) {
-                return new MappingSuggestionProviderResult(Collections.emptyList(), byWrapper);
+                return new SuggestionProviderResult<>(Collections.emptyList(), byWrapper);
             }
 
             for (StatusInfo<MappingsSuggestionType> suggestionStatusInfo : statuses) {
                 if (!isMappingSuggestionEligible(suggestionStatusInfo, rotDef)) {
+                    continue;
+                }
+
+                if (!includeNonCompletedSuggestions && isNotCompletedSuggestion(suggestionStatusInfo)) {
                     continue;
                 }
 
@@ -358,13 +389,22 @@ public class SmartIntegrationStatusInfoUtils {
                 }
             }
 
-            return new MappingSuggestionProviderResult(wrappers, byWrapper);
+            return new SuggestionProviderResult<>(wrappers, byWrapper);
 
         } catch (SchemaException e) {
             throw new IllegalStateException("Failed to wrap mapping suggestions", e);
         } finally {
             result.close();
         }
+    }
+
+    public static boolean isNotCompletedSuggestion(@Nullable StatusInfo<?> suggestionStatusInfo) {
+        if (suggestionStatusInfo == null) {
+            return false;
+        }
+        return suggestionStatusInfo.isExecuting() ||
+                (suggestionStatusInfo.getStatus() == OperationResultStatusType.IN_PROGRESS
+                        || suggestionStatusInfo.getStatus() == OperationResultStatusType.FATAL_ERROR);
     }
 
     private static boolean isCorrelationSuggestionEligible(
@@ -556,14 +596,8 @@ public class SmartIntegrationStatusInfoUtils {
                 .collect(Collectors.toSet());
     }
 
-    public record ObjectTypeSuggestionProviderResult(
-            @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> wrappers,
-            @NotNull Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, StatusInfo<ObjectTypesSuggestionType>> suggestionByWrapper) {
-
-    }
-
     /** Creates value wrappers for each suggested object type. */
-    public static @NotNull ObjectTypeSuggestionProviderResult loadObjectTypeSuggestionWrappers(
+    public static @NotNull SuggestionProviderResult<ResourceObjectTypeDefinitionType, ObjectTypesSuggestionType> loadObjectTypeSuggestionWrappers(
             PageBase pageBase,
             String resourceOid,
             Task task,
@@ -573,7 +607,7 @@ public class SmartIntegrationStatusInfoUtils {
         final List<StatusInfo<ObjectTypesSuggestionType>> suggestions = loadObjectTypeSuggestions(
                 pageBase, resourceOid, task, result);
         if (suggestions == null || suggestions.isEmpty()) {
-            return new ObjectTypeSuggestionProviderResult(Collections.emptyList(), suggestionByWrapper);
+            return new SuggestionProviderResult<>(Collections.emptyList(), suggestionByWrapper);
         }
 
         final List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> wrappers = new ArrayList<>();
@@ -606,17 +640,11 @@ public class SmartIntegrationStatusInfoUtils {
             }
         });
 
-        return new ObjectTypeSuggestionProviderResult(wrappers, suggestionByWrapper);
-    }
-
-    public record AssociationTypeSuggestionProviderResult(
-            @NotNull List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> wrappers,
-            @NotNull Map<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>, StatusInfo<AssociationsSuggestionType>> suggestionByWrapper) {
-
+        return new SuggestionProviderResult<>(wrappers, suggestionByWrapper);
     }
 
     /** Creates value wrappers for each suggested association type. */
-    public static @NotNull AssociationTypeSuggestionProviderResult loadAssociationTypeSuggestionWrappers(
+    public static @NotNull SuggestionProviderResult<ShadowAssociationTypeDefinitionType, AssociationsSuggestionType> loadAssociationTypeSuggestionWrappers(
             PageBase pageBase,
             String resourceOid,
             Task task,
@@ -626,7 +654,7 @@ public class SmartIntegrationStatusInfoUtils {
         final @Nullable List<StatusInfo<AssociationsSuggestionType>> suggestions = loadAssociationSuggestions(
                 pageBase, resourceOid, task, result);
         if (suggestions == null || suggestions.isEmpty()) {
-            return new AssociationTypeSuggestionProviderResult(Collections.emptyList(), suggestionByWrapper);
+            return new SuggestionProviderResult<>(Collections.emptyList(), suggestionByWrapper);
         }
 
         final List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> wrappers = new ArrayList<>();
@@ -675,11 +703,11 @@ public class SmartIntegrationStatusInfoUtils {
             }
         });
 
-        return new AssociationTypeSuggestionProviderResult(wrappers, suggestionByWrapper);
+        return new SuggestionProviderResult<>(wrappers, suggestionByWrapper);
     }
 
     /** Builds display rows depending on the suggestion status. */
-    public static @NotNull List<StatusRowRecord> buildStatusRows(PageBase pageBase, StatusInfo<?> suggestion, boolean addDefaultRow) {
+    public static @NotNull List<StatusRowRecord> buildStatusRows(PageBase pageBase, StatusInfo<?> suggestion, boolean rejectEmptyProgress) {
         List<StatusRowRecord> rows = new ArrayList<>();
         if (suggestion != null && suggestion.getStatus() == OperationResultStatusType.FATAL_ERROR) {
             rows.add(new StatusRowRecord(pageBase.createStringResource(
@@ -689,9 +717,8 @@ public class SmartIntegrationStatusInfoUtils {
             return rows;
         }
 
-        if (addDefaultRow && (suggestion == null
-                || suggestion.getProgressInformation() == null
-                || suggestion.getProgressInformation().getChildren().isEmpty())) {
+        if (rejectEmptyProgress && (suggestion == null
+                || suggestion.getProgressInformation() == null)) {
             rows.add(new StatusRowRecord(pageBase.createStringResource(
                     "SmartGeneratingDto.no.suggestion"),
                     ActivityProgressInformation.RealizationState.UNKNOWN,
@@ -704,12 +731,23 @@ public class SmartIntegrationStatusInfoUtils {
         }
 
         ActivityProgressInformation progressInformation = suggestion.getProgressInformation();
-
         if (progressInformation == null) {
             return rows;
         }
 
         List<ActivityProgressInformation> children = progressInformation.getChildren();
+
+        if (!rejectEmptyProgress && progressInformation.getChildren().isEmpty()) {
+            return rows;
+        }
+
+        if (children.isEmpty()) {
+            rows.add(new StatusRowRecord(pageBase.createStringResource(
+                    "SmartGeneratingDto." + progressInformation.getRealizationState()),
+                    progressInformation.getRealizationState(),
+                    suggestion));
+            return rows;
+        }
         for (ActivityProgressInformation child : children) {
             String activityIdentifier = child.getActivityIdentifier();
             ActivityProgressInformation.RealizationState realizationState = child.getRealizationState();
@@ -723,15 +761,17 @@ public class SmartIntegrationStatusInfoUtils {
         return pageBase.createStringResource("Activity.explanation." + operationKey);
     }
 
-    public static Double extractEfficiencyFromSuggestedCorrelationItemWrapper(
+    public static @NotNull String extractEfficiencyFromSuggestedCorrelationItemWrapper(
             @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> valueWrapper) {
         PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueWrapper.getParentContainerValue(
                 CorrelationSuggestionType.class);
         if (parentContainerValue != null && parentContainerValue.getRealValue() != null) {
             CorrelationSuggestionType suggestionValue = parentContainerValue.getRealValue();
-            return suggestionValue.getQuality() != null ? (suggestionValue.getQuality() * 100) : null;
+
+            Double quality = suggestionValue.getQuality();
+            return (quality != null && quality != -1) ? String.valueOf((suggestionValue.getQuality() * 100)) : "-";
         }
-        return null;
+        return "-";
     }
 
     public static @Nullable Float extractEfficiencyFromSuggestedMappingItemWrapper(
@@ -766,5 +806,50 @@ public class SmartIntegrationStatusInfoUtils {
         }
 
         return 0;
+    }
+
+    public static void showSuggestionInfoPanelPopup(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @Nullable StatusInfo<?> statusInfo) {
+        HelpInfoPanel helpInfoPanel = new HelpInfoPanel(
+                pageBase.getMainPopupBodyId(),
+                statusInfo != null ? statusInfo::getLocalizedMessage : null) {
+            @Override
+            public StringResourceModel getTitle() {
+                return createStringResource("ResourceObjectTypesPanel.suggestion.details.title");
+            }
+
+            @Override
+            protected @NotNull Label initLabel(IModel<String> messageModel) {
+                Label label = super.initLabel(messageModel);
+                label.add(AttributeModifier.append("class", "alert alert-danger"));
+                return label;
+            }
+
+            @Override
+            public @NotNull Component getFooter() {
+                Component footer = super.getFooter();
+                footer.add(new VisibleBehaviour(() -> false));
+                return footer;
+            }
+        };
+
+        target.add(pageBase.getMainPopup());
+
+        pageBase.showMainPopup(
+                helpInfoPanel, target);
+    }
+
+    public static void handleSuggestionSuspendResumeOperation(
+            @NotNull PageBase pageBase,
+            @NotNull StatusInfo<?> statusInfo,
+            @NotNull Task task, @NotNull OperationResult result) {
+        if (statusInfo.isSuspended() && statusInfo.getStatus() != OperationResultStatusType.FATAL_ERROR) {
+            resumeSuggestionTask(pageBase, statusInfo, task, result);
+        } else if (!statusInfo.isSuspended() && statusInfo.getStatus() != OperationResultStatusType.FATAL_ERROR) {
+            suspendSuggestionTask(
+                    pageBase, statusInfo, task, result);
+        }
     }
 }

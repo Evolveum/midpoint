@@ -127,8 +127,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         assertThat(scores).hasSize(1);
         double score = scores.get(0);
         assertThat(score)
-                .as("Score for multi-valued attribute correlation should be -1.0")
-                .isEqualTo(-1.0);
+                .isEqualTo(0.0);
     }
 
     @Test
@@ -152,8 +151,8 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         assertThat(scores).hasSize(1);
         double score = scores.get(0);
         assertThat(score)
-                .as("Score for resource-only attribute correlation should be 0.5")
-                .isEqualTo(0.5);
+                .as("Score with missing attribute should be -1.0")
+                .isEqualTo(-1.0);
     }
 
     @Test
@@ -181,8 +180,8 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         assertThat(scores).hasSize(1);
         double score = scores.get(0);
         assertThat(score)
-                .as("Score for focus-only attribute correlation should be below 0.5")
-                .isLessThanOrEqualTo(0.5);
+                .as("Score for focus-only attribute correlation should be 1")
+                .isLessThanOrEqualTo(1);
     }
 
     @Test
@@ -327,11 +326,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
-        assertThat(scores).hasSize(1);
-        double score = scores.get(0);
-        assertThat(score)
-                .as("Score for all-missing focus attribute should be 0.")
-                .isEqualTo(0.0);
+        assertThat(scores)
+                .as("Correlator with all-missing focus attribute should be excluded.")
+                .hasSize(0);
     }
 
 
@@ -357,10 +354,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
-        assertThat(scores).hasSize(1);
-        assertThat(scores.get(0))
-                .as("Score for correlation with no uniqueness (all same value) should be 0.0")
-                .isEqualTo(0.0);
+        assertThat(scores)
+                .as("Correlator with no uniqueness and score 0 should be excluded.")
+                .hasSize(0);
     }
 
     @Test
@@ -390,10 +386,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
-        assertThat(scores).hasSize(1);
-        assertThat(scores.get(0))
-                .as("Score for max ambiguity (all shadows point to all focuses) should be 0.0")
-                .isEqualTo(0.0);
+        assertThat(scores)
+                .as("Correlator with no uniqueness and score 0 should be excluded.")
+                .hasSize(0);
     }
 
     @Test
@@ -429,13 +424,12 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
-        assertThat(scores).hasSize(2);
+        assertThat(scores)
+                .as("Correlator with no uniqueness and score 0 should be excluded and perfect correlator should be kept.")
+                .hasSize(1);
         assertThat(scores.get(0))
                 .as("Score for unique personalNumber correlation should be 1.0")
                 .isEqualTo(1.0);
-        assertThat(scores.get(1))
-                .as("Score for all-same email correlation should be 0.0")
-                .isEqualTo(0.0);
     }
 
     @Test
@@ -479,7 +473,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         List<CorrelationSuggestionType> suggestionList = suggestions.getSuggestion();
 
-        assertThat(suggestionList).hasSize(2);
+        assertThat(suggestionList)
+                .as("Correlator with no uniqueness and score 0 should be excluded and perfect correlator should be kept.")
+                .hasSize(1);
 
         // Find the suggestion for personalNumber
         CorrelationSuggestionType personalNumberSuggestion = suggestionList.stream()

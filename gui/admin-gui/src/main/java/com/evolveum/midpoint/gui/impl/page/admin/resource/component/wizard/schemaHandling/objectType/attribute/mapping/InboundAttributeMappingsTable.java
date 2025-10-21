@@ -42,6 +42,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.excludeUnwantedMappings;
+
 /**
  * @author lskublik
  */
@@ -209,18 +211,10 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
     }
 
     protected void excludeMappings(@NotNull List<PrismContainerValueWrapper<MappingType>> list, MappingUsedFor usedFor) {
-        list.removeIf(valueWrapper -> {
-            InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
-            InboundMappingUseType valueUse = realValue.getUse();
-            if (valueUse == null) {
-                valueUse = InboundMappingUseType.ALL;
-            }
-            MappingUsedFor valueUsedFor = MappingUsedFor.valueOf(valueUse.name());
-
-            return !usedFor.equals(valueUsedFor);
-        });
+        excludeUnwantedMappings(list, usedFor);
     }
 
+    @SuppressWarnings("unchecked")
     protected MappingUsedFor getSelectedTypeOfMappings() {
         DropDownChoicePanel<MappingUsedFor> header = (DropDownChoicePanel<MappingUsedFor>) getTable().getHeader();
         return header.getModel().getObject();

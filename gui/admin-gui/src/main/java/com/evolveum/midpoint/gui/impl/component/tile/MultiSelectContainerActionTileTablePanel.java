@@ -14,23 +14,23 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 
-import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -50,7 +50,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
-import com.evolveum.midpoint.web.component.dialog.SmartSuggestConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
@@ -68,6 +68,9 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
 
 public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable, T extends TemplateTile<PrismContainerValueWrapper<C>>>
         extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, T> {
@@ -149,7 +152,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         }
 
         if (showActionsColumn()) {
-            @Nullable IColumn<PrismContainerValueWrapper<C>, String> actions = createActionsColumn(
+            @Nullable IColumn<PrismContainerValueWrapper<C>, String> actions = createLinkStyleActionsColumn(
                     getPageBase(), getInlineMenuItems(null));
             if (actions != null) {
                 columns.add(actions);
@@ -196,38 +199,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             case ADDED -> component.add(AttributeModifier.append("class", "table-success"));
             case DELETED -> component.add(AttributeModifier.append("class", "table-danger"));
         }
-
-    }
-
-    private @Nullable IColumn<PrismContainerValueWrapper<C>, String> createActionsColumn(
-            @NotNull PageBase pageBase,
-            @NotNull List<InlineMenuItem> allItems) {
-        return !allItems.isEmpty() ? new InlineMenuButtonColumn<>(allItems, pageBase) {
-            @Override
-            public String getCssClass() {
-                return "inline-menu-column";
-            }
-
-            @Override
-            protected String getDropDownButtonIcon() {
-                return "fa fa-ellipsis-h";
-            }
-
-            @Override
-            protected String getSpecialButtonClass() {
-                return "btn btn-link btn-sm";
-            }
-
-            @Override
-            protected String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
-                return "btn btn-link btn-sm text-nowrap";
-            }
-
-            @Override
-            protected String getAdditionalMultiButtonPanelCssClass() {
-                return "justify-content-end";
-            }
-        } : null;
     }
 
     protected List<PrismContainerValueWrapper<C>> getMultiTableModel() {
@@ -247,7 +218,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             }
 
             @Override
-            protected String getSpecialDropdownMenuClass() {
+            protected @NotNull String getSpecialDropdownMenuClass() {
                 return "dropdown-menu-end";
             }
         };
@@ -493,7 +464,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return columnMenuAction;
     }
 
-    //TODO add non editable mode
     public void editItemPerformed(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<C>> rowModel,
@@ -617,8 +587,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                        () -> new SmartPermissionRecordDto(null, null)) {
+                RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                        buildSmartPermissionRecordDto()) {
 
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
@@ -636,32 +606,58 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return suggestObjectButton;
     }
 
+    protected IModel<RequestDetailsRecordDto> buildSmartPermissionRecordDto() {
+        return () -> new RequestDetailsRecordDto(null, null);
+    }
+
     @NotNull
     protected ToggleCheckBoxPanel createToggleSuggestionButton(String idButton, IModel<Boolean> switchToggleModel) {
-        ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton,
-                switchToggleModel) {
-            @Override
-            public @NotNull Component getTitleComponent(String id) {
-                Label label = new Label(id, createStringResource("SchemaHandlingObjectsPanel.show.suggestion.label"));
-                label.add(AttributeAppender.append("class", "m-0 font-weight-normal text-body"));
-                label.setOutputMarkupId(true);
-                return label;
-            }
-
-            @Override
-            protected void onToggle(@NotNull AjaxRequestTarget target) {
-                refreshAndDetach(target);
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getContainerCssClass() {
-                return "d-flex flex-row-reverse align-items-center gap-1  btn btn-default btn-sm";
-            }
-        };
-        togglePanel.setOutputMarkupId(true);
+        ToggleCheckBoxPanel togglePanel = createToggleSuggestionVisibilityButton(getPageBase(), idButton, switchToggleModel,
+                this::refreshAndDetach, null);
         togglePanel.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
         return togglePanel;
+    }
+
+    protected AjaxIconButton createDiscardButton(String id, IModel<PrismContainerValueWrapper<C>> rowModel) {
+        AjaxIconButton discardButton = new AjaxIconButton(id, Model.of("fa fa-solid fa-x"),
+                createStringResource("SmartCorrelationTilePanel.discardButton")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()), true);
+            }
+        };
+        discardButton.setOutputMarkupId(true);
+        discardButton.add(new TooltipBehavior());
+        discardButton.add(AttributeModifier.replace("class", getDiscardButtonCssClass()));
+        discardButton.showTitleAsLabel(true);
+        return discardButton;
+    }
+
+    protected String getDiscardButtonCssClass() {
+        return "col-auto px-4 btn btn-default btn-sm rounded ml-auto";
+    }
+
+    protected AjaxIconButton createAcceptButton(String id, IModel<PrismContainerValueWrapper<C>> rowModel) {
+        AjaxIconButton acceptButton = new AjaxIconButton(id, Model.of("fa fa-check"),
+                createStringResource("SmartCorrelationTilePanel.acceptButton")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onAcceptPerformed(target, rowModel);
+            }
+        };
+        acceptButton.setOutputMarkupId(true);
+        acceptButton.add(new TooltipBehavior());
+        acceptButton.add(AttributeModifier.replace("class", getAcceptButtonCssClass()));
+        acceptButton.showTitleAsLabel(true);
+        return acceptButton;
+    }
+
+    protected void onAcceptPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> toAccept) {
+        refreshAndDetach(target);
+    }
+
+    protected String getAcceptButtonCssClass() {
+        return "col-auto px-4 btn btn-primary btn-sm rounded ml-auto";
     }
 
     protected boolean isDuplicationSupported() {
@@ -669,14 +665,14 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected boolean isSuggestButtonVisible() {
-        return true;
+        return false;
     }
 
     protected void onSuggestNewPerformed(AjaxRequestTarget target) {
     }
 
     protected boolean isToggleSuggestionVisible() {
-        return true;
+        return getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel();
     }
 
     protected IModel<Boolean> getSwitchToggleModel() {

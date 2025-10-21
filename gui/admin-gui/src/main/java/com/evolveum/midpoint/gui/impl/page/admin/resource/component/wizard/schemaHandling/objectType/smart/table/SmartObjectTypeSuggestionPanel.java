@@ -8,13 +8,22 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
@@ -33,10 +42,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
@@ -61,9 +74,11 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
     private static final String ID_FILTER_LABEL = "filterLabel";
     private static final String ID_BASE_CONTEXT_LABEL = "baseContextLabel";
-    private static final String ID_BASE_CONTEXT_OBJECT_CLASS = "baseContextFilterObjectClass";
+    private static final String ID_BASE_CONTEXT_OBJECT_CLASS_LABEL = "baseContextObjectClassLabel";
+    private static final String ID_BASE_CONTEXT_OBJECT_CLASS_VALUE = "baseContextObjectClassValue";
 
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
+    IModel<Boolean> forceDeleteEnabled;
 
     private static final String OP_DETERMINE_STATUS =
             SmartObjectTypeSuggestionPanel.class.getName() + ".determineStatus";
@@ -72,9 +87,11 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
     public SmartObjectTypeSuggestionPanel(@NotNull String id,
             @NotNull IModel<SmartObjectTypeSuggestionTileModel<C>> model,
-            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel) {
+            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel,
+            @NotNull IModel<Boolean> forceDeleteEnabled) {
         super(id, model);
         this.selectedTileModel = selectedTileModel;
+        this.forceDeleteEnabled = forceDeleteEnabled;
     }
 
     @Override
@@ -139,9 +156,15 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         baseContextFilterPanels.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextFilterPanels);
 
+        Label baseContextObjectClassLabel = new Label(ID_BASE_CONTEXT_OBJECT_CLASS_LABEL,
+                createStringResource("SmartSuggestObjectTypeTilePanel.base.context.object.class"));
+        baseContextObjectClassLabel.setOutputMarkupId(true);
+        baseContextObjectClassLabel.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
+        filterCtn.add(baseContextObjectClassLabel);
+
         List<PrismPropertyValueWrapper<Object>> baseContexFilterObjectClassPropertyValueWrapper1 = getModelObject()
                 .getBaseContexFilterPropertyValueWrapper(ResourceObjectReferenceType.F_OBJECT_CLASS);
-        RepeatingView baseContextFilterObjectClassPanels = new RepeatingView(ID_BASE_CONTEXT_OBJECT_CLASS);
+        RepeatingView baseContextFilterObjectClassPanels = new RepeatingView(ID_BASE_CONTEXT_OBJECT_CLASS_VALUE);
         populateObjectClassPropertyPanels(baseContexFilterObjectClassPropertyValueWrapper1, baseContextFilterObjectClassPanels);
         baseContextFilterObjectClassPanels.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextFilterObjectClassPanels);
@@ -175,7 +198,7 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
             @NotNull List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper,
             @NotNull RepeatingView filterPanels) {
         for (PrismPropertyValueWrapper<Object> valueWrapper : filterPropertyValueWrapper) {
-            PrismPropertyValuePanel<?> valuePanel = new PrismPropertyValuePanel<>(filterPanels.newChildId(),
+            VerticalFormPrismPropertyValuePanel<?> valuePanel = new VerticalFormPrismPropertyValuePanel<>(filterPanels.newChildId(),
                     Model.of(valueWrapper), null);
             valuePanel.setOutputMarkupId(true);
             valuePanel.setEnabled(false);
@@ -203,18 +226,139 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     }
 
     private void initMoreActionsPanel() {
-        AjaxIconButton moreActions = new AjaxIconButton(ID_MORE_ACTIONS,
-                getMoreActionIcon(),
-                createStringResource("SmartSuggestObjectTypeTilePanel.more.actions")) {
+        DropdownButtonPanel buttonPanel = new DropdownButtonPanel(ID_MORE_ACTIONS, new DropdownButtonDto(
+                null, "fa-ellipsis-h ml-1", null, buildMoreActionsMenuItems())) {
+            @Override
+            protected boolean hasToggleIcon() {
+                return false;
+            }
+
+            @Override
+            protected boolean showIcon() {
+                return true;
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getSpecialButtonClass() {
+                return " px-1 py-0 ";
+            }
+        };
+        buttonPanel.setOutputMarkupId(true);
+        add(buttonPanel);
+    }
+
+    private @NotNull List<InlineMenuItem> buildMoreActionsMenuItems() {
+        List<InlineMenuItem> items = new ArrayList<>();
+        items.add(createCompareWithExistingItemMenu());
+        items.add(createDeleteItemMenu());
+        return items;
+    }
+
+    protected ButtonInlineMenuItem createDeleteItemMenu() {
+        return new ButtonInlineMenuItem(createStringResource("SmartSuggestObjectTypeTilePanel.discard.suggestion")) {
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
+            }
+
+            @Override
+            public IModel<String> getAdditionalCssClass() {
+                return Model.of("text-danger");
+            }
+
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                performOnDelete(target);
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (forceDeleteEnabled.getObject()) {
+                            performOnDelete(target);
+                            return;
+                        }
+
+                        performDeleteConfirmationAction(target);
+                    }
+                };
             }
         };
-        moreActions.setOutputMarkupId(true);
-        add(moreActions);
+    }
+
+    protected ButtonInlineMenuItem createCompareWithExistingItemMenu() {
+        return new ButtonInlineMenuItem(createStringResource("SmartSuggestObjectTypeTilePanel.compare.with.existing")) {
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-balance-scale");
+            }
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        //TODO implement comparison logic
+                    }
+                };
+            }
+        };
+    }
+
+    protected void performDeleteConfirmationAction(AjaxRequestTarget target) {
+
+        List<RequestDetailsRecordDto.RequestRecord> records = List.of(
+                new RequestDetailsRecordDto.RequestRecord(
+                        getString("RequestDetailsConfirmationPanel.request.details.title"),
+                        null,
+                        forceDeleteEnabled,
+                        null
+                )
+        );
+
+        RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                () -> new RequestDetailsRecordDto(createStringResource("RequestDetailsConfirmationPanel.discard.suggestion"),
+                        records) {
+                    @Override
+                    public IModel<String> getRequestLabelModel(@NotNull PageBase pageBase) {
+                        return Model.of("");
+                    }
+                }) {
+            @Contract(pure = true)
+            @Override
+            protected @Nullable StringResourceModel getInfoMessageModel() {
+                return null;
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getTitleIconAdditionalCssClass() {
+                return "text-danger";
+            }
+
+            @Override
+            protected StringResourceModel getSubtitleModel() {
+                return createStringResource("RequestDetailsConfirmationPanel.discard.suggestion.message");
+            }
+
+            @Override
+            protected boolean isLearnMoreVisible() {
+                return false;
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                performOnDelete(target);
+            }
+
+            @Override
+            protected IModel<String> createYesLabel() {
+                return createStringResource("RequestDetailsConfirmationPanel.discard");
+            }
+        };
+        getPageBase().showMainPopup(dialog, target);
     }
 
     private void initChipsInfoPanel() {
@@ -281,10 +425,6 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         }
     }
 
-    protected Model<String> getMoreActionIcon() {
-        return Model.of(GuiStyleConstants.CLASS_ICON_TRASH);
-    }
-
     protected void performOnDelete(AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
@@ -310,14 +450,18 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> thisTile = SmartObjectTypeSuggestionPanel.this
                 .getModelObject().getValue();
         if (statusInfo != null) {
-
             SmartIntegrationUtils.removeObjectTypeSuggestionNew(
                     getPageBase(),
                     statusInfo,
                     thisTile.getRealValue(),
                     task,
                     result);
-            target.add(getPageBase().getFeedbackPanel());
+
+            if (result.isFatalError()) {
+                result.recomputeStatus();
+                getPageBase().showResult(result);
+                target.add(getPageBase().getFeedbackPanel());
+            }
         }
     }
 

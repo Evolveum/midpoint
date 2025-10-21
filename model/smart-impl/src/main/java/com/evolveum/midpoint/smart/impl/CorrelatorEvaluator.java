@@ -138,6 +138,10 @@ class CorrelatorEvaluator {
         for (PrismObject<?> focus : sampledFocuses) {
             var item = focus.findItem(focusPath);
             if (item != null) {
+                // Skipping multi-values
+                if (item.getValues().size() > 1) {
+                    continue;
+                }
                 Object val = item.getValue().getRealValue();
                 if (val != null) {
                     focusValueToOids
@@ -150,6 +154,10 @@ class CorrelatorEvaluator {
         for (PrismObject<?> shadow : sampledShadows) {
             var item = shadow.findItem(shadowPath);
             if (item != null) {
+                // Skipping multi-values
+                if (item.getValues().size() > 1) {
+                    continue;
+                }
                 Object val = item.getValue().getRealValue();
                 if (val != null) {
                     Set<String> matchingFocuses = focusValueToOids.getOrDefault(String.valueOf(val), Collections.emptySet());
@@ -219,27 +227,14 @@ class CorrelatorEvaluator {
         ItemPath focusPath = suggestion.focusItemPath();
         ItemPath resourcePath = suggestion.resourceAttrPath();
 
-        boolean hasFocusPath = focusPath != null;
-        boolean hasResourcePath = resourcePath != null;
-
-        if (hasFocusPath && isMultiValued(focusPath)) {
-            LOGGER.debug("Excluded correlator {}: multi-valued focus path.", focusPath);
-            return -1.0;
-        }
-        if (hasResourcePath && isMultiValued(resourcePath)) {
-            LOGGER.debug("Excluded correlator {}: multi-valued resource path.", resourcePath);
+        if (focusPath == null) {
+            LOGGER.debug("Excluded correlator {}: missing focus path.", suggestion);
             return -1.0;
         }
 
-        Double focusScore = hasFocusPath ? focusStatistics.getScore(focusPath) : null;
-        Double resourceScore = hasResourcePath ? resourceStatistics.getScore(resourcePath) : null;
-
-        if (focusScore == null && resourceScore == null) {
-            return -1.0;
-        } else if (focusScore == null) {
-            return resourceScore * 0.5; // penalty for not having focus path
-        } else if (resourceScore == null) {
-            return focusScore * 0.5; // penalty for not having resource path
+        if (resourcePath == null) {
+            LOGGER.debug("Excluded correlator {}: missing resource path.", suggestion);
+            return focusStatistics.getScore(focusPath);
         }
 
         // Excluding base score to have unified score with "black-box" correlators

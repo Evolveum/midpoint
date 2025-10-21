@@ -9,18 +9,20 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.factory.duplicateresolver.AssociationDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPopupPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.*;
@@ -43,6 +45,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -176,7 +179,8 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             PrismContainerValue<ShadowAssociationTypeDefinitionType> value,
             IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> newWrapperModel,
             AjaxRequestTarget target,
-            boolean isDuplicate) {
+            boolean isDuplicate,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
         try {
             CompleteResourceSchema resourceSchema = getObjectDetailsModels().getRefinedSchema();
             List<ShadowReferenceAttributeDefinition> assocDefs = ProvisioningObjectsUtil
@@ -223,7 +227,7 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             } else {
                 if (isDuplicate) {
                     getObjectDetailsModels().getPageResource()
-                            .showAssociationTypeWizardForDuplicate(value, target, newWrapperModel.getObject().getPath());
+                            .showAssociationTypeWizardForDuplicate(value, target, newWrapperModel.getObject().getPath(), null);
                 } else {
                     getObjectDetailsModels().getPageResource()
                             .showAssociationTypeWizard(value, target, newWrapperModel.getObject().getPath());
@@ -320,39 +324,13 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         PrismContainerWrapperModel<ResourceType, ShadowAssociationTypeDefinitionType> resourceDefWrapper =
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
 
-        final Map<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>, StatusInfo<AssociationsSuggestionType>>
-                suggestionsIndex = new HashMap<>();
+        var suggestionsModelDto = StatusAwareDataFactory.createAssociationModel(
+                this,
+                getSwitchSuggestionModel(),
+                resourceDefWrapper,
+                getObjectWrapperObject().getOid());
 
-        LoadableModel<List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>>> containerModel =
-                new LoadableModel<>() {
-                    @Override
-                    protected @NotNull List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> load() {
-                        List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> out = new ArrayList<>();
-
-                        suggestionsIndex.clear();
-                        if (Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
-                            final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-                            final OperationResult result = task.getResult();
-
-                            final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
-
-                            SmartIntegrationStatusInfoUtils.@NotNull AssociationTypeSuggestionProviderResult suggestions =
-                                    loadAssociationTypeSuggestionWrappers(getPageBase(), resourceOid, task, result);
-                            out.addAll(suggestions.wrappers());
-                            suggestionsIndex.putAll(suggestions.suggestionByWrapper());
-                        }
-
-                        List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> resource = resourceDefWrapper
-                                .getObject().getValues();
-                        if (resource != null) {
-                            out.addAll(resource);
-                        }
-                        return out;
-                    }
-                };
-
-        String resourceOid = getObjectWrapperObject().getOid();
-        return new StatusAwareDataProvider<>(this, resourceOid, Model.of(), containerModel, suggestionsIndex::get);
+        return new StatusAwareDataProvider<>(this, Model.of(), suggestionsModelDto);
     }
 
     @Override
@@ -367,18 +345,21 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
         final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
 
-        SmartIntegrationStatusInfoUtils.@NotNull AssociationTypeSuggestionProviderResult suggestions = loadAssociationTypeSuggestionWrappers(
-                getPageBase(), resourceOid, task, result);
+        SuggestionProviderResult<ShadowAssociationTypeDefinitionType, AssociationsSuggestionType> suggestions =
+                loadAssociationTypeSuggestionWrappers(getPageBase(), resourceOid, task, result);
 
         return !suggestions.wrappers().isEmpty();
     }
 
     @Override
-    protected boolean performOnDeleteSuggestion(AjaxRequestTarget target, PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> valueWrapper) {
-        Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
+    protected boolean performOnDeleteSuggestion(
+            @NotNull PageBase pageBase,
+            AjaxRequestTarget target,
+            PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> valueWrapper,
+            @Nullable StatusInfo<?> statusInfo) {
+        Task task = pageBase.createSimpleTask(OP_DETERMINE_STATUSES);
         OperationResult result = task.getResult();
 
-        @Nullable StatusInfo<AssociationsSuggestionType> statusInfo = getStatusInfo(valueWrapper);
         if (statusInfo == null) {
             return false;
         }
@@ -386,12 +367,12 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
                 .getParentContainerValue(AssociationSuggestionType.class);
         //TODO move it into schemaHandling
         SmartIntegrationUtils.removeAssociationTypeSuggestionNew(
-                getPageBase(),
+                pageBase,
                 statusInfo,
                 parentContainerValue.getRealValue(),
                 task,
                 result);
-        target.add(getPageBase().getFeedbackPanel());
+        target.add(pageBase.getFeedbackPanel());
         return true;
     }
 
@@ -420,15 +401,16 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
 
         refreshForm(target);
-        //TODO: temporary solution
-        performOnDeleteSuggestion(target, (PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>) valueWrapper);
 
-        //TODO problem with ref attribute modification (try using review, change ref, review again)
+        PageBase pageBase = getPageBase();
+        var statusInfo = getStatusInfo(valueWrapper);
         getObjectDetailsModels().getPageResource()
                 .showAssociationTypeWizardForDuplicate(
                         prismContainerValue,
                         target,
-                        containerModel.getObject().getPath());
+                        containerModel.getObject().getPath(),
+                        ajaxRequestTarget -> performOnDeleteSuggestion(pageBase, target,
+                                (PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>) valueWrapper, statusInfo));
 
     }
 }

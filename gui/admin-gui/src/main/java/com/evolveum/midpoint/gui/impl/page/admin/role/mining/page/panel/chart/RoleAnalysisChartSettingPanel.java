@@ -35,11 +35,6 @@ public class RoleAnalysisChartSettingPanel extends DetailsTablePanel implements 
         super.onInitialize();
     }
 
-    @Override
-    public @Nullable Component getTitleComponent() {
-        return new Label(ID_TITLE, new StringResourceModel("ChartSettingPanel.title"));
-    }
-
     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
         getPageBase().hideMainPopup(ajaxRequestTarget);
     }

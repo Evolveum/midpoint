@@ -39,8 +39,7 @@ public class SmartIntegrationWrapperUtils {
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationWrapperUtils.class);
 
     public static <C extends Containerable> @NotNull PrismContainerValue<C> processSuggestedContainerValue(
-            @NotNull PrismContainerValue<C> container,
-            @NotNull PrismContainer<C> parent) {
+            @NotNull PrismContainerValue<C> container) {
         PrismContainerValue<C> value = PrismValueCollectionsUtil.cloneCollectionComplex(
                         CloneStrategy.REUSE,
                         Collections.singletonList(container))

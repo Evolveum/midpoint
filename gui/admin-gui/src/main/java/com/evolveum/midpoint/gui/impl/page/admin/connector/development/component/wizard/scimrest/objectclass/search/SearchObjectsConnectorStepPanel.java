@@ -12,12 +12,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang3.Strings;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -140,6 +142,16 @@ public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<Con
             protected boolean isHeaderVisible() {
                 return false;
             }
+
+            @Override
+            protected boolean showErrorResultInFeedbackPanel() {
+                return true;
+            }
+
+            @Override
+            public Component getFeedbackPanel() {
+                return getFeedback();
+            }
         };
         table.setOutputMarkupId(true);
         add(table);
@@ -190,5 +202,14 @@ public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<Con
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         super.onSubmitPerformed(target);
         onNextPerformed(target);
+    }
+
+    @Override
+    public boolean onBackPerformed(AjaxRequestTarget target) {
+        if (((ResourceUncategorizedPanel)get(ID_PANEL)).getShadowTable().getDataProvider() instanceof SelectableBeanDataProvider<?> selectableBeanDataProvider
+                && selectableBeanDataProvider.getErrorResult() != null){
+            getPageBase().showResult(selectableBeanDataProvider.getErrorResult());
+        }
+        return super.onBackPerformed(target);
     }
 }

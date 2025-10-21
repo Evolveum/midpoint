@@ -3,6 +3,8 @@ package com.evolveum.midpoint.smart.impl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class TestServiceClientFactory implements ServiceClientFactory {
 
@@ -14,8 +16,21 @@ public class TestServiceClientFactory implements ServiceClientFactory {
     }
 
     @Override
-    public ServiceClient getServiceClient(OperationResult parentResult) {
-        return this.client;
+    public ServiceClient getServiceClient(OperationResult parentResult) throws SchemaException, ConfigurationException {
+        // If a mock client was configured by the test, use it.
+        if (this.client != null) {
+            return this.client;
+        }
+
+        // If tests are running against a real Smart service (URL override present),
+        // transparently fall back to the default HTTP client using the override.
+        if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            // Passing null makes DefaultServiceClientImpl use the URL from the system property override.
+            return new DefaultServiceClientImpl(null);
+        }
+
+        // No mock configured and no URL override -> misconfiguration for tests.
+        throw new ConfigurationException("TestServiceClientFactory has no mock client configured and no service URL override is set");
     }
 
     public void answerWithClient(ServiceClient client) {

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +45,47 @@ public class SmartGeneratingAlertDto implements Serializable {
 
     private final LoadableModel<StatusInfo<?>> statusInfo;
     private IModel<PrismObject<TaskType>> taskModel;
-    IModel<Boolean> switchToggleModel;
+    private final IModel<Boolean> switchToggleModel;
+
+    public enum SmartGenerationState {
+        NOT_STARTED("fa fa-wand-magic-sparkles text-purple",
+                "SmartGeneratingPanel.defaultText.notStarted",
+                "SmartGeneratingPanel.defaultSubtext.notStarted"),
+        IN_PROGRESS("fa fa-spinner fa-spin text-purple",
+                "SmartGeneratingPanel.defaultText.inProgress",
+                "SmartGeneratingPanel.defaultSubtext.inProgress"),
+        FAILED("fa fa-circle-xmark text-purple",
+                "SmartGeneratingPanel.defaultText.failed",
+                "SmartGeneratingPanel.defaultSubtext.failed"),
+        SUSPENDED("fa fa-pause text-purple",
+                "SmartGeneratingPanel.defaultText.suspended",
+                "SmartGeneratingPanel.defaultSubtext.suspended"),
+        FINISHED("fa fa-wand-magic-sparkles text-purple",
+                "SmartGeneratingPanel.defaultText.finished",
+                "SmartGeneratingPanel.defaultSubtext.finished");
+
+        private final String iconCss;
+        private final String textKey;
+        private final String subTextKey;
+
+        SmartGenerationState(String iconCss, String textKey, String subTextKey) {
+            this.iconCss = iconCss;
+            this.textKey = textKey;
+            this.subTextKey = subTextKey;
+        }
+
+        public @NotNull IModel<String> createIconModel() {
+            return Model.of(iconCss);
+        }
+
+        public IModel<String> createTextModel(@NotNull PageBase pageBase, Object... args) {
+            return pageBase.createStringResource(textKey, args);
+        }
+
+        public IModel<String> createSubTextModel(@NotNull PageBase pageBase, Object... args) {
+            return pageBase.createStringResource(subTextKey, args);
+        }
+    }
 
     public SmartGeneratingAlertDto(
             LoadableModel<StatusInfo<?>> statusInfo,
@@ -55,13 +96,6 @@ public class SmartGeneratingAlertDto implements Serializable {
         this.taskModel = initTaskModel(statusInfo, pageBase);
     }
 
-    /**
-     * Initializes a {@link LoadableModel} that loads the {@link TaskType}
-     * associated with the provided {@link StatusInfo}.
-     * <p>
-     * If no {@link StatusInfo} is available or the referenced task does not exist,
-     * this method returns {@code null} when the model is loaded.
-     */
     private IModel<PrismObject<TaskType>> initTaskModel(
             @Nullable LoadableModel<StatusInfo<?>> statusInfo,
             @NotNull PageBase pageBase) {
@@ -81,9 +115,6 @@ public class SmartGeneratingAlertDto implements Serializable {
         return taskModel;
     }
 
-    /**
-     * Elapsed time as a human-readable string, e.g., "12s elapsed".
-     */
     public String getTimeElapsed() {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return "-";
@@ -91,11 +122,6 @@ public class SmartGeneratingAlertDto implements Serializable {
         return formatElapsedTime(statusInfo.getObject());
     }
 
-    /**
-     * Last updated date as a human-readable string, e.g., "Jan 3, 2024, 2:15:30 PM".
-     * <p>
-     * Returns {@code null} if the information is not available.
-     */
     public String getLastUpdatedDate() {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return null;
@@ -104,10 +130,7 @@ public class SmartGeneratingAlertDto implements Serializable {
         if (realizationEndTimestamp == null) {
             return null;
         }
-
-        ZonedDateTime zonedDateTime = realizationEndTimestamp.toGregorianCalendar()
-                .toZonedDateTime();
-
+        ZonedDateTime zonedDateTime = realizationEndTimestamp.toGregorianCalendar().toZonedDateTime();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy, h:mm:ss a")
                 .withZone(ZoneId.systemDefault());
         return formatter.format(zonedDateTime);
@@ -117,11 +140,6 @@ public class SmartGeneratingAlertDto implements Serializable {
         return statusInfo;
     }
 
-    /**
-     * Token of the task associated with the current status info (task oid).
-     * <p>
-     * Returns {@code null} if no task is associated.
-     */
     public String getToken() {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return null;
@@ -129,18 +147,14 @@ public class SmartGeneratingAlertDto implements Serializable {
         return statusInfo.getObject().getToken();
     }
 
-    /**
-     * Builds a list of statusInfo rows for display in the UI.
-     * Each row has a label and a done/in-progress flag.
-     */
     public @NotNull List<StatusRowRecord> getStatusRows(PageBase pageBase) {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return List.of();
         }
-        return buildStatusRows(pageBase, statusInfo.getObject(), addDefaultRow());
+        return buildStatusRows(pageBase, statusInfo.getObject(), rejectEmptyProgress());
     }
 
-    protected boolean addDefaultRow() {
+    protected boolean rejectEmptyProgress() {
         return true;
     }
 
@@ -148,11 +162,9 @@ public class SmartGeneratingAlertDto implements Serializable {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return false;
         }
-
         if (isSuspended()) {
             return true;
         }
-
         return statusInfo.getObject().isComplete();
     }
 
@@ -160,20 +172,14 @@ public class SmartGeneratingAlertDto implements Serializable {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return false;
         }
-
         TaskExecutionStateType state = getTaskExecutionState();
-        if (state == TaskExecutionStateType.SUSPENDED) {
-            return true;
-        }
-
-        return statusInfo.getObject().isHalted();
+        return state == TaskExecutionStateType.SUSPENDED || statusInfo.getObject().isHalted();
     }
 
     public boolean isFailed() {
         if (statusInfo == null || statusInfo.getObject() == null) {
             return false;
         }
-
         return statusInfo.getObject().getStatus() == OperationResultStatusType.FATAL_ERROR;
     }
 
@@ -189,21 +195,55 @@ public class SmartGeneratingAlertDto implements Serializable {
         return task != null ? task.getExecutionState() : null;
     }
 
-    public IModel<String> getDefaultMessageModel(PageBase pageBase) {
+    private SmartGenerationState resolveState() {
         if (statusInfo == null || statusInfo.getObject() == null) {
-            return pageBase.createStringResource("SmartGeneratingPanel.defaultMessage.notStarted");
+            return SmartGenerationState.NOT_STARTED;
+        } else if (isFailed()) {
+            return SmartGenerationState.FAILED;
+        } else if (isSuspended()) {
+            return SmartGenerationState.SUSPENDED;
+        } else if (isFinished()) {
+            return SmartGenerationState.FINISHED;
+        } else {
+            return SmartGenerationState.IN_PROGRESS;
+        }
+    }
+
+    public IModel<String> getDefaultIconModel() {
+        return resolveState().createIconModel();
+    }
+
+    public IModel<String> getDefaultTextModel(PageBase pageBase) {
+        SmartGenerationState state = resolveState();
+        Object[] args = state == SmartGenerationState.FINISHED
+                ? new Object[] { getSuggestedObjectsCount() }
+                : new Object[0];
+        return state.createTextModel(pageBase, args);
+    }
+
+    public IModel<String> getDefaultSubTextModel(PageBase pageBase) {
+        SmartGenerationState state = resolveState();
+        Object[] args = null;
+        if (state == SmartGenerationState.FINISHED) {
+            args = new Object[] { getSuggestedObjectsCount() };
+        }else if (state == SmartGenerationState.IN_PROGRESS && getSafeRow(pageBase) != null) {
+            StatusRowRecord safeRow = getSafeRow(pageBase);
+            args = new Object[] {safeRow.text().getObject()};
+        }else if (state == SmartGenerationState.FAILED && getStatusInfo() != null) {
+            StatusInfo<?> object = getStatusInfo().getObject();
+            String localizedMessage = object.getLocalizedMessage();
+            args = new Object[] {localizedMessage != null ? localizedMessage : ""};
         }
 
-        if (isFailed()) {
-            return pageBase.createStringResource("SmartGeneratingPanel.defaultMessage.failed");
-        } else if (isSuspended()) {
-            return pageBase.createStringResource("SmartGeneratingPanel.defaultMessage.suspended");
-        } else if (isFinished()) {
-            return pageBase.createStringResource("SmartGeneratingPanel.defaultMessage.finished",
-                    getSuggestedObjectsCount());
-        } else {
-            return pageBase.createStringResource("SmartGeneratingPanel.defaultMessage.inProgress");
+        return state.createSubTextModel(pageBase, args);
+    }
+
+    protected StatusRowRecord getSafeRow(PageBase pageBase) {
+        List<StatusRowRecord> statusRows = getStatusRows(pageBase);
+        if (!statusRows.isEmpty()) {
+            return statusRows.get(statusRows.size() - 1);
         }
+        return null;
     }
 
     private int getSuggestedObjectsCount() {
@@ -214,12 +254,6 @@ public class SmartGeneratingAlertDto implements Serializable {
         this.switchToggleModel.setObject(suggestionDisplayed);
     }
 
-    /**
-     * Removes the existing suggestion task from the backend.
-     * Called when performed new suggestion.
-     * <p>
-     * Does nothing if no suggestion task exists.
-     */
     public void removeExistingSuggestionTask(@NotNull PageBase pageBase) {
         Task task = pageBase.createSimpleTask("Remove suggestion task");
         OperationResult result = task.getResult();
@@ -229,9 +263,6 @@ public class SmartGeneratingAlertDto implements Serializable {
         }
     }
 
-    /**
-     * @return true if there is a persisted suggestion task (i.e., backend still holds state).
-     */
     public boolean suggestionExists() {
         return getTaskObject() != null;
     }
@@ -248,10 +279,6 @@ public class SmartGeneratingAlertDto implements Serializable {
     public boolean isShowSuggestionButtonVisible() {
         return suggestionExists() && isFinished() &&
                 !isSuggestionDisplayed() && !isFailed() && getSuggestedObjectsCount() > 0;
-    }
-
-    public boolean isProgressPanelVisible() {
-        return suggestionExists() && !isFinished() || isFailed();
     }
 
     public boolean isSuggestionDisplayed() {

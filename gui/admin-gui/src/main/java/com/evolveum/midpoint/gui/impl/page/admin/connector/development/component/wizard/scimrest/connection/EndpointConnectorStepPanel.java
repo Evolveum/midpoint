@@ -228,7 +228,7 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
             }
         };
         testResource.showTitleAsLabel(true);
-        testResource.add(AttributeAppender.append("class", "btn-primary"));
+        testResource.add(AttributeAppender.replace("class", "btn btn-primary"));
         customButtons.add(testResource);
     }
 }

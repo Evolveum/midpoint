@@ -18,7 +18,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -244,14 +243,6 @@ public class CorrelationAddMappingConfirmationPanel extends ConfirmationPanel {
     @Override
     public IModel<String> getTitle() {
         return createStringResource("CorrelationAddMappingConfirmationPanel.title", this, null);
-    }
-
-    @Override
-    public @Nullable Component getTitleComponent() {
-        Label titleComponent = new Label(ID_TITLE, getTitle());
-        titleComponent.setOutputMarkupId(true);
-        titleComponent.add(AttributeModifier.append("class", "align-self-center"));
-        return titleComponent;
     }
 
     @Override

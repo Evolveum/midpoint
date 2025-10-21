@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
+import com.evolveum.midpoint.repo.common.activity.definition.ResourceObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -25,14 +26,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWork
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicResourceObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeRelatedSuggestionWorkDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 /**
  * For suggesting correlation and mappings (for given object type).
  */
-public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefinition {
+public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefinition
+        implements ResourceObjectSetSpecificationProvider {
 
     private final String resourceOid;
     private final ResourceObjectTypeIdentification typeIdentification;
+    @Nullable private final String statisticsObjectOid;
 
     ObjectTypeRelatedSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
@@ -42,6 +46,7 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
         typeIdentification =
                 ResourceObjectTypeIdentification.of(
                         configNonNull(typedDefinition.getObjectType(), "No object type specified"));
+        statisticsObjectOid = Referencable.getOid(typedDefinition.getStatisticsRef());
     }
 
     public String getResourceOid() {
@@ -50,6 +55,26 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
 
     public ResourceObjectTypeIdentification getTypeIdentification() {
         return typeIdentification;
+    }
+
+    public String getKind() {
+        return typeIdentification.getKind().value();
+    }
+
+    public String getIntent() {
+        return typeIdentification.getIntent();
+    }
+
+    public @Nullable String getStatisticsObjectOid() {
+        return statisticsObjectOid;
+    }
+
+    @Override
+    public @NotNull ResourceObjectSetType getResourceObjectSetSpecification() {
+        return new ResourceObjectSetType()
+                .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                .kind(typeIdentification.getKind())
+                .intent(typeIdentification.getIntent());
     }
 
     @Override
@@ -66,5 +91,6 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
     protected void debugDumpContent(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", resourceOid, indent+1);
         DebugUtil.debugDumpWithLabel(sb, "typeIdentification", typeIdentification.toString(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "statisticsObjectOid", statisticsObjectOid, indent+1);
     }
 }

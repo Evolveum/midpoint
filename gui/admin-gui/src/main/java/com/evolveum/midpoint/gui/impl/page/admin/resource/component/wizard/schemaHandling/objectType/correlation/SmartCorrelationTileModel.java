@@ -32,7 +32,7 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
     String description;
     Double weight;
     Integer tier;
-    Double efficiency;
+    String efficiency;
     Boolean enabled;
 
     String resourceOid;
@@ -91,9 +91,7 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         statesRecordList.add(new StateRecord(weightLabel, "Weight"));
         statesRecordList.add(new StateRecord(tierLabel, "Tier"));
 
-        if (this.efficiency != null) {
-            statesRecordList.add(new StateRecord(String.format("%.2f%%", efficiency), "Efficiency"));
-        }
+        statesRecordList.add(new StateRecord(efficiency, "Efficiency"));
     }
 
     @Override
@@ -146,11 +144,11 @@ public class SmartCorrelationTileModel<T extends PrismContainerValueWrapper<Item
         this.enabled = enabled;
     }
 
-    public Double getEfficiency() {
+    public @NotNull String getEfficiency() {
         return efficiency;
     }
 
-    public void setEfficiency(Double efficiency) {
+    public void setEfficiency(@NotNull String efficiency) {
         this.efficiency = efficiency;
     }
 

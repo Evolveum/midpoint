@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.menu.cog;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -13,7 +14,6 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -85,6 +85,9 @@ public class MenuLinkPanel<I extends InlineMenuItem> extends BasePanel<I> {
                 return getModelObject().getAction() != null;
             }
         });
+
+        a.add(AttributeModifier.append("class",
+                () -> dto.getAdditionalCssClass() != null ? dto.getAdditionalCssClass().getObject() : ""));
 
         Label span = new Label(ID_MENU_ITEM_LABEL, dto.getLabel());
         span.setRenderBodyOnly(true);

@@ -15,8 +15,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardModelWithParentSteps;
-import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardParentStep;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationConnectorStepPanel;
@@ -186,7 +186,7 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
         WizardModel wizardModel = getWizard();
         wizardModel.addStepAfter(step, ObjectClassConnectorStepPanel.class);
         if (wizardModel instanceof WizardModelWithParentSteps wizardModelWithParentSteps) {
-            wizardModelWithParentSteps.setActiveChildStepById(step.getDefaultStepId());
+            wizardModelWithParentSteps.setActiveParentStepById(step.getDefaultStepId());
         } else {
             wizardModel.setActiveStepById(step.getDefaultStepId());
         }

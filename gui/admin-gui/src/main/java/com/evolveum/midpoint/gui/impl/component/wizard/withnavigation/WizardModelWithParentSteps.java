@@ -5,13 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator;
+package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 import org.jetbrains.annotations.NotNull;
 
@@ -281,7 +280,7 @@ public class WizardModelWithParentSteps extends WizardModel {
         return ((WizardParentStep) getSteps().get(activeParentStepIndex));
     }
 
-    public void setActiveChildStepById(String id) {
+    public void setActiveParentStepById(String id) {
         if (id == null) {
             return;
         }

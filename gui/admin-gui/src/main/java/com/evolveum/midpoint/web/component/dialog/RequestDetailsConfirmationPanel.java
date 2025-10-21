@@ -16,11 +16,12 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -30,15 +31,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.util.List;
 
 /**
- * Popup panel showing a confirmation message with optional permissions, info note, and "learn more" link for smart suggestions.
+ * Popup panel showing a confirmation message with optional request, info note, and "learn more" link for smart suggestions.
  */
-public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionRecordDto> implements Popupable {
+public class RequestDetailsConfirmationPanel extends BasePanel<RequestDetailsRecordDto> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -51,17 +51,17 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
     private static final String ID_LEARN_MORE = "learnMore";
     private static final String ID_INFO_MESSAGE = "infoMessage";
 
-    private static final String ID_PERMISSION_CONTAINER = "permissionContainer";
-    private static final String ID_PERMISSION_LABEL = "permissionLabel";
+    private static final String ID_REQUEST_CONTAINER = "requestContainer";
+    private static final String ID_REQUEST_LABEL = "requestLabel";
     private static final String ID_LIST_VIEW = "listView";
-    private static final String ID_PERMISSION_CHECK = "check";
-    private static final String ID_PERMISSION_TITLE = "title";
-    private static final String ID_PERMISSION_DESCRIPTION = "description";
-    private static final String ID_PERMISSION_ACTION = "action";
+    private static final String ID_REQUEST_CHECK = "check";
+    private static final String ID_REQUEST_TITLE = "title";
+    private static final String ID_REQUEST_DESCRIPTION = "description";
+    private static final String ID_REQUEST_ACTION = "action";
 
     Fragment footer;
 
-    public SmartSuggestConfirmationPanel(String id, IModel<SmartPermissionRecordDto> message) {
+    public RequestDetailsConfirmationPanel(String id, IModel<RequestDetailsRecordDto> message) {
         super(id, message);
     }
 
@@ -75,7 +75,7 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
         add(subtitleLabel);
 
         initInfoMessage();
-        initPermissionPart();
+        initRequestDetailsPart();
     }
 
     private void initFooter() {
@@ -162,48 +162,57 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
                 getUrlLink());
         learnMoreButton.add(AttributeModifier.append("target", "_blank"));
         learnMoreButton.setBody(getLearnMoreButtonModel());
+        learnMoreButton.add(new VisibleBehaviour(this::isLearnMoreVisible));
         learnMoreButton.setOutputMarkupId(true);
 
         panel.add(learnMoreButton);
     }
 
     /**
-     * Permission part contains a list of permissions with checkboxes and action button.
+     * Request details part contains a list of requests with checkboxes and action button.
      */
-    private void initPermissionPart() {
-        WebMarkupContainer permissionContainer = new WebMarkupContainer(ID_PERMISSION_CONTAINER);
-        permissionContainer.setOutputMarkupId(true);
-        permissionContainer.add(new VisibleBehaviour(this::isPermissionPartVisible));
-        add(permissionContainer);
+    private void initRequestDetailsPart() {
+        Form<?> form = new Form<>("form");
+        form.setOutputMarkupId(true);
+        add(form);
 
-        Label permissionLabel = new Label(ID_PERMISSION_LABEL, createStringResource(
-                "SmartSuggestConfirmationPanel.permission.component.title"));
-        permissionLabel.setOutputMarkupId(true);
-        permissionContainer.add(permissionLabel);
+        WebMarkupContainer requestContainer = new WebMarkupContainer(ID_REQUEST_CONTAINER);
+        requestContainer.setOutputMarkupId(true);
+        requestContainer.add(new VisibleBehaviour(this::isRequestPartVisible));
+        form.add(requestContainer);
 
-        ListView<SmartPermissionRecordDto.PermissionRecord> listView = new ListView<>(ID_LIST_VIEW,
+        Label requestLabel = new Label(ID_REQUEST_LABEL, getModelObject().getRequestLabelModel(getPageBase()));
+        requestLabel.setOutputMarkupId(true);
+        requestContainer.add(requestLabel);
+
+        ListView<RequestDetailsRecordDto.RequestRecord> listView = new ListView<>(ID_LIST_VIEW,
                 () -> getModelObject().getRecords()) {
             @Override
-            protected void populateItem(@NotNull ListItem<SmartPermissionRecordDto.PermissionRecord> item) {
-                SmartPermissionRecordDto.PermissionRecord record = item.getModelObject();
+            protected void populateItem(@NotNull ListItem<RequestDetailsRecordDto.RequestRecord> item) {
+                RequestDetailsRecordDto.RequestRecord record = item.getModelObject();
 
-                CheckBox checkBox = new CheckBox(ID_PERMISSION_CHECK, Model.of(record.selected()));
+                AjaxCheckBox checkBox = new AjaxCheckBox(ID_REQUEST_CHECK, record.selected()) {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                        record.setSelected(getModelObject());
+                    }
+                };
                 checkBox.setOutputMarkupId(true);
                 item.add(checkBox);
 
-                item.add(new Label(ID_PERMISSION_TITLE, record.title()));
-                item.add(new Label(ID_PERMISSION_DESCRIPTION, record.description()));
-                item.add(buildActionComponent());
+                item.add(new Label(ID_REQUEST_TITLE, record.title()));
+                item.add(new Label(ID_REQUEST_DESCRIPTION, record.description()));
+                item.add(buildActionComponent(record));
 
-                if (item.getIndex() < getPermissions().size() - 1) {
+                if (item.getIndex() < getRequests().size() - 1) {
                     item.add(AttributeModifier.append("class", "border-bottom"));
                 }
             }
 
-            private @NotNull AjaxIconButton buildActionComponent() {
-                AjaxIconButton action = new AjaxIconButton(ID_PERMISSION_ACTION,
+            private @NotNull AjaxIconButton buildActionComponent(RequestDetailsRecordDto.RequestRecord record) {
+                AjaxIconButton action = new AjaxIconButton(ID_REQUEST_ACTION,
                         Model.of("fa fa-info-circle"),
-                        createStringResource("SmartSuggestConfirmationPanel.permission.record.action.more.info")) {
+                        createStringResource("SmartSuggestConfirmationPanel.request.record.action.more.info")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         //TODO
@@ -211,14 +220,15 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
                 };
                 action.showTitleAsLabel(true);
                 action.setOutputMarkupId(true);
+                action.add(new VisibleBehaviour(() -> record.onClick() != null));
                 return action;
             }
         };
         listView.setOutputMarkupId(true);
-        permissionContainer.add(listView);
+        requestContainer.add(listView);
     }
 
-    protected List<SmartPermissionRecordDto.PermissionRecord> getPermissions() {
+    protected List<RequestDetailsRecordDto.RequestRecord> getRequests() {
         return getModelObject() != null && getModelObject().getRecords() != null
                 ? getModelObject().getRecords()
                 : List.of();
@@ -230,9 +240,9 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
                 : createStringResource("SmartSuggestConfirmationPanel.title");
     }
 
-    protected boolean isPermissionPartVisible() {
-        List<SmartPermissionRecordDto.PermissionRecord> permissions = getPermissions();
-        return permissions != null && !permissions.isEmpty();
+    protected boolean isRequestPartVisible() {
+        List<RequestDetailsRecordDto.RequestRecord> requests = getRequests();
+        return requests != null && !requests.isEmpty();
     }
 
     protected IModel<String> createYesLabel() {
@@ -250,7 +260,7 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
      * @return Configured {@link Label} instance
      */
     private @NotNull Label createLabelComponent(StringResourceModel title) {
-        Label label = new Label(SmartSuggestConfirmationPanel.ID_SUBTITLE, title);
+        Label label = new Label(RequestDetailsConfirmationPanel.ID_SUBTITLE, title);
         label.setOutputMarkupId(true);
         label.setOutputMarkupPlaceholderTag(true);
         return label;
@@ -262,28 +272,31 @@ public class SmartSuggestConfirmationPanel extends BasePanel<SmartPermissionReco
     }
 
     @Override
-    public @Nullable Component getTitleComponent() {
-        Label titleComponent = new Label(ID_TITLE, getTitle());
-        titleComponent.setOutputMarkupId(true);
-        titleComponent.add(AttributeModifier.append("class", "align-self-center"));
-        return titleComponent;
-    }
-
-    @Override
     public IModel<String> getTitleIconClass() {
-        return Model.of(GuiStyleConstants.CLASS_INFO_CIRCLE + " text-info fa-xl");
+        return Model.of(GuiStyleConstants.CLASS_INFO_CIRCLE + " fa-xl "+ getTitleIconAdditionalCssClass());
     }
 
-    private StringResourceModel getSubtitleModel() {
-        return createStringResource("SmartSuggestConfirmationPanel.subtitle", this, null);
+    protected String getTitleIconAdditionalCssClass() {
+        return "text-info";
     }
 
-    private StringResourceModel getInfoMessageModel() {
+    protected StringResourceModel getSubtitleModel() {
+        StringResourceModel subtitleModel = getModelObject().getSubtitleModel(getPageBase());
+        return subtitleModel != null
+                ? subtitleModel
+                : createStringResource("");
+    }
+
+    protected StringResourceModel getInfoMessageModel() {
         return createStringResource("SmartSuggestConfirmationPanel.infoMessage", this, null);
     }
 
     private StringResourceModel getLearnMoreButtonModel() {
         return createStringResource("SmartSuggestConfirmationPanel.learnMore", this, null);
+    }
+
+    protected boolean isLearnMoreVisible() {
+        return getLearnMoreButtonModel() != null;
     }
 
     private StringResourceModel getCancelButtonModel() {

@@ -41,6 +41,7 @@ public class ResourceTestPanel extends BasePanel<String> {
 
     private Long startMillis = System.currentTimeMillis();
     private State state = State.RUNNING;
+    private AbstractAjaxTimerBehavior timerBehavior;
 
     private enum State {
         RUNNING,
@@ -73,7 +74,8 @@ public class ResourceTestPanel extends BasePanel<String> {
 
         initCorePart(bodyContainer);
 
-        bodyContainer.add(createSuggestionAjaxTimerBehavior());
+        timerBehavior = createSuggestionAjaxTimerBehavior();
+        bodyContainer.add(timerBehavior);
     }
 
     private AbstractAjaxTimerBehavior createSuggestionAjaxTimerBehavior() {
@@ -87,12 +89,13 @@ public class ResourceTestPanel extends BasePanel<String> {
                     OperationResult result = task.getResult();
                     try {
                         getPageBase().getModelService().testResource(getModelObject(), task, result);
-                    } catch (CommonException e) {
+                    } catch (Throwable t) {
                         state = State.FAILED;
                         stop(target);
                         return;
                     }
 
+                    result.computeStatus();
                     failed = result.isError();
 
                     if (!failed) {
@@ -106,6 +109,8 @@ public class ResourceTestPanel extends BasePanel<String> {
                             stop(target);
                         }
                     } else {
+                        getPageBase().showResult(result);
+                        target.add(getFeedbackPanel());
                         state = State.FAILED;
                         stop(target);
                     }
@@ -154,7 +159,7 @@ public class ResourceTestPanel extends BasePanel<String> {
                     return "fa fa-check-circle text-success";
                 }
                 case FAILED -> {
-                    return "fa fa-times-circle text-dangerous";
+                    return "fa fa-times-circle text-danger";
                 }
                 default -> {
                     return "fa fa-tower-broadcast text-primary";
@@ -180,5 +185,10 @@ public class ResourceTestPanel extends BasePanel<String> {
             }
             return createStringResource(key).getString();
         };
+    }
+
+    public void refresh() {
+        state = State.RUNNING;
+        timerBehavior.restart(null);
     }
 }
