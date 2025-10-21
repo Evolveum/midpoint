@@ -33,6 +33,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class MappingsQualityAssessor {
+
+    private static final String GROOVY_LANGUAGE =
+            "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
     private final ExpressionFactory expressionFactory;
 
     public MappingsQualityAssessor(ExpressionFactory expressionFactory) {
@@ -100,10 +103,9 @@ public class MappingsQualityAssessor {
     }
 
     private static ExpressionProfile restrictedProfile() {
-        // Permission profile (allow-list):
-        // - Default decision: ALLOW (safe baseline; explicit denies still win).
-        // - Explicitly allow java.lang.String (basic safe transformations).
-        // - Explicitly deny a placeholder 'execute' method (defensive guardrail).
+        // Permission profile for Groovy language (allow-list):
+        // - Default decision: ALLOW.
+        // - Explicitly deny a placeholder String's 'execute' method.
         final ExpressionPermissionProfile permissionsProfile = ExpressionPermissionProfile.closed(
                 "LLM scripts profile", AccessDecision.ALLOW, Collections.emptyList(),
                 List.of(new ExpressionPermissionClassProfileType()
@@ -113,18 +115,17 @@ public class MappingsQualityAssessor {
                                 .name("execute")
                                 .decision(AuthorizationDecisionType.DENY))));
         // Script evaluator profile:
-        // - Enable script evaluator: ALLOW.
-        // - Only Groovy is enabled and bound to the above permission profile.
-        // - Type checking enabled to enforce class/method restrictions at runtime.
+        // - Default script evaluator decision: DENY (only explicitly listed script type is usable).
+        // - Only Groovy is explicitly enabled.
         final ExpressionEvaluatorProfile evaluatorProfile = new ExpressionEvaluatorProfile(
-                SchemaConstantsGenerated.C_SCRIPT, AccessDecision.ALLOW,
-                List.of(new ScriptLanguageExpressionProfile("groovy", AccessDecision.ALLOW, true, permissionsProfile)));
+                SchemaConstantsGenerated.C_SCRIPT, AccessDecision.DENY,
+                List.of(new ScriptLanguageExpressionProfile(GROOVY_LANGUAGE, AccessDecision.ALLOW, true,
+                        permissionsProfile)));
         // Expression profile assembly:
-        // - Evaluators default: ALLOW (so script evaluator is usable).
-        // - Only Groovy is configured; other languages remain unavailable by omission.
-        // - Bulk actions: none; Function libraries: none; Privilege elevation: DENY.
+        // - Evaluators default: DENY (only explicitly listed script evaluator is usable).
+        // - Only script evaluator is configured; other evaluators remain unavailable by omission.
         return new ExpressionProfile("LLM scripts profile",
-                new ExpressionEvaluatorsProfile(AccessDecision.ALLOW, List.of(evaluatorProfile)),
+                new ExpressionEvaluatorsProfile(AccessDecision.DENY, List.of(evaluatorProfile)),
                 BulkActionsProfile.none(), FunctionLibrariesProfile.none(), AccessDecision.DENY);
     }
 
