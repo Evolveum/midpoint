@@ -112,17 +112,19 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private final TaskManager taskManager;
     private final RepositoryService repositoryService;
     private final ServiceClientFactory clientFactory;
+    private final MappingSuggestionOperationFactory mappingSuggestionOperationFactory;
 
     public SmartIntegrationServiceImpl(ModelService modelService,
             TaskService taskService, ModelInteractionServiceImpl modelInteractionService, TaskManager taskManager,
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
-            ServiceClientFactory clientFactory) {
+            ServiceClientFactory clientFactory, MappingSuggestionOperationFactory mappingSuggestionOperationFactory) {
         this.modelService = modelService;
         this.taskService = taskService;
         this.modelInteractionService = modelInteractionService;
         this.taskManager = taskManager;
         this.repositoryService = repositoryService;
         this.clientFactory = clientFactory;
+        this.mappingSuggestionOperationFactory = mappingSuggestionOperationFactory;
     }
 
     @Override
@@ -722,9 +724,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
-            var mappings = MappingsSuggestionOperation
-                    .init(serviceClient, resourceOid, typeIdentification, activityState, task, result)
-                    .suggestMappings(result, statistics, schemaMatch);
+            var mappings = this.mappingSuggestionOperationFactory.create(serviceClient, resourceOid,
+                    typeIdentification, activityState, task, result).suggestMappings(result, statistics, schemaMatch);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;
         } catch (Throwable t) {

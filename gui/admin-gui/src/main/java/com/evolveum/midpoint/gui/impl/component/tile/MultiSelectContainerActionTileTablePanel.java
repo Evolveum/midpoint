@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 
-import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
@@ -50,7 +50,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
-import com.evolveum.midpoint.web.component.dialog.SmartSuggestConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
@@ -587,7 +587,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(getPageBase().getMainPopupBodyId(),
                         buildSmartPermissionRecordDto()) {
 
                     @Override
@@ -606,8 +606,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return suggestObjectButton;
     }
 
-    protected IModel<SmartPermissionRecordDto> buildSmartPermissionRecordDto() {
-        return () -> new SmartPermissionRecordDto(null, null);
+    protected IModel<RequestDetailsRecordDto> buildSmartPermissionRecordDto() {
+        return () -> new RequestDetailsRecordDto(null, null);
     }
 
     @NotNull

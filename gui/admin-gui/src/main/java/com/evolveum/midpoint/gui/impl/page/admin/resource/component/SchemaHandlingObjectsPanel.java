@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -69,7 +69,7 @@ import java.util.Objects;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
-import static com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto.initDummyObjectTypePermissionData;
+import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyObjectTypePermissionData;
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
@@ -106,8 +106,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
-            protected @NotNull IModel<SmartPermissionRecordDto> getPermissionRecordDtoIModel() {
-                return () -> new SmartPermissionRecordDto(null, initDummyObjectTypePermissionData());
+            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
+                return () -> new RequestDetailsRecordDto(null, initDummyObjectTypePermissionData());
             }
 
             @Override
@@ -148,7 +148,12 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             public String getAdditionalBoxCssClasses() {
-                return "table-td-middle";
+                return "card table-td-middle";
+            }
+
+            @Override
+            protected String getAdditionalFooterCssClasses() {
+                return "bg-white";
             }
 
             @Override

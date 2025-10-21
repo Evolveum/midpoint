@@ -52,7 +52,10 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
         return new ResourceObjectClassTableWizardPanel<>(idOfChoicePanel, getHelper()) {
 
             @Override
-            protected void onContinueWithSelected(IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> model, AjaxRequestTarget target) {
+            protected void onContinueWithSelected(
+                    IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> model,
+                    AjaxRequestTarget target) {
+
                 PrismContainerValueWrapper<ComplexTypeDefinitionType> object = model.getObject();
                 ComplexTypeDefinitionType realValue = object.getRealValue();
 
@@ -121,7 +124,7 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
     }
 
     @Contract("_, _ -> new")
-    private @NotNull ResourceSuggestedObjectTypeTableWizardPanel<ResourceObjectTypeDefinitionType, P> buildSelectSuggestedObjectTypeWizardPanel(
+    private @NotNull ResourceSuggestedObjectTypeTableWizardPanel<P> buildSelectSuggestedObjectTypeWizardPanel(
             @NotNull String idOfChoicePanel, QName objectClassName) {
         return new ResourceSuggestedObjectTypeTableWizardPanel<>(idOfChoicePanel, getHelper(), objectClassName) {
 

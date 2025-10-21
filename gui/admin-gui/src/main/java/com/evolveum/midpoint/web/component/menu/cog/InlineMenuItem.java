@@ -23,6 +23,7 @@ public abstract class InlineMenuItem implements Serializable {
     private IModel<String> label;
     private IModel<Boolean> enabled = Model.of(true);
     private IModel<Boolean> visible = Model.of(true);
+    private final IModel<String> additionalCssClass = Model.of("");
     private boolean submit = false;
     private InlineMenuItemAction action;
     private int id = -1;
@@ -79,6 +80,10 @@ public abstract class InlineMenuItem implements Serializable {
 //        return true;
 //        TODO fix after menu items refactoring
         return label != null && action == null;
+    }
+
+    public IModel<String> getAdditionalCssClass() {
+        return additionalCssClass;
     }
 
     /**

@@ -35,7 +35,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.dialog.ConfigureSynchronizationConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.SmartPermissionRecordDto;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -225,9 +225,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             }
 
             @Override
-            protected @NotNull IModel<SmartPermissionRecordDto> getPermissionRecordDtoIModel() {
-                return () -> new SmartPermissionRecordDto(null,
-                        SmartPermissionRecordDto.initDummyCorrelationPermissionData());
+            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
+                return () -> new RequestDetailsRecordDto(null,
+                        RequestDetailsRecordDto.initDummyCorrelationPermissionData());
             }
 
             @Override

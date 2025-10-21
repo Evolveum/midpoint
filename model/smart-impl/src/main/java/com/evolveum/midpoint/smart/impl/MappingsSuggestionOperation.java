@@ -18,6 +18,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
+import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
+import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -57,9 +59,11 @@ class MappingsSuggestionOperation {
     private static final String ID_SHADOWS_COLLECTION = "shadowsCollection";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
     private final TypeOperationContext ctx;
+    private final MappingsQualityAssessor qualityAssessor;
 
-    private MappingsSuggestionOperation(TypeOperationContext ctx) {
+    private MappingsSuggestionOperation(TypeOperationContext ctx, MappingsQualityAssessor qualityAssessor) {
         this.ctx = ctx;
+        this.qualityAssessor = qualityAssessor;
     }
 
     static MappingsSuggestionOperation init(
@@ -67,12 +71,14 @@ class MappingsSuggestionOperation {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable CurrentActivityState<?> activityState,
+            MappingsQualityAssessor qualityAssessor,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return new MappingsSuggestionOperation(
-                TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result));
+                TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result),
+                qualityAssessor);
     }
 
     MappingsSuggestionType suggestMappings(OperationResult result, ShadowObjectClassStatisticsType statistics, SchemaMatchResultType schemaMatch)
@@ -112,7 +118,8 @@ class MappingsSuggestionOperation {
                     suggestion.getAttributeMappings().add(
                             suggestMapping(
                                     matchPair,
-                                    pairs));
+                                    pairs,
+                                    result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (Throwable t) {
                     // TODO Shouldn't we create an unfinished mapping with just error info?
@@ -189,7 +196,10 @@ class MappingsSuggestionOperation {
 
     private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
-            Collection<ValuesPair> valuesPairs) throws SchemaException {
+            Collection<ValuesPair> valuesPairs,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
 
         LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
                 matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath(), valuesPairs.size());
@@ -232,6 +242,8 @@ class MappingsSuggestionOperation {
         var hackedSerialized = serialized.replace("ext:", "");
         var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
         var suggestion = new AttributeMappingsSuggestionType()
+                .expectedQuality(this.qualityAssessor.assessMappingsQuality(valuesPairs, expression, this.ctx.task,
+                        parentResult))
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
