@@ -5,9 +5,11 @@ import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeRelatedStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -124,6 +126,25 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null, getTestTask(), getTestOperationResult());
     }
 
+    private ShadowObjectClassStatisticsType computeStatistics(
+            DummyTestResource resource,
+            ResourceObjectTypeIdentification typeIdentification,
+            Task task,
+            OperationResult result) throws CommonException {
+        var res = Resource.of(resource.get());
+        var typeDefinition = res.getCompleteSchemaRequired().getObjectTypeDefinitionRequired(typeIdentification);
+        var computer = new ObjectTypeRelatedStatisticsComputer(typeDefinition);
+        var shadows = provisioningService.searchShadows(
+                res.queryFor(typeIdentification).build(),
+                null,
+                task, result);
+        for (var shadow : shadows) {
+            computer.process(shadow.getBean());
+        }
+        computer.postProcessStatistics();
+        return computer.getStatistics();
+    }
+
     @Test
     public void test001AsIsMappingWhenDataIdentical() throws Exception {
         Task task = getTestTask();
@@ -147,7 +168,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 task,
                 result);
 
-        MappingsSuggestionType suggestion = op.suggestMappings(result);
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
 
@@ -186,12 +208,55 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 task,
                 result);
 
-        MappingsSuggestionType suggestion = op.suggestMappings(result);
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getExpectedQuality()).as("Transformed mapping should have perfect quality").isEqualTo(1.0f);
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
                 .as("Should contain a script expression returned by the service")
+                .isNotNull();
+    }
+
+    @Test
+    public void test003InvalidScriptReturnsNegativeQuality() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Ensure data requires transformation so the microservice is queried
+        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "1-1-1-1-1");
+        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "2-222-2");
+        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "33-3-33");
+
+        refreshShadows();
+
+        // Intentionally invalid Groovy (method name misspelled) to trigger evaluation failure
+        String invalidScript = "input.repalceAll('-', '')";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                invalidScript
+        );
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                qualityAssessor(),
+                task,
+                result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("Invalid script should produce a mapping with sentinel quality -1.0")
+                .hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getExpectedQuality()).isEqualTo(-1.0f);
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Expression should still be present even if evaluation failed during scoring")
                 .isNotNull();
     }
 

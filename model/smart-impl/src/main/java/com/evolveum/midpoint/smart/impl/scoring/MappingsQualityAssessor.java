@@ -48,9 +48,7 @@ public class MappingsQualityAssessor {
      * Returns the fraction of shadow values that matched any focus value.
      */
     public float assessMappingsQuality(Collection<ValuesPair> valuePairs, ExpressionType suggestedExpression, Task task,
-            OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            OperationResult parentResult) {
         int totalShadowValues = 0;
         int matchedShadowValues = 0;
 
@@ -68,7 +66,14 @@ public class MappingsQualityAssessor {
             String focusValue = focusValues.iterator().next().toString();
 
             if (suggestedExpression != null) {
-                focusValue = applyExpression(suggestedExpression, focusValue, task, parentResult);
+                try {
+                    focusValue = applyExpression(suggestedExpression, focusValue, task, parentResult);
+                } catch (Exception e) {
+                    OperationResult sub = parentResult.createSubresult("evaluateSuggestedExpression");
+                    sub.recordPartialError("Failed to evaluate suggested expression: " + e.getMessage(), e);
+                    sub.close();
+                    return -1.0f;
+                }
             }
 
             totalShadowValues++;
