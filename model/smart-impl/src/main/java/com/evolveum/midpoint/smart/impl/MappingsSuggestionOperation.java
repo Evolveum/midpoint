@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -22,7 +21,6 @@ import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.util.MiscUtil;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -30,21 +28,16 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Implements "suggest mappings" operation.
@@ -198,8 +191,7 @@ class MappingsSuggestionOperation {
             SchemaMatchOneResultType matchPair,
             Collection<ValuesPair> valuesPairs,
             OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws SchemaException {
 
         LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
                 matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath(), valuesPairs.size());
@@ -308,27 +300,5 @@ class MappingsSuggestionOperation {
     /** Returns {@code true} if there are no target data altogether. */
     private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs) {
         return valuesPairs.stream().allMatch(pair -> pair.focusValues().isEmpty());
-    }
-
-    private record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
-        private SiSuggestMappingExampleType toSiExample(
-                String applicationAttrDescriptivePath, String midPointPropertyDescriptivePath) {
-            return new SiSuggestMappingExampleType()
-                    .application(toSiAttributeExample(applicationAttrDescriptivePath, shadowValues))
-                    .midPoint(toSiAttributeExample(midPointPropertyDescriptivePath, focusValues));
-        }
-
-        private @NotNull SiAttributeExampleType toSiAttributeExample(String path, Collection<?> values) {
-            var example = new SiAttributeExampleType().name(path);
-            example.getValue().addAll(stringify(values));
-            return example;
-        }
-
-        private Collection<String> stringify(Collection<?> values) {
-            return values.stream()
-                    .filter(Objects::nonNull)
-                    .map(Object::toString)
-                    .toList();
-        }
     }
 }
