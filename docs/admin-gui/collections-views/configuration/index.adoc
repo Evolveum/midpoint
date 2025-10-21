@@ -208,50 +208,85 @@ There is also experimental functionality allowing to hide and show the collectio
 
 === Default Collection Views
 
-MidPoint comes with default collections defined for most of the objects. These default collection are based on object type, e.g. there is a default collection for all users in midPoint available in menu by default. Table below shows list of default collections and their identifiers. These identifiers are then used to adjust the default collection view. E.g. there is a need to add custom column to the default users list, new action needs to be defined for default roles list, etc. To be able to correctly merge configurations from different places for the same collection view, identifiers are mandatory and every single collection view definition has to have it defined.
+MidPoint comes with default collections defined for most of objects.
+These default collections are based on object type, e.g., there is a default collection for all users in midPoint available in the main application left-side menu.
+
+The table below shows a list of default collections and their identifiers.
+These identifiers are used to adjust the default collection view.
+For example, if you need to add a custom column to the default users list, a new action needs to be defined for the default roles list.
+To be able to correctly merge configurations for one collection view from different sources, identifiers are mandatory, and every single collection view definition has to have an identifier defined.
 
 [%autowidth]
 |===
-| Identifier | Menu item
+| Identifier | Menu item | Customizable
 
 | allUsers
 | All users
+| Yes
 
 | allOrgs
 | All organizations
+| Yes
 
 | allRoles
 | All roles
+| Yes
 
 | allServices
 | All services
+| Yes
+
+| allPolicies
+| All policies
+| Yes
 
 | allResources
 | All resource
+| Yes
 
 | allCases
 | All cases
+| Yes
 
 | allTasks
 | All tasks
+| Yes
+
+| allNodes
+| All nodes
+| No
 
 | allReports
 | All reports
+| Yes
 
 | allArchetypes
 | All archetypes
+| Yes
+
+| allMessageTemplates
+| All message templates
+| Yes
 
 | allObjectCollections
 | All object collections
+| Yes
 
 | allObjectTemplates
 | All object templates
+| Yes
+
+| allMarks
+| All marks
+| Yes
 
 | allSchemas
 | All schemas
+| Yes
 
 | allAudits
 | Audit Log Viewer
+| No
 
 |===
 
