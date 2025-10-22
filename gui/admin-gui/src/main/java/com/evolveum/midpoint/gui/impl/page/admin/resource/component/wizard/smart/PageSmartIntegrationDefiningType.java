@@ -129,7 +129,7 @@ public class PageSmartIntegrationDefiningType extends PageAdminConfiguration {
                         .runVoid((task, result) -> {
                             saveResourceToRepositoryAndReload(task, result);
                             var suggestion = getSmartIntegrationService().suggestCorrelation(
-                                    getResourceOid(), typeIdentification, null,
+                                    getResourceOid(), typeIdentification, null, null, null,
                                     task, result);
                             updateSuggestionXmlModel(suggestion);
                             target.add(PageSmartIntegrationDefiningType.this);

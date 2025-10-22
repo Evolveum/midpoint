@@ -10,7 +10,10 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeRelatedStatisticsComputer;
+import com.evolveum.midpoint.smart.impl.correlation.CorrelatorSuggestion;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
@@ -106,6 +109,26 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
                 null, getTestTask(), getTestOperationResult());
     }
 
+    /** Computes statistics for a specific type identification (kind/intent) using ObjectTypeRelatedStatisticsComputer. */
+    private ShadowObjectClassStatisticsType computeStatistics(
+            DummyTestResource resource,
+            ResourceObjectTypeIdentification typeIdentification,
+            Task task,
+            OperationResult result) throws CommonException {
+        var res = Resource.of(resource.get());
+        var typeDefinition = res.getCompleteSchemaRequired().getObjectTypeDefinitionRequired(typeIdentification);
+        var computer = new ObjectTypeRelatedStatisticsComputer(typeDefinition);
+        var shadows = provisioningService.searchShadows(
+                res.queryFor(typeIdentification).build(),
+                null,
+                task, result);
+        for (var shadow : shadows) {
+            computer.process(shadow.getBean());
+        }
+        computer.postProcessStatistics();
+        return computer.getStatistics();
+    }
+
     @Test
     public void test001MultiValuedAttributeCorrelationScore() throws Exception {
         Task task = getTestTask();
@@ -115,8 +138,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         ItemPath focusPath = ItemPath.create(UserType.F_EMAIL);
         ItemPath shadowPath = EMAIL.path();
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
+        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null);
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
@@ -139,8 +161,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         ItemPath focusPath = null;
         ItemPath shadowPath = EMAIL.path();
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
+        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null);
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
@@ -168,8 +189,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         ItemPath focusPath = ItemPath.create(UserType.F_PERSONAL_NUMBER);
         ItemPath shadowPath = null;
-        CorrelationSuggestionOperation.CorrelatorSuggestion suggestion =
-                new CorrelationSuggestionOperation.CorrelatorSuggestion(focusPath, shadowPath, null);
+        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null);
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
@@ -211,7 +231,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
-                Arrays.asList(new CorrelationSuggestionOperation.CorrelatorSuggestion(null, null, null))
+                Arrays.asList(new CorrelatorSuggestion(null, null, null))
         );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
@@ -234,10 +254,18 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -261,10 +289,18 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -289,10 +325,18 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -320,10 +364,18 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -348,10 +400,18 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -380,10 +440,18 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -418,10 +486,18 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -466,10 +542,18 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
 
         List<CorrelationSuggestionType> suggestionList = suggestions.getSuggestion();
 

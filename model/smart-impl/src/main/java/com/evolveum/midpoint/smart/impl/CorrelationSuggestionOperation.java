@@ -8,19 +8,15 @@
 package com.evolveum.midpoint.smart.impl;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.smart.impl.correlation.CorrelatedSuggestionWithScore;
+import com.evolveum.midpoint.smart.impl.correlation.CorrelatorSuggestion;
+import com.evolveum.midpoint.smart.impl.correlation.ExistingMapping;
 
 import org.apache.commons.lang3.StringUtils;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AiUtil;
@@ -30,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,22 +40,20 @@ class CorrelationSuggestionOperation {
 
     /**
      * Initial implementation of "suggest correlation" method:
-     *
      * . identify correlation-capable properties (like name, personalNumber, emailAddress, ...)
      * . ask for schema matchings for these properties
      * . if there are any, suggest the correlation - for the first one, if there are multiple
      *
      * Future improvements:
-     *
      * . when suggesting mappings to correlation-capable properties, LLM should take into account the information about
      * whether source attribute is unique or not
      *
      */
-    CorrelationSuggestionsType suggestCorrelation(OperationResult result)
+    CorrelationSuggestionsType suggestCorrelation(OperationResult result, ShadowObjectClassStatisticsType statistics, SchemaMatchResultType schemaMatch)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var correlators = KnownCorrelator.getAllFor(ctx.getFocusTypeDefinition().getCompileTimeClass());
-        var suggestions = suggestCorrelationMappings(ctx.typeDefinition, ctx.getFocusTypeDefinition(), correlators, ctx.resource);
+        var suggestions = suggestCorrelationMappings(schemaMatch, correlators);
 
         var allScores = new CorrelatorEvaluator(ctx, suggestions)
                 .evaluateSuggestions(result);
@@ -74,15 +67,15 @@ class CorrelationSuggestionOperation {
 
             // For this correlator, keep only the highest score
             var prev = bestSuggestionsMap.get(suggestion.focusItemPath());
-            if ((correlated.score > 0) && (prev == null || correlated.score > prev.score)) {
+            if ((correlated.score() > 0) && (prev == null || correlated.score() > prev.score())) {
                 bestSuggestionsMap.put(suggestion.focusItemPath(), correlated);
             }
         }
 
         var suggestionsBean = new CorrelationSuggestionsType();
         for (CorrelatedSuggestionWithScore correlated : bestSuggestionsMap.values()) {
-            var suggestion = correlated.suggestion;
-            double score = correlated.score;
+            var suggestion = correlated.suggestion();
+            double score = correlated.score();
 
             var suggestionBean = new CorrelationSuggestionType();
             if (suggestion.attributeDefinitionBean() != null) {
@@ -90,7 +83,7 @@ class CorrelationSuggestionOperation {
                 suggestionBean.getAttributes().add(suggestion.attributeDefinitionBean());
             }
 
-            String lastName = suggestion.focusItemPath.lastName().getLocalPart();
+            String lastName = suggestion.focusItemPath().lastName().getLocalPart();
             String correlatorName = StringUtils.capitalize(lastName) + " correlator";
             var correlationDefinition = new CorrelationDefinitionType()
                     .correlators(new CompositeCorrelatorType()
@@ -116,13 +109,8 @@ class CorrelationSuggestionOperation {
 
     /** Returns suggestions for correlators - in the same order as the correlators are provided. */
     private List<CorrelatorSuggestion> suggestCorrelationMappings(
-            ResourceObjectTypeDefinition objectTypeDef,
-            PrismObjectDefinition<?> focusDef,
-            List<? extends ItemPath> correlators,
-            ResourceType resource)
-            throws SchemaException, ConfigurationException {
-        SchemaMatchingOperation matchingOp = new SchemaMatchingOperation(ctx);
-        var siResponse = matchingOp.matchSchema(objectTypeDef, focusDef, resource);
+            SchemaMatchResultType schemaMatch,
+            List<? extends ItemPath> correlators) throws ConfigurationException {
         var response = new ArrayList<CorrelatorSuggestion>();
         for (ItemPath correlator : correlators) {
             var existingInboundMapping = findExistingInboundMapping(correlator);
@@ -130,16 +118,16 @@ class CorrelationSuggestionOperation {
                 response.add(
                         new CorrelatorSuggestion(
                                 correlator,
-                                existingInboundMapping.scoredAttributePath,
+                                existingInboundMapping.scoredAttributePath(),
                                 null));
             } else {
-                for (var siAttributeMatch : siResponse.getAttributeMatch()) {
-                    var focusItemPath = matchingOp.getFocusItemPath(siAttributeMatch.getMidPointAttribute());
+                for (var oneSchemaMatch : schemaMatch.getSchemaMatchResult()) {
+                    var shadowItemPath = PrismContext.get().itemPathParser().asItemPath(oneSchemaMatch.getShadowAttributePath());
+                    var focusItemPath = PrismContext.get().itemPathParser().asItemPath(oneSchemaMatch.getFocusPropertyPath());
                     if (correlator.equivalent(focusItemPath)) {
-                        var resourceAttrPath = matchingOp.getApplicationItemPath(siAttributeMatch.getApplicationAttribute());
-                        var resourceAttrName = resourceAttrPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
+                        var resourceAttrName = shadowItemPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
                         var inbound = new InboundMappingType()
-                                .name(resourceAttrPath.lastName().getLocalPart()
+                                .name(shadowItemPath.lastName().getLocalPart()
                                         + "-to-" + focusItemPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusItemPath.toBean()))
@@ -151,7 +139,7 @@ class CorrelationSuggestionOperation {
                         AiUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
                         // Use is not provided by AI, it is set to CORRELATION by default.
                         response.add(
-                                new CorrelatorSuggestion(focusItemPath, resourceAttrPath, attrDefBean));
+                                new CorrelatorSuggestion(focusItemPath, shadowItemPath, attrDefBean));
                     }
                 }
             }
@@ -184,35 +172,4 @@ class CorrelationSuggestionOperation {
         return null;
     }
 
-    /**
-     * Information about whether inbound mapping for given correlator exists. The scoredAttributePath is present if it
-     * makes sense to evaluate the correlation score also by looking at values of that attribute.
-     */
-    private record ExistingMapping(@Nullable ItemPath scoredAttributePath) {
-    }
-
-    /**
-     * The suggestion for correlation may be based on an existing inbound mapping (in which case attributeDefinitionBean is null,
-     * and resourceAttrPath is present if and only if the existing mapping is "as-is" mapping; at least for now), or it may
-     * involve creation of a new inbound mapping (in which case attributeDefinitionBean is non-null,
-     * and resourceAttrPath is always present).
-     *
-     * The rationale behind this is that when scoring the suggestion, we look at the statistics of both focus item and
-     * resource attribute. So we need to know the resource attribute even if it is not being suggested to be created.
-     * But only if it makes sense to score it, which is currently not the case for "transforming" mappings.
-     */
-    record CorrelatorSuggestion(
-            ItemPath focusItemPath,
-            @Nullable ItemPath resourceAttrPath,
-            @Nullable ResourceAttributeDefinitionType attributeDefinitionBean) {
-    }
-
-    private static class CorrelatedSuggestionWithScore {
-        final CorrelatorSuggestion suggestion;
-        final double score;
-        CorrelatedSuggestionWithScore(CorrelatorSuggestion suggestion, double score) {
-            this.suggestion = suggestion;
-            this.score = score;
-        }
-    }
 }
