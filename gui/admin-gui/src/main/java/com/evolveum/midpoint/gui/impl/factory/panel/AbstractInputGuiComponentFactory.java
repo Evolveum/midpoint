@@ -122,7 +122,6 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
         boolean isAiRelated = hasAiMark(propertyWrapper, false);
         if (isAiRelated) {
             formComponent.setOutputMarkupId(true);
-
             formComponent.add(AttributeModifier.append("class", () -> {
                 boolean hasAiProvidedValue = hasAiMark(propertyWrapper, true);
                 return hasAiProvidedValue && !formComponent.hasErrorMessage()
@@ -139,8 +138,8 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             @NotNull PrismPropertyWrapper<T> propertyWrapper, boolean newValue) {
         return propertyWrapper.getValues() != null &&
                 propertyWrapper.getValues().stream()
-                        .anyMatch(vw -> AiUtil.isMarkedAsAiProvided(
-                                newValue ? vw.getNewValue() : vw.getOldValue()));
+                        .map(vw -> newValue ? vw.getNewValue() : vw.getOldValue())
+                        .anyMatch(AiUtil::isMarkedAsAiProvided);
     }
 
     private Class<? extends Containerable> getChoicesParentClass(PrismPropertyPanelContext<T> panelCtx) {
