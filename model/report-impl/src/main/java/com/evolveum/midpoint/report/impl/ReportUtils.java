@@ -753,22 +753,34 @@ public class ReportUtils {
         ObjectDeltaOperation<?> delta = DeltaConvertor.createObjectDeltaOperation(deltaOperation, true);
 
         UserFriendlyPrettyPrinter printer = new UserFriendlyPrettyPrinter(options.prettyPrinterOptions());
-//        printer.locale();
-//        printer.localizationService();
 
         boolean useEstimatedOld = options.useEstimatedOldValues();
 
+        ObjectDelta objectDelta = delta.getObjectDelta();
         if (itemPath.isEmpty()) {
             if (!options.showFullObjectDelta()) {
                 return List.of();
             }
 
-            ObjectDelta objectDelta = delta.getObjectDelta();
             return List.of(printer.prettyPrintObjectDelta(objectDelta, useEstimatedOld, 0));
         }
 
-        List<ItemDelta<?, ?>> deltas = findItemDelta(delta.getObjectDelta(), itemPath, options.showPartialDeltas());
-        if (deltas.isEmpty()) {
+        if (objectDelta.getObjectToAdd() != null) {
+            PrismObject<?> object = objectDelta.getObjectToAdd();
+            Item<?,?> item = object.findItem(itemPath);
+            if (item == null) {
+                return List.of();
+            }
+
+            ItemDelta fakeAddDelta = item.createDelta();
+            fakeAddDelta.addValuesToAdd(item.getValues().stream().map(v -> v.clone()).toList());
+
+            options.prettyPrinterOptions().showDeltaItemPath(false);
+            return List.of(printer.prettyPrintItemDelta(fakeAddDelta, useEstimatedOld, 0));
+        }
+
+        List<ItemDelta<?, ?>> deltas = findItemDelta(objectDelta, itemPath, options.showPartialDeltas());
+        if (deltas == null || deltas.isEmpty()) {
             return List.of();
         }
 

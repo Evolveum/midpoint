@@ -13,6 +13,9 @@ import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
@@ -188,22 +191,37 @@ public class AuditInsertion {
         }
     }
 
+    private String[] collectChangedItemPaths(List<ObjectDeltaOperationType> deltaOperations) {
+        return collectChangedItemPaths(deltaOperations, repoContext.prismContext());
+    }
+
     /**
      * Returns distinct collected changed item paths, or null, never an empty array.
      */
-    private String[] collectChangedItemPaths(List<ObjectDeltaOperationType> deltaOperations) {
+    public static String[] collectChangedItemPaths(List<ObjectDeltaOperationType> deltaOperations, PrismContext prismContext) {
         Set<String> changedItemPaths = new HashSet<>();
         for (ObjectDeltaOperationType deltaOperation : deltaOperations) {
             ObjectDeltaType delta = deltaOperation.getObjectDelta();
+
+            if (delta.getObjectToAdd() != null) {
+                // creates list of changed item paths for add delta - just first level items
+                // to allow at least for some search capabilities without sacrificing performance (DB index size)
+                PrismObject<?> object = delta.getObjectToAdd().asPrismObject();
+                object.getValue().getItems().stream()
+                        .map(i -> i.getElementName())
+                        .map(i -> prismContext.createCanonicalItemPath(i, object.getDefinition().getTypeName()).asString())
+                        .forEach(changedItemPaths::add);
+            }
+
             for (ItemDeltaType itemDelta : delta.getItemDelta()) {
                 ItemPath path = itemDelta.getPath().getItemPath();
-                CanonicalItemPath canonical = repoContext.prismContext()
-                        .createCanonicalItemPath(path, delta.getObjectType());
+                CanonicalItemPath canonical = prismContext.createCanonicalItemPath(path, delta.getObjectType());
                 for (int i = 0; i < canonical.size(); i++) {
                     changedItemPaths.add(canonical.allUpToIncluding(i).asString());
                 }
             }
         }
+
         return changedItemPaths.isEmpty() ? null : changedItemPaths.toArray(String[]::new);
     }
 
