@@ -47,7 +47,53 @@ Refer to xref:/midpoint/reference/roles-policies/policies/policy-rules/#policy_c
 .Example
 [source,xml]
 ----
-
+<policy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="f6e27725-c148-4ef3-8bef-9404d67ca1e8">
+    <name>assignmentState-policy</name>
+    <activation/>
+    <displayName>Assignment State Policy</displayName>
+    <inducement id="75">
+        <policyRule>
+            <name>Assignment State Policy Rule</name>
+            <policyConstraints>
+                <assignmentState>
+                    <expression>
+                        <script>
+                            <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                            log.info("ASSIGNMENT STATUS: " + assignment)
+                            log.info("USER OBJECT: " + object)
+                            if (assignment?.activation?.effectiveStatus == null) {
+                                return false
+                            }
+                            return assignment.activation.effectiveStatus == ActivationStatusType.DISABLED
+                            </code>
+                        </script>
+                    </expression>
+                </assignmentState>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution id="8">
+                    <executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                        <s:action>
+                            <s:type>execute-script</s:type>
+                            <s:parameter>
+                                <s:name>script</s:name>
+                                <s:value xsi:type="c:ScriptExpressionEvaluatorType">
+                                    <code>
+                                        log.info("User has disabled assignment for this role: " + input)
+                                    </code>
+                                </s:value>
+                            </s:parameter>
+                        </s:action>
+                    </executeScript>
+                </scriptExecution>
+        </policyActions>
+        </policyRule>
+    </inducement>
+</policy>
 ----
 
 == hasAssignment
@@ -144,72 +190,178 @@ Refer to xref:/midpoint/reference/roles-policies/policies/policy-rules/#policy_c
 </policyConstraints>
 ----
 
-== objectMinAssigneesViolation
-.Example - require at least 2 approvers
-[source,xml]
-----
-<policyConstraints>
-    <objectMinAssigneesViolation>
-        <multiplicity>2</multiplicity>
-        <relation>approver</relation>
-    </objectMinAssigneesViolation>
-</policyConstraints>
-----
-
-== objectMaxAssigneesViolation
-.Example
-[source,xml]
-----
-
-----
-
 == modification
 .Example
 [source,xml]
 ----
-<policyConstraints>
-    <modification>
-        <operation>modify</operation>
-    </modification>
-</policyConstraints>
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    oid="24e42ec5-ee5d-41b8-9b36-295b3800b469">
+    <name>LDAP account modified</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/> <!-- event mark -->
+    </assignment>
+    <displayOrder>900</displayOrder> <!-- show this mark at the end -->
+    <policyRule>
+        <policyConstraints>
+            <objectState>
+                <filter>
+                    <q:text>resourceRef matches (oid = '32531590-4606-4333-9cc2-0faa1ae68509')</q:text> <!-- LDAP -->
+                </filter>
+            </objectState>
+            <or> <!-- copied from "resource object affected" event mark -->
+                <modification>
+                    <operation>modify</operation>
+                    <specialItem>resourceObjectItem</specialItem>
+                </modification>
+                <modification>
+                    <!-- We assume that ADD/DELETE always modifies the state of the resource -->
+                    <operation>add</operation>
+                    <operation>delete</operation>
+                </modification>
+            </or>
+        </policyConstraints>
+        <evaluationTarget>projection</evaluationTarget>
+    </policyRule>
+</mark>
 ----
-
-// how does "modify" work?
 
 == assignment
 .Example
 [source,xml]
 ----
-
-----
-
-== objectTimeValidity
-.Example
-[source,xml]
-----
-
-----
-
-== assignmentTimeValidity
-.Example
-[source,xml]
-----
-
+<policyRule>
+    <name>approval-by-security-team</name>
+    <policyConstraints>
+        <assignment>
+            <scope>any</scope>
+        </assignment>
+    </policyConstraints>
+    <policyActions>
+        <approval>
+            <compositionStrategy>
+                <order>120</order>
+            </compositionStrategy>
+            <approvalSchema>
+                <stage>
+                    <name>Security</name>
+                    <approverRef oid="293fe73e-472a-11ea-b04f-274374b2c5e2" type="OrgType"/>
+                    <evaluationStrategy>firstDecides</evaluationStrategy>
+                    <groupExpansion>onWorkItemCreation</groupExpansion>
+                    <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                </stage>
+            </approvalSchema>
+        </approval>
+    </policyActions>
+</policyRule>
 ----
 
 == situation
 .Example
 [source,xml]
 ----
-
+<globalPolicyRule>
+    <name>sod-approval</name>
+    <description>Approval action for (existing) exclusion violations</description>
+    <policyConstraints>
+        <situation>
+            <situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+        </situation>
+    </policyConstraints>
+    <policyActions>
+        <approval>
+            <compositionStrategy>
+                <order>30</order>
+            </compositionStrategy>
+            <approvalSchema>
+                <stage>
+                    <name>SoD</name>
+                    <approverRef type="OrgType">
+                        <filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <q:value>SoD Approvers</q:value>
+                            </q:equal>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </approverRef>
+                    <evaluationStrategy>firstDecides</evaluationStrategy>
+                    <groupExpansion>onWorkItemCreation</groupExpansion>
+                </stage>
+            </approvalSchema>
+        </approval>
+    </policyActions>
+    <focusSelector>
+        <type>UserType</type>
+    </focusSelector>
+    <targetSelector>
+        <!-- no need to filter on subtype, as each role has to have SoD defined -->
+        <type>RoleType</type>
+    </targetSelector>
+</globalPolicyRule>
 ----
 
 == custom
 .Example
 [source,xml]
 ----
-
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000730">
+    <name>Projection activated</name>
+    <description>Operation that activated the projection</description>
+    <documentation>
+        This is an operation that brought the projection into existence and being effectively enabled.
+        (So, previously it was either non-existent or effectively disabled.)
+    </documentation>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <displayOrder>300</displayOrder>
+    <policyRule id="2">
+        <name>projection-activated</name>
+        <policyConstraints>
+            <custom id="3">
+                <name>$projection-activated</name>
+                <expression>
+                    <script>
+                        <code>midpoint.currentProjectionActivated</code>
+                    </script>
+                </expression>
+            </custom>
+        </policyConstraints>
+        <evaluationTarget>projection</evaluationTarget>
+    </policyRule>
+</mark>
 ----
+
+.Example
+[source,xml]
+----
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="e2dccf40-9bfd-42a1-aa02-48b0f31cdb1c">
+    <name>nonsense-mark</name>
+    <description>Always fails. Used to check the exclusion mechanism.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <policyRule>
+        <policyConstraints>
+            <custom>
+                <expression>
+                    <script>
+                        <code>throw new UnsupportedOperationException("nonsense mark")</code>
+                    </script>
+                </expression>
+            </custom>
+        </policyConstraints>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+    </policyRule>
+</mark>
+----
+
 
 == collectionStats
 .Example
@@ -317,44 +469,59 @@ See xref:/midpoint/reference/tasks/orphaned-tasks/[] for more examples of the _o
 [source,xml]
 ----
 <policyConstraints>
-    <not>
-        <objectState>
-            <name>active lifecycleState</name>
-            <filter>
-                <q:text>lifecycleState = "active"</q:text>
-            </filter>
-        </objectState>
-    </not>
+    <objectState>
+        <name>ot-high-risk-role</name>
+        <filter>
+            <q:not>
+                <q:path>riskLevel</q:path>
+                    <q:value>high</q:value>
+                </q:equal>
+            </q:not>
+        </filter>
+    </objectState>
 </policyConstraints>
 ----
 
-// is this correct?
-
 == transition
-.Example - switching to the active state must be approved
+
+In the following example, for the policy rule action to trigger, the filter in the constraint must evaluate to `false` before making changes to the `lifecycleState` attribute, and `true` after the change.
+
+.Example
 [source,xml]
 ----
-<policyRule>
-    <name>approve-role-activation</name>
-    <policyConstraints>
-        <transition>
-            <name>role-switched-to-active</name>
-            <stateBefore>false</stateBefore>
-            <stateAfter>true</stateAfter>
-            <constraints>
-                <objectState>
-                    <name>active lifecycleState</name>
-                    <filter>
-                        <q:text>lifecycleState = "active"</q:text>
-                    </filter>
-                </objectState>
-            </constraints>
-        </transition>
-    </policyConstraints>
-    <policyActions>
-        <approval> ... </approval>
-    </policyActions>
-</policyRule>
+
+<policy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="7f4cba75-9a16-47d6-995b-69963b962504">
+    <name>cannot-change-lifecycle-to-active-policy</name>
+    <activation/>
+    <displayName>Cannot Change LifeCycle To Active Policy</displayName>
+    <inducement id="75">
+        <policyRule>
+            <name>cannot-change-lifecycle-</name>
+            <policyConstraints>
+                <transition>
+                    <name>role-switched-to-active</name>
+                    <stateBefore>false</stateBefore>
+                    <stateAfter>true</stateAfter>
+                    <constraints>
+                        <objectState>
+                            <name>active lifecycleState</name>
+                            <filter>
+                                <q:text>lifecycleState = "active"</q:text>
+                            </filter>
+                        </objectState>
+                    </constraints>
+                </transition>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</policy>
 ----
 
 == ref

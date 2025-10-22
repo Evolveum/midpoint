@@ -95,6 +95,8 @@ For example, to grant access to high-risk users (i.e. users in more sensitive po
 The following webinar recording summarizes the application of policy rules in midPoint:
 
 video::RyPPiY4_690[youtube,title="Policies and Rules in midPoint",width="852",height="480"]
+[small]#_Note that on the Policy Rule Examples slide, the presentation incorrectly shows the `report` action instead of the `record` action._#
+
 
 == Rule Content
 
@@ -137,7 +139,7 @@ This can be used to require the presence of clearances, job roles, assignments o
 | xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#requirement[Example]
 
 | `exclusion`
-| Forbids an object to be assigned together with another object.
+| Prohibits an object from being assigned together with another object.
 This is typically used to enforce segregation of duty (SoD) policies.
 | xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#exclusion[Example]
 
@@ -149,20 +151,6 @@ This is typically used to enforce segregation of duty (SoD) policies.
 | Triggers when the number of an object's assignees exceeds the specified value.
 | xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#maxassignees[Example]
 
-| `objectMinAssigneesViolation`
-| Triggers when the number of objects that have this object (e.g., role) assigned is lower than the specified value.
-This is similar to minAssignees, however, it indicates that the constraint should be evaluated against an object when evaluating object constraints. +
-HIGHLY EXPERIMENTAL
-| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#objectminassigneesviolation[Example]
-// what is "this object"? How is it different from minAssignees?
-
-| `objectMaxAssigneesViolation`
-| Triggers when the number of objects that have this object (e.g., role) assigned exceeds the specified value.
-This is similar to maxAssignees, however, it indicates that the constraint should be evaluated against an object when evaluating object constraints. +
-HIGHLY EXPERIMENTAL
-| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#objectmaxassigneesviolation[Example]
-// what is "this object"? How is it different from maxAssignees?
-
 | `modification`
 | Triggers when an object is modified (Add, Modify, or Delete actions).
 This is used to implement change management.
@@ -173,25 +161,15 @@ This is used to implement change management.
 This is used to implement role request approval.
 | xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#assignment[Example]
 
-| `objectTimeValidity`
-| Triggers when the validity of an object, or any of its time-sensitive items (such as passwords) is about to end.
-| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#objecttimevalidity[Example]
-// how far ahead?
-
-| `assignmentTimeValidity`
-| Triggers when the validity of an assignment, or any of its time-sensitive items (such as passwords) is about to end.
-| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#assignmenttimevalidity[Example]
-// how far ahead?
-
 | `situation`
-| Triggers when a policy triggering situation, such as when a user's role changes, occurs within an object or an assignment.
+| Triggers when a policy triggering situation occurs within an object or an assignment.
+For example, when a user's role changes.
 | xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#situation[Example]
 
 | `custom`
-| A custom way of evaluating a policy constraint. Used typically for transitional constraints.
+| A custom way of evaluating a policy constraint using a script. This is typically used for transitional constraints.
 (State-based custom constraints can always be evaluated using an `objectState` constraint.)
 | xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#custom[Example]
-// This is unclear
 
 | `collectionStats`
 | Implements constraints based on statistical properties of collections, such as the number of objects or their percentage distribution.
@@ -222,10 +200,8 @@ This is currently supported for tasks.
 | xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#not[Example]
 
 | `transition`
-| Specifies how the inner constraints are to be evaluated with regard to operation start and end state.
-May not include any transitional constraints itself.
+| Triggers if the state of an object changes.
 | xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#transition[Example]
-// This is unclear
 
 | `ref`
 | References another constraint, e.g., by its name.
