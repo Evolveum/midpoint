@@ -328,7 +328,7 @@ public class SmartCorrelationTable
 
     @Override
     protected String getAcceptButtonCssClass() {
-        return getDiscardButtonCssClass();
+        return "col p-2 btn btn-primary rounded";
     }
 
     @Override
