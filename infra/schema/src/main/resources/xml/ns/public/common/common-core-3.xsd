@@ -7147,6 +7147,35 @@
         </xsd:complexType>
     </xsd:element>
 
+    <xsd:complexType name="FilterExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Filter expression.
+                The expression evaluates whether a provided object matches the filter.
+                This is a boolean expression, only able to return true or false.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TransformExpressionEvaluatorType">
+                <xsd:sequence>
+                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Filter to match the objects against.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="filter" type="tns:FilterExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+
     <!-- MODEL SCHEMA -->
 
     <!-- The following clauses belong to the model schema, not here. But due

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (c) 2010-2025 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -124,7 +124,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator
         return expressionEvaluatorBean.getRelativityMode() != ABSOLUTE;
     }
 
-    E getExpressionEvaluatorBean() {
+    public E getExpressionEvaluatorBean() {
         return expressionEvaluatorBean;
     }
 
