@@ -279,6 +279,10 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         }
     }
 
+    /**
+     * See also {@link AuditInsertion#collectChangedItemPaths( List, PrismContext)},
+     * there's a similar logic used in {@link SqaleAuditService#audit( AuditEventRecordType, OperationResult)} operation.
+     */
     private Set<String> collectChangedItemPathsFromOriginal(Collection<ObjectDeltaOperation<? extends ObjectType>> deltas) {
         Set<String> changedItemPaths = new HashSet<>();
         for (var delta : deltas) {

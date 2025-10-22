@@ -16,6 +16,8 @@ import java.util.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
@@ -42,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperation
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;import javax.xml.namespace.QName;
 
 /**
  * Throw-away object realizing DB insertion of a single {@link AuditEventRecordType}
@@ -197,6 +199,8 @@ public class AuditInsertion {
 
     /**
      * Returns distinct collected changed item paths, or null, never an empty array.
+     *
+     * See also {@link SqaleAuditService#collectChangedItemPathsFromOriginal( Collection)} where similar thing is done.
      */
     public static String[] collectChangedItemPaths(List<ObjectDeltaOperationType> deltaOperations, PrismContext prismContext) {
         Set<String> changedItemPaths = new HashSet<>();
@@ -207,9 +211,10 @@ public class AuditInsertion {
                 // creates list of changed item paths for add delta - just first level items
                 // to allow at least for some search capabilities without sacrificing performance (DB index size)
                 PrismObject<?> object = delta.getObjectToAdd().asPrismObject();
+                QName type = object.getDefinition().getTypeName();
                 object.getValue().getItems().stream()
                         .map(i -> i.getElementName())
-                        .map(i -> prismContext.createCanonicalItemPath(i, object.getDefinition().getTypeName()).asString())
+                        .map(i -> prismContext.createCanonicalItemPath(i, type).asString())
                         .forEach(changedItemPaths::add);
             }
 
