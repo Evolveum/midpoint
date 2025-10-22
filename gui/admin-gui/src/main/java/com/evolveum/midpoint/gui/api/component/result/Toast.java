@@ -146,6 +146,12 @@ public class Toast implements Serializable {
         }
     }
 
+    public void configureAriaAttributesAndShow(@NotNull AjaxRequestTarget target) {
+        show(target);
+
+        target.appendJavaScript("MidPointTheme.setToastAriaAttributes('toastsContainerTopRight');");
+    }
+
     public void show(@NotNull IHeaderResponse response) {
         try {
             ObjectMapper mapper = new ObjectMapper();

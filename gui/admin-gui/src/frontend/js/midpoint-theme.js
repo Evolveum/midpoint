@@ -1515,4 +1515,22 @@ export default class MidPointTheme {
             }
         }, menuTimeout);
     }
+
+    setToastAriaAttributes(toastId) {
+      const toastEl = document.getElementById(toastId);
+
+      if (!toastEl) {
+        console.warn(`Toast with ID "${toastId}" not found.`);
+        return;
+      }
+      const firstToast = toastEl.querySelector('.toast');
+      if (!firstToast) {
+        console.warn(`Toast not found.`);
+        return;
+      }
+      firstToast.setAttribute('tabindex', '0');
+      firstToast.setAttribute('role', 'alert');
+      firstToast.setAttribute('aria-live', 'assertive');
+      toastEl.show();
+    }
 }

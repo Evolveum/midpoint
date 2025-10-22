@@ -76,7 +76,7 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
             }
         };
         label.setOutputMarkupId(true);
-        label.add(AttributeModifier.append("tabindex", () -> addTabIndex ? "0" : null));
+        label.add(AttributeModifier.append("tabindex", () -> addTabIndex ? "-1" : null));
         add(label);
     }
 
