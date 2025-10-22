@@ -21,7 +21,7 @@ import java.util.*;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
@@ -37,9 +37,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
@@ -282,41 +279,21 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         }
     }
 
-    private Set<String> collectChangedItemPaths(Collection<MAuditDelta> deltas) {
-        Set<String> changedItemPaths = new HashSet<>();
-        for (MAuditDelta delta : deltas) {
-            try {
-                // TODO: this calls compat parser, but for just serialized deltas we could be strict too
-                //  See MID-7431, this currently just shows ERROR with ignore message and no stack trace.
-                //  We could either check parseResult.parsingContext.has/getWarnings, or use strict and catch (probably better).
-                RepositoryObjectParseResult<ObjectDeltaType> parseResult =
-                        sqlRepoContext.parsePrismObject(delta.serializedDelta, ObjectDeltaType.class);
-                ObjectDeltaType deltaBean = parseResult.prismValue;
-                for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
-                    ItemPath path = itemDelta.getPath().getItemPath();
-                    CanonicalItemPath canonical = sqlRepoContext.prismContext()
-                            .createCanonicalItemPath(path, deltaBean.getObjectType());
-                    for (int i = 0; i < canonical.size(); i++) {
-                        changedItemPaths.add(canonical.allUpToIncluding(i).asString());
-                    }
-                }
-            } catch (SchemaException | SystemException e) {
-                // See MID-6446 - we want to throw in tests, old ones should be fixed by now
-                if (InternalsConfig.isConsistencyChecks()) {
-                    throw new SystemException("Problem during audit delta parse", e);
-                }
-                logger.warn("Serialized audit delta with OID '{}' cannot be parsed."
-                        + " No changed items were created. This may cause problem later, but is not"
-                        + " critical for storing the audit record.", delta.deltaOid, e);
-            }
-        }
-        return changedItemPaths;
-    }
-
     private Set<String> collectChangedItemPathsFromOriginal(Collection<ObjectDeltaOperation<? extends ObjectType>> deltas) {
         Set<String> changedItemPaths = new HashSet<>();
         for (var delta : deltas) {
             var objectType = objectTypeQName(delta);
+
+            if (delta.getObjectDelta().getObjectToAdd() != null) {
+                // creates list of changed item paths for add delta - just first level items
+                // to allow at least for some search capabilities without sacrificing performance (DB index size)
+                PrismObject<?> object = delta.getObjectDelta().getObjectToAdd();
+                object.getValue().getItems().stream()
+                        .map(i -> i.getElementName())
+                        .map(i -> sqlRepoContext.prismContext().createCanonicalItemPath(i, objectType).asString())
+                        .forEach(changedItemPaths::add);
+            }
+
             for (var itemDelta : delta.getObjectDelta().getModifications()) {
                 if (itemDelta.isEmpty()) {
                     // Skipping empty deltas (was normalized during serialization)
