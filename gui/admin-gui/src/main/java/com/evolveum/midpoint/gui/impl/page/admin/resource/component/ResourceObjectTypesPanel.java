@@ -19,7 +19,10 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusA
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
+
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareContainerPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,6 +31,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -46,9 +52,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestionWrappers;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 @PanelType(name = "resourceObjectTypes")
@@ -193,6 +202,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return true;
     }
 
+    @SuppressWarnings("unchecked")
     protected @Nullable StatusInfo<ObjectTypesSuggestionType> getStatusInfo(PrismContainerValueWrapper<?> value) {
         StatusInfo<?> statusInfo = super.getStatusInfo(value);
         if (statusInfo != null) {
@@ -272,5 +282,75 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
     @Override
     protected boolean isStatisticsAllowed() {
         return true;
+    }
+
+    @Override
+    protected void customizeInlineMenuItems(@NotNull List<InlineMenuItem> inlineMenuItems) {
+        super.customizeInlineMenuItems(inlineMenuItems);
+        inlineMenuItems.add(createCompareWithExistingItemMenu());
+    }
+
+    private @NotNull InlineMenuItem createCompareWithExistingItemMenu() {
+        return new InlineMenuItem(createStringResource("SmartSuggestObjectTypeTilePanel.compare.with.existing")) {
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                List<ItemPath> requiredPaths = getDefaultObjectTypeComparePaths();
+
+                return new ColumnMenuAction<>() {
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        IModel<Serializable> rowModel = getRowModel();
+                        if (!(rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper)) {
+                            return;
+                        }
+
+                        var selectedDef = (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) wrapper;
+                        ResourceObjectTypeDefinitionType resourceDef = selectedDef.getRealValue();
+                        if (resourceDef == null
+                                || resourceDef.getDelineation() == null
+                                || resourceDef.getDelineation().getObjectClass() == null) {
+                            warn(getString("ResourceObjectTypesPanel.compare.objectClass.no.suitable"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        QName objectClass = resourceDef.getDelineation().getObjectClass();
+                        var existingObjectClassDefs = getExistingObjectTypeDefinitions(objectClass);
+                        var compareObjectDto = createCompareObjectDto(selectedDef, existingObjectClassDefs, requiredPaths);
+
+                        var comparePanel = new CompareContainerPanel<>(getPageBase().getMainPopupBodyId(), () -> compareObjectDto);
+                        getPageBase().showMainPopup(comparePanel, target);
+                    }
+                };
+            }
+        };
+    }
+
+    /**
+     * Returns all existing object type definitions matching the given object class.
+     */
+    protected @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>
+    getExistingObjectTypeDefinitions(@NotNull QName targetObjectClass) {
+
+        PrismContainerWrapperModel<ResourceType, ResourceObjectTypeDefinitionType> resourceWrapper =
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
+
+        return resourceWrapper.getObject().getValues().stream()
+                .filter(value -> {
+                    ResourceObjectTypeDefinitionType def = value.getRealValue();
+                    return def != null
+                            && def.getDelineation() != null
+                            && targetObjectClass.equals(def.getDelineation().getObjectClass());
+                })
+                .toList();
     }
 }

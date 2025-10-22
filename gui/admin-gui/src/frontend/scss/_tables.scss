@@ -78,3 +78,24 @@ td.rounded-icon-column div.img-circle {
 .table-td-middle td {
   vertical-align: middle;
 }
+
+/*
+ * Styles for the container object comparison table layout.
+ * Defines minimum column widths and basic visual formatting
+ * for headers and compared value columns.
+ */
+.compared-item-column {
+  min-width: 500px;
+}
+
+.compared-header-column {
+  min-width: 200px;
+  font-weight: 600;
+}
+
+.table-compared thead th {
+  background-color: #F8F9FA;
+  padding: 1.5rem;
+  text-align: center;
+  vertical-align: middle;
+}
