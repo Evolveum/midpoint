@@ -547,6 +547,11 @@ image::org-filters.png[]
 
 Assuming a query for `OrgType` the following filter matches only `ORG 1`:
 
+[source,midpoint-query]
+----
+. isRoot
+----
+
 [source,xml]
 ----
 <org>
@@ -561,6 +566,11 @@ ObjectFilter filter = prismContext.queryFor(OrgType.class).isRoot().buildFilter(
 
 Assuming a query for `OrgType` the following filter matches all the descendant organizations
 (direct and indirect) of the one defined by `oid` in the `orgRef` element:
+
+[source,midpoint-query]
+----
+. inOrg 'c74a7d86-7798-11e2-964e-200000000000'
+----
 
 [source,xml]
 ----
@@ -579,6 +589,11 @@ ObjectFilter filter = prismContext.queryFor(OrgType.class)
 ----
 
 Similar to the previous example, but only direct children match this filter:
+
+[source,midpoint-query]
+----
+. inOrg[ONE_LEVEL] 'c74a7d86-7798-11e2-964e-200000000000'
+----
 
 [source,xml]
 ----
@@ -713,7 +728,11 @@ Type filter with parameters `type` and optional `filter` accepts if the object i
 For example, imagine that the original query asked for an ObjectType.
 Then it is possible to set up Type filter with type=UserType, filter=(name equals "xyz") to find only users with the name of "xyz":
 
-.XML
+[source,midpoint-query]
+----
+. type UserType and name = 'xyz'
+----
+
 [source,xml]
 ----
 <type>
@@ -781,7 +800,10 @@ The above complex filter - if needed to be interpreted in the first way - should
 
 * `exists ( assignment , and ( ref (tenantRef, oid1), ref (orgRef, oid2) ) )`
 
-Written in XML:
+[source,midpoint-query]
+----
+assignment matches (tenantRef matches (oid = ' ...oid1... ') and orgRef matches (oid = ' ...oid2... '))
+----
 
 [source,xml]
 ----
@@ -1148,6 +1170,10 @@ container of the object type `AccessCertificationCampaignType`.
 The following example shows the search for all `AccessCertificationWorkItemType` containers that
 are part of an object with specified OID:
 
+////
+Serialization of class com.evolveum.midpoint.prism.impl.query.OwnedByFilterImpl is not supported
+////
+
 [source,xml]
 ----
 <filter>
@@ -1177,6 +1203,10 @@ prismContext.queryFor(AccessCertificationWorkItemType.class)
 
 The next example shows a similar search, but this time limited to the work items under a single
 `AccessCertificationCaseType` container specified by its container ID in addition to the object OID:
+
+////
+Serialization of class com.evolveum.midpoint.prism.impl.query.OwnedByFilterImpl is not supported
+////
 
 [source,xml]
 ----
@@ -1228,6 +1258,10 @@ The following filters can often do the same job:
 For instance, the last nested `ownedBy` filter that only specified parent object OID can be written
 using existing `inOid` filter with `considerOwner` flag, so there is no need for the inner `ownedBy`:
 
+////
+Serialization of class com.evolveum.midpoint.prism.impl.query.OwnedByFilterImpl is not supported
+////
+
 [source,xml]
 ----
 <filter>
@@ -1265,6 +1299,11 @@ on the parent table, so it's "one less join" (in very simplified terms).
 This may not warrant optimization for this particular query, but may be noticeable for others.
 
 Even the outer `ownedBy` filter can be replaced in the previous examples:
+
+[source,midPoint-query]
+----
+.. matches (. ownedByOid 'd1ae23ed-dfa2-4b5c-807d-6611e7831b8f' and . inOid '1')
+----
 
 [source,xml]
 ----
@@ -1577,6 +1616,11 @@ To be concise, we'll show only filters (no wrapping queries) in the following ex
 
 ===== EqualFilter
 
+[source,midPoint-query]
+----
+name matches (orig = 'some-name')
+----
+
 [source,xml]
 ----
 <equal>
@@ -1595,6 +1639,11 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 
 Another example (we'll show only XML and fluent Java API from this point on):
 
+[source,midPoint-query]
+----
+employeeType = ('3', '2')
+----
+
 [source,xml]
 ----
 <equal>
@@ -1612,6 +1661,11 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 ----
 
 Comparing item to another item:
+
+[source,midPoint-query]
+----
+employeeNumber = costCenter
+----
 
 [source,xml]
 ----
@@ -1646,6 +1700,12 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 ----
 
 Or a more complex example:
+
+[source,midPoint-query]
+----
+(costCenter > '100000' and costCenter < '999999')
+or (costCenter >= 'X100' and costCenter <= 'X999')
+----
 
 [source,xml]
 ----
@@ -1685,6 +1745,14 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 ----
 
 ===== Substring filter
+
+[source,midPoint-query]
+----
+employeeType contains 'A'
+or employeeType startsWith 'B'
+or employeeType endsWith 'C'
+or name startsWith[polyStringOrig] 'john'
+----
 
 [source,xml]
 ----
@@ -1771,7 +1839,20 @@ So e.g. if the references uses `RoleType`, and the filter asks for `AbstractRole
 
 It is suggested to avoid querying for target object type, if possible.
 
+////
 XML can be written also in alternative way:
+////
+
+Can be written also in alternative way:
+
+////
+resourceRef matches (oid = 'oid4' and type = ResourceType)
+////
+
+[source,midPoint-query]
+----
+resourceRef matches (oid = 'oid4' and type = ResourceType)
+----
 
 [source,xml]
 ----
@@ -1788,6 +1869,11 @@ XML can be written also in alternative way:
 ----
 
 ===== InOid
+
+[source,midPoint-query]
+----
+. inOid ('00000000-1111-2222-3333-444444444444', '00000000-1111-2222-3333-555555555555', '00000000-1111-2222-3333-666666666666')
+----
 
 [source,xml]
 ----
@@ -1808,6 +1894,11 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 ----
 
 This one selects container values with ID 1, 2 or 3, having owner (object) with OID of "00000000-1111-2222-3333-777777777777".
+
+[source,midPoint-query]
+----
+. inOid ('1', '2', '3') and . ownedByOid '00000000-1111-2222-3333-777777777777'
+----
 
 [source,xml]
 ----
@@ -1873,6 +1964,11 @@ ObjectFilter filter = prismContext.queryFor(UserType.class)
 ----
 
 ==== Type filter
+
+[source,midPoint-query]
+----
+. type UserType and name = 'somename'
+----
 
 [source,xml]
 ----
@@ -1957,6 +2053,13 @@ ObjectFilter filter = prismContext.queryFor(AccessCertificationCaseType.class)
 
 // TODO midPoint query expression example
 
+[source,midPoint-query]
+----
+name startsWith[polyStringNorm] ```
+                return 'C';
+            ```
+----
+
 .XML
 [source,xml]
 ----
@@ -1977,6 +2080,16 @@ ObjectFilter filter = prismContext.queryFor(AccessCertificationCaseType.class)
 This example returns all objects with a name starting with "C".
 
 ==== Date filtering
+
+[source,midPoint-query]
+----
+extension/EndDate > ```
+                    return basic.parseDateTime('yyyy-MM-dd', (basic.currentDateTime().getYear()-1) + '-12-31');
+                ```
+and extension/EndDate < ```
+                    return basic.parseDateTime('yyyy-MM-dd', basic.currentDateTime().getYear() + '-01-02');
+                ```
+----
 
 .XML
 [source,xml]
@@ -2060,7 +2173,11 @@ This allows e.g. filtering users that have projection on specified resource.
 Please note, that `@` has limitation towards general (any object type) usage and will work with
 statically defined types like `ObjectType`, `FocusType`, `ShadowType`.
 
-.XML
+[source,midPoint-query]
+----
+linkRef/@/resourceRef matches (oid = '7754e27c-a7cb-4c23-850d-a9a15f71199a')
+----
+
 [source,xml]
 ----
 <filter>
@@ -2073,7 +2190,11 @@ statically defined types like `ObjectType`, `FocusType`, `ShadowType`.
 
 Another examples:
 
-.XML
+[source,midPoint-query]
+----
+assignment/targetRef/@/name = 'CN=AD-group,OU=Groups,DC=evolveum,DC=com'
+----
+
 [source,xml]
 ----
 <filter>
