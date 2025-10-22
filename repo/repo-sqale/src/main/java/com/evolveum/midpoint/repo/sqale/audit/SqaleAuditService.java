@@ -8,8 +8,7 @@ package com.evolveum.midpoint.repo.sqale.audit;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.getDeltaSuccessExecutionResult;
-import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
+import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -19,11 +18,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import javax.xml.datatype.Duration;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ChangedItemPath;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
@@ -39,7 +37,6 @@ import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
@@ -51,10 +48,8 @@ import com.evolveum.midpoint.repo.sqale.audit.qmodel.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryExecutor;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -62,8 +57,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}).
@@ -75,6 +68,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     // set from SystemConfigurationAuditType
     private boolean escapeIllegalCharacters = false;
     @NotNull private OperationResultDetailLevel deltaSuccessExecutionResult = OperationResultDetailLevel.CLEANED_UP;
+
+    private boolean indexAddObjectDeltaOperation = false;
+    private Set<ChangedItemPath> indexAdditionalItemPaths = Set.of();
 
     public SqaleAuditService(
             SqaleRepoContext sqlRepoContext,
@@ -284,39 +280,8 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
      * there's a similar logic used in {@link SqaleAuditService#audit( AuditEventRecordType, OperationResult)} operation.
      */
     private Set<String> collectChangedItemPathsFromOriginal(Collection<ObjectDeltaOperation<? extends ObjectType>> deltas) {
-        Set<String> changedItemPaths = new HashSet<>();
-        for (var delta : deltas) {
-            var objectType = objectTypeQName(delta);
-
-            if (delta.getObjectDelta().getObjectToAdd() != null) {
-                // creates list of changed item paths for add delta - just first level items
-                // to allow at least for some search capabilities without sacrificing performance (DB index size)
-                PrismObject<?> object = delta.getObjectDelta().getObjectToAdd();
-                object.getValue().getItems().stream()
-                        .map(i -> i.getElementName())
-                        .map(i -> sqlRepoContext.prismContext().createCanonicalItemPath(i, objectType).asString())
-                        .forEach(changedItemPaths::add);
-            }
-
-            for (var itemDelta : delta.getObjectDelta().getModifications()) {
-                if (itemDelta.isEmpty()) {
-                    // Skipping empty deltas (was normalized during serialization)
-                    continue;
-                }
-                ItemPath path = itemDelta.getPath();
-
-                CanonicalItemPath canonical = sqlRepoContext.prismContext()
-                        .createCanonicalItemPath(path, objectType);
-                for (int i = 0; i < canonical.size(); i++) {
-                    changedItemPaths.add(canonical.allUpToIncluding(i).asString());
-                }
-            }
-        }
-        return changedItemPaths;
-    }
-
-    private QName objectTypeQName(ObjectDeltaOperation<? extends ObjectType> delta) {
-        return ObjectTypes.getObjectType(delta.getObjectDelta().getObjectTypeClass()).getTypeQName();
+        return new ChangedItemPathComputer(indexAddObjectDeltaOperation, indexAdditionalItemPaths, sqlRepoContext.prismContext())
+                .collectChangedItemPaths(deltas);
     }
 
     private void insertAuditDeltas(
@@ -390,8 +355,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         long opHandle = registerOperationStart(OP_AUDIT);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             // plenty of parameters, but it's better to have a short-lived stateful worker for it
-            new AuditInsertion(record, jdbcSession, sqlRepoContext, escapeIllegalCharacters, logger)
-                    .execute();
+            new AuditInsertion(
+                    record, jdbcSession, sqlRepoContext, escapeIllegalCharacters,
+                    indexAddObjectDeltaOperation, indexAdditionalItemPaths, logger).execute();
 
             jdbcSession.commit();
         } finally {
@@ -518,6 +484,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     public void applyAuditConfiguration(@Nullable SystemConfigurationAuditType configuration) {
         escapeIllegalCharacters = isEscapingInvalidCharacters(configuration);
         deltaSuccessExecutionResult = getDeltaSuccessExecutionResult(configuration);
+
+        indexAddObjectDeltaOperation = isIndexingAddDeltaOperation(configuration);
+        indexAdditionalItemPaths = getIndexingAdditionalItemPaths(configuration);
     }
 
     @Override
