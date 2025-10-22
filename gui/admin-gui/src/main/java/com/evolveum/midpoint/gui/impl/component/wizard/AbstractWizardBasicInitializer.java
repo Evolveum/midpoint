@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.jetbrains.annotations.NotNull;
+
 public abstract class AbstractWizardBasicInitializer extends BasePanel {
 
     private static final String ID_TITLE_ICON = "titleIcon";
@@ -74,6 +76,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
 
         WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
         buttonsContainer.setOutputMarkupId(true);
+        buttonsContainer.add(AttributeModifier.append("class", getButtonContainerAdditionalCssClass()));
         add(buttonsContainer);
 
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
@@ -88,8 +91,8 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
             }
         };
         back.showTitleAsLabel(true);
-        back.add(new VisibleBehaviour(() -> isBackButtonVisible()));
-        back.add(AttributeAppender.append("class", "text-primary"));
+        back.add(new VisibleBehaviour(this::isBackButtonVisible));
+        back.add(AttributeAppender.append("class", getBackButtonCssClass()));
         buttons.add(back);
 
         AjaxIconButton exit = new AjaxIconButton(
@@ -102,7 +105,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
             }
         };
         exit.showTitleAsLabel(true);
-        exit.add(new VisibleBehaviour(() -> isExitButtonVisible()));
+        exit.add(new VisibleBehaviour(this::isExitButtonVisible));
         exit.add(AttributeAppender.append("class", getExitButtonCssClass()));
         buttons.add(exit);
 
@@ -119,9 +122,21 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
             }
         };
         saveButton.showTitleAsLabel(true);
-        saveButton.add(new VisibleBehaviour(() -> isSubmitButtonVisible()));
-        saveButton.add(AttributeAppender.append("class", "btn-success"));
+        saveButton.add(new VisibleBehaviour(this::isSubmitButtonVisible));
+        saveButton.add(AttributeAppender.append("class", getSubmitButtonCssClass()));
         buttons.add(saveButton);
+    }
+
+    protected String getButtonContainerAdditionalCssClass() {
+        return null;
+    }
+
+    protected @NotNull String getBackButtonCssClass() {
+        return "text-primary";
+    }
+
+    protected String getSubmitButtonCssClass() {
+        return "btn-success";
     }
 
     protected boolean isBackButtonVisible() {

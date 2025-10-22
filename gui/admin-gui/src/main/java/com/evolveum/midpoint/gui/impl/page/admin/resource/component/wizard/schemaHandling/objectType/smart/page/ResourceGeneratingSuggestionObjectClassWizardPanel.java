@@ -172,9 +172,4 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-10";
     }
-
-    @Override
-    protected WebMarkupContainer getButtonsContainer() {
-        return super.getButtonsContainer();
-    }
 }

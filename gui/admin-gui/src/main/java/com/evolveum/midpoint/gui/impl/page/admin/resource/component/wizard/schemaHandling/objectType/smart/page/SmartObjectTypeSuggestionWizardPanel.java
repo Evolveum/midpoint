@@ -158,17 +158,8 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
 
             @Override
             public void refreshSuggestionPerform(AjaxRequestTarget target) {
+                removeLastBreadcrumb();
                 processSuggestionActivity(target, objectClassName, true);
-            }
-
-            @Override
-            protected boolean isBackButtonVisible() {
-                return true;
-            }
-
-            @Override
-            protected IModel<String> getBackLabel() {
-                return createStringResource("SmartSuggestionWizardPanel.back.to.object.class.selection");
             }
 
             @Override

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -213,11 +214,6 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
                 objectWrapperModel, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
     }
 
-    @Override
-    protected String getSaveLabelKey() {
-        return "ResourceSuggestedObjectTypeTableWizardPanel.review.selected";
-    }
-
     protected abstract void onContinueWithSelected(
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model,
             @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
@@ -264,6 +260,36 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
+        return "col-10";
+    }
+
+    @Override
+    protected String getSaveLabelKey() {
+        return "ResourceSuggestedObjectTypeTableWizardPanel.review.selected";
+    }
+
+    @Override
+    protected String getSubmitIcon() {
+        return GuiStyleConstants.CLASS_ICON_SEARCH;
+    }
+
+    @Override
+    protected String getSubmitButtonCssClass() {
+        return "btn-primary";
+    }
+
+    @Override
+    protected IModel<String> getExitLabel() {
+        return createStringResource("SmartSuggestion.exitLabel");
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn-link mr-auto";
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
         return "col-10";
     }
 
