@@ -34,7 +34,7 @@ public class MappingsStatisticsComputationActivityRun extends SearchBasedActivit
 
     private ResourceType resource;
 
-    private ObjectTypeRelatedStatisticsComputer computer;
+    private ObjectTypeStatisticsComputer computer;
 
     public MappingsStatisticsComputationActivityRun(@NotNull ActivityRunInstantiationContext<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> context, @NotNull String shortNameCapitalized) {
         super(context, shortNameCapitalized);
@@ -78,7 +78,7 @@ public class MappingsStatisticsComputationActivityRun extends SearchBasedActivit
         var typeIdentification = getWorkDefinition().getTypeIdentification();
         var typeDefinition = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
 
-        computer = new ObjectTypeRelatedStatisticsComputer(typeDefinition);
+        computer = new ObjectTypeStatisticsComputer(typeDefinition);
 
         return true;
     }

@@ -29,15 +29,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestio
  *
  * Later, we can create a variant of this activity that computes statistics for objects already present in the repository.
  */
-class RemoteServiceCallActivityRun
+class ObjectTypesSuggestionRemoteServiceCallActivityRun
         extends LocalActivityRun<
             ObjectTypesSuggestionWorkDefinition,
             ObjectTypesSuggestionActivityHandler,
             ObjectTypesSuggestionWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RemoteServiceCallActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesSuggestionRemoteServiceCallActivityRun.class);
 
-    RemoteServiceCallActivityRun(
+    ObjectTypesSuggestionRemoteServiceCallActivityRun(
             ActivityRunInstantiationContext<ObjectTypesSuggestionWorkDefinition, ObjectTypesSuggestionActivityHandler> context) {
         super(context);
         setInstanceReady();

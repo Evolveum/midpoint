@@ -15,7 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class ObjectTypeRelatedStatisticsComputer {
+public class ObjectTypeStatisticsComputer {
 
     private final Map<QName, LinkedList<List<?>>> shadowCache = new HashMap<>();
 
@@ -24,7 +24,7 @@ public class ObjectTypeRelatedStatisticsComputer {
      */
     private final ShadowObjectClassStatisticsType statistics = new ShadowObjectClassStatisticsType();
 
-    public ObjectTypeRelatedStatisticsComputer(ResourceObjectTypeDefinition typeDefinition) {
+    public ObjectTypeStatisticsComputer(ResourceObjectTypeDefinition typeDefinition) {
         statistics.setSize(0);
         List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions = typeDefinition.getAttributeDefinitions();
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {

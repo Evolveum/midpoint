@@ -25,15 +25,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
 
-class RemoteServiceCallFocusTypeActivityRun
+class ObjectTypesSuggestFocusTypesActivityRun
         extends LocalActivityRun<
         ObjectTypesSuggestionWorkDefinition,
         ObjectTypesSuggestionActivityHandler,
         ObjectTypesSuggestionWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RemoteServiceCallFocusTypeActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesSuggestFocusTypesActivityRun.class);
 
-    RemoteServiceCallFocusTypeActivityRun(
+    ObjectTypesSuggestFocusTypesActivityRun(
             ActivityRunInstantiationContext<ObjectTypesSuggestionWorkDefinition, ObjectTypesSuggestionActivityHandler> context) {
         super(context);
         setInstanceReady();
