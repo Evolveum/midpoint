@@ -1533,4 +1533,28 @@ export default class MidPointTheme {
       firstToast.setAttribute('aria-live', 'assertive');
       toastEl.show();
     }
+
+    focusSelectedNavigationLink(linkText) {
+        const navigationContainer = document.querySelector('main form div[role="navigation"]');
+        if (!navigationContainer) {
+            console.warn('Navigation container (main form div[role="navigation"]) not found.');
+            return;
+        }
+
+        const navItemLinks = navigationContainer.querySelectorAll('a');
+        let selectedItem = null;
+        for (const link of navItemLinks) {
+            const navItem = link.querySelector('div.text-truncate');
+            if (navItem && navItem.textContent.trim() === linkText) {
+                selectedItem = link;
+                break;
+            }
+        }
+
+        if (selectedItem) {
+            setTimeout(() => {
+                selectedItem.focus();
+            }, 200);
+        }
+    }
 }
