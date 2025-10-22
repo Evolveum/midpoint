@@ -44,10 +44,24 @@ public class MappingsQualityAssessor {
 
 
     /**
-     * Assesses mapping quality by comparing shadow values to focus values (after expression application).
-     * Returns the fraction of shadow values that matched any focus value.
+     * Assesses mapping quality by comparing shadow values to focus values.
+     *
+     * The quality is computed as the fraction of sampled shadow values that equal the (optionally
+     * transformed) focus value. Only pairs where both sides are single-valued are considered; multi-valued
+     * pairs are skipped.
+     *
+     * @param valuePairs Sampled value pairs (shadow vs focus) used to estimate the mapping quality.
+     * @param suggestedExpression Optional expression (i.e. Groovy script) to transform the focus value
+     *                            before comparison. If {@code null}, raw focus values are used.
+     *
+     * @return Quality in the range {@code [0.0, 1.0]} rounded to two decimals; returns {@code -1.0f}
+     *         if no comparable samples were found or if expression evaluation failed.
+     *
      */
-    public float assessMappingsQuality(Collection<ValuesPair> valuePairs, ExpressionType suggestedExpression, Task task,
+    public float assessMappingsQuality(
+            Collection<ValuesPair> valuePairs,
+            @Nullable ExpressionType suggestedExpression,
+            Task task,
             OperationResult parentResult) {
         int totalShadowValues = 0;
         int matchedShadowValues = 0;
