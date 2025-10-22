@@ -9,7 +9,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
-import com.evolveum.midpoint.smart.impl.activities.ObjectTypeRelatedStatisticsComputer;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -133,7 +133,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
             OperationResult result) throws CommonException {
         var res = Resource.of(resource.get());
         var typeDefinition = res.getCompleteSchemaRequired().getObjectTypeDefinitionRequired(typeIdentification);
-        var computer = new ObjectTypeRelatedStatisticsComputer(typeDefinition);
+        var computer = new ObjectTypeStatisticsComputer(typeDefinition);
         var shadows = provisioningService.searchShadows(
                 res.queryFor(typeIdentification).build(),
                 null,

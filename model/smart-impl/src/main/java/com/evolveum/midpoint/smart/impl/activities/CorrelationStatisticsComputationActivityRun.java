@@ -34,7 +34,7 @@ public class CorrelationStatisticsComputationActivityRun extends SearchBasedActi
 
     private ResourceType resource;
 
-    private ObjectTypeRelatedStatisticsComputer computer;
+    private ObjectTypeStatisticsComputer computer;
 
     public CorrelationStatisticsComputationActivityRun(@NotNull ActivityRunInstantiationContext<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> context, @NotNull String shortNameCapitalized) {
         super(context, shortNameCapitalized);
@@ -78,7 +78,7 @@ public class CorrelationStatisticsComputationActivityRun extends SearchBasedActi
         var typeIdentification = getWorkDefinition().getTypeIdentification();
         var typeDefinition = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
 
-        computer = new ObjectTypeRelatedStatisticsComputer(typeDefinition);
+        computer = new ObjectTypeStatisticsComputer(typeDefinition);
 
         return true;
     }
