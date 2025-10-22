@@ -1,11 +1,21 @@
+/*
+ * Copyright (C) 2025 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
 package com.evolveum.midpoint.web.component.behavior;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.jetbrains.annotations.NotNull;
+
+import java.time.Duration;
 
 /**
  * An {@link OnChangeAjaxBehavior} that preserves the text caret position
@@ -15,6 +25,15 @@ import org.jetbrains.annotations.NotNull;
  * during dynamic updates.
  */
 public class CaretPreservingOnChangeBehavior extends OnChangeAjaxBehavior {
+
+    /** Debounce for instant single-click components (checkboxes). */
+    protected static final Duration INSTANT_DEBOUNCE = Duration.ZERO;
+
+    /** For responsive selection inputs (dropdowns, radios). */
+    protected static final Duration RESPONSIVE_DEBOUNCE = Duration.ofMillis(200);
+
+    /** For typing-based inputs (text fields, text areas). */
+    protected static final Duration TYPING_DEBOUNCE = Duration.ofMillis(800);
 
     public CaretPreservingOnChangeBehavior() {
     }
@@ -26,6 +45,8 @@ public class CaretPreservingOnChangeBehavior extends OnChangeAjaxBehavior {
     @Override
     protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
         super.updateAjaxAttributes(attributes);
+
+        attributes.setThrottlingSettings(new ThrottlingSettings(getDebounceInterval(), true));
         attributes.getDynamicExtraParameters().add(
                 "var el = Wicket.$('" + getAffectedComponentMarkupId() + "');" +
                         "return el ? { caretStart: el.selectionStart, caretEnd: el.selectionEnd } : {};"
@@ -70,7 +91,7 @@ public class CaretPreservingOnChangeBehavior extends OnChangeAjaxBehavior {
      * Subclasses may override to extend update behavior.
      */
     protected void onCaretAwareUpdate(@NotNull AjaxRequestTarget target) {
-        target.add(getComponent());
+        target.add(getAffectedComponent());
     }
 
     /**
@@ -79,5 +100,26 @@ public class CaretPreservingOnChangeBehavior extends OnChangeAjaxBehavior {
      */
     protected Component getAffectedComponent() {
         return getComponent();
+    }
+
+    /**
+     * Determines debounce interval dynamically based on component type.
+     * <p>
+     * - {@link CheckBox}: {@link #INSTANT_DEBOUNCE}<br>
+     * - {@link DropDownChoice}: {@link #RESPONSIVE_DEBOUNCE}<br>
+     * - Other (e.g. text fields): {@link #TYPING_DEBOUNCE}
+     */
+    protected Duration getDebounceInterval() {
+        Component component = getAffectedComponent();
+
+        if (component instanceof CheckBox) {
+            return INSTANT_DEBOUNCE;
+        }
+
+        if (component instanceof DropDownChoice) {
+            return RESPONSIVE_DEBOUNCE;
+        }
+
+        return TYPING_DEBOUNCE;
     }
 }
