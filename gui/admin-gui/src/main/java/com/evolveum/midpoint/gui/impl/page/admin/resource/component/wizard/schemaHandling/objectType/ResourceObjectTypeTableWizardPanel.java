@@ -61,7 +61,7 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
             @Override
             protected void onNewValue(
                     PrismContainerValue<ResourceObjectTypeDefinitionType> value,
-                    IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
+                    @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
                     AjaxRequestTarget target,
                     boolean isDuplicate,
                     @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {

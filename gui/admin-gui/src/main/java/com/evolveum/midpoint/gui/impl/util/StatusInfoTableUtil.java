@@ -258,7 +258,7 @@ public class StatusInfoTableUtil {
     public static <C extends Containerable, T> @NotNull ButtonInlineMenuItem createSuggestionReviewInlineMenu(
             @NotNull PageBase pageBase,
             @NotNull SerializableFunction<PrismContainerValueWrapper<C>, StatusInfo<T>> getStatusInfo,
-            @NotNull SerializableBiConsumer<AjaxRequestTarget, PrismContainerValueWrapper<C>> performOnReview) {
+            @NotNull SerializableTriConsumer<AjaxRequestTarget, PrismContainerValueWrapper<C>, StatusInfo<T>> performOnReview) {
         return new ButtonInlineMenuItem(
                 pageBase.createStringResource("SuggestionReviewInlineMenu.review.suggestion.inlineMenu")) {
             @Serial private static final long serialVersionUID = 1L;
@@ -299,7 +299,8 @@ public class StatusInfoTableUtil {
                             return;
                         }
 
-                        performOnReview.accept(target, (PrismContainerValueWrapper<C>) valueWrapper);
+                        StatusInfo<T> suggestionStatus = getStatusInfo.apply((PrismContainerValueWrapper<C>) valueWrapper);
+                        performOnReview.accept(target, (PrismContainerValueWrapper<C>) valueWrapper, suggestionStatus);
                     }
                 };
             }
@@ -359,7 +360,7 @@ public class StatusInfoTableUtil {
     public static @NotNull LabelWithBadgePanel buildSuggestionNameLabel(
             @NotNull String componentId,
             @NotNull StatusInfo<?> suggestionTypeStatusInfo,
-            @NotNull LoadableModel<String> displayNameModel,
+            @NotNull IModel<String> displayNameModel,
             @NotNull OperationResultStatusType status) {
         LabelWithBadgePanel labelWithBadgePanel = new LabelWithBadgePanel(
                 componentId, getAiBadgeModel(), displayNameModel) {
@@ -464,6 +465,11 @@ public class StatusInfoTableUtil {
                 return "justify-content-end";
             }
         } : null;
+    }
+
+    @FunctionalInterface
+    public interface SerializableTriConsumer<A, B, C> extends Serializable {
+        void accept(A a, B b, C c);
     }
 
 }

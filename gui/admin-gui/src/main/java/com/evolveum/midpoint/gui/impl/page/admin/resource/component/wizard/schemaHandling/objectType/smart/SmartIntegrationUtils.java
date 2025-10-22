@@ -477,7 +477,7 @@ public class SmartIntegrationUtils {
      */
     public static void removeCorrelationTypeSuggestionNew(
             @NotNull PageBase pageBase,
-            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo,
+            @NotNull StatusInfo<?> statusInfo,
             @NotNull CorrelationSuggestionType suggestionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -518,7 +518,7 @@ public class SmartIntegrationUtils {
 
     public static void removeMappingTypeSuggestionNew(
             @NotNull PageBase pageBase,
-            @NotNull StatusInfo<MappingsSuggestionType> statusInfo,
+            @NotNull StatusInfo<?> statusInfo,
             AttributeMappingsSuggestionType definitionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -577,6 +577,75 @@ public class SmartIntegrationUtils {
             result.recordFatalError("Couldn't delete task " + token + ": " + e.getMessage(), e);
             LOGGER.error("Couldn't delete task {}: {}", token, e.getMessage(), e);
         }
+    }
+
+    public static <C extends Containerable> boolean removeSuggestionValue(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @NotNull PrismContainerValueWrapper<C> valueWrapper,
+            @NotNull StatusInfo<?> statusInfo,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Object realValue = valueWrapper.getRealValue();
+        if (realValue instanceof ResourceObjectTypeDefinitionType objectDef) {
+
+            SmartIntegrationUtils.removeObjectTypeSuggestionNew(
+                    pageBase,
+                    statusInfo,
+                    objectDef,
+                    task,
+                    result);
+            target.add(pageBase.getFeedbackPanel());
+            return true;
+        } else if (realValue instanceof ShadowAssociationTypeDefinitionType) {
+            PrismContainerValueWrapper<AssociationSuggestionType> parentContainerValue =
+                    valueWrapper.getParentContainerValue(AssociationSuggestionType.class);
+            if (parentContainerValue == null || parentContainerValue.getRealValue() == null) {
+                return false;
+            }
+
+            SmartIntegrationUtils.removeAssociationTypeSuggestionNew(
+                    pageBase,
+                    statusInfo,
+                    parentContainerValue.getRealValue(),
+                    task,
+                    result);
+            target.add(pageBase.getFeedbackPanel());
+            return true;
+        } else if (realValue instanceof CorrelationSuggestionsType) {
+            PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueWrapper
+                    .getParentContainerValue(CorrelationSuggestionType.class);
+            if (parentContainerValue == null || parentContainerValue.getRealValue() == null) {
+                return false;
+            }
+
+            SmartIntegrationUtils.removeCorrelationTypeSuggestionNew(
+                    pageBase,
+                    statusInfo,
+                    parentContainerValue.getRealValue(),
+                    task,
+                    result);
+            target.add(pageBase.getFeedbackPanel());
+            return true;
+        } else if (realValue instanceof MappingsSuggestionType) {
+            PrismContainerValueWrapper<AttributeMappingsSuggestionType> parentContainerValue = valueWrapper
+                    .getParentContainerValue(AttributeMappingsSuggestionType.class);
+            if (parentContainerValue == null || parentContainerValue.getRealValue() == null) {
+                return false;
+            }
+
+            SmartIntegrationUtils.removeMappingTypeSuggestionNew(
+                    pageBase,
+                    statusInfo,
+                    parentContainerValue.getRealValue(),
+                    task,
+                    result);
+            target.add(pageBase.getFeedbackPanel());
+            return true;
+        }
+
+        return false;
     }
 
     /**
