@@ -16,8 +16,6 @@ import java.util.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
