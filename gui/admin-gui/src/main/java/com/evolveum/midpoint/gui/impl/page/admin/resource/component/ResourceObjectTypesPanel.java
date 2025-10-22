@@ -177,6 +177,9 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         WebPrismUtil.cleanupEmptyContainerValue(originalObject);
 
         PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(originalObject);
+
+        // ResourceObjectTypeArchetypeWrapperFactory requires parent to be set.
+        suggestionToAdd.setParent(containerModel.getObject().getItem());
         onNewValue(suggestionToAdd, containerModel, target, false, postSaveHandler);
     }
 

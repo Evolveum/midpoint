@@ -445,7 +445,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                             if (newValue.getParent() == null) {
                                 newValue.setParent(container.getItem());
                             }
-                            container.getItem().add(newValue);
+                            container.getItem().add(newValue.clone());
                         }
 
                         return newWrapper;

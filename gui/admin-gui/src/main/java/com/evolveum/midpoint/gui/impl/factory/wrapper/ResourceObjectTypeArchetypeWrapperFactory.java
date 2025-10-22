@@ -39,14 +39,11 @@ public class ResourceObjectTypeArchetypeWrapperFactory<R extends Referencable> e
             return false;
         }
 
-        if (!parent.getPath().namedSegmentsOnly().equivalent(
+        return parent.getPath().namedSegmentsOnly().equivalent(
                 ItemPath.create(
                         ResourceType.F_SCHEMA_HANDLING,
                         SchemaHandlingType.F_OBJECT_TYPE,
-                        ResourceObjectTypeDefinitionType.F_FOCUS))) {
-            return false;
-        }
-        return true;
+                        ResourceObjectTypeDefinitionType.F_FOCUS));
     }
 
     @Override
