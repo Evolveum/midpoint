@@ -92,20 +92,16 @@ For example, to grant access to high-risk users (i.e. users in more sensitive po
 
 * Flexible notifications, ad-hoc re-certification and other governance and compliance features that are planned for future midPoint versions.
 
+The following webinar recording summarizes the application of policy rules in midPoint:
+
+video::RyPPiY4_690[youtube,title="Policies and Rules in midPoint",width="852",height="480"]
+[small]#_Note that on the Policy Rule Examples slide, the presentation incorrectly shows the `report` action instead of the `record` action._#
+
+
 == Rule Content
 
 [[policy_constraints]]
 === Policy Rule Constraints
-
-[TIP]
-.TODO
-====
-This section needs to be expanded.
-However, documentation work is similar to the development work in that it takes time and that it needs funding.
-
-If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
-Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
-====
 
 Policy rule constraints are conditions that determine when a policy rule should be activated.
 
@@ -116,23 +112,104 @@ Some evaluate the state of the user or object, such as the lifecycle status or s
 
 Policy constraints are convenient in scenarios such as segregation of duties, dynamic role eligibility, user offboarding, or regulatory compliance, where conditions vary depending on the user's attributes, history, or your existing role structure.
 
-.Example policy constraint
-[source,xml]
-----
-<policyRule>
-    <name>Limit number of assigned licenses</name>
-    <policyConstraints>
-        <maxAssignees>
-            <multiplicity>5</multiplicity>
-        </maxAssignees>
-    </policyConstraints>
-    <policyActions>
-        <enforcement/>
-    </policyActions>
-</policyRule>
-----
+.Available policy constraints
+[cols="25%,55%,20%"]
+|===
+| Policy constraint | Description | Example
 
-For more examples of policy constraints, see xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/[policy rule examples].
+| `objectState`
+| Triggers when an object is in a particular state described by a filter or an expression.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#objectstate[Example]
+
+| `assignmentState`
+| Triggers when an assignment is in a particular state described by a filter or an expression.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#assignmentstate[Example]
+
+| `hasAssignment`
+| Triggers when an object has a particular assignment.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#hasassignment[Example]
+
+| `hasNoAssignment`
+| Triggers when an object does not have a particular assignment.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#hasnoassignment[Example]
+
+| `requirement`
+| Mandates that an object has to be assigned together with another object.
+This can be used to require the presence of clearances, job roles, assignments of specific organizational units, etc.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#requirement[Example]
+
+| `exclusion`
+| Prohibits an object from being assigned together with another object.
+This is typically used to enforce segregation of duty (SoD) policies.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#exclusion[Example]
+
+| `minAssignees`
+| Triggers when the number of an object's assignees is lower than the specified value.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#minassignees[Example]
+
+| `maxAssignees`
+| Triggers when the number of an object's assignees exceeds the specified value.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#maxassignees[Example]
+
+| `modification`
+| Triggers when an object is modified (Add, Modify, or Delete actions).
+This is used to implement change management.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#modification[Example]
+
+| `assignment`
+| Triggers when an object is assigned, unassigned, or when the assignment is modified, i.e., if the object is the target of an assignment that is being modified.
+This is used to implement role request approval.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#assignment[Example]
+
+| `situation`
+| Triggers when a policy triggering situation occurs within an object or an assignment.
+For example, when a user's role changes.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#situation[Example]
+
+| `custom`
+| A custom way of evaluating a policy constraint using a script. This is typically used for transitional constraints.
+(State-based custom constraints can always be evaluated using an `objectState` constraint.)
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#custom[Example]
+
+| `collectionStats`
+| Implements constraints based on statistical properties of collections, such as the number of objects or their percentage distribution.
+Policy rules with this constraint are ignored during normal processing.
+Evaluation of such policy rules requires special handling, e.g., using scanner task.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#collectionstats[Example]
+
+| `alwaysTrue`
+| This constraint always applies.
+This can be used to make sure a policy remains always active without specifying rigorous conditions.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#alwaystrue[Example]
+
+| `orphaned`
+| Triggers if an object is orphaned, i.e., it has declared a parent but the parent does not exist.
+This is currently supported for tasks.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#orphaned[Example]
+
+| `and`
+| Triggers when all defined constraints apply.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#and[Example]
+
+| `or`
+| Triggers when at least one of the constraints applies.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#or[Example]
+
+| `not`
+| Triggers when the constraint does not apply.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#not[Example]
+
+| `transition`
+| Triggers if the state of an object changes.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#transition[Example]
+
+| `ref`
+| References another constraint, e.g., by its name.
+The referenced constraint must be a part of policy rules gathered for a given assignment or object.
+Global constraints are also available for referencing, regardless of which objects they are attached to or whether they are active or not.
+| xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#ref[Example]
+
+|===
 
 
 ==== Using Multiple Policy Rule Constraints
@@ -186,38 +263,56 @@ The use of `policySituation` is deprecated and strongly discouraged.
 The action part defines what to do when the rule is triggered.
 There are several options:
 
-* `enforce`: Enforcement means that no violations of the rule are allowed.
+.Policy actions
+[%autowidth]
+|===
+| Policy action | Description
+
+| `enforcement`
+| Enforcement means that no violations of the rule are allowed.
 Any attempt to violate the rule will end in an error.
 This is an action that strictly enforces the policy.
 
-* `prune`: Pruning means that any conflicting assignments are removed (pruned).
+| `remediation`
+| The operation proceeds and a workflow is started to remediate the result of the operation after it is done.
+This is suitable for operations that cannot be stopped and are not frequent but require immediate attention, such as when a manager of an organization is leaving.
+This is experimental.
+
+| `prune`
+| Pruning means that any conflicting assignments are removed (pruned).
 The removal of the conflicting assignments is automatic and silent. It will not be subject to approvals or other policy constraints.
 This mechanism can be used for example to implement a set of roles where only one of the roles can be assigned at a time.
 When a new role is assigned the existing roles that are in conflict with the new role will be unassigned.
 
-* `approval`: Approval means that the request will be subject to an additional approval.
+| `approval`
+| Approval means that the request will be subject to an additional approval.
 The approver may decide whether to allow violations of the rule.
 If the operation is approved, then it proceeds.
 
-* `record`: Violation of the rule will be recorded using a feature:object-mark[mark].
+| `record`
+| Violation of the rule will be recorded using a feature:object-mark[mark].
 The creation of the mark is the only effect of the rule violation.
 The operation will proceed and the rule will not affect it.
 Reporting violations is convenient for gradually enforcing policies.
 
-* `certification`: The object will be scheduled for a certification campaign after the operation is done.
+| `certification`
+| The object will be scheduled for a certification campaign after the operation is done.
 This action works with certification campaigns.
 Therefore, it is ideal for actions that are frequent and can occur on large number of objects.
 Even though campaigns cannot be started immediately, they are an efficient method how to handle mass decisions.
 
-* `notification`: Notifications are sent at the end of operations.
+| `notification`
+| Notifications are sent at the end of operations.
 
-* `scriptExecution`: Executes a script (action).
+| `scriptExecution`
+| Executes a script (action).
 The operation will proceed, script(s) are executed at the end of operations.
 
-* `suspendTask`: Stops an action.
+| `suspendTask`
+| Stops an action.
 This action stops the operation after n executions and results in an error.
 
-// How do you define the "n" number of executions?
+|===
 
 == Rule Definition
 
@@ -354,6 +449,66 @@ Policy exceptions are stored in the assignments that triggered the respective po
 As long as an exception is stored there, the referenced policy rule is deactivated for that specific user and that specific assignment.
 The rule will not be subject to re-approvals, it will not be raised as an issue in compliance reports and so on.
 The exceptions information can then also be used to report approved rule exceptions, to re-certify and so on.
+
+== Policy Rule Examples
+
+The table below presents typical policy rule use cases.
+It shows you what constraints and actions are typically used in each case.
+
+For full code examples of policy rules, see a separate page xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/[].
+
+.Policy rule use cases
+[%autowidth]
+|===
+| Policy rule | Constraint | Action
+
+| *Require owner* +
+Reports objects without an owner, i.e., objects that have less than 1 assignee with the `owner` relation.
+| [.nowrap]#`minAssignees` : 1# +
+[.nowrap]#`relation` : `owner`#
+a| `record`
+
+| *Require classification* +
+Reports objects that do not have a specific assignment of the `classification` type.
+| `hasNoAssignment` +
+[.nowrap]#`targetArchetypeRef` : `classification`#
+a| `record`
+
+| *Require NDA* +
+This high-level business policy rule is typically used when granting access to applications with sensitive information.
+This policy requires that users already have an NDA signed, i.e., they have an _NDA clearance_, before they can be granted access.
+The NDA clearance is implemented as a separate policy.
+| `requirement` +
++ a specific OID of an NDA clearance
+| `record` +
+`enforcement`
+
+| *Approval by manager* +
+This low-level approval policy triggers when an object is assigned (the `assignment` constraint).
+The expression selects the manager that is required to approve the assignment.
+a| `assignment`
+| `approval` +
++ an expression
+
+| *Require org manager* +
+This policy reports organizations without a manager, i.e., organizations that have less than 1 assignee with the `manager` relation. +
+Notice that we do not use the `enforcement` action in this policy.
+Instead, we only `record` the case.
+This is because if we used `enforcement`, and a manager left an organization, the `enforcement` action would prohibit the operation and the manager could not be deprovisioned.
+| [.nowrap]#`minAssignees` : 1# +
+[.nowrap]#`relation` : `manager`#
+a| `record`
+
+| *Segregation of duties (SoD)* +
+This is used to prevent assigning conflicting roles.
+You can either `record` the case, or prohibit the operation by using the `enforcement` action. +
+See xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[].
+| `exclusion` +
++ a specific OID of an excluded role
+| `record` or `enforcement`
+
+|===
+
 
 == See Also
 
