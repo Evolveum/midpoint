@@ -151,6 +151,8 @@ public interface SmartIntegrationService {
     CorrelationSuggestionsType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            ShadowObjectClassStatisticsType statistics,
+            SchemaMatchResultType schemaMatch,
             @Nullable Object interactionMetadata,
             Task task,
             OperationResult result)

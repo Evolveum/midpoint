@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 @Component
 public class MappingsSuggestionActivityHandler
-        extends ModelActivityHandler<ObjectTypeRelatedSuggestionWorkDefinition, MappingsSuggestionActivityHandler> {
+        extends ModelActivityHandler<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> {
 
     private static final String ID_MAPPING_STATISTICS_COMPUTATION = "mappingStatisticsComputation";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
@@ -31,15 +31,15 @@ public class MappingsSuggestionActivityHandler
         handlerRegistry.register(
                 MappingsSuggestionWorkDefinitionType.COMPLEX_TYPE,
                 WorkDefinitionsType.F_MAPPINGS_SUGGESTION,
-                ObjectTypeRelatedSuggestionWorkDefinition.class,
-                ObjectTypeRelatedSuggestionWorkDefinition::new,
+                MappingsSuggestionWorkDefinition.class,
+                MappingsSuggestionWorkDefinition::new,
                 this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                MappingsSuggestionWorkDefinitionType.COMPLEX_TYPE, ObjectTypeRelatedSuggestionWorkDefinition.class);
+                MappingsSuggestionWorkDefinitionType.COMPLEX_TYPE, MappingsSuggestionWorkDefinition.class);
     }
 
     @Override
@@ -48,15 +48,15 @@ public class MappingsSuggestionActivityHandler
     }
 
     @Override
-    public AbstractActivityRun<ObjectTypeRelatedSuggestionWorkDefinition, MappingsSuggestionActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<ObjectTypeRelatedSuggestionWorkDefinition, MappingsSuggestionActivityHandler> context,
+    public AbstractActivityRun<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> context,
             @NotNull OperationResult result) {
         return new CompositeActivityRun<>(context);
     }
 
     @Override
     public ArrayList<Activity<?, ?>> createChildActivities(
-            Activity<ObjectTypeRelatedSuggestionWorkDefinition, MappingsSuggestionActivityHandler> parentActivity) {
+            Activity<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> parentActivity) {
         var children = new ArrayList<Activity<?, ?>>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),

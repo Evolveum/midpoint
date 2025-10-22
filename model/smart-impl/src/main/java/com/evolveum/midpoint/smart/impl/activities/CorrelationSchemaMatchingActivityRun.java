@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.smart.impl.activities;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -12,37 +10,26 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
-import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SiMatchSchemaResponseType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+public class CorrelationSchemaMatchingActivityRun extends LocalActivityRun<
+        CorrelationSuggestionWorkDefinition,
+        CorrelationSuggestionActivityHandler,
+        CorrelationSuggestionWorkStateType> {
 
-import static com.evolveum.midpoint.prism.PrismContext.get;
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationSchemaMatchingActivityRun.class);
 
-/**
- * Computes schema match and stores it into the parent work state as XML string for reuse.
- */
-public class MappingsSchemaMatchingActivityRun extends LocalActivityRun<
-        MappingsSuggestionWorkDefinition,
-        MappingsSuggestionActivityHandler,
-        MappingsSuggestionWorkStateType> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(MappingsSchemaMatchingActivityRun.class);
-
-    public MappingsSchemaMatchingActivityRun(
-            @NotNull ActivityRunInstantiationContext<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> context) {
+    public CorrelationSchemaMatchingActivityRun(
+            @NotNull ActivityRunInstantiationContext<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> context) {
         super(context);
         setInstanceReady();
     }
@@ -51,7 +38,7 @@ public class MappingsSchemaMatchingActivityRun extends LocalActivityRun<
             throws SchemaException, ActivityRunException, ObjectNotFoundException {
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(
-                MappingsSuggestionWorkStateType.F_SCHEMA_MATCH_REF,
+                CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH_REF,
                 ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
         parentState.flushPendingTaskModificationsChecked(result);
     }

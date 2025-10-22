@@ -17,26 +17,26 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MappingsStatisticsComputationActivityRun extends SearchBasedActivityRun<
+public class CorrelationStatisticsComputationActivityRun extends SearchBasedActivityRun<
         ShadowType,
-        MappingsSuggestionWorkDefinition,
-        MappingsSuggestionActivityHandler,
-        MappingsSuggestionWorkStateType> {
+        CorrelationSuggestionWorkDefinition,
+        CorrelationSuggestionActivityHandler,
+        CorrelationSuggestionWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingsStatisticsComputationActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationStatisticsComputationActivityRun.class);
 
     private ResourceType resource;
 
     private ObjectTypeRelatedStatisticsComputer computer;
 
-    public MappingsStatisticsComputationActivityRun(@NotNull ActivityRunInstantiationContext<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> context, @NotNull String shortNameCapitalized) {
+    public CorrelationStatisticsComputationActivityRun(@NotNull ActivityRunInstantiationContext<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> context, @NotNull String shortNameCapitalized) {
         super(context, shortNameCapitalized);
         setInstanceReady();
     }
@@ -119,7 +119,7 @@ public class MappingsStatisticsComputationActivityRun extends SearchBasedActivit
             throws SchemaException, ActivityRunException, ObjectNotFoundException {
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(
-                MappingsSuggestionWorkStateType.F_STATISTICS_REF,
+                CorrelationSuggestionWorkStateType.F_STATISTICS_REF,
                 ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
         parentState.flushPendingTaskModificationsChecked(result);
     }

@@ -681,6 +681,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public CorrelationSuggestionsType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            ShadowObjectClassStatisticsType statistics,
+            SchemaMatchResultType schemaMatch,
             @Nullable Object interactionMetadata,
             Task task,
             OperationResult parentResult)
@@ -694,7 +696,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var correlation = new CorrelationSuggestionOperation(
                     TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result))
-                    .suggestCorrelation(result);
+                    .suggestCorrelation(result, statistics, schemaMatch);
             LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
             return correlation;
         } catch (Throwable t) {

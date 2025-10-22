@@ -1268,10 +1268,18 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var result = task.getResult();
 
         when("suggesting correlation rules");
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestedCorrelations = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
 
         then("suggestions are correct");
         displayValueAsXml("suggested correlations", suggestedCorrelations);
