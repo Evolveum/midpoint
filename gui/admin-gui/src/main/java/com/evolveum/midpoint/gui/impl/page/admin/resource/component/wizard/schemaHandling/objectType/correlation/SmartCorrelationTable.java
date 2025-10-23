@@ -189,7 +189,7 @@ public class SmartCorrelationTable
         var dto = StatusAwareDataFactory.createCorrelationModel(
                 this,
                 getSwitchToggleModel(),
-                getContainerModel(),
+                () -> getContainerModel().getObject(), //detach
                 findResourceObjectTypeDefinition(),
                 resourceOid);
 
@@ -417,7 +417,7 @@ public class SmartCorrelationTable
     }
 
     @Override
-    protected IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> getContainerModel() {
+    protected LoadableDetachableModel<PrismContainerWrapper<ItemsSubCorrelatorType>> getContainerModel() {
         return new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerWrapper<ItemsSubCorrelatorType> load() {

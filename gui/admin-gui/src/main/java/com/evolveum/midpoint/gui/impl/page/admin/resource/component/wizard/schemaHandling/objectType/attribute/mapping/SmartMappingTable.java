@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -237,7 +238,7 @@ public abstract class SmartMappingTable<P extends Containerable>
                 this,
                 resourceOid,
                 getSwitchToggleModel(),
-                getContainerModel(),
+                () -> getContainerModel().getObject(),  //detach
                 findResourceObjectTypeDefinition(),
                 getMappingType(),
                 acceptedSuggestionsCache);
