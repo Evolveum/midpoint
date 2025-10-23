@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -187,19 +190,38 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
                 .filter(Objects::nonNull)
                 .map(d -> {
                     try {
-                        ObjectTreeDelta<? extends ObjectType> delta = ObjectTreeDelta.fromItemDelta(DeltaConvertor.createObjectDelta(d));
+                        ObjectDelta<? extends ObjectType> objectDelta = DeltaConvertor.createObjectDelta(d);
+                        if (objectDelta.getObjectToAdd() != null) {
+                            if (path == null) {
+                                // This may be improved later - when path is null, it can't be object delta currently
+                                //  as it fails on DeltaColumn.populateItem(DeltaColumn.java:166) - we can't create
+                                //  ItemDelta for whole PrismObject.
+                                return null;
+                            }
+                            PrismObject<?> object = objectDelta.getObjectToAdd();
+                            com.evolveum.midpoint.prism.Item<?,?> item = object.findItem(path);
+                            if (item == null) {
+                                return null;
+                            }
+
+                            ItemDelta fakeAddDelta = item.createDelta();
+                            fakeAddDelta.addValuesToAdd(item.getValues().stream().map(v -> v.clone()).toList());
+
+                            return fakeAddDelta;
+                        }
+
+                        ObjectTreeDelta<? extends ObjectType> delta = ObjectTreeDelta.fromItemDelta(objectDelta);
                         ItemTreeDelta partial = delta.findItemDelta(path, ItemTreeDelta.class);
                         if (partial == null || partial instanceof ObjectTreeDelta<?>) {
                             return null;
                         }
-                        return partial;
+                        return partial.toDelta();
                     } catch (SchemaException ex) {
                         LOGGER.debug("Cannot convert delta to object delta: {}", ex.getMessage(), ex);
                         return null;
                     }
                 })
                 .filter(Objects::nonNull)
-                .map(delta -> delta.toDelta())
 //                .flatMap(List::stream)
                 .toList();
     }

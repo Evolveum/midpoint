@@ -58,6 +58,8 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10496[] Task doesn't start at next scheduled time.
 * bug:MID-10414[] Page size global configuration for object collection views.
 * bug:MID-10411[] Improved task run history errors search.
+* bug:MID-10413[] Improved ways to report audit delta in GUI and reports using changed item paths.
+Improved indexing of audit records with add object deltas.
 * xrefv:/midpoint/reference/master/admin-gui/dashboards/compliance-dashboard/[Compliance dashboard]
 
 === Other Improvements

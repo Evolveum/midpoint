@@ -3,6 +3,6 @@
  *
  * Licensed under the EUPL-1.2 or later.
  */
-
+/*
     Intentionally empty. Prepared for maven overlay.
 */

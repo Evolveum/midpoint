@@ -603,7 +603,7 @@ This configuration is useful only when SQL audit trail is used.
 * If the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] is used,
 see xref:/midpoint/reference/repository/native-audit/#custom-column[Custom Column] in Native SQL Audit Trail.
 
-* If the deprcated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,
+* If the deprecated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,
 see xref:/midpoint/reference/repository/generic/generic-audit/#custom-column[Custom Column] in Generic SQL Audit Trail.
 
 == Auditing of create/termination session event for channels rest and actuator
@@ -614,6 +614,43 @@ see xref:/midpoint/reference/repository/generic/generic-audit/#custom-column[Cus
 
 Since version 4.2 channels for _rest_ and _actuator_ do not create audit records about session creation or termination by default.
 You can turn it on via variable in System Configuration _audit->eventRecording->recordSessionlessAccess_.
+
+== Improving search capabilities for changed item paths in audit records
+
+When audit events are recorded, midPoint stores the changed item paths in a form that can be indexed and searched efficiently.
+
+By default, the audit service does not record changed item paths for add‑object deltas – an add delta contains only the new object itself, no individual item paths.
+
+For modification events midPoint records only the item paths that are explicitly present in the modification delta (i.e., the items that actually changed), not every possible path of the new or old values.
+
+This behaviour can be overridden via the system configuration setting `systemConfiguration/audit/changedItemPaths`.
+
+[source,xml]
+----
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <!-- other configuration omitted for brevity -->
+    <audit>
+        <changedItemPaths>
+            <!--
+                Enable storing and indexing item paths for add‑object deltas.
+                With this option enabled, the first‑level items of the new object
+                (e.g., "name", "assignment") are indexed as changed item paths.
+            -->
+            <indexAddObjectDeltaOperation>true</indexAddObjectDeltaOperation>
+            <!--
+                Index additional item paths that appear in add or modification deltas.
+                The `all` flag indicates whether all child items of the given path
+                should also be indexed.
+            -->
+            <indexAdditionalItemPath>
+                <path>extension</path>
+                <all>true</all>
+            </indexAdditionalItemPath>
+        </changedItemPaths>
+    </audit>
+</systemConfiguration>
+----
+With these settings, midPoint will include the specified item paths in audit records and make them searchable.
 
 == Separate repository configuration for audit
 

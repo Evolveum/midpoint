@@ -19,8 +19,7 @@ import com.querydsl.sql.dml.SQLInsertClause;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.path.CanonicalItemPath;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
@@ -29,6 +28,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.util.ChangedItemPath;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordRefer
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -52,17 +51,23 @@ public class AuditInsertion {
     private final JdbcSession jdbcSession;
     private final SqaleRepoContext repoContext;
     private final boolean escapeIllegalCharacters;
+    private final boolean indexAddObjectDeltaOperation;
+    private final Set<ChangedItemPath> indexAdditionalItemPaths;
     private final Trace logger;
 
     public AuditInsertion(AuditEventRecordType record,
             JdbcSession jdbcSession,
             SqaleRepoContext repoContext,
             boolean escapeIllegalCharacters,
+            boolean indexAddObjectDeltaOperation,
+            Set<ChangedItemPath> indexAdditionalItemPaths,
             Trace logger) {
         this.record = record;
         this.jdbcSession = jdbcSession;
         this.repoContext = repoContext;
         this.escapeIllegalCharacters = escapeIllegalCharacters;
+        this.indexAddObjectDeltaOperation = indexAddObjectDeltaOperation;
+        this.indexAdditionalItemPaths = indexAdditionalItemPaths;
         this.logger = logger;
     }
 
@@ -188,23 +193,23 @@ public class AuditInsertion {
         }
     }
 
+    private String[] collectChangedItemPaths(List<ObjectDeltaOperationType> deltaOperations) {
+        return collectChangedItemPaths(deltaOperations, indexAddObjectDeltaOperation, indexAdditionalItemPaths, repoContext.prismContext());
+    }
+
     /**
      * Returns distinct collected changed item paths, or null, never an empty array.
+     *
+     * See also {@link SqaleAuditService#collectChangedItemPathsFromOriginal(Collection)} where similar thing is done.
      */
-    private String[] collectChangedItemPaths(List<ObjectDeltaOperationType> deltaOperations) {
-        Set<String> changedItemPaths = new HashSet<>();
-        for (ObjectDeltaOperationType deltaOperation : deltaOperations) {
-            ObjectDeltaType delta = deltaOperation.getObjectDelta();
-            for (ItemDeltaType itemDelta : delta.getItemDelta()) {
-                ItemPath path = itemDelta.getPath().getItemPath();
-                CanonicalItemPath canonical = repoContext.prismContext()
-                        .createCanonicalItemPath(path, delta.getObjectType());
-                for (int i = 0; i < canonical.size(); i++) {
-                    changedItemPaths.add(canonical.allUpToIncluding(i).asString());
-                }
-            }
-        }
-        return changedItemPaths.isEmpty() ? null : changedItemPaths.toArray(String[]::new);
+    public static String[] collectChangedItemPaths(
+            List<ObjectDeltaOperationType> deltaOperations,
+            boolean indexAddObjectDeltaOperation,
+            Set<ChangedItemPath> indexAdditionalItemPaths,
+            PrismContext prismContext) {
+
+        return new ChangedItemPathComputer(indexAddObjectDeltaOperation, indexAdditionalItemPaths, prismContext)
+                .collectChangedItemPaths(deltaOperations);
     }
 
     private void insertAuditDeltas(MAuditEventRecord auditRow, Collection<MAuditDelta> deltaRows) {

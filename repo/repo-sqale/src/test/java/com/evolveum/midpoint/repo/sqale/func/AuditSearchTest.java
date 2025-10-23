@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.query.PreparedQuery;
-
+import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -36,6 +35,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -1508,6 +1508,24 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         then("only the expected page is returned");
         assertThat(result).extracting(aer -> aer.getParameter())
                 .containsExactlyInAnyOrder("2");
+    }
+
+    @Test
+    public void test860searchAddDeltaWithChangedItemPath() throws Exception {
+        when("searching audit using changed path searching for one ADD delta");
+        SearchResultList<AuditEventRecordType> result =
+                searchObjects(
+                        prismContext
+                                .queryFor(AuditEventRecordType.class)
+                                .item(AuditEventRecordType.F_CHANGED_ITEM).eq(new ItemPathType(UserType.F_FAMILY_NAME))
+                                .build());
+
+        then("one audit record is returned");
+        assertThat(result).hasSize(1);
+
+        AuditEventRecordType record = result.get(0);
+        // it's not returned, see QAuditEventRecordMapping
+        Assertions.assertThat(record.getChangedItem()).hasSize(0);
     }
 
     @Test
