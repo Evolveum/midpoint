@@ -159,6 +159,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null // No script, triggers "asIs"
         );
 
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
         var op = MappingsSuggestionOperation.init(
                 mockClient,
                 RESOURCE_DUMMY.oid,
@@ -200,6 +202,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 script
         );
 
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
         var op = MappingsSuggestionOperation.init(
                 mockClient,
                 RESOURCE_DUMMY.oid,
@@ -239,6 +243,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 List.of(PERSONAL_NUMBER.path()),
                 invalidScript
         );
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
 
         var op = MappingsSuggestionOperation.init(
                 mockClient,
