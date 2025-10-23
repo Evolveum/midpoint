@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +35,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 public class WizardPanel extends BasePanel implements WizardListener {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_HEADER = "header";
     private static final String ID_STEPS = "steps";
@@ -44,7 +45,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
     public static final String ID_CONTENT_BODY = "contentBody";
     private static final String ID_STEP_STATUS = "stepStatus";
 
-    private WizardModel wizardModel;
+    private final WizardModel wizardModel;
     private boolean enableBackTitleModel = false;
 
     public WizardPanel(String id, WizardModel wizardModel, boolean enableBackTitleModel) {
@@ -68,10 +69,6 @@ public class WizardPanel extends BasePanel implements WizardListener {
         super.onInitialize();
 
         this.wizardModel.init(getPage());
-    }
-
-    public WizardModel getWizardModel() {
-        return wizardModel;
     }
 
     @Override
@@ -114,7 +111,9 @@ public class WizardPanel extends BasePanel implements WizardListener {
     }
 
     private IModel<List<IModel<String>>> createStepsModel() {
-        return () -> wizardModel.getSteps().stream().filter(s -> BooleanUtils.isTrue(s.isStepVisible().getObject())).map(s -> s.getTitle()).collect(Collectors.toList());
+        return () -> wizardModel.getSteps().stream().filter(
+                s -> BooleanUtils.isTrue(
+                        s.isStepVisible().getObject())).map(WizardStep::getTitle).collect(Collectors.toList());
     }
 
     private void initLayout() {
@@ -131,12 +130,16 @@ public class WizardPanel extends BasePanel implements WizardListener {
         stepStatus.setOutputMarkupId(true);
         header.add(stepStatus);
 
-        ListView<IModel<String>> steps = new ListView<>(ID_STEPS, createStepsModel()) {
+        IModel<List<IModel<String>>> stepsModel = createStepsModel();
+        WizardHeaderStepHelper wizardHeaderStepHelper = new WizardHeaderStepHelper(wizardModel.getActiveStepIndex(),
+                stepsModel.getObject().size(), WizardPanel.this);
+        ListView<IModel<String>> steps = new ListView<>(ID_STEPS, stepsModel) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<IModel<String>> listItem) {
                 WizardHeaderStepPanel step = new WizardHeaderStepPanel(
-                        ID_STEP, listItem.getIndex(), wizardModel.getActiveStepIndex(), listItem.getModelObject());
+                        ID_STEP, listItem.getIndex(), listItem.getModelObject(), wizardHeaderStepHelper);
                 // todo fix, if steps are invisible index might shift?
                 listItem.add(step);
 
@@ -149,6 +152,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
         header.add(steps);
 
         WizardHeader contentHeader = new WizardHeader(ID_CONTENT_HEADER, wizardModel) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createHeaderContent(String id) {

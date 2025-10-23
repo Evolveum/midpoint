@@ -11972,9 +11972,70 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="changedItemPaths" type="tns:SystemConfigurationAuditChangedItemPathsType" minOccurs="0"/>
             <!-- TODO: recordRetentionPolicy -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SystemConfigurationAuditChangedItemPathsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                This section allows fine‑tuning of how changed item paths are indexed for audit event records
+                if underlying implementation supports it.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.10</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="indexAddObjectDeltaOperation" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When set to true, the audit record will include the first‑level paths
+                        extracted from add‑object deltas.
+
+                        When false (the default), these paths are omitted from the audit record.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="indexAdditionalItemPath" type="tns:IndexAdditionalItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies additional item paths that should be examined in object
+                        deltas and stored as changed item paths in the audit event record.
+
+                        This applies for both add and modify object deltas.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="IndexAdditionalItemPathType">
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies additional item paths that should be examined in object
+                        deltas and stored as changed item paths in the audit event record.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="all" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When set to true all items that are in delta in container defined
+                        by "path" will be stored as changed item paths.
+
+                        When set to false (the default), object delta has to contain item
+                        defined by "path" is evaluated and stored as changed item paths.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="SystemConfigurationAuditEventRecordingType">

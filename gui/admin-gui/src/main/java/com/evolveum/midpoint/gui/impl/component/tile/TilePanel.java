@@ -19,6 +19,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -26,7 +27,7 @@ import java.io.Serializable;
  */
 public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePanel<T> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";

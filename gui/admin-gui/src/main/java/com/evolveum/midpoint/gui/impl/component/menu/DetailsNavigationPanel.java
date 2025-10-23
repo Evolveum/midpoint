@@ -14,7 +14,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -50,6 +51,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     private static final String ID_SUBMENU_LINK = "submenuLink";
 
     private final ObjectDetailsModels<O> objectDetailsModel;
+    private String clickedMenuItemName;
 
     public DetailsNavigationPanel(String id, ObjectDetailsModels<O> objectDetailsModel, IModel<List<ContainerPanelConfigurationType>> model) {
         super(id, model);
@@ -61,6 +63,17 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         super.onInitialize();
         initLayout();
         setOutputMarkupId(true);
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        if (StringUtils.isNotEmpty(clickedMenuItemName)) {
+            response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.focusSelectedNavigationLink('" +
+                    clickedMenuItemName + "');"));
+            clickedMenuItemName = null;
+        }
     }
 
     private void initLayout() {
@@ -151,6 +164,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
                 target.add(DetailsNavigationPanel.this);
                 onClickPerformed(item.getModelObject(), target);
+                clickedMenuItemName = createButtonLabel(item.getModel()).getObject();
             }
 
             @Override

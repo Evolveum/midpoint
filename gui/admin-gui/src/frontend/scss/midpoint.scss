@@ -1802,6 +1802,10 @@ div.search-popover > fieldset {
     overflow: auto;
     white-space: nowrap;
     padding-right: 18px;
+
+    & > div > label > a {
+      text-decoration: underline;
+    }
 }
 
 div.search-popover > dl {

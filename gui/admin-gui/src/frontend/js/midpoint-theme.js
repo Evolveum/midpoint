@@ -1515,4 +1515,46 @@ export default class MidPointTheme {
             }
         }, menuTimeout);
     }
+
+    setToastAriaAttributes(toastId) {
+      const toastEl = document.getElementById(toastId);
+
+      if (!toastEl) {
+        console.warn(`Toast with ID "${toastId}" not found.`);
+        return;
+      }
+      const firstToast = toastEl.querySelector('.toast');
+      if (!firstToast) {
+        console.warn(`Toast not found.`);
+        return;
+      }
+      firstToast.setAttribute('tabindex', '0');
+      firstToast.setAttribute('role', 'alert');
+      firstToast.setAttribute('aria-live', 'assertive');
+      toastEl.show();
+    }
+
+    focusSelectedNavigationLink(linkText) {
+        const navigationContainer = document.querySelector('main form div[role="navigation"]');
+        if (!navigationContainer) {
+            console.warn('Navigation container (main form div[role="navigation"]) not found.');
+            return;
+        }
+
+        const navItemLinks = navigationContainer.querySelectorAll('a');
+        let selectedItem = null;
+        for (const link of navItemLinks) {
+            const navItem = link.querySelector('div.text-truncate');
+            if (navItem && navItem.textContent.trim() === linkText) {
+                selectedItem = link;
+                break;
+            }
+        }
+
+        if (selectedItem) {
+            setTimeout(() => {
+                selectedItem.focus();
+            }, 200);
+        }
+    }
 }
