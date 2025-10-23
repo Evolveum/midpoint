@@ -175,6 +175,7 @@ public class PasswordPanel extends InputPanel {
         password1.add(new EnableBehaviour(this::canEditPassword));
         password1.setOutputMarkupId(true);
         password1.add(AttributeAppender.append("aria-describedby", validationPanel.getMarkupId()));
+        password1.add(AttributeAppender.append("aria-labelledby", getPasswordPanelLabelComponentId()));
         inputContainer.add(password1);
 
         WebMarkupContainer validationProgressBar = new WebMarkupContainer(ID_VALIDATION_PROGRESS_BAR);
@@ -410,5 +411,9 @@ public class PasswordPanel extends InputPanel {
 
     protected boolean removePasswordValueAttribute() {
         return true;
+    }
+
+    protected String getPasswordPanelLabelComponentId() {
+        return null;
     }
 }

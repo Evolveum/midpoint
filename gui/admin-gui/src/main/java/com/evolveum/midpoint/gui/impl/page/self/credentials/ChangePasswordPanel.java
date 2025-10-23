@@ -172,6 +172,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             protected boolean removePasswordValueAttribute() {
                 return ChangePasswordPanel.this.removePasswordValueAttribute();
             }
+
+            @Override
+            protected String getPasswordPanelLabelComponentId() {
+                return getPasswordLabelComponentId();
+            }
         };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
@@ -462,5 +467,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     protected boolean removePasswordValueAttribute() {
         return true;
+    }
+
+    private String getPasswordLabelComponentId() {
+        return get(ID_PASSWORD_LABEL).getMarkupId();
     }
 }
