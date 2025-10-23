@@ -7,13 +7,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareObjectDto;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartStatisticsPanel;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,15 +29,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -86,12 +89,12 @@ public class SmartIntegrationUtils {
 
     /**
      * Returns names of standalone (i.e. not embedded) + structural (i.e. not auxiliary) object classes.
-     *
+     * <p>
      * Those are the only object classes that can be directly mapped to object types.
      * Also, we can reasonably assume that we can count objects for these classes.
-     *
+     * <p>
      * NOTE: This method requires that the schema does exist for the resource and that the resource can be fetched
-     * via model API (which should be fine even for slightly malformed resources). Otherwise it will return an empty set.
+     * via model API (which should be fine even for slightly malformed resources). Otherwise, it will return an empty set.
      * Anyway, if we want to e.g. count objects on this resource, it must be at least minimally functional.
      */
     public static @NotNull Set<QName> getStandaloneStructuralObjectClassesNames(
@@ -192,6 +195,9 @@ public class SmartIntegrationUtils {
 
         if (executeTaskAction) {
             pageBase.taskAwareExecutor(target, operationName)
+                    .withOpResultOptions(OpResult.Options.create()
+                            .withHideSuccess(true)
+                            .withHideInProgress(true))
                     .runVoid((activityTask, activityResult) -> {
                         var oid = pageBase.getSmartIntegrationService().submitSuggestObjectTypesOperation(
                                 resourceOid, objectClassName, activityTask, activityResult);
@@ -206,7 +212,7 @@ public class SmartIntegrationUtils {
      * If suggestions exist, no background task is started.
      * Returns {@code true} if the task was executed, {@code false} otherwise.
      */
-    public static boolean runAssociationSuggestionAction(
+    public static void runAssociationSuggestionAction(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull Collection<ResourceObjectTypeIdentification> subjectTypes,
@@ -223,7 +229,7 @@ public class SmartIntegrationUtils {
             opResult.recordFatalError("Error loading association suggestions: " + opResult.getMessage());
             LOGGER.error("Error loading association suggestions for resource {}: {}",
                     resourceOid, opResult.getMessage());
-            return false;
+            return;
         }
 
         // TBD: fine-tune when we allow to execute the task action
@@ -235,6 +241,9 @@ public class SmartIntegrationUtils {
 
         if (executeTaskAction) {
             pageBase.taskAwareExecutor(target, operationName)
+                    .withOpResultOptions(OpResult.Options.create()
+                            .withHideSuccess(true)
+                            .withHideInProgress(true))
                     .runVoid((activityTask, activityResult) -> {
                         var oid = pageBase.getSmartIntegrationService()
                                 .submitSuggestAssociationsOperation(resourceOid, subjectTypes, objectTypes,
@@ -243,7 +252,6 @@ public class SmartIntegrationUtils {
                     });
         }
 
-        return executeTaskAction;
     }
 
     public static @NotNull IModel<Badge> getAiBadgeModel() {
@@ -469,7 +477,7 @@ public class SmartIntegrationUtils {
      */
     public static void removeCorrelationTypeSuggestionNew(
             @NotNull PageBase pageBase,
-            @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo,
+            @NotNull StatusInfo<?> statusInfo,
             @NotNull CorrelationSuggestionType suggestionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -492,7 +500,7 @@ public class SmartIntegrationUtils {
      */
     public static void removeObjectTypeSuggestionNew(
             @NotNull PageBase pageBase,
-            @NotNull StatusInfo<ObjectTypesSuggestionType> statusInfo,
+            @NotNull StatusInfo<?> statusInfo,
             @NotNull ResourceObjectTypeDefinitionType suggestionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -510,7 +518,7 @@ public class SmartIntegrationUtils {
 
     public static void removeMappingTypeSuggestionNew(
             @NotNull PageBase pageBase,
-            @NotNull StatusInfo<MappingsSuggestionType> statusInfo,
+            @NotNull StatusInfo<?> statusInfo,
             AttributeMappingsSuggestionType definitionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -534,7 +542,7 @@ public class SmartIntegrationUtils {
      */
     public static void removeAssociationTypeSuggestionNew(
             @NotNull PageBase pageBase,
-            @NotNull StatusInfo<AssociationsSuggestionType> statusInfo,
+            @NotNull StatusInfo<?> statusInfo,
             @NotNull AssociationSuggestionType suggestionToRemove,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -571,6 +579,75 @@ public class SmartIntegrationUtils {
         }
     }
 
+    public static <C extends Containerable> boolean removeSuggestionValue(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @NotNull PrismContainerValueWrapper<C> valueWrapper,
+            @NotNull StatusInfo<?> statusInfo,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Object realValue = valueWrapper.getRealValue();
+        if (realValue instanceof ResourceObjectTypeDefinitionType objectDef) {
+
+            SmartIntegrationUtils.removeObjectTypeSuggestionNew(
+                    pageBase,
+                    statusInfo,
+                    objectDef,
+                    task,
+                    result);
+            target.add(pageBase.getFeedbackPanel());
+            return true;
+        } else if (realValue instanceof ShadowAssociationTypeDefinitionType) {
+            PrismContainerValueWrapper<AssociationSuggestionType> parentContainerValue =
+                    valueWrapper.getParentContainerValue(AssociationSuggestionType.class);
+            if (parentContainerValue == null || parentContainerValue.getRealValue() == null) {
+                return false;
+            }
+
+            SmartIntegrationUtils.removeAssociationTypeSuggestionNew(
+                    pageBase,
+                    statusInfo,
+                    parentContainerValue.getRealValue(),
+                    task,
+                    result);
+            target.add(pageBase.getFeedbackPanel());
+            return true;
+        } else if (realValue instanceof CorrelationSuggestionsType) {
+            PrismContainerValueWrapper<CorrelationSuggestionType> parentContainerValue = valueWrapper
+                    .getParentContainerValue(CorrelationSuggestionType.class);
+            if (parentContainerValue == null || parentContainerValue.getRealValue() == null) {
+                return false;
+            }
+
+            SmartIntegrationUtils.removeCorrelationTypeSuggestionNew(
+                    pageBase,
+                    statusInfo,
+                    parentContainerValue.getRealValue(),
+                    task,
+                    result);
+            target.add(pageBase.getFeedbackPanel());
+            return true;
+        } else if (realValue instanceof MappingsSuggestionType) {
+            PrismContainerValueWrapper<AttributeMappingsSuggestionType> parentContainerValue = valueWrapper
+                    .getParentContainerValue(AttributeMappingsSuggestionType.class);
+            if (parentContainerValue == null || parentContainerValue.getRealValue() == null) {
+                return false;
+            }
+
+            SmartIntegrationUtils.removeMappingTypeSuggestionNew(
+                    pageBase,
+                    statusInfo,
+                    parentContainerValue.getRealValue(),
+                    task,
+                    result);
+            target.add(pageBase.getFeedbackPanel());
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Compute the correlation strategy method based on the CorrelationItemType configuration.
      * If no fuzzy search is defined, it defaults to "Exact".
@@ -597,29 +674,6 @@ public class SmartIntegrationUtils {
             }
         }
         return strategy;
-    }
-
-    public static @NotNull AjaxIconButton createStatisticsButton(
-            @NotNull String id,
-            @NotNull PageBase pageBase,
-            @NotNull String resourceOid,
-            ResourceObjectTypeDefinitionType objectTypeDefinition) {
-        AjaxIconButton statisticsButton = new AjaxIconButton(id,
-                Model.of("fa fa-solid fa-chart-bar"),
-                pageBase.createStringResource("Statistics.button.label")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (objectTypeDefinition == null) {
-                    return;
-                }
-
-                showStatisticsPanel(target, objectTypeDefinition, pageBase, resourceOid);
-            }
-        };
-        statisticsButton.add(AttributeModifier.replace("class", "btn btn-default rounded mr-2"));
-        statisticsButton.setOutputMarkupId(true);
-        statisticsButton.showTitleAsLabel(true);
-        return statisticsButton;
     }
 
     public static void showStatisticsPanel(
@@ -657,5 +711,42 @@ public class SmartIntegrationUtils {
                 pageBase.getMainPopupBodyId(), () -> statisticsRequired, resourceOid, objectClass);
 
         pageBase.showMainPopup(statisticsPanel, target);
+    }
+
+    /**
+     * Returns the default set of item paths used for comparison and visibility.
+     */
+    public static @NotNull @Unmodifiable List<ItemPath> getDefaultObjectTypeComparePaths() {
+        return List.of(
+                ResourceObjectTypeDefinitionType.F_DESCRIPTION,
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_OBJECT_CLASS),
+                ResourceObjectTypeDefinitionType.F_KIND,
+                ResourceObjectTypeDefinitionType.F_INTENT,
+                ResourceObjectTypeDefinitionType.F_DEFAULT,
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_FILTER),
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_BASE_CONTEXT, ResourceObjectReferenceType.F_OBJECT_CLASS),
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_DELINEATION,
+                        ResourceObjectTypeDelineationType.F_BASE_CONTEXT, ResourceObjectReferenceType.F_FILTER),
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_FOCUS, ResourceObjectFocusSpecificationType.F_TYPE)
+        );
+    }
+
+    /**
+     * Creates a CompareObjectDto with the standard configuration.
+     */
+    public static @NotNull CompareObjectDto<ResourceObjectTypeDefinitionType> createCompareObjectDto(
+            @NotNull PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> selectedDefinition,
+            @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> existingDefinitions,
+            @NotNull List<ItemPath> paths) {
+
+        return new CompareObjectDto<>(
+                () -> selectedDefinition,
+                () -> existingDefinitions,
+                ResourceObjectTypeDefinitionType.F_DISPLAY_NAME,
+                paths
+        );
     }
 }

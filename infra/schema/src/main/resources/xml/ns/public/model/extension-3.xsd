@@ -64,7 +64,11 @@
         <xsd:sequence>
             <xsd:element name="resourceOid" type="xsd:string" minOccurs="0"/>
             <xsd:element name="objectClassLocalName" type="xsd:string" minOccurs="0"/> <!-- local name, to be easily searchable -->
+            <!-- Kind and intent of the object type for which the statistics are computed (temporary storage) -->
+            <xsd:element name="kindName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="intentName" type="xsd:string" minOccurs="0"/>
             <xsd:element name="statistics" type="c:ShadowObjectClassStatisticsType" minOccurs="0"/>
+            <xsd:element name="objectTypeStatistics" type="c:ShadowObjectClassStatisticsType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

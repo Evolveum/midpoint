@@ -1,0 +1,50 @@
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      oid="9e9d924e-54ab-47fd-8bfa-0d671a3a9f99">
+    <name>PrivelegedUser</name>
+    <assignment>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" relation="org:default" type="c:ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <focusType>UserType</focusType>
+        <condition>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+                        import com.evolveum.midpoint.util.exception.AuthorizationException
+                        import com.evolveum.midpoint.model.intest.TestRunAs
+
+
+                        USER_OID = "00000000-0000-0000-0000-000000000002"
+                        if (loginMode) {
+                            try {
+                                UserType user = midpoint.getObject(UserType.class, USER_OID, null)
+                            } catch (AuthorizationException ex) {
+                                TestRunAs.FLAG_LOGIN_MODE.set();
+                            }
+                        } else {
+                           try {
+                                UserType user = midpoint.getObject(UserType.class, USER_OID, null)
+                            } catch (AuthorizationException ex) {
+                                //user already logged in, so the exception won't be thrown, and we don't get here
+                                TestRunAs.FLAG_ALREADY_LOGGED_IN.set();
+                            }
+                        }
+                        return false
+                    </code>
+                </script>
+            </expression>
+        </condition>
+    </assignment>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType"/>
+        <activation/>
+    </assignment>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType">
+        <!-- Superuser -->
+    </roleMembershipRef>
+</user>

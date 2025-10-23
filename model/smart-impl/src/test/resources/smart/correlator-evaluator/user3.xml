@@ -9,7 +9,5 @@
         oid="00000000-0000-0000-0000-990000000003">
     <name>user3</name>
     <personalNumber>33333</personalNumber>
-    <email>
-        <value>user3@acme.com</value>
-    </email>
+    <emailAddress>user3@acme.com</emailAddress>
 </user>

@@ -89,6 +89,7 @@ public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C ext
     private String getResultAsString(SR selectableBean) {
         if (selectableBean instanceof SelectableBean) {
             OperationResult result = ((SelectableBean<?>) selectableBean).getResult();
+            getPageBase().showResult(result);
             OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
             return getPageBase().getString(props.getStatusLabelKey());
         }

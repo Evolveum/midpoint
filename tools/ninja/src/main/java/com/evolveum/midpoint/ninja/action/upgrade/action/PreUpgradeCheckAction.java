@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, ActionResult<Boolean>> {
 
     public PreUpgradeCheckAction() {
@@ -135,6 +137,11 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
             versions.add(node.getBuild().getVersion());
         });
 
+        log.info("Found {} nodes in cluster", nodes.size());
+        log.info(
+                ConsoleFormat.formatMessageWithInfoParameters(
+                        "Nodes version in cluster: {}", StringUtils.join(versions, ", ")));
+
         if (versions.isEmpty()) {
             log.warn("There are zero nodes in cluster to validate current midPoint version.");
 
@@ -144,8 +151,6 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
             log.error("Please remove incorrect nodes from cluster and related Node objects from repository.");
             return false;
         }
-
-        log.info(ConsoleFormat.formatMessageWithInfoParameters("Nodes version in cluster: {}", versions.toArray()[0]));
 
         String version = versions.iterator().next();
         if (!Objects.equals(version, UpgradeConstants.SUPPORTED_VERSION)) {

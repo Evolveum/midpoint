@@ -149,7 +149,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
                         ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
                                 .locateSecurityPolicy(false)
                                 .runAsRunner(true),
-                         result);
+                        result);
             }
             if (privileged) {
                 loginAsPrivileged(getCurrentAuthentication());

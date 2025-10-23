@@ -140,6 +140,10 @@ Catalog can be currently displayed in two ways:
 .Role catalog in table
 image::step-3-catalog-table.png[Role catalog in table,100%]
 
+NOTE: Green check icon (situated near a role catalog item icon on the tiles view or next to the role catalog item name on the table view) can be in 2 states: either filled in with the green color (meaning that all selected persons of interest have already this item assigned) or just outlined with the green color (meaning that some of the selected persons of interest has this item assigned).
+Please, note, that the assignment relations aren't considered when determining the icon state.
+This icon gives the general information if the role catalog item is already assigned not depending on the relation.
+
 Both types of view can be enabled or disabled via configuration.
 Menu in role catalog consists of 3 types of items also defined in configuration:
 

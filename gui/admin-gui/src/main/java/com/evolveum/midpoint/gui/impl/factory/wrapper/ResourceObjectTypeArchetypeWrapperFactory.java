@@ -9,7 +9,6 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperIm
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceObjectTypeArchetypeValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -25,7 +24,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 @Component
-public class ResourceObjectTypeArchetypeWrapperFactory<R extends Referencable> extends PrismReferenceWrapperFactory<R>{
+public class ResourceObjectTypeArchetypeWrapperFactory<R extends Referencable> extends PrismReferenceWrapperFactory<R> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectTypeArchetypeWrapperFactory.class);
 
@@ -39,14 +38,7 @@ public class ResourceObjectTypeArchetypeWrapperFactory<R extends Referencable> e
             return false;
         }
 
-        if (!parent.getPath().namedSegmentsOnly().equivalent(
-                ItemPath.create(
-                        ResourceType.F_SCHEMA_HANDLING,
-                        SchemaHandlingType.F_OBJECT_TYPE,
-                        ResourceObjectTypeDefinitionType.F_FOCUS))) {
-            return false;
-        }
-        return true;
+        return parent.getValue() instanceof ResourceObjectFocusSpecificationType;
     }
 
     @Override
@@ -54,47 +46,57 @@ public class ResourceObjectTypeArchetypeWrapperFactory<R extends Referencable> e
         return 100;
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
-    protected PrismReferenceWrapper<R> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status, WrapperContext ctx) {
+    protected PrismReferenceWrapper<R> createWrapperInternal(
+            PrismContainerValueWrapper<?> parent,
+            PrismReference item,
+            ItemStatus status,
+            WrapperContext ctx) {
         PrismReferenceWrapper<R> wrapper = super.createWrapperInternal(parent, item, status, ctx);
-        wrapper.setFilter((BiFunction<PrismReferenceWrapper, PageBase, ObjectFilter> & Serializable) (referenceWrapper, pageBase) -> {
-            PrismContainerValueWrapper resourceFocusValue = referenceWrapper.getParent();
-            if (resourceFocusValue != null) {
-                try {
-                    PrismPropertyWrapper focusType = resourceFocusValue.findProperty(
-                            ResourceObjectFocusSpecificationType.F_TYPE);
-                    if (focusType != null) {
-                        PrismValueWrapper focusTypeValue = focusType.getValue();
-                        if (focusTypeValue != null) {
-                            QName focusTypeBean = (QName) focusTypeValue.getRealValue();
-                            if (focusTypeBean != null) {
-                                Class<? extends AssignmentHolderType> holderType = WebComponentUtil.qnameToClass(
-                                        focusTypeBean, AssignmentHolderType.class);
+        wrapper.setFilter((BiFunction<PrismReferenceWrapper, PageBase, ObjectFilter> & Serializable)
+                (referenceWrapper, pageBase) -> {
+                    PrismContainerValueWrapper resourceFocusValue = referenceWrapper.getParent();
+                    if (resourceFocusValue != null) {
+                        try {
+                            PrismPropertyWrapper focusType = resourceFocusValue.findProperty(
+                                    ResourceObjectFocusSpecificationType.F_TYPE);
+                            if (focusType != null) {
+                                PrismValueWrapper focusTypeValue = focusType.getValue();
+                                if (focusTypeValue != null) {
+                                    QName focusTypeBean = (QName) focusTypeValue.getRealValue();
+                                    if (focusTypeBean != null) {
+                                        Class<? extends AssignmentHolderType> holderType = WebComponentUtil.qnameToClass(
+                                                focusTypeBean, AssignmentHolderType.class);
 
-                                if (holderType != null) {
-                                    List<String> archetypeOidsList =
-                                            WebComponentUtil.getArchetypeOidsListByHolderType(holderType, pageBase);
+                                        if (holderType != null) {
+                                            List<String> archetypeOidsList =
+                                                    WebComponentUtil.getArchetypeOidsListByHolderType(holderType, pageBase);
 
-                                    if (!archetypeOidsList.isEmpty()) {
-                                        return PrismContext.get().queryFor(ArchetypeType.class)
-                                                .id(archetypeOidsList.toArray(new String[0]))
-                                                .buildFilter();
+                                            if (!archetypeOidsList.isEmpty()) {
+                                                return PrismContext.get().queryFor(ArchetypeType.class)
+                                                        .id(archetypeOidsList.toArray(new String[0]))
+                                                        .buildFilter();
+                                            }
+                                        }
                                     }
                                 }
                             }
+                        } catch (SchemaException e) {
+                            LOGGER.debug("Couldn't find type in {}", resourceFocusValue);
                         }
                     }
-                } catch (SchemaException e) {
-                    LOGGER.debug("Couldn't find type in " + resourceFocusValue);
-                }
-            }
-            return null;
-        });
+                    return null;
+                });
         return wrapper;
     }
 
     @Override
-    public PrismReferenceValueWrapperImpl<R> createValueWrapper(PrismReferenceWrapper<R> parent, PrismReferenceValue value, ValueStatus status, WrapperContext context) {
+    public PrismReferenceValueWrapperImpl<R> createValueWrapper(
+            PrismReferenceWrapper<R> parent,
+            PrismReferenceValue value,
+            ValueStatus status,
+            WrapperContext context) {
         return new ResourceObjectTypeArchetypeValueWrapperImpl<>(parent, value, status);
     }
 }

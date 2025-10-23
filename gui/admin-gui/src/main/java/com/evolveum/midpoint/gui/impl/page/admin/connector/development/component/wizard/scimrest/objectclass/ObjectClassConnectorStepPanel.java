@@ -8,12 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.*;
 
@@ -41,7 +39,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardParentStep;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
@@ -280,11 +278,11 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
                 new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), valueModel),
                 new WaitingNativeSchemaConnectorStepPanel(getHelper(), valueModel),
                 new WaitingConnIdSchemaConnectorStepPanel(getHelper(), valueModel),
-                new SchemaScriptConnectorStepPanel(getHelper()),
+                new SchemaScriptConnectorStepPanel(getHelper(), valueModel),
                 new ShowSchemaConnectorStepPanel(getHelper(), valueModel),
                 new EndpointsConnectorStepPanel(getHelper(), valueModel),
                 new WaitingSearchAllConnectorStepPanel(getHelper(), valueModel),
-                new SearchAllScriptConnectorStepPanel(getHelper()),
+                new SearchAllScriptConnectorStepPanel(getHelper(), valueModel),
                 new SearchObjectsConnectorStepPanel(getHelper(), valueModel));
     }
 

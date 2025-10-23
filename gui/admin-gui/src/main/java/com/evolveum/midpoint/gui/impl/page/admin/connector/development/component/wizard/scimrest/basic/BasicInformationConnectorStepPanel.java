@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardParentStep;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 

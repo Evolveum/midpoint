@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -225,6 +227,20 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        try {
+            PrismPropertyWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_NAME)
+                    .getObject().getValue().setRealValue(new PolyString(
+                            PrismPropertyWrapperModel.fromContainerWrapper((IModel<PrismContainerWrapper<ConnDevConnectorType>>) getContainerFormModel(), ConnDevConnectorType.F_GROUP_ID)
+                                    .getObject().getValue().getRealValue() + ":" +
+                                    PrismPropertyWrapperModel.fromContainerWrapper((IModel<PrismContainerWrapper<ConnDevConnectorType>>) getContainerFormModel(), ConnDevConnectorType.F_ARTIFACT_ID)
+                                            .getObject().getValue().getRealValue() + ":" +
+                                    PrismPropertyWrapperModel.fromContainerWrapper((IModel<PrismContainerWrapper<ConnDevConnectorType>>) getContainerFormModel(), ConnDevConnectorType.F_VERSION)
+                                            .getObject().getValue().getRealValue())
+                    );
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {

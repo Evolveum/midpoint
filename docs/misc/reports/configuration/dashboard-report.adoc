@@ -155,7 +155,7 @@ link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/dashboard/
 sampleRef::samples/dashboard/report-asynchronous-widget.xml[]
 ====
 
-include::../../../admin-gui/dashboards/raw/file-format.adoc[]
+include::../../../admin-gui/dashboards/dashboards-reports-and-recurring-tasks-config-limitation.adoc[]
 
 Please also have a look at the full configuration documentation of asynchronous xref:/midpoint/reference/admin-gui/dashboards/configuration/#_asynchronous_widget[dashboards].
 

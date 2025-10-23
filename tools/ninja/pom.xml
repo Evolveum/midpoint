@@ -274,6 +274,7 @@
                 <directory>src/main/resources/</directory>
                 <includes>
                     <include>version</include>
+                    <include>version-long</include>
                 </includes>
                 <filtering>true</filtering>
             </resource>
@@ -281,6 +282,7 @@
                 <directory>src/main/resources/</directory>
                 <excludes>
                     <exclude>version</exclude>
+                    <exclude>version-long</exclude>
                 </excludes>
                 <filtering>false</filtering>
             </resource>

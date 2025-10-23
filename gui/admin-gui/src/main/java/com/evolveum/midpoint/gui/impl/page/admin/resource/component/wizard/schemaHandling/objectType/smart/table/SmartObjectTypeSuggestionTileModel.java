@@ -21,6 +21,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -216,5 +218,28 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
             return null;
         }
         return suggestion.getDelineation().getObjectClass();
+    }
+
+    public boolean baseContexFilterExists() {
+        var resourceDef = getValue().getRealValue();
+        if (resourceDef == null || resourceDef.getDelineation() == null) {
+            return false;
+        }
+        ResourceObjectReferenceType baseContext = resourceDef.getDelineation().getBaseContext();
+        return baseContext != null && baseContext.getFilter() != null;
+    }
+
+    public boolean filterExists() {
+        var resourceDef = getValue().getRealValue();
+        if (resourceDef == null || resourceDef.getDelineation() == null) {
+            return false;
+        }
+        List<SearchFilterType> filter = resourceDef.getDelineation().getFilter();
+        //TODO there should be issue (check why in some case we get null filter[0])
+        return filter != null && !filter.isEmpty() && filter.get(0) != null;
+    }
+
+    public boolean isAnyFilterExists() {
+        return filterExists() || baseContexFilterExists();
     }
 }

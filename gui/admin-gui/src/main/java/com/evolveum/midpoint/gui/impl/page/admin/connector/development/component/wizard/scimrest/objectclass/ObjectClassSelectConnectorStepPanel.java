@@ -7,14 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardModelWithParentSteps;
-import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardParentStep;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -149,9 +145,19 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
         moreClasses.showTitleAsLabel(true);
         add(moreClasses);
 
+        String cssClass;
+        if (valuesModel.getObject().size() == 1) {
+            cssClass = "";
+        } else if (valuesModel.getObject().size() == 2) {
+            cssClass = "col-6";
+        } else {
+            cssClass = "col-4";
+        }
         ListView<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> panel = new ListView<>(ID_PANEL, valuesModel) {
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> listItem) {
+                listItem.add(AttributeAppender.append("class", cssClass));
+
                 Radio<String> radio = new Radio<>(ID_RADIO, Model.of(listItem.getModelObject().getRealValue().getName()), radioGroup);
                 radio.setOutputMarkupId(true);
                 listItem.add(radio);

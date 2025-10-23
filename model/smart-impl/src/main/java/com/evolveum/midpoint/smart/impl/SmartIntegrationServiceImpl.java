@@ -7,58 +7,65 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.*;
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.prism.PrismContext;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
+import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
-
-import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_EXTENSION_RESOURCE_OID;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @Service("smartIntegrationService")
 public class SmartIntegrationServiceImpl implements SmartIntegrationService {
@@ -68,6 +75,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private static final String OP_CREATE_NEW_RESOURCE = "createNewResource";
     private static final String OP_ESTIMATE_OBJECT_CLASS_SIZE = "estimateObjectClassSize";
     private static final String OP_GET_LATEST_STATISTICS = "getLatestStatistics";
+    private static final String OP_GET_LATEST_OBJECT_TYPE_STATISTICS = "getLatestObjectTypeStatistics";
     private static final String OP_SUGGEST_OBJECT_TYPES = "suggestObjectTypes";
     private static final String OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION = "suggestObjectTypesOperation";
     private static final String OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS = "getSuggestObjectTypesOperationStatus";
@@ -94,16 +102,26 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
 
-    /** Supplies a mock service client for testing purposes. */
-    @TestOnly
-    @Nullable private Supplier<ServiceClient> serviceClientSupplier;
+    private final ModelService modelService;
+    private final TaskService taskService;
+    private final ModelInteractionServiceImpl modelInteractionService;
+    private final TaskManager taskManager;
+    private final RepositoryService repositoryService;
+    private final ServiceClientFactory clientFactory;
+    private final MappingSuggestionOperationFactory mappingSuggestionOperationFactory;
 
-    @Autowired private SystemObjectCache systemObjectCache;
-    @Autowired private ModelService modelService;
-    @Autowired private TaskService taskService;
-    @Autowired private ModelInteractionServiceImpl modelInteractionService;
-    @Autowired private TaskManager taskManager;
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    public SmartIntegrationServiceImpl(ModelService modelService,
+            TaskService taskService, ModelInteractionServiceImpl modelInteractionService, TaskManager taskManager,
+            @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
+            ServiceClientFactory clientFactory, MappingSuggestionOperationFactory mappingSuggestionOperationFactory) {
+        this.modelService = modelService;
+        this.taskService = taskService;
+        this.modelInteractionService = modelInteractionService;
+        this.taskManager = taskManager;
+        this.repositoryService = repositoryService;
+        this.clientFactory = clientFactory;
+        this.mappingSuggestionOperationFactory = mappingSuggestionOperationFactory;
+    }
 
     @Override
     public @Nullable String createNewResource(
@@ -233,6 +251,39 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             return objects.stream()
                     .max(Comparator.comparing(
                             o -> toMillis(ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(o).getTimestamp())))
+                    .map(o -> o.asObjectable())
+                    .orElse(null);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+            throws SchemaException {
+        var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
+                .addParam("resourceOid", resourceOid)
+                .addParam("kind", kind)
+                .addParam("intent", intent)
+                .build();
+        try {
+            var objects = repositoryService.searchObjects(
+                    GenericObjectType.class,
+                    PrismContext.get().queryFor(GenericObjectType.class)
+                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
+                            .eq(resourceOid)
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
+                            .eq(kind)
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
+                            .eq(intent)
+                            .build(),
+                    null,
+                    result);
+            return objects.stream()
+                    .max(Comparator.comparing(
+                            o -> toMillis(ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(o).getTimestamp())))
                     .map(o -> o.asObjectable())
                     .orElse(null);
         } catch (Throwable t) {
@@ -421,7 +472,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         }
     }
 
-    /** Invokes the service client to suggest object types for the given resource and object class. */
+    @Override
     public ObjectTypesSuggestionType suggestObjectTypes(
             String resourceOid,
             QName objectClassName,
@@ -435,7 +486,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
                 .build();
-        try (var serviceClient = getServiceClient(result)) {
+        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var types = new ObjectTypesSuggestionOperation(
                     OperationContext.init(serviceClient, resourceOid, objectClassName, task, result))
                     .suggestObjectTypes(statistics);
@@ -460,7 +511,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try {
-            try (var serviceClient = getServiceClient(result)) {
+            try (var serviceClient = this.clientFactory.getServiceClient(result)) {
                 var suggestion = new FocusTypeSuggestionOperation(
                         TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result))
                         .suggestFocusType();
@@ -486,7 +537,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addArbitraryObjectAsParam("typeDefBean", typeDefBean) // todo reconsider (too much text)
                 .build();
         try {
-            try (var serviceClient = getServiceClient(result)) {
+            try (var serviceClient = this.clientFactory.getServiceClient(result)) {
                 var suggestion = new FocusTypeSuggestionOperation(
                         OperationContext.init(serviceClient, resourceOid, typeDefBean.getDelineation().getObjectClass(), task, result))
                         .suggestFocusType(typeDefBean);
@@ -515,7 +566,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
-        try (var serviceClient = getServiceClient(result)) {
+        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var correlation = new CorrelationSuggestionOperation(
                     TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result))
                     .suggestCorrelation(result);
@@ -533,6 +584,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            ShadowObjectClassStatisticsType statistics,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             @Nullable CurrentActivityState<?> activityState,
@@ -545,10 +597,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
-        try (var serviceClient = getServiceClient(result)) {
-            var mappings = MappingsSuggestionOperation
-                    .init(serviceClient, resourceOid, typeIdentification, activityState, task, result)
-                    .suggestMappings(result);
+        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+            var mappings = this.mappingSuggestionOperationFactory.create(serviceClient, resourceOid,
+                    typeIdentification, activityState, task, result).suggestMappings(result, statistics);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;
         } catch (Throwable t) {
@@ -873,20 +924,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         } finally {
             result.close();
         }
-    }
-
-    private ServiceClient getServiceClient(OperationResult result) throws SchemaException, ConfigurationException {
-        if (serviceClientSupplier != null) {
-            return serviceClientSupplier.get();
-        }
-        var smartIntegrationConfiguration =
-                SystemConfigurationTypeUtil.getSmartIntegrationConfiguration(
-                        systemObjectCache.getSystemConfigurationBean(result));
-        return new DefaultServiceClientImpl(smartIntegrationConfiguration);
-    }
-
-    public void setServiceClientSupplier(@Nullable Supplier<ServiceClient> serviceClientSupplier) {
-        this.serviceClientSupplier = serviceClientSupplier;
     }
 
     @Override

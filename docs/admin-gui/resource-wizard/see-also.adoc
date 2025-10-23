@@ -1,7 +1,7 @@
 :page-toc: top
 :page-visibility: hidden
 
-== See Also
+== See also
 
 Here are additional resources to explore:
 

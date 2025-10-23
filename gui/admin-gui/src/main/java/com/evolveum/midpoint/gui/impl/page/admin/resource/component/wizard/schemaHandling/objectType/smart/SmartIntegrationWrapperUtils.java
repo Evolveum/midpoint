@@ -39,25 +39,11 @@ public class SmartIntegrationWrapperUtils {
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationWrapperUtils.class);
 
     public static <C extends Containerable> @NotNull PrismContainerValue<C> processSuggestedContainerValue(
-            @NotNull PrismContainerValue<C> container,
-            @NotNull PrismContainer<C> parent) {
+            @NotNull PrismContainerValue<C> container) {
         PrismContainerValue<C> value = PrismValueCollectionsUtil.cloneCollectionComplex(
                         CloneStrategy.REUSE,
                         Collections.singletonList(container))
                 .iterator().next();
-        value.setParent(parent);
-        // TODO: Be careful here! (need refactoring)
-// 1. If <schemaHandling/> is not present in the resource, calling parent.getValues().add(value)
-//    implicitly creates a new <schemaHandling/> block in Prism.
-// 2. This forces MidPoint to generate an ADD delta not only for <schemaHandling/>,
-//    but also for the newly added <objectType/>.
-// 3. As a result, we can end up with *two* "new" items in the container, which breaks validation
-//    (e.g. duplicate check reports value already exists).
-// 4. Another side effect: when the user just clicks "Review" and then exits the wizard,
-//    these generated deltas are already stored on the object, even though the user
-//    never confirmed the change explicitly.
-
-        parent.getValues().add(value);
         return value;
     }
 
@@ -97,7 +83,6 @@ public class SmartIntegrationWrapperUtils {
         IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createcContainerModel(
                 model,
                 ItemPath.create(
-                        ResourceObjectTypeDefinitionType.F_CORRELATION,
                         CorrelationDefinitionType.F_CORRELATORS,
                         CompositeCorrelatorType.F_ITEMS));
 
@@ -175,7 +160,8 @@ public class SmartIntegrationWrapperUtils {
 
     public static  @Nullable PrismContainerValueWrapper<MappingType> findRelatedInboundMapping(
             @NotNull PageBase pageBase,
-            @NotNull PrismContainerValueWrapper<CorrelationItemType> correlationItemWrapper) {
+            @NotNull PrismContainerValueWrapper<CorrelationItemType> correlationItemWrapper,
+            @NotNull PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceDefWrapper) {
         ItemPathType correlationItemRef = correlationItemWrapper.getRealValue().getRef();
         List<PrismContainerValueWrapper<MappingType>> allInboundMappings = new ArrayList<>();
 
@@ -192,7 +178,12 @@ public class SmartIntegrationWrapperUtils {
                         .findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
             }
 
-            if (container == null) {
+            //If container is null or empty, that indicate existing mapping has been used.
+            if(container == null || WebPrismUtil.isEmptyContainer(container.getItem())) {
+                container = resourceDefWrapper.findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+            }
+
+            if (container == null || WebPrismUtil.isEmptyContainer(container.getItem())) {
                 LOGGER.warn("Couldn't find related resource attribute definition.");
                 return null;
             }

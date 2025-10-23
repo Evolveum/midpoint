@@ -7,46 +7,44 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareContainerPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestionWrappers;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 @PanelType(name = "resourceObjectTypes")
@@ -100,16 +98,6 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                     Item<ICellPopulator<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> cellItem,
                     String componentId,
                     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
-                StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(rowModel.getObject());
-                if (statusInfo != null) {
-                    QName objectClassName = statusInfo.getObjectClassName();
-                    if (objectClassName != null) {
-                        Label label = new Label(componentId, objectClassName.getLocalPart());
-                        label.setOutputMarkupId(true);
-                        cellItem.add(label);
-                        return;
-                    }
-                }
                 super.populateItem(cellItem, componentId, rowModel);
             }
         });
@@ -132,26 +120,6 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                 AbstractItemWrapperColumn.ColumnType.STRING,
                 getPageBase()));
 
-        columns.add(new LifecycleStateColumn<>(defModel, getPageBase()) {
-            @Override
-            public void populateItem(
-                    Item<ICellPopulator<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> cellItem,
-                    String componentId,
-                    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
-                OperationResultStatusType status = statusFor(rowModel.getObject());
-                if (status == null) {
-                    super.populateItem(cellItem, componentId, rowModel);
-                    return;
-                }
-                var style = SmartIntegrationUtils.SuggestionUiStyle.from(status);
-                Label statusLabel = new Label(componentId, createStringResource(
-                        "ResourceObjectTypesPanel.suggestion." + status.value()));
-                statusLabel.setOutputMarkupId(true);
-                statusLabel.add(AttributeModifier.append("class", style.badgeClass));
-                cellItem.add(statusLabel);
-            }
-        });
-
         return columns;
     }
 
@@ -162,13 +130,18 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
     @Override
     protected void onNewValue(
-            PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target, boolean isDuplicate) {
+            PrismContainerValue<ResourceObjectTypeDefinitionType> value,
+            @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel,
+            AjaxRequestTarget target,
+            boolean isDuplicate,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
         ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
-        objectDetailsModels.getPageResource().showObjectTypeWizard(value, target, newWrapperModel.getObject().getPath());
+        objectDetailsModels.getPageResource().showObjectTypeWizard(value, target, newWrapperModel.getObject().getPath(), postSaveHandler);
     }
 
     @Override
-    protected void onSuggestValue(PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+    protected void onSuggestValue(
+            IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
         ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
         objectDetailsModels.getPageResource().showSuggestObjectTypeWizard(target, createContainerModel().getObject().getPath());
     }
@@ -183,114 +156,102 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
     }
 
     @Override
-    protected boolean allowNoValuePanel() {
-        return true;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected @Nullable StatusInfo<ObjectTypesSuggestionType> getStatusInfo(PrismContainerValueWrapper<?> value) {
-        StatusInfo<?> statusInfo = super.getStatusInfo(value);
-        if (statusInfo != null) {
-            return (StatusInfo<ObjectTypesSuggestionType>) statusInfo;
-        }
-        return null;
-    }
-
-    @Override
-    protected ISelectableDataProvider<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> createProvider() {
+    protected StatusAwareDataFactory.SuggestionsModelDto<ResourceObjectTypeDefinitionType> getSuggestionsModelDto() {
         PrismContainerWrapperModel<ResourceType, ResourceObjectTypeDefinitionType> resourceDefWrapper =
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
-
-        final Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, StatusInfo<ObjectTypesSuggestionType>>
-                suggestionsIndex = new HashMap<>();
-
-        LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> containerModel =
-                new LoadableModel<>() {
-                    @Override
-                    protected @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> load() {
-                        List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> out = new ArrayList<>();
-
-                        suggestionsIndex.clear();
-                        if (Boolean.TRUE.equals(getSwitchSuggestionModel().getObject())) {
-                            final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-                            final OperationResult result = task.getResult();
-
-                            final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
-
-                            SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions =
-                                    loadObjectTypeSuggestionWrappers(getPageBase(), resourceOid, task, result);
-                            out.addAll(suggestions.wrappers());
-                            suggestionsIndex.putAll(suggestions.suggestionByWrapper());
-                        }
-
-                        List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resource = resourceDefWrapper
-                                .getObject().getValues();
-                        if (resource != null) {
-                            out.addAll(resource);
-                        }
-                        return out;
-                    }
-                };
-
-        String resourceOid = getObjectWrapperObject().getOid();
-        return new StatusAwareDataProvider<>(this, resourceOid, Model.of(), containerModel, suggestionsIndex::get);
+        return StatusAwareDataFactory.createObjectTypeModel(
+                this,
+                getSwitchSuggestionModel(),
+                resourceDefWrapper,
+                getObjectWrapperObject().getOid());
     }
 
     @Override
-    protected boolean hasNoValues() {
-        return Objects.requireNonNull(getStatusAwareProvider()).size() == 0;
-    }
-
-    @Override
-    protected boolean isToggleSuggestionVisible() {
-        final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-        final OperationResult result = task.getResult();
-
-        final String resourceOid = getObjectDetailsModels().getObjectType().getOid();
-
-        SmartIntegrationStatusInfoUtils.@NotNull ObjectTypeSuggestionProviderResult suggestions = loadObjectTypeSuggestionWrappers(
-                getPageBase(), resourceOid, task, result);
-
-        return !suggestions.wrappers().isEmpty();
-    }
-
-    protected boolean performOnDeleteSuggestion(AjaxRequestTarget target, PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> valueWrapper) {
-        Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-        OperationResult result = task.getResult();
-
-        StatusInfo<ObjectTypesSuggestionType> statusInfo = getStatusInfo(valueWrapper);
-        if (statusInfo == null) {
-            return false;
-        }
-        SmartIntegrationUtils.removeObjectTypeSuggestionNew(
-                getPageBase(),
-                statusInfo,
-                valueWrapper.getRealValue(),
-                task,
-                result);
-        target.add(getPageBase().getFeedbackPanel());
-        return true;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    protected void performOnReview(@NotNull AjaxRequestTarget target, @NotNull PrismContainerValueWrapper<?> valueWrapper) {
+    protected void onReviewValue(
+            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
+            AjaxRequestTarget target,
+            StatusInfo<?> statusInfo,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
         IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-        PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject = valueWrapper.getOldValue();
+        PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject = valueModel.getObject().getOldValue();
         WebPrismUtil.cleanupEmptyContainerValue(originalObject);
 
-        PrismContainer<ResourceObjectTypeDefinitionType> item = containerModel.getObject().getItem();
-        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(
-                originalObject,
-                item);
-
-        //TODO temporary
-        performOnDeleteSuggestion(target, (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) valueWrapper);
-        onNewValue(suggestionToAdd, containerModel, target, false);
+        PrismContainerValue<ResourceObjectTypeDefinitionType> suggestionToAdd = processSuggestedContainerValue(originalObject);
+        onNewValue(suggestionToAdd, containerModel, target, false, postSaveHandler);
     }
 
     @Override
     protected boolean isStatisticsAllowed() {
         return true;
+    }
+
+    @Override
+    protected void customizeInlineMenuItems(@NotNull List<InlineMenuItem> inlineMenuItems) {
+        super.customizeInlineMenuItems(inlineMenuItems);
+        inlineMenuItems.add(createCompareWithExistingItemMenu());
+    }
+
+    private @NotNull InlineMenuItem createCompareWithExistingItemMenu() {
+        return new InlineMenuItem(createStringResource("SmartSuggestObjectTypeTilePanel.compare.with.existing")) {
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                List<ItemPath> requiredPaths = getDefaultObjectTypeComparePaths();
+
+                return new ColumnMenuAction<>() {
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        IModel<Serializable> rowModel = getRowModel();
+                        if (!(rowModel.getObject() instanceof PrismContainerValueWrapper<?> wrapper)) {
+                            return;
+                        }
+
+                        var selectedDef = (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) wrapper;
+                        ResourceObjectTypeDefinitionType resourceDef = selectedDef.getRealValue();
+                        if (resourceDef == null
+                                || resourceDef.getDelineation() == null
+                                || resourceDef.getDelineation().getObjectClass() == null) {
+                            warn(getString("ResourceObjectTypesPanel.compare.objectClass.no.suitable"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        QName objectClass = resourceDef.getDelineation().getObjectClass();
+                        var existingObjectClassDefs = getExistingObjectTypeDefinitions(objectClass);
+                        var compareObjectDto = createCompareObjectDto(selectedDef, existingObjectClassDefs, requiredPaths);
+
+                        var comparePanel = new CompareContainerPanel<>(getPageBase().getMainPopupBodyId(), () -> compareObjectDto);
+                        getPageBase().showMainPopup(comparePanel, target);
+                    }
+                };
+            }
+        };
+    }
+
+    /**
+     * Returns all existing object type definitions matching the given object class.
+     */
+    protected @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getExistingObjectTypeDefinitions(
+            @NotNull QName targetObjectClass) {
+
+        PrismContainerWrapperModel<ResourceType, ResourceObjectTypeDefinitionType> resourceWrapper =
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
+
+        return resourceWrapper.getObject().getValues().stream()
+                .filter(value -> {
+                    ResourceObjectTypeDefinitionType def = value.getRealValue();
+                    return def != null
+                            && def.getDelineation() != null
+                            && targetObjectClass.equals(def.getDelineation().getObjectClass());
+                })
+                .toList();
     }
 }

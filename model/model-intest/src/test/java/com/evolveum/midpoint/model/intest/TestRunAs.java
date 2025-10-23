@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.Objects;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.test.RunFlag;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -60,6 +61,16 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<RoleType> ROLE_WITH_SERVICE_MAPPING_RUN_AS_DISABLED = TestObject.file(
             TEST_DIR, "role-with-service-mapping-run-as-disabled.xml", "f6e1ac76-714c-4ce3-977b-8165a9ee7947");
 
+    private static final File USER_PRIVILEGED = new File(TEST_DIR, "user-privileged.xml");
+    private static final String USER_PRIVILEGED_NAME = "PrivelegedUser";
+
+    private static final File TASK_RECOMPUTE_PRIVILEGED_USER = new File(TEST_DIR, "task-recompute-privileged-user.xml");
+    private static final String TASK_RECOMPUTE_PRIVILEGED_USER_OID = "3e8b389e-7cc4-11ef-9295-4f3d13b4c390";
+
+    protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
+
+    public static final RunFlag FLAG_LOGIN_MODE = new RunFlag();
+    public static final RunFlag FLAG_ALREADY_LOGGED_IN = new RunFlag();
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -247,5 +258,37 @@ public class TestRunAs extends AbstractEmptyModelIntegrationTest {
             assertExpectedException(e)
                     .hasMessageContaining("The principal is disabled");
         }
+    }
+
+    /** #10826 task's ownerRef points to the logged in user while reconciliation task running
+     * We use loginMode check not to execute the script code during user's login.
+     * Therefore, exception (within the script, look at the user-privileged.xml) while loginMode
+     * will be caught and FLAG_LOGIN_MODE flag will be set.
+     * If the script is run after the user's login, the exception won't be thrown, and
+     * the FLAG_ALREADY_LOGGED_IN flag won't be set.
+     * */
+    @Test
+    public void test500RunTaskAsLoggedInUser() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        FLAG_LOGIN_MODE.reset();
+        FLAG_ALREADY_LOGGED_IN.reset();
+
+        login(userAdministrator);
+
+        importObjectFromFile(RESOURCE_DUMMY_FILE, result);
+        importObjectFromFile(USER_PRIVILEGED, result);
+
+        login(USER_PRIVILEGED_NAME);
+        addObject(TASK_RECOMPUTE_PRIVILEGED_USER);
+
+        when();
+        waitForTaskStart(TASK_RECOMPUTE_PRIVILEGED_USER_OID);
+        waitForTaskFinish(TASK_RECOMPUTE_PRIVILEGED_USER_OID);
+
+        then();
+        FLAG_LOGIN_MODE.assertSet();
+        FLAG_ALREADY_LOGGED_IN.assertNotSet();
     }
 }

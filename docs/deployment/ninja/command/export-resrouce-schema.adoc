@@ -1,0 +1,9 @@
+= Export Resource Schema
+:page-experimental: true
+
+Export schemas of the resource.
+This command is basically a "shortcut" to export just resource schemas without any other configurations as done with xref:export-configuration.adoc[export configuration command].
+
+You can also explicitly exclude any item from the export (`-ei`, `--exclude-item`).
+Statistics can be exported to `SYSOUT` or to file (`-o`, `--output`).
+Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.

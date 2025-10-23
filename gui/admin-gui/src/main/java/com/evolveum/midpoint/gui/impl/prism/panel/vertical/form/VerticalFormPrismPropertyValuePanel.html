@@ -19,7 +19,10 @@
                 </wicket:enclosure>
             </div>
             <wicket:container class="ml-auto" wicket:id="header">
-                    <span class="btn-group  m-auto">
+
+                <span wicket:id="deleteStatusMessage" role="status" class="sr-only" aria-live="polite"></span>
+
+                <span class="btn-group  m-auto">
                         <a class="btn btn-tool" wicket:id="removeButton" wicket:message="title:PageBase.button.delete">
                             <i class="fa fa-minus-circle"></i>
                         </a>

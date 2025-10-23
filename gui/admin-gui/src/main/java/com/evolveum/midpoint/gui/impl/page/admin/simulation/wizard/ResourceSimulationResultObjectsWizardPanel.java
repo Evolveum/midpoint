@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardNavigationBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRefsTable;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultObjectsPanel;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "ResourceSimulationResultObjectsWizardPanel.headerLabel", icon = "fa fa-bars-progress"))
-public abstract class ResourceSimulationResultObjectsWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
+public abstract class ResourceSimulationResultObjectsWizardPanel extends AbstractWizardNavigationBasicPanel<ResourceDetailsModel> {
 
     private static final String PANEL_TYPE = "rw-simulation-objects-result";
     private static final String ID_PANEL = "panel";
@@ -93,12 +93,17 @@ public abstract class ResourceSimulationResultObjectsWizardPanel extends Abstrac
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("ResourceSimulationResultObjectsWizardPanel.text");
+        return createStringResource("ResourceSimulationResultObjectsWizardPanel.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("ResourceSimulationResultObjectsWizardPanel.subText");
+        return isSubTextVisible() ? createStringResource("ResourceSimulationResultObjectsWizardPanel.subText")
+                : null;
+    }
+
+    protected boolean isSubTextVisible() {
+        return false;
     }
 
     protected CorrelationItemRefsTable getTable() {

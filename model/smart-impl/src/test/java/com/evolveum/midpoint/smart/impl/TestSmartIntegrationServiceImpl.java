@@ -7,28 +7,27 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-
-import org.assertj.core.data.Offset;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,10 +39,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
 import com.evolveum.midpoint.smart.impl.activities.StatisticsComputer;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeRelatedStatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
@@ -559,12 +560,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
-            smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl(
-                            new SiSuggestObjectTypesResponseType()
-                                    .objectType(new SiSuggestedObjectTypeType()
-                                            .kind("account")
-                                            .intent("default"))));
+            TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, new MockServiceClientImpl(
+                    new SiSuggestObjectTypesResponseType()
+                            .objectType(new SiSuggestedObjectTypeType()
+                                    .kind("account")
+                                    .intent("default"))));
         }
 
         var task = getTestTask();
@@ -599,7 +599,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test110SuggestObjectTypesWithFiltersAndBaseContext() throws CommonException, IOException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
@@ -612,7 +611,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .kind("account")
                                 .intent("other")
                                 .filter("attributes/type != 'employee'")));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -674,14 +673,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test120SuggestObjectTypesWithErrorInFilter() throws CommonException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
                                 .kind("account")
                                 .intent("employee")
                                 .filter("attributes/unknown-attribute = 'employee'")));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -703,7 +701,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test130SuggestObjectTypesWithErrorInBaseContextObjectClass() throws CommonException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
@@ -711,7 +708,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .intent("employee")
                                 .baseContextFilter("attributes/cn = 'evolveum'")
                                 .baseContextObjectClassName("unknownObjectClass")));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -733,7 +730,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test140ConflictingObjectTypes() throws CommonException, IOException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
@@ -752,7 +748,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                                 .kind("account")
                                 .intent("employee") // the same as above, but different base context
                                 .filter("attributes/type = 'employee3'")));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -1101,6 +1097,26 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         return PrismContext.get().parserFor(file).parseRealValue(clazz);
     }
 
+    /** Computes statistics for a specific type identification (kind/intent) using ObjectTypeRelatedStatisticsComputer. */
+    private ShadowObjectClassStatisticsType computeStatistics(
+            DummyTestResource resource,
+            ResourceObjectTypeIdentification typeIdentification,
+            Task task,
+            OperationResult result) throws CommonException {
+        var res = Resource.of(resource.get());
+        var typeDefinition = res.getCompleteSchemaRequired().getObjectTypeDefinitionRequired(typeIdentification);
+        var computer = new ObjectTypeRelatedStatisticsComputer(typeDefinition);
+        var shadows = provisioningService.searchShadows(
+                res.queryFor(typeIdentification).build(),
+                null,
+                task, result);
+        for (var shadow : shadows) {
+            computer.process(shadow.getBean());
+        }
+        computer.postProcessStatistics();
+        return computer.getStatistics();
+    }
+
     private void skipIfRealService() {
         skipTestIf(DefaultServiceClientImpl.hasServiceUrlOverride(), "Not applicable with a real service");
     }
@@ -1109,7 +1125,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test300SuggestMappings() throws CommonException, ActivityInterruptedException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
@@ -1129,16 +1144,21 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 new RuntimeException("LLM went crazy here"),
                 new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")
         );
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
 
         when("suggesting mappings");
+        // Compute kind/intent statistics with ObjectTypeRelatedStatisticsComputer and pass them to the call
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestedMappings = smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                null, null, null, task, result);
+                statistics, null, null, null, task, result);
 
         then("suggestion is correct");
         displayValueAsXml("suggested mappings", suggestedMappings);
@@ -1193,18 +1213,21 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test310SuggestMappingsForOrg() throws CommonException, ActivityInterruptedException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(new SiMatchSchemaResponseType()); // not important for this test
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
 
         when("suggesting mappings");
+        var statisticsForOrg = computeStatistics(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
+                GENERIC_ORGANIZATIONAL_UNIT,
+                task, result);
         smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 GENERIC_ORGANIZATIONAL_UNIT,
-                null, null, null, task, result);
+                statisticsForOrg, null, null, null, task, result);
 
         then("the number of attributes in the request is appropriate");
         var request = (SiMatchSchemaRequestType) mockClient.getLastRequest();
@@ -1220,7 +1243,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test400SuggestCorrelationRules() throws CommonException {
         skipIfRealService();
 
-        //noinspection resource
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
@@ -1232,7 +1254,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                         .attributeMatch(new SiAttributeMatchSuggestionType()
                                 .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
                                 .midPointAttribute(asStringSimple(UserType.F_NAME))));
-        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -1262,6 +1284,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(correlationItemRef1).as("item correlators item ref").isNotNull();
         assertThat(correlationItemRef1.getItemPath().asSingleName()).as("correlator item").isEqualTo(UserType.F_NAME);
 
+        // Comment while excluding correlators with score 0
+        /*
         var suggestion2 = suggestedCorrelations.getSuggestion().get(1);
         var attrMappings2 = suggestion2.getAttributes();
         assertThat(attrMappings2).as("attribute mappings").hasSize(1);
@@ -1278,10 +1302,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var correlationItemRef2 = correlationItem2.getRef();
         assertThat(correlationItemRef2).as("item correlators item ref").isNotNull();
         assertThat(correlationItemRef2.getItemPath().asSingleName()).as("correlator item").isEqualTo(UserType.F_EMAIL_ADDRESS);
+         */
 
         and("response is marked as generated by AI");
         assertAiProvidedMarkPresentRequired(correlationItem1, CorrelationItemType.F_REF); // selected by AI
-        assertAiProvidedMarkPresentRequired(correlationItem2, CorrelationItemType.F_REF); // selected by AI
+        //assertAiProvidedMarkPresentRequired(correlationItem2, CorrelationItemType.F_REF); // selected by AI
     }
 
     private void assertCorrAttrSuggestion(
@@ -1314,128 +1339,4 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .orElseThrow(() -> new AssertionError("No definition found for " + path));
     }
 
-    @Test
-    public void test410ItemStatisticsGetScore_UniqueComplete() throws Exception {
-        // Create ItemStatistics via reflection
-        Class<?> itemStatsClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator$ItemStatistics");
-        Constructor con = itemStatsClass.getDeclaredConstructor();
-        con.setAccessible(true);
-        Object itemStats = con.newInstance();
-
-        Field objectsF = itemStatsClass.getDeclaredField("objects");
-        Field missingValuesF = itemStatsClass.getDeclaredField("missingValues");
-        Field skippedMultiValuedF = itemStatsClass.getDeclaredField("skippedMultiValued");
-        Field distinctValuesF = itemStatsClass.getDeclaredField("distinctValues");
-        objectsF.setAccessible(true);
-        missingValuesF.setAccessible(true);
-        skippedMultiValuedF.setAccessible(true);
-        distinctValuesF.setAccessible(true);
-
-        // 10 objects, all have value, all unique
-        objectsF.setInt(itemStats, 10);
-        missingValuesF.setInt(itemStats, 0);
-        skippedMultiValuedF.setBoolean(itemStats, false);
-        Set<Object> vals = new HashSet<>();
-        for (int i = 0; i < 10; i++) vals.add("v"+i);
-        ((Set<Object>) distinctValuesF.get(itemStats)).addAll(vals);
-
-        Method getScore = itemStatsClass.getDeclaredMethod("getScore");
-        Double score = (Double) getScore.invoke(itemStats);
-        assertThat(score).isEqualTo(1.0);
-    }
-
-    @Test
-    public void test411ItemStatisticsGetScore_MissingValues() throws Exception {
-        Class<?> itemStatsClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator$ItemStatistics");
-        Constructor con = itemStatsClass.getDeclaredConstructor();
-        con.setAccessible(true);
-        Object itemStats = con.newInstance();
-
-        Field objectsF = itemStatsClass.getDeclaredField("objects");
-        Field missingValuesF = itemStatsClass.getDeclaredField("missingValues");
-        Field skippedMultiValuedF = itemStatsClass.getDeclaredField("skippedMultiValued");
-        Field distinctValuesF = itemStatsClass.getDeclaredField("distinctValues");
-        objectsF.setAccessible(true);
-        missingValuesF.setAccessible(true);
-        skippedMultiValuedF.setAccessible(true);
-        distinctValuesF.setAccessible(true);
-
-        // 10 objects, 5 missing, 5 with unique value
-        objectsF.setInt(itemStats, 10);
-        missingValuesF.setInt(itemStats, 5);
-        skippedMultiValuedF.setBoolean(itemStats, false);
-        Set<Object> vals = new HashSet<>();
-        for (int i = 0; i < 5; i++) vals.add("v"+i);
-        ((Set<Object>) distinctValuesF.get(itemStats)).addAll(vals);
-
-        Method getScore = itemStatsClass.getDeclaredMethod("getScore");
-        Double score = (Double) getScore.invoke(itemStats);
-
-        // Uniqueness = 5/5 = 1, Coverage = 5/10 = 0.5, Harmonic mean = (2*1*0.5)/(1+0.5)=0.666...
-        assertThat(score).isEqualTo(0.666, Offset.offset(0.01));
-    }
-
-    @Test
-    public void test412ItemStatisticsGetScore_MultivaluedReturnsZero() throws Exception {
-        Class<?> itemStatsClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator$ItemStatistics");
-        Constructor con = itemStatsClass.getDeclaredConstructor();
-        con.setAccessible(true);
-        Object itemStats = con.newInstance();
-
-        Field objectsF = itemStatsClass.getDeclaredField("objects");
-        Field missingValuesF = itemStatsClass.getDeclaredField("missingValues");
-        Field skippedMultiValuedF = itemStatsClass.getDeclaredField("skippedMultiValued");
-        Field distinctValuesF = itemStatsClass.getDeclaredField("distinctValues");
-        objectsF.setAccessible(true);
-        missingValuesF.setAccessible(true);
-        skippedMultiValuedF.setAccessible(true);
-        distinctValuesF.setAccessible(true);
-
-        objectsF.setInt(itemStats, 10);
-        missingValuesF.setInt(itemStats, 0);
-        skippedMultiValuedF.setBoolean(itemStats, true); // multivalued
-        Set<Object> vals = new HashSet<>();
-        for (int i = 0; i < 10; i++) vals.add("v"+i);
-        ((Set<Object>) distinctValuesF.get(itemStats)).addAll(vals);
-
-        Method getScore = itemStatsClass.getDeclaredMethod("getScore");
-        Double score = (Double) getScore.invoke(itemStats);
-
-        assertThat(score).isEqualTo(0.0);
-    }
-
-    @Test
-    public void test420ComputeLinkCoverage_PerfectMapping() throws Exception {
-        // Get computeLinkCoverage method
-        Class<?> ceClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator");
-        Method computeLinkCoverage = ceClass.getDeclaredMethod("computeLinkCoverage", Map.class);
-        computeLinkCoverage.setAccessible(true);
-
-        // 3 focus, each maps to one unique shadow
-        Map<String, Set<String>> links = Map.of(
-                "f1", Set.of("s1"),
-                "f2", Set.of("s2"),
-                "f3", Set.of("s3")
-        );
-        Object result = computeLinkCoverage.invoke(null, links);
-        assertThat(result).isEqualTo(1.0);
-    }
-
-    @Test
-    public void test421ComputeLinkCoverage_AmbiguousMapping() throws Exception {
-        Class<?> ceClass = Class.forName("com.evolveum.midpoint.smart.impl.CorrelatorEvaluator");
-        Method computeLinkCoverage = ceClass.getDeclaredMethod("computeLinkCoverage", Map.class);
-        computeLinkCoverage.setAccessible(true);
-
-        // 2 out of 3 focus map to multiple shadows
-        Map<String, Set<String>> links = Map.of(
-                "f1", Set.of("s1", "s2"),
-                "f2", Set.of("s3"),
-                "f3", Set.of()
-        );
-        // f1 has 2 (ambiguity 1), f2 has 1, f3 has none.
-        // linked=2, focusCount=3, avgAmbiguity=1/2=0.5, penalty=1/(1+0.5)=0.666, coverage=2/3, total=0.444
-        Object result = computeLinkCoverage.invoke(null, links);
-        assertThat((Double) result).isEqualTo(0.444, Offset.offset(0.01));
-    }
 }

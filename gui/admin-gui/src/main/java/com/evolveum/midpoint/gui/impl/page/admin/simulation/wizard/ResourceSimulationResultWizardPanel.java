@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardNavigationBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRefsTable;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultPanel;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "ResourceSimulationResultWizardPanel.headerLabel", icon = "fa fa-bars-progress"))
-public abstract class ResourceSimulationResultWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
+public abstract class ResourceSimulationResultWizardPanel extends AbstractWizardNavigationBasicPanel<ResourceDetailsModel> {
 
     private static final String PANEL_TYPE = "rw-simulation-result";
     private static final String ID_PANEL = "panel";
@@ -91,7 +91,7 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
             }
         };
         viewProcessedButton.showTitleAsLabel(true);
-        viewProcessedButton.add(AttributeAppender.append("class", "btn btn-primary"));
+        viewProcessedButton.add(AttributeAppender.append("class", "btn btn-primary ml-auto"));
         viewProcessedButton.setOutputMarkupId(true);
         buttons.add(viewProcessedButton);
     }
@@ -108,12 +108,17 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("ResourceSimulationResultWizardPanel.text");
+        return createStringResource("ResourceSimulationResultWizardPanel.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("ResourceSimulationResultWizardPanel.subText");
+        return isSubTextVisible() ? createStringResource("ResourceSimulationResultWizardPanel.subText")
+                : null;
+    }
+
+    protected boolean isSubTextVisible() {
+        return false;
     }
 
     protected CorrelationItemRefsTable getTable() {

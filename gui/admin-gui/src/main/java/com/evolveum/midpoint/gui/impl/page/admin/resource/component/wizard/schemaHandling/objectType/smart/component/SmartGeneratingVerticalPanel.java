@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.StatusRowRecord;
+
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -37,11 +39,15 @@ public class SmartGeneratingVerticalPanel extends SmartGeneratingPanel {
         super(id, model, isWizardPanel);
     }
 
-    /** Null-safe accessor for rows. */
-    protected List<SmartGeneratingDto.StatusRow> getSafeRows() {
+    /**
+     * Null-safe accessor for rows.
+     *
+     * @return List with the last row, or empty list if no rows available.
+     */
+    protected List<StatusRowRecord> getSafeRows() {
         SmartGeneratingDto dto = getModelObject();
         if (dto != null) {
-            List<SmartGeneratingDto.StatusRow> statusRows = dto.getStatusRows(getPageBase());
+            List<StatusRowRecord> statusRows = dto.getStatusRows(getPageBase());
             if (statusRows != null && !statusRows.isEmpty()) {
                 return Collections.singletonList(statusRows.get(statusRows.size() - 1));
             }
@@ -52,5 +58,10 @@ public class SmartGeneratingVerticalPanel extends SmartGeneratingPanel {
     @Override
     protected @Nullable String getTitleCssClass() {
         return null;
+    }
+
+    @Override
+    protected boolean isLinkTitle() {
+        return true;
     }
 }

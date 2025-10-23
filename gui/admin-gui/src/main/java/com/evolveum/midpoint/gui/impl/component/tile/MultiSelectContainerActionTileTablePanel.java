@@ -14,21 +14,24 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -47,7 +50,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.SmartSuggestConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
@@ -66,16 +69,28 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
+
 public abstract class MultiSelectContainerActionTileTablePanel<E extends Serializable, C extends Containerable, T extends TemplateTile<PrismContainerValueWrapper<C>>>
         extends MultiSelectTileTablePanel<E, PrismContainerValueWrapper<C>, T> {
 
-    private final IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
+    private IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
 
     public MultiSelectContainerActionTileTablePanel(
             String id,
             UserProfileStorage.TableId tableId,
             IModel<ViewToggle> toggleView) {
         super(id, toggleView, tableId);
+    }
+
+    public MultiSelectContainerActionTileTablePanel(
+            String id,
+            UserProfileStorage.TableId tableId,
+            IModel<ViewToggle> toggleView,
+            IModel<Boolean> switchToggleModel) {
+        super(id, toggleView, tableId);
+        this.switchToggleModel = switchToggleModel;
     }
 
     @Override
@@ -137,7 +152,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         }
 
         if (showActionsColumn()) {
-            @Nullable IColumn<PrismContainerValueWrapper<C>, String> actions = createActionsColumn(
+            @Nullable IColumn<PrismContainerValueWrapper<C>, String> actions = createLinkStyleActionsColumn(
                     getPageBase(), getInlineMenuItems(null));
             if (actions != null) {
                 columns.add(actions);
@@ -184,38 +199,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             case ADDED -> component.add(AttributeModifier.append("class", "table-success"));
             case DELETED -> component.add(AttributeModifier.append("class", "table-danger"));
         }
-
-    }
-
-    private @Nullable IColumn<PrismContainerValueWrapper<C>, String> createActionsColumn(
-            @NotNull PageBase pageBase,
-            @NotNull List<InlineMenuItem> allItems) {
-        return !allItems.isEmpty() ? new InlineMenuButtonColumn<>(allItems, pageBase) {
-            @Override
-            public String getCssClass() {
-                return "inline-menu-column";
-            }
-
-            @Override
-            protected String getDropDownButtonIcon() {
-                return "fa fa-ellipsis-h";
-            }
-
-            @Override
-            protected String getSpecialButtonClass() {
-                return "btn btn-link btn-sm";
-            }
-
-            @Override
-            protected String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
-                return "btn btn-link btn-sm text-nowrap";
-            }
-
-            @Override
-            protected String getAdditionalMultiButtonPanelCssClass() {
-                return "justify-content-end";
-            }
-        } : null;
     }
 
     protected List<PrismContainerValueWrapper<C>> getMultiTableModel() {
@@ -232,6 +215,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             @Override
             protected @NotNull String getSpecialButtonClass() {
                 return "btn btn-default mr-2";
+            }
+
+            @Override
+            protected @NotNull String getSpecialDropdownMenuClass() {
+                return "dropdown-menu-end";
             }
         };
 
@@ -253,6 +241,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                navigateToLastPage();
                 onCreateNewObjectPerform(target);
             }
         };
@@ -345,7 +334,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (getRowModel() != null) {
-                    deleteItemPerformed(target, List.of(getRowModel().getObject()));
+                    deleteItemPerformed(target, List.of(getRowModel().getObject()), true);
                     return;
                 }
 
@@ -364,13 +353,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
                     }
 
                     @Override
-                    protected boolean isYesButtonVisible() {
-                        return !selected.isEmpty();
-                    }
-
-                    @Override
                     public void yesPerformed(AjaxRequestTarget target) {
-                        deleteItemPerformed(target, selected);
+                        if (selected.isEmpty()) {
+                            deleteItemPerformed(target, getMultiTableModel(), true);
+                        }
+                        deleteItemPerformed(target, selected, true);
                     }
                 };
 
@@ -380,15 +367,31 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected StringResourceModel deleteConfirmationTitle(int selectedCount) {
+        if (selectedCount == 0 && getMultiTableModel().isEmpty()) {
+            return createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title.noItems");
+        }
+
         return selectedCount == 0
-                ? createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title.empty")
+                ? createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title.empty", getMultiTableModel().size())
                 : createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title", selectedCount);
     }
 
-    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
+    protected StringResourceModel acceptConfirmationTitle(int selectedCount) {
+        if (selectedCount == 0 && getMultiTableModel().isEmpty()) {
+            return createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.noItems");
+        }
+
+        return selectedCount == 0
+                ? createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.empty")
+                : createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title", selectedCount);
+    }
+
+    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete, boolean refresh) {
         if (noSelectedItemsWarn(getPageBase(), target, toDelete)) {return;}
         toDelete.forEach(this::resolveDeletedItem);
-        refreshAndDetach(target);
+        if (refresh) {
+            refreshAndDetach(target);
+        }
     }
 
     protected static <C extends Containerable> boolean noSelectedItemsWarn(PageBase pageBase, AjaxRequestTarget target,
@@ -461,7 +464,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return columnMenuAction;
     }
 
-    //TODO add non editable mode
     public void editItemPerformed(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<C>> rowModel,
@@ -472,7 +474,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return new LoadableDetachableModel<>() {
             @Override
             protected List<PrismContainerValueWrapper<C>> load() {
-                List<PrismContainerValueWrapper<C>> all = getMultiTableModel();
+                List<PrismContainerValueWrapper<C>> all = getCurrentPageItems();
                 if (all == null || all.isEmpty()) {
                     return List.of();
                 }
@@ -483,8 +485,62 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
     }
 
+    public List<PrismContainerValueWrapper<C>> getCurrentPageItems(long currentPage, long itemsPerPage) {
+        long total = getProvider().size();
+        if (total == 0 || itemsPerPage <= 0) {return Collections.emptyList();}
+
+        long start = Math.max(0, currentPage * itemsPerPage);
+        if (start >= total) {return Collections.emptyList();}
+
+        long length = Math.min(itemsPerPage, total - start);
+
+        List<PrismContainerValueWrapper<C>> page = new ArrayList<>((int) length);
+        Iterator<? extends PrismContainerValueWrapper<C>> it = getProvider().iterator(start, length);
+        it.forEachRemaining(page::add);
+        return page;
+    }
+
+    protected List<PrismContainerValueWrapper<C>> getCurrentPageItems() {
+        if (isTileViewVisible()) {
+            return getTilesModel().getObject().stream()
+                    .map(TemplateTile::getValue)
+                    .toList();
+        }
+        BoxedTablePanel<?> table = getBoxedTablePanelComponent();
+        return getCurrentPageItems(table.getDataTable().getCurrentPage(), table.getDataTable().getItemsPerPage());
+    }
+
+    /**
+     * Ensures the table or tile view does not remain on an invalid (empty) page.
+     * Adjusts current page if it exceeds the last available page,
+     * or resets to 0 if there are no items.
+     */
+    protected void adjustPagingIfEmpty() {
+        if (isTileViewVisible()) {
+            adjustPagingIfEmpty(getTiles(), getTiles().getItemCount(), getTiles().getItemsPerPage());
+        } else {
+            BoxedTablePanel<?> table = getBoxedTablePanelComponent();
+            if (table != null && table.getDataTable() != null) {
+                adjustPagingIfEmpty(table.getDataTable(),
+                        table.getDataTable().getItemCount(),
+                        table.getDataTable().getItemsPerPage());
+            }
+        }
+    }
+
+    private void adjustPagingIfEmpty(IPageable pageable, long total, long pageSize) {
+        if (total > 0) {
+            long maxPage = (total - 1) / pageSize;
+            if (pageable.getCurrentPage() > maxPage) {
+                pageable.setCurrentPage(maxPage);
+            }
+        } else {
+            pageable.setCurrentPage(0);
+        }
+    }
+
     private @NotNull IsolatedCheckBoxPanel createHeaderCheckBoxButton(String idButton) {
-        IModel<Boolean> selectModel = buildHeaderCheckboxModel(this::getMultiTableModel);
+        IModel<Boolean> selectModel = buildHeaderCheckboxModel(this::getCurrentPageItems);
 
         IsolatedCheckBoxPanel selectCheckbox = new IsolatedCheckBoxPanel(idButton, selectModel) {
             @Override
@@ -501,19 +557,22 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     private @NotNull IModel<Boolean> buildHeaderCheckboxModel(
-            @NotNull IModel<List<PrismContainerValueWrapper<C>>> multiTableModel) {
+            @NotNull IModel<List<PrismContainerValueWrapper<C>>> currentPageModel) {
+
         return new IModel<>() {
             @Override
             public @NotNull Boolean getObject() {
-                List<PrismContainerValueWrapper<C>> all = multiTableModel.getObject();
-                return all != null && !all.isEmpty() && all.stream().allMatch(PrismContainerValueWrapper::isSelected);
+                List<PrismContainerValueWrapper<C>> current = currentPageModel.getObject();
+                return current != null && !current.isEmpty()
+                        && current.stream().allMatch(PrismContainerValueWrapper::isSelected);
             }
 
             @Override
             public void setObject(Boolean value) {
-                List<PrismContainerValueWrapper<C>> all = multiTableModel.getObject();
-                if (all != null) {
-                    all.forEach(v -> v.setSelected(Boolean.TRUE.equals(value)));
+                List<PrismContainerValueWrapper<C>> current = currentPageModel.getObject();
+                if (current != null) {
+                    boolean sel = Boolean.TRUE.equals(value);
+                    current.forEach(v -> v.setSelected(sel));
                 }
             }
         };
@@ -528,8 +587,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                        createStringResource("SmartIntegration.suggestNew")) {
+                RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                        buildSmartPermissionRecordDto()) {
 
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
@@ -547,32 +606,58 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return suggestObjectButton;
     }
 
+    protected IModel<RequestDetailsRecordDto> buildSmartPermissionRecordDto() {
+        return () -> new RequestDetailsRecordDto(null, null);
+    }
+
     @NotNull
     protected ToggleCheckBoxPanel createToggleSuggestionButton(String idButton, IModel<Boolean> switchToggleModel) {
-        ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton,
-                switchToggleModel) {
-            @Override
-            public @NotNull Component getTitleComponent(String id) {
-                Label label = new Label(id, createStringResource("SchemaHandlingObjectsPanel.show.suggestion.label"));
-                label.add(AttributeAppender.append("class", "m-0 font-weight-normal text-body"));
-                label.setOutputMarkupId(true);
-                return label;
-            }
-
-            @Override
-            protected void onToggle(@NotNull AjaxRequestTarget target) {
-                refreshAndDetach(target);
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getContainerCssClass() {
-                return "d-flex flex-row-reverse align-items-center gap-1  btn btn-default btn-sm";
-            }
-        };
-        togglePanel.setOutputMarkupId(true);
+        ToggleCheckBoxPanel togglePanel = createToggleSuggestionVisibilityButton(getPageBase(), idButton, switchToggleModel,
+                this::refreshAndDetach, null);
         togglePanel.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
         return togglePanel;
+    }
+
+    protected AjaxIconButton createDiscardButton(String id, IModel<PrismContainerValueWrapper<C>> rowModel) {
+        AjaxIconButton discardButton = new AjaxIconButton(id, Model.of("fa fa-solid fa-x"),
+                createStringResource("SmartCorrelationTilePanel.discardButton")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()), true);
+            }
+        };
+        discardButton.setOutputMarkupId(true);
+        discardButton.add(new TooltipBehavior());
+        discardButton.add(AttributeModifier.replace("class", getDiscardButtonCssClass()));
+        discardButton.showTitleAsLabel(true);
+        return discardButton;
+    }
+
+    protected String getDiscardButtonCssClass() {
+        return "col-auto px-4 btn btn-default btn-sm rounded ml-auto";
+    }
+
+    protected AjaxIconButton createAcceptButton(String id, IModel<PrismContainerValueWrapper<C>> rowModel) {
+        AjaxIconButton acceptButton = new AjaxIconButton(id, Model.of("fa fa-check"),
+                createStringResource("SmartCorrelationTilePanel.acceptButton")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onAcceptPerformed(target, rowModel);
+            }
+        };
+        acceptButton.setOutputMarkupId(true);
+        acceptButton.add(new TooltipBehavior());
+        acceptButton.add(AttributeModifier.replace("class", getAcceptButtonCssClass()));
+        acceptButton.showTitleAsLabel(true);
+        return acceptButton;
+    }
+
+    protected void onAcceptPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> toAccept) {
+        refreshAndDetach(target);
+    }
+
+    protected String getAcceptButtonCssClass() {
+        return "col-auto px-4 btn btn-primary btn-sm rounded ml-auto";
     }
 
     protected boolean isDuplicationSupported() {
@@ -580,14 +665,14 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected boolean isSuggestButtonVisible() {
-        return true;
+        return false;
     }
 
     protected void onSuggestNewPerformed(AjaxRequestTarget target) {
     }
 
     protected boolean isToggleSuggestionVisible() {
-        return true;
+        return getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel();
     }
 
     protected IModel<Boolean> getSwitchToggleModel() {
@@ -600,18 +685,18 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         if (getProvider() instanceof MultivalueContainerListDataProvider<C> provider) {
             provider.getModel().detach();
         }
+        adjustPagingIfEmpty();
         super.refresh(target);
     }
-
 
     @Contract("_, _ -> new")
     public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> getContainerModel(PrismContainerWrapper<C> value, ItemPath path) {
         return PrismContainerWrapperModel.fromContainerWrapper(Model.of(value), path);
     }
 
-    protected IModel<PrismContainerWrapper<C>> getContainerModel(){
+    protected IModel<PrismContainerWrapper<C>> getContainerModel() {
         return null;
-    };
+    }
 
     @Override
     protected String getAdditionalTableCssClasses() {

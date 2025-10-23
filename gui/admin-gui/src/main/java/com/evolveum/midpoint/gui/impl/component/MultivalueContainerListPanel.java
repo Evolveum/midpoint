@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -44,7 +45,8 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author skublik
@@ -53,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType
 public abstract class MultivalueContainerListPanel<C extends Containerable>
         extends ContainerableListPanel<C, PrismContainerValueWrapper<C>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public MultivalueContainerListPanel(String id, Class<C> type) {
         super(id, type);
@@ -62,10 +64,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     public MultivalueContainerListPanel(String id, Class<C> type, ContainerPanelConfigurationType config) {
         super(id, type, config);
     }
-    private boolean objectCollectionRefExists (CompiledObjectCollectionView collectionView) {
-        return collectionView != null && collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null
-            && collectionView.getCollection().getCollectionRef().getType().equals(ObjectCollectionType.COMPLEX_TYPE);
-    }
 
     protected PrismContainerDefinition<C> getTypeDefinitionForSearch() {
         return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
@@ -73,7 +71,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     @Override
     protected ISelectableDataProvider<PrismContainerValueWrapper<C>> createProvider() {
-        return new MultivalueContainerListDataProvider<>(MultivalueContainerListPanel.this, getSearchModel(), new PropertyModel<>(getContainerModel(), "values"));
+        return new MultivalueContainerListDataProvider<>(
+                MultivalueContainerListPanel.this,
+                getSearchModel(),
+                new PropertyModel<>(getContainerModel(), "values"));
     }
 
     @Override
@@ -83,7 +84,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         AjaxIconButton newObjectButton = new AjaxIconButton(idButton, new Model<>(getIconForNewObjectButton()),
                 createStringResource(getKeyOfTitleForNewObjectButton())) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -116,8 +117,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
      * but in new wrapper use prism value in parameter 'value'.
      * This method is usefully for duplication.
      */
-    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
-
+    protected void newItemPerformed(
+            PrismContainerValue<C> value,
+            AjaxRequestTarget target,
+            AssignmentObjectRelation relationSpec,
+            boolean isDuplicate) {
     }
 
     public List<PrismContainerValueWrapper<C>> getSelectedItems() {
@@ -127,10 +131,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     public List<PrismContainerValueWrapper<C>> getPerformedSelectedItems(IModel<PrismContainerValueWrapper<C>> rowModel) {
         List<PrismContainerValueWrapper<C>> performedItems = new ArrayList<>();
         List<PrismContainerValueWrapper<C>> listItems = getSelectedItems();
-        if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
-            if(rowModel == null) {
+        if ((listItems != null && !listItems.isEmpty()) || rowModel != null) {
+            if (rowModel == null) {
                 performedItems.addAll(listItems);
-                listItems.forEach(itemConfigurationTypeContainerValueWrapper -> itemConfigurationTypeContainerValueWrapper.setSelected(false));
+                listItems.forEach(itemConfigurationTypeContainerValueWrapper
+                        -> itemConfigurationTypeContainerValueWrapper.setSelected(false));
             } else {
                 performedItems.add(rowModel.getObject());
                 rowModel.getObject().setSelected(false);
@@ -147,7 +152,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return WebPrismUtil.createNewValueWrapper(model, newItem, getPageBase(), target);
     }
 
-    protected abstract void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItems);
+    protected abstract void editItemPerformed(
+            AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<C>> rowModel,
+            List<PrismContainerValueWrapper<C>> listItems);
 
     public List<InlineMenuItem> getDefaultMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();
@@ -158,10 +166,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     protected ButtonInlineMenuItem createEditInlineMenu() {
         return new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
             }
 
@@ -182,7 +190,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
 
@@ -208,10 +216,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return true;
     }
 
-    public <AH extends AssignmentHolderType> PrismObject<AH> getFocusObject(){
+    @SuppressWarnings("unchecked")
+    public <AH extends AssignmentHolderType> PrismObject<AH> getFocusObject() {
         PageBase pageBase = getPageBase();
-        if (pageBase != null && pageBase instanceof PageAssignmentHolderDetails) {
-            PageAssignmentHolderDetails pageAssignmentHolderDetails = (PageAssignmentHolderDetails) pageBase;
+        if (pageBase instanceof PageAssignmentHolderDetails<?, ?> pageAssignmentHolderDetails) {
             return (PrismObject<AH>) pageAssignmentHolderDetails.getPrismObject();
         }
         return null;
@@ -219,7 +227,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     public ColumnMenuAction<PrismContainerValueWrapper<C>> createDeleteColumnAction() {
         return new ColumnMenuAction<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -236,7 +244,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     public ColumnMenuAction<PrismContainerValueWrapper<C>> createEditColumnAction() {
         return new ColumnMenuAction<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -245,37 +253,41 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         };
     }
 
-    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete){
-        if (toDelete == null || toDelete.isEmpty()){
+    public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
+        if (toDelete == null || toDelete.isEmpty()) {
             warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
         toDelete.forEach(value -> {
-            if (value.getStatus() == ValueStatus.ADDED) {
-                PrismContainerWrapper<C> wrapper = getContainerModel() != null ?
-                        getContainerModel().getObject() : null;
-                if (wrapper != null) {
-                    wrapper.getValues().remove(value);
-                }
-            } else {
-                value.setStatus(ValueStatus.DELETED);
-            }
+            deleteSingleItem(value);
             value.setSelected(false);
         });
         refreshTable(target);
     }
 
+    protected void deleteSingleItem(@NotNull PrismContainerValueWrapper<C> value) {
+        if (value.getStatus() == ValueStatus.ADDED) {
+            PrismContainerWrapper<C> wrapper = getContainerModel() != null ?
+                    getContainerModel().getObject() : null;
+            if (wrapper != null) {
+                wrapper.getValues().remove(value);
+            }
+        } else {
+            value.setStatus(ValueStatus.DELETED);
+        }
+    }
+
     protected abstract boolean isCreateNewObjectVisible();
 
     @Override
-    public boolean isListPanelVisible(){
+    public boolean isListPanelVisible() {
         return true;
     }
 
     protected IModel<String> createStyleClassModelForNewObjectIcon() {
         return new IModel<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -298,9 +310,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     @Override
     public List<C> getSelectedRealObjects() {
-        return getSelectedObjects().stream().map(o -> o.getRealValue()).collect(Collectors.toList());
+        return getSelectedObjects().stream().map(PrismValueWrapper::getRealValue).collect(Collectors.toList());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void addBasicActions(List<InlineMenuItem> menuItems) {
         if (!isDuplicationSupported()) {
@@ -308,7 +321,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         }
         DuplicationProcessHelper.addDuplicationActionForContainer(
                 menuItems,
-                (value, target) -> newItemPerformed((PrismContainerValue<C>) value, target, null, true),
+                (value, target)
+                        -> newItemPerformed((PrismContainerValue<C>) value, target, null, true),
                 getPageBase());
     }
 

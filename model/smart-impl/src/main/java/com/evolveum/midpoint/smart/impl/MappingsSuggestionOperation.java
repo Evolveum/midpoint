@@ -15,8 +15,11 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
+import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
+import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -56,9 +59,11 @@ class MappingsSuggestionOperation {
     private static final String ID_SHADOWS_COLLECTION = "shadowsCollection";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
     private final TypeOperationContext ctx;
+    private final MappingsQualityAssessor qualityAssessor;
 
-    private MappingsSuggestionOperation(TypeOperationContext ctx) {
+    private MappingsSuggestionOperation(TypeOperationContext ctx, MappingsQualityAssessor qualityAssessor) {
         this.ctx = ctx;
+        this.qualityAssessor = qualityAssessor;
     }
 
     static MappingsSuggestionOperation init(
@@ -66,15 +71,17 @@ class MappingsSuggestionOperation {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable CurrentActivityState<?> activityState,
+            MappingsQualityAssessor qualityAssessor,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return new MappingsSuggestionOperation(
-                TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result));
+                TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result),
+                qualityAssessor);
     }
 
-    MappingsSuggestionType suggestMappings(OperationResult result)
+    MappingsSuggestionType suggestMappings(OperationResult result, ShadowObjectClassStatisticsType statistics)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         var focusTypeDefinition = ctx.getFocusTypeDefinition();
@@ -158,7 +165,8 @@ class MappingsSuggestionOperation {
                                     m.shadowAttrDef,
                                     m.focusPropDescPath,
                                     m.focusPropDef,
-                                    pairs));
+                                    pairs,
+                                    result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (Throwable t) {
                     // TODO Shouldn't we create an unfinished mapping with just error info?
@@ -243,7 +251,10 @@ class MappingsSuggestionOperation {
             ShadowSimpleAttributeDefinition<?> attrDef,
             DescriptiveItemPath focusPropPath,
             PrismPropertyDefinition<?> propertyDef,
-            Collection<ValuesPair> valuesPairs) throws SchemaException {
+            Collection<ValuesPair> valuesPairs,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
 
         LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
                 shadowAttrPath, focusPropPath, valuesPairs.size());
@@ -251,6 +262,11 @@ class MappingsSuggestionOperation {
         ExpressionType expression;
         if (valuesPairs.isEmpty()) {
             LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
+            expression = null;
+        } else if (valuesPairs.stream().allMatch(pair ->
+                (pair.shadowValues() == null || pair.shadowValues().stream().allMatch(Objects::isNull))
+                        || (pair.focusValues() == null || pair.focusValues().stream().allMatch(Objects::isNull)))) {
+            LOGGER.trace(" -> all shadow or focus values are null, using 'asIs' mapping (without calling LLM)");
             expression = null;
         } else if (doesAsIsSuffice(valuesPairs, propertyDef)) {
             LOGGER.trace(" -> 'asIs' does suffice according to the data, so we'll use it (without calling LLM)");
@@ -273,14 +289,21 @@ class MappingsSuggestionOperation {
             }
         }
 
+        ItemPath focusPropRealPath = focusPropPath.getItemPath();
+        // TODO remove this ugly hack
+        var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropRealPath);
+        var hackedSerialized = serialized.replace("ext:", "");
+        var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
         var suggestion = new AttributeMappingsSuggestionType()
+                .expectedQuality(this.qualityAssessor.assessMappingsQuality(valuesPairs, expression, this.ctx.task,
+                        parentResult))
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.getItemPath().rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
                                 .name(shadowAttrPath.getItemPath().lastName().getLocalPart()
-                                        + "-to-" + focusPropPath.getItemPath().toString()) //TODO TBD
+                                        + "-to-" + focusPropRealPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
-                                        .path(focusPropPath.getItemPath().toBean()))
+                                        .path(hackedReal.toBean()))
                                 .expression(expression)));
         AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
         return suggestion;
@@ -368,25 +391,4 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
-        private SiSuggestMappingExampleType toSiExample(
-                DescriptiveItemPath applicationAttrNameBean, DescriptiveItemPath midPointPropertyNameBean) {
-            return new SiSuggestMappingExampleType()
-                    .application(toSiAttributeExample(applicationAttrNameBean, shadowValues))
-                    .midPoint(toSiAttributeExample(midPointPropertyNameBean, focusValues));
-        }
-
-        private @NotNull SiAttributeExampleType toSiAttributeExample(DescriptiveItemPath path, Collection<?> values) {
-            var example = new SiAttributeExampleType().name(path.asString());
-            example.getValue().addAll(stringify(values));
-            return example;
-        }
-
-        private Collection<String> stringify(Collection<?> values) {
-            return values.stream()
-                    .filter(Objects::nonNull)
-                    .map(Object::toString)
-                    .toList();
-        }
-    }
 }

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.connectorgenerator.WizardParentStep;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
@@ -266,6 +266,6 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
         return List.of(
                 new RelationSelectConnectorStepPanel(getHelper(), valueModel),
                 new WaitingRelationScriptConnectorStepPanel(getHelper(), valueModel),
-                new RelationScriptConnectorStepPanel(getHelper()));
+                new RelationScriptConnectorStepPanel(getHelper(), valueModel));
     }
 }

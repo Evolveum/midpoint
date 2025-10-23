@@ -14,6 +14,7 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -134,17 +135,9 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         }
         //TODO restrict to only of business roles?
         return applicableArchetypeViews.stream()
-                .filter(this::isBusinessRole)
+                .filter(view -> ObjectCollectionViewUtil.isBusinessRole(view, PageRole.this))
                 .toList();
 //                .forEach(view -> view.getCollection().getCollectionRef().setFilter(null));
-    }
-
-    private boolean isBusinessRole(CompiledObjectCollectionView view) {
-        String archetypeOid = view.getArchetypeOid();
-        if (archetypeOid == null) {
-            return false;
-        }
-        return getModelInteractionService().isSubarchetypeOrArchetype(archetypeOid, SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(), new OperationResult("check archetype"));
     }
 
     private boolean isCreateFromRoleMining() {

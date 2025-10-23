@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -21,7 +23,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -57,10 +58,6 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -366,20 +363,37 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             ItemPath pathToValue,
             Class<P> clazz,
             IModel<String> exitLabel) {
+        return showWizard(newValue, target, pathToValue, clazz, exitLabel, null);
+    }
+
+    /**
+     * Displays a wizard panel for the specified container value, optionally executing
+     * a post-save handler after successful save.
+     */
+    protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
+            PrismContainerValue<C> newValue,
+            AjaxRequestTarget target,
+            ItemPath pathToValue,
+            Class<P> clazz,
+            IModel<String> exitLabel,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
 
         setShowedByWizard(true);
         getObjectDetailsModels().saveDeltas();
         getObjectDetailsModels().reloadPrismObjectModel();
 
-        IModel<PrismContainerValueWrapper<C>> valueModel = createPrismContainerValueWrapperIModel(newValue, pathToValue);
-        return showWizard(valueModel, target, clazz, exitLabel);
+        IModel<PrismContainerValueWrapper<C>> valueModel =
+                createPrismContainerValueWrapperIModel(newValue, pathToValue);
+
+        return showWizard(valueModel, target, clazz, exitLabel, postSaveHandler);
     }
 
     protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
             @NotNull IModel<PrismContainerValueWrapper<C>> valueModel,
             @NotNull AjaxRequestTarget target,
             @NotNull Class<P> clazz,
-           @Nullable IModel<String> exitLabel) {
+            @Nullable IModel<String> exitLabel,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
 
         setShowedByWizard(true);
         getObjectDetailsModels().saveDeltas();
@@ -393,7 +407,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         try {
             Constructor<P> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
 
-            WizardPanelHelper<C, AHDM> helper = createContainerWizardHelper(valueModel);
+            WizardPanelHelper<C, AHDM> helper = createContainerWizardHelper(valueModel, postSaveHandler);
             helper.setExitLabel(exitLabel);
 
             P wizard = constructor.newInstance(ID_WIZARD, helper);
@@ -426,6 +440,14 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                                 PageAssignmentHolderDetails.this,
                                 getObjectDetailsModels().createWrapperContext());
                         container.getValues().add(newWrapper);
+
+                        if (!newValue.isEmpty()) {
+                            if (newValue.getParent() == null) {
+                                newValue.setParent(container.getItem());
+                            }
+                            container.getItem().add(newValue.clone());
+                        }
+
                         return newWrapper;
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't resolve value for path: " + pathToValue);
@@ -489,8 +511,13 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return null;
     }
 
-    protected  <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelper(
-            IModel<PrismContainerValueWrapper<C>> valueModel) {
+    /**
+     * Creates a wizard helper for container-based wizards, handling save and exit actions,
+     * and optionally executing a custom function after a successful save.
+     */
+    protected <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelper(
+            IModel<PrismContainerValueWrapper<C>> valueModel,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
         return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
 
             @Override
@@ -524,13 +551,16 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                     } else {
                         WebComponentUtil.createToastForUpdateObject(target, getType());
                     }
+                    if (postSaveHandler != null) {
+                        postSaveHandler.accept(target);
+                    }
                 }
                 return result;
             }
         };
     }
 
-    protected  <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelperWithoutSave(
+    protected <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelperWithoutSave(
             IModel<PrismContainerValueWrapper<C>> valueModel) {
         return new WizardPanelHelper<>(getObjectDetailsModels(), valueModel) {
 

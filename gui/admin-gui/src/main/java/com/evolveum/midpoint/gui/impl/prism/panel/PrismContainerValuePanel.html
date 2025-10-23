@@ -35,6 +35,11 @@
                     <i class="fa fa-tag"></i>
                 </button>
             </wicket:enclosure>
+
+            <wicket:enclosure child="deleteStatusMessage">
+                <span wicket:id="deleteStatusMessage" role="status" class="sr-only" aria-live="polite"></span>
+            </wicket:enclosure>
+
         </div>
         <div class="mb-3 ml-3" wicket:id="metadata"/>
 

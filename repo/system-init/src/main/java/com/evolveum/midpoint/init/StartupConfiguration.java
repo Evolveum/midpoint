@@ -24,7 +24,6 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.interpol.ConfigurationInterpolator;
 import org.apache.commons.configuration2.interpol.Lookup;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wss4j.dom.engine.WSSConfig;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
 
@@ -176,11 +175,6 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
             LOGGER.info("Safe mode is ON; setting tolerateUndeclaredPrefixes to TRUE");
             QNameUtil.setTolerateUndeclaredPrefixes(true);
         }
-
-        // Make sure that this is called very early in the startup sequence.
-        // This is needed to properly initialize the resources
-        // (the "org/apache/xml/security/resource/xmlsecurity" resource bundle error)
-        WSSConfig.init();
     }
 
     private String determineMidpointHome() {

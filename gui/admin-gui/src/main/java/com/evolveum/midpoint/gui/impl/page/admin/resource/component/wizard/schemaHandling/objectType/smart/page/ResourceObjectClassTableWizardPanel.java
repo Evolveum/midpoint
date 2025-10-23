@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -74,8 +75,21 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
         String resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
         Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimations =
                 loadObjectClassesSizeEstimations(resourceOid, getPageBase());
+
+        List<QName> qNamesSerialized = new ArrayList<>(objectClassSizeEstimations.keySet());
+        SmartObjectClassTable<PrismContainerValueWrapper<ComplexTypeDefinitionType>> table = buildTable(
+                resourceOid,
+                qNamesSerialized,
+                objectClassSizeEstimations);
+        add(table);
+    }
+
+    private @NotNull SmartObjectClassTable<PrismContainerValueWrapper<ComplexTypeDefinitionType>> buildTable(
+            String resourceOid,
+            List<QName> qNamesSerialized,
+            Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimations) {
         LoadableModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> objectClassDefinitions =
-                getComplexTypeDefinitionTypes(objectClassSizeEstimations.keySet());
+                getComplexTypeDefinitionTypes(qNamesSerialized);
 
         SmartObjectClassTable<PrismContainerValueWrapper<ComplexTypeDefinitionType>> table = new SmartObjectClassTable<>(
                 ID_PANEL,
@@ -85,7 +99,7 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
                 resourceOid,
                 objectClassSizeEstimations);
         table.setOutputMarkupId(true);
-        add(table);
+        return table;
     }
 
     /** The returned map key set contains all relevant object classes. */
@@ -149,11 +163,6 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
         onContinueWithSelected(selectedModel, target);
     }
 
-    @Override
-    protected String getSaveLabelKey() {
-        return "ResourceObjectClassTableWizardPanel.saveButton";
-    }
-
     protected abstract void onContinueWithSelected(IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> model, AjaxRequestTarget target);
 
     @Override
@@ -178,6 +187,35 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
+        return "col-10";
+    }
+
+    @Override
+    protected String getSaveLabelKey() {
+        return "ResourceObjectClassTableWizardPanel.saveButton";
+    }
+
+    @Override
+    protected String getSubmitIcon() {
+        return GuiStyleConstants.CLASS_MAGIC_WAND;
+    }
+
+    @Override
+    protected String getSubmitButtonCssClass() {
+        return "btn-primary";
+    }
+
+    @Override
+    protected IModel<String> getExitLabel() {
+        return createStringResource("SmartSuggestion.exitLabel");
+    }
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn-link mr-auto";
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
         return "col-10";
     }
 

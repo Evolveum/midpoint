@@ -33,7 +33,7 @@ these objects are shown by GUI has been improved in 4.3 as well.)
 === Error Handling
 
 MidPoint can now automatically or semi-automatically retry failed objects processing.
-This aspect is rather complex, so it is covered in a xref:../task-error-handling/[separate document].
+This aspect is rather complex, so it is covered in xref:/midpoint/reference/tasks/activities/error-handling/[].
 
 == Progress and Statistics Reporting
 

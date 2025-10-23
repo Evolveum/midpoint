@@ -78,18 +78,14 @@
         <label>中文</label>
     </row>
     <row id="18">
-        <key>arb</key>
-        <label>عربي</label>
-    </row>
-    <row id="19">
         <key>ko</key>
         <label>한국인</label>
     </row>
-    <row id="20">
+    <row id="19">
         <key>nl</key>
         <label>Nederlands</label>
     </row>
-    <row id="21">
+    <row id="20">
         <key>tr</key>
         <label>Yкраїнська</label>
     </row>

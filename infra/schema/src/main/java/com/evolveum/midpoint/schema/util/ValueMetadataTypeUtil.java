@@ -43,7 +43,6 @@ public class ValueMetadataTypeUtil {
         return (ObjectReferenceType) o.asReferenceValue().clone().asReferencable();
     };
 
-
     public static @NotNull StorageMetadataType getOrCreateStorageMetadata(@NotNull PrismObject<? extends ObjectType> object) {
         return getOrCreateStorageMetadata(
                 getOrCreateMetadata(object.asObjectable()));
@@ -210,7 +209,6 @@ public class ValueMetadataTypeUtil {
         var metadata = getMetadata(object);
         return metadata != null ? metadata.getStorage() : null;
     }
-
 
     public static @Nullable StorageMetadataType getStorageMetadata(
             @NotNull AssignmentType assignment, @NotNull ProvenanceMetadataType provenance) {
@@ -492,7 +490,7 @@ public class ValueMetadataTypeUtil {
         var provenance = provenanceMetadataFrom(legacy);
         var provisioning = provisioningMetadataFrom(legacy);
         var transformation = transformationMetadataFrom(legacy);
-        return  new ValueMetadataType()
+        return new ValueMetadataType()
                 .storage(nullIfEmpty(storage))
                 .process(nullIfEmpty(process))
                 .provenance(nullIfEmpty(provenance))
@@ -500,9 +498,8 @@ public class ValueMetadataTypeUtil {
                 .transformation(nullIfEmpty(transformation));
     }
 
-
     private static StorageMetadataType storageMetadataFrom(MetadataType legacy) {
-        return  new StorageMetadataType()
+        return new StorageMetadataType()
                 // Create metadata
                 .createChannel(legacy.getCreateChannel())
                 .createTimestamp(legacy.getCreateTimestamp())
@@ -534,10 +531,9 @@ public class ValueMetadataTypeUtil {
                 //certifierRef
                 //certifierComment
                 .certificationFinishedTimestamp(legacy.getCertificationFinishedTimestamp())
-                .certificationOutcome(legacy.getCertificationOutcome())
-                ;
-        copyValuesTo(process::createApproverRef,legacy.getCreateApproverRef(), OBJECT_REFERENCE_COPY);
-        copyValuesTo(process::createApprovalComment,legacy.getCreateApprovalComment(), Function.identity());
+                .certificationOutcome(legacy.getCertificationOutcome());
+        copyValuesTo(process::createApproverRef, legacy.getCreateApproverRef(), OBJECT_REFERENCE_COPY);
+        copyValuesTo(process::createApprovalComment, legacy.getCreateApprovalComment(), Function.identity());
         copyValuesTo(process::modifyApproverRef, legacy.getModifyApproverRef(), OBJECT_REFERENCE_COPY);
         copyValuesTo(process::modifyApprovalComment, legacy.getModifyApprovalComment(), Function.identity());
         copyValuesTo(process::certifierRef, legacy.getCertifierRef(), OBJECT_REFERENCE_COPY);
@@ -551,7 +547,6 @@ public class ValueMetadataTypeUtil {
         return new ProvenanceMetadataType();
     }
 
-
     private static ProvisioningMetadataType provisioningMetadataFrom(MetadataType legacy) {
         return new ProvisioningMetadataType()
                 .lastProvisioningTimestamp(legacy.getLastProvisioningTimestamp());
@@ -563,7 +558,6 @@ public class ValueMetadataTypeUtil {
 
     }
 
-
     private static <T extends Containerable> T nullIfEmpty(T container) {
         if (container == null || container.asPrismContainerValue().isEmpty()) {
             return null;
@@ -571,7 +565,7 @@ public class ValueMetadataTypeUtil {
         return container;
     }
 
-    private static <I,O> void copyValuesTo(Function<I,O> addFunc, Collection<I> values, Function<I,I> copyFunc) {
+    private static <I, O> void copyValuesTo(Function<I, O> addFunc, Collection<I> values, Function<I, I> copyFunc) {
         for (var v : values) {
             addFunc.apply(copyFunc.apply(v));
         }

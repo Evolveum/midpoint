@@ -71,7 +71,9 @@ public class ShadowStatisticsModel extends LoadableModel<ChartConfiguration> {
 
     private ChartOptions createChartOptions() {
         ChartOptions options = new ChartOptions();
-        options.setLegend(createLegendOptions());
+        ChartPluginsOption plugins = new ChartPluginsOption();
+        plugins.setLegend(createLegendOptions());
+        options.setPlugins(plugins);
         options.setIndexAxis(IndexAxis.AXIS_Y.getValue());
         options.setResponsive(true);
         options.setMaintainAspectRatio(false);

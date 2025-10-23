@@ -22,11 +22,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -37,7 +35,6 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlingTypesTableWizardPanel.class);
 
-    private static final String ID_CARD_HEADER = "cardHeader";
     private static final String ID_PANEL = "panel";
 
     public SchemaHandlingTypesTableWizardPanel(String id, ResourceDetailsModel model) {
@@ -60,13 +57,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     protected void onInitialize() {
         super.onInitialize();
 
-        WebMarkupContainer cardHeader = new WebMarkupContainer(ID_CARD_HEADER);
-        cardHeader.setOutputMarkupId(true);
-        cardHeader.add(new VisibleBehaviour(() -> getPanel() != null && !getPanel().displayNoValuePanel()));
-        add(cardHeader);
-
         initPanel(ID_PANEL);
-
     }
 
     protected abstract void initPanel(String panelId);
@@ -83,7 +74,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
         if (newValue == null) {
             newValue = container.getItem().createNewValue();
         }
-        PrismContainerValueWrapper newWrapper = null;
+        PrismContainerValueWrapper<C> newWrapper = null;
         try {
             newWrapper = WebPrismUtil.createNewValueWrapper(
                     container, newValue, pageBase, context);

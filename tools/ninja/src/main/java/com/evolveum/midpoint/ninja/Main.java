@@ -248,7 +248,7 @@ public class Main {
     }
 
     private void printVersion(boolean verbose) {
-        URL url = Main.class.getResource("/version");
+        URL url = Main.class.getResource("/version-long");
         if (url == null) {
             err.println(ConsoleFormat.formatLogMessage(LogLevel.ERROR, "Couldn't obtain version. Version file not available."));
             return;

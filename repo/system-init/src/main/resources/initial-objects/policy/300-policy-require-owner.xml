@@ -8,23 +8,15 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>Require owner</name>
-    <description>Policy applied to archetypes, requiring archetyped objects to have an owner.</description>
+    <description>Policy requiring affected objects to have an owner.</description>
     <documentation>
-        This policy is meant to be applied (assigned) to archetypes.
-        When applied, the archetyped objects are required to have an owner.
+        When this policy is applied, the affected objects are required to have an owner.
         Objects with no owner are marked with "Unowned" mark.
-
-        NOTE: This policy can only be applied to archetypes.
-        Support for application directly to affected objects (roles, applications) is likely to come later.
-
         (ISO27001/A.5.1,ISO27001/A.5.2,ISO27001/A.5.9,ISO27001/A.5.36)
     </documentation>
     <inducement>
         <identifier>policy-require-owner</identifier>
         <documentation>(ISO27001/A.5.1,ISO27001/A.5.2,ISO27001/A.5.9,ISO27001/A.5.36)</documentation>
-        <orderConstraint>
-            <order>2</order>
-        </orderConstraint>
         <policyRule>
             <name>rule-require-owner</name>
             <policyConstraints>
@@ -43,5 +35,4 @@
             <evaluationTarget>object</evaluationTarget>
         </policyRule>
     </inducement>
-
 </policy>

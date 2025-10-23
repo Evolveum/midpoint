@@ -22,8 +22,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.prism.Containerable;
 
-import org.apache.wicket.model.LoadableDetachableModel;
-
 /**
  * @author lskublik
  *
@@ -116,6 +114,12 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
                 onHeaderClick(target);
             }
         });
+
+        WebMarkupContainer statusMessage = new WebMarkupContainer(ID_DELETE_STATUS);
+        statusMessage.setOutputMarkupId(true);
+        statusMessage.add(AttributeAppender.append("data-component-id", statusMessage::getPageRelativePath));
+        header.add(statusMessage);
+
         header.add(new VisibleBehaviour(() -> {
             if (getSettings() != null && !getSettings().isHeaderVisible()) {
                 return false;

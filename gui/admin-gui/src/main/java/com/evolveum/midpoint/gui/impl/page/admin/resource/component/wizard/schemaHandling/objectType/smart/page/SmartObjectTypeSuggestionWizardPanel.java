@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
@@ -27,13 +28,16 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.runSuggestionAction;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable> extends AbstractWizardPanel<P, ResourceDetailsModel> {
 
     private static final String CLASS_DOT = SmartObjectTypeSuggestionWizardPanel.class.getName() + ".";
     private static final String OP_DEFINE_TYPES = CLASS_DOT + "defineTypes";
     private static final String OP_DETERMINE_STATUS = CLASS_DOT + "determineStatus";
+
+    private static final String OP_DELETE_SUGGESTIONS =
+            SmartObjectTypeSuggestionWizardPanel.class.getName() + ".deleteSuggestions";
 
     public SmartObjectTypeSuggestionWizardPanel(String id, WizardPanelHelper<P, ResourceDetailsModel> helper) {
         super(id, helper);
@@ -47,52 +51,65 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
         return new ResourceObjectClassTableWizardPanel<>(idOfChoicePanel, getHelper()) {
 
             @Override
-            protected void onContinueWithSelected(IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> model, AjaxRequestTarget target) {
-                PrismContainerValueWrapper<ComplexTypeDefinitionType> object = model.getObject();
-                ComplexTypeDefinitionType realValue = object.getRealValue();
-
-                QName objectClassName = realValue.getName();
-                var resourceOid = getAssignmentHolderModel().getObjectType().getOid();
-
-                Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
-                OperationResult result = task.getResult();
-                StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
-                        getPageBase(), resourceOid, objectClassName, task, result);
-
-                //TBD
-                boolean hasSuccessfulSuggestions =
-                        suggestions != null
-                                && suggestions.getStatus() == OperationResultStatusType.SUCCESS
-                                && suggestions.getResult() != null
-                                && suggestions.getResult().getObjectType() != null
-                                && !suggestions.getResult().getObjectType().isEmpty();
-
-                if (hasSuccessfulSuggestions) {
-                    showChoiceFragment(target,
-                            buildSelectSuggestedObjectTypeWizardPanel(getIdOfChoicePanel(), objectClassName));
-                } else {
-                    boolean executed = runSuggestionAction(
-                            getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task);
-                    result.computeStatusIfUnknown();
-
-                    if (!executed) {
-                        if (!result.isSuccess()) {
-                            getPageBase().showResult(result);
-                            target.add(getPageBase().getFeedbackPanel());
-                            target.add(SmartObjectTypeSuggestionWizardPanel.this);
-                        }
-                    } else {
-                        getSession().getFeedbackMessages().clear();
-                        target.add(getPageBase().getFeedbackPanel());
-                        showChoiceFragment(target, buildGeneratingWizardPanel(getIdOfChoicePanel(), objectClassName));
-                    }
-                }
+            protected void onContinueWithSelected(
+                    IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> model,
+                    AjaxRequestTarget target) {
+                var complexTypeDef = model.getObject().getRealValue();
+                processSuggestionActivity(target, complexTypeDef.getName(), false);
             }
-
         };
     }
 
-    @Contract("_, _ -> new")
+    /**
+     * Processes the suggestion activity for the given object class name.
+     */
+    private void processSuggestionActivity(AjaxRequestTarget target, QName objectClassName, boolean resetSuggestion) {
+        String resourceOid = getAssignmentHolderModel().getObjectType().getOid();
+        Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
+        OperationResult result = task.getResult();
+
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+                getPageBase(), resourceOid, objectClassName, task, result);
+
+        boolean hasValidSuggestions = isSuccessfulSuggestion(suggestions);
+
+        if (hasValidSuggestions && resetSuggestion) {
+            removeWholeTaskObject(getPageBase(), task, result, suggestions.getToken());
+            hasValidSuggestions = false;
+        }
+
+        if (hasValidSuggestions) {
+            showChoiceFragment(target, buildSelectSuggestedObjectTypeWizardPanel(getIdOfChoicePanel(), objectClassName));
+            return;
+        }
+
+        boolean executed = runSuggestionAction(
+                getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task);
+
+        result.computeStatusIfUnknown();
+
+        if (!executed) {
+            if (!result.isSuccess()) {
+                getPageBase().showResult(result);
+                target.add(getPageBase().getFeedbackPanel(), SmartObjectTypeSuggestionWizardPanel.this);
+            }
+            return;
+        }
+
+        showChoiceFragment(target, buildGeneratingWizardPanel(getIdOfChoicePanel(), objectClassName));
+    }
+
+    /**
+     * Checks if the given suggestion is successful and contains valid object types.
+     */
+    private boolean isSuccessfulSuggestion(StatusInfo<ObjectTypesSuggestionType> suggestions) {
+        return suggestions != null
+                && suggestions.getStatus() == OperationResultStatusType.SUCCESS
+                && suggestions.getResult() != null
+                && suggestions.getResult().getObjectType() != null
+                && !suggestions.getResult().getObjectType().isEmpty();
+    }
+
     private @NotNull ResourceGeneratingSuggestionObjectClassWizardPanel<ResourceObjectTypeDefinitionType, P> buildGeneratingWizardPanel(
             @NotNull String idOfChoicePanel, QName objectClassName) {
         return new ResourceGeneratingSuggestionObjectClassWizardPanel<>(idOfChoicePanel, getHelper(), objectClassName) {
@@ -116,7 +133,7 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
     }
 
     @Contract("_, _ -> new")
-    private @NotNull ResourceSuggestedObjectTypeTableWizardPanel<ResourceObjectTypeDefinitionType, P> buildSelectSuggestedObjectTypeWizardPanel(
+    private @NotNull ResourceSuggestedObjectTypeTableWizardPanel<P> buildSelectSuggestedObjectTypeWizardPanel(
             @NotNull String idOfChoicePanel, QName objectClassName) {
         return new ResourceSuggestedObjectTypeTableWizardPanel<>(idOfChoicePanel, getHelper(), objectClassName) {
 
@@ -126,20 +143,23 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
                     @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
                     @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
                     @NotNull AjaxRequestTarget target) {
+                var suggestedValueContainer = model.getObject();
+                ResourceObjectTypeDefinitionType suggestedObjectTypeDef = suggestedValueContainer.getRealValue();
+                PageBase pageBase = getPageBase();
 
                 getAssignmentHolderModel().getPageResource()
-                        .showObjectTypeWizard(newValue, target, containerModel.getObject().getPath());
-
+                        .showObjectTypeWizard(newValue, target, containerModel.getObject().getPath(),
+                                ajaxRequestTarget -> {
+                                    Task task = pageBase.createSimpleTask(OP_DELETE_SUGGESTIONS);
+                                    OperationResult result = task.getResult();
+                                    removeObjectTypeSuggestionNew(pageBase, statusInfo, suggestedObjectTypeDef, task, result);
+                                });
             }
 
             @Override
-            protected boolean isBackButtonVisible() {
-                return true;
-            }
-
-            @Override
-            protected IModel<String> getBackLabel() {
-                return createStringResource("SmartSuggestionWizardPanel.back.to.object.class.selection");
+            public void refreshSuggestionPerform(AjaxRequestTarget target) {
+                removeLastBreadcrumb();
+                processSuggestionActivity(target, objectClassName, true);
             }
 
             @Override

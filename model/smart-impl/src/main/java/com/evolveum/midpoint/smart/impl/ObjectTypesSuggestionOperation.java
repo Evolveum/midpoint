@@ -104,7 +104,6 @@ class ObjectTypesSuggestionOperation {
             var displayName = siObjectType.getDisplayName();
             var description = siObjectType.getDescription();
             var objectType = new ResourceObjectTypeDefinitionType()
-                    .synchronization(defaultSynchronizationReactions())
                     .kind(typeId.getKind())
                     .intent(typeId.getIntent())
                     .displayName(displayName)
@@ -122,46 +121,6 @@ class ObjectTypesSuggestionOperation {
         LOGGER.debug("Suggested object types for {}:\n{}", ctx.objectClassDefinition, response.debugDump(1));
 
         return response;
-    }
-
-    /**
-     * Creates a default set of synchronization reactions for a resource suggested object type.
-     * <p>
-     * The following simple reactions are configured:
-     * <ul>
-     *   <li>{@link SynchronizationSituationType#LINKED} → synchronize the object.</li>
-     *   <li>{@link SynchronizationSituationType#UNLINKED} → link the object.</li>
-     *   <li>{@link SynchronizationSituationType#UNMATCHED} → add a new focus object.</li>
-     * </ul>
-     * These defaults are meant as a starting point for basic synchronization scenarios.
-     *
-     * @return a {@link SynchronizationReactionsType} instance containing the default reactions
-     */
-    private @NotNull SynchronizationReactionsType defaultSynchronizationReactions() {
-        SynchronizationReactionsType reactions = new SynchronizationReactionsType();
-
-        reactions.beginReaction()
-                .name("linked-synchronize")
-                .situation(SynchronizationSituationType.LINKED)
-                .beginActions()
-                .beginSynchronize()
-                .end();
-
-        reactions.beginReaction()
-                .name("unlinked-link")
-                .situation(SynchronizationSituationType.UNLINKED)
-                .beginActions()
-                .beginLink()
-                .end();
-
-        reactions.beginReaction()
-                .name("unmatched-add-focus")
-                .situation(SynchronizationSituationType.UNMATCHED)
-                .beginActions()
-                .beginAddFocus()
-                .end();
-
-        return reactions;
     }
 
     // FIXME we should fix prism parsing in midPoint to avoid this

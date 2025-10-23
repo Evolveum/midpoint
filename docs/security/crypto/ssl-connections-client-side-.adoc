@@ -7,31 +7,141 @@
 :page-wiki-metadata-modify-date: 2019-07-11T15:38:24.423+02:00
 :page-keywords: [ 'SSL', 'TLS', 'openssl' ]
 :page-upkeep-status: green
+:page-toc: top
+:page-keywords: truststore, keystore, SSL, TLS, server certificate, jceks
+:page-description: This page explains how to obtain server certificates and import them into the midPoint truststore for SSL/TLS connections.
+
+
+This page explains how to obtain server certificates and import them into the midPoint truststore for SSL/TLS connections.
+
+== Introduction
 
 Connectors, notification plugins and other parts of midPoint connect to external systems.
 Some of the connections are secured using SSL/TLS.
-In SSL/TLS connections the server side provides a certificate that needs to be validated on the client side.
-This means that midPoint needs to have a way how to check validity of the certificate provided by SSL/TLS server.
-MidPoint is using standard Java libraries to validate the certificate.
-Java security modules are using a _truststore_ mechanism which is closely related to xref:/midpoint/reference/security/crypto/keystore-configuration/[keystore]. The truststore is a small database of trusted certificates.
-When a certificate needs to be validate Java libraries check if the certificates the authority in chain that issues are in the truststore.
+
+In SSL/TLS connections, the server side provides a certificate that needs to be validated on the client side.
+This means that midPoint needs to have a way to check the validity of the certificate provided by the SSL/TLS server.
+MidPoint uses the standard Java libraries to validate the certificate.
+Java security modules use a _truststore_ mechanism which is closely related to xref:/midpoint/reference/security/crypto/keystore-configuration/[keystore]. The truststore is a small database of trusted certificates.
+When a certificate needs to be validated, Java libraries check if the issuing certificate authority (CA) and the certificates in the chain are in the truststore.
 
 [IMPORTANT]
 ====
-For real deployments with public or private certification authorities all root and intermediate certificates in chain must be imported into midPoint keystore.
+For real deployments with public or private certification authorities, all root and intermediate certificates in the chain must be imported into the midPoint keystore.
 ====
 
-The following procedure describes how to get server certificate and import it into the trustore which makes it a trusted certificate. Basic steps to do:
+In order to set up a secure connection to an external system, you need to:
 
-. Getting server certificate
-. Import the certificate
+. <<get_certificate,Get a server certificate>>
+. <<import_certificate,Import the certificate>> into the truststore
 
-== Getting server certificate
+[[get_certificate]]
+== Get server certificate
 
-There are many tools to get a server certificate from SSL/TLS connection.
-We prefer to use opensource library OpenSSL (openssl library for windows can be downloaded link:https://code.google.com/p/openssl-for-windows/[here]) . It has a nice _s_client_ utility to do this.
+There are many tools you can use to get a server certificate for a SSL/TLS connection.
+In this guide, we are using our preferred open source library, OpenSSL (link:https://code.google.com/p/openssl-for-windows/[download for Windows]).
 
-Example how to obtain all server certificates in chain:
+. Get the server certificate using the s_client utility:
++
+[source]
+----
+openssl s_client -connect <server_name>:<port>
+----
++
+.Example: Get a server certificate
+[%collapsible]
+====
+[source]
+----
+$ openssl s_client -connect deimos.lab.evolveum.com:3636
+CONNECTED(00000003)
+depth=1 OU = Organizational CA, O = EXAMPLE-TREE
+verify error:num=19:self signed certificate in certificate chain
+verify return:0
+---
+Certificate chain
+ 0 s:/O=EXAMPLE-TREE/CN=deimos
+   i:/OU=Organizational CA/O=EXAMPLE-TREE
+ 1 s:/OU=Organizational CA/O=EXAMPLE-TREE
+   i:/OU=Organizational CA/O=EXAMPLE-TREE
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+MIIFLTCCBBWgAwIBAgIkAhwR/6b9fHPRsgM0dS4h3nlIxIQoUQDjdnEzC8MrAgJC
+C3WvMA0GCSqGSIb3DQEBBQUAMDMxGjAYBgNVBAsTEU9yZ2FuaXphdGlvbmFsIENB
+MRUwEwYDVQQKEwxFWEFNUExFLVRSRUUwHhcNMTQwNjA1MTEyNjQ3WhcNMTYwNjA0
+MTEyNjQ3WjAoMRUwEwYDVQQKEwxFWEFNUExFLVRSRUUxDzANBgNVBAMTBmRlaW1v
+czCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJO+X5vjQ/0WNWBOTvGw
++amQCQ22dVM9zfWXa5fhtBAuq5oYrnImmqnU0Xl2k0TfZjDgWcDrlh620ByNr/JV
+mEGUoAqIsZijbIYsb3/4C97Y9AKL8KWA5/HOxAZw7My65ydy2Wg0sgYb2wX2EHm3
+E4gkcNtw9Lf1eLxCwnRmbGjUrAjXlc2e8HbP9lfRjAysGVqfEsk/JRtXmLPOqW0Y
+THjSp+j87OTDbFPwWPlWh/atx2/3Q/xN+kJOLx4M1PMCAp/kDzdVA0bVWm1m/RZx
+lpRpF2lRtdJgwP897jFurJfpubSwE7IgqKUXdkSdESpnaL62xtFnFbtEKbcsv1iR
+Zb0CAwEAAaOCAjIwggIuMB0GA1UdDgQWBBR9W+sIkHjmchbjgIcED+3VPBshHzAf
+BgNVHSMEGDAWgBScoCWoSW3ygoqk23J+4DXdx6xWGTAPBgNVHREECDAGhwQKAgEP
+MAsGA1UdDwQEAwIFoDCCAcwGC2CGSAGG+DcBCQQBBIIBuzCCAbcEAgEAAQH/Ex1O
+b3ZlbGwgU2VjdXJpdHkgQXR0cmlidXRlKHRtKRZDaHR0cDovL2RldmVsb3Blci5u
+b3ZlbGwuY29tL3JlcG9zaXRvcnkvYXR0cmlidXRlcy9jZXJ0YXR0cnNfdjEwLmh0
+bTCCAUigGgEBADAIMAYCAQECAUYwCDAGAgEBAgEKAgFpoRoBAQAwCDAGAgEBAgEA
+MAgwBgIBAQIBAAIBAKIGAgEXAQH/o4IBBKBYAgECAgIA/wIBAAMNAIAAAAAAAAAA
+AAAAAAMJAIAAAAAAAAAAMBgwEAIBAAIIf/////////8BAQACBAbw30gwGDAQAgEA
+Agh//////////wEBAAIEBvDfSKFYAgECAgIA/wIBAAMNAEAAAAAAAAAAAAAAAAMJ
+AEAAAAAAAAAAMBgwEAIBAAIIf/////////8BAQACBBH/pv0wGDAQAgEAAgh/////
+/////wEBAAIEEf+m/aJOMEwCAQICAQACAgD/Aw0AgAAAAAAAAAAAAAAAAwkAgAAA
+AAAAAAAwEjAQAgEAAgh//////////wEBADASMBACAQACCH//////////AQEAMA0G
+CSqGSIb3DQEBBQUAA4IBAQAF/LlSJUz6I4UuzYivJyhcG8S4inWCB/4AkTP2rvOj
+iU7oZDKLUoLMZGP2mxgGYPp+nPNmN0NbFyuNoZiRmCBxvdVmABwKHHEZKCl8f+sn
+pw2wXPKrrZWY2PtbpJ2V815T8pAuraS1Ko08N/MZlIiZOZZpcyjq6EOTrELuaX+q
+tDFsCNZSfNKjqYMyrPEaYSSNIcBbWx2Ip170AA6rNqaOR5oo/N6Cw/f7GAhaon8V
+3j/pLivirDLbHBmsRLjzTcaSFtdhYzWR5Xr0hGh0oVA9OaL9EZF+wtKd4yMwL0Jn
+g9cH8n3kIjW+d4uFbCYY/K0YX1n7l8zMiSRuRzUz5a+w
+-----END CERTIFICATE-----
+subject=/O=EXAMPLE-TREE/CN=deimos
+issuer=/OU=Organizational CA/O=EXAMPLE-TREE
+---
+No client certificate CA names sent
+---
+SSL handshake has read 2831 bytes and written 551 bytes
+---
+New, TLSv1/SSLv3, Cipher is AES256-SHA
+Server public key is 2048 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+SSL-Session:
+    Protocol  : TLSv1
+    Cipher    : AES256-SHA
+    Session-ID: 3D1D82E86E3F87CF4F5C61DF1A1C5061973B371C75EE089C1ED38FF5FAFC58F9
+    Session-ID-ctx:
+    Master-Key: A58639B7067B0169C626DB8B45BD50AAF12A50A2F09BA4FC5D0112CE40E74F5CA6BD941A0F86D744AA12AA1592F450A3
+    Key-Arg   : None
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    Start Time: 1401979683
+    Timeout   : 300 (sec)
+    Verify return code: 19 (self signed certificate in certificate chain)
+---
+----
+====
++
+You can get all server certificates in the chain by using:
++
+[source]
+----
+openssl s_client -showcerts -connect <server_name>:<port>
+----
++
+If the server hosts multiple domains, use `-servername` for Server Name Indication (SNI):
++
+[source]
+----
+openssl s_client -showcerts -servername <server_name> -connect <server_name>:<port>
+----
++
+.Example: Get all server certificates in the chain
+[%collapsible]
+====
 [source]
 ----
 openssl s_client -showcerts -servername google.com -connect google.com:443
@@ -236,114 +346,40 @@ SSL-Session:
     Verify return code: 20 (unable to get local issuer certificate)
 ---
 ----
+====
 
-Example how to obtain server certificate:
-[source]
+. Copy the server certificate, including the `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` lines, and paste it into a separate file, e.g., `servercert.pem`.
+
+[[import_certificate]]
+== Import certificate
+
+. Import the server certificate to your truststore using the keytool utility:
++
+[source,bash]
 ----
-$ openssl s_client -connect deimos.lab.evolveum.com:3636
-CONNECTED(00000003)
-depth=1 OU = Organizational CA, O = EXAMPLE-TREE
-verify error:num=19:self signed certificate in certificate chain
-verify return:0
----
-Certificate chain
- 0 s:/O=EXAMPLE-TREE/CN=deimos
-   i:/OU=Organizational CA/O=EXAMPLE-TREE
- 1 s:/OU=Organizational CA/O=EXAMPLE-TREE
-   i:/OU=Organizational CA/O=EXAMPLE-TREE
----
-Server certificate
------BEGIN CERTIFICATE-----
-MIIFLTCCBBWgAwIBAgIkAhwR/6b9fHPRsgM0dS4h3nlIxIQoUQDjdnEzC8MrAgJC
-C3WvMA0GCSqGSIb3DQEBBQUAMDMxGjAYBgNVBAsTEU9yZ2FuaXphdGlvbmFsIENB
-MRUwEwYDVQQKEwxFWEFNUExFLVRSRUUwHhcNMTQwNjA1MTEyNjQ3WhcNMTYwNjA0
-MTEyNjQ3WjAoMRUwEwYDVQQKEwxFWEFNUExFLVRSRUUxDzANBgNVBAMTBmRlaW1v
-czCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJO+X5vjQ/0WNWBOTvGw
-+amQCQ22dVM9zfWXa5fhtBAuq5oYrnImmqnU0Xl2k0TfZjDgWcDrlh620ByNr/JV
-mEGUoAqIsZijbIYsb3/4C97Y9AKL8KWA5/HOxAZw7My65ydy2Wg0sgYb2wX2EHm3
-E4gkcNtw9Lf1eLxCwnRmbGjUrAjXlc2e8HbP9lfRjAysGVqfEsk/JRtXmLPOqW0Y
-THjSp+j87OTDbFPwWPlWh/atx2/3Q/xN+kJOLx4M1PMCAp/kDzdVA0bVWm1m/RZx
-lpRpF2lRtdJgwP897jFurJfpubSwE7IgqKUXdkSdESpnaL62xtFnFbtEKbcsv1iR
-Zb0CAwEAAaOCAjIwggIuMB0GA1UdDgQWBBR9W+sIkHjmchbjgIcED+3VPBshHzAf
-BgNVHSMEGDAWgBScoCWoSW3ygoqk23J+4DXdx6xWGTAPBgNVHREECDAGhwQKAgEP
-MAsGA1UdDwQEAwIFoDCCAcwGC2CGSAGG+DcBCQQBBIIBuzCCAbcEAgEAAQH/Ex1O
-b3ZlbGwgU2VjdXJpdHkgQXR0cmlidXRlKHRtKRZDaHR0cDovL2RldmVsb3Blci5u
-b3ZlbGwuY29tL3JlcG9zaXRvcnkvYXR0cmlidXRlcy9jZXJ0YXR0cnNfdjEwLmh0
-bTCCAUigGgEBADAIMAYCAQECAUYwCDAGAgEBAgEKAgFpoRoBAQAwCDAGAgEBAgEA
-MAgwBgIBAQIBAAIBAKIGAgEXAQH/o4IBBKBYAgECAgIA/wIBAAMNAIAAAAAAAAAA
-AAAAAAMJAIAAAAAAAAAAMBgwEAIBAAIIf/////////8BAQACBAbw30gwGDAQAgEA
-Agh//////////wEBAAIEBvDfSKFYAgECAgIA/wIBAAMNAEAAAAAAAAAAAAAAAAMJ
-AEAAAAAAAAAAMBgwEAIBAAIIf/////////8BAQACBBH/pv0wGDAQAgEAAgh/////
-/////wEBAAIEEf+m/aJOMEwCAQICAQACAgD/Aw0AgAAAAAAAAAAAAAAAAwkAgAAA
-AAAAAAAwEjAQAgEAAgh//////////wEBADASMBACAQACCH//////////AQEAMA0G
-CSqGSIb3DQEBBQUAA4IBAQAF/LlSJUz6I4UuzYivJyhcG8S4inWCB/4AkTP2rvOj
-iU7oZDKLUoLMZGP2mxgGYPp+nPNmN0NbFyuNoZiRmCBxvdVmABwKHHEZKCl8f+sn
-pw2wXPKrrZWY2PtbpJ2V815T8pAuraS1Ko08N/MZlIiZOZZpcyjq6EOTrELuaX+q
-tDFsCNZSfNKjqYMyrPEaYSSNIcBbWx2Ip170AA6rNqaOR5oo/N6Cw/f7GAhaon8V
-3j/pLivirDLbHBmsRLjzTcaSFtdhYzWR5Xr0hGh0oVA9OaL9EZF+wtKd4yMwL0Jn
-g9cH8n3kIjW+d4uFbCYY/K0YX1n7l8zMiSRuRzUz5a+w
------END CERTIFICATE-----
-subject=/O=EXAMPLE-TREE/CN=deimos
-issuer=/OU=Organizational CA/O=EXAMPLE-TREE
----
-No client certificate CA names sent
----
-SSL handshake has read 2831 bytes and written 551 bytes
----
-New, TLSv1/SSLv3, Cipher is AES256-SHA
-Server public key is 2048 bit
-Secure Renegotiation IS NOT supported
-Compression: NONE
-Expansion: NONE
-SSL-Session:
-    Protocol  : TLSv1
-    Cipher    : AES256-SHA
-    Session-ID: 3D1D82E86E3F87CF4F5C61DF1A1C5061973B371C75EE089C1ED38FF5FAFC58F9
-    Session-ID-ctx:
-    Master-Key: A58639B7067B0169C626DB8B45BD50AAF12A50A2F09BA4FC5D0112CE40E74F5CA6BD941A0F86D744AA12AA1592F450A3
-    Key-Arg   : None
-    PSK identity: None
-    PSK identity hint: None
-    SRP username: None
-    Start Time: 1401979683
-    Timeout   : 300 (sec)
-    Verify return code: 19 (self signed certificate in certificate chain)
----
+keytool -keystore <path_to_truststore> -storetype jceks -storepass <truststore_password> -import -alias <alias_name> -trustcacerts -file <path_to_certificate_file>
 ----
-
-
-The data between `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` is the server certificate.
-Copy&paste the data into a separate file (*including the boundary lines*) and save it e.g. as `servercert.pem`.
-
-
-== Import the certificate
-
-Import the server certificate to a truststore using keytool utility:
-
++
+.Example
 [source,bash]
 ----
 keytool -keystore /opt/midpoint/var/keystore.jceks -storetype jceks -storepass changeit -import -alias servercert -trustcacerts -file servercert.pem
 ----
 
-Restart midPoint and that's it.
+. Restart midPoint.
 
 
-== Notes
-
+[NOTE]
+====
 * Make sure that the correct keystore/truststore is used.
-By default connectors use JVM keystore unless it is overriden by JVM options.
-See xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration] page for more details.
+Unless overridden by JVM options, connectors use the JVM keystore by default.
+For details, refer to xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration].
 
-* If an import of a .p7b formated certificate results in the following error: java.lang.Exception: Input not an X.509 certificate.
-You might try to convert the certificate to the .cer PEM format.
-This can be done using the following openssl command:
-
+* If an import of a .p7b formatted certificate results in the following error: "java.lang.Exception: Input not an X.509 certificate", try converting the certificate to the .cer PEM format by running the following openssl command:
++
 [source,bash]
 ----
-openssl pkcs7 -inform der -in mycert.p7b -out myconvertedcert.cer
+openssl pkcs7 -inform der -in <mycert.p7b> -out <myconvertedcert.cer>
 ----
+====
 
-
-== See Also
-
-* xref:/midpoint/reference/security/crypto/keystore-configuration/[Keystore Configuration]

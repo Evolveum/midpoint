@@ -1,0 +1,30 @@
+<!--
+~ Copyright (C) 2025 Evolveum and contributors
+~
+~ Licensed under the EUPL-1.2 or later.
+-->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <span class="d-flex mb-2 text-center text-bold">
+        <wicket:message key="CompareContainerPanel.compareLabel"></wicket:message>
+    </span>
+
+    <div class="mb-3 d-flex flex-row gap-2">
+        <div class="p-0 col" wicket:id="compareItemSelector"></div>
+        <div wicket:id="comparePathSelector"></div>
+        <div wicket:id="actionButtons"></div>
+    </div>
+
+    <div wicket:id="tableContainer">
+        <div class="table-compared overflow-auto" wicket:id="table"></div>
+    </div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <button class="btn btn-link" wicket:id="close"></button>
+        </div>
+    </wicket:fragment>
+
+</wicket:panel>
+</html>
