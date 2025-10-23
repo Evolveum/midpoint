@@ -221,6 +221,7 @@ These identifiers are used to adjust the default collection view.
 For example, if you need to add a custom column to the default users list, a new action needs to be defined for the default roles list.
 To be able to correctly merge configurations for one collection view from different sources, identifiers are mandatory, and every single collection view definition has to have an identifier defined.
 
+.Default collections
 [%autowidth]
 |===
 | Identifier | Menu item
@@ -267,13 +268,13 @@ To be able to correctly merge configurations for one collection view from differ
 |===
 
 
-The list below shows a list of the main menu tabs that have expandable submenu options.
+The list below shows main menu tabs that have expandable submenu options.
 You can add new, dynamically populated menu items to the main navigation bar. 
-These menu items function as expandable submenus, with contents determined by an ObjectCollection.
+These menu items function as expandable submenus, with contents determined by an `ObjectCollection`.
 
 * Dashboards 
 * Users
-* Org.Structure
+* Org. structure
 * Roles
 * Services
 * Policies
@@ -290,15 +291,14 @@ These menu items function as expandable submenus, with contents determined by an
 
 The configuration is a two-step process:
 
-1. Define the ObjectCollection that queries the items for the submenu.
+1. Define an `ObjectCollection` that queries the items for the submenu.
 
-2. Add an objectCollectionView to the systemConfiguration to create the menu item and link it to the collection.
+2. Add an `objectCollectionView` to `systemConfiguration` to create the menu item and link it to the collection.
 
-**Example objectCollection definition:**
-
+.Example objectCollection definition
 [source,xml]
 ----
-<objectCollection 
+<objectCollection> 
     ... 
     oid="0f79ac96-0173-4575-a286-2395648abc01" 
     version="1">
@@ -310,8 +310,7 @@ The configuration is a two-step process:
 </objectCollection>
 ----
 
-**Add the objectCollection View to `Resource Objects` > `systemConfiguration`:**
-
+.Add the objectCollection View to `Resource Objects` > `systemConfiguration`
 [source,xml]
 ----
 <adminGuiConfiguration>
