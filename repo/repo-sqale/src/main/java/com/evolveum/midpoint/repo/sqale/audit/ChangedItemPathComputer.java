@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -23,6 +24,8 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ChangedItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -35,6 +38,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * @author Viliam Repan (lazyman)
  */
 public class ChangedItemPathComputer {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ChangedItemPathComputer.class);
 
     private final boolean indexAddObjectDeltaOperation;
 
@@ -142,6 +147,35 @@ public class ChangedItemPathComputer {
         }
     }
 
+    private void collectAdditionalPathsFromWholeItemDelta(
+            ChangedItemPath additionalPath, QName type, ItemDelta<?, ?> itemDelta, Set<String> changedItemPaths) {
+
+        if (!(itemDelta instanceof ContainerDelta<?>)) {
+            return;
+        }
+
+        ItemPath path = additionalPath.path();
+
+        changedItemPaths.add(createCanonicalItemPath(path, type));
+
+        if (!additionalPath.all()) {
+            return;
+        }
+
+        Collection<?> values = getAllItemDeltaValues(itemDelta);
+        for (Object value : values) {
+            if (!(value instanceof PrismContainerValue<?> pcv)) {
+                continue;
+            }
+
+            for (Item<?, ?> subItem : pcv.getItems()) {
+                ItemPath subItemPath = path.append(subItem.getElementName());
+
+                changedItemPaths.add(createCanonicalItemPath(subItemPath, type));
+            }
+        }
+    }
+
     private void collectAdditionalPathsFromFoundItems(
             ChangedItemPath additionalPath, QName type, List<Item<?, ?>> result, Set<String> changedItemPaths) {
 
@@ -190,15 +224,48 @@ public class ChangedItemPathComputer {
 
             ItemPath deltaPath = itemDelta.getPath().namedSegmentsOnly();
 
-            if (!path.isSubPathOrEquivalent(deltaPath)) {
+            if (path.isSubPath(deltaPath)) {
+                // E.g. additional path is "assignment", delta path is "assignment/extension/customProperty"
+                // then we just add the additional path, because the delta changes something below it
+                changedItemPaths.add(createCanonicalItemPath(path, objectType));
+                return;
+            }
+
+            if (!path.isSuperPathOrEquivalent(deltaPath)) {
                 continue;
             }
 
-            ItemPath remainderPath = path.remainder(deltaPath);
-            ItemPathVisitor visitor = new ItemPathVisitor(remainderPath);
+            ItemPath remainderPath = path.remainder(deltaPath).namedSegmentsOnly();
 
-            collectAdditionalItemDeltaValuePaths(itemDelta, objectType, additionalPath, visitor, changedItemPaths);
+            if (remainderPath.isEmpty()) {
+                // item delta by itself is the target path
+                collectAdditionalPathsFromWholeItemDelta(additionalPath, objectType, itemDelta, changedItemPaths);
+                return;
+            }
+
+            ItemPathVisitor visitor = new ItemPathVisitor(remainderPath);
+            Collection<?> allValues = getAllItemDeltaValues(itemDelta);
+            for (Object value : allValues) {
+                if (!(value instanceof PrismValue v)) {
+                    continue;
+                }
+
+                v.acceptVisitor(visitor);
+            }
+
+            collectAdditionalPathsFromFoundItems(additionalPath, objectType, visitor.result, changedItemPaths);
         }
+    }
+
+    private Collection<?> getAllItemDeltaValues(ItemDelta<?, ?> itemDelta) {
+        List<Object> allValues = new ArrayList<>();
+        for (ModificationType modificationType : ModificationType.values()) {
+            Collection<?> values = itemDelta.getValues(modificationType);
+            if (values != null) {
+                allValues.addAll(values);
+            }
+        }
+        return allValues;
     }
 
     private void collectAdditionalItemDeltaValuePaths(
@@ -208,19 +275,13 @@ public class ChangedItemPathComputer {
             ItemPathVisitor visitor,
             Set<String> changedItemPaths) {
 
-        for (ModificationType modificationType : ModificationType.values()) {
-            Collection<?> values = itemDelta.getValues(modificationType);
-            if (values == null) {
+        Collection<?> allValues = getAllItemDeltaValues(itemDelta);
+        for (Object value : allValues) {
+            if (!(value instanceof PrismValue v)) {
                 continue;
             }
 
-            for (Object value : values) {
-                if (!(value instanceof PrismValue v)) {
-                    continue;
-                }
-
-                v.acceptVisitor(visitor);
-            }
+            v.acceptVisitor(visitor);
         }
 
         collectAdditionalPathsFromFoundItems(
@@ -233,19 +294,36 @@ public class ChangedItemPathComputer {
 
             ItemPath deltaPath = itemDelta.getPath().getItemPath().namedSegmentsOnly();
 
-            if (!path.isSubPathOrEquivalent(deltaPath)) {
+            if (path.isSubPath(deltaPath)) {
+                // E.g. additional path is "assignment", delta path is "assignment/extension/customProperty"
+                // then we just add the additional path, because the delta changes something below it
+                changedItemPaths.add(createCanonicalItemPath(path, objectType));
+                return;
+            }
+
+            if (!path.isSuperPathOrEquivalent(deltaPath)) {
                 continue;
             }
 
-            ItemPath remainderPath = path.remainder(deltaPath);
-            ItemPathVisitor visitor = new ItemPathVisitor(remainderPath);
+            ItemPath remainderPath = path.remainder(deltaPath).namedSegmentsOnly();
 
             try {
                 ItemDelta<?, ?> delta = DeltaConvertor.createItemDelta(itemDelta, ObjectTypes.getObjectTypeClass(objectType));
 
+                if (remainderPath.isEmpty()) {
+                    // item delta by itself is the target path
+                    collectAdditionalPathsFromWholeItemDelta(additionalPath, objectType, delta, changedItemPaths);
+                    return;
+                }
+
+                ItemPathVisitor visitor = new ItemPathVisitor(remainderPath);
+
                 collectAdditionalItemDeltaValuePaths(delta, objectType, additionalPath, visitor, changedItemPaths);
             } catch (SchemaException ex) {
-
+                LOGGER.debug("Couldn't parse ItemDeltaType {}: {}", itemDelta, ex.getMessage());
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Couldn't parse ItemDeltaType", ex);
+                }
             }
         }
     }
@@ -285,23 +363,29 @@ public class ChangedItemPathComputer {
                 return false;
             }
 
-            if (!(visitable instanceof PrismContainer<?> pc)) {
-                return true;
+            if (visitable instanceof PrismContainer<?> pc) {
+                for (PrismContainerValue<?> pcv : pc.getValues()) {
+                    visitPrismContainerValue(pcv, result);
+                }
             }
 
-            for (PrismContainerValue<?> pcv : pc.getValues()) {
-                ItemName first = path.firstName();
-                ItemPath rest = path.rest();
-
-                Item<?, ?> item = pcv.findItem(first);
-                if (item == null) {
-                    return false;
-                }
-
-                item.acceptVisitor(new ItemPathVisitor(rest, result));
+            if (visitable instanceof PrismContainerValue<?> pcv) {
+                visitPrismContainerValue(pcv, result);
             }
 
             return false;
+        }
+
+        private void visitPrismContainerValue(PrismContainerValue<?> pcv, List<Item<?, ?>> result) {
+            ItemName first = path.firstName();
+            ItemPath rest = path.rest();
+
+            Item<?, ?> item = pcv.findItem(first);
+            if (item == null) {
+                return;
+            }
+
+            item.acceptVisitor(new ItemPathVisitor(rest, result));
         }
     }
 }
