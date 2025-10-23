@@ -216,7 +216,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
                             }
                         };
                         chartPanel.setOutputMarkupId(true);
-                        chartPanel.add(AttributeModifier.append("style", "margin-top: -5px !important;"));
+                        chartPanel.add(AttributeModifier.append("style", getChartStyle()));
                         chartPanel.add(AttributeAppender.append("title",
                                 createStringResource("PageCertCampaign.table.completedItemsPercentage")));
                         return chartPanel;
@@ -377,6 +377,10 @@ public class CertificationItemsPanel extends BasePanel<String> {
         } else {
             return CertMiscUtil.getActiveCampaignsOids(!isDisplayingAllItems(), getPageBase());
         }
+    }
+
+    private String getChartStyle() {
+        return "margin-top: -5px !important; max-width: 35px !important; max-height: 35px !important;";
     }
 
     private LoadableDetachableModel<AccessCertificationCampaignType> initSingleCampaignModel() {
