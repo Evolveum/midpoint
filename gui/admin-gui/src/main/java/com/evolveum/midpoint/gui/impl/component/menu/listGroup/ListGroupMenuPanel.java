@@ -19,6 +19,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -26,7 +27,7 @@ import java.io.Serializable;
  */
 public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGroupMenu<T>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_HEADER = "header";
     private static final String ID_ICON = "icon";
@@ -70,6 +71,7 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
         header.add(title);
 
         ListView<ListGroupMenuItem<T>> items = new ListView<>(ID_ITEMS, () -> getModelObject().getItems()) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<ListGroupMenuItem<T>> item) {
@@ -83,6 +85,7 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
                 }
 
                 ListGroupMenuItemPanel menu = new ListGroupMenuItemPanel(ID_ITEM, item.getModel(), 0) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
