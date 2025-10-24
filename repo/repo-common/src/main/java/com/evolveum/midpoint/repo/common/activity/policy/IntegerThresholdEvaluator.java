@@ -40,7 +40,7 @@ public class IntegerThresholdEvaluator implements ThresholdEvaluator {
     }
 
     private Integer getWaterMarkValue(WaterMarkType waterMark) {
-        if (waterMark == null || waterMark.getDuration() == null) {
+        if (waterMark == null) {
             return null;
         }
 

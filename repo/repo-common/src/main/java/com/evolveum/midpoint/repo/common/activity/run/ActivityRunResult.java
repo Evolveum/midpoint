@@ -34,7 +34,10 @@ public class ActivityRunResult implements ShortDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityRunResult.class);
 
-    private static final long DEFAULT_RESTART_DELAY = 5000;
+    private static final int DEFAULT_RESTART_DELAY = 5000;
+
+    /** After how many attempts should we stop increasing the delay exponentially? */
+    private static final int EXPONENTIAL_BACKOFF_LIMIT = 10;
 
     /** Final operation result status to be reported and recorded. */
     private OperationResultStatus operationResultStatus;
@@ -120,13 +123,18 @@ public class ActivityRunResult implements ShortDumpable {
             throw new IllegalStateException("Activity requested its restart, but no restart action was found in the exception");
         }
 
-        long baseDelay = action.getDelay() != null ? action.getDelay() : DEFAULT_RESTART_DELAY;
+        long baseDelay = Objects.requireNonNullElse(action.getDelay(), DEFAULT_RESTART_DELAY);
+        long computedDelay;
         if (baseDelay <= 0) {
-            return 0;
+            computedDelay = 0;
+            LOGGER.trace("No delay for activity restart as per policy action configuration");
         } else {
             int executionAttempt = Objects.requireNonNullElse(ctx.executionAttempt(), 1);
-            return baseDelay * (2 ^ (executionAttempt - 1));
+            computedDelay = baseDelay * (1L << Math.min(executionAttempt - 1, EXPONENTIAL_BACKOFF_LIMIT));
+            LOGGER.trace("Base delay = {} ms, execution attempt = {}, computed delay = {} ms",
+                    baseDelay, executionAttempt, computedDelay);
         }
+        return computedDelay;
     }
 
     ActivityRunResultStatus getRunResultStatus() {

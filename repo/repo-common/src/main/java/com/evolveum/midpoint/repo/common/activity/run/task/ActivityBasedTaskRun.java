@@ -97,8 +97,11 @@ public class ActivityBasedTaskRun implements TaskRun {
                 updateStateOnRootRunEnd(runResult, result);
             }
 
-            logEnd(localRootRun, runResult);
-            return runResult.createTaskRunResult();
+            var taskRunResult = runResult.createTaskRunResult();
+
+            logEnd(localRootRun, runResult, taskRunResult);
+
+            return taskRunResult;
         } catch (ActivityRunException e) {
             // These should be only really unexpected ones. So we won't bother with e.g. updating the tree state.
             logException(e);
@@ -189,9 +192,16 @@ public class ActivityBasedTaskRun implements TaskRun {
         }
     }
 
-    private void logEnd(AbstractActivityRun<?, ?, ?> localRootRun, ActivityRunResult runResult) {
-        LOGGER.trace("Local root activity run object after task run ({})\n{}",
-                runResult.shortDumpLazily(), localRootRun.debugDumpLazily());
+    private void logEnd(AbstractActivityRun<?, ?, ?> localRootRun, ActivityRunResult runResult, TaskRunResult taskRunResult) {
+        LOGGER.trace("""
+                        Local root activity run ends.
+                         - activity run result: {}
+                         - task run result: {}
+                         - AbstractActivityRun object:
+                        {}""",
+                runResult.shortDumpLazily(),
+                taskRunResult,
+                localRootRun.debugDumpLazily(3));
     }
 
     private void logException(Throwable t) {

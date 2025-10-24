@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateT
  */
 class TaskCycleExecutor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskCycleExecutor.class);
 
     private static final String DOT_CLASS = TaskCycleExecutor.class.getName() + ".";
     private static final String OP_EXECUTE_RECURRING_TASK = DOT_CLASS + "executeRecurringTask";
@@ -243,7 +243,8 @@ class TaskCycleExecutor {
     private void treatRestartRequestedRunResult(TaskRunResult runResult, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
-        LOGGER.trace("Task handler requested restart of the activity. Suspending it. Task = {}", task);
+        LOGGER.trace("Task handler requested restart of the activity with {}. Suspending it. Task = {}",
+                runResult.getTaskRestartInstruction(), task);
 
         beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
 
@@ -251,16 +252,13 @@ class TaskCycleExecutor {
             long delayMillis = runResult.getTaskRestartInstruction() != null
                     ? runResult.getTaskRestartInstruction().delayMillis()
                     : 0;
-            if (delayMillis <= 0) {
-                beans.taskStateManager.scheduleTaskNow(task, result);
-            } else {
-                long startAt = System.currentTimeMillis() + delayMillis;
-                LOGGER.trace("Rescheduling task {} to run later (in {} ms) because of activity restart", task, delayMillis);
-                task.setExecutionAndSchedulingStateImmediate(  // todo can't be like this [viliam]
-                        TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
-                        TaskSchedulingStateType.SUSPENDED, result);
-                beans.localScheduler.rescheduleLater(task, startAt);  // todo does the first parameter need to be RunningTaskQuartzImpl? [viliam]
-            }
+            long startAt = System.currentTimeMillis() + Math.max(delayMillis, 0);
+            LOGGER.trace("Rescheduling task {} to run in {} ms because of activity restart", task, delayMillis);
+            // TODO consider we may be within a tree of tasks here
+            task.setExecutionAndSchedulingStateImmediate(  // todo can't be like this [viliam]
+                    TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
+                    TaskSchedulingStateType.SUSPENDED, result);
+            beans.localScheduler.rescheduleLater(task, startAt);  // todo does the first parameter need to be RunningTaskQuartzImpl? [viliam]
         } catch (PreconditionViolationException | SchedulerException ex) {
             LOGGER.error("Couldn't reschedule task {} (rescheduled because of activity restart): {}",
                     task, ex.getMessage(), ex);

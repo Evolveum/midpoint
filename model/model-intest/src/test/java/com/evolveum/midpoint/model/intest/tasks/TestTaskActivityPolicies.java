@@ -343,7 +343,8 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         deleteIfPresent(object, testResult);
         addObject(object, testTask, testResult);
 
-        waitForTaskCloseOrSuspend(object.oid, 15000);
+        //waitForTaskCloseOrSuspend(object.oid, 15000); // we can't use this: the task goes through SUSPENDED state several times
+        Thread.sleep(15000);
 
         then();
 
