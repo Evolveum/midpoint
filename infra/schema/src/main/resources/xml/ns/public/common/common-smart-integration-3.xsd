@@ -1190,6 +1190,79 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- New type describing an attribute match pair to be used for storing schema match -->
+    <xsd:complexType name="SchemaMatchResultType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "matchSchema" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="schemaMatchResult" type="tns:SchemaMatchOneResultType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        One schema metch attribute pair.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timestamp" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this information collected?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SchemaMatchOneResultType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A matched pair of attributes between a resource object (shadow) and a midPoint focus property
+                that can be considered for mapping suggestions. This mirrors the in-memory DTO used by the
+                smart integration implementation, exposing only serializable information.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="shadowAttributePath" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Full path of the resource-side attribute, e.g. "c:attributes/ri:login".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focusPropertyPath" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Full path of the midPoint focus property, e.g. "c:name".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Optional definitions if needed by clients; kept generic to remain serializable -->
+            <xsd:element name="shadowAttribute" type="tns:SiAttributeDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of the resource-side attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focusProperty" type="tns:SiAttributeDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of the midPoint focus property.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="SiSuggestMappingRequestType">
         <xsd:annotation>
             <xsd:documentation>

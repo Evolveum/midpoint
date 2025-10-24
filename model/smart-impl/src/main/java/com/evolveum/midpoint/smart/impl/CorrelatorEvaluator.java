@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.smart.impl.CorrelationSuggestionOperation.CorrelatorSuggestion;
+import com.evolveum.midpoint.smart.impl.correlation.CorrelatorSuggestion;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;

@@ -9,7 +9,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
-import com.evolveum.midpoint.smart.impl.activities.ObjectTypeRelatedStatisticsComputer;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -133,7 +133,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
             OperationResult result) throws CommonException {
         var res = Resource.of(resource.get());
         var typeDefinition = res.getCompleteSchemaRequired().getObjectTypeDefinitionRequired(typeIdentification);
-        var computer = new ObjectTypeRelatedStatisticsComputer(typeDefinition);
+        var computer = new ObjectTypeStatisticsComputer(typeDefinition);
         var shadows = provisioningService.searchShadows(
                 res.queryFor(typeIdentification).build(),
                 null,
@@ -159,6 +159,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null // No script, triggers "asIs"
         );
 
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
         var op = MappingsSuggestionOperation.init(
                 mockClient,
                 RESOURCE_DUMMY.oid,
@@ -169,7 +171,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 result);
 
         var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
 
@@ -199,6 +202,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 script
         );
 
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
         var op = MappingsSuggestionOperation.init(
                 mockClient,
                 RESOURCE_DUMMY.oid,
@@ -209,7 +214,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 result);
 
         var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getExpectedQuality()).as("Transformed mapping should have perfect quality").isEqualTo(1.0f);
@@ -238,6 +244,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 invalidScript
         );
 
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
         var op = MappingsSuggestionOperation.init(
                 mockClient,
                 RESOURCE_DUMMY.oid,
@@ -248,7 +256,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 result);
 
         var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
 
         assertThat(suggestion.getAttributeMappings())
                 .as("Invalid script should produce a mapping with sentinel quality -1.0")

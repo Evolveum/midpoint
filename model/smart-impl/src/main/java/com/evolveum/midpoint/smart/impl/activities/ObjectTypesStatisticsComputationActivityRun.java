@@ -1,42 +1,62 @@
+/*
+ * Copyright (c) 2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
 package com.evolveum.midpoint.smart.impl.activities;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
+import static com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil.createStatisticsObject;
+
+import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
-import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+/**
+ * Reads data from the resource and computes statistics for the objects found.
+ *
+ * Skips the processing if there is already a valid statistics object in the repository.
+ *
+ * Later, we can create a variant of this activity that computes statistics for objects already present in the repository.
+ */
+public class ObjectTypesStatisticsComputationActivityRun
+        extends SearchBasedActivityRun<
+            ShadowType,
+            ObjectTypesSuggestionWorkDefinition,
+            ObjectTypesSuggestionActivityHandler,
+            ObjectTypesSuggestionWorkStateType> {
 
-public class MappingsStatisticsComputationActivityRun extends SearchBasedActivityRun<
-        ShadowType,
-        MappingsSuggestionWorkDefinition,
-        MappingsSuggestionActivityHandler,
-        MappingsSuggestionWorkStateType> {
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesStatisticsComputationActivityRun.class);
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingsStatisticsComputationActivityRun.class);
-
+    /** (Resolved) resource for which the statistics are computed. Null if statistics are not being computed. */
     private ResourceType resource;
 
-    private ObjectTypeStatisticsComputer computer;
+    /** Computes the statistics for the objects found. Null if statistics are not being computed. */
+    private ObjectClassStatisticsComputer computer;
 
-    public MappingsStatisticsComputationActivityRun(@NotNull ActivityRunInstantiationContext<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> context, @NotNull String shortNameCapitalized) {
+    ObjectTypesStatisticsComputationActivityRun(
+            ActivityRunInstantiationContext<ObjectTypesSuggestionWorkDefinition, ObjectTypesSuggestionActivityHandler> context,
+            String shortNameCapitalized) {
         super(context, shortNameCapitalized);
         setInstanceReady();
     }
@@ -71,22 +91,22 @@ public class MappingsStatisticsComputationActivityRun extends SearchBasedActivit
             return false;
         }
 
+        LOGGER.debug("No suitable statistics data found, will compute one");
         resource = getActivityHandler().getModelBeans().modelService
                 .getObject(ResourceType.class, workDef.getResourceOid(), null, getRunningTask(), result)
                 .asObjectable();
-        var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-        var typeIdentification = getWorkDefinition().getTypeIdentification();
-        var typeDefinition = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
-
-        computer = new ObjectTypeStatisticsComputer(typeDefinition);
+        var objectClassDef = Resource.of(resource)
+                .getCompleteSchemaRequired()
+                .findObjectClassDefinitionRequired(workDef.getObjectClassName());
+        computer = new ObjectClassStatisticsComputer(objectClassDef);
 
         return true;
     }
 
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
         var workDef = getWorkDefinition();
-        var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeStatistics(
-                workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), getRunningTask(), result);
+        var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestStatistics(
+                workDef.getResourceOid(), workDef.getObjectClassName(), getRunningTask(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 
@@ -99,11 +119,10 @@ public class MappingsStatisticsComputationActivityRun extends SearchBasedActivit
                     .coverage(1.0f) // TODO: compute coverage properly
                     .timestamp(beans.clock.currentTimeXMLGregorianCalendar());
 
-            var statisticsObject = ShadowObjectTypeStatisticsTypeUtil.createObjectTypeStatisticsObject(
+            var statisticsObject = createStatisticsObject(
                     resource.getOid(),
                     resource.getName().getOrig(),
-                    getWorkDefinition().getKind(),
-                    getWorkDefinition().getIntent(),
+                    getWorkDefinition().getObjectClassName(),
                     statistics);
 
             LOGGER.debug("Adding statistics object:\n{}", statisticsObject.debugDump(1));
@@ -119,9 +138,21 @@ public class MappingsStatisticsComputationActivityRun extends SearchBasedActivit
             throws SchemaException, ActivityRunException, ObjectNotFoundException {
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(
-                MappingsSuggestionWorkStateType.F_STATISTICS_REF,
+                ObjectTypesSuggestionWorkStateType.F_STATISTICS_REF,
                 ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
         parentState.flushPendingTaskModificationsChecked(result);
+    }
+
+    @Override
+    public @Nullable SearchSpecification<ShadowType> createCustomSearchSpecification(OperationResult result)
+            throws SchemaException, ConfigurationException {
+        return new SearchSpecification<>(
+                ShadowType.class,
+                Resource.of(resource)
+                        .queryFor(getWorkDefinition().getObjectClassName())
+                        .build(),
+                null,
+                false);
     }
 
     @Override
@@ -129,7 +160,7 @@ public class MappingsStatisticsComputationActivityRun extends SearchBasedActivit
             @NotNull ShadowType item,
             @NotNull ItemProcessingRequest<ShadowType> request,
             RunningTask workerTask,
-            OperationResult result) throws CommonException, ActivityRunException {
+            OperationResult result) {
         computer.process(item);
         return true;
     }

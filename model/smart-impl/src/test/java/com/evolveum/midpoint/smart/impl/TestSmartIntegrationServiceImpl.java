@@ -43,8 +43,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
-import com.evolveum.midpoint.smart.impl.activities.StatisticsComputer;
-import com.evolveum.midpoint.smart.impl.activities.ObjectTypeRelatedStatisticsComputer;
+import com.evolveum.midpoint.smart.impl.activities.ObjectClassStatisticsComputer;
+import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
@@ -1073,7 +1073,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var accountDef = resource
                 .getCompleteSchemaRequired()
                 .findObjectClassDefinitionRequired(objectClassName);
-        var computer = new StatisticsComputer(accountDef);
+        var computer = new ObjectClassStatisticsComputer(accountDef);
         var shadows = provisioningService.searchShadows(
                 resource.queryFor(objectClassName).build(),
                 null,
@@ -1105,7 +1105,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             OperationResult result) throws CommonException {
         var res = Resource.of(resource.get());
         var typeDefinition = res.getCompleteSchemaRequired().getObjectTypeDefinitionRequired(typeIdentification);
-        var computer = new ObjectTypeRelatedStatisticsComputer(typeDefinition);
+        var computer = new ObjectTypeStatisticsComputer(typeDefinition);
         var shadows = provisioningService.searchShadows(
                 res.queryFor(typeIdentification).build(),
                 null,
@@ -1155,10 +1155,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
                 ACCOUNT_DEFAULT,
                 task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestedMappings = smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                statistics, null, null, null, task, result);
+                statistics, match, null, null, null, task, result);
 
         then("suggestion is correct");
         displayValueAsXml("suggested mappings", suggestedMappings);
@@ -1224,10 +1228,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
                 GENERIC_ORGANIZATIONAL_UNIT,
                 task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 GENERIC_ORGANIZATIONAL_UNIT,
-                statisticsForOrg, null, null, null, task, result);
+                statisticsForOrg, match, null, null, null, task, result);
 
         then("the number of attributes in the request is appropriate");
         var request = (SiMatchSchemaRequestType) mockClient.getLastRequest();
@@ -1260,10 +1268,18 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var result = task.getResult();
 
         when("suggesting correlation rules");
+        var statistics = computeStatistics(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
+                ACCOUNT_DEFAULT,
+                task, result);
+        var match = smartIntegrationService.computeSchemaMatch(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                ACCOUNT_DEFAULT,
+                task, result);
         var suggestedCorrelations = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                null, task, result);
+                statistics, match, null, task, result);
 
         then("suggestions are correct");
         displayValueAsXml("suggested correlations", suggestedCorrelations);

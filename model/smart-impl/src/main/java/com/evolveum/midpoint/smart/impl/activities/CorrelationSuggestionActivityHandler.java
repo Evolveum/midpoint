@@ -1,58 +1,45 @@
-/*
- * Copyright (c) 2020 Evolveum and contributors
- *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
- */
 package com.evolveum.midpoint.smart.impl.activities;
 
-import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionInfo;
+import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
-import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+import java.util.ArrayList;
 
 @Component
 public class CorrelationSuggestionActivityHandler
-        extends ModelActivityHandler<CorrelationSuggestionActivityHandler.MyWorkDefinition, CorrelationSuggestionActivityHandler> {
+        extends ModelActivityHandler<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CorrelationSuggestionActivityHandler.class);
-
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+    private static final String ID_CORRELATION_STATISTICS_COMPUTATION = "correlationStatisticsComputation";
+    private static final String ID_CORRELATION_SUGGESTION = "correlationSuggestion";
+    private static final String ID_CORRELATION_SCHEMA_MATCHING = "schemaMatching";
 
     @PostConstruct
     public void register() {
         handlerRegistry.register(
                 CorrelationSuggestionWorkDefinitionType.COMPLEX_TYPE,
                 WorkDefinitionsType.F_CORRELATION_SUGGESTION,
-                MyWorkDefinition.class,
-                MyWorkDefinition::new,
+                CorrelationSuggestionWorkDefinition.class,
+                CorrelationSuggestionWorkDefinition::new,
                 this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                CorrelationSuggestionWorkDefinitionType.COMPLEX_TYPE, MyWorkDefinition.class);
+                CorrelationSuggestionWorkDefinitionType.COMPLEX_TYPE, CorrelationSuggestionWorkDefinition.class);
     }
 
     @Override
@@ -61,10 +48,38 @@ public class CorrelationSuggestionActivityHandler
     }
 
     @Override
-    public AbstractActivityRun<MyWorkDefinition, CorrelationSuggestionActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<MyWorkDefinition, CorrelationSuggestionActivityHandler> context,
+    public AbstractActivityRun<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> context,
             @NotNull OperationResult result) {
-        return new MyActivityRun(context);
+        return new CompositeActivityRun<>(context);
+    }
+
+    @Override
+    public ArrayList<Activity<?, ?>> createChildActivities(
+            Activity<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> parentActivity) {
+        var children = new ArrayList<Activity<?, ?>>();
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().cloneWithoutId(),
+                (context, result) -> new CorrelationStatisticsComputationActivityRun(context, "Statistics computation"),
+                null,
+                (i) -> ID_CORRELATION_STATISTICS_COMPUTATION,
+                ActivityStateDefinition.normal(),
+                parentActivity));
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().cloneWithoutId(),
+                (context, result) -> new CorrelationSchemaMatchingActivityRun(context),
+                null,
+                (i) -> ID_CORRELATION_SCHEMA_MATCHING,
+                ActivityStateDefinition.normal(),
+                parentActivity));
+        children.add(EmbeddedActivity.create(
+                parentActivity.getDefinition().cloneWithoutId(),
+                (context, result) -> new CorrelationSuggestionRemoteServiceCallActivityRun(context),
+                null,
+                (i) -> ID_CORRELATION_SUGGESTION,
+                ActivityStateDefinition.normal(),
+                parentActivity));
+        return children;
     }
 
     @Override
@@ -72,44 +87,4 @@ public class CorrelationSuggestionActivityHandler
         return "correlation-suggestion";
     }
 
-    @Override
-    public String getDefaultArchetypeOid() {
-        return ARCHETYPE_OID;
-    }
-
-    public static class MyWorkDefinition extends ObjectTypeRelatedSuggestionWorkDefinition {
-        MyWorkDefinition(WorkDefinitionInfo workDefinitionType) throws ConfigurationException {
-            super(workDefinitionType);
-        }
-    }
-
-    static class MyActivityRun
-            extends LocalActivityRun<
-            MyWorkDefinition,
-            CorrelationSuggestionActivityHandler,
-            CorrelationSuggestionWorkStateType> {
-
-        MyActivityRun(
-                ActivityRunInstantiationContext<MyWorkDefinition, CorrelationSuggestionActivityHandler> context) {
-            super(context);
-            setInstanceReady();
-        }
-
-        @Override
-        protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
-            var task = getRunningTask();
-            var resourceOid = getWorkDefinition().getResourceOid();
-            var typeIdentification = getWorkDefinition().getTypeIdentification();
-
-            var suggestedCorrelations = SmartIntegrationBeans.get().smartIntegrationService.suggestCorrelation(
-                    resourceOid, typeIdentification, null, task, result);
-
-            var state = getActivityState();
-            state.setWorkStateItemRealValues(CorrelationSuggestionWorkStateType.F_RESULT, suggestedCorrelations);
-            state.flushPendingTaskModifications(result);
-            LOGGER.debug("Suggestions written to the work state:\n{}", suggestedCorrelations.debugDump(1));
-
-            return ActivityRunResult.success();
-        }
-    }
 }

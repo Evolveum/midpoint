@@ -7,26 +7,25 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 
-public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivityRun<
-        MappingsSuggestionWorkDefinition,
-        MappingsSuggestionActivityHandler,
-        MappingsSuggestionWorkStateType> {
+public class CorrelationSuggestionRemoteServiceCallActivityRun extends LocalActivityRun<
+        CorrelationSuggestionWorkDefinition,
+        CorrelationSuggestionActivityHandler,
+        CorrelationSuggestionWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionRemoteServiceCallActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationSuggestionRemoteServiceCallActivityRun.class);
 
-    protected MappingsSuggestionRemoteServiceCallActivityRun(@NotNull ActivityRunInstantiationContext<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> context) {
+    protected CorrelationSuggestionRemoteServiceCallActivityRun(@NotNull ActivityRunInstantiationContext<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> context) {
         super(context);
         setInstanceReady();
     }
@@ -41,13 +40,13 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var typeDef = getWorkDefinition().getTypeIdentification();
         var state = getActivityState();
         var statisticsOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
-                MappingsSuggestionWorkStateType.F_STATISTICS_REF)),
+                        CorrelationSuggestionWorkStateType.F_STATISTICS_REF)),
                 "Statistics object reference is not set in the work state in %s", task);
         var schemaMatchOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
-                        MappingsSuggestionWorkStateType.F_SCHEMA_MATCH_REF)),
+                        CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH_REF)),
                 "Schema match object reference is not set in the work state in %s", task);
 
-        LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}; statistics in: {}; schema match in: {}",
+        LOGGER.debug("Going to suggest correlation for resource {}, kind {} and intent {}; statistics in: {}; schema match in: {}",
                 resourceOid, kind, intent, statisticsOid, schemaMatchOid);
 
         var statistics = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(
@@ -55,12 +54,12 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var schemaMatch = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeSchemaMatchRequired(
                 getBeans().repositoryService.getObject(GenericObjectType.class, schemaMatchOid, null, result));
 
-        var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, typeDef, statistics, schemaMatch, null, null, state, task, result);
+        var suggestedCorrelation = SmartIntegrationBeans.get().smartIntegrationService.suggestCorrelation(
+                resourceOid, typeDef, statistics, schemaMatch, null, task, result);
 
-        parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
+        parentState.setWorkStateItemRealValues(CorrelationSuggestionWorkStateType.F_RESULT, suggestedCorrelation);
         parentState.flushPendingTaskModifications(result);
-        LOGGER.debug("Suggestions written to the work state:\n{}", suggestedMappings.debugDump(1));
+        LOGGER.debug("Suggestions written to the work state:\n{}", suggestedCorrelation.debugDump(1));
 
         return ActivityRunResult.success();
     }

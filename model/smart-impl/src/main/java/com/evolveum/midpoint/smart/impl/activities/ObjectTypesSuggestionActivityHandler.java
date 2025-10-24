@@ -68,21 +68,21 @@ public class ObjectTypesSuggestionActivityHandler
         var children = new ArrayList<Activity<?, ?>>();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
-                (context, result) -> new StatisticsComputationActivityRun(context, "Statistics computation"),
+                (context, result) -> new ObjectTypesStatisticsComputationActivityRun(context, "Statistics computation"),
                 null,
                 (i) -> ID_STATISTICS_COMPUTATION,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
-                (context, result) -> new RemoteServiceCallActivityRun(context),
+                (context, result) -> new ObjectTypesSuggestionRemoteServiceCallActivityRun(context),
                 null,
                 (i) -> ID_OBJECT_TYPES_SUGGESTION,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
-                (context, result) -> new RemoteServiceCallFocusTypeActivityRun(context),
+                (context, result) -> new ObjectTypesSuggestFocusTypesActivityRun(context),
                 null,
                 (i) -> ID_FOCUS_TYPE_SUGGESTION,
                 ActivityStateDefinition.normal(),

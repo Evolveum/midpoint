@@ -31,7 +31,7 @@ import javax.xml.namespace.QName;
  * Does not need to care about the timestamp and the coverage.
  */
 @VisibleForTesting
-public class StatisticsComputer {
+public class ObjectClassStatisticsComputer {
 
     /**
      * Maximum number of value occurrences to be retained per attribute.
@@ -125,7 +125,7 @@ public class StatisticsComputer {
      * <p>
      * @param objectClassDef Resource object class definition.
      */
-    public StatisticsComputer(ResourceObjectClassDefinition objectClassDef) {
+    public ObjectClassStatisticsComputer(ResourceObjectClassDefinition objectClassDef) {
         List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions = objectClassDef.getAttributeDefinitions();
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
             createAttributeStatisticsIfNeeded(attrDef.getItemName());

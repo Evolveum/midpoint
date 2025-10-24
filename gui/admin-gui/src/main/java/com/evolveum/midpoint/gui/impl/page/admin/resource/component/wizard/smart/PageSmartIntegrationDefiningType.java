@@ -129,7 +129,7 @@ public class PageSmartIntegrationDefiningType extends PageAdminConfiguration {
                         .runVoid((task, result) -> {
                             saveResourceToRepositoryAndReload(task, result);
                             var suggestion = getSmartIntegrationService().suggestCorrelation(
-                                    getResourceOid(), typeIdentification, null,
+                                    getResourceOid(), typeIdentification, null, null, null,
                                     task, result);
                             updateSuggestionXmlModel(suggestion);
                             target.add(PageSmartIntegrationDefiningType.this);
@@ -146,7 +146,7 @@ public class PageSmartIntegrationDefiningType extends PageAdminConfiguration {
                             MappingsSuggestionType suggestion;
                             try {
                                 suggestion = getSmartIntegrationService().suggestMappings(
-                                        getResourceOid(), typeIdentification, null, null, null, null,
+                                        getResourceOid(), typeIdentification, null, null, null, null, null,
                                         task, result);
                             } catch (ActivityInterruptedException e) {
                                 throw new SystemException(e); // This is temporary code anyway; the call should execute asynchronously.

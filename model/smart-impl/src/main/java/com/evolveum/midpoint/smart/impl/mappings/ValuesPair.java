@@ -9,16 +9,15 @@ import com.evolveum.midpoint.smart.impl.DescriptiveItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
-
     public SiSuggestMappingExampleType toSiExample(
-            DescriptiveItemPath applicationAttrNameBean, DescriptiveItemPath midPointPropertyNameBean) {
+            String applicationAttrDescriptivePath, String midPointPropertyDescriptivePath) {
         return new SiSuggestMappingExampleType()
-                .application(toSiAttributeExample(applicationAttrNameBean, shadowValues))
-                .midPoint(toSiAttributeExample(midPointPropertyNameBean, focusValues));
+                .application(toSiAttributeExample(applicationAttrDescriptivePath, shadowValues))
+                .midPoint(toSiAttributeExample(midPointPropertyDescriptivePath, focusValues));
     }
 
-    private @NotNull SiAttributeExampleType toSiAttributeExample(DescriptiveItemPath path, Collection<?> values) {
-        var example = new SiAttributeExampleType().name(path.asString());
+    private @NotNull SiAttributeExampleType toSiAttributeExample(String path, Collection<?> values) {
+        var example = new SiAttributeExampleType().name(path);
         example.getValue().addAll(stringify(values));
         return example;
     }
@@ -29,5 +28,4 @@ public record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) 
                 .map(Object::toString)
                 .toList();
     }
-
 }
