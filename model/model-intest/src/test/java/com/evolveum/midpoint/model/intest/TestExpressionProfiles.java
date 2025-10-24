@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -130,6 +130,14 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "role-restricted-bad-inducement-target-filter.xml", "bae5a90d-87c0-44f8-a585-0ea11e42ee9a");
     private static final TestObject<RoleType> ROLE_NO_ELEVATION_ASSIGNMENT_TARGET_SEARCH_FILTER = TestObject.file(
             TEST_DIR, "role-no-elevation-assignment-target-search-filter.xml", "69d783c8-8b59-4b2f-988f-db6097b828c2");
+    private static final TestObject<RoleType> ROLE_SAFE_AUTO_GOOD = TestObject.file(
+            TEST_DIR, "role-safe-auto-good.xml", "9296ee02-b011-11f0-a82e-270fe586cfa4");
+    private static final TestObject<RoleType> ROLE_SAFE_AUTO_GOOD_PATH = TestObject.file(
+            TEST_DIR, "role-safe-auto-good-path.xml", "0eb28c12-b0d0-11f0-80ac-933cebd439a5");
+    private static final TestObject<RoleType> ROLE_SAFE_AUTO_BAD_GROOVY = TestObject.file(
+            TEST_DIR, "role-safe-auto-bad-groovy.xml", "19dd7966-b013-11f0-8b8b-470dc5f10d86");
+    private static final TestObject<RoleType> ROLE_SAFE_AUTO_BAD_GROOVY_IN_FILTER = TestObject.file(
+            TEST_DIR, "role-safe-auto-bad-groovy-in-filter.xml", "189fa17c-b014-11f0-bda9-770dec5699c7");
     private static final TestObject<RoleType> ROLE_SAFE_GOOD = TestObject.file(
             TEST_DIR, "role-safe-good.xml", "b14670c8-b009-11f0-b4a4-4bed7dcbb685");
     private static final TestObject<RoleType> ROLE_SAFE_BAD_GROOVY = TestObject.file(
@@ -226,6 +234,71 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         BOOMED_FLAG.assertNotSet();
     }
 
+    /** "Correct" safe auto-assigned role is used. */
+    @Test
+    public void test102SafeRoleAutoGood() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        resetBoomed();
+
+        given("auto-assigned role is imported");
+        ROLE_SAFE_AUTO_GOOD.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name(getTestNameShort())
+                    .costCenter("safe");
+            var userOid = addObject(user.asPrismObject(), task, result);
+
+            then("user is created");
+            assertSuccess(result);
+            assertUserAfter(userOid)
+                    .assignments()
+                    .single()
+                    .assertRole(ROLE_SAFE_AUTO_GOOD.oid);
+        } finally {
+            deleteObject(RoleType.class, ROLE_SAFE_AUTO_GOOD.oid);
+        }
+
+        // only by mistake, as the role does not involve such a call
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /** "Correct" safe auto-assigned role is used. */
+    @Test
+    public void test104SafeRoleAutoGoodPath() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        resetBoomed();
+
+        given("auto-assigned role is imported");
+        ROLE_SAFE_AUTO_GOOD_PATH.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name(getTestNameShort())
+                    .organization("safe")
+                    .costCenter("safe");
+            var userOid = addObject(user.asPrismObject(), task, result);
+
+            then("user is created");
+            assertSuccess(result);
+            assertUserAfter(userOid)
+                    .assignments()
+                        .single()
+                            .assertRole(ROLE_SAFE_AUTO_GOOD_PATH.oid);
+        } finally {
+            deleteObject(RoleType.class, ROLE_SAFE_AUTO_GOOD_PATH.oid);
+        }
+
+        // only by mistake, as the role does not involve such a call
+        BOOMED_FLAG.assertNotSet();
+    }
+
     /** This checks that expressions inside filters are not supported - hence, safe. :) */
     @Test
     public void test110RestrictedRoleAutoExpressionInsideFilter() throws Exception {
@@ -252,6 +325,12 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         }
 
         BOOMED_FLAG.assertNotSet();
+    }
+
+    /** This checks that expressions inside filters are not supported - hence, safe. :) */
+    @Test
+    public void test112SafeRoleAutoGroovyInFilter() throws Exception {
+        runNegativeSafeRoleAutoassignmentTest(ROLE_SAFE_AUTO_BAD_GROOVY_IN_FILTER, "Access to script expression evaluator not allowed");
     }
 
     /** Non-compliant script in mapping expression. */
@@ -291,6 +370,43 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             }
         } finally {
             deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_BAD_MAPPING_EXPRESSION.oid);
+        }
+
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /** Non-compliant groovy script in mapping expression. */
+    @Test
+    public void test122SafeRoleAutoBadGroovy() throws Exception {
+        runNegativeSafeRoleAutoassignmentTest(ROLE_SAFE_AUTO_BAD_GROOVY, "Access to script expression evaluator not allowed");
+    }
+
+    private void runNegativeSafeRoleAutoassignmentTest(
+            @NotNull TestObject<RoleType> role, @NotNull String expectedMessage)
+            throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        resetBoomed();
+
+        given("auto-assigned role is imported");
+        role.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name(getTestNameShort())
+                    .costCenter("safe");
+            try {
+                addObject(user.asPrismObject(), task, result);
+                fail("unexpected success");
+            } catch (SecurityViolationException e) {
+                assertExpectedException(e)
+                        .hasMessageContaining(expectedMessage);
+                assertFailure(result);
+            }
+        } finally {
+            deleteObject(RoleType.class, role.oid);
         }
 
         BOOMED_FLAG.assertNotSet();

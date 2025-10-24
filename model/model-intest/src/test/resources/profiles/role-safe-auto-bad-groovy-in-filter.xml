@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="189fa17c-b014-11f0-bda9-770dec5699c7">
+    <name>safe-auto-bad-groovy-in-filter</name>
+    <documentation>
+        Auto-assigned role that contains groovy script inside a filter expression. Groovy is not allowed by `safe` expression profile.
+    </documentation>
+    <assignment>
+        <targetRef oid="2a68ff58-b009-11f0-9b5e-236da66bcdb4" type="ArchetypeType"/>
+    </assignment>
+    <autoassign>
+        <enabled>true</enabled>
+        <focus>
+            <mapping id="333">
+                <name>cost-center-safe-bad-groovy-in-filter</name>
+                <condition>
+                    <filter>
+                        <filter>
+                            <q:text>costCenter = `'safe'`</q:text>
+                        </filter>
+                    </filter>
+                </condition>
+            </mapping>
+            <selector>
+                <type>UserType</type>
+            </selector>
+        </focus>
+    </autoassign>
+</role>

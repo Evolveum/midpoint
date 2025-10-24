@@ -15,8 +15,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.Source;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 
 import com.evolveum.midpoint.prism.*;
@@ -38,13 +38,15 @@ class FilterExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<
 
     List<V> evaluate(OperationResult result) throws ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-
+        var eeCtx = vtCtx.getExpressionEvaluationContext();
         PrismObject<?> object = determineObject();
         boolean match = false;
         if (object != null) {
             ObjectFilter objectFilter = PrismContext.get().getQueryConverter().parseFilter(evaluator.getExpressionEvaluatorBean().getFilter(), object.getDefinition());
-            // TODO: call repository instead?
-            match = objectFilter.match(object.getValue(), PrismContext.get().getMatchingRuleRegistry());
+            ObjectFilter evaluatedObjectFilter = ExpressionUtil.evaluateFilterExpressions(
+                    objectFilter, eeCtx.getVariables(), eeCtx.getExpressionProfile(), eeCtx.getExpressionFactory(),
+                    vtCtx.getContextDescription(), eeCtx.getTask(), result);
+            match = evaluatedObjectFilter.match(object.getValue(), PrismContext.get().getMatchingRuleRegistry());
         }
         return prepareOutput(match);
     }
