@@ -9,10 +9,7 @@ package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPING;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -216,16 +213,13 @@ class MappingsSuggestionOperation {
             expression = null;
         } else {
             LOGGER.trace(" -> going to ask LLM about mapping script");
-            var transformationScript = askMicroservice(matchPair, valuesPairs);
-            if (transformationScript == null || transformationScript.equals("input")) {
-                LOGGER.trace(" -> LLM returned '{}', using 'asIs'", transformationScript);
-                expression = null;
-            } else {
-                LOGGER.trace(" -> LLM returned a script, using it:\n{}", transformationScript);
-                expression = new ExpressionType()
-                        .expressionEvaluator(
-                                new ObjectFactory().createScript(
-                                        new ScriptExpressionEvaluatorType().code(transformationScript)));
+            var transformationScript = askMicroservice(matchPair, valuesPairs, "null");
+            expression = buildScriptExpression(transformationScript);
+            var quality = this.qualityAssessor.assessMappingsQuality(valuesPairs, expression, this.ctx.task, parentResult);
+            if (quality == -1.0) {
+                String errorLog = findEvaluateExpressionError(parentResult);
+                transformationScript = askMicroservice(matchPair, valuesPairs, errorLog);
+                expression = buildScriptExpression(transformationScript);
             }
         }
 
@@ -248,13 +242,25 @@ class MappingsSuggestionOperation {
         return suggestion;
     }
 
+    private ExpressionType buildScriptExpression(String script) {
+        if (script == null || "input".equals(script)) {
+            return null;
+        }
+        return new ExpressionType()
+                .expressionEvaluator(
+                        new ObjectFactory().createScript(
+                                new ScriptExpressionEvaluatorType().code(script)));
+    }
+
     private String askMicroservice(
             SchemaMatchOneResultType matchPair,
-            Collection<ValuesPair> valuesPairs) throws SchemaException {
+            Collection<ValuesPair> valuesPairs,
+            @Nullable String errorLog) throws SchemaException {
         var siRequest = new SiSuggestMappingRequestType()
                 .applicationAttribute(matchPair.getShadowAttribute())
                 .midPointAttribute(matchPair.getFocusProperty())
-                .inbound(true);
+                .inbound(true)
+                .errorLog(errorLog);
         valuesPairs.forEach(pair ->
                 siRequest.getExample().add(
                         pair.toSiExample(
@@ -300,5 +306,30 @@ class MappingsSuggestionOperation {
     /** Returns {@code true} if there are no target data altogether. */
     private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs) {
         return valuesPairs.stream().allMatch(pair -> pair.focusValues().isEmpty());
+    }
+
+    private static String findEvaluateExpressionError(OperationResult result) {
+        if (result == null) {
+            return null;
+        }
+        // Depth-first search for the last subresult named "evaluateSuggestedExpression" with PARTIAL_ERROR
+        OperationResult found = null;
+
+        Deque<OperationResult> stack = new ArrayDeque<>();
+        stack.push(result);
+        while (!stack.isEmpty()) {
+            OperationResult current = stack.pop();
+            if ("evaluateSuggestedExpression".equals(current.getOperation()) && current.isPartialError()) {
+                found = current; // keep last seen
+            }
+            // push children
+            var subs = current.getSubresults();
+            if (subs != null) {
+                for (int i = subs.size() - 1; i >= 0; i--) {
+                    stack.push(subs.get(i));
+                }
+            }
+        }
+        return found.getMessage();
     }
 }

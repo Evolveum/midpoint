@@ -102,7 +102,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null, task, result);
     }
 
-    private ServiceClient createClient(List<ItemPath> focusPaths, List<ItemPath> shadowPaths, String script) {
+    private ServiceClient createClient(List<ItemPath> focusPaths, List<ItemPath> shadowPaths, String... scripts) {
         SiMatchSchemaResponseType matchResponse = new SiMatchSchemaResponseType();
         for (int i = 0; i < focusPaths.size(); i++) {
             matchResponse.attributeMatch(
@@ -111,10 +111,18 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                             .midPointAttribute(asStringSimple(focusPaths.get(i)))
             );
         }
-        return new MockServiceClientImpl(
-                matchResponse,
-                new SiSuggestMappingResponseType().transformationScript(script)
-        );
+
+        // Build responses: first schema match, then one suggest-mapping response per provided script
+        if (scripts == null || scripts.length == 0) {
+            return new MockServiceClientImpl(matchResponse);
+        } else {
+            Object[] responses = new Object[1 + scripts.length];
+            responses[0] = matchResponse;
+            for (int i = 0; i < scripts.length; i++) {
+                responses[i + 1] = new SiSuggestMappingResponseType().transformationScript(scripts[i]);
+            }
+            return new MockServiceClientImpl(responses);
+        }
     }
 
     private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
@@ -241,6 +249,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var mockClient = createClient(
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
                 List.of(PERSONAL_NUMBER.path()),
+                invalidScript,
                 invalidScript
         );
 

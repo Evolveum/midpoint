@@ -54,8 +54,9 @@ public class MappingsQualityAssessor {
      * @param suggestedExpression Optional expression (i.e. Groovy script) to transform the focus value
      *                            before comparison. If {@code null}, raw focus values are used.
      *
-     * @return Quality in the range {@code [0.0, 1.0]} rounded to two decimals; returns {@code -1.0f}
-     *         if no comparable samples were found or if expression evaluation failed.
+     * @return Quality in the range {@code [0.0, 1.0]} rounded to two decimals;
+     *         returns {@code -1.0f} if expression evaluation failed.
+     *         returns {@code -2.0f} if no comparable samples were found.
      *
      */
     public float assessMappingsQuality(
@@ -97,7 +98,7 @@ public class MappingsQualityAssessor {
         }
 
         if (totalShadowValues == 0) {
-            return -1.0f;
+            return -2.0f;
         }
         final float quality = (float) matchedShadowValues / totalShadowValues;
         return Math.round(quality * 100.0f) / 100.0f;
