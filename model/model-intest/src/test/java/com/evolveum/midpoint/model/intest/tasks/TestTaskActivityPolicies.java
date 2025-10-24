@@ -45,7 +45,7 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
     private static final TestObject<TaskType> TASK_NON_ITERATIVE_RESTART =
             TestObject.file(TEST_DIR, "task-non-iterative-restart.xml", "d5c0d175-ebda-4506-821d-6205eeae85cf");
 
-    private static final TestObject<TaskType> TASK_EXECUTION_TIME_NOTIFICAITON =
+    private static final TestObject<TaskType> TASK_EXECUTION_TIME_NOTIFICATION =
             TestObject.file(TEST_DIR, "task-execution-time-notification.xml", "38d0f53c-5e01-44dc-8d6a-439e0153b4d8");
 
     private static final TestObject<TaskType> TASK_SKIP_RESTART =
@@ -233,7 +233,7 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                         15000,
                         true,
                         300,
-                        builder -> builder.taskConsumer(t -> {
+                        checkerBuilder -> checkerBuilder.taskConsumer(t -> {
                             if (t.isRunning() || t.isClosed()) {
                                 return;
                             }
@@ -246,14 +246,16 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
 
                             // asserting that during activity restarts, task runs are cleared,
                             // otherwise activity execution time measurement would be wrong
-                            TaskAsserter<Void> ta = assertTask(t, "during run");
                             // @formatter:off
-                            ta.assertExecutionState(TaskExecutionStateType.RUNNABLE)
-                                .activityState(ActivityPath.empty())
-                                .assertRestarting(false)
-                                .assertInProgressLocal()
-                                .itemProcessingStatistics()
-                                    .assertRuns(1);
+                            assertTask(t, "during run")
+                                    .displayXml()
+                                    .asTask()
+                                    .assertExecutionState(TaskExecutionStateType.RUNNABLE)
+                                    .activityState(ActivityPath.empty())
+                                        .assertRestarting(false)
+                                        .assertInProgressLocal()
+                                        .itemProcessingStatistics()
+                                            .assertRuns(1); // After a restart, runs should be cleared
                             // @formatter:on
                         })));
 
@@ -265,7 +267,10 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                     .assertSuccess()
                     .assertExecutionAttempts(3)
                     .progress()
-                        .assertSuccessCount(0, 6);
+                        .assertSuccessCount(0, 6)
+                    .end()
+                    .itemProcessingStatistics()
+                        .assertRuns(1);
         // @formatter:on
     }
 
@@ -346,6 +351,8 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
 
         // @formatter:off
         assertTaskTree(object.oid, "after")
+                .displayXml()
+                .asTask()
                 .assertSuspended()
                 .assertFatalError()
                 .assertTaskRunHistorySize(1)
@@ -375,7 +382,7 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         Task testTask = getTestTask();
         OperationResult testResult = testTask.getResult();
 
-        TestObject<TaskType> object = TASK_EXECUTION_TIME_NOTIFICAITON;
+        TestObject<TaskType> object = TASK_EXECUTION_TIME_NOTIFICATION;
         object.reset();
 
         when();

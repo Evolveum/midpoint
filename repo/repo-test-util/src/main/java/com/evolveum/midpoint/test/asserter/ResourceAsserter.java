@@ -130,13 +130,13 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> 
     }
 
     @Override
-    public ResourceAsserter<RA> displayXml() throws SchemaException {
+    public ResourceAsserter<RA> displayXml() {
         super.displayXml();
         return this;
     }
 
     @Override
-    public ResourceAsserter<RA> displayXml(String message) throws SchemaException {
+    public ResourceAsserter<RA> displayXml(String message) {
         super.displayXml(message);
         return this;
     }

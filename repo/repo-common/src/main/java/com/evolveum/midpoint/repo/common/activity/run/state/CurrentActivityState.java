@@ -11,13 +11,14 @@ import static com.evolveum.midpoint.repo.common.activity.run.reports.BucketsRepo
 import static com.evolveum.midpoint.repo.common.activity.run.reports.BucketsReport.Kind.EXECUTION;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.COMPLETE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.SKIPPED;
 
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -127,7 +128,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
             // We consider all such exceptions permanent. There's basically nothing that could resolve "by itself".
             throw new ActivityRunException("Couldn't initialize activity state for " + getActivity() + ": " + e.getMessage(),
-                    FATAL_ERROR, PERMANENT_ERROR, e);
+                    FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR, e);
         }
     }
 
@@ -245,6 +246,8 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
             flush = true;
         }
 
+        // This code could be removed, as the default value of executionAttempt is 1. Unless we want it to be indexed by DB,
+        // or unless we want to be explicit about it.
         if (getPropertyRealValue(ActivityStateType.F_EXECUTION_ATTEMPT, Integer.class) == null) {
             setItemRealValues(ActivityStateType.F_EXECUTION_ATTEMPT, 1);
             flush = true;

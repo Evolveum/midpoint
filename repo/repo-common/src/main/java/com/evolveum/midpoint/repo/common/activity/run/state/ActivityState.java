@@ -9,12 +9,13 @@ package com.evolveum.midpoint.repo.common.activity.run.state;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.isLocal;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -309,7 +310,7 @@ public abstract class ActivityState implements DebugDumpable {
         try {
             runnable.run();
         } catch (CommonException e) {
-            throw new ActivityRunException(message, FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException(message, FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR, e);
         }
     }
 
@@ -600,9 +601,14 @@ public abstract class ActivityState implements DebugDumpable {
     }
     //endregion
 
-    public Integer getExecutionAttempt() {
-        return getTask().getPropertyRealValue(
+    public int getExecutionAttempt() {
+        var rawValue = getTask().getPropertyRealValue(
                 stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT), Integer.class);
+        int value = Objects.requireNonNullElse(rawValue, 1);
+        if (value <= 0) {
+            throw new IllegalStateException("Execution attempt must be greater than 0, but was: " + value);
+        }
+        return value;
     }
 
     // todo make it cleaner, move to custom operation class together with preparation/store
@@ -614,36 +620,28 @@ public abstract class ActivityState implements DebugDumpable {
     }
 
     private @NotNull Collection<? extends ItemDelta<?, ?>> initializeAfterRestart(TaskType task) throws SchemaException {
+
+        List<ItemDelta<?, ?>> deltas = new ArrayList<>(
+                PrismContext.get().deltaFor(TaskType.class)
+                        .item(stateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_RESTARTING)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
+                        .asItemDeltas());
+
         ActivityRestartingStateType state = getRestartingState();
-
-        List<ItemDelta<?, ?>> deltas = new ArrayList<>();
-
-        deltas.addAll(PrismContext.get().deltaFor(TaskType.class)
-                .item(stateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
-                .item(stateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
-                .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
-                .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
-                .item(stateItemPath.append(ActivityStateType.F_RESTARTING)).replace()
-                .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
-                .asItemDeltas());
-
         if (BooleanUtils.isTrue(state.isRestartCounters())) {
             deltas.add(PrismContext.get().deltaFor(TaskType.class)
                     .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
                     .asItemDelta());
         }
 
-        Integer executionAttempt = task.asPrismObject().getPropertyRealValue(
-                stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT), Integer.class);
-        if (executionAttempt == null) {
-            executionAttempt = 0;
-        }
-        executionAttempt++;
-
-        LOGGER.debug("Incrementing execution attempt to {} for {}", executionAttempt, getActivityPath());
-
+        int newExecutionAttempt = getExecutionAttempt() + 1;
+        LOGGER.debug("Incrementing execution attempt to {} for {}", newExecutionAttempt, getActivityPath());
         deltas.add(PrismContext.get().deltaFor(TaskType.class)
-                .item(stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT)).replace(executionAttempt)
+                .item(stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT)).replace(newExecutionAttempt)
                 .asItemDelta());
 
         return deltas;

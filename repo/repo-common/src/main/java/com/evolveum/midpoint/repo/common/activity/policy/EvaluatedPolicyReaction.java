@@ -20,13 +20,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class EvaluatedPolicyReaction implements DebugDumpable {
 
-    private @NotNull EvaluatedActivityPolicyRule rule;
+    private final @NotNull EvaluatedActivityPolicyRule rule;
 
-    private @NotNull PolicyReactionType reaction;
+    private final @NotNull PolicyReactionType reaction;
 
     private boolean enforced;
 
-    public EvaluatedPolicyReaction(@NotNull EvaluatedActivityPolicyRule rule, @NotNull PolicyReactionType reaction) {
+    EvaluatedPolicyReaction(@NotNull EvaluatedActivityPolicyRule rule, @NotNull PolicyReactionType reaction) {
         this.rule = rule;
         this.reaction = reaction;
     }
@@ -39,11 +39,11 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
         return rule;
     }
 
-    public boolean hasThreshold() {
+    boolean hasThreshold() {
         return reaction.getThreshold() != null;
     }
 
-    public boolean isWithinThreshold() {
+    boolean isWithinThreshold() {
         PolicyThresholdType threshold = reaction.getThreshold();
         if (threshold == null) {
             return true;
@@ -115,7 +115,7 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
                 '}';
     }
 
-    public EvaluatedActivityPolicyReactionType toPolicyReactionType() {
+    EvaluatedActivityPolicyReactionType toPolicyReactionBean() {
         EvaluatedActivityPolicyReactionType r = new EvaluatedActivityPolicyReactionType();
         r.setRef(getReactionIdentifier());
         r.setReactionName(reaction.getName());

@@ -35,7 +35,7 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
         updateRuleThresholdTypeAndValue(context.getRule(), constraint, value);
 
         if (value == null) {
-            if (shouldTriggerOnNullValue(value)) {
+            if (shouldTriggerOnNullValue()) {
                 LOGGER.trace("Triggering on empty value for constraint {}", constraint.getName());
 
                 LocalizableMessage message = createEmptyMessage(null);
@@ -85,7 +85,7 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
     protected void updateRuleThresholdTypeAndValue(EvaluatedPolicyRule rule, C constraint, Integer value) {
     }
 
-    protected boolean shouldTriggerOnNullValue(Integer value) {
+    protected boolean shouldTriggerOnNullValue() {
         return false;
     }
 

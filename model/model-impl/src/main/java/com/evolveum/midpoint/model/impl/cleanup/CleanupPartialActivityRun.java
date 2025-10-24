@@ -20,8 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.*;
 
 /**
  * Activity execution for an elementary cleanup part.
@@ -83,7 +82,7 @@ public final class CleanupPartialActivityRun<CP>
                 getRunningTask().setExecutionSupport(null);
             }
         } else {
-            LOGGER.trace(part.label + ": No clean up policy for this kind of items present.");
+            LOGGER.trace("{}: No clean up policy for this kind of items present.", part.label);
         }
         return standardRunResult();
     }

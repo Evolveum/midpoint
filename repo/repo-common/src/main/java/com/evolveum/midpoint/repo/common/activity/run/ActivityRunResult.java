@@ -6,8 +6,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.*;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
+
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
+import com.evolveum.midpoint.repo.common.activity.PolicyViolationContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
@@ -16,13 +20,12 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySimplifiedRealizationStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+
+import java.util.Objects;
 
 /**
  * Result of an run of an activity.
@@ -31,11 +34,13 @@ public class ActivityRunResult implements ShortDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityRunResult.class);
 
+    private static final long DEFAULT_RESTART_DELAY = 5000;
+
     /** Final operation result status to be reported and recorded. */
     private OperationResultStatus operationResultStatus;
 
-    /** Indicates what to do with the task - what kind of error or exception situation has been occurred. */
-    private TaskRunResultStatus runResultStatus;
+    /** Indicates what to do with the activity and/or the task - what kind of error or exception situation has been occurred. */
+    private ActivityRunResultStatus runResultStatus;
 
     /** The original exception (if any). */
     private Throwable throwable;
@@ -46,13 +51,13 @@ public class ActivityRunResult implements ShortDumpable {
     public ActivityRunResult() {
     }
 
-    public ActivityRunResult(OperationResultStatus operationResultStatus, TaskRunResultStatus runResultStatus) {
+    public ActivityRunResult(OperationResultStatus operationResultStatus, ActivityRunResultStatus runResultStatus) {
         this(operationResultStatus, runResultStatus, null);
     }
 
     public ActivityRunResult(
             OperationResultStatus operationResultStatus,
-            TaskRunResultStatus runResultStatus,
+            ActivityRunResultStatus runResultStatus,
             Throwable throwable) {
         this.operationResultStatus = operationResultStatus;
         this.runResultStatus = runResultStatus;
@@ -70,8 +75,7 @@ public class ActivityRunResult implements ShortDumpable {
      */
     static @NotNull ActivityRunResult handleException(@NotNull Exception e, @NotNull OperationResult opResult,
             @NotNull AbstractActivityRun<?, ?, ?> activityRun) {
-        if (e instanceof ActivityRunException) {
-            ActivityRunException aee = (ActivityRunException) e;
+        if (e instanceof ActivityRunException aee) {
             OperationResultStatus status = aee.getOpResultStatus();
             if (status == WARNING) {
                 LOGGER.warn("{}; in {}", e.getMessage(), activityRun.getDiagName());
@@ -94,7 +98,7 @@ public class ActivityRunResult implements ShortDumpable {
     public TaskRunResult createTaskRunResult() {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setRunResultStatus(
-                MoreObjects.firstNonNull(runResultStatus, FINISHED));
+                MoreObjects.firstNonNull(runResultStatus, FINISHED).toTaskRunResultStatus());
         runResult.setOperationResultStatus(operationResultStatus);
         runResult.setThrowable(throwable);
         if (message != null) {
@@ -102,19 +106,38 @@ public class ActivityRunResult implements ShortDumpable {
         } else if (throwable != null) {
             runResult.setMessage(throwable.getMessage());
         }
+        if (runResultStatus == RESTART_ACTIVITY_ERROR) {
+            runResult.setRestartAfter(determineRestartAfter());
+        }
         // progress is intentionally kept null (meaning "do not update it in the task")
         return runResult;
     }
 
-    TaskRunResultStatus getRunResultStatus() {
+    private long determineRestartAfter() {
+        var ctx = PolicyViolationContext.getPolicyViolationContext(throwable);
+        var action = PolicyViolationContext.getPolicyAction(ctx, RestartActivityPolicyActionType.class);
+        if (action == null) {
+            throw new IllegalStateException("Activity requested its restart, but no restart action was found in the exception");
+        }
+
+        long baseDelay = action.getDelay() != null ? action.getDelay() : DEFAULT_RESTART_DELAY;
+        if (baseDelay <= 0) {
+            return 0;
+        } else {
+            int executionAttempt = Objects.requireNonNullElse(ctx.executionAttempt(), 1);
+            return baseDelay * (2 ^ (executionAttempt - 1));
+        }
+    }
+
+    ActivityRunResultStatus getRunResultStatus() {
         return runResultStatus;
     }
 
-    void setRunResultStatus(TaskRunResultStatus runResultStatus) {
+    void setRunResultStatus(ActivityRunResultStatus runResultStatus) {
         this.runResultStatus = runResultStatus;
     }
 
-    void setRunResultStatus(TaskRunResultStatus runResultStatus, Throwable throwable) {
+    void setRunResultStatus(ActivityRunResultStatus runResultStatus, Throwable throwable) {
         this.runResultStatus = runResultStatus;
         this.throwable = throwable;
     }
@@ -156,10 +179,10 @@ public class ActivityRunResult implements ShortDumpable {
     }
 
     public static ActivityRunResult waiting() {
-        return new ActivityRunResult(OperationResultStatus.IN_PROGRESS, IS_WAITING);
+        return new ActivityRunResult(OperationResultStatus.IN_PROGRESS, WAITING);
     }
 
-    public static ActivityRunResult exception(OperationResultStatus opStatus, TaskRunResultStatus runStatus,
+    public static ActivityRunResult exception(OperationResultStatus opStatus, ActivityRunResultStatus runStatus,
             Throwable throwable) {
         return new ActivityRunResult(opStatus, runStatus, throwable);
     }
@@ -199,24 +222,12 @@ public class ActivityRunResult implements ShortDumpable {
                 || runResultStatus == RESTART_ACTIVITY_ERROR;
     }
 
-    boolean isPermanentError() {
-        return runResultStatus == PERMANENT_ERROR;
-    }
-
-    boolean isHaltingError() {
-        return runResultStatus == HALTING_ERROR;
-    }
-
-    boolean isTemporaryError() {
-        return runResultStatus == TEMPORARY_ERROR;
-    }
-
     public boolean isFinished() {
         return runResultStatus == FINISHED;
     }
 
     public boolean isWaiting() {
-        return runResultStatus == IS_WAITING;
+        return runResultStatus == WAITING;
     }
 
     public boolean isInterrupted() {
@@ -244,7 +255,7 @@ public class ActivityRunResult implements ShortDumpable {
      */
     public void close(boolean canRun, OperationResultStatus status) {
         if (runResultStatus == null) {
-            runResultStatus = canRun ? TaskRunResultStatus.FINISHED : TaskRunResultStatus.INTERRUPTED;
+            runResultStatus = canRun ? ActivityRunResultStatus.FINISHED : ActivityRunResultStatus.INTERRUPTED;
         }
         if (operationResultStatus == null) {
             operationResultStatus = status;

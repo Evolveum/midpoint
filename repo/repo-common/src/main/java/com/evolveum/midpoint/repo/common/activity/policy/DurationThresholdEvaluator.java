@@ -13,10 +13,12 @@ import javax.xml.datatype.Duration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WaterMarkType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class DurationThresholdEvaluator implements ThresholdEvaluator {
 
     @Override
-    public boolean evaluate(PolicyThresholdType threshold, Object currentValue) {
+    public boolean evaluate(@NotNull PolicyThresholdType threshold, Object currentValue) {
         Duration currentDuration = getDuration(currentValue);
         if (currentDuration == null) {
             return false; // no duration means, no threshold

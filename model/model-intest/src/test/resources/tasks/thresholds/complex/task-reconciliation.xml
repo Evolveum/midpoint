@@ -29,9 +29,9 @@
                     <executionTime>
                         <exceeds>PT2S</exceeds>
                     </executionTime>
-                    <restartActivity>
-                        <below>2</below>
-                    </restartActivity>
+                    <executionAttempts>
+                        <below>3</below>
+                    </executionAttempts>
                 </policyConstraints>
                 <policyReaction>
                     <action>

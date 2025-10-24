@@ -7,11 +7,12 @@
 package com.evolveum.midpoint.repo.common.activity.run.task;
 
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyProcessorHelper;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.state.LegacyProgressUpdater;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,8 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityTree;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
@@ -30,10 +29,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 /**
- * A run of an activity-based task.
+ * This class groups everything related to an execution (a run) of a task related somehow to an activity.
+ *
+ * It may be a task that executes the activity locally, a task that orchestrates execution of the activity on other nodes,
+ * a task that just delegates to another task, etc.
  */
 public class ActivityBasedTaskRun implements TaskRun {
 
@@ -43,7 +44,15 @@ public class ActivityBasedTaskRun implements TaskRun {
     @NotNull private final ActivityBasedTaskHandler activityBasedTaskHandler;
 
     private ActivityTree activityTree;
+
+    /** Path of {@link #localRootActivity}. */
     private ActivityPath localRootPath;
+
+    /**
+     * The activity that is the local root for this task. I.e. what part of the activity tree is executed within this task.
+     *
+     * @see Activity#localRoot
+     */
     private Activity<?, ?> localRootActivity;
 
     ActivityBasedTaskRun(@NotNull RunningTask runningTask, @NotNull ActivityBasedTaskHandler activityBasedTaskHandler) {
@@ -62,7 +71,7 @@ public class ActivityBasedTaskRun implements TaskRun {
             localRootActivity = activityTree.getActivity(localRootPath);
             localRootActivity.setLocalRoot();
         } catch (CommonException e) {
-            throw new TaskException("Couldn't initialize activity tree", FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new TaskException("Couldn't initialize activity tree", FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR, e);
         }
 
         if (localRootActivity.isSkipped()) {
@@ -114,7 +123,8 @@ public class ActivityBasedTaskRun implements TaskRun {
                 task.flushPendingModifications(result);
             }
         } catch (CommonException e) {
-            throw new ActivityRunException("Couldn't setup the task archetype", FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException(
+                    "Couldn't setup the task archetype", FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR, e);
         }
     }
 
@@ -129,7 +139,7 @@ public class ActivityBasedTaskRun implements TaskRun {
 
             // this will not flush the task run identifier, it will be flushed
             // later together with the realization state
-            activityTree.createTaskRunIdentifier(result);
+            activityTree.createTaskRunIdentifier();
             activityTree.recordTaskRunHistoryStart();
         }
         activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PROGRESS, result);

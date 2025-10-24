@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.task.api;
+package com.evolveum.midpoint.repo.common.activity;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -14,25 +14,25 @@ import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 
 public class ActivityThresholdPolicyViolationException extends ThresholdPolicyViolationException {
 
-    private final @NotNull TaskRunResult.TaskRunResultStatus taskRunResultStatus;
+    private final @NotNull ActivityRunResultStatus activityRunResultStatus;
 
     private final @NotNull PolicyViolationContext policyViolationContext;
 
     public ActivityThresholdPolicyViolationException(
             LocalizableMessage userFriendlyMessage,
             String technicalMessage,
-            @NotNull TaskRunResult.TaskRunResultStatus taskRunResultStatus,
+            @NotNull ActivityRunResultStatus activityRunResultStatus,
             @NotNull PolicyViolationContext policyViolationContext) {
 
         super(userFriendlyMessage, technicalMessage);
 
-        this.taskRunResultStatus = taskRunResultStatus;
+        this.activityRunResultStatus = activityRunResultStatus;
         this.policyViolationContext = policyViolationContext;
     }
 
     @NotNull
-    public TaskRunResult.TaskRunResultStatus getTaskRunResultStatus() {
-        return taskRunResultStatus;
+    public ActivityRunResultStatus getActivityRunResultStatus() {
+        return activityRunResultStatus;
     }
 
     @NotNull

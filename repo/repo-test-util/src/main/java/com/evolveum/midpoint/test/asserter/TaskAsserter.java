@@ -57,7 +57,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         super(object, details);
     }
 
-    private TaskAsserter(PrismObject<TaskType> object, RA returnAsserter, String details) {
+    public TaskAsserter(PrismObject<TaskType> object, RA returnAsserter, String details) {
         super(object, returnAsserter, details);
     }
 

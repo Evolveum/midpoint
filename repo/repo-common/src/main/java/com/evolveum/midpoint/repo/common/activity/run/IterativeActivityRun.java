@@ -9,13 +9,15 @@ package com.evolveum.midpoint.repo.common.activity.run;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.PARTIAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.HALTING_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.HALTING_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
+import com.evolveum.midpoint.repo.common.activity.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ProcessingCoordinator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -25,8 +27,7 @@ import com.evolveum.midpoint.repo.common.activity.run.reports.ItemsReport;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
-import com.evolveum.midpoint.task.api.ActivityThresholdPolicyViolationException;
-import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -46,8 +47,6 @@ import com.evolveum.midpoint.repo.common.activity.run.buckets.GetBucketOperation
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
-import com.evolveum.midpoint.task.api.ExecutionSupport;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -506,23 +505,24 @@ public abstract class IterativeActivityRun<
 
         Throwable stoppingException = errorState.getStoppingException();
         if (stoppingException != null) {
-            // TODO In the future we should distinguish between permanent and temporary errors here.
-
-            if (stoppingException instanceof ThresholdPolicyViolationException) {
-                if (stoppingException instanceof ActivityThresholdPolicyViolationException ae) {
-                    return ActivityRunResult.exception(FATAL_ERROR, ae.getTaskRunResultStatus(), stoppingException);
-                }
-
-                return ActivityRunResult.exception(FATAL_ERROR, HALTING_ERROR, stoppingException);
-            }
-
-            return ActivityRunResult.exception(FATAL_ERROR, PERMANENT_ERROR, stoppingException);
+            return ActivityRunResult.exception(FATAL_ERROR, getResultStatus(stoppingException), stoppingException);
         } else if (transientRunStatistics.getErrors() > 0) {
             return ActivityRunResult
                     .finished(PARTIAL_ERROR)
                     .message(transientRunStatistics.getLastErrorMessage());
         } else {
             return ActivityRunResult.success();
+        }
+    }
+
+    private static @NotNull ActivityRunResultStatus getResultStatus(Throwable stoppingException) {
+        if (stoppingException instanceof ActivityThresholdPolicyViolationException ae) {
+            return ae.getActivityRunResultStatus(); // here can be e.g. halt, restart, or skip
+        } else if (stoppingException instanceof ThresholdPolicyViolationException) {
+            return HALTING_ERROR;
+        } else {
+            // TODO In the future we should distinguish between permanent and temporary errors here.
+            return PERMANENT_ERROR;
         }
     }
 

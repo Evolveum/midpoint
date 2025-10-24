@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.activity;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateOverviewProgressInformationVisibilityType.HIDDEN;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateOverviewProgressInformationVisibilityType.VISIBLE;
@@ -408,16 +408,17 @@ public class ActivityTreeStateOverview {
         }
     }
 
-    public void createTaskRunIdentifier(String taskRunIdentifier, OperationResult result)
+    void setTaskRunIdentifier(String taskRunIdentifier)
             throws ActivityRunException {
         try {
             rootTask.setItemRealValues(PATH_TASK_RUN_IDENTIFIER, taskRunIdentifier);
         } catch (SchemaException ex) {
-            throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
+            throw new ActivityRunException(
+                    "Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
         }
     }
 
-    public void recordTaskRunHistoryStart() throws ActivityRunException {
+    void recordTaskRunHistoryStart() throws ActivityRunException {
         try {
             String taskRunIdentifier = rootTask.getPropertyRealValue(PATH_TASK_RUN_IDENTIFIER, String.class);
             List<TaskRunRecordType> historyList = rootTask.getTaskRunRecords();

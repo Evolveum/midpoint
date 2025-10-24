@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
+
 import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -20,8 +22,7 @@ import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.task.api.ActivityThresholdPolicyViolationException;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.repo.common.activity.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -53,10 +54,7 @@ public class ActivityPolicyRulesProcessor {
 
     public void collectRules() {
         List<EvaluatedActivityPolicyRule> rules = collectRulesFromActivity(activityRun.getActivity());
-
-        ActivityPolicyRulesContext ctx = getPolicyRulesContext();
-        ctx.clearPolicyRules();
-        ctx.addPolicyRules(rules);
+        getPolicyRulesContext().setPolicyRules(rules);
 
         LOGGER.trace("Found {} activity policy rules for activity hierarchy {} ({})",
                 rules.size(), activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
@@ -73,11 +71,7 @@ public class ActivityPolicyRulesProcessor {
      * @param activity The activity from which to start collecting policy rules.
      * @return List of evaluated activity policy rules, ordered by their defined order.
      */
-    private List<EvaluatedActivityPolicyRule> collectRulesFromActivity(Activity<?, ?> activity) {
-        if (activity == null) {
-            return List.of();
-        }
-
+    private List<EvaluatedActivityPolicyRule> collectRulesFromActivity(@NotNull Activity<?, ?> activity) {
         String identifier = activity.getIdentifier();
         ActivityPath activityPath = activity.getPath();
 
@@ -149,7 +143,7 @@ public class ActivityPolicyRulesProcessor {
                 .forEach(t -> state.getTrigger().add(t));
 
         List<EvaluatedActivityPolicyReactionType> reactionTypes = applicableReactions.stream()
-                .map(r -> r.toPolicyReactionType())
+                .map(r -> r.toPolicyReactionBean())
                 .toList();
         state.getReaction().addAll(reactionTypes);
 
@@ -233,29 +227,27 @@ public class ActivityPolicyRulesProcessor {
                 continue;
             }
 
-            TaskRunResult.TaskRunResultStatus status = null;
+            ActivityRunResultStatus runResultStatus;
             if (action instanceof RestartActivityPolicyActionType) {
                 LOGGER.debug("Restarting activity because of policy violation, rule: {}", reaction);
-                status = TaskRunResult.TaskRunResultStatus.RESTART_ACTIVITY_ERROR;
+                runResultStatus = ActivityRunResultStatus.RESTART_ACTIVITY_ERROR;
             } else if (action instanceof SkipActivityPolicyActionType) {
                 LOGGER.debug("Skipping activity because of policy violation, rule: {}", reaction);
-                status = TaskRunResult.TaskRunResultStatus.SKIP_ACTIVITY_ERROR;
+                runResultStatus = ActivityRunResultStatus.SKIP_ACTIVITY_ERROR;
             } else if (action instanceof SuspendTaskActivityPolicyActionType) {
                 LOGGER.debug("Suspending task because of policy violation, rule: {}", reaction);
-                status = TaskRunResult.TaskRunResultStatus.HALTING_ERROR;
-            }
-
-            if (status == null) {
+                runResultStatus = ActivityRunResultStatus.HALTING_ERROR;
+            } else {
                 LOGGER.debug("No action to take for policy violation, rule: {}", reaction);
                 continue;
             }
 
-            throw buildException(reaction, action, status);
+            throw buildException(reaction, action, runResultStatus);
         }
     }
 
     private ActivityThresholdPolicyViolationException buildException(
-            EvaluatedPolicyReaction reaction, ActivityPolicyActionType action, TaskRunResult.TaskRunResultStatus resultStatus) {
+            EvaluatedPolicyReaction reaction, ActivityPolicyActionType action, ActivityRunResultStatus resultStatus) {
 
         EvaluatedActivityPolicyRule rule = reaction.getRule();
 

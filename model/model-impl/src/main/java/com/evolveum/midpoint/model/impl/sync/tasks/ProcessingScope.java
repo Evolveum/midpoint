@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 
 import static java.util.Objects.requireNonNull;
 

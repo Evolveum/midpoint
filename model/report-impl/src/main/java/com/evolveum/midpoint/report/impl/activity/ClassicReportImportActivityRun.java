@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 
 import java.io.IOException;
 import java.util.List;

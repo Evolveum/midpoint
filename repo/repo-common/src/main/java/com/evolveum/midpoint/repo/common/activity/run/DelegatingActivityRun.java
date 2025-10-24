@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.common.activity.run;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_DELEGATED;
 

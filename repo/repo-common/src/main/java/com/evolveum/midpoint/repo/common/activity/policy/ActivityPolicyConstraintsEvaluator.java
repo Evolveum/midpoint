@@ -13,7 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ExecutionTimeConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ItemStateConstraintEvaluator;
-import com.evolveum.midpoint.repo.common.activity.policy.evaluator.RestartActivityConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ExecutionAttemptsConstraintEvaluator;
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ public class ActivityPolicyConstraintsEvaluator {
 
     @Autowired private ItemStateConstraintEvaluator itemStateEvaluator;
 
-    @Autowired private RestartActivityConstraintEvaluator restartActivityEvaluator;
+    @Autowired private ExecutionAttemptsConstraintEvaluator executionAttemptsConstraintEvaluator;
 
     @Autowired private ActivityCompositeConstraintEvaluator compositeEvaluator;
 
@@ -67,8 +67,8 @@ public class ActivityPolicyConstraintsEvaluator {
         if (constraints.getItemState() != null) {
             list.add(createJAXBElement(ActivityPolicyConstraintsType.F_ITEM_STATE, constraints.getItemState()));
         }
-        if (constraints.getRestartActivity() != null) {
-            list.add(createJAXBElement(ActivityPolicyConstraintsType.F_RESTART_ACTIVITY, constraints.getRestartActivity()));
+        if (constraints.getExecutionAttempts() != null) {
+            list.add(createJAXBElement(ActivityPolicyConstraintsType.F_EXECUTION_ATTEMPTS, constraints.getExecutionAttempts()));
         }
         return list;
     }
@@ -85,8 +85,8 @@ public class ActivityPolicyConstraintsEvaluator {
                 return executionTimeEvaluator;
             }
         } else if (constraint instanceof NumericThresholdPolicyConstraintType) {
-            if (ActivityPolicyConstraintsType.F_RESTART_ACTIVITY.equals(element.getName())) {
-                return restartActivityEvaluator;
+            if (ActivityPolicyConstraintsType.F_EXECUTION_ATTEMPTS.equals(element.getName())) {
+                return executionAttemptsConstraintEvaluator;
             }
         } else if (constraint instanceof ItemStatePolicyConstraintType) {
             return itemStateEvaluator;

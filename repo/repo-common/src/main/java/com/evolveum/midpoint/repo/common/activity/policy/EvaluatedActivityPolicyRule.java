@@ -97,7 +97,7 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
                 .anyMatch(r -> r.getThreshold() != null);
     }
 
-    public List<EvaluatedPolicyReaction> getApplicableReactions() {
+    List<EvaluatedPolicyReaction> getApplicableReactions() {
         return policy.getPolicyReaction().stream()
                 .map(r -> new EvaluatedPolicyReaction(this, r))
                 .filter(r -> !r.hasThreshold() || r.isWithinThreshold())

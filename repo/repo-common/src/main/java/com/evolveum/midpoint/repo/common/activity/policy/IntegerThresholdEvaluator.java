@@ -9,11 +9,12 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WaterMarkType;
+import org.jetbrains.annotations.NotNull;
 
 public class IntegerThresholdEvaluator implements ThresholdEvaluator {
 
     @Override
-    public boolean evaluate(PolicyThresholdType threshold, Object currentValue) {
+    public boolean evaluate(@NotNull PolicyThresholdType threshold, Object currentValue) {
         Integer count = getCount(currentValue);
         if (count == null) {
             count = 0;

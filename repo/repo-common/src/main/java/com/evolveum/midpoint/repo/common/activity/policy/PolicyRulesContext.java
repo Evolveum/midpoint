@@ -32,12 +32,9 @@ public class PolicyRulesContext<T extends EvaluatedPolicyRule> {
                 .orElse(null);
     }
 
-    public void addPolicyRules(@NotNull List<T> policyRules) {
+    public void setPolicyRules(@NotNull List<T> policyRules) {
+        this.policyRules.clear();
         this.policyRules.addAll(policyRules);
-    }
-
-    public void clearPolicyRules() {
-        policyRules.clear();
     }
 
     public Integer getCounter(@NotNull String ruleId) {

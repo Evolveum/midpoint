@@ -13,7 +13,6 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.PolicyViolationContext;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RestartActivityPolicyActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
 
@@ -56,8 +54,6 @@ class TaskCycleExecutor {
     @NotNull private final TaskBeans beans;
 
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
-
-    private static final int DEFAULT_RESTART_ACTIVITY_DELAY = 5000;
 
     TaskCycleExecutor(@NotNull RunningTaskQuartzImpl task, @NotNull TaskHandler handler,
             @NotNull JobExecutor jobExecutor, @NotNull TaskBeans beans) {
@@ -228,14 +224,14 @@ class TaskCycleExecutor {
             LOGGER.trace("Task encountered permanent error. Suspending it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR) {
-            LOGGER.trace("Task encountered halting error. Suspending it. Task = {}", task);
+            LOGGER.trace("Task encountered halting error. Suspending it along with all tasks that wait for it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
-        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.RESTART_ACTIVITY_ERROR) {
-            treatRestartActivityRunResult(runResult, result);
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.RESTART_REQUESTED) {
+            treatRestartRequestedRunResult(runResult, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task finished normally. Closing it. Task = {}", task);
             beans.taskStateManager.closeTask(task, result);
-        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.IS_WAITING) {
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.WAITING) {
             LOGGER.trace("Task switched to waiting state. No need to change the task state here. Task = {}", task);
         } else {
             invalidValue(runResult);
@@ -244,39 +240,28 @@ class TaskCycleExecutor {
 
     // todo we should suspend and reschedule delegate probably, not worker [viliam]
     //  how to make sure we'll not reschedule it twice, when there are multiple workers for example?
-    private void treatRestartActivityRunResult(TaskRunResult runResult, OperationResult result)
+    private void treatRestartRequestedRunResult(TaskRunResult runResult, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
         LOGGER.trace("Task handler requested restart of the activity. Suspending it. Task = {}", task);
 
         beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
 
-        RestartActivityPolicyActionType action = PolicyViolationContext.getPolicyAction(runResult, RestartActivityPolicyActionType.class);
-        if (action == null) {
-            LOGGER.warn("Task handler requested restart of the activity, but no restart activity action was found in the run result.");
-            throw new IllegalStateException(
-                    "Task handler requested restart of the activity, but no restart activity action was found in the run result.");
-        }
-
-        int delay = action.getDelay() != null ? action.getDelay() : DEFAULT_RESTART_ACTIVITY_DELAY;
-        if (delay <= 0) {
-            beans.taskStateManager.scheduleTaskNow(task, result);
-            return;
-        }
-
         try {
-            PolicyViolationContext ctx = PolicyViolationContext.getPolicyViolationContext(runResult);
-            int executionAttempt = ctx.executionAttempt() != null ? ctx.executionAttempt() : 1;
-
-            long startAt = System.currentTimeMillis() + (delay * (2 ^ (executionAttempt - 1)));
-
-            LOGGER.trace("Rescheduling task {} to run later (in {} ms) because of activity restart", task, delay);
-            task.setExecutionAndSchedulingStateImmediate(  // todo can't be like this [viliam]
-                    TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
-                    TaskSchedulingStateType.SUSPENDED, result);
-
-            beans.localScheduler.rescheduleLater(task, startAt);  // todo does the first parameter need to be RunningTaskQuartzImpl? [viliam]
-        } catch (PreconditionViolationException |SchedulerException ex) {
+            long delayMillis = runResult.getTaskRestartInstruction() != null
+                    ? runResult.getTaskRestartInstruction().delayMillis()
+                    : 0;
+            if (delayMillis <= 0) {
+                beans.taskStateManager.scheduleTaskNow(task, result);
+            } else {
+                long startAt = System.currentTimeMillis() + delayMillis;
+                LOGGER.trace("Rescheduling task {} to run later (in {} ms) because of activity restart", task, delayMillis);
+                task.setExecutionAndSchedulingStateImmediate(  // todo can't be like this [viliam]
+                        TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
+                        TaskSchedulingStateType.SUSPENDED, result);
+                beans.localScheduler.rescheduleLater(task, startAt);  // todo does the first parameter need to be RunningTaskQuartzImpl? [viliam]
+            }
+        } catch (PreconditionViolationException | SchedulerException ex) {
             LOGGER.error("Couldn't reschedule task {} (rescheduled because of activity restart): {}",
                     task, ex.getMessage(), ex);
         }
@@ -295,16 +280,16 @@ class TaskCycleExecutor {
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
             throw new StopTaskException();
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR) {
-            LOGGER.trace("Task encountered halting error. Suspending it. Task = {}", task);
+            LOGGER.trace("Task encountered halting error. Suspending it along with all tasks that wait for it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
             throw new StopTaskException();
-        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.RESTART_ACTIVITY_ERROR) {
-            treatRestartActivityRunResult(runResult, result);
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.RESTART_REQUESTED) {
+            treatRestartRequestedRunResult(runResult, result);
             throw new StopTaskException();
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task handler finished normally. Continuing as scheduled. Task = {}", task);
             // no stopping exception here
-        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.IS_WAITING) {
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.WAITING) {
             LOGGER.trace("Task switched to waiting state. No need to change the task state. Stopping. Task = {}", task);
             throw new StopTaskException();
         } else {

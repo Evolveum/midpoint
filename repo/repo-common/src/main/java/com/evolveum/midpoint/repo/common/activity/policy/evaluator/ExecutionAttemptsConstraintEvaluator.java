@@ -15,27 +15,15 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
 
 @Component
-public class RestartActivityConstraintEvaluator
+public class ExecutionAttemptsConstraintEvaluator
         extends NumericConstraintEvaluator<NumericThresholdPolicyConstraintType> {
 
     @Override
     public Integer getValue(ActivityPolicyRuleEvaluationContext context) {
-        AbstractActivityRun<?, ?, ?> activityRun = context.getActivityRun();
-        Integer executionAttempt = activityRun.getActivityState().getExecutionAttempt();
-        if (executionAttempt == null) {
-            executionAttempt = 1;
-        }
-
-        if (executionAttempt <= 0) {
-            throw new IllegalStateException("Execution attempt must be greater than 0, but was: " + executionAttempt);
-        }
-
-        // The first execution is just normal execution (zero restarts happened)
-        return executionAttempt - 1;
+        return context.getActivityRun().getActivityState().getExecutionAttempt();
     }
 
     @Override

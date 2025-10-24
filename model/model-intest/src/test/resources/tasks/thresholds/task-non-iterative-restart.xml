@@ -62,13 +62,13 @@
             <policy>
                 <name>count restarts</name>
                 <policyConstraints>
-                    <restartActivity/>
+                    <executionAttempts/>
                 </policyConstraints>
                 <policyReaction>
                     <name>suspend the task because of me</name>
                     <threshold>
                         <lowWaterMark>
-                            <count>2</count>
+                            <count>3</count>
                         </lowWaterMark>
                     </threshold>
                     <action>

@@ -2072,14 +2072,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="restartActivity" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0">
+                    <xsd:element name="executionAttempts" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The restart activity constraint doesn’t use counters, implicit value to check
-                                constraint/threshold is the number of execution attempts stored in activity state.
+                                This constraint deals with how many times the activity realization was attempted.
 
-                                When the exceeds element is specified, constraint will trigger if the number of attempts
-                                exceeds the specified value. When the below element is specified, constraint will trigger
+                                When the "exceeds" element is specified, constraint will trigger if the number of attempts
+                                exceeds the specified value. When the "below" element is specified, constraint will trigger
                                 if the number of attempts is below the specified value.
 
                                 If this constraint is not combined with other constraints, then exceeds/below element
@@ -2090,6 +2089,9 @@
                                 element specified, otherwise it will never trigger. In this case, the
                                 policyReaction/threshold/[low|high]WaterMark/count will be used to evaluate the threshold
                                 against counter for policy.
+
+                                Implementation note: This constraint doesn't use counters. The value being observed is the number
+                                of execution attempts stored in the activity state.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -3531,12 +3533,12 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0" default="1"/>
             <xsd:element name="restarting" type="tns:ActivityRestartingStateType" minOccurs="0"/>
             <xsd:element name="realizationState" type="tns:ActivityRealizationStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        State of the activity realization: in progress local, in progress delegated, complete.
+                        State of the activity realization: in progress local/delegated/distributed, complete, or skipped.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3773,7 +3775,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0" default="1"/>
             <xsd:element name="realizationState" type="tns:ActivitySimplifiedRealizationStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -9061,7 +9063,7 @@
     <xsd:complexType name="ActivityPolicyStateType">
         <xsd:annotation>
             <xsd:documentation>
-                A single policy state.
+                The state of a single policy.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>

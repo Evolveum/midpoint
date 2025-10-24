@@ -56,9 +56,9 @@
                             <executionTime>
                                 <exceeds>PT1S</exceeds>
                             </executionTime>
-                            <restartActivity>
-                                <below>1</below>
-                            </restartActivity>
+                            <executionAttempts>
+                                <below>2</below>
+                            </executionAttempts>
                         </policyConstraints>
                         <policyReaction>
                             <name>restart activity</name>

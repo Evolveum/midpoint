@@ -187,13 +187,13 @@ public class UserAsserter<RA> extends FocusAsserter<UserType, RA> {
     }
 
     @Override
-    public UserAsserter<RA> displayXml() throws SchemaException {
+    public UserAsserter<RA> displayXml() {
         super.displayXml();
         return this;
     }
 
     @Override
-    public UserAsserter<RA> displayXml(String message) throws SchemaException {
+    public UserAsserter<RA> displayXml(String message) {
         super.displayXml(message);
         return this;
     }

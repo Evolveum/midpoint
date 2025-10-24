@@ -25,7 +25,7 @@ public class ErrorState {
      */
     @NotNull private final AtomicReference<Throwable> stoppingExceptionRef = new AtomicReference<>();
 
-    public Throwable getStoppingException() {
+    Throwable getStoppingException() {
         return stoppingExceptionRef.get();
     }
 

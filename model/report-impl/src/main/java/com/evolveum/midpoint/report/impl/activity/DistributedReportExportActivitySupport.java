@@ -9,7 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 import static java.util.Objects.requireNonNull;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
 
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;

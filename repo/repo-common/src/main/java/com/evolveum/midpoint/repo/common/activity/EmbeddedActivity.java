@@ -17,6 +17,8 @@ import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 /**
  * A sub-activity that does not have its own (explicit) definition. Typical examples are sub-activities of reconciliation,
  * cleanup, or focus validity scan activity.
+ *
+ * Note that {@link #getParent()} always returns `Activity<WD, AH>`, not `Activity<?, ?>`.
  */
 public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         extends Activity<WD, AH> {

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
@@ -22,7 +23,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
@@ -60,6 +60,7 @@ public abstract class LocalActivityRun<
     private static final long DEFAULT_TREE_PROGRESS_UPDATE_INTERVAL_FOR_STANDALONE = 9000;
     private static final long DEFAULT_TREE_PROGRESS_UPDATE_INTERVAL_FOR_WORKERS = 60000;
 
+    /** Status (in progress, success, error, etc) of this run, used e.g. in {@link ActivityTreeStateOverview}. */
     @NotNull private OperationResultStatus currentResultStatus = UNKNOWN;
 
     protected LocalActivityRun(@NotNull ActivityRunInstantiationContext<WD, AH> context) {

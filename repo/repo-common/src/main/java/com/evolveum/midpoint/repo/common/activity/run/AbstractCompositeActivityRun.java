@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.*;
 
 /**
  * Run of a set of child activities. These can be fixed, semi-fixed or custom.
@@ -116,50 +116,30 @@ public abstract class AbstractCompositeActivityRun<
             throws ActivityRunException {
 
         List<ActivityRunResult> childResults = new ArrayList<>();
-        boolean allChildrenFinished = true;
+        ActivityRunResult unfinishedChildResult = null; // Result of a child that did not finish (error, waiting, interruption).
         for (Activity<?, ?> child : children) {
-            ActivityRunResult childRunResult = child.getRun().run(result);
+            @NotNull ActivityRunResult childRunResult = child.getRun().run(result);
             childResults.add(childRunResult);
-            updateRunResultStatus(childRunResult);
+
             if (childRunResult.isSkipActivityError()) {
-                // current activity execution should be stopped,
-                // but we should continue with next activity
-                continue;
+                continue; // That child was skipped. We should continue with next one.
             }
 
             if (!childRunResult.isFinished()) {
-                allChildrenFinished = false;
-                break; // Can be error, waiting, or interruption.
+                unfinishedChildResult = childRunResult;
+                break;
             }
         }
 
-        if (allChildrenFinished) {
+        if (unfinishedChildResult == null) {
+            // All children finished.
             runResult.setRunResultStatus(canRun() ? FINISHED : INTERRUPTED);
         } else {
-            // keeping run result status as updated by the last child
+            runResult.setRunResultStatus(
+                    canRun() ? unfinishedChildResult.getRunResultStatus() : INTERRUPTED,
+                    unfinishedChildResult.getThrowable());
         }
         updateOperationResultStatus(childResults);
-    }
-
-    private void updateRunResultStatus(@NotNull ActivityRunResult childRunResult) {
-        // Non-null aggregate run result status means that some upstream child ended in a state that
-        // should have caused the whole run to stop. So we wouldn't be here.
-        assert runResult.getRunResultStatus() == null;
-        if (childRunResult.isInterrupted() || !canRun()) {
-            runResult.setRunResultStatus(INTERRUPTED, childRunResult.getThrowable());
-        } else if (childRunResult.isPermanentError()) {
-            runResult.setRunResultStatus(PERMANENT_ERROR, childRunResult.getThrowable());
-        } else if (childRunResult.isTemporaryError()) {
-            runResult.setRunResultStatus(TEMPORARY_ERROR, childRunResult.getThrowable());
-        } else if (childRunResult.isHaltingError()) {
-            runResult.setRunResultStatus(HALTING_ERROR, childRunResult.getThrowable());
-        } else if (childRunResult.isSkipActivityError()) {
-            // do nothing for skip activity error, since we want to continue with the next activity
-        } else if (childRunResult.isRestartActivityError()) {
-            runResult.setRunResultStatus(RESTART_ACTIVITY_ERROR, childRunResult.getThrowable());
-        } else if (childRunResult.isWaiting()) {
-            runResult.setRunResultStatus(IS_WAITING);
-        }
     }
 
     private void updateOperationResultStatus(List<ActivityRunResult> childResults) {

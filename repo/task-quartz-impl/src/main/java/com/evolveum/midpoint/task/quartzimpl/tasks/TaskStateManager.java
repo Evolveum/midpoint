@@ -9,7 +9,10 @@ package com.evolveum.midpoint.task.quartzimpl.tasks;
 import java.util.Collection;
 import java.util.Set;
 
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SystemException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -65,6 +68,12 @@ public class TaskStateManager {
         }
     }
 
+    /**
+     * Dependents are tasks that wait for the completion of the specified task. Typically, its parent, grand-parent, etc.
+     * But explicitly specified dependents ({@link TaskType#getDependent()} are suspended as well.
+     *
+     * See {@link TaskManager#suspendTasks(Collection, long, OperationResult)} for details on parameters and return value.
+     */
     public boolean suspendTaskNoException(TaskQuartzImpl task, long waitTime, boolean suspendDependents, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return suspendAndDeleteHelper.suspendTaskNoExceptions(task, waitTime, suspendDependents, result);

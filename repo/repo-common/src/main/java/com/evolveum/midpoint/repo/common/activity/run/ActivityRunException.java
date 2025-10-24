@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.task.api.TaskException;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,17 +23,17 @@ import org.jetbrains.annotations.NotNull;
 public class ActivityRunException extends Exception {
 
     @NotNull private final OperationResultStatus opResultStatus;
-    @NotNull private final TaskRunResult.TaskRunResultStatus runResultStatus;
+    @NotNull private final ActivityRunResultStatus runResultStatus;
 
     public ActivityRunException(String message, @NotNull OperationResultStatus opResultStatus,
-            @NotNull TaskRunResult.TaskRunResultStatus runResultStatus, Throwable cause) {
+            @NotNull ActivityRunResultStatus runResultStatus, Throwable cause) {
         super(message, cause);
         this.opResultStatus = opResultStatus;
         this.runResultStatus = runResultStatus;
     }
 
     public ActivityRunException(String message, @NotNull OperationResultStatus opResultStatus,
-            @NotNull TaskRunResult.TaskRunResultStatus runResultStatus) {
+            @NotNull ActivityRunResultStatus runResultStatus) {
         this(message, opResultStatus, runResultStatus, null);
     }
 
@@ -51,6 +51,6 @@ public class ActivityRunException extends Exception {
     }
 
     public TaskException toTaskException() {
-        return new TaskException(getMessage(), opResultStatus, runResultStatus, getCause());
+        return new TaskException(getMessage(), opResultStatus, runResultStatus.toTaskRunResultStatus(), getCause());
     }
 }

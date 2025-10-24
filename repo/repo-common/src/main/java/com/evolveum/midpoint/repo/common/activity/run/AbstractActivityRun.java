@@ -11,15 +11,14 @@ import static java.util.Objects.requireNonNull;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.FINISHED;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 import java.util.Map;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +44,7 @@ import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
-import com.evolveum.midpoint.task.api.PolicyViolationContext;
+import com.evolveum.midpoint.repo.common.activity.PolicyViolationContext;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -240,8 +239,8 @@ public abstract class AbstractActivityRun<
             }
         }
 
-        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(this);
-        processor.collectRules();
+        new ActivityPolicyRulesProcessor(this)
+                .collectRules();
 
         noteStartTimestamp();
         logStart();
@@ -255,8 +254,10 @@ public abstract class AbstractActivityRun<
 
         if (activityState.isComplete() || activityState.isSkipped()) {
             // TODO Is this really called only once on activity completion? Not sure about distributed/delegated ones.
-            onActivityRealizationComplete(result);
-            sendActivityRealizationCompleteEvent(result);
+            onActivityRealizationCompleteOrSkipped(result);
+            if (activityState.isComplete()) {
+                sendActivityRealizationCompleteEvent(result);
+            }
         }
 
         return runResult;
@@ -297,10 +298,9 @@ public abstract class AbstractActivityRun<
 
     /** Temporary implementation. */
     private void invokePreRunnable(OperationResult result) throws ActivityRunException, CommonException {
-        if (!(activity instanceof EmbeddedActivity)) {
+        if (!(activity instanceof EmbeddedActivity<WD, AH> embeddedActivity)) {
             return;
         }
-        EmbeddedActivity<WD, AH> embeddedActivity = (EmbeddedActivity<WD, AH>) activity;
 
         if (this instanceof DelegatingActivityRun) {
             return; // We want this to run only for local + distributing runs
@@ -346,7 +346,7 @@ public abstract class AbstractActivityRun<
 
         if (runResult.isRestartActivityError()) {
             RestartActivityPolicyActionType action =
-                    PolicyViolationContext.getPolicyAction(runResult.createTaskRunResult(), RestartActivityPolicyActionType.class);
+                    PolicyViolationContext.getPolicyAction(runResult.getThrowable(), RestartActivityPolicyActionType.class);
 
             if (action == null) {
                 throw new ActivityRunException("Couldn't find restart activity action in the run result", FATAL_ERROR, PERMANENT_ERROR);
@@ -689,8 +689,8 @@ public abstract class AbstractActivityRun<
      *
      * TODO this is something like a placeholder for now -- probably it will NOT work in the current implementation!
      */
-    @SuppressWarnings({ "WeakerAccess", "unused" })
-    protected void onActivityRealizationComplete(OperationResult result) throws ActivityRunException {
+    @SuppressWarnings("WeakerAccess")
+    protected void onActivityRealizationCompleteOrSkipped(OperationResult result) throws ActivityRunException {
         simulationSupport.closeSimulationResultIfOpenedHere(result);
     }
 

@@ -5,11 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.task.api;
+package com.evolveum.midpoint.repo.common.activity;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionType;
+
+import org.jetbrains.annotations.Nullable;
 
 public record PolicyViolationContext(
         @NotNull String ruleIdentifier,
@@ -20,20 +22,19 @@ public record PolicyViolationContext(
 
 
 
-    public static PolicyViolationContext getPolicyViolationContext(TaskRunResult result) {
-        if (result == null) {
+    public static PolicyViolationContext getPolicyViolationContext(Throwable throwable) {
+        if (throwable instanceof ActivityThresholdPolicyViolationException ex) {
+            return ex.getPolicyViolationContext();
+        } else {
             return null;
         }
-
-        if (!(result.getThrowable() instanceof ActivityThresholdPolicyViolationException ex)) {
-            return null;
-        }
-
-        return ex.getPolicyViolationContext();
     }
 
-    public static <T extends ActivityPolicyActionType> T getPolicyAction(TaskRunResult result, Class<T> actionType) {
-        PolicyViolationContext ctx = getPolicyViolationContext(result);
+    public static <T extends ActivityPolicyActionType> T getPolicyAction(Throwable throwable, Class<T> actionType) {
+        return getPolicyAction(getPolicyViolationContext(throwable), actionType);
+    }
+
+    public static <T extends ActivityPolicyActionType> @Nullable T getPolicyAction(PolicyViolationContext ctx, Class<T> actionType) {
         if (ctx == null) {
             return null;
         }

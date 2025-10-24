@@ -39,24 +39,22 @@ public class ActivityPolicyProcessorHelper {
     }
 
     public static void initialize() {
+        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(getCurrentActivityRunRequired());
+        processor.collectRules();
+    }
+
+    private static @NotNull AbstractActivityRun<?, ?, ?> getCurrentActivityRunRequired() {
         AbstractActivityRun<?, ?, ?> activityRun = getCurrentActivityRun();
         if (activityRun == null) {
-            throw new IllegalStateException("ActivityRun is not available in the current thread. ");
+            throw new IllegalStateException("ActivityRun is not available in the current thread.");
         }
-
-        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
-        processor.collectRules();
+        return activityRun;
     }
 
     public static void evaluateAndEnforceRules(ItemProcessingResult processingResult, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ThresholdPolicyViolationException, ObjectAlreadyExistsException {
 
-        AbstractActivityRun<?, ?, ?> activityRun = getCurrentActivityRun();
-        if (activityRun == null) {
-            throw new IllegalStateException("ActivityRun is not available in the current thread. ");
-        }
-
-        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
+        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(getCurrentActivityRunRequired());
         processor.evaluateAndEnforceRules(processingResult, result);
     }
 }

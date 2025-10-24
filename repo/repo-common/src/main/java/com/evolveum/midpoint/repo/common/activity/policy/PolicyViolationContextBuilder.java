@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-import com.evolveum.midpoint.task.api.PolicyViolationContext;
+import com.evolveum.midpoint.repo.common.activity.PolicyViolationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionType;
 
 public class PolicyViolationContextBuilder {

@@ -10,6 +10,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -32,9 +33,8 @@ public class TaskRunResult implements Serializable {
         /**
          * The task run has finished.
          *
-         * This does not necessarily mean that the task itself is finished. For single tasks this means that
-         * the task is finished, but it is different for recurring tasks. Such a task will run again after
-         * it sleeps for a while (or after the scheduler will start it again).
+         * This does not necessarily mean that the task itself is going to be closed.
+         * While single-run tasks are, recurring ones will run again later.
          */
         FINISHED,
 
@@ -49,46 +49,39 @@ public class TaskRunResult implements Serializable {
         /**
          * Temporary failure during the run.
          *
-         * The error is temporary. The situation may change later when the conditions will be more "favorable".
+         * The error is temporary. The situation may change later when the conditions will be more favorable.
          * It makes sense to retry the run. Usual cases of this error are network timeouts.
          *
-         * For single-run tasks we SUSPEND them on such occasions. So the administrator can release them after
+         * For single-run tasks we suspend them on such occasions. So the administrator can resume them after
          * correcting the problem.
          */
         TEMPORARY_ERROR,
 
         /**
-         * Error that prevents the task from running, continuing its work.
-         * Task and its dependent tasks should be suspended.
+         * Like {@link #PERMANENT_ERROR}, but in addition, task and its dependent tasks (parent, grand-parent, ..., plus
+         * explicit dependents) are going to be suspended. In fact, this halts the whole task tree.
          *
-         * Currently used when handling policy actions that should suspend tasks.
+         * Currently used when handling policy actions that suspend tasks.
          */
         HALTING_ERROR,
 
         /**
-         * Error that prevents activity from running, if the task has more activities, it should continue with the next one.
-         * If the task does not have any more activities, it should finish.
+         * Like {@link #HALTING_ERROR}, but in addition, the whole task tree should be restarted.
+         * The {@link TaskRunResult#taskRestartInstruction} can provide additional instructions, like the delay before restart.
          */
-        SKIP_ACTIVITY_ERROR,
-
-        /**
-         * Error that prevents the activity from running.
-         * The current activity should be restarted.
-         * Limits might be in place to limit the number of restarts and to decide what to do if the limit is exceeded.
-         */
-        RESTART_ACTIVITY_ERROR,
+        RESTART_REQUESTED,
 
         /**
          * Task run hasn't finished, but nevertheless it must end (for now). An example of such a situation is
-         * when the long-living task run execution is requested to stop (e.g., when suspending the task or
-         * shutting down the node).
+         * when a task execution is requested to stop, e.g., when suspending the task or shutting down the node.
          */
         INTERRUPTED,
 
         /**
-         * Task has entered waiting state. TODO. EXPERIMENTAL.
+         * Task run hasn't finished, but it should go to WAITING state. Typical example is when a task delegated
+         * the work to its subtasks and now it is waiting for their completion.
          */
-        IS_WAITING
+        WAITING
     }
 
     /**
@@ -122,6 +115,12 @@ public class TaskRunResult implements Serializable {
      */
     protected String message;
 
+    /**
+     * Instruction how to restart the task (applicable only with {@link #runResultStatus}
+     * of {@link TaskRunResultStatus#RESTART_REQUESTED}).
+     */
+    private TaskRestartInstruction taskRestartInstruction;
+
     public TaskRunResult() {
     }
 
@@ -152,18 +151,21 @@ public class TaskRunResult implements Serializable {
     public Long getProgress() {
         return progress;
     }
+
     /**
      * @param progress the progress to set
      */
     public void setProgress(Long progress) {
         this.progress = progress;
     }
+
     /**
      * @return the status
      */
     public TaskRunResultStatus getRunResultStatus() {
         return runResultStatus;
     }
+
     /**
      * @param status the status to set
      */
@@ -195,6 +197,15 @@ public class TaskRunResult implements Serializable {
         this.message = message;
     }
 
+    public void setRestartAfter(long delayMillis) {
+        this.runResultStatus = TaskRunResultStatus.RESTART_REQUESTED;
+        this.taskRestartInstruction = new TaskRestartInstruction(delayMillis);
+    }
+
+    public TaskRestartInstruction getTaskRestartInstruction() {
+        return taskRestartInstruction;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -218,8 +229,11 @@ public class TaskRunResult implements Serializable {
 
     @Override
     public String toString() {
-        return "TaskRunResult(progress=" + progress + ", status="
-                + runResultStatus + ", result status=" + operationResultStatus
+        return "TaskRunResult("
+                + "progress=" + progress
+                + ", status=" + runResultStatus
+                + (taskRestartInstruction != null ? ", restartInstruction=" + taskRestartInstruction : "")
+                + ", result status=" + operationResultStatus
                 + ")";
     }
 
@@ -246,5 +260,11 @@ public class TaskRunResult implements Serializable {
         runResult.setRunResultStatus(FINISHED);
         runResult.setOperationResultStatus(OperationResultStatus.NOT_APPLICABLE);
         return runResult;
+    }
+
+    public record TaskRestartInstruction(long delayMillis) implements Serializable {
+
+        @Serial private static final long serialVersionUID = 1L;
+
     }
 }
