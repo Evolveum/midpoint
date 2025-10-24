@@ -90,9 +90,14 @@ public class TestTask extends TestObject<TaskType> {
     }
 
     public void rerunErrorsOk(OperationResult result) throws CommonException {
+        rerunErrorsOk(null, result);
+    }
+
+    public void rerunErrorsOk(TaskFinishChecker.BuilderCustomizer builderCustomizer, OperationResult result)
+            throws CommonException {
         long startTime = System.currentTimeMillis();
         test.restartTask(oid, result);
-        test.waitForTaskFinish(oid, startTime, defaultTimeout, true);
+        test.waitForTaskFinish(oid, startTime, defaultTimeout, true, 0, builderCustomizer);
     }
 
     public void restart(OperationResult result) throws CommonException {
@@ -107,6 +112,10 @@ public class TestTask extends TestObject<TaskType> {
 
     public TaskAsserter<Void> doAssert(String message) throws SchemaException, ObjectNotFoundException {
         return test.assertTask(oid, message);
+    }
+
+    public TaskAsserter<Void> assertTree(String message) throws SchemaException, ObjectNotFoundException {
+        return test.assertTaskTree(oid, message);
     }
 
     public TaskAsserter<Void> assertAfter() throws SchemaException, ObjectNotFoundException {

@@ -422,19 +422,32 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<TaskAsserter<RA>> subtask(String name) {
+        return subtask(name, true);
+    }
+
+    public TaskAsserter<TaskAsserter<RA>> subtask(String name, boolean exact) {
         List<String> otherNames = new ArrayList<>();
 
         List<ObjectReferenceType> subtasks = getObjectable().getSubtaskRef();
         for (int i = 0; i < subtasks.size(); i++) {
             TaskType subtask = subtaskFromRef(subtasks, i);
             String subtaskName = subtask.getName().getOrig();
-            if (subtaskName.equals(name)) {
+            if (matches(subtaskName, name, exact)) {
                 return subtask(subtasks, i);
             } else {
                 otherNames.add(subtaskName);
             }
         }
-        throw new AssertionError("No subtask with the name '" + name + "' found. Subtasks: " + otherNames);
+        throw new AssertionError("No subtask with the name %s'%s' found. Subtasks: %s".formatted(
+                exact ? "" : "containing text ", name, otherNames));
+    }
+
+    private boolean matches(String actualName, String expectedName, boolean exact) {
+        if (exact) {
+            return actualName.equals(expectedName);
+        } else {
+            return actualName.contains(expectedName);
+        }
     }
 
     private @NotNull TaskAsserter<TaskAsserter<RA>> subtask(List<ObjectReferenceType> subtasks, int index) {

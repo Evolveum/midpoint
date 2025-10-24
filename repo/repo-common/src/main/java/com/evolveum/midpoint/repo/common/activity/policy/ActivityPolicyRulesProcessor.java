@@ -117,9 +117,7 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void evaluateRules(ItemProcessingResult processingResult, OperationResult result) {
-        Collection<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
-
-        for (EvaluatedActivityPolicyRule rule : rules) {
+        for (EvaluatedActivityPolicyRule rule : getPolicyRulesContext().getPolicyRules()) {
             evaluateRule(rule, processingResult, result);
         }
     }
@@ -257,7 +255,10 @@ public class ActivityPolicyRulesProcessor {
         LocalizableMessage message = new SingleLocalizableMessage(
                 "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName, reactionName });
 
-        String defaultMessage = "Policy violation, rule: %s/%s".formatted(ruleName, reactionName);
+        String defaultMessage =
+                "Policy violation, rule: "
+                        + ruleName
+                        + (reactionName != null ? "/" + reactionName : "");
 
         Integer executionAttempt = activityRun.getActivityState().getExecutionAttempt();
 

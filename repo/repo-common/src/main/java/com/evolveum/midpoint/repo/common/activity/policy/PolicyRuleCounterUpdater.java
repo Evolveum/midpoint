@@ -37,7 +37,7 @@ public abstract class PolicyRuleCounterUpdater {
 
     private final @NotNull ExecutionSupport executionSupport;
 
-    public PolicyRuleCounterUpdater(@NotNull ExecutionSupport executionSupport) {
+    PolicyRuleCounterUpdater(@NotNull ExecutionSupport executionSupport) {
         this.executionSupport = executionSupport;
     }
 
@@ -45,7 +45,7 @@ public abstract class PolicyRuleCounterUpdater {
 
     protected abstract ExecutionSupport.CountersGroup getCountersGroup();
 
-    public void updateCounters(OperationResult result)
+    void updateCounters(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         PolicyRulesContext<?> context = getPolicyRulesContext();
@@ -62,9 +62,10 @@ public abstract class PolicyRuleCounterUpdater {
                 continue;
             }
 
-            if (context.getCounter(rule.getRuleIdentifier()) != null) {
+            Integer counter = context.getCounter(rule.getRuleIdentifier());
+            if (counter != null) {
                 // The counter was already incremented in this run, so we just copy it to the rule.
-                Integer counter = context.getCounter(rule.getRuleIdentifier());
+                // FIXME shouldn't we put the rule to "rulesToIncrement", or increment the counter in some way?
                 rule.setThresholdValueType(ThresholdValueType.COUNTER, counter);
                 LOGGER.trace("Counter for rule {} was already incremented to {}, copying it to the rule",
                         rule.getRuleIdentifier(), counter);
@@ -76,15 +77,17 @@ public abstract class PolicyRuleCounterUpdater {
             rulesToIncrement.add(rule);
         }
 
-        Map<String, EvaluatedPolicyRule> rulesByIdentifier = rulesToIncrement.stream()
+        Map<String, EvaluatedPolicyRule> rulesToIncrementByIdentifier = rulesToIncrement.stream()
                 .collect(Collectors.toMap(EvaluatedPolicyRule::getRuleIdentifier, Function.identity()));
 
         ExecutionSupport.CountersGroup group = getCountersGroup();
 
-        Map<String, Integer> currentValues = executionSupport.incrementCounters(group, rulesByIdentifier.keySet(), result);
+        Map<String, Integer> currentValues =
+                executionSupport.incrementCounters(group, rulesToIncrementByIdentifier.keySet(), result);
+        LOGGER.trace("Updated counters for group {}: {}", group, currentValues);
 
         currentValues.forEach((id, value) -> {
-            rulesByIdentifier.get(id).setThresholdValueType(ThresholdValueType.COUNTER, value);
+            rulesToIncrementByIdentifier.get(id).setThresholdValueType(ThresholdValueType.COUNTER, value);
             context.setCounter(id, value);
         });
     }

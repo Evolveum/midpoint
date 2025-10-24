@@ -37,11 +37,11 @@ public class PolicyRulesContext<T extends EvaluatedPolicyRule> {
         this.policyRules.addAll(policyRules);
     }
 
-    public Integer getCounter(@NotNull String ruleId) {
+    Integer getCounter(@NotNull String ruleId) {
         return ruleCounters.get(ruleId);
     }
 
-    public void setCounter(@NotNull String ruleId, int count) {
+    void setCounter(@NotNull String ruleId, int count) {
         ruleCounters.put(ruleId, count);
     }
 }

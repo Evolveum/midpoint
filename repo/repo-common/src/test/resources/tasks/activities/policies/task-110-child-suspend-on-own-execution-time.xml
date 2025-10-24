@@ -1,0 +1,61 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="10703f89-f904-443d-9b6b-5f8d7d7264b5">
+    <name>task-child-suspend-on-own-execution-time</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <identifier>first</identifier>
+                <work>
+                    <noOp>
+                        <steps>3</steps>
+                        <delay>100</delay>
+                    </noOp>
+                </work>
+            </activity>
+            <activity>
+                <order>2</order>
+                <identifier>second</identifier>
+                <work>
+                    <noOp>
+                        <steps>10</steps>
+                        <delay>300</delay>
+                    </noOp>
+                </work>
+                <policies>
+                    <policy>
+                        <name>Execution time at most 2 seconds</name>
+                        <policyConstraints>
+                            <executionTime>
+                                <exceeds>PT2S</exceeds>
+                            </executionTime>
+                        </policyConstraints>
+                        <policyReaction>
+                            <action>
+                                <suspendTask/>
+                            </action>
+                        </policyReaction>
+                    </policy>
+                </policies>
+            </activity>
+            <activity>
+                <order>3</order>
+                <identifier>third</identifier>
+                <work>
+                    <noOp>
+                        <steps>3</steps>
+                        <delay>100</delay>
+                    </noOp>
+                </work>
+            </activity>
+        </composition>
+    </activity>
+</task>

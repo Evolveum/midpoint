@@ -6,10 +6,6 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.processing;
 
-import static java.util.Objects.requireNonNull;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +18,6 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingC
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStatistics;
 import com.evolveum.midpoint.repo.common.util.OperationExecutionRecorderForTasks;
-import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
@@ -35,7 +30,6 @@ import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Tracer;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -175,8 +169,8 @@ class ItemProcessingGatekeeper<I> {
             writeOperationExecutionRecord(result);
 
             try {
-                ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
-                processor.evaluateAndEnforceRules(processingResult, result);
+                new ActivityPolicyRulesProcessor(activityRun)
+                        .evaluateAndEnforceRules(processingResult, result);
             } catch (Exception e) {
                 result.recordFatalError(e);
                 processingResult = ItemProcessingResult.fromException(result, e);

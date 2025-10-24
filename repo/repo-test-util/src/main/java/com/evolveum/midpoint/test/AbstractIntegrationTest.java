@@ -3960,6 +3960,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .count() == expectedNumber;
     }
 
+    protected Predicate<List<Task>> tasksSuspendedPredicate(int expectedNumber) {
+        return tasks -> tasks.stream()
+                .filter(Task::isSuspended)
+                .count() == expectedNumber;
+    }
+
     protected void waitForTaskStart(String oid, OperationResult result, long timeoutInterval, long sleepInterval) throws CommonException {
         waitFor("Waiting for task manager to start the task", () -> {
             Task task = taskManager.getTaskWithResult(oid, result);

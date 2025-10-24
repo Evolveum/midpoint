@@ -148,7 +148,7 @@ public abstract class AbstractActivityRun<
 
     @NotNull final SimulationSupport simulationSupport;
 
-    @NotNull final ActivityPolicyRulesContext activityPolicyRulesContext = new ActivityPolicyRulesContext();
+    @NotNull private final ActivityPolicyRulesContext activityPolicyRulesContext = new ActivityPolicyRulesContext();
 
     protected AbstractActivityRun(@NotNull ActivityRunInstantiationContext<WD, AH> context) {
         this.taskRun = context.getTaskRun();

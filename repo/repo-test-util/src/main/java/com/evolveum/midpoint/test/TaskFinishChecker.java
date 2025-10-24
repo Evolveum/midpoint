@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.*;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.display;
@@ -37,6 +38,7 @@ public class TaskFinishChecker implements Checker {
     private final boolean verbose;
     private final Consumer<Task> taskConsumer;
     private final Boolean checkAlsoSchedulingState;
+    private final boolean checkOnlySchedulingState;
 
     private Task freshTask;
     private long progressLastShown;
@@ -51,6 +53,7 @@ public class TaskFinishChecker implements Checker {
         verbose = builder.verbose;
         taskConsumer = builder.taskConsumer;
         checkAlsoSchedulingState = builder.checkAlsoSchedulingState;
+        checkOnlySchedulingState = builder.checkOnlySchedulingState;
     }
 
     @Override
@@ -68,24 +71,34 @@ public class TaskFinishChecker implements Checker {
         if (verbose) {
             display("Task", freshTask);
         }
+
         if (freshTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
             return false;
-        } else if (isError(result)) {
+        }
+
+        if (checkOnlySchedulingState) {
+            return schedulingStateIsDone();
+        }
+
+        if (isError(result)) {
             if (errorOk) {
-                return schedulingStateIsDone();
+                return schedulingStateIsIgnoredOrDone();
             } else {
                 display("Failed result of task " + freshTask, freshTask.getResult());
                 throw new AssertionError("Error in " + freshTask + ": " + result);
             }
-        } else {
-            boolean resultDone = !isUnknown(result) && !isInProgress(result);
-            return resultDone && schedulingStateIsDone();
         }
+
+        boolean resultIsDone = !isUnknown(result) && !isInProgress(result);
+        return resultIsDone && schedulingStateIsIgnoredOrDone();
+    }
+
+    private boolean schedulingStateIsIgnoredOrDone() {
+        return !shouldCheckAlsoSchedulingState() || schedulingStateIsDone();
     }
 
     private boolean schedulingStateIsDone() {
-        return !shouldCheckAlsoSchedulingState() ||
-                freshTask.getSchedulingState() == TaskSchedulingStateType.CLOSED ||
+        return freshTask.getSchedulingState() == TaskSchedulingStateType.CLOSED ||
                 freshTask.getSchedulingState() == TaskSchedulingStateType.SUSPENDED;
     }
 
@@ -129,6 +142,12 @@ public class TaskFinishChecker implements Checker {
          * Default is true for single-run tasks and false for recurring ones.
          */
         private Boolean checkAlsoSchedulingState;
+
+        /**
+         * If present, we ignore the operation result and consider only the scheduling state.
+         * This is useful e.g. for checking the root of a task tree. (The operation result is not very meaningful there.)
+         */
+        private boolean checkOnlySchedulingState;
 
         public Builder taskManager(TaskManager val) {
             taskManager = val;
@@ -175,8 +194,16 @@ public class TaskFinishChecker implements Checker {
             return this;
         }
 
+        public Builder checkOnlySchedulingState(boolean val) {
+            checkOnlySchedulingState = val;
+            return this;
+        }
+
         public TaskFinishChecker build() {
             return new TaskFinishChecker(this);
         }
+    }
+
+    public interface BuilderCustomizer extends Function<Builder, Builder> {
     }
 }

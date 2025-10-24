@@ -93,7 +93,7 @@ final class SearchBasedMockActivityRun
         }
     }
 
-    private void checkFailOn(ObjectType object) throws SchemaException, ThresholdPolicyViolationException {
+    private void checkFailOn(ObjectType object) throws SchemaException {
         if (getWorkDefinition().getFailOn() == null) {
             return;
         }
@@ -102,8 +102,7 @@ final class SearchBasedMockActivityRun
                 object.asPrismContainerValue(),
                 SchemaService.get().matchingRuleRegistry());
         if (matches) {
-            // To stop the processing immediately.
-            throw new ThresholdPolicyViolationException("Object matches a filter: " + object);
+            throw new SystemException("Object matches a filter: " + object);
         }
     }
 

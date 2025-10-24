@@ -20,8 +20,6 @@ public record PolicyViolationContext(
         ActivityPolicyActionType policyAction,
         Integer executionAttempt) {
 
-
-
     public static PolicyViolationContext getPolicyViolationContext(Throwable throwable) {
         if (throwable instanceof ActivityThresholdPolicyViolationException ex) {
             return ex.getPolicyViolationContext();
