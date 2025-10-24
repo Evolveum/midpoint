@@ -254,6 +254,7 @@ export default class MidPointTheme {
             let lastTooltipTrigger = null;
             let isHovered = false;
             let isTooltipHovered = false;
+            let isEnterPressedOnTooltipIcon = false;
 
             $(function () {
                 $(document).on("focusin mouseenter", "[data-toggle='tooltip']", function () {
@@ -309,6 +310,12 @@ export default class MidPointTheme {
                     checkHide($(this));
                 });
 
+                $(document).on("keydown", "[data-toggle='tooltip']", function () {
+                    if (event.key === 'Enter') {
+                        isEnterPressedOnTooltipIcon = true;
+                    }
+                });
+
                 $(document).on("click", "[data-toggle='tooltip']", function () {
                     const $el = $(this);
                     const tooltipId = $el.attr("data-tooltip-id");
@@ -316,6 +323,7 @@ export default class MidPointTheme {
 
                     if (isVisible) {
                         $el.tooltip("hide");
+                        isEnterPressedOnTooltipIcon = false;
                     } else {
                         $el.tooltip("dispose");
                         $el.showTooltip(true);
@@ -381,6 +389,7 @@ export default class MidPointTheme {
                             .on('mouseleave', () => {
                                 isTooltipHovered = false;
                                 checkHide($el);
+                                isEnterPressedOnTooltipIcon = false;
                             });
 
                         $tooltip.off('mouseenter mouseleave')
@@ -389,6 +398,7 @@ export default class MidPointTheme {
                             })
                             .on('mouseleave', () => {
                                 isTooltipHovered = false;
+                                isEnterPressedOnTooltipIcon = false;
                                 checkHide($el);
                             });
 
@@ -408,7 +418,7 @@ export default class MidPointTheme {
                     const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
                     const isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
 
-                    const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused;
+                    const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused && !isEnterPressedOnTooltipIcon;
 
                     if (shouldHide) {
                         $el.tooltip('hide');
