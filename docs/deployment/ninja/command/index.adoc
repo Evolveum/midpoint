@@ -12,7 +12,7 @@ Ninja currently supports these operations:
 * xref:./export-configuration.adoc[]
 * xref:./export-focus-statistics.adoc[]
 * xref:./export-shadow-statistics.adoc[]
-* xref:./export-resrouce-schema.adoc[]
+* xref:./export-resource-schema.adoc[]
 * xref:./help.adoc[]
 * xref:./import.adoc[]
 * xref:./import-audit.adoc[]
