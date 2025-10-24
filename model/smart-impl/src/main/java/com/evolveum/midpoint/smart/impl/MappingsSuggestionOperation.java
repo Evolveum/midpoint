@@ -213,7 +213,7 @@ class MappingsSuggestionOperation {
             expression = null;
         } else {
             LOGGER.trace(" -> going to ask LLM about mapping script");
-            var transformationScript = askMicroservice(matchPair, valuesPairs, "null");
+            var transformationScript = askMicroservice(matchPair, valuesPairs, null);
             expression = buildScriptExpression(transformationScript);
             var quality = this.qualityAssessor.assessMappingsQuality(valuesPairs, expression, this.ctx.task, parentResult);
             if (quality == -1.0) {
