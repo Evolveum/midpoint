@@ -10,8 +10,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import com.evolveum.midpoint.util.ClassPathUtil;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,11 +24,8 @@ import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.SqlRepoContext;
-import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -94,36 +89,14 @@ public interface NinjaTestMixin {
         LOGGER.info("Cleaning up the database");
 
         RepositoryService repository = context.getBean("repositoryService", RepositoryService.class);
-        if (repository instanceof SqaleRepositoryService) {
-            SqaleRepoContext repoCtx = ((SqaleRepositoryService) repository).sqlRepoContext();
-            // Just like in model-intest TestSqaleRepositoryBeanConfig.clearDatabase()
-            try (JdbcSession jdbcSession = repoCtx.newJdbcSession().startTransaction()) {
-                jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
-                jdbcSession.executeStatement("TRUNCATE m_object_oid CASCADE;");
-                jdbcSession.executeStatement("TRUNCATE ma_audit_event CASCADE;");
-                jdbcSession.commit();
-            }
-        } else {
-            // Logic adapted from TestSqlRepositoryBeanPostProcessor, we just need to get all those beans
-            BaseHelper baseHelper = context.getBean(BaseHelper.class);
-            SchemaService schemaService = context.getBean(SchemaService.class);
-
-            SqlRepositoryConfiguration repoConfig = baseHelper.getConfiguration();
-            SqlRepoContext fakeRepoContext = new SqlRepoContext(
-                    repoConfig, baseHelper.dataSource(), schemaService, null);
-            try (JdbcSession jdbcSession = fakeRepoContext.newJdbcSession().startTransaction()) {
-                jdbcSession.executeStatement(useProcedure(repoConfig)
-                        ? "{ call cleanupTestDatabaseProc() }"
-                        : "select cleanupTestDatabase();");
-                jdbcSession.commit();
-            }
+        SqaleRepoContext repoCtx = ((SqaleRepositoryService) repository).sqlRepoContext();
+        // Just like in model-intest TestSqaleRepositoryBeanConfig.clearDatabase()
+        try (JdbcSession jdbcSession = repoCtx.newJdbcSession().startTransaction()) {
+            jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
+            jdbcSession.executeStatement("TRUNCATE m_object_oid CASCADE;");
+            jdbcSession.executeStatement("TRUNCATE ma_audit_event CASCADE;");
+            jdbcSession.commit();
         }
-    }
-
-    // Only for generic repo, eventually goes away...
-    private boolean useProcedure(SqlRepositoryConfiguration config) {
-        return StringUtils.containsIgnoreCase(config.getHibernateDialect(), "oracle")
-                || StringUtils.containsIgnoreCase(config.getHibernateDialect(), "SQLServer");
     }
 
     default String getMidpointHome() {

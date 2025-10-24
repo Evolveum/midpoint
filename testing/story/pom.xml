@@ -247,12 +247,6 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sql-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-enforcer-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
