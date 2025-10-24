@@ -468,6 +468,32 @@ export default class MidPointTheme {
             var detailsMenu = $(".details-panel-navigation");
             self.keydownForMenuItems(detailsMenu, self);
         });
+
+        jQuery(function ($) {
+            const popup = $(".search-popover.popover-body");
+            const closeButton = $(".btn.btn-sm.btn-default");
+            const focusableElements = popup.find('a, input');
+            const firstFocusableElement = focusableElements.first();
+            const lastFocusableElement = focusableElements.last();
+            // Trap focus inside popup on Tab key press
+            popup.on('keydown', function(event) {
+                if (event.key === "Tab") {
+                  if (event.shiftKey) {
+                    // Shift + Tab (move focus backward)
+                    if (document.activeElement === firstFocusableElement[0]) {
+                      lastFocusableElement[0].focus(); // Move focus to the last element
+                      event.preventDefault();
+                    }
+                  } else {
+                    // Tab (move focus forward)
+                    if (document.activeElement === lastFocusableElement[0]) {
+                      firstFocusableElement[0].focus(); // Move focus to the first element
+                      event.preventDefault();
+                    }
+                  }
+                }
+            });
+        });
     }
 
     keydownForMenuItems(sideBar, self) {
