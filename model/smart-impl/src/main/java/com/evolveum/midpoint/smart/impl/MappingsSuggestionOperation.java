@@ -215,12 +215,13 @@ class MappingsSuggestionOperation {
             LOGGER.trace(" -> going to ask LLM about mapping script");
             var transformationScript = askMicroservice(matchPair, valuesPairs, null);
             expression = buildScriptExpression(transformationScript);
-            var quality = this.qualityAssessor.assessMappingsQuality(valuesPairs, expression, this.ctx.task, parentResult);
-            if (quality == -1.0) {
-                String errorLog = findEvaluateExpressionError(parentResult);
-                transformationScript = askMicroservice(matchPair, valuesPairs, errorLog);
-                expression = buildScriptExpression(transformationScript);
-            }
+        }
+
+        var assessment = this.qualityAssessor.assessMappingsQualityDetailed(valuesPairs, expression, this.ctx.task, parentResult);
+        if (assessment.status == MappingsQualityAssessor.AssessmentStatus.EVAL_FAILED) {
+            var retryScript = askMicroservice(matchPair, valuesPairs, assessment.errorLog);
+            expression = buildScriptExpression(retryScript);
+            assessment = this.qualityAssessor.assessMappingsQualityDetailed(valuesPairs, expression, this.ctx.task, parentResult);
         }
 
         // TODO remove this ugly hack
@@ -228,8 +229,7 @@ class MappingsSuggestionOperation {
         var hackedSerialized = serialized.replace("ext:", "");
         var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
         var suggestion = new AttributeMappingsSuggestionType()
-                .expectedQuality(this.qualityAssessor.assessMappingsQuality(valuesPairs, expression, this.ctx.task,
-                        parentResult))
+                .expectedQuality(assessment.quality)
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
@@ -306,30 +306,5 @@ class MappingsSuggestionOperation {
     /** Returns {@code true} if there are no target data altogether. */
     private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs) {
         return valuesPairs.stream().allMatch(pair -> pair.focusValues().isEmpty());
-    }
-
-    private static String findEvaluateExpressionError(OperationResult result) {
-        if (result == null) {
-            return null;
-        }
-        // Depth-first search for the last subresult named "evaluateSuggestedExpression" with PARTIAL_ERROR
-        OperationResult found = null;
-
-        Deque<OperationResult> stack = new ArrayDeque<>();
-        stack.push(result);
-        while (!stack.isEmpty()) {
-            OperationResult current = stack.pop();
-            if ("evaluateSuggestedExpression".equals(current.getOperation()) && current.isPartialError()) {
-                found = current; // keep last seen
-            }
-            // push children
-            var subs = current.getSubresults();
-            if (subs != null) {
-                for (int i = subs.size() - 1; i >= 0; i--) {
-                    stack.push(subs.get(i));
-                }
-            }
-        }
-        return found.getMessage();
     }
 }

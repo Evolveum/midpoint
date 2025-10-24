@@ -59,7 +59,7 @@ public class MappingsQualityAssessor {
      *         returns {@code -2.0f} if no comparable samples were found.
      *
      */
-    public float assessMappingsQuality(
+    public AssessmentResult assessMappingsQualityDetailed(
             Collection<ValuesPair> valuePairs,
             @Nullable ExpressionType suggestedExpression,
             Task task,
@@ -84,10 +84,7 @@ public class MappingsQualityAssessor {
                 try {
                     focusValue = applyExpression(suggestedExpression, focusValue, task, parentResult);
                 } catch (Exception e) {
-                    OperationResult sub = parentResult.createSubresult("evaluateSuggestedExpression");
-                    sub.recordPartialError("Failed to evaluate suggested expression: " + e.getMessage(), e);
-                    sub.close();
-                    return -1.0f;
+                    return AssessmentResult.evalFailed("Failed to evaluate suggested expression: " + e.getMessage());
                 }
             }
 
@@ -98,10 +95,10 @@ public class MappingsQualityAssessor {
         }
 
         if (totalShadowValues == 0) {
-            return -2.0f;
+            return AssessmentResult.noSamples();
         }
-        final float quality = (float) matchedShadowValues / totalShadowValues;
-        return Math.round(quality * 100.0f) / 100.0f;
+        final float quality = Math.round(((float) matchedShadowValues / totalShadowValues) * 100.0f) / 100.0f;
+        return AssessmentResult.ok(quality);
     }
 
     @Nullable
@@ -148,5 +145,32 @@ public class MappingsQualityAssessor {
                 new ExpressionEvaluatorsProfile(AccessDecision.DENY, List.of(evaluatorProfile)),
                 BulkActionsProfile.none(), FunctionLibrariesProfile.none(), AccessDecision.DENY);
     }
+
+    public static class AssessmentResult {
+        public final float quality;
+        public final AssessmentStatus status;
+        public final @Nullable String errorLog;
+
+        private AssessmentResult(float quality, AssessmentStatus status, @Nullable String errorLog) {
+            this.quality = quality;
+            this.status = status;
+            this.errorLog = errorLog;
+        }
+
+        public static AssessmentResult ok(float quality) {
+            return new AssessmentResult(quality, AssessmentStatus.OK, null);
+        }
+
+        public static AssessmentResult evalFailed(String errorLog) {
+            return new AssessmentResult(-1.0f, AssessmentStatus.EVAL_FAILED, errorLog);
+        }
+
+        public static AssessmentResult noSamples() {
+            return new AssessmentResult(-2.0f, AssessmentStatus.NO_SAMPLES,
+                    "No comparable samples were found for assessing mapping quality");
+        }
+    }
+
+    public enum AssessmentStatus { OK, NO_SAMPLES, EVAL_FAILED }
 
 }
