@@ -29,3 +29,11 @@ Counts of objects are given in the form of scale as the maximum number in that p
 
 Statistics can be exported to `SYSOUT` or to file (`-o`, `--output`).
 Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.
+
+Note: this command is not supposed to run in multiple threads, therefore do not modify the default threading settings which is set to 1 by default (`--multi-thread`, `-l` options).
+
+.Example: export statistics into output.xml file
+[source,bash]
+----
+ninja.sh export-shadow-statistics --output output.xml
+----
