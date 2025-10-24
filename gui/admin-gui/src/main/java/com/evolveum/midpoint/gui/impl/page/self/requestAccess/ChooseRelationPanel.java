@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
@@ -32,6 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionTy
  * Created by Viliam Repan (lazyman).
  */
 public class ChooseRelationPanel extends BasePanel<List<QName>> {
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_LIST_CONTAINER = "listContainer";
     private static final String ID_LIST = "list";
@@ -68,6 +71,7 @@ public class ChooseRelationPanel extends BasePanel<List<QName>> {
         };
 
         relations = new LoadableModel<>(false) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<Tile<QName>> load() {
@@ -101,6 +105,13 @@ public class ChooseRelationPanel extends BasePanel<List<QName>> {
             @Override
             protected void populateItem(ListItem<Tile<QName>> item) {
                 TilePanel tp = new TilePanel(ID_TILE, item.getModel()) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public String getMarkupId() {
+                        // Return a custom, stable markupId based on the index
+                        return "tile-" + item.getIndex();
+                    }
 
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
@@ -112,12 +123,17 @@ public class ChooseRelationPanel extends BasePanel<List<QName>> {
 
                         target.add(ChooseRelationPanel.this.get(ID_LIST_CONTAINER));
                         onTileClick(target);
+
+                        target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
+                        target.appendJavaScript("MidPointTheme.restoreFocus();");
                     }
                 };
+                tp.setOutputMarkupId(true);
                 customizeTilePanel(tp);
                 item.add(tp);
             }
         };
+        listContainer.setOutputMarkupId(true);
         listContainer.add(list);
     }
 
@@ -145,7 +161,7 @@ public class ChooseRelationPanel extends BasePanel<List<QName>> {
     }
 
     public QName getSelectedRelation() {
-        Tile<QName> selected = relations.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
+        Tile<QName> selected = relations.getObject().stream().filter(Tile::isSelected).findFirst().orElse(null);
         if (selected == null) {
             return null;
         }
@@ -154,7 +170,7 @@ public class ChooseRelationPanel extends BasePanel<List<QName>> {
     }
 
     public boolean isSelectedRelation() {
-        return relations.getObject().stream().anyMatch(t -> t.isSelected());
+        return relations.getObject().stream().anyMatch(Tile::isSelected);
     }
 
     public List<Tile<QName>> getRelations() {

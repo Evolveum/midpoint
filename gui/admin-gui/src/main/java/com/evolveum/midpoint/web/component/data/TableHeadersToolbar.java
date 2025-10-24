@@ -47,28 +47,28 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
         super(table, stateLocator);
 
     }
-
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-        /* added for WCAG issue 5.2.4 The header is not visible but is read by the screen reader */
-        RefreshingView headers = (RefreshingView) get(HEADERS_ID);
-        headers.visitChildren(WebMarkupContainer.class, new IVisitor<WebMarkupContainer, Void>() {
-            @Override
-            public void component(WebMarkupContainer headerObject, IVisit<Void> visit) {
-                headerObject.visitChildren(Label.class, new IVisitor<Label, Void>() {
-                    @Override
-                    public void component(Label labelObject, IVisit<Void> labelVisit) {
-                        if (HIDDEN_HEADER_ID.equals(labelObject.getMarkupId())) {
-                            headerObject.get(HEADER_ID).add(AttributeAppender.append("aria-hidden", "true"));
-                            visit.stop();
-                        }
-                    }
-                });
-            }
-        });
-    }
+//
+//    @Override
+//    protected void onBeforeRender() {
+//        super.onBeforeRender();
+//
+//        /* added for WCAG issue 5.2.4 The header is not visible but is read by the screen reader */
+//        RefreshingView headers = (RefreshingView) get(HEADERS_ID);
+//        headers.visitChildren(WebMarkupContainer.class, new IVisitor<WebMarkupContainer, Void>() {
+//            @Override
+//            public void component(WebMarkupContainer headerObject, IVisit<Void> visit) {
+//                headerObject.visitChildren(Label.class, new IVisitor<Label, Void>() {
+//                    @Override
+//                    public void component(Label labelObject, IVisit<Void> labelVisit) {
+//                        if (HIDDEN_HEADER_ID.equals(labelObject.getMarkupId())) {
+//                            headerObject.get(HEADER_ID).add(AttributeAppender.append("aria-hidden", "true"));
+//                            visit.stop();
+//                        }
+//                    }
+//                });
+//            }
+//        });
+//    }
 
     @Override
     protected WebMarkupContainer newSortableHeader(String headerId, final String property, final ISortStateLocator locator) {

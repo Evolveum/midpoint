@@ -51,7 +51,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
  */
 public class PrismContainerValuePanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>> extends PrismValuePanel<C, PrismContainerWrapper<C>, CVW> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     protected static final String ID_LABEL = "label";
     protected static final String ID_HELP = "help";
@@ -182,7 +182,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<>(ID_SORT_PROPERTIES,
                 GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -194,18 +194,22 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 return PrismContainerValuePanel.this.getModelObject().isSorted();
             }
         };
-        sortPropertiesButton.add(AttributeAppender.append(
-                "aria-pressed", () -> PrismContainerValuePanel.this.getModelObject().isSorted()));
+        sortPropertiesButton.add(AttributeAppender.append("title", this::getSortButtonTitle));
         sortPropertiesButton.add(new VisibleBehaviour(this::shouldBeButtonsShown));
         sortPropertiesButton.setOutputMarkupId(true);
         sortPropertiesButton.setOutputMarkupPlaceholderTag(true);
         return sortPropertiesButton;
     }
 
+    private String getSortButtonTitle() {
+        return getModelObject().isSorted() ? getString("PrismObjectPanel.sortPropertiesByOrder")
+                : getString("PrismObjectPanel.sortPropertiesByName");
+    }
+
     private AjaxLink createAddMoreButton() {
 
          AjaxLink<String> addChildContainerButton = new AjaxLink<>(ID_ADD_CHILD_CONTAINER, new StringResourceModel("PrismContainerValuePanel.addMore")) {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
@@ -213,39 +217,35 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 }
             };
 
-            addChildContainerButton.add(new VisibleEnableBehaviour() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isEnabled() {
-                    if (getModelObject() != null) {
-                        if(getModelObject().getParent() != null) {
-                            return !getModelObject().getParent().isReadOnly();
-                        } else {
-                            return !getModelObject().isReadOnly();
-                        }
-                    }
-                    return false;
-                }
-
-                @Override
-                public boolean isVisible() {
-                    return shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous() &&
-                            !getModelObject().isVirtual();
-                }
-            });
+            addChildContainerButton.add(new VisibleEnableBehaviour(
+                    this::isAddChildContainerButtonVisible, this::isAddChildContainerButtonEnable));
             addChildContainerButton.setOutputMarkupId(true);
             addChildContainerButton.setOutputMarkupPlaceholderTag(true);
             return addChildContainerButton;
     }
 
+    private boolean isAddChildContainerButtonVisible() {
+        return shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous() &&
+                !getModelObject().isVirtual();
+    }
+
+    private boolean isAddChildContainerButtonEnable() {
+        if (getModelObject() != null) {
+            if(getModelObject().getParent() != null) {
+                return !getModelObject().getParent().isReadOnly();
+            } else {
+                return !getModelObject().isReadOnly();
+            }
+        }
+        return false;
+    }
+
     private void initMoreContainersPopup(AjaxRequestTarget parentTarget) {
 
 
-        ListContainersPopup<C, CVW> listContainersPopup = new ListContainersPopup<C, CVW>(getPageBase().getMainPopupBodyId(), getModel()) {
+        ListContainersPopup<C, CVW> listContainersPopup = new ListContainersPopup<>(getPageBase().getMainPopupBodyId(), getModel()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void processSelectedChildren(AjaxRequestTarget target, List<PrismContainerDefinition<?>> selected) {
@@ -305,7 +305,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         ToggleIconButton<?> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
                 GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {

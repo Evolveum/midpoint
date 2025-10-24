@@ -141,13 +141,26 @@ public class NavigatorPanel extends Panel {
                         pageLinkPerformed(target, getPageNumber());
                     }
                 };
+                pageLink.add(AttributeAppender.append("aria-label", getPageLinkAriaLabelModel(pageLink.getPageNumber())));
                 item.add(pageLink);
 
-                item.add(AttributeAppender.append("class", (IModel<String>) () -> getCurrentPage() == pageLink.getPageNumber() ? "active" : ""));
+                item.add(AttributeAppender.append("class", (IModel<String>) () ->
+                        isSelectedPage(pageLink.getPageNumber()) ? "active" : ""));
             }
         };
         navigation.add(new VisibleBehaviour(() -> BooleanUtils.isTrue(showPageListingModel.getObject())));
         pagination.add(navigation);
+    }
+
+    private boolean isSelectedPage(long pageNumber) {
+        return getCurrentPage() == pageNumber;
+    }
+
+    private IModel<String> getPageLinkAriaLabelModel(long pageNumber) {
+        long realPageNumber = pageNumber + 1;
+        return () -> isSelectedPage(pageNumber) ?
+                getString("NavigatorPanel.pageLink.selected.ariaLabel") + " " + realPageNumber
+                : getString("NavigatorPanel.pageLink.ariaLabel") + " " + realPageNumber;
     }
 
     private long computePageNumber(int loopIndex) {

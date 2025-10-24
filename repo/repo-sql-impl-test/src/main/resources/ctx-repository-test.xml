@@ -11,10 +11,6 @@
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
         default-lazy-init="true">
 
-    <!-- This @Configuration drives component-scan + can use @Conditional... -->
-    <bean id="sqlRepositoryBeanConfig"
-            class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanConfig"/>
-
     <!--
     This is not necessary for tests in repo-sql-impl-test (those are only for old repo),
     but it is used by integration tests that use this config.

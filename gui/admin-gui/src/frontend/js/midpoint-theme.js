@@ -254,6 +254,7 @@ export default class MidPointTheme {
             let lastTooltipTrigger = null;
             let isHovered = false;
             let isTooltipHovered = false;
+            let isEnterPressedOnTooltipIcon = false;
 
             $(function () {
                 $(document).on("focusin mouseenter", "[data-toggle='tooltip']", function () {
@@ -309,6 +310,12 @@ export default class MidPointTheme {
                     checkHide($(this));
                 });
 
+                $(document).on("keydown", "[data-toggle='tooltip']", function () {
+                    if (event.key === 'Enter') {
+                        isEnterPressedOnTooltipIcon = true;
+                    }
+                });
+
                 $(document).on("click", "[data-toggle='tooltip']", function () {
                     const $el = $(this);
                     const tooltipId = $el.attr("data-tooltip-id");
@@ -316,6 +323,7 @@ export default class MidPointTheme {
 
                     if (isVisible) {
                         $el.tooltip("hide");
+                        isEnterPressedOnTooltipIcon = false;
                     } else {
                         $el.tooltip("dispose");
                         $el.showTooltip(true);
@@ -381,6 +389,7 @@ export default class MidPointTheme {
                             .on('mouseleave', () => {
                                 isTooltipHovered = false;
                                 checkHide($el);
+                                isEnterPressedOnTooltipIcon = false;
                             });
 
                         $tooltip.off('mouseenter mouseleave')
@@ -389,6 +398,7 @@ export default class MidPointTheme {
                             })
                             .on('mouseleave', () => {
                                 isTooltipHovered = false;
+                                isEnterPressedOnTooltipIcon = false;
                                 checkHide($el);
                             });
 
@@ -408,7 +418,7 @@ export default class MidPointTheme {
                     const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
                     const isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
 
-                    const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused;
+                    const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused && !isEnterPressedOnTooltipIcon;
 
                     if (shouldHide) {
                         $el.tooltip('hide');
@@ -467,6 +477,32 @@ export default class MidPointTheme {
 
             var detailsMenu = $(".details-panel-navigation");
             self.keydownForMenuItems(detailsMenu, self);
+        });
+
+        jQuery(function ($) {
+            const popup = $(".search-popover.popover-body");
+            const closeButton = $(".btn.btn-sm.btn-default");
+            const focusableElements = popup.find('a, input');
+            const firstFocusableElement = focusableElements.first();
+            const lastFocusableElement = focusableElements.last();
+            // Trap focus inside popup on Tab key press
+            popup.on('keydown', function(event) {
+                if (event.key === "Tab") {
+                  if (event.shiftKey) {
+                    // Shift + Tab (move focus backward)
+                    if (document.activeElement === firstFocusableElement[0]) {
+                      lastFocusableElement[0].focus(); // Move focus to the last element
+                      event.preventDefault();
+                    }
+                  } else {
+                    // Tab (move focus forward)
+                    if (document.activeElement === lastFocusableElement[0]) {
+                      firstFocusableElement[0].focus(); // Move focus to the first element
+                      event.preventDefault();
+                    }
+                  }
+                }
+            });
         });
     }
 
@@ -1514,5 +1550,47 @@ export default class MidPointTheme {
                 }, messageTimeout)
             }
         }, menuTimeout);
+    }
+
+    setToastAriaAttributes(toastId) {
+      const toastEl = document.getElementById(toastId);
+
+      if (!toastEl) {
+        console.warn(`Toast with ID "${toastId}" not found.`);
+        return;
+      }
+      const firstToast = toastEl.querySelector('.toast');
+      if (!firstToast) {
+        console.warn(`Toast not found.`);
+        return;
+      }
+      firstToast.setAttribute('tabindex', '0');
+      firstToast.setAttribute('role', 'alert');
+      firstToast.setAttribute('aria-live', 'assertive');
+      toastEl.show();
+    }
+
+    focusSelectedNavigationLink(linkText) {
+        const navigationContainer = document.querySelector('main form div[role="navigation"]');
+        if (!navigationContainer) {
+            console.warn('Navigation container (main form div[role="navigation"]) not found.');
+            return;
+        }
+
+        const navItemLinks = navigationContainer.querySelectorAll('a');
+        let selectedItem = null;
+        for (const link of navItemLinks) {
+            const navItem = link.querySelector('div.text-truncate');
+            if (navItem && navItem.textContent.trim() === linkText) {
+                selectedItem = link;
+                break;
+            }
+        }
+
+        if (selectedItem) {
+            setTimeout(() => {
+                selectedItem.focus();
+            }, 200);
+        }
     }
 }

@@ -4,16 +4,10 @@
   ~ Licensed under the EUPL-1.2 or later.
   -->
 
-<?xml version="1.0" encoding="UTF-8" ?>
-<!--
-  ~ Copyright (c) 2021 Evolveum
-  ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
-  -->
+<!DOCTYPE html>
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div wicket:id="popover">
-        <div class="search-popover popover-body">
+        <div class="search-popover popover-body" role="dialog" aria-modal="true" tabindex="-1">
             <input wicket:message="aria-label:SelectableItemListPopoverPanel.searchItem" wicket:id="searchText" type="text" class="form-control form-control-sm mt-1 mb-2" style="width: auto;" size="20">
 
             <fieldset class="border-bottom mb-2" wicket:id="itemList">

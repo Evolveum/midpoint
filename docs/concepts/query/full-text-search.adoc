@@ -19,7 +19,7 @@ More specifically:
 . Any textual properties of midPoint objects can be designated as "full-text search indexed" in system configuration.
 These can be either standard properties (e.g. user's given and family names) or extension properties.
 
-. When updating these objects, midPoint extracts content of these properties, normalizes it, and stores in a separate `m_object.fullTextInfo` column (or a separate `m_object_text_info` table for the old Generic repository).
+. When updating these objects, midPoint extracts content of these properties, normalizes it, and stores in a separate `m_object.fullTextInfo` column.
 Normalization consists of applying default PolyString normalizer that removes diacritics marks and converts all characters to lowercase.
 Also, during normalization, duplicate words are eliminated, in order to optimize space and processing speed.
 
@@ -139,5 +139,3 @@ These limitations apply at least up to version 4.4 and to both repository implem
 == See also
 
 * xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL repository]
-
-* xref:/midpoint/reference/repository/generic/[Generic repository implementation] - not recommended from 4.4 on

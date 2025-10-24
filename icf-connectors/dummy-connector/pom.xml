@@ -62,8 +62,8 @@
                             <Organization>Evolveum</Organization>
                             <Organization-URL>https://www.evolveum.com</Organization-URL>
                             <Bugtracking-System>https://support.evolveum.com</Bugtracking-System>
-                            <License>Apache License v2.0</License>
-                            <License-URL>https://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+                            <License>EUPL-1.2 or later</License>
+                            <License-URL>https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12</License-URL>
                             <Bundle-Name>Dummy Connector</Bundle-Name>
                             <ConnectorBundle-FrameworkVersion>1.1</ConnectorBundle-FrameworkVersion>
                             <ConnectorBundle-Name>com.evolveum.icf.dummy</ConnectorBundle-Name>

@@ -15,13 +15,15 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serial;
+
 import static com.evolveum.midpoint.web.component.data.TableHeadersToolbar.HIDDEN_HEADER_ID;
 
 /**
  * @author skublik
  */
 public abstract class AbstractIconColumn<T, S> extends AbstractColumn<T, S> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public AbstractIconColumn(IModel<String> displayModel) {
         super(displayModel);
@@ -36,7 +38,6 @@ public abstract class AbstractIconColumn<T, S> extends AbstractColumn<T, S> {
         if (getDisplayModel() == null || StringUtils.isBlank(getDisplayModel().getObject())) {
             Label label = new Label(componentId, () -> LocalizationUtil.translate("AbstractIconColumn.header"));
             label.add(AttributeAppender.append("class", "sr-only"));
-            label.setMarkupId(HIDDEN_HEADER_ID);
             return label;
         }
         return super.getHeader(componentId);

@@ -8,8 +8,7 @@ package com.evolveum.midpoint.repo.sqale.audit;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.getDeltaSuccessExecutionResult;
-import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
+import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -19,11 +18,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import javax.xml.datatype.Duration;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ChangedItemPath;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.dml.DefaultMapper;
@@ -37,12 +35,8 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
@@ -54,10 +48,8 @@ import com.evolveum.midpoint.repo.sqale.audit.qmodel.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryObjectParseResult;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryExecutor;
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -65,8 +57,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}).
@@ -78,6 +68,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     // set from SystemConfigurationAuditType
     private boolean escapeIllegalCharacters = false;
     @NotNull private OperationResultDetailLevel deltaSuccessExecutionResult = OperationResultDetailLevel.CLEANED_UP;
+
+    private boolean indexAddObjectDeltaOperation = false;
+    private Set<ChangedItemPath> indexAdditionalItemPaths = Set.of();
 
     public SqaleAuditService(
             SqaleRepoContext sqlRepoContext,
@@ -282,60 +275,13 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         }
     }
 
-    private Set<String> collectChangedItemPaths(Collection<MAuditDelta> deltas) {
-        Set<String> changedItemPaths = new HashSet<>();
-        for (MAuditDelta delta : deltas) {
-            try {
-                // TODO: this calls compat parser, but for just serialized deltas we could be strict too
-                //  See MID-7431, this currently just shows ERROR with ignore message and no stack trace.
-                //  We could either check parseResult.parsingContext.has/getWarnings, or use strict and catch (probably better).
-                RepositoryObjectParseResult<ObjectDeltaType> parseResult =
-                        sqlRepoContext.parsePrismObject(delta.serializedDelta, ObjectDeltaType.class);
-                ObjectDeltaType deltaBean = parseResult.prismValue;
-                for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
-                    ItemPath path = itemDelta.getPath().getItemPath();
-                    CanonicalItemPath canonical = sqlRepoContext.prismContext()
-                            .createCanonicalItemPath(path, deltaBean.getObjectType());
-                    for (int i = 0; i < canonical.size(); i++) {
-                        changedItemPaths.add(canonical.allUpToIncluding(i).asString());
-                    }
-                }
-            } catch (SchemaException | SystemException e) {
-                // See MID-6446 - we want to throw in tests, old ones should be fixed by now
-                if (InternalsConfig.isConsistencyChecks()) {
-                    throw new SystemException("Problem during audit delta parse", e);
-                }
-                logger.warn("Serialized audit delta with OID '{}' cannot be parsed."
-                        + " No changed items were created. This may cause problem later, but is not"
-                        + " critical for storing the audit record.", delta.deltaOid, e);
-            }
-        }
-        return changedItemPaths;
-    }
-
+    /**
+     * See also {@link AuditInsertion#collectChangedItemPaths( List, PrismContext)},
+     * there's a similar logic used in {@link SqaleAuditService#audit( AuditEventRecordType, OperationResult)} operation.
+     */
     private Set<String> collectChangedItemPathsFromOriginal(Collection<ObjectDeltaOperation<? extends ObjectType>> deltas) {
-        Set<String> changedItemPaths = new HashSet<>();
-        for (var delta : deltas) {
-            var objectType = objectTypeQName(delta);
-            for (var itemDelta : delta.getObjectDelta().getModifications()) {
-                if (itemDelta.isEmpty()) {
-                    // Skipping empty deltas (was normalized during serialization)
-                    continue;
-                }
-                ItemPath path = itemDelta.getPath();
-
-                CanonicalItemPath canonical = sqlRepoContext.prismContext()
-                        .createCanonicalItemPath(path, objectType);
-                for (int i = 0; i < canonical.size(); i++) {
-                    changedItemPaths.add(canonical.allUpToIncluding(i).asString());
-                }
-            }
-        }
-        return changedItemPaths;
-    }
-
-    private QName objectTypeQName(ObjectDeltaOperation<? extends ObjectType> delta) {
-        return ObjectTypes.getObjectType(delta.getObjectDelta().getObjectTypeClass()).getTypeQName();
+        return new ChangedItemPathComputer(indexAddObjectDeltaOperation, indexAdditionalItemPaths, sqlRepoContext.prismContext())
+                .collectChangedItemPaths(deltas);
     }
 
     private void insertAuditDeltas(
@@ -409,8 +355,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         long opHandle = registerOperationStart(OP_AUDIT);
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             // plenty of parameters, but it's better to have a short-lived stateful worker for it
-            new AuditInsertion(record, jdbcSession, sqlRepoContext, escapeIllegalCharacters, logger)
-                    .execute();
+            new AuditInsertion(
+                    record, jdbcSession, sqlRepoContext, escapeIllegalCharacters,
+                    indexAddObjectDeltaOperation, indexAdditionalItemPaths, logger).execute();
 
             jdbcSession.commit();
         } finally {
@@ -537,6 +484,9 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
     public void applyAuditConfiguration(@Nullable SystemConfigurationAuditType configuration) {
         escapeIllegalCharacters = isEscapingInvalidCharacters(configuration);
         deltaSuccessExecutionResult = getDeltaSuccessExecutionResult(configuration);
+
+        indexAddObjectDeltaOperation = isIndexingAddDeltaOperation(configuration);
+        indexAdditionalItemPaths = getIndexingAdditionalItemPaths(configuration);
     }
 
     @Override
