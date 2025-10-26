@@ -19,8 +19,6 @@ public class PolicyRulesContext<T extends EvaluatedPolicyRule> {
 
     private final @NotNull List<T> policyRules = new ArrayList<>();
 
-    private final @NotNull Map<String, Integer> ruleCounters = new HashMap<>();
-
     public Collection<T> getPolicyRules() {
         return Collections.unmodifiableList(policyRules);
     }
@@ -35,13 +33,5 @@ public class PolicyRulesContext<T extends EvaluatedPolicyRule> {
     public void setPolicyRules(@NotNull List<T> policyRules) {
         this.policyRules.clear();
         this.policyRules.addAll(policyRules);
-    }
-
-    Integer getCounter(@NotNull String ruleId) {
-        return ruleCounters.get(ruleId);
-    }
-
-    void setCounter(@NotNull String ruleId, int count) {
-        ruleCounters.put(ruleId, count);
     }
 }

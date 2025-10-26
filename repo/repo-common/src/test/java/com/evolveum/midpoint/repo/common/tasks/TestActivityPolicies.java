@@ -178,19 +178,23 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 checkerBuilder -> checkerBuilder.checkOnlySchedulingState(true),
                 result);
 
+        // @formatter:off
         then("the task tree is suspended after exceeding execution time");
         TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.assertTree("after")
                 .display()
                 .assertSuspended()
                 .assertSubtasks(2)
                 .subtask("first", false)
-                .display()
-                .assertClosed() // this activity finished before suspension
-                .end()
+                    .display()
+                    .assertSuccess()
+                    .assertClosed() // this activity finished before suspension
+                    .end()
                 .subtask("second", false)
-                .assertSuspended() // but this was suspended
-                .display()
-                .end();
+                    .assertFatalError()
+                    .assertSuspended() // but this was suspended
+                    .display()
+                    .end();
+        // @formatter:on
         // TODO more asserts
     }
 
@@ -356,7 +360,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A simple activity that is suspended when it exceeds given number of errors.
      */
-    @Test(enabled = false) // FIXME error counting seems not to work
+    @Test
     public void test200SimpleSuspendOnErrors() throws Exception {
         var task = getTestTask();
         var result = task.getResult();

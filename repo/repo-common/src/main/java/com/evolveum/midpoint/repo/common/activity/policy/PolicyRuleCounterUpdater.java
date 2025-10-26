@@ -62,16 +62,6 @@ public abstract class PolicyRuleCounterUpdater {
                 continue;
             }
 
-            Integer counter = context.getCounter(rule.getRuleIdentifier());
-            if (counter != null) {
-                // The counter was already incremented in this run, so we just copy it to the rule.
-                // FIXME shouldn't we put the rule to "rulesToIncrement", or increment the counter in some way?
-                rule.setThresholdValueType(ThresholdValueType.COUNTER, counter);
-                LOGGER.trace("Counter for rule {} was already incremented to {}, copying it to the rule",
-                        rule.getRuleIdentifier(), counter);
-                continue;
-            }
-
             // The counter was not incremented yet, so we increment it now.
             LOGGER.trace("Incrementing counter for rule {}", rule.getRuleIdentifier());
             rulesToIncrement.add(rule);
@@ -88,7 +78,6 @@ public abstract class PolicyRuleCounterUpdater {
 
         currentValues.forEach((id, value) -> {
             rulesToIncrementByIdentifier.get(id).setThresholdValueType(ThresholdValueType.COUNTER, value);
-            context.setCounter(id, value);
         });
     }
 }

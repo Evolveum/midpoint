@@ -17,10 +17,19 @@ public interface EvaluatedPolicyRule {
 
     Integer getOrder();
 
+    /**
+     * Type of the threshold value used for reaction threshold evaluation.
+     */
     @NotNull ThresholdValueType getThresholdValueType();
 
     void setThresholdValueType(@NotNull ThresholdValueType thresholdValueType, Object value);
 
+    /**
+     * Valute that should be used for reaction threshold evaluation.
+     * This is the result of policy constraint evaluation.
+     *
+     * Type of this value is defined by {@link #getThresholdValueType()}.
+     */
     Object getThresholdValue();
 
     boolean isTriggered();
