@@ -83,14 +83,34 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
             "task-200-simple-suspend-on-item-errors.xml",
             "8f949395-2af0-4728-82e3-a079f1128bcb",
             DEFAULT_TIMEOUT);
-    private static final TestTask TASK_210_MULTINODE_SUSPEND_ON_ITEM_ERRORS = new TestTask(
+    private static final TestTask TASK_210_CHILD_SUSPEND_ON_OWN_ITEM_ERRORS = new TestTask(
             TEST_DIR,
-            "task-210-multinode-suspend-on-item-errors.xml",
+            "task-210-child-suspend-on-own-item-errors.xml",
+            "7c377ab5-22dc-4c4a-9ee4-6b58224bfffe",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_220_CHILD_SUSPEND_ON_PARENT_ITEM_ERRORS = new TestTask(
+            TEST_DIR,
+            "task-220-child-suspend-on-parent-item-errors.xml",
+            "9bd88e33-7aae-4ebf-bb9e-d940d4bb6bb4",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_230_CHILD_SUSPEND_ON_OWN_ITEM_ERRORS_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-230-child-suspend-on-own-item-errors-with-subtasks.xml",
+            "4fdf1e66-f520-4689-ada7-d19f4441bd2c",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_240_CHILD_SUSPEND_ON_PARENT_ITEM_ERRORS_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-240-child-suspend-on-parent-item-errors-with-subtasks.xml",
+            "82da7afe-3b01-4ecc-9691-34b6a760afae",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_250_MULTINODE_SUSPEND_ON_ITEM_ERRORS = new TestTask(
+            TEST_DIR,
+            "task-250-multinode-suspend-on-item-errors.xml",
             "7b046dca-ab34-49c4-ae67-f693e7874cde",
             DEFAULT_TIMEOUT);
-    private static final TestTask TASK_220_MULTINODE_SUSPEND_ON_ITEM_ERRORS_UNBALANCED = new TestTask(
+    private static final TestTask TASK_255_MULTINODE_SUSPEND_ON_ITEM_ERRORS_UNBALANCED = new TestTask(
             TEST_DIR,
-            "task-220-multinode-suspend-on-item-errors-unbalanced.xml",
+            "task-255-multinode-suspend-on-item-errors-unbalanced.xml",
             "2e45c709-1cbe-4030-84a6-1e25e37e3846",
             DEFAULT_TIMEOUT);
 
@@ -186,14 +206,15 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.init(this, task, result);
+        var testTask = TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.rerunTreeErrorsOk(result);
+        testTask.rerunTreeErrorsOk(result);
 
         // @formatter:off
         then("the task tree is suspended after exceeding execution time");
-        TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.assertTreeAfter()
+        testTask.assertTreeAfter()
                 .assertSuspended()
                 .assertSubtasks(2)
                 .subtask("first", false)
@@ -218,23 +239,26 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.init(this, task, result);
+        var testTask = TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.rerunTreeErrorsOk(result);
+        testTask.rerunTreeErrorsOk(result);
 
         then("the task tree is suspended after exceeding execution time");
-        TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.assertTreeAfter()
+        // @formatter:off
+        testTask.assertTreeAfter()
                 .assertSuspended()
                 .assertSubtasks(2)
                 .subtask("first", false)
-                .display()
-                .assertClosed() // this activity finished before suspension
+                    .display()
+                    .assertClosed() // this activity finished before suspension
                 .end()
                 .subtask("second", false)
-                .display()
-                .assertSuspended() // but this was suspended
+                    .display()
+                    .assertSuspended() // but this was suspended
                 .end();
+        // @formatter:on
         // TODO more asserts
     }
 
@@ -381,14 +405,120 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     }
 
     /**
-     * A multinode activity that is suspended when it exceeds given number of errors.
+     * A child activity that is suspended when it exceeds given number of errors (specified on its own level).
      */
     @Test
-    public void test210MultinodeSuspendOnErrors() throws Exception {
+    public void test210ChildSuspendOnOwnErrors() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
-        TestTask testTask = TASK_210_MULTINODE_SUSPEND_ON_ITEM_ERRORS;
+        var testTask = TASK_210_CHILD_SUSPEND_ON_OWN_ITEM_ERRORS;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunErrorsOk(result);
+
+        then("the task is suspended after exceeding number of errors");
+        testTask.assertAfter()
+                .assertSuspended()
+                .assertFatalError();
+        // TODO more asserts
+    }
+
+    /**
+     * A child activity that is suspended when it exceeds given number of errors (specified on the parent level).
+     */
+    @Test(enabled = false) // FIXME we don't see parent policies
+    public void test220ChildSuspendOnParentErrors() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var testTask = TASK_220_CHILD_SUSPEND_ON_PARENT_ITEM_ERRORS;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunErrorsOk(result);
+
+        then("the task is suspended after exceeding execution time");
+        testTask.assertAfter()
+                .assertSuspended()
+                .assertFatalError();
+        // TODO more asserts
+    }
+
+    /**
+     * As {@link #test210ChildSuspendOnOwnErrors()} but the activities run in subtasks.
+     */
+    @Test
+    public void test230ChildSuspendOnOwnErrorsWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var testTask = TASK_230_CHILD_SUSPEND_ON_OWN_ITEM_ERRORS_WITH_SUBTASKS;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunTreeErrorsOk(result);
+
+        // @formatter:off
+        then("the task tree is suspended after exceeding given error count");
+        testTask.assertTreeAfter()
+                .assertSuspended()
+                .assertSubtasks(2)
+                .subtask("first", false)
+                    .display()
+                    .assertPartialError() // there is one error
+                    .assertClosed() // this activity finished before suspension
+                    .end()
+                .subtask("second", false)
+                    .assertFatalError()
+                    .assertSuspended() // but this was suspended
+                    .display()
+                    .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * As {@link #test220ChildSuspendOnParentErrors()} but the activities run in subtasks.
+     */
+    @Test(enabled = false) // FIXME we don't see parent policies
+    public void test240ChildSuspendOnParentErrorsWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var testTask = TASK_240_CHILD_SUSPEND_ON_PARENT_ITEM_ERRORS_WITH_SUBTASKS;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunTreeErrorsOk(result);
+
+        then("the task tree is suspended after exceeding given error count");
+        // @formatter:off
+        testTask.assertTreeAfter()
+                .assertSuspended()
+                .assertSubtasks(2)
+                .subtask("first", false)
+                    .display()
+                    .assertClosed() // this activity finished before suspension
+                .end()
+                .subtask("second", false)
+                    .display()
+                    .assertSuspended() // but this was suspended
+                .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A multinode activity that is suspended when it exceeds given number of errors.
+     */
+    @Test
+    public void test250MultinodeSuspendOnErrors() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TestTask testTask = TASK_250_MULTINODE_SUSPEND_ON_ITEM_ERRORS;
         testTask.init(this, task, result);
 
         when("task is run until it's stopped");
@@ -415,16 +545,16 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     }
 
     /**
-     * As {@link #test210MultinodeSuspendOnErrors()} but the workers are unbalanced: one worker processes only good objects,
+     * As {@link #test250MultinodeSuspendOnErrors()} but the workers are unbalanced: one worker processes only good objects,
      * the other only bad objects. They both should stop when the error threshold is reached.
      */
     // FIXME currently failing, because we don't have the mechanism to notify other workers when one worker suspends the task
     @Test(enabled = false)
-    public void test220MultinodeSuspendOnErrorsUnbalanced() throws Exception {
+    public void test255MultinodeSuspendOnErrorsUnbalanced() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
-        TestTask testTask = TASK_220_MULTINODE_SUSPEND_ON_ITEM_ERRORS_UNBALANCED;
+        TestTask testTask = TASK_255_MULTINODE_SUSPEND_ON_ITEM_ERRORS_UNBALANCED;
         testTask.init(this, task, result);
 
         when("task is run until it's stopped");
