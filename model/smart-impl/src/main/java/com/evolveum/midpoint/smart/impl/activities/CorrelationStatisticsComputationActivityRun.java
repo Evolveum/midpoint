@@ -85,9 +85,10 @@ public class CorrelationStatisticsComputationActivityRun extends SearchBasedActi
 
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
         var workDef = getWorkDefinition();
-        var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeStatistics(
-                workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), getRunningTask(), result);
-        return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
+        return SmartIntegrationBeans.get().smartIntegrationService
+                .getLatestObjectTypeStatisticsOID(
+                        workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), getRunningTask(), result)
+                .orElse(null);
     }
 
     @Override

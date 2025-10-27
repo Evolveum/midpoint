@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.
@@ -62,8 +63,8 @@ public interface SmartIntegrationService {
             String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws SchemaException;
 
-    /** Returns the object holding last known statistics for the given resource, kind and intent. */
-    public GenericObjectType getLatestObjectTypeStatistics(
+    /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
+    public Optional<String> getLatestObjectTypeStatisticsOID(
             String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
             throws SchemaException;
 

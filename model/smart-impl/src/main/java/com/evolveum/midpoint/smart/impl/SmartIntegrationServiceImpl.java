@@ -345,7 +345,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         }
     }
 
-    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+    public Optional<String> getLatestObjectTypeStatisticsOID(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
                 .addParam("resourceOid", resourceOid)
@@ -373,7 +373,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                                     o.getExtension(), MODEL_EXTENSION_OBJECT_TYPE_STATISTICS) != null)
                     .max(Comparator.comparing(
                             o -> toMillis(ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(o).getTimestamp())))
-                    .orElse(null);
+                    .map(GenericObjectType::getOid);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
