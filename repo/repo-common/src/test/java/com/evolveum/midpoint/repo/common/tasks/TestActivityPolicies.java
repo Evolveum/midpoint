@@ -35,7 +35,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/activities/policies");
 
-    private static final long DEFAULT_TIMEOUT = 20_000;
+    private static final long DEFAULT_TIMEOUT = 30_000;
     private static final long DEFAULT_SLEEP_TIME = 500;
 
     private static final TestTask TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME = new TestTask(
@@ -83,21 +83,37 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
             "task-200-simple-suspend-on-item-errors.xml",
             "8f949395-2af0-4728-82e3-a079f1128bcb",
             DEFAULT_TIMEOUT);
+    private static final TestTask TASK_210_MULTINODE_SUSPEND_ON_ITEM_ERRORS = new TestTask(
+            TEST_DIR,
+            "task-210-multinode-suspend-on-item-errors.xml",
+            "7b046dca-ab34-49c4-ae67-f693e7874cde",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_220_MULTINODE_SUSPEND_ON_ITEM_ERRORS_UNBALANCED = new TestTask(
+            TEST_DIR,
+            "task-220-multinode-suspend-on-item-errors-unbalanced.xml",
+            "2e45c709-1cbe-4030-84a6-1e25e37e3846",
+            DEFAULT_TIMEOUT);
+
+    /** Good objects on which we test "fail on error" policies. These complete without failures. */
+    private static final int NUMBER_OF_GOOD_OBJECTS = 50;
+
+    /** Bad objects on which we test "fail on error" policies. These fail when processed. */
+    private static final int NUMBER_OF_BAD_OBJECTS = 50;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        createServices(initResult);
+        createTestObjects(initResult);
     }
 
     /** Create objects used by mock search activities. */
-    private void createServices(OperationResult result) throws CommonException {
+    private void createTestObjects(OperationResult result) throws CommonException {
         repoObjectCreatorFor(ServiceType.class)
-                .withObjectCount(10)
+                .withObjectCount(NUMBER_OF_GOOD_OBJECTS)
                 .withNamePattern("test-good-%03d")
                 .execute(result);
         repoObjectCreatorFor(ServiceType.class)
-                .withObjectCount(10)
+                .withObjectCount(NUMBER_OF_BAD_OBJECTS)
                 .withNamePattern("test-bad-%03d")
                 .execute(result);
     }
@@ -173,14 +189,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.rerunErrorsOk(
-                checkerBuilder -> checkerBuilder.checkOnlySchedulingState(true),
-                result);
+        TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.rerunTreeErrorsOk(result);
 
         // @formatter:off
         then("the task tree is suspended after exceeding execution time");
-        TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.assertTree("after")
-                .display()
+        TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.assertTreeAfter()
                 .assertSuspended()
                 .assertSubtasks(2)
                 .subtask("first", false)
@@ -208,13 +221,10 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.rerunErrorsOk(
-                checkerBuilder -> checkerBuilder.checkOnlySchedulingState(true),
-                result);
+        TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.rerunTreeErrorsOk(result);
 
         then("the task tree is suspended after exceeding execution time");
-        TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.assertTree("after")
-                .display()
+        TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.assertTreeAfter()
                 .assertSuspended()
                 .assertSubtasks(2)
                 .subtask("first", false)
@@ -239,9 +249,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.init(this, task, result);
 
         when("task is run until it's stopped (some workers may continue for a little while)");
-        TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.rerunErrorsOk(
-                checkerBuilder -> checkerBuilder.checkOnlySchedulingState(true),
-                result);
+        TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.rerunTreeErrorsOk(result);
 
         and("the task and ALL workers are suspended");
         waitForTaskTreeCloseOrCondition(
@@ -252,8 +260,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 tasksSuspendedPredicate(3)); // main task + 2 workers
 
         then("everything is OK");
-        TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.assertTree("after")
-                .display()
+        TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.assertTreeAfter()
                 .assertSuspended() // already checked above
                 .assertSubtasks(2)
                 .subtask(0).display().end()
@@ -277,9 +284,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         testTask.init(this, task, result);
 
         when("task is run until it's stopped (some workers may continue for a little while)");
-        testTask.rerunErrorsOk(
-                checkerBuilder -> checkerBuilder.checkOnlySchedulingState(true),
-                result);
+        testTask.rerunTreeErrorsOk(result);
 
         then("root task is suspended and the first activity task is closed");
         testTask.assertTree("")
@@ -324,9 +329,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         testTask.init(this, task, result);
 
         when("task is run until it's stopped (some workers may continue for a little while)");
-        testTask.rerunErrorsOk(
-                checkerBuilder -> checkerBuilder.checkOnlySchedulingState(true),
-                result);
+        testTask.rerunTreeErrorsOk(result);
 
         then("root task is suspended and the first activity task is closed");
         testTask.assertTree("")
@@ -374,6 +377,78 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         testTask.assertAfter()
                 .assertSuspended()
                 .assertFatalError();
+        // TODO more asserts
+    }
+
+    /**
+     * A multinode activity that is suspended when it exceeds given number of errors.
+     */
+    @Test
+    public void test210MultinodeSuspendOnErrors() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TestTask testTask = TASK_210_MULTINODE_SUSPEND_ON_ITEM_ERRORS;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunTreeErrorsOk(result);
+
+        // 50 bad objects (~ 25 per task), delay is 400 milliseconds, so each task would normally run for about 10 seconds.
+
+        and("giving both workers a chance to stop");
+        Thread.sleep(5000);
+
+        then("the task is suspended after exceeding given number of errors");
+        testTask.assertTreeAfter()
+                .assertSuspended()
+                .assertSubtasks(2)
+                .subtask(0)
+                    .display()
+                    .assertSuspended()
+                .end()
+                .subtask(1)
+                    .display()
+                    .assertSuspended()
+                .end();
+        // TODO more asserts
+    }
+
+    /**
+     * As {@link #test210MultinodeSuspendOnErrors()} but the workers are unbalanced: one worker processes only good objects,
+     * the other only bad objects. They both should stop when the error threshold is reached.
+     */
+    // FIXME currently failing, because we don't have the mechanism to notify other workers when one worker suspends the task
+    @Test(enabled = false)
+    public void test220MultinodeSuspendOnErrorsUnbalanced() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TestTask testTask = TASK_220_MULTINODE_SUSPEND_ON_ITEM_ERRORS_UNBALANCED;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunTreeErrorsOk(result);
+
+        // 50 good objects, 50 bad objects, delay is 200 milliseconds, so the tasks would normally run for about 10 seconds.
+
+        and("giving a chance to the other worker to stop as well");
+        Thread.sleep(5000);
+
+        then("all tasks are suspended after exceeding given number of errors");
+        // @formatter:off
+        testTask.assertTreeAfter()
+                .assertSuspended()
+                .assertSubtasks(2)
+                .subtask(0)
+                    .display()
+                    .assertSuspended()
+                .end()
+                .subtask(1)
+                    .display()
+                    .assertSuspended()
+                .end();
+        // @formatter:on
         // TODO more asserts
     }
 }

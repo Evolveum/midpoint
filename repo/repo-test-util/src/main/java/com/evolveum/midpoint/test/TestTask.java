@@ -93,6 +93,16 @@ public class TestTask extends TestObject<TaskType> {
         rerunErrorsOk(null, result);
     }
 
+    /**
+     * A variant of {@link #rerunErrorsOk(OperationResult)} that is suitable for running task trees, as it ignores
+     * the operation result, and looks at the root task status only.
+     */
+    public void rerunTreeErrorsOk(OperationResult result) throws CommonException {
+        rerunErrorsOk(
+                checkerBuilder -> checkerBuilder.checkOnlySchedulingState(true),
+                result);
+    }
+
     public void rerunErrorsOk(TaskFinishChecker.BuilderCustomizer builderCustomizer, OperationResult result)
             throws CommonException {
         long startTime = System.currentTimeMillis();
@@ -120,6 +130,10 @@ public class TestTask extends TestObject<TaskType> {
 
     public TaskAsserter<Void> assertAfter() throws SchemaException, ObjectNotFoundException {
         return doAssert("after").display();
+    }
+
+    public TaskAsserter<Void> assertTreeAfter() throws SchemaException, ObjectNotFoundException {
+        return assertTree("after").display();
     }
 
     public void suspend() throws CommonException {

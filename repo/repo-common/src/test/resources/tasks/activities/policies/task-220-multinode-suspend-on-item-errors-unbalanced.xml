@@ -7,8 +7,9 @@
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
-        oid="8f949395-2af0-4728-82e3-a079f1128bcb">
-    <name>task-simple-suspend-on-item-errors</name>
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="2e45c709-1cbe-4030-84a6-1e25e37e3846">
+    <name>task-multinode-suspend-on-item-errors-unbalanced</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>closed</executionState>
     <activity>
@@ -19,14 +20,14 @@
                         <type>ServiceType</type>
                         <query>
                             <q:filter>
-                                <q:text>name startsWith "test-bad"</q:text>
+                                <q:text>name startsWith "test-"</q:text>
                             </q:filter>
                         </query>
                     </ext:objectSet>
                     <ext:failOn>
                         <q:text>name contains "bad"</q:text>
                     </ext:failOn>
-                    <ext:delay>100</ext:delay>
+                    <ext:delay>200</ext:delay>
                 </ext:searchIterativeMock>
             </extension>
         </work>
@@ -50,5 +51,23 @@
                 </policyReaction>
             </policy>
         </policies>
+        <distribution>
+            <buckets>
+                <explicitSegmentation>
+                    <discriminator>name</discriminator>
+                    <content xsi:type="StringPrefixWorkBucketContentType">
+                        <prefix>test-good</prefix>
+                    </content>
+                    <content xsi:type="StringPrefixWorkBucketContentType">
+                        <prefix>test-bad</prefix>
+                    </content>
+                </explicitSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
     </activity>
 </task>

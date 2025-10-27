@@ -68,7 +68,13 @@ final class SearchBasedMockActivityRun
     @Override
     public boolean processItem(@NotNull ObjectType object,
             @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-            throws SchemaException, ThresholdPolicyViolationException {
+            throws SchemaException {
+
+        long delay = getWorkDefinition().getDelay();
+        if (delay > 0) {
+            LOGGER.trace("Sleeping for {} msecs", delay);
+            MiscUtil.sleepWatchfully(System.currentTimeMillis() + delay, 10, workerTask::canRun);
+        }
 
         String message = emptyIfNull(getWorkDefinition().getMessage()) + object.getName().getOrig();
         LOGGER.info("Message: {}", message);
@@ -102,7 +108,7 @@ final class SearchBasedMockActivityRun
                 object.asPrismContainerValue(),
                 SchemaService.get().matchingRuleRegistry());
         if (matches) {
-            throw new SystemException("Object matches a filter: " + object);
+            throw new SystemException("Object matches a 'fail-on' filter: " + object);
         }
     }
 
