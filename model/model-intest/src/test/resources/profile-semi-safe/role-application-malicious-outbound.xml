@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="e55fbaa2-b330-11f0-a4e1-43f895ecb4de">
+    <name>Malicious Outbound Application Role</name>
+    <documentation>
+        Role that tries to execute Groovy code in construction/outbound.
+    </documentation>
+    <assignment>
+        <!-- Application role archetype.
+             Make sure the default application role archetype does not ruin definition of expression profile. -->
+        <targetRef oid="00000000-0000-0000-0000-000000000328" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <construction>
+            <resourceRef oid="b6921940-b317-11f0-a8d9-bb8df5a5aed5"/>
+            <attribute>
+                <ref>title</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>com.evolveum.midpoint.model.intest.TestExpressionProfileSemiSafe.boom()</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+</role>

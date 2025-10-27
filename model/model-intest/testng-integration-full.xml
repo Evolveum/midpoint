@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -20,6 +20,7 @@
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityItemValues"/>
             <class name="com.evolveum.midpoint.model.intest.security.TestSecurityGovernance"/>
             <class name="com.evolveum.midpoint.model.intest.TestExpressionProfiles"/>
+            <class name="com.evolveum.midpoint.model.intest.TestExpressionProfileSemiSafe"/>
             <class name="com.evolveum.midpoint.model.intest.TestRunAs"/>
         </classes>
     </test>
