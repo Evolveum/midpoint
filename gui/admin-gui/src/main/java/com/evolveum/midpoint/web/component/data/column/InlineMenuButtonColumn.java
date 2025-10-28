@@ -29,6 +29,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -113,8 +115,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
             @Override
             protected Component createButton(int index, String componentId, IModel<T> model) {
-                CompositedIconBuilder builder = getIconCompositedBuilder(index, buttonMenuItems);
-                AjaxCompositedIconButton btn = new AjaxCompositedIconButton(componentId, builder.build(), () -> getButtonTitle(index, buttonMenuItems)) {
+                @Nullable CompositedIconBuilder builder = getIconCompositedBuilder(index, buttonMenuItems);
+
+                AjaxCompositedIconButton btn = new AjaxCompositedIconButton(componentId,
+                        builder != null ? builder.build() : null,
+                        () -> getButtonTitle(index, buttonMenuItems)) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         setRowModelToButtonAction(rowModel, buttonMenuItems);
@@ -133,7 +138,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                     }
                 };
 
-                btn.add(AttributeAppender.append("class", getInlineMenuItemCssClass(rowModel)));
+                btn.add(AttributeAppender.append("class", getButtonAdditionalCss(index, buttonMenuItems, rowModel)));
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
                 btn.titleAsLabel(showButtonLabel(index, buttonMenuItems));
                 btn.add(AttributeAppender.append("aria-label", getButtonTitle(index, buttonMenuItems)));
@@ -235,7 +240,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         return DoubleButtonColumn.ButtonSizeClass.EXTRA_SMALL.toString();
     }
 
-    private CompositedIconBuilder getIconCompositedBuilder(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
+    private @Nullable CompositedIconBuilder getIconCompositedBuilder(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
         if (id >= buttonMenuItems.size()) {
             return null;
         }
@@ -246,9 +251,21 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         if (id >= buttonMenuItems.size()) {
             return null;
         }
-        IModel<String> label = buttonMenuItems.get(id).getLabel();
+        IModel<String> label = buttonMenuItems.get(id).getButtonLabelModel();
         return label != null && label.getObject() != null ?
                 label.getObject() : "";
+    }
+
+    private @Nullable String getButtonAdditionalCss(int id,
+            @NotNull List<ButtonInlineMenuItem> buttonMenuItems,
+            @Nullable IModel<T> rowModel) {
+        String menuItemCssClass = getInlineMenuItemCssClass(rowModel);
+        if (id >= buttonMenuItems.size()) {
+            return menuItemCssClass;
+        }
+        IModel<String> additionalCssClass = buttonMenuItems.get(id).getAdditionalCssClass();
+        menuItemCssClass += additionalCssClass != null ? " " + additionalCssClass.getObject() : "";
+        return menuItemCssClass;
     }
 
     protected int getNumberOfButtons(boolean isHeaderPanel) {

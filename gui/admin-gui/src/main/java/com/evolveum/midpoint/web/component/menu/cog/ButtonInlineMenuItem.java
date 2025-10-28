@@ -47,4 +47,7 @@ public abstract class ButtonInlineMenuItem extends InlineMenuItem {
         this.isLabelVisible = visible;
     }
 
+    public IModel<String> getButtonLabelModel() {
+        return getLabel();
+    }
 }

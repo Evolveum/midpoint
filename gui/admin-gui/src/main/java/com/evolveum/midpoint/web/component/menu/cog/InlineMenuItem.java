@@ -14,8 +14,7 @@ import java.io.Serializable;
 
 /**
  * TODO: update to better use with DropdownButtonPanel. Move away from depreated com.evolveum.midpoint.web.component.menu.cog.
- * TODO: Create a builder for this.
- *
+ * Use {@link InlineMenuItemBuilder} to create instances.
  * @author lazyman
  */
 public abstract class InlineMenuItem implements Serializable {
@@ -114,6 +113,10 @@ public abstract class InlineMenuItem implements Serializable {
     }
 
    public boolean showConfirmationDialog() {
+        return true;
+    }
+
+    protected boolean isMenuLinkVisible(){
         return true;
     }
 

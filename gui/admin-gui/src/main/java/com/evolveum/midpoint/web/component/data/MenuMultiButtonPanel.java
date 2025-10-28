@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
         DropdownButtonPanel inlineMenu = new DropdownButtonPanel(ID_INLINE_MENU_PANEL,
                 new DropdownButtonDto(null, getDropDownButtonIcon(), null, menuItemsModel.getObject())) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String getSpecialButtonClass() {
@@ -73,7 +74,6 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
         add(inlineMenu);
 
         inlineMenu.add(new VisibleBehaviour(() -> {
-
             List<InlineMenuItem> menuItems = menuItemsModel.getObject();
             for (InlineMenuItem menuItem : menuItems) {
                 if (!(menuItem instanceof ButtonInlineMenuItem)){
