@@ -1304,6 +1304,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="errorLog" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional error context from midPoint explaining why the previous suggestion could not be applied
+                        (e.g., expression evaluation failure). Provided to help the service refine the next suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:complexType name="SiSuggestMappingExampleType">

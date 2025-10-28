@@ -9,10 +9,7 @@ package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPING;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -215,17 +212,15 @@ class MappingsSuggestionOperation {
             expression = null;
         } else {
             LOGGER.trace(" -> going to ask LLM about mapping script");
-            var transformationScript = askMicroservice(matchPair, valuesPairs);
-            if (transformationScript == null || transformationScript.equals("input")) {
-                LOGGER.trace(" -> LLM returned '{}', using 'asIs'", transformationScript);
-                expression = null;
-            } else {
-                LOGGER.trace(" -> LLM returned a script, using it:\n{}", transformationScript);
-                expression = new ExpressionType()
-                        .expressionEvaluator(
-                                new ObjectFactory().createScript(
-                                        new ScriptExpressionEvaluatorType().code(transformationScript)));
-            }
+            var transformationScript = askMicroservice(matchPair, valuesPairs, null);
+            expression = buildScriptExpression(transformationScript);
+        }
+
+        var assessment = this.qualityAssessor.assessMappingsQualityDetailed(valuesPairs, expression, this.ctx.task, parentResult);
+        if (assessment.status == MappingsQualityAssessor.AssessmentStatus.EVAL_FAILED) {
+            var retryScript = askMicroservice(matchPair, valuesPairs, assessment.errorLog);
+            expression = buildScriptExpression(retryScript);
+            assessment = this.qualityAssessor.assessMappingsQualityDetailed(valuesPairs, expression, this.ctx.task, parentResult);
         }
 
         // TODO remove this ugly hack
@@ -233,8 +228,7 @@ class MappingsSuggestionOperation {
         var hackedSerialized = serialized.replace("ext:", "");
         var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
         var suggestion = new AttributeMappingsSuggestionType()
-                .expectedQuality(this.qualityAssessor.assessMappingsQuality(valuesPairs, expression, this.ctx.task,
-                        parentResult))
+                .expectedQuality(assessment.quality)
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
@@ -247,13 +241,25 @@ class MappingsSuggestionOperation {
         return suggestion;
     }
 
+    private ExpressionType buildScriptExpression(String script) {
+        if (script == null || "input".equals(script)) {
+            return null;
+        }
+        return new ExpressionType()
+                .expressionEvaluator(
+                        new ObjectFactory().createScript(
+                                new ScriptExpressionEvaluatorType().code(script)));
+    }
+
     private String askMicroservice(
             SchemaMatchOneResultType matchPair,
-            Collection<ValuesPair> valuesPairs) throws SchemaException {
+            Collection<ValuesPair> valuesPairs,
+            @Nullable String errorLog) throws SchemaException {
         var siRequest = new SiSuggestMappingRequestType()
                 .applicationAttribute(matchPair.getShadowAttribute())
                 .midPointAttribute(matchPair.getFocusProperty())
-                .inbound(true);
+                .inbound(true)
+                .errorLog(errorLog);
         valuesPairs.forEach(pair ->
                 siRequest.getExample().add(
                         pair.toSiExample(
