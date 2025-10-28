@@ -22,8 +22,11 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class ToggleCheckBoxPanel extends InputPanel {
     @Serial private static final long serialVersionUID = 1L;
@@ -132,18 +135,81 @@ public class ToggleCheckBoxPanel extends InputPanel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        boolean state = Boolean.TRUE.equals(getPanelComponent().getModelObject());
+        boolean state = getState();
+        String checkboxId = getPanelComponent().getMarkupId();
 
-        String js =
-                "$('#" + getPanelComponent().getMarkupId() + "')" +
-                        "    .bootstrapSwitch({" +
-                        "        onSwitchChange: function(e, s) {" +
-                        "            $('#" + getPanelComponent().getMarkupId() + "').trigger('change');" +
-                        "        }" +
-                        "    })" +
-                        "    .bootstrapSwitch('state'," + state + ", true);";
+        Map<String, Object> options = createSwitchOptions();
+        options.putIfAbsent("onSwitchChange",
+                String.format("function(e, s) { $('#%s').trigger('change'); }", checkboxId));
+
+        StringBuilder optionsJs = buildOptionsJs(options);
+        String js = String.format(
+                "$('#%s')" +
+                        "    .bootstrapSwitch(%s)" +
+                        "    .bootstrapSwitch('state', %s, true);",
+                checkboxId, optionsJs, state
+        );
 
         response.render(OnDomReadyHeaderItem.forScript(js));
+    }
 
+    private static @NotNull StringBuilder buildOptionsJs(@NotNull Map<String, Object> options) {
+        StringBuilder optionsJs = new StringBuilder("{");
+        boolean first = true;
+        for (Map.Entry<String, Object> entry : options.entrySet()) {
+            if (!first) {optionsJs.append(",");}
+            first = false;
+
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value instanceof String && ((String) value).trim().startsWith("function")) {
+                optionsJs.append(key).append(": ").append(value);
+            } else if (value instanceof String) {
+                optionsJs.append(key).append(": '").append(value).append("'");
+            } else {
+                optionsJs.append(key).append(": ").append(value);
+            }
+        }
+        optionsJs.append("}");
+        return optionsJs;
+    }
+
+    private boolean getState() {
+        return Boolean.TRUE.equals(getPanelComponent().getModelObject());
+    }
+
+    /**
+     * ToggleCheckBoxPanel integrates a Bootstrap Switch control with Wicket.
+     *
+     * <p><b>Supported Bootstrap Switch options:</b></p>
+     * <ul>
+     *   <li>{@code state}</li> ignore it, handled by the panel
+     *   <li>{@code size}</li>
+     *   <li>{@code animate}</li>
+     *   <li>{@code disabled}</li>
+     *   <li>{@code readonly}</li>
+     *   <li>{@code indeterminate}</li>
+     *   <li>{@code inverse}</li>
+     *   <li>{@code radioAllOff}</li>
+     *   <li>{@code onColor}</li>
+     *   <li>{@code offColor}</li>
+     *   <li>{@code onText}</li>
+     *   <li>{@code offText}</li>
+     *   <li>{@code labelText}</li>
+     *   <li>{@code handleWidth}</li>
+     *   <li>{@code labelWidth}</li>
+     *   <li>{@code baseClass}</li>
+     *   <li>{@code wrapperClass}</li>
+     *   <li>{@code onInit}</li>
+     *   <li>{@code onSwitchChange}</li>
+     * </ul>
+     *
+     * Each of these corresponds to a Bootstrap Switch configuration parameter.
+     * See <a href="https://bttstrp.github.io/bootstrap-switch/options.html">official documentation</a>
+     * for details and valid values.
+     */
+    protected @NotNull Map<String, Object> createSwitchOptions() {
+        return new LinkedHashMap<>();
     }
 }
