@@ -52,6 +52,10 @@ public class ActivityPolicyRulesProcessor {
         return activityRun.getActivityPolicyRulesContext();
     }
 
+    /**
+     * TODO Currently returns "doubled" policies when activity has embedded child activities (e.g. reconciliation).
+     *  Reason is that embedded activities do inherit definition from parent activity (if there's no tailoring in place).
+     */
     public void collectRules() {
         List<EvaluatedActivityPolicyRule> rules = collectRulesFromActivity(activityRun.getActivity());
         getPolicyRulesContext().setPolicyRules(rules);
@@ -94,7 +98,7 @@ public class ActivityPolicyRulesProcessor {
 
         LOGGER.trace("Found {} activity policy rules for activity {} ({})", rules.size(), identifier, activityPath);
 
-//         rules.addAll(collectRulesFromActivity(activity.getParent()));
+         rules.addAll(collectRulesFromActivity(activity.getParent()));
 
         return rules;
     }
