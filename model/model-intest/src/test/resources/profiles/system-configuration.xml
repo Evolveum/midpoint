@@ -13,6 +13,36 @@
     </roleManagement>
     <expressions>
         <expressionProfile>
+            <identifier>safe</identifier>
+            <description>
+                Expression profile which contains only safe expression evaluators.
+                THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.
+                DO NOT USE FOR OTHER PURPOSES THAN THIS TEST.
+            </description>
+            <decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
+            <evaluator>
+                <type>asIs</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>path</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>value</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>const</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>filter</type>
+                <decision>allow</decision>
+            </evaluator>
+            <privilegeElevation>deny</privilegeElevation>
+        </expressionProfile>
+        <expressionProfile>
             <identifier>restricted</identifier>
             <description>
                 THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.

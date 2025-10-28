@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="9296ee02-b011-11f0-a82e-270fe586cfa4">
+    <name>safe-auto-good</name>
+    <documentation>
+        Auto-assigned role that contains only "correct" mappings w.r.t. `safe` expression profile.
+    </documentation>
+    <assignment>
+        <targetRef oid="2a68ff58-b009-11f0-9b5e-236da66bcdb4" type="ArchetypeType"/>
+    </assignment>
+    <autoassign>
+        <enabled>true</enabled>
+        <focus>
+            <mapping id="333">
+                <condition>
+                    <filter>
+                        <filter>
+                            <q:text>costCenter = 'safe'</q:text>
+                        </filter>
+                    </filter>
+                </condition>
+            </mapping>
+            <selector>
+                <type>UserType</type>
+            </selector>
+        </focus>
+    </autoassign>
+</role>

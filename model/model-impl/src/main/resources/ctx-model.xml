@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -166,6 +166,10 @@
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg name="protector" ref="protector"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
+    </bean>
+
+    <bean id="filterExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.common.expression.evaluator.filter.FilterExpressionEvaluatorFactory">
     </bean>
 
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory">

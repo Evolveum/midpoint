@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <defaultObjectPolicyConfiguration>
+        <type>UserType</type>
+        <expressionProfile>closed</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>RoleType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>OrgType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>ServiceType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <defaultObjectPolicyConfiguration>
+        <type>ReportType</type>
+        <expressionProfile>safe</expressionProfile>
+    </defaultObjectPolicyConfiguration>
+    <roleManagement>
+        <autoassignEnabled>true</autoassignEnabled>
+    </roleManagement>
+    <expressions>
+        <expressionProfile>
+            <identifier>safe</identifier>
+            <description>
+                Expression profile which contains only safe expression evaluators.
+                THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.
+                DO NOT USE FOR OTHER PURPOSES THAN THIS TEST.
+            </description>
+            <decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
+            <evaluator>
+                <type>asIs</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>path</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>value</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>const</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>filter</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator>
+                <type>function</type>
+                <decision>allow</decision>
+            </evaluator>
+            <privilegeElevation>deny</privilegeElevation>
+        </expressionProfile>
+        <!-- TODO: safe-plus-functions profile? -->
+        <expressionProfile>
+            <identifier>open</identifier>
+            <description>Unlimited access to all expressions</description>
+            <decision>allow</decision>
+        </expressionProfile>
+        <expressionProfile>
+            <identifier>closed</identifier>
+            <description>No access to any expressions</description>
+            <decision>deny</decision>
+            <bulkActionsProfile>closed</bulkActionsProfile>
+            <privilegeElevation>deny</privilegeElevation>
+        </expressionProfile>
+        <bulkActionsProfile>
+            <identifier>closed</identifier>
+            <decision>deny</decision>
+        </bulkActionsProfile>
+    </expressions>
+</systemConfiguration>

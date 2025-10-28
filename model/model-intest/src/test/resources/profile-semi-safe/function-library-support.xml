@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<functionLibrary oid="9522632c-b3e0-11f0-a092-bb7b6afca320"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3">
+    <name>support</name>
+    <description>
+        Library of support functions.
+        This library contains Groovy code.
+        We are assuming that only trusted administrators have access here, lifecycle is controlled, etc.
+    </description>
+    <function>
+        <name>reverse</name>
+        <parameter>
+            <name>input</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>xsd:string</returnType>
+        <returnMultiplicity>single</returnMultiplicity>
+        <script>
+            <code>
+                if (input == null) return null;
+                return input.reverse()
+            </code>
+        </script>
+    </function>
+</functionLibrary>

@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="2a68ff58-b009-11f0-9b5e-236da66bcdb4">
+    <name>safe-role</name>
+    <documentation>Role whose expressions are evaluated in "safe" profile.</documentation>
+    <archetypePolicy>
+        <expressionProfile>safe</expressionProfile>
+    </archetypePolicy>
+</archetype>
