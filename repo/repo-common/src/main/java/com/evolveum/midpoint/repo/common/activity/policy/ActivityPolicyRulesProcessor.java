@@ -71,7 +71,11 @@ public class ActivityPolicyRulesProcessor {
      * @param activity The activity from which to start collecting policy rules.
      * @return List of evaluated activity policy rules, ordered by their defined order.
      */
-    private List<EvaluatedActivityPolicyRule> collectRulesFromActivity(@NotNull Activity<?, ?> activity) {
+    private List<EvaluatedActivityPolicyRule> collectRulesFromActivity(Activity<?, ?> activity) {
+        if (activity == null) {
+            return Collections.emptyList();
+        }
+
         String identifier = activity.getIdentifier();
         ActivityPath activityPath = activity.getPath();
 
@@ -90,10 +94,7 @@ public class ActivityPolicyRulesProcessor {
 
         LOGGER.trace("Found {} activity policy rules for activity {} ({})", rules.size(), identifier, activityPath);
 
-        // Recursively collect rules from parent activities, not needed for now as
-        // we only support iterative activities (not composite activity)
-        // todo what about reconciliation? [viliam]
-        // rules.addAll(collectRulesFromActivity(activity.getParent()));
+//         rules.addAll(collectRulesFromActivity(activity.getParent()));
 
         return rules;
     }

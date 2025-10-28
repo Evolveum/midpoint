@@ -145,9 +145,16 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return asserter;
     }
 
+    public ActivityStateAsserter<RA> noActivityPolicyStates() {
+        assertThat(activityState.getPolicies())
+                .as("activity policy states")
+                .isNull();
+        return this;
+    }
+
     public ActivityPoliciesStateAsserter<ActivityStateAsserter<RA>> activityPolicyStates() {
         ActivityPoliciesStateType state = Objects.requireNonNull(
-                activityState.getPolicies(), "no policy groups");
+                activityState.getPolicies(), "no activity policy states present");
 
         ActivityPoliciesStateAsserter<ActivityStateAsserter<RA>> asserter =
                 new ActivityPoliciesStateAsserter<>(state, this, "activity policy group in " + getDetails());

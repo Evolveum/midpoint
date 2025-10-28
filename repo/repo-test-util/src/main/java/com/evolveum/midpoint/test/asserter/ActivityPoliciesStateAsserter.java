@@ -36,8 +36,15 @@ public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ActivityPolicyStateAsserter<ActivityPoliciesStateAsserter<RA>> activityPolicyState(String policyName) {
+        return activityPolicyState(policyName, false);
+    }
+
+    public ActivityPolicyStateAsserter<ActivityPoliciesStateAsserter<RA>> activityPolicyState(String policyName, boolean exact) {
         ActivityPolicyStateType policyState = state.getActivityPolicies().stream()
-                .filter(p -> Objects.equals(p.getIdentifier(), policyName))
+                .filter(p ->
+                        exact ?
+                                Objects.equals(p.getName(), policyName) :
+                                p.getIdentifier() != null && p.getName().contains(policyName))
                 .findFirst()
                 .orElse(null);
 

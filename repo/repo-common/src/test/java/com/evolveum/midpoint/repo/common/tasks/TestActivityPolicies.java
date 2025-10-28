@@ -27,6 +27,7 @@ import com.evolveum.midpoint.test.TestTask;
  *
  * - `test1xx` tests for halting activities when they exceed given execution time
  * - `test2xx` tests for halting activities when they exceed given number of errors (important because of irregular distribution)
+ * - `test3xx` tests for skipping activities when they exceed given execution time
  */
 @ContextConfiguration(locations = "classpath:ctx-repo-common-test-main.xml")
 @DirtiesContext
@@ -113,6 +114,46 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
             "task-255-multinode-suspend-on-item-errors-unbalanced.xml",
             "2e45c709-1cbe-4030-84a6-1e25e37e3846",
             DEFAULT_TIMEOUT);
+    private static final TestTask TASK_300_SIMPLE_SKIP_ON_EXECUTION_TIME = new TestTask(
+            TEST_DIR,
+            "task-300-simple-skip-on-execution-time.xml",
+            "83a0d9cc-6460-4c64-a047-08da9801f364",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_310_CHILD_SKIP_ON_OWN_EXECUTION_TIME = new TestTask(
+            TEST_DIR,
+            "task-310-child-skip-on-own-execution-time.xml",
+            "e6582e03-d575-4af1-add5-084058eef2d5",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME = new TestTask(
+            TEST_DIR,
+            "task-320-child-skip-on-parent-execution-time.xml",
+            "ee54d77d-4a7c-4279-8b7c-01a4895be46c",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_330_CHILD_SKIP_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-330-child-skip-on-own-execution-time-with-subtasks.xml",
+            "29b26fcd-f6d5-4e5b-a97e-4c0a7c103040",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_340_CHILD_SKIP_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-340-child-skip-on-parent-execution-time-with-subtasks.xml",
+            "857ee252-8e3a-47b7-bd7a-c9dc40cfc45d",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_350_MULTINODE_SKIP_ON_EXECUTION_TIME = new TestTask(
+            TEST_DIR,
+            "task-350-multinode-skip-on-execution-time.xml",
+            "462daf2c-638f-4208-a6c8-fb015f59e500",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_360_MULTINODE_CHILD_SKIP_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-360-multinode-child-skip-on-own-execution-time-with-subtasks.xml",
+            "3417555b-0af2-483f-8baa-ae392039ebe3",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_370_MULTINODE_CHILD_SKIP_ON_ROOT_EXECUTION_TIME_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-370-multinode-child-skip-on-root-execution-time-with-subtasks.xml",
+            "f64f27d8-55a2-4c7f-8ae9-83af13238fb5",
+            DEFAULT_TIMEOUT);
 
     /** Good objects on which we test "fail on error" policies. These complete without failures. */
     private static final int NUMBER_OF_GOOD_OBJECTS = 50;
@@ -181,7 +222,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A child activity that is suspended when it exceeds allowed execution time (specified on the parent level).
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test120ChildSuspendOnParentExecutionTime() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -234,7 +275,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * As {@link #test120ChildSuspendOnParentExecutionTime()} but the activities run in subtasks.
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test140ChildSuspendOnParentExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -344,7 +385,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
      *
      * As {@link #test160MultinodeSuspendOnOwnExecutionTimeWithSubtasks()} but the constraint is on the root level.
      */
-    @Test(enabled = false) // FIXME we don't see ancestors' policies
+    @Test
     public void test170MultinodeSuspendOnRootExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -428,7 +469,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A child activity that is suspended when it exceeds given number of errors (specified on the parent level).
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test220ChildSuspendOnParentErrors() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -482,7 +523,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * As {@link #test220ChildSuspendOnParentErrors()} but the activities run in subtasks.
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test240ChildSuspendOnParentErrorsWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -578,6 +619,327 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .display()
                     .assertSuspended()
                 .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A simple activity that is skipped when it exceeds allowed execution time.
+     */
+    @Test
+    public void test300SimpleSkipOnExecutionTime() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TASK_300_SIMPLE_SKIP_ON_EXECUTION_TIME.init(this, task, result);
+
+        when("task is run until it's stopped");
+        TASK_300_SIMPLE_SKIP_ON_EXECUTION_TIME.rerunErrorsOk(result);
+
+        then("the task is suspended after exceeding execution time");
+        // @formatter:off
+        TASK_300_SIMPLE_SKIP_ON_EXECUTION_TIME.assertAfter()
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertExecutionAttempts(1)
+                    .assertSkipped()
+                    .assertFatalError()
+                    .activityPolicyStates()
+                        .assertPolicyStateCount(1)
+                        .activityPolicyState("Execution time")
+                            .assertTriggerCount(1)
+                            .assertReactionCount(1)
+                            .end()
+                        .end()
+                    .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A child activity that is skipped when it exceeds allowed execution time (specified on its own level).
+     */
+    @Test
+    public void test310ChildSkipOnOwnExecutionTime() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TASK_310_CHILD_SKIP_ON_OWN_EXECUTION_TIME.init(this, task, result);
+
+        when("task is run until it's stopped");
+        TASK_310_CHILD_SKIP_ON_OWN_EXECUTION_TIME.rerunErrorsOk(result);
+
+        then("the task is finished and second activity skipped after exceeding execution time");
+        // @formatter:off
+        TASK_310_CHILD_SKIP_ON_OWN_EXECUTION_TIME.assertAfter()
+                .display()
+                .assertClosed()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertExecutionAttempts(1)
+                    .assertComplete()
+                    .assertFatalError()
+                    .noActivityPolicyStates()
+                    .child("first")
+                        .assertExecutionAttempts(1)
+                        .assertComplete()
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
+                    .child("second")
+                        .assertExecutionAttempts(1)
+                        .assertSkipped()
+                        .assertFatalError()
+                        .activityPolicyStates()
+                            .assertPolicyStateCount(1)
+                            .activityPolicyState("Execution time")
+                                .assertTriggerCount(1)
+                                .assertReactionCount(1)
+                                .end()
+                            .end()
+                        .end()
+                    .child("third")
+                        .assertExecutionAttempts(1)
+                        .assertComplete()
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
+                    .end()
+                .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A child activity that is skipped when it exceeds allowed execution time (specified on the parent level).
+     */
+    @Test
+    public void test320ChildSkipOnParentExecutionTime() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME.init(this, task, result);
+
+        when("task is run until it's stopped");
+        TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME.rerunErrorsOk(result);
+
+        then("the task is closed after exceeding execution time");
+        // @formatter:off
+        TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME.assertAfter()
+                .display()
+                .assertClosed()
+                .assertFatalError();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * As {@link #test310ChildSkipOnOwnExecutionTime()} but the activities run in subtasks.
+     */
+    @Test
+    public void test330ChildSkipOnOwnExecutionTimeWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var testTask = TASK_330_CHILD_SKIP_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunTreeErrorsOk(result);
+
+        // @formatter:off
+        then("the task tree is finished, activity skipped after exceeding execution time");
+        testTask.assertTreeAfter()
+                .display()
+                .assertSuspended()
+                .assertSubtasks(2)
+                .subtask("first", false)
+                    .display()
+                    .assertSuccess()
+                    .assertClosed() // this activity finished before suspension
+                    .end()
+                .subtask("second", false)
+                    .assertFatalError()
+                    .assertSuspended() // but this was suspended
+                    .display()
+                    .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * As {@link #test320ChildSkipOnParentExecutionTime()} but the activities run in subtasks.
+     */
+    @Test
+    public void test340ChildSkipOnParentExecutionTimeWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var testTask = TASK_340_CHILD_SKIP_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunTreeErrorsOk(result);
+
+        then("the task tree is suspended after exceeding execution time");
+        // @formatter:off
+        testTask.assertTreeAfter()
+                .display()
+                .assertClosed()
+                .assertSubtasks(3)
+                .subtask("first", false)
+                    .display()
+                    .assertSuccess()
+                    .assertClosed() // this activity finished before suspension
+                    .end()
+                .subtask("second", false)
+                    .display()
+                    .assertFatalError()
+                    .assertClosed() // but this was suspended
+                    .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A multi-node activity that is skipped when it exceeds allowed execution time.
+     */
+    @Test
+    public void test350MultinodeSkipOnExecutionTime() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TASK_350_MULTINODE_SKIP_ON_EXECUTION_TIME.init(this, task, result);
+
+        when("task is run until it's stopped (some workers may continue for a little while)");
+        TASK_350_MULTINODE_SKIP_ON_EXECUTION_TIME.rerunTreeErrorsOk(result);
+
+        and("the task and ALL workers are suspended");
+        waitForTaskTreeCloseOrCondition(
+                TASK_350_MULTINODE_SKIP_ON_EXECUTION_TIME.oid,
+                result,
+                DEFAULT_TIMEOUT,
+                DEFAULT_SLEEP_TIME,
+                tasksSuspendedPredicate(3)); // main task + 2 workers
+
+        then("everything is OK");
+        // @formatter:off
+        TASK_350_MULTINODE_SKIP_ON_EXECUTION_TIME.assertTreeAfter()
+                .assertSuspended() // already checked above
+                .assertSubtasks(2)
+                .subtask(0)
+                    .display()
+                    .end()
+                .subtask(1)
+                    .display()
+                    .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A child multi-node activity that is skipped when it exceeds allowed execution time (specified on its own level).
+     * Children have its own subtasks.
+     *
+     * It's a combination of {@link #test330ChildSkipOnOwnExecutionTimeWithSubtasks()}
+     * and {@link #test350MultinodeSkipOnExecutionTime()}.
+     */
+    @Test
+    public void test360MultinodeSkipOnOwnExecutionTimeWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TestTask testTask = TASK_360_MULTINODE_CHILD_SKIP_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS; // too long to be typed
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped (some workers may continue for a little while)");
+        testTask.rerunTreeErrorsOk(result);
+
+        then("root task is suspended and the first activity task is closed");
+        // @formatter:off
+        testTask.assertTree("")
+                .assertSuspended()
+                .subtask("first", false)
+                .assertClosed()
+                .assertSuccess();
+        // @formatter:on
+
+        then("the second activity task and ALL its workers are suspended after exceeding execution time");
+        var secondActivityTaskOid = testTask.assertTree("")
+                .subtask("second", false)
+                .getOid();
+
+        waitForTaskTreeCloseOrCondition(
+                secondActivityTaskOid,
+                result,
+                DEFAULT_TIMEOUT,
+                DEFAULT_SLEEP_TIME,
+                tasksSuspendedPredicate(3)); // coordinator + 2 workers
+
+        // @formatter:off
+        assertTaskTree(secondActivityTaskOid, "second activity task after")
+                .display()
+                .assertSuspended()
+                .assertSubtasks(2)
+                .subtask(0)
+                    .display()
+                    .end()
+                .subtask(1)
+                    .display()
+                    .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A child multi-node activity that is skipped when it exceeds allowed execution time (specified on the root level).
+     * Children have its own subtasks.
+     *
+     * As {@link #test360MultinodeSkipOnOwnExecutionTimeWithSubtasks()}} but the constraint is on the root level.
+     */
+    @Test
+    public void test370MultinodeSkipOnRootExecutionTimeWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TestTask testTask = TASK_370_MULTINODE_CHILD_SKIP_ON_ROOT_EXECUTION_TIME_WITH_SUBTASKS; // too long to be typed
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped (some workers may continue for a little while)");
+        testTask.rerunTreeErrorsOk(result);
+
+        then("root task is suspended and the first activity task is closed");
+        testTask.assertTree("")
+                .assertSuspended()
+                .subtask("first", false)
+                .assertClosed()
+                .assertSuccess();
+
+        then("the second activity task and ALL its workers are suspended after exceeding execution time");
+        var secondActivityTaskOid = testTask.assertTree("")
+                .subtask("second", false)
+                .getOid();
+
+        waitForTaskTreeCloseOrCondition(
+                secondActivityTaskOid,
+                result,
+                DEFAULT_TIMEOUT,
+                DEFAULT_SLEEP_TIME,
+                tasksSuspendedPredicate(3)); // coordinator + 2 workers
+
+        // @formatter:off
+        assertTaskTree(secondActivityTaskOid, "second activity task after")
+                .display()
+                .assertClosed()
+                .assertSubtasks(2)
+                .subtask(0)
+                    .display()
+                    .end()
+                .subtask(1)
+                    .display()
+                    .end();
         // @formatter:on
         // TODO more asserts
     }
