@@ -109,8 +109,16 @@ public class TestTask extends TestObject<TaskType> {
         return test.assertTask(oid, message);
     }
 
+    public TaskAsserter<Void> assertTree(String message) throws SchemaException, ObjectNotFoundException {
+        return test.assertTaskTree(oid, message);
+    }
+
     public TaskAsserter<Void> assertAfter() throws SchemaException, ObjectNotFoundException {
         return doAssert("after").display();
+    }
+
+    public TaskAsserter<Void> assertTreeAfter() throws SchemaException, ObjectNotFoundException {
+        return assertTree("after").display();
     }
 
     public void suspend() throws CommonException {

@@ -186,6 +186,13 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
+    public TaskAsserter<RA> assertTaskRunHistorySize(int expected) {
+        assertThat(getTaskBean().getTaskRunRecord())
+                .as("task run record")
+                .hasSize(expected);
+        return this;
+    }
+
     @Override
     public TaskAsserter<RA> assertPolyStringProperty(QName propName, String expectedOrig) {
         return (TaskAsserter<RA>) super.assertPolyStringProperty(propName, expectedOrig);

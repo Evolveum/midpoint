@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.repo.common.util.OperationExecutionWriter;
 
+import com.evolveum.midpoint.test.TestTask;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRunRecordType;
 
 import org.assertj.core.api.Assertions;
@@ -34,11 +36,11 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/misc");
 
-    private static final TestObject<TaskType> TASK_10496 =
-            TestObject.file(TEST_DIR, "task-10496.xml", "6ea1fcdf-f388-43ff-8c31-43ee2f3909fb");
+    private static final TestTask TASK_10496 =
+            TestTask.file(TEST_DIR, "task-10496.xml", "6ea1fcdf-f388-43ff-8c31-43ee2f3909fb");
 
-    private static final TestObject<TaskType> TASK_NOOP_RECURRENT =
-            TestObject.file(TEST_DIR, "task-noop-recurrent.xml", "b1701de1-6e3f-441a-accf-c853b1e41fe0");
+    private static final TestTask TASK_NOOP_RECURRENT =
+            TestTask.file(TEST_DIR, "task-noop-recurrent.xml", "b1701de1-6e3f-441a-accf-c853b1e41fe0");
 
     /**
      * MID-10496 task not starting after suspend/resume based on cron schedule. Only start once (executed immediately).
@@ -109,36 +111,51 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test100TaskRunHistoryCleanup() throws Exception{
+    public void test200TaskRunHistoryCleanup() throws Exception {
         OperationResult result = createOperationResult();
-        PrismObject<TaskType> task = TASK_NOOP_RECURRENT.get();
 
         logger.info("Adding task");
-        taskManager.addTask(task, result);
+        TASK_NOOP_RECURRENT.init(this, getTestTask(), result);
 
         logger.info("Waiting for task to start");
-        waitForTaskStart(task.getOid(), result, 5000L, 500);
+        waitForTaskStart(TASK_NOOP_RECURRENT.oid, result, 5000L, 500);
 
         // let's wait for the task to run for 4-5 times
         Thread.sleep(5000L);
 
-        taskManager.suspendTaskTree(task.getOid(), 1000L, result);
+        TASK_NOOP_RECURRENT.suspend();
+        waitForTaskSuspend(TASK_NOOP_RECURRENT.oid, result, 2000L, 500);
 
-        task = getTask(TASK_NOOP_RECURRENT.oid);
-        TaskType taskType = task.asObjectable();
+        then("Verifying task run records");
+        TaskAsserter<Void> ta = TASK_NOOP_RECURRENT.assertTreeAfter();
 
-        Assertions.assertThat(taskType)
-                .isNotNull();
+        OperationResultStatusType status = ta.getObject().asObjectable().getResultStatus();
 
-        List<TaskRunRecordType> history = taskType.getTaskRunRecord();
+        boolean finishedRun = status != OperationResultStatusType.IN_PROGRESS;
 
-        Assertions.assertThat(history)
-                .hasSize(OperationExecutionWriter.DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK);
+        if (finishedRun) {
+            ta.assertSuccess();
+        } else {
+            ta.assertInProgress();
+        }
+        ta.assertTaskRunHistorySize(OperationExecutionWriter.DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK);
 
-        for (TaskRunRecordType item : history) {
-            Assertions.assertThat(item.getTaskRunIdentifier()).isNotEmpty();
-            Assertions.assertThat(item.getRunStartTimestamp()).isNotNull();
-            Assertions.assertThat(item.getRunEndTimestamp()).isNotNull();
+        List<TaskRunRecordType> records = ta.getObject().asObjectable().getTaskRunRecord();
+        for (int i = 0; i < records.size(); i++) {
+            TaskRunRecordType record = records.get(i);
+
+            Assertions.assertThat(record.getTaskRunIdentifier()).isNotEmpty();
+            Assertions.assertThat(record.getRunStartTimestamp()).isNotNull();
+
+            if (i + 1 == records.size()) {
+                if (finishedRun) {
+                    Assertions.assertThat(record.getRunEndTimestamp()).isNotNull();
+                } else {
+                    // last run record will not have finished timestamp if the task is
+                    // running or was suspended before run finished
+                    Assertions.assertThat(record.getRunEndTimestamp()).isNull();
+                }
+            }
         }
     }
 }
