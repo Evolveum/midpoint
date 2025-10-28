@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.
@@ -62,10 +63,24 @@ public interface SmartIntegrationService {
             String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws SchemaException;
 
-    /** Returns the object holding last known statistics for the given resource, kind and intent. */
-    public GenericObjectType getLatestObjectTypeStatistics(
+    /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
+    public Optional<String> getLatestObjectTypeStatisticsOID(
             String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
             throws SchemaException;
+
+    /** Returns the object holding last known schema match for the given resource, kind and intent. */
+    public GenericObjectType getLatestObjectTypeSchemaMatch(
+            String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+            throws SchemaException;
+
+    /** Computes schema match pairs for the given resource and object type. */
+    SchemaMatchResultType computeSchemaMatch(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
 
     /** Submits "suggest object types" request. Returns a token used to query the status. */
     String submitSuggestObjectTypesOperation(String resourceOid, QName objectClassName, Task task, OperationResult result)
@@ -137,6 +152,8 @@ public interface SmartIntegrationService {
     CorrelationSuggestionsType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            ShadowObjectClassStatisticsType statistics,
+            SchemaMatchResultType schemaMatch,
             @Nullable Object interactionMetadata,
             Task task,
             OperationResult result)
@@ -181,6 +198,7 @@ public interface SmartIntegrationService {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             ShadowObjectClassStatisticsType statistics,
+            SchemaMatchResultType schemaMatch,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             @Nullable CurrentActivityState<?> activityState,

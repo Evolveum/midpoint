@@ -1,0 +1,17 @@
+= Export Resource Schema and Capabilities
+
+Export schemas and capabilities of the resource.
+This command is basically a "shortcut" to export resource schemas and capabilities without any other configurations as done with xref:export-configuration.adoc[export configuration command].
+Please check and remove any sensitive information from the export output (e.g. it may contain metadata).
+
+You can also explicitly exclude any item from the export (`-ei`, `--exclude-item`).
+Statistics can be exported to `SYSOUT` or to file (`-o`, `--output`).
+Use `-O`, `--overwrite` switch if you wish to overwrite an existing output file.
+
+Note: this command is not supposed to run in multiple threads, therefore do not modify the default threading settings which is set to 1 by default (`--multi-thread`, `-l` options).
+
+.Example: export resource schema and capabilities into output.xml file
+[source,bash]
+----
+ninja.sh export-resource-schema --output output.xml
+----

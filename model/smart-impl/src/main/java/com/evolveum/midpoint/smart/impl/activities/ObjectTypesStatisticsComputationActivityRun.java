@@ -39,22 +39,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * Later, we can create a variant of this activity that computes statistics for objects already present in the repository.
  */
-public class StatisticsComputationActivityRun
+public class ObjectTypesStatisticsComputationActivityRun
         extends SearchBasedActivityRun<
             ShadowType,
             ObjectTypesSuggestionWorkDefinition,
             ObjectTypesSuggestionActivityHandler,
             ObjectTypesSuggestionWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(StatisticsComputationActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesStatisticsComputationActivityRun.class);
 
     /** (Resolved) resource for which the statistics are computed. Null if statistics are not being computed. */
     private ResourceType resource;
 
     /** Computes the statistics for the objects found. Null if statistics are not being computed. */
-    private StatisticsComputer computer;
+    private ObjectClassStatisticsComputer computer;
 
-    StatisticsComputationActivityRun(
+    ObjectTypesStatisticsComputationActivityRun(
             ActivityRunInstantiationContext<ObjectTypesSuggestionWorkDefinition, ObjectTypesSuggestionActivityHandler> context,
             String shortNameCapitalized) {
         super(context, shortNameCapitalized);
@@ -98,7 +98,7 @@ public class StatisticsComputationActivityRun
         var objectClassDef = Resource.of(resource)
                 .getCompleteSchemaRequired()
                 .findObjectClassDefinitionRequired(workDef.getObjectClassName());
-        computer = new StatisticsComputer(objectClassDef);
+        computer = new ObjectClassStatisticsComputer(objectClassDef);
 
         return true;
     }
