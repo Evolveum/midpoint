@@ -11,7 +11,7 @@
     <name>SystemConfiguration</name>
     <defaultObjectPolicyConfiguration>
         <type>UserType</type>
-        <expressionProfile>safe</expressionProfile>
+        <expressionProfile>closed</expressionProfile>
     </defaultObjectPolicyConfiguration>
     <defaultObjectPolicyConfiguration>
         <type>RoleType</type>
@@ -61,15 +61,21 @@
                 <type>filter</type>
                 <decision>allow</decision>
             </evaluator>
+            <evaluator>
+                <type>function</type>
+                <decision>allow</decision>
+            </evaluator>
             <privilegeElevation>deny</privilegeElevation>
         </expressionProfile>
         <!-- TODO: safe-plus-functions profile? -->
         <expressionProfile>
             <identifier>open</identifier>
+            <description>Unlimited access to all expressions</description>
             <decision>allow</decision>
         </expressionProfile>
         <expressionProfile>
             <identifier>closed</identifier>
+            <description>No access to any expressions</description>
             <decision>deny</decision>
             <bulkActionsProfile>closed</bulkActionsProfile>
             <privilegeElevation>deny</privilegeElevation>

@@ -10,6 +10,7 @@
     <fullName>Bob Brown</fullName>
     <givenName>Bob</givenName>
     <familyName>Brown</familyName>
+    <title>Corporate Counsel</title>
     <description>Bob is set up correctly, everything matches with expression profiles.</description>
     <costCenter>trap</costCenter>
     <locality>New York</locality>

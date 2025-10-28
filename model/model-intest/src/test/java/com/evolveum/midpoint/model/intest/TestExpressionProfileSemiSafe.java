@@ -37,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Tests the use of "semi-safe" expression profile set in recommended midPoint configuration.
  *
+ * #10060
+ *
  * Expression profiles:
  *
  * . `safe` - allow only safe expression evaluators. No scripting.
@@ -73,13 +75,22 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
             TEST_DIR, "role-application-malicious-outbound.xml", "e55fbaa2-b330-11f0-a4e1-43f895ecb4de");
     private static final TestObject<RoleType> ROLE_MALICIOUS_BUSINESS_INDUCEMENT_CONDITION = TestObject.file(
             TEST_DIR, "role-business-malicious-inducement-condition.xml", "a150b170-b332-11f0-8eba-439d792f85bb");
+    private static final TestObject<RoleType> ROLE_FUNCTION_REVERSE = TestObject.file(
+            TEST_DIR, "role-function-reverse.xml", "10898900-b3e1-11f0-a523-cbd9df3e4f0b");
+    private static final TestObject<RoleType> ROLE_FUNCTION_MALICIOUS = TestObject.file(
+            TEST_DIR, "role-function-malicious.xml", "15298904-b3e3-11f0-9bce-db0c2d0f5a5a");
 
     private static final TestObject<UserType> USER_ALICE = TestObject.file(
             TEST_DIR, "user-alice.xml", "8dcc5b00-b318-11f0-a529-9f8b26779770");
     private static final TestObject<UserType> USER_BOB = TestObject.file(
             TEST_DIR, "user-bob.xml", "2c1955f8-b335-11f0-b7f1-e30fee0b1bdf");
+    private static final TestObject<UserType> USER_DAVE = TestObject.file(
+            TEST_DIR, "user-dave.xml", "e756da24-b3e5-11f0-bde5-6be66deb5c92");
     private static final TestObject<UserType> USER_MALLORY = TestObject.file(
             TEST_DIR, "user-mallory.xml", "4925ba3e-b32a-11f0-ba58-1b26237260e8");
+
+    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_SUPPORT = TestObject.file(
+            TEST_DIR, "function-library-support.xml", "9522632c-b3e0-11f0-a092-bb7b6afca320");
 
 
     private static final RunFlag BOOMED_FLAG = new RunFlag();
@@ -98,7 +109,10 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
                 ROLE_MALICIOUS_CONDITION,
                 ROLE_MALICIOUS_CONDITION_FILTER,
                 ROLE_MALICIOUS_APPLICATION_OUTBOUND,
-                ROLE_MALICIOUS_BUSINESS_INDUCEMENT_CONDITION);
+                ROLE_MALICIOUS_BUSINESS_INDUCEMENT_CONDITION,
+                ROLE_FUNCTION_REVERSE,
+                ROLE_FUNCTION_MALICIOUS,
+                FUNCTION_LIBRARY_SUPPORT);
     }
 
     @Override
@@ -207,6 +221,15 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
         runNegativeAddObjectTest(USER_MALLORY, "Access to script expression evaluator not allowed");
     }
 
+    /** Dave dares to execute expression inside an assignment.
+     * It is a safe expression evaluator, probably no harm done.
+     * However, we do not want any expressions in user objects.
+     * This should end with an error. */
+    @Test
+    public void test310AddDave() throws Exception {
+        runNegativeAddObjectTest(USER_DAVE, "Access to expression evaluator literal");
+    }
+
     private <O extends ObjectType> void runNegativeAddObjectTest(TestObject<O> testObject, String expectedMessage)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException, IOException, PolicyViolationException, ObjectAlreadyExistsException, ConflictException, SchemaViolationException, InterruptedException, SecurityViolationException {
         Task task = getTestTask();
@@ -295,6 +318,87 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
                         "Came from New York")
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
                         ROLE_HARMLESS_TITLE);
+
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /**
+     * Assigning bob a "Reverse Function Role".
+     * This is a safe role, using function expression to invoke reverse function in support function library.
+     * It is using only safe expressions to specify function parameters.
+     * Everything should go smoothly.
+     */
+    @Test
+    public void test420AssignBobRoleFunctionReverse() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        when();
+        when();
+        assignRole(USER_BOB.oid, ROLE_FUNCTION_REVERSE.oid, task, result);
+
+
+        then();
+        assertSuccess(result);
+        assertUserAfter(USER_BOB.oid)
+                .display()
+                .assertAssignments(2)
+                .assignments()
+                .assertRole(ROLE_HARMLESS.oid)
+                .assertRole(ROLE_FUNCTION_REVERSE.oid);
+
+        assertDummyAccountByUsername(RESOURCE_SCRIPTED_TARGET.name, USER_BOB.getNameOrig())
+                .display()
+                .assertFullName(USER_BOB.getObjectable().getFullName().getOrig())
+                .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
+                        "Came from New York")
+                .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
+                        ROLE_HARMLESS_TITLE, "lesnuoC etaroproC");
+
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /**
+     * Assigning bob a "Malicious Function Role".
+     * This is a malicious role,that is trying to abuse function expression,
+     * including groovy code in parameter specification.
+     * This should fail.
+     */
+    @Test
+    public void test430AssignBobRoleFunctionMalicious() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        try {
+
+            when();
+            assignRole(USER_BOB.oid, ROLE_FUNCTION_MALICIOUS.oid, task, result);
+            fail("unexpected success");
+
+        } catch (SecurityViolationException e) {
+            // Expected exception
+            then();
+            assertFailure(result);
+            assertExpectedException(e)
+                    .hasMessageContaining("Access to script expression evaluator not allowed");
+        }
+
+        assertUserAfter(USER_BOB.oid)
+                .display()
+                .assertAssignments(2)
+                .assignments()
+                .assertRole(ROLE_HARMLESS.oid)
+                .assertRole(ROLE_FUNCTION_REVERSE.oid);
+
+        assertDummyAccountByUsername(RESOURCE_SCRIPTED_TARGET.name, USER_BOB.getNameOrig())
+                .display()
+                .assertFullName(USER_BOB.getObjectable().getFullName().getOrig())
+                .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
+                        "Came from New York")
+                .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
+                        ROLE_HARMLESS_TITLE, "lesnuoC etaroproC");
 
         BOOMED_FLAG.assertNotSet();
     }

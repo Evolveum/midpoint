@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="10898900-b3e1-11f0-a523-cbd9df3e4f0b">
+    <name>Reverse Function Role</name>
+    <documentation>
+        Role that is using function expression to invoke reverse function in support function library.
+        This is s nice role, it is using only safe expressions to specify function parameters.
+    </documentation>
+    <inducement>
+        <construction>
+            <resourceRef oid="b6921940-b317-11f0-a8d9-bb8df5a5aed5"/>
+            <attribute>
+                <ref>title</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>title</path>
+                    </source>
+                    <expression>
+                        <function>
+                            <libraryRef oid="9522632c-b3e0-11f0-a092-bb7b6afca320"/>
+                            <name>reverse</name>
+                            <parameter>
+                                <name>input</name>
+                                <expression>
+                                    <path>$title</path>
+                                </expression>
+                            </parameter>
+                        </function>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+</role>

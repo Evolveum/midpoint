@@ -10,6 +10,7 @@
     <fullName>Alice Anderson</fullName>
     <givenName>Alice</givenName>
     <familyName>Anderson</familyName>
+    <title>CSO</title>
     <description>Alice is set up correctly, everything matches with expression profiles.</description>
     <costCenter>nice</costCenter>
     <locality>London</locality>
