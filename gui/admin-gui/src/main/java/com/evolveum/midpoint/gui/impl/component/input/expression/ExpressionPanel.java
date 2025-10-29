@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 
@@ -68,7 +69,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private LoadableModel<RecognizedEvaluator> typeModel;
     private LoadableModel<String> helpModel;
     private boolean isEvaluatorPanelExpanded = false;
-    private boolean isInColumn = false;
+    private boolean isInTable = false;
 
     Model<String> infoLabelModel = Model.of("");
 
@@ -128,8 +129,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
-        Table table = findParent(Table.class);
-        isInColumn = table != null;
+        if(findParent(Table.class) != null || findParent(TileTablePanel.class) != null) {
+            isInTable = true;
+        }
     }
 
     private void initTypeModels() {
@@ -361,7 +363,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         AjaxButton typeButton = new AjaxButton(ID_TYPE_BUTTON) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (isInColumn) {
+                if (isInTable) {
                     OnePanelPopupPanel popupPanel = new OnePanelPopupPanel(getPageBase().getMainPopupBodyId()) {
                         @Override
                         protected WebMarkupContainer createPanel(String id) {
@@ -431,7 +433,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 BasePanel evaluatorPanel = constructor.newInstance(id, getModel());
                 evaluatorPanel.setOutputMarkupId(true);
                 evaluatorPanel.add(new VisibleBehaviour(() -> isInPopup || isEvaluatorPanelExpanded()));
-                if (!isInColumn) {
+                if (!isInTable) {
                     evaluatorPanel.add(AttributeAppender.append("class", "pl-3"));
                 }
                 return evaluatorPanel;

@@ -40,8 +40,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_CODE_LABEL = "codeLabel";
     private static final String ID_LANGUAGE_INPUT = "languageInput";
     private static final String ID_LANGUAGE_LABEL = "languageLabel";
-    private static final String ID_DOCUMENTATION_LABEL = "documentationLabel";
-    private static final String ID_DOCUMENTATION_INPUT = "documentationInput";
+    private static final String ID_DESCRIPTION_LABEL = "descriptionLabel";
+    private static final String ID_DESCRIPTION_INPUT = "descriptionInput";
     private static final String C_DATA_PREFIX = "<![CDATA[";
     private static final String C_DATA_SUFFIX = "]]>";
 
@@ -59,8 +59,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
         SimpleAceEditorPanel codePanel = createCodeInputPanel(languageModel);
 
-        parent.add(new Label(ID_DOCUMENTATION_LABEL, createStringResource("ScriptExpressionEvaluatorType.documentation")));
-        parent.add(createDocumentationField(createDocumentationModel()));
+        parent.add(new Label(ID_DESCRIPTION_LABEL, createStringResource("ScriptExpressionEvaluatorType.description")));
+        parent.add(createDescriptionField(createDescriptionModel()));
 
         parent.add(new Label(ID_LANGUAGE_LABEL, createStringResource("ScriptExpressionEvaluatorType.language")));
 
@@ -81,20 +81,20 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     /**
-     * Creates a Wicket model that provides access to the current documentation
+     * Creates a model that provides access to the current description
      * text of the {@link ExpressionType} for both reading and updating.
      */
-    private @NotNull IModel<String> createDocumentationModel() {
+    private @NotNull IModel<String> createDescriptionModel() {
         return new IModel<>() {
             @Override
             public String getObject() {
-                return getModelObject() != null ? getModelObject().getDocumentation() : null;
+                return getModelObject() != null ? getModelObject().getDescription() : null;
             }
 
             @Override
             public void setObject(String value) {
                 if (getModelObject() != null) {
-                    getModelObject().setDocumentation(value);
+                    getModelObject().setDescription(value);
                 }
             }
         };
@@ -103,8 +103,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     /**
      * Creates an editable text field for the documentation property of the expression.
      */
-    private @NotNull Component createDocumentationField(IModel<String> model) {
-        TextField<String> documentationField = new TextField<>(ScriptExpressionPanel.ID_DOCUMENTATION_INPUT, model);
+    private @NotNull Component createDescriptionField(IModel<String> model) {
+        TextField<String> documentationField = new TextField<>(ScriptExpressionPanel.ID_DESCRIPTION_INPUT, model);
         documentationField.setOutputMarkupId(true);
         documentationField.add(AttributeAppender.append("class", "form-control form-control-sm mb-2"));
         documentationField.add(new CaretPreservingOnChangeBehavior());

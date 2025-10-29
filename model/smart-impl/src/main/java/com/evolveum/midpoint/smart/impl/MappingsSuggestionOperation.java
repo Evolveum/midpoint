@@ -243,7 +243,7 @@ class MappingsSuggestionOperation {
 
     /**
      * Builds an {@link ExpressionType} containing a script evaluator
-     * and optional documentation extracted from the suggested mapping response.
+     * and optional description extracted from the suggested mapping response.
      */
     private @Nullable ExpressionType buildScriptExpression(SiSuggestMappingResponseType suggestMappingResponse) {
         if (suggestMappingResponse == null) {
@@ -251,14 +251,14 @@ class MappingsSuggestionOperation {
         }
 
         var script = suggestMappingResponse.getTransformationScript();
-        String documentation = suggestMappingResponse.getDocumentation();
+        String scriptDescription = suggestMappingResponse.getDescription();
 
         if (script == null || "input".equals(script)) {
             return null;
         }
 
         return new ExpressionType()
-                .documentation(documentation)
+                .description(scriptDescription)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
                                 new ScriptExpressionEvaluatorType().code(script)));

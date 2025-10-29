@@ -1389,10 +1389,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="documentation" type="xsd:string">
+            <xsd:element name="description" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Free-form documentation related to the suggested transformation or mapping.
+                        Free-form description related to the suggested transformation or mapping.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
