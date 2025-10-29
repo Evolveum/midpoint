@@ -98,8 +98,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
         // FIXME this is a temporary hack to work around limitations of our JSON serializer/deserializer.
         //  So we serialize/deserialize the data ourselves.
         var requestText = PrismContext.get().jsonSerializer().serializeRealValueContent(request);
-        // TEMPORARILY "info" logging for request and response
-        LOGGER.info("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
+        LOGGER.trace("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
         webClient.reset();
         webClient.type(MediaType.APPLICATION_JSON);
         webClient.accept(MediaType.APPLICATION_JSON);
@@ -107,7 +106,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
         try (var response = webClient.post(requestText)) {
             var statusType = response.getStatusInfo();
             var responseText = response.readEntity(String.class);
-            LOGGER.info("Response (status: {}, expected class: {}):\n{}",
+            LOGGER.trace("Response (status: {}, expected class: {}):\n{}",
                     statusType.getStatusCode(), responseClass, responseText);
             if (statusType.getFamily() == Response.Status.Family.SUCCESSFUL) {
                 // Another hack: we don't have "parseRealValueContent" method that would parse the response.
