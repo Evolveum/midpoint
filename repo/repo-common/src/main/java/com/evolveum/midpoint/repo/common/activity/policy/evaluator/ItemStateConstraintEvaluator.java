@@ -7,9 +7,11 @@
 package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.DataNeed;
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedItemStatePolicyTrigger;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,7 +29,8 @@ import jakarta.xml.bind.JAXBElement;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ItemStateConstraintEvaluator implements ActivityPolicyConstraintEvaluator<ItemStatePolicyConstraintType, EvaluatedItemStatePolicyTrigger> {
+public class ItemStateConstraintEvaluator
+        implements ActivityPolicyConstraintEvaluator<ItemStatePolicyConstraintType, EvaluatedItemStatePolicyTrigger> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemStateConstraintEvaluator.class);
 
@@ -42,7 +45,9 @@ public class ItemStateConstraintEvaluator implements ActivityPolicyConstraintEva
         ItemProcessingResult processingResult = context.getProcessingResult();
 
         if (processingResult == null) {
-            LOGGER.debug("No processing result available for evaluation of item state policy constraint '{}', skipping evaluation.", constraint);
+            LOGGER.debug(
+                    "No processing result available for evaluation of item state policy constraint '{}', skipping evaluation.",
+                    constraint);
             return List.of();
         }
 
@@ -55,7 +60,8 @@ public class ItemStateConstraintEvaluator implements ActivityPolicyConstraintEva
             LocalizableMessage message = new SingleLocalizableMessage(
                     "ItemStateConstraintEvaluator.resultStatusMatched",
                     new Object[] { constraint.getName(), status },
-                    "Item state result status matched for constraint '" + constraint.getName() + "' with '" + status + "'");
+                    "Item state result status matched for constraint '%s' with '%s'".formatted(
+                            constraint.getName(), status));
             return List.of(new EvaluatedItemStatePolicyTrigger(constraint, message, message));
         }
 
@@ -71,11 +77,17 @@ public class ItemStateConstraintEvaluator implements ActivityPolicyConstraintEva
             LocalizableMessage message = new SingleLocalizableMessage(
                     "ItemStateConstraintEvaluator.errorCategoryMatched",
                     new Object[] { constraint.getName(), errorCategory },
-                    "Item state result error category matched for constraint '" + constraint.getName() + "' with '" + errorCategory + "'");
+                    "Item state result error category matched for constraint '%s' with '%s'".formatted(
+                            constraint.getName(), errorCategory));
 
             return List.of(new EvaluatedItemStatePolicyTrigger(constraint, message, message));
         }
 
         return List.of();
+    }
+
+    @Override
+    public Set<DataNeed> getDataNeeds(JAXBElement<ItemStatePolicyConstraintType> constraint) {
+        return Set.of(DataNeed.COUNTERS);
     }
 }

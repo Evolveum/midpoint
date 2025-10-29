@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.common.activity.run.state;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,13 +38,11 @@ public class OtherActivityState extends ActivityState {
 
     @Nullable private final ComplexTypeDefinition workStateComplexTypeDefinition;
 
-    OtherActivityState(
+    public OtherActivityState(
             @NotNull Task task,
             @NotNull TaskActivityStateType taskActivityState,
             @NotNull ActivityPath activityPath,
-            @Nullable QName workStateTypeName,
-            @NotNull CommonTaskBeans beans) {
-        super(beans);
+            @Nullable QName workStateTypeName) {
         this.task = task;
         this.activityPath = activityPath;
         this.stateItemPath = ActivityStateUtil.getStateItemPath(taskActivityState, activityPath);

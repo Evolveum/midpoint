@@ -416,6 +416,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public <T> @NotNull List<T> getItemRealValuesOrClone(ItemPath path, Class<T> expectedType) {
+        return List.of();
+    }
+
+    @Override
     public ObjectReferenceType getReferenceRealValue(ItemPath path) {
         return null;
     }

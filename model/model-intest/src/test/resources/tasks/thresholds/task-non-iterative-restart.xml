@@ -22,8 +22,6 @@
                                 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyProcessorHelper
                                 import com.evolveum.midpoint.schema.result.OperationResult
 
-                                ActivityPolicyProcessorHelper.initialize()
-
                                 for (int i = 0; i &lt; 10; i++) {
                                     println "No-op iteration ${i}"
                                     log.info("No-op iteration ${i}")

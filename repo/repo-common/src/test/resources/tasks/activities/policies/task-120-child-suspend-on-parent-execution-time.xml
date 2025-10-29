@@ -16,8 +16,8 @@
                 <identifier>first</identifier>
                 <work>
                     <noOp>
-                        <steps>3</steps>
-                        <delay>100</delay>
+                        <steps>1</steps>
+                        <delay>4000</delay>
                     </noOp>
                 </work>
             </activity>
@@ -26,8 +26,8 @@
                 <identifier>second</identifier>
                 <work>
                     <noOp>
-                        <steps>10</steps>
-                        <delay>300</delay>
+                        <steps>200</steps>
+                        <delay>100</delay>
                     </noOp>
                 </work>
             </activity>
@@ -44,10 +44,9 @@
         </composition>
         <policies>
             <policy>
-                <name>Execution time at most 2 seconds</name>
                 <policyConstraints>
                     <executionTime>
-                        <exceeds>PT2S</exceeds>
+                        <exceeds>PT8S</exceeds>
                     </executionTime>
                 </policyConstraints>
                 <policyReaction>

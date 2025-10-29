@@ -285,7 +285,7 @@ public class ActivityItemProcessingStatisticsUtil {
     private static void addRunRecords(@NotNull ActivityItemProcessingStatisticsType sum,
             @NotNull ActivityItemProcessingStatisticsType delta) {
         List<ActivityRunRecordType> nonOverlappingRecords =
-                new WallClockTimeComputer(sum.getRun(), delta.getRun())
+                WallClockTimeComputer.create(sum.getRun(), delta.getRun())
                         .getNonOverlappingRecords();
         sum.getRun().clear();
         nonOverlappingRecords.sort(Comparator.comparing(r -> XmlTypeConverter.toMillis(r.getStartTimestamp())));

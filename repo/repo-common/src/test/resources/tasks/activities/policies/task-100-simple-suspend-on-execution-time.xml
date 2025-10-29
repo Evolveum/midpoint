@@ -12,8 +12,8 @@
     <activity>
         <work>
             <noOp>
-                <steps>10</steps>
-                <delay>300</delay>
+                <steps>100</steps>
+                <delay>100</delay>
             </noOp>
         </work>
         <policies>

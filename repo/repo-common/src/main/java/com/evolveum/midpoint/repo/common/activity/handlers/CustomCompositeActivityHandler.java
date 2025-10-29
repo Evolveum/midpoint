@@ -84,7 +84,7 @@ public class CustomCompositeActivityHandler implements ActivityHandler<Composite
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(CustomCompositeWorkStateType.COMPLEX_TYPE);
     }
 }

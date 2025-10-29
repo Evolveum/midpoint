@@ -458,6 +458,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     <T> T getItemRealValueOrClone(ItemPath path, Class<T> expectedType);
 
+    <T> @NotNull Collection<T> getItemRealValuesOrClone(ItemPath path, Class<T> expectedType);
+
     /** TODO what about thread safety? */
     ObjectReferenceType getReferenceRealValue(ItemPath path);
 

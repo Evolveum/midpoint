@@ -50,7 +50,7 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
 
         ThresholdEvaluator thresholdEvaluator = rule.getThresholdValueType().getEvaluator();
 
-        return thresholdEvaluator.evaluate(threshold, rule.getThresholdValue());
+        return thresholdEvaluator.evaluate(threshold, rule.getTotalValue());
     }
 
     public boolean isEnforced() {

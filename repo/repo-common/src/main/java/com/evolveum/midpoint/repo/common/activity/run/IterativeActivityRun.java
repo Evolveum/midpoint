@@ -796,7 +796,7 @@ public abstract class IterativeActivityRun<
     private ActivityState getFreshCoordinatorActivityState(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return activityState.getCurrentActivityStateInParentTask(true,
-                getActivityStateDefinition().getWorkStateTypeName(), result);
+                getActivityStateDefinition().workStateTypeName(), result);
     }
 
     @NotNull

@@ -10,6 +10,12 @@ import static com.evolveum.midpoint.util.DebugUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -20,6 +26,23 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
 
+/**
+ * A policy rule that is being evaluated in a context of given activity.
+ *
+ * - These objects are created when an activity run ({@link AbstractActivityRun}) starts - in
+ * {@link ActivityPolicyRulesProcessor#collectRulesAndPreexistingValues(OperationResult)} method.
+ *
+ * - They are evaluated periodically during the activity run - currently in
+ * {@link ActivityPolicyRulesProcessor#evaluateAndExecuteRules(ItemProcessingResult, OperationResult)} method.
+ *
+ * == Thresholds
+ *
+ * A rule may produce a single value (integer or duration) that is used to compare against thresholds defined for individual
+ * reactions. This usually happens when the specific constraint has no boundaries defined by itself.
+ *
+ * TODO implement a check that makes sure that only one constraint without boundaries is defined for a rule.
+ * TODO implement a check that makes sure that when thresholds are defined, at least one constraint provides the value.
+ */
 public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDumpable {
 
     private final @NotNull ActivityPolicyType policy;
@@ -28,22 +51,32 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
 
     private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
-    private final List<EvaluatedPolicyReaction> reactions = new ArrayList<>();
-
-    /**
-     * Whether the rule was enforced (i.e., the action was taken).
-     */
-    private boolean enforced;
-
+    /** The bean recorded to the activity state (if any). */
     private ActivityPolicyStateType currentState;
 
+    /** Type of the threshold value produced and checked by this rule (if any). */
     private ThresholdValueType thresholdValueType;
 
-    private Object thresholdValue;
+    /**
+     * The total value (to be checked against the threshold): existing before + computed for the current activity.
+     */
+    private Object totalValue;
 
-    public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyType policy, @NotNull ActivityPath path) {
+    /**
+     * The value (to be checked against the threshold) that was computed for the current activity only (if any).
+     *
+     * @see EvaluatedPolicyRule#getLocalValue()
+     * @see EvaluatedPolicyRule#getTotalValue()
+     */
+    private Object localValue;
+
+    private final @NotNull Set<DataNeed> dataNeeds;
+
+    public EvaluatedActivityPolicyRule(
+            @NotNull ActivityPolicyType policy, @NotNull ActivityPath path, @NotNull Set<DataNeed> dataNeeds) {
         this.policy = policy;
         this.path = path;
+        this.dataNeeds = dataNeeds;
     }
 
     public @NotNull ActivityPath getPath() {
@@ -51,8 +84,8 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     }
 
     @Override
-    public String getRuleIdentifier() {
-        return ActivityPolicyUtils.createIdentifier(path, policy);
+    public @NotNull ActivityPolicyRuleIdentifier getRuleIdentifier() {
+        return ActivityPolicyRuleIdentifier.of(policy, path);
     }
 
     @Override
@@ -66,8 +99,13 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     }
 
     @Override
-    public Object getThresholdValue() {
-        return thresholdValue;
+    public Object getLocalValue() {
+        return localValue;
+    }
+
+    @Override
+    public Object getTotalValue() {
+        return totalValue;
     }
 
     @Override
@@ -76,14 +114,16 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     }
 
     @Override
-    public void setThresholdValueType(@NotNull ThresholdValueType thresholdValueType, Object value) {
+    public void setThresholdTypeAndValues(
+            @NotNull ThresholdValueType thresholdValueType, Object localValue, Object totalValue) {
         if (this.thresholdValueType != null && this.thresholdValueType != thresholdValueType) {
             throw new IllegalStateException(
                     "Cannot change threshold value type from " + this.thresholdValueType + " to " + thresholdValueType);
         }
 
         this.thresholdValueType = thresholdValueType;
-        this.thresholdValue = value;
+        this.localValue = localValue;
+        this.totalValue = totalValue;
     }
 
     @NotNull
@@ -117,10 +157,6 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         }
     }
 
-    public ActivityPolicyStateType getCurrentState() {
-        return currentState;
-    }
-
     public void setCurrentState(ActivityPolicyStateType currentState) {
         this.currentState = currentState;
     }
@@ -130,10 +166,25 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         return !triggers.isEmpty() || (currentState != null && !currentState.getTrigger().isEmpty());
     }
 
-    public boolean isReactionEnforced(String reactionIdentifier) {
+    boolean isReactionEnforced(String reactionIdentifier) {
         return currentState != null
                 && currentState.getReaction().stream()
                         .anyMatch(r -> reactionIdentifier.equals(r.getRef()) && r.isEnforced());
+    }
+
+    /** Does this policy rule need execution time to be evaluated? */
+    boolean doesNeedExecutionTime() {
+        return dataNeeds.contains(DataNeed.EXECUTION_TIME);
+    }
+
+    /** Does this policy rule need execution attempt number to be evaluated? */
+    boolean doesNeedExecutionAttemptNumber() {
+        return dataNeeds.contains(DataNeed.EXECUTION_ATTEMPTS);
+    }
+
+    /** Does this policy rule need counters to be evaluated? Currently not used, we take all counters from the whole tree. */
+    public boolean doesUseCounters() {
+        return dataNeeds.contains(DataNeed.COUNTERS);
     }
 
     @Override

@@ -17,44 +17,32 @@ import javax.xml.namespace.QName;
 /**
  * TODO better name
  *
- * Defines basic facts about activity work state, like type of the work state, the persistence level, and so on.
+ * Defines basic facts about activity work state, like:
+ *
+ * @param workStateTypeName type of the work state
+ * @param persistence the persistence level
  */
-public class ActivityStateDefinition<WS extends AbstractActivityWorkStateType> {
+public record ActivityStateDefinition(
+        @NotNull QName workStateTypeName,
+        @NotNull ActivityStatePersistenceType persistence) {
 
-    @NotNull private final QName workStateTypeName;
-
-    @NotNull private final ActivityStatePersistenceType persistence;
-
-    public ActivityStateDefinition(@NotNull QName workStateTypeName, @NotNull ActivityStatePersistenceType persistence) {
-        this.workStateTypeName = workStateTypeName;
-        this.persistence = persistence;
-    }
-
-    public static <WS extends AbstractActivityWorkStateType> ActivityStateDefinition<WS> normal() {
+    public static ActivityStateDefinition normal() {
         return normal(AbstractActivityWorkStateType.COMPLEX_TYPE);
     }
 
-    public static <WS extends AbstractActivityWorkStateType> ActivityStateDefinition<WS> normal(@NotNull QName workStateTypeName) {
-        return new ActivityStateDefinition<>(workStateTypeName, ActivityStatePersistenceType.SINGLE_REALIZATION);
+    public static ActivityStateDefinition normal(@NotNull QName workStateTypeName) {
+        return new ActivityStateDefinition(workStateTypeName, ActivityStatePersistenceType.SINGLE_REALIZATION);
     }
 
-    public static <WS extends AbstractActivityWorkStateType> ActivityStateDefinition<WS> perpetual() {
+    public static ActivityStateDefinition perpetual() {
         return perpetual(AbstractActivityWorkStateType.COMPLEX_TYPE);
     }
-    public static <WS extends AbstractActivityWorkStateType> ActivityStateDefinition<WS> perpetual(
-            @NotNull QName workStateTypeName) {
-        return new ActivityStateDefinition<>(workStateTypeName, ActivityStatePersistenceType.PERPETUAL);
-    }
 
-    public @NotNull QName getWorkStateTypeName() {
-        return workStateTypeName;
-    }
-
-    public @NotNull ActivityStatePersistenceType getPersistence() {
-        return persistence;
+    public static ActivityStateDefinition perpetual(@NotNull QName workStateTypeName) {
+        return new ActivityStateDefinition(workStateTypeName, ActivityStatePersistenceType.PERPETUAL);
     }
 
     public boolean isSingleRealization() {
-        return getPersistence() == ActivityStatePersistenceType.SINGLE_REALIZATION;
+        return persistence() == ActivityStatePersistenceType.SINGLE_REALIZATION;
     }
 }

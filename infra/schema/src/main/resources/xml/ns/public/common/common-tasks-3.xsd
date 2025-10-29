@@ -3516,7 +3516,9 @@
     <xsd:complexType name="ActivityStateType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes the state of an activity.
+                Describes the state of an activity: everything the activity needs to record in the repository in order to
+                function properly. Most parts are maintained by the activity framework. The "workState" is a business state
+                specific to the particular activity type.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>

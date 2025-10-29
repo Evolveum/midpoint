@@ -11,17 +11,16 @@
     <executionState>closed</executionState>
     <activity>
         <work>
-            <noOp>
-                <steps>40</steps>
+            <noOp> <!-- 40 seconds total -->
+                <steps>160</steps>
                 <delay>250</delay>
             </noOp>
         </work>
         <policies>
             <policy>
-                <name>Execution time at most 2 seconds</name>
                 <policyConstraints>
                     <executionTime>
-                        <exceeds>PT2S</exceeds>
+                        <exceeds>PT10S</exceeds>
                     </executionTime>
                 </policyConstraints>
                 <policyReaction>

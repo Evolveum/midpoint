@@ -11,15 +11,18 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.datatype.Duration;
+
 /**
  * Context that holds important information for evaluation of activity policy rule.
  */
 public class ActivityPolicyRuleEvaluationContext {
 
-    @NotNull
-    private final EvaluatedActivityPolicyRule rule;
-    @NotNull
-    private final AbstractActivityRun<?, ?, ?> activityRun;
+    private final @NotNull EvaluatedActivityPolicyRule rule;
+
+    private final @NotNull AbstractActivityRun<?, ?, ?> activityRun;
 
     private final ItemProcessingResult processingResult;
 
@@ -43,5 +46,17 @@ public class ActivityPolicyRuleEvaluationContext {
 
     public ItemProcessingResult getProcessingResult() {
         return processingResult;
+    }
+
+    public @Nullable Duration getPreexistingExecutionTime() {
+        return activityRun.getActivityPolicyRulesContext()
+                .getPreexistingValues()
+                .getExecutionTime(rule.getPath());
+    }
+
+    public @Nullable Integer getPreexistingExecutionAttemptNumber() {
+        return activityRun.getActivityPolicyRulesContext()
+                .getPreexistingValues()
+                .getExecutionAttemptNumber(rule.getPath());
     }
 }

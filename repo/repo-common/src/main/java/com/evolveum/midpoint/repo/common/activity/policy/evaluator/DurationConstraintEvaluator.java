@@ -6,14 +6,14 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
-import java.util.Date;
 import java.util.List;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.repo.common.activity.policy.*;
 import jakarta.xml.bind.JAXBElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.repo.common.activity.policy.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -36,11 +36,13 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
 
         C constraint = element.getValue();
 
-        Duration value = getDurationValue(context);
-        updateRuleThresholdTypeAndValue(context.getRule(), constraint, value);
+        Duration localValue = getLocalValue(context);
+        Duration totalValue = add(localValue, getPreexistingValue(context));
 
-        if (value == null) {
-            if (shouldTriggerOnNullValue(value)) {
+        updateRuleThresholdTypeAndValues(context.getRule(), constraint, localValue, totalValue);
+
+        if (totalValue == null) {
+            if (shouldTriggerOnNullValue()) {
                 LOGGER.trace("Triggering on empty value for constraint {}", constraint.getName());
 
                 LocalizableMessage message = createEmptyMessage(null);
@@ -52,40 +54,37 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
             return List.of();
         }
 
-        LOGGER.trace("Evaluating duration constraint {} against value {}", constraint.getName(), value);
+        Duration lowerLimit = constraint.getBelow();
+        Duration upperLimit = constraint.getExceeds();
+        LOGGER.trace("Evaluating duration constraint {} (lower: {}, upper: {}) against value {}",
+                constraint.getName(), lowerLimit, upperLimit, totalValue);
 
-        final Date now = new Date();    // arbitrary point in time, used for duration comparison
+        Long totalValueMillis = ComputationUtil.durationToMillis(totalValue);
+        if (lowerLimit != null && compare(totalValue, lowerLimit) < 0) {
+            LOGGER.trace("Duration value {} is below the threshold of constraint {}, creating trigger", totalValue, constraint.getName());
 
-        Long valueMs = durationToMillis(value, now);
-
-        Long belowMs = durationToMillis(constraint.getBelow(), now);
-        if (belowMs != null && valueMs < belowMs) {
-            LOGGER.trace("Duration value {} is below the threshold of constraint {}, creating trigger", value, constraint.getName());
-
-            LocalizableMessage message = createMessage(constraint.getName(), value, valueMs, constraint.getBelow(), EvaluatorUtils.ThresholdType.BELOW);
+            LocalizableMessage message = createMessage(constraint.getName(), totalValue, totalValueMillis, lowerLimit, EvaluatorUtils.ThresholdType.BELOW);
             LocalizableMessage shortMessage = createShortMessage(constraint.getName(), EvaluatorUtils.ThresholdType.BELOW);
 
             return List.of(createTrigger(constraint, message, shortMessage));
         }
 
-        Long exceedsMs = durationToMillis(constraint.getExceeds(), now);
+        if (upperLimit != null && compare(totalValue, upperLimit) > 0) {
+            LOGGER.trace("Duration value {} exceeds the threshold of constraint {}, creating trigger", totalValue, constraint.getName());
 
-        if (exceedsMs != null && valueMs > exceedsMs) {
-            LOGGER.trace("Duration value {}ms exceeds the threshold of constraint {}, creating trigger", value, constraint.getName());
-
-            LocalizableMessage message = createMessage(constraint.getName(), value, valueMs, constraint.getExceeds(), EvaluatorUtils.ThresholdType.EXCEEDS);
+            LocalizableMessage message = createMessage(constraint.getName(), totalValue, totalValueMillis, upperLimit, EvaluatorUtils.ThresholdType.EXCEEDS);
             LocalizableMessage shortMessage = createShortMessage(constraint.getName(), EvaluatorUtils.ThresholdType.EXCEEDS);
 
             return List.of(createTrigger(constraint, message, shortMessage));
         }
 
-        if (belowMs == null && exceedsMs == null) {
+        if (lowerLimit == null && upperLimit == null) {
             LOGGER.trace("No below/exceeds thresholds defined for constraint {}", constraint.getName());
 
-            if (shouldTriggerOnEmptyConstraint(constraint, value)) {
+            if (shouldTriggerOnEmptyConstraint(constraint, totalValue)) {
                 LOGGER.trace("Triggering on empty constraint {}", constraint.getName());
 
-                LocalizableMessage message = createEmptyMessage(value);
+                LocalizableMessage message = createEmptyMessage(totalValue);
 
                 return List.of(createTrigger(constraint, message, message));
             }
@@ -94,19 +93,19 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
         return List.of();
     }
 
-    private Long durationToMillis(Duration duration, Date offset) {
-        return duration != null ? duration.getTimeInMillis(offset) : null;
+    private int compare(@NotNull Duration value, @NotNull Duration limit) {
+        // It is strange but value.compare(limit) does not work as expected. For example, PT10S is not greater than PT10.5S.
+        // Moreover, we'd need to treat INDETERMINATE result as well - by defaulting to millis comparison as done here.
+        return ComputationUtil.durationToMillis(value).compareTo(ComputationUtil.durationToMillis(limit));
     }
 
-    protected void updateRuleThresholdTypeAndValue(EvaluatedPolicyRule rule, C constraint, Duration value) {
-        if (!constraint.asPrismContainerValue().isEmpty()) {
-            return;
+    private void updateRuleThresholdTypeAndValues(EvaluatedPolicyRule rule, C constraint, Duration localValue, Duration totalValue) {
+        if (constraint.asPrismContainerValue().isEmpty()) {
+            rule.setThresholdTypeAndValues(ThresholdValueType.DURATION, localValue, totalValue);
         }
-
-        rule.setThresholdValueType(ThresholdValueType.DURATION, value);
     }
 
-    protected boolean shouldTriggerOnNullValue(Duration value) {
+    protected boolean shouldTriggerOnNullValue() {
         return false;
     }
 
@@ -123,8 +122,19 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
      * Duration value to be tested against defined constraint.
      * If value is null, constraint evaluation will be skipped.
      */
-    @Nullable
-    protected abstract Duration getDurationValue(ActivityPolicyRuleEvaluationContext context);
+    protected abstract @Nullable Duration getLocalValue(ActivityPolicyRuleEvaluationContext context);
+
+    protected abstract @Nullable Duration getPreexistingValue(ActivityPolicyRuleEvaluationContext context);
+
+    private Duration add(@Nullable Duration localValue, @Nullable Duration preexistingValue) {
+        if (localValue == null) {
+            return preexistingValue;
+        }
+        if (preexistingValue == null) {
+            return localValue;
+        }
+        return localValue.add(preexistingValue);
+    }
 
     protected LocalizableMessage createEvaluatorName() {
         return new SingleLocalizableMessage("DurationConstraintEvaluator.name", new String[0], "Measured duration");

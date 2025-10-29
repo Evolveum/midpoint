@@ -132,7 +132,6 @@ public class ReconciliationActivityHandler
                         activity.getPath().allExceptLast(),
                         runningTask,
                         ReconciliationWorkStateType.COMPLEX_TYPE,
-                        commonTaskBeans,
                         result);
         if (reconState.getWorkStatePropertyRealValue(F_RESOURCE_OBJECTS_RECONCILIATION_START_TIMESTAMP, XMLGregorianCalendar.class) == null) {
             XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
@@ -158,7 +157,7 @@ public class ReconciliationActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(ReconciliationWorkStateType.COMPLEX_TYPE);
     }
 

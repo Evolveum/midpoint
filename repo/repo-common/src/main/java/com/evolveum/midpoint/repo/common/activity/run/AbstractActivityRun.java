@@ -6,6 +6,9 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.FULL_EXECUTION_MODE_POLICY_RULES;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.PREVIEW_MODE_POLICY_RULES;
+
 import static java.util.Objects.requireNonNull;
 
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.COMMITTED;
@@ -58,7 +61,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Implements (represents) a run (execution) of an activity in the current task.
+ * Implements/represents a run (execution) of an activity in a task.
  *
  * Responsibilities _at this [highest] level of abstraction_:
  *
@@ -106,7 +109,7 @@ public abstract class AbstractActivityRun<
     /**
      * Captures traits of the activity state (e.g. if it has to be created).
      */
-    @NotNull final ActivityStateDefinition<WS> activityStateDefinition;
+    @NotNull final ActivityStateDefinition activityStateDefinition;
 
     /**
      * The "live" version of the activity state.
@@ -148,6 +151,7 @@ public abstract class AbstractActivityRun<
 
     @NotNull final SimulationSupport simulationSupport;
 
+    /** Relevant policy rules for this activity. Plus accompanying information need for their evaluation and execution. */
     @NotNull private final ActivityPolicyRulesContext activityPolicyRulesContext = new ActivityPolicyRulesContext();
 
     protected AbstractActivityRun(@NotNull ActivityRunInstantiationContext<WD, AH> context) {
@@ -177,9 +181,8 @@ public abstract class AbstractActivityRun<
     /**
      * Called during initialization. Should not access reporting characteristics.
      */
-    protected ActivityStateDefinition<WS> determineActivityStateDefinition() {
-        //noinspection unchecked
-        return (ActivityStateDefinition<WS>) activity.getActivityStateDefinition();
+    protected ActivityStateDefinition determineActivityStateDefinition() {
+        return activity.getActivityStateDefinition();
     }
 
     /**
@@ -238,9 +241,6 @@ public abstract class AbstractActivityRun<
                 throw new ActivityRunException("Couldn't increment execution attempt", FATAL_ERROR, PERMANENT_ERROR, e);
             }
         }
-
-        new ActivityPolicyRulesProcessor(this)
-                .collectRules();
 
         noteStartTimestamp();
         logStart();
@@ -511,31 +511,35 @@ public abstract class AbstractActivityRun<
         activityState.getLiveProgress().increment(outcome, counters);
     }
 
-    public @NotNull ActivityStateDefinition<WS> getActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getActivityStateDefinition() {
         return activityStateDefinition;
     }
 
     @Override
-    public Map<String, Integer> incrementCounters(@NotNull CountersGroup counterGroup,
-            @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
+    public Map<String, Integer> incrementCounters(
+            @NotNull CountersGroup counterGroup,
+            @NotNull Collection<String> countersIdentifiers,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        synchronized (activityStateForThresholdsLock) {
-            if (activityStateForThresholds == null) {
-                activityStateForThresholds = determineActivityStateForThresholds(result);
-            }
-        }
-        return activityStateForThresholds.incrementCounters(counterGroup, countersIdentifiers, result);
+        return getActivityStateForThresholds(result)
+                .incrementCounters(counterGroup, countersIdentifiers, result);
     }
 
     public Map<String, ActivityPolicyStateType> updateActivityPolicyState(
             @NotNull Collection<ActivityPolicyStateType> states, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        return getActivityStateForThresholds(result)
+                .updatePolicies(states, result);
+    }
+
+    private @NotNull ActivityState getActivityStateForThresholds(OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
         synchronized (activityStateForThresholdsLock) {
             if (activityStateForThresholds == null) {
                 activityStateForThresholds = determineActivityStateForThresholds(result);
             }
+            return activityStateForThresholds;
         }
-        return activityStateForThresholds.updatePolicies(states, result);
     }
 
     protected @NotNull ActivityState determineActivityStateForThresholds(@NotNull OperationResult result)
@@ -546,6 +550,11 @@ public abstract class AbstractActivityRun<
     @Override
     public @NotNull ExecutionModeType getActivityExecutionMode() {
         return activity.getDefinition().getExecutionMode();
+    }
+
+    public ExecutionSupport.CountersGroup getCountersGroup() {
+        return getActivityExecutionMode() == ExecutionModeType.FULL ?
+                FULL_EXECUTION_MODE_POLICY_RULES : PREVIEW_MODE_POLICY_RULES;
     }
 
     // TODO sort these methods out

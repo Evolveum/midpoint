@@ -57,7 +57,7 @@ public class FocusValidityScanActivityHandler
     public ArrayList<Activity<?, ?>> createChildActivities(
             Activity<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> parentActivity) {
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
-        ActivityStateDefinition<AbstractActivityWorkStateType> stateDef =
+        ActivityStateDefinition stateDef =
                 ActivityStateDefinition.perpetual(ScanWorkStateType.COMPLEX_TYPE);
         ValidityScanQueryStyleType queryStyle = parentActivity.getWorkDefinition().getQueryStyle();
         switch (queryStyle) {

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.common.tasks;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
@@ -36,7 +37,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/activities/policies");
 
-    private static final long DEFAULT_TIMEOUT = 30_000;
+    private static final long DEFAULT_TIMEOUT = 60_000;
     private static final long DEFAULT_SLEEP_TIME = 500;
 
     private static final TestTask TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME = new TestTask(
@@ -161,6 +162,9 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /** Bad objects on which we test "fail on error" policies. These fail when processed. */
     private static final int NUMBER_OF_BAD_OBJECTS = 50;
 
+    private static final ActivityPath PATH_FIRST = ActivityPath.fromId("first");
+    private static final ActivityPath PATH_SECOND = ActivityPath.fromId("second");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -187,16 +191,19 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME.rerunErrorsOk(result);
+        testTask.rerunErrorsOk(result);
 
         then("the task is suspended after exceeding execution time");
-        TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME.assertAfter()
+        testTask.assertAfter()
                 .assertSuspended()
-                .assertFatalError();
-        // TODO more asserts
+                .assertFatalError()
+                .rootActivityState()
+                .itemProcessingStatistics()
+                .assertRunTimeBetween(2000L, 5000L); // limit is 2 seconds, 10 seconds planned
     }
 
     /**
@@ -207,36 +214,64 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_110_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_110_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_110_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME.rerunErrorsOk(result);
+        testTask.rerunErrorsOk(result);
 
         then("the task is suspended after exceeding execution time");
-        TASK_110_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME.assertAfter()
+        // @formatter:off
+        testTask.assertAfter()
                 .assertSuspended()
-                .assertFatalError();
-        // TODO more asserts
+                .assertFatalError()
+                .activityState(PATH_FIRST)
+                    .assertComplete()
+                    .assertSuccess()
+                    .itemProcessingStatistics()
+                        .assertRunTimeBetween(4000L, 5000L) // no limit, 4 seconds planned
+                    .end()
+                .end()
+                .activityState(PATH_SECOND)
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .itemProcessingStatistics()
+                        .assertRunTimeBetween(8000L, 10000L); // limit is 8 seconds here, 20 seconds planned
+        // @formatter:on
     }
 
     /**
      * A child activity that is suspended when it exceeds allowed execution time (specified on the parent level).
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test120ChildSuspendOnParentExecutionTime() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_120_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_120_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_120_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME.rerunErrorsOk(result);
+        testTask.rerunErrorsOk(result);
 
         then("the task is suspended after exceeding execution time");
-        TASK_120_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME.assertAfter()
+        // @formatter:off
+        testTask.assertAfter()
                 .assertSuspended()
-                .assertFatalError();
-        // TODO more asserts
+                .assertFatalError()
+                .activityState(PATH_FIRST)
+                    .assertComplete()
+                    .assertSuccess()
+                    .itemProcessingStatistics()
+                        .assertRunTimeBetween(4000L, 5000L) // 4 seconds planned (under limit of 8 seconds total)
+                    .end()
+                .end()
+                .activityState(PATH_SECOND)
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .itemProcessingStatistics()
+                        .assertRunTimeBetween(3000L, 5000L); // 20 seconds planned, but limit is 8 seconds total
+        // @formatter:on
     }
 
     /**
@@ -275,7 +310,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * As {@link #test120ChildSuspendOnParentExecutionTime()} but the activities run in subtasks.
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test140ChildSuspendOnParentExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -311,21 +346,22 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped (some workers may continue for a little while)");
-        TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.rerunTreeErrorsOk(result);
+        testTask.rerunTreeErrorsOk(result);
 
         and("the task and ALL workers are suspended");
         waitForTaskTreeCloseOrCondition(
-                TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.oid,
+                testTask.oid,
                 result,
                 DEFAULT_TIMEOUT,
                 DEFAULT_SLEEP_TIME,
                 tasksSuspendedPredicate(3)); // main task + 2 workers
 
         then("everything is OK");
-        TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.assertTreeAfter()
+        testTask.assertTreeAfter()
                 .assertSuspended() // already checked above
                 .assertSubtasks(2)
                 .subtask(0).display().end()
@@ -385,7 +421,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
      *
      * As {@link #test160MultinodeSuspendOnOwnExecutionTimeWithSubtasks()} but the constraint is on the root level.
      */
-    @Test(enabled = false) // FIXME we don't see ancestors' policies
+    @Test
     public void test170MultinodeSuspendOnRootExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -469,7 +505,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A child activity that is suspended when it exceeds given number of errors (specified on the parent level).
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test220ChildSuspendOnParentErrors() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -523,7 +559,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * As {@link #test220ChildSuspendOnParentErrors()} but the activities run in subtasks.
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test240ChildSuspendOnParentErrorsWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -715,7 +751,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A child activity that is skipped when it exceeds allowed execution time (specified on the parent level).
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test320ChildSkipOnParentExecutionTime() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -772,7 +808,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * As {@link #test320ChildSkipOnParentExecutionTime()} but the activities run in subtasks.
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test340ChildSkipOnParentExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -899,7 +935,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
      *
      * As {@link #test360MultinodeSkipOnOwnExecutionTimeWithSubtasks()}} but the constraint is on the root level.
      */
-    @Test(enabled = false) // FIXME we don't see ancestor policies
+    @Test
     public void test370MultinodeSkipOnRootExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();

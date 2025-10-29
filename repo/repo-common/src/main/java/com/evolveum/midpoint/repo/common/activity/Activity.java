@@ -141,7 +141,7 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
     /** Returns objects that suggest child activity identifiers. */
     protected abstract @NotNull CandidateIdentifierFormatter getCandidateIdentifierFormatter();
 
-    public abstract @NotNull ActivityStateDefinition<?> getActivityStateDefinition();
+    public abstract @NotNull ActivityStateDefinition getActivityStateDefinition();
 
     public AbstractActivityRun<WD, AH, ?> getRun() {
         return run;

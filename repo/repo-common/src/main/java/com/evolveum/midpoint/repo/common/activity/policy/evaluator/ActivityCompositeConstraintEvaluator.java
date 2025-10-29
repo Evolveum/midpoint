@@ -7,16 +7,18 @@
 package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.List;
+import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.policy.*;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyConstraintsType;
 
 // TODO create package com.evolveum.midpoint.repo.common.policy and merge this class with
@@ -44,7 +46,9 @@ public class ActivityCompositeConstraintEvaluator
 
     @Override
     public List<ActivityCompositeTrigger> evaluate(
-            JAXBElement<ActivityPolicyConstraintsType> constraint, ActivityPolicyRuleEvaluationContext context, OperationResult parentResult) {
+            JAXBElement<ActivityPolicyConstraintsType> constraint,
+            ActivityPolicyRuleEvaluationContext context,
+            OperationResult parentResult) {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -80,6 +84,11 @@ public class ActivityCompositeConstraintEvaluator
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    @Override
+    public Set<DataNeed> getDataNeeds(JAXBElement<ActivityPolicyConstraintsType> constraint) {
+        return activityPolicyConstraintsEvaluator.getDataNeeds(constraint.getValue());
     }
 
     private ActivityCompositeTrigger createTrigger(

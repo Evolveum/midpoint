@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
@@ -17,7 +18,9 @@ public interface ActivityPolicyConstraintEvaluator<
         C extends AbstractPolicyConstraintType,
         T extends EvaluatedActivityPolicyRuleTrigger<C>> {
 
+    /** Evaluates particular constraint; returns relevant triggers. */
     List<T> evaluate(JAXBElement<C> constraint, ActivityPolicyRuleEvaluationContext context, OperationResult result);
 
-//    ThresholdValueType getThresholdValueType(JAXBElement<C> constraint, ActivityPolicyRuleEvaluationContext  context);
+    /** What data is needed to evaluate particular constraint. */
+    Set<DataNeed> getDataNeeds(JAXBElement<C> constraint);
 }

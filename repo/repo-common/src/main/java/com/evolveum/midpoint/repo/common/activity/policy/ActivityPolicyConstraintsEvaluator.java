@@ -7,14 +7,15 @@
 package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
-import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ExecutionTimeConstraintEvaluator;
-import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ItemStateConstraintEvaluator;
-import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ExecutionAttemptsConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.*;
+
 import jakarta.xml.bind.JAXBElement;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,17 +34,21 @@ public class ActivityPolicyConstraintsEvaluator {
     @Autowired private ActivityCompositeConstraintEvaluator compositeEvaluator;
 
     public List<EvaluatedActivityPolicyRuleTrigger<?>> evaluateConstraints(
-            ActivityPolicyConstraintsType constraints, boolean allMustApply, ActivityPolicyRuleEvaluationContext context, OperationResult result) {
+            ActivityPolicyConstraintsType constraintsBean,
+            boolean allMustApply,
+            ActivityPolicyRuleEvaluationContext context,
+            OperationResult result) {
 
-        if (constraints == null) {
+        if (constraintsBean == null) {
             return List.of();
         }
 
         List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
-        List<JAXBElement<AbstractPolicyConstraintType>> toConstraintList = toConstraintList(constraints);
-        for (JAXBElement<AbstractPolicyConstraintType> element : toConstraintList) {
-            ActivityPolicyConstraintEvaluator evaluator = findEvaluator(element);
+        for (JAXBElement<AbstractPolicyConstraintType> element : toConstraintList(constraintsBean)) {
+            //noinspection unchecked
+            ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
+                    (ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) findEvaluator(element);
 
             List<? extends EvaluatedActivityPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(element, context, result);
             if (!newTriggers.isEmpty()) {
@@ -59,7 +64,19 @@ public class ActivityPolicyConstraintsEvaluator {
         return triggers;
     }
 
-    private List<JAXBElement<AbstractPolicyConstraintType>> toConstraintList(ActivityPolicyConstraintsType constraints) {
+    /** Returns information about data needed to evaluate a particular (potentially composite) constraint. */
+    public @NotNull Set<DataNeed> getDataNeeds(ActivityPolicyConstraintsType constraintsBean) {
+        Set<DataNeed> dataNeeds = new HashSet<>();
+        for (JAXBElement<AbstractPolicyConstraintType> element : toConstraintList(constraintsBean)) {
+            //noinspection unchecked
+            ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
+                    (ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) findEvaluator(element);
+            dataNeeds.addAll(evaluator.getDataNeeds(element));
+        }
+        return dataNeeds;
+    }
+
+    public List<JAXBElement<AbstractPolicyConstraintType>> toConstraintList(ActivityPolicyConstraintsType constraints) {
         List<JAXBElement<AbstractPolicyConstraintType>> list = new ArrayList<>();
         if (constraints.getExecutionTime() != null) {
             list.add(createJAXBElement(ActivityPolicyConstraintsType.F_EXECUTION_TIME, constraints.getExecutionTime()));

@@ -86,7 +86,7 @@ public class ActivityTreeStateOverview {
                 entry.realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
                         .resultStatus(OperationResultStatusType.IN_PROGRESS)
                         .progressInformationVisibility(progressVisible ? VISIBLE : HIDDEN)
-                        .persistence(run.getActivity().getActivityStateDefinition().getPersistence());
+                        .persistence(run.getActivity().getActivityStateDefinition().persistence());
             }
             ActivityTaskStateOverviewType taskEntry =
                     findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
@@ -118,7 +118,7 @@ public class ActivityTreeStateOverview {
                     .realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
                     .resultStatus(OperationResultStatusType.IN_PROGRESS)
                     .progressInformationVisibility(VISIBLE) // workers are always in subtasks
-                    .persistence(run.getActivity().getActivityStateDefinition().getPersistence());
+                    .persistence(run.getActivity().getActivityStateDefinition().persistence());
             // bucket progress is updated on bucketing operations
             return createOverviewReplaceDeltas(overview);
         }, result);

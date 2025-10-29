@@ -64,7 +64,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
 
     @NotNull private final AbstractActivityRun<?, ?, WS> activityRun;
 
-    @NotNull private final ActivityStateDefinition<WS> activityStateDefinition;
+    @NotNull private final ActivityStateDefinition activityStateDefinition;
 
     @NotNull private final ComplexTypeDefinition workStateComplexTypeDefinition;
 
@@ -87,10 +87,9 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     private boolean initialized;
 
     public CurrentActivityState(@NotNull AbstractActivityRun<?, ?, WS> activityRun) {
-        super(activityRun.getBeans());
         this.activityRun = activityRun;
         this.activityStateDefinition = activityRun.getActivityStateDefinition();
-        this.workStateComplexTypeDefinition = determineWorkStateDefinition(activityStateDefinition.getWorkStateTypeName());
+        this.workStateComplexTypeDefinition = determineWorkStateDefinition(activityStateDefinition.workStateTypeName());
         this.liveProgress = new ActivityProgress(this);
         this.liveStatistics = new ActivityStatistics(this);
 
@@ -202,7 +201,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
                 .item(stateItemPath.append(ActivityStateType.F_ACTIVITY))
                 .add(new ActivityStateType()
                         .identifier(identifier)
-                        .persistence(activityStateDefinition.getPersistence()))
+                        .persistence(activityStateDefinition.persistence()))
                 .asItemDelta();
         task.modify(itemDelta);
         task.flushPendingModifications(result);
@@ -240,7 +239,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
 
         ActivityStatePersistenceType storedValue =
                 getPropertyRealValue(ActivityStateType.F_PERSISTENCE, ActivityStatePersistenceType.class);
-        ActivityStatePersistenceType requiredValue = activityStateDefinition.getPersistence();
+        ActivityStatePersistenceType requiredValue = activityStateDefinition.persistence();
         if (requiredValue != storedValue) {
             setItemRealValues(ActivityStateType.F_PERSISTENCE, requiredValue);
             flush = true;

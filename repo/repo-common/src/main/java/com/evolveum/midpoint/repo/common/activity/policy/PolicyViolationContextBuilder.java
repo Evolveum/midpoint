@@ -17,6 +17,10 @@ public class PolicyViolationContextBuilder {
         EvaluatedActivityPolicyRule rule = reaction.getRule();
 
         return new PolicyViolationContext(
-                rule.getRuleIdentifier(), rule.getName(), reaction.getName(), action, executionAttempt);
+                rule.getRuleIdentifier().toString(),
+                rule.getName(),
+                reaction.getName(),
+                action,
+                executionAttempt);
     }
 }

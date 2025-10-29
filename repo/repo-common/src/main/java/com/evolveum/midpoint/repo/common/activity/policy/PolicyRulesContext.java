@@ -12,9 +12,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for policy rules context.
- * Stores policy rules and counters for each rule.
+ * Stores evaluated policy rules. Later it can be extended to store additional information.
  */
-public class PolicyRulesContext<T extends EvaluatedPolicyRule> {
+class PolicyRulesContext<T extends EvaluatedPolicyRule> {
 
     private final @NotNull List<T> policyRules = new ArrayList<>();
 
@@ -24,7 +24,7 @@ public class PolicyRulesContext<T extends EvaluatedPolicyRule> {
 
     public T getPolicyRule(@NotNull String ruleId) {
         return policyRules.stream()
-                .filter(rule -> Objects.equals(ruleId, rule.getRuleIdentifier()))
+                .filter(rule -> Objects.equals(ruleId, rule.getRuleIdentifier().toString()))
                 .findFirst()
                 .orElse(null);
     }

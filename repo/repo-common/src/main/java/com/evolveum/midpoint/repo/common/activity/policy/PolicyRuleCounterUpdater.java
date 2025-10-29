@@ -6,16 +6,16 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.ExecutionSupport;
+import com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -30,53 +30,65 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Consider refactoring to avoid code duplication, however new set of interfaces for
  * PolicyRulesContext and EvaluatedPolicyRule will be needed.
  */
-public abstract class PolicyRuleCounterUpdater {
+abstract class PolicyRuleCounterUpdater {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleCounterUpdater.class);
 
-    private final @NotNull ExecutionSupport executionSupport;
+    private final @NotNull AbstractActivityRun<?, ?, ?> activityRun;
 
-    PolicyRuleCounterUpdater(@NotNull ExecutionSupport executionSupport) {
-        this.executionSupport = executionSupport;
+    PolicyRuleCounterUpdater(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
+        this.activityRun = activityRun;
     }
 
     protected abstract PolicyRulesContext<?> getPolicyRulesContext();
 
-    protected abstract ExecutionSupport.CountersGroup getCountersGroup();
+    /** Should we update production or simulation counters? */
+    protected abstract CountersGroup getCountersGroup();
 
+    /** Updates counters for the triggered "counter-style" rules in repo (activity state) and in memory (rules themselves). */
     void updateCounters(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        PolicyRulesContext<?> context = getPolicyRulesContext();
+        // Collect rules that need their counters incremented
+        var rulesToIncrementMap = collectRulesToIncrement(); // Map: ID -> rule.
 
-        List<EvaluatedPolicyRule> rulesToIncrement = new ArrayList<>();
-        for (EvaluatedPolicyRule rule : context.getPolicyRules()) {
-            if (!rule.isTriggered()) {
-                LOGGER.trace("Rule {} is not triggered, skipping counter update", rule.getRuleIdentifier());
-                continue;
-            }
-
-            if (rule.getThresholdValueType() != ThresholdValueType.COUNTER) {
-                LOGGER.trace("Rule {} does not have a threshold against counters, skipping counter update", rule.getRuleIdentifier());
-                continue;
-            }
-
-            // The counter was not incremented yet, so we increment it now.
-            LOGGER.trace("Incrementing counter for rule {}", rule.getRuleIdentifier());
-            rulesToIncrement.add(rule);
-        }
-
-        Map<String, EvaluatedPolicyRule> rulesToIncrementByIdentifier = rulesToIncrement.stream()
-                .collect(Collectors.toMap(EvaluatedPolicyRule::getRuleIdentifier, Function.identity()));
-
-        ExecutionSupport.CountersGroup group = getCountersGroup();
-
+        // Increment the counters (stored in the activity state, usually the current one or parent one)
+        CountersGroup group = getCountersGroup();
         Map<String, Integer> currentValues =
-                executionSupport.incrementCounters(group, rulesToIncrementByIdentifier.keySet(), result);
+                activityRun.incrementCounters(group, rulesToIncrementMap.keySet(), result);
         LOGGER.trace("Updated counters for group {}: {}", group, currentValues);
 
-        currentValues.forEach((id, value) -> {
-            rulesToIncrementByIdentifier.get(id).setThresholdValueType(ThresholdValueType.COUNTER, value);
-        });
+        // Combine with preexisting values to get total values
+        Map<String, Integer> totalValues = computeTotalValues(currentValues);
+
+        // Update the rules with the new counter values
+        currentValues.forEach((id, value) ->
+                rulesToIncrementMap.get(id).setThresholdTypeAndValues(
+                        ThresholdValueType.COUNTER, value, totalValues.get(id)));
+    }
+
+    private Map<String, Integer> computeTotalValues(Map<String, Integer> currentValues) {
+        var preexistingCounters = activityRun.getActivityPolicyRulesContext().getPreexistingValues().getPreexistingCounters();
+        // for each entry in currentValues, add the corresponding value from preexistingValues
+        return currentValues.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> ComputationUtil.add(e.getValue(), preexistingCounters.get(e.getKey()))));
+    }
+
+    /** Returns rules that should have their counters incremented, in a form of map: ID -> rule. */
+    private @NotNull Map<String, EvaluatedPolicyRule> collectRulesToIncrement() {
+        Map<String, EvaluatedPolicyRule> rulesToIncrementMap = new HashMap<>();
+        for (EvaluatedPolicyRule rule : getPolicyRulesContext().getPolicyRules()) {
+            if (!rule.isTriggered()) {
+                LOGGER.trace("Rule {} is not triggered, skipping counter update", rule.getRuleIdentifier());
+            } else if (rule.getThresholdValueType() != ThresholdValueType.COUNTER) {
+                LOGGER.trace("Rule {} does not have a threshold against counters, skipping counter update", rule.getRuleIdentifier());
+            } else {
+                LOGGER.trace("Incrementing counter for rule {}", rule.getRuleIdentifier());
+                rulesToIncrementMap.put(rule.getRuleIdentifier().toString(), rule);
+            }
+        }
+        return rulesToIncrementMap;
     }
 }

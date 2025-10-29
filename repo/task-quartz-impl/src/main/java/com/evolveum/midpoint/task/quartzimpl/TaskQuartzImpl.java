@@ -541,6 +541,10 @@ public class TaskQuartzImpl implements Task {
         return isLiveRunningInstance() ? CloneUtil.clone(value) : value;
     }
 
+    private <T> Collection<T> cloneIfRunning(Collection<T> collection) {
+        return isLiveRunningInstance() ? CloneUtil.cloneCollectionMembers(collection) : collection;
+    }
+
     private <X> X getProperty(ItemPath name) {
         synchronized (prismAccess) {
             PrismProperty<X> property = taskPrism.findProperty(name);
@@ -1460,6 +1464,14 @@ public class TaskQuartzImpl implements Task {
         synchronized (prismAccess) {
             Item<?, ?> item = taskPrism.findItem(path);
             return item != null && !item.isEmpty() ? cloneIfRunning(item.getRealValue(expectedType)) : null;
+        }
+    }
+
+    @Override
+    public <T> @NotNull Collection<T> getItemRealValuesOrClone(ItemPath path, Class<T> expectedType) {
+        synchronized (prismAccess) {
+            Item<?, ?> item = taskPrism.findItem(path);
+            return item != null && !item.isEmpty() ? cloneIfRunning(item.getRealValues(expectedType)) : List.of();
         }
     }
 

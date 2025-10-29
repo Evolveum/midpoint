@@ -8,4 +8,14 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 public class ActivityPolicyRulesContext extends PolicyRulesContext<EvaluatedActivityPolicyRule> {
 
+    /** Values needed for evaluation of policy rules that existed before the current activity was started. */
+    private PreexistingValues preexistingValues;
+
+    PreexistingValues getPreexistingValues() {
+        return preexistingValues;
+    }
+
+    void setPreexistingValues(PreexistingValues preexistingValues) {
+        this.preexistingValues = preexistingValues;
+    }
 }

@@ -170,7 +170,7 @@ class ItemProcessingGatekeeper<I> {
 
             try {
                 new ActivityPolicyRulesProcessor(activityRun)
-                        .evaluateAndEnforceRules(processingResult, result);
+                        .evaluateAndExecuteRules(processingResult, result);
             } catch (Exception e) {
                 result.recordFatalError(e);
                 processingResult = ItemProcessingResult.fromException(result, e);

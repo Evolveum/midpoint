@@ -59,7 +59,7 @@ public final class DelegatingActivityRun<
     }
 
     @Override
-    protected ActivityStateDefinition<DelegationWorkStateType> determineActivityStateDefinition() {
+    protected ActivityStateDefinition determineActivityStateDefinition() {
         return ActivityStateDefinition.normal(DelegationWorkStateType.COMPLEX_TYPE);
     }
 

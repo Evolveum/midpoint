@@ -37,11 +37,6 @@ public class ActivityPolicyProcessorHelper {
         return ACTIVITY_RUN_THREAD_LOCAL.get();
     }
 
-    public static void initialize() {
-        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(getCurrentActivityRunRequired());
-        processor.collectRules();
-    }
-
     private static @NotNull AbstractActivityRun<?, ?, ?> getCurrentActivityRunRequired() {
         AbstractActivityRun<?, ?, ?> activityRun = getCurrentActivityRun();
         if (activityRun == null) {
@@ -53,7 +48,7 @@ public class ActivityPolicyProcessorHelper {
     public static void evaluateAndEnforceRules(ItemProcessingResult processingResult, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ThresholdPolicyViolationException, ObjectAlreadyExistsException {
 
-        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(getCurrentActivityRunRequired());
-        processor.evaluateAndEnforceRules(processingResult, result);
+        new ActivityPolicyRulesProcessor(getCurrentActivityRunRequired())
+                .evaluateAndExecuteRules(processingResult, result);
     }
 }

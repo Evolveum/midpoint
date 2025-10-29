@@ -84,7 +84,7 @@ public class CleanupActivityHandler
         //  Actually, it's not that easy. In the work definition we have only explicit policies.
         //  If they are null, policies from system config should be used.
 
-        ActivityStateDefinition<AbstractActivityWorkStateType> stateDef = ActivityStateDefinition.normal();
+        ActivityStateDefinition stateDef = ActivityStateDefinition.normal();
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
                 (context, result) ->

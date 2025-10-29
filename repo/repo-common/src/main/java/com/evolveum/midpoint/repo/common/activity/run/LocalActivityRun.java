@@ -7,9 +7,11 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,8 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.Objects;
 
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_LOCAL;
 
 import static java.util.Objects.requireNonNull;
@@ -76,6 +77,21 @@ public abstract class LocalActivityRun<
     @Override
     protected @NotNull ActivityRunResult runInternal(OperationResult result)
             throws ActivityRunException {
+
+        // Policy rules are collected here (and not in AbstractActivityRun), because policies do not apply to delegating
+        // nor distributing activity runs:
+        //
+        // 1. Execution time is measured only for local runs (see updateStateOnRunStart method below)
+        // 2. Item processing does occur only in local runs
+        // 3. The only questionable thing is the number of execution attempts. TODO this is to be resolved
+        //
+        // Besides collecting the rules, we also determine preexisting values for them here.
+        try {
+            new ActivityPolicyRulesProcessor(this)
+                    .collectRulesAndPreexistingValues(result);
+        } catch (CommonException e) {
+            throw new ActivityRunException(e.getMessage(), FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR, e);
+        }
 
         initializeCurrentResultStatusOnStart();
         updateStateOnRunStart(result);
@@ -156,8 +172,8 @@ public abstract class LocalActivityRun<
     /** Returns (potentially not fresh) activity state of the coordinator task. Assuming we are in worker task. */
     ActivityState getCoordinatorActivityState() {
         try {
-            return activityState.getCurrentActivityStateInParentTask(false,
-                    getActivityStateDefinition().getWorkStateTypeName(), null);
+            return activityState.getCurrentActivityStateInParentTask(
+                    false, getActivityStateDefinition().workStateTypeName(), null);
         } catch (SchemaException | ObjectNotFoundException e) {
             // Shouldn't occur for running tasks with fresh = false.
             throw new SystemException("Unexpected exception: " + e.getMessage(), e);
@@ -227,16 +243,11 @@ public abstract class LocalActivityRun<
 
     public boolean shouldUpdateProgressInStateOverview() {
         var mode = getActivity().getReportingDefinition().getStateOverviewProgressUpdateMode();
-        switch (mode) {
-            case ALWAYS:
-                return true;
-            case NEVER:
-                return false;
-            case FOR_NON_LOCAL_ACTIVITIES:
-                return !getRunningTask().isRoot();
-            default:
-                throw new AssertionError(mode);
-        }
+        return switch (mode) {
+            case ALWAYS -> true;
+            case NEVER -> false;
+            case FOR_NON_LOCAL_ACTIVITIES -> !getRunningTask().isRoot();
+        };
     }
 
     /**
