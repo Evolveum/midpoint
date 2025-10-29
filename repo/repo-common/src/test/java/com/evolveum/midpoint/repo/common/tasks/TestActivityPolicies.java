@@ -154,6 +154,46 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
             "task-370-multinode-child-skip-on-root-execution-time-with-subtasks.xml",
             "f64f27d8-55a2-4c7f-8ae9-83af13238fb5",
             DEFAULT_TIMEOUT);
+    private static final TestTask TASK_400_SIMPLE_RESTART_ON_EXECUTION_TIME = new TestTask(
+            TEST_DIR,
+            "task-400-simple-restart-on-execution-time.xml",
+            "ec8896c5-236b-4f66-a0de-9a35c040b490",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_410_CHILD_RESTART_ON_OWN_EXECUTION_TIME = new TestTask(
+            TEST_DIR,
+            "task-410-child-restart-on-own-execution-time.xml",
+            "8b04e48a-362d-4ec0-b09c-ad5e25115055",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_420_CHILD_RESTART_ON_PARENT_EXECUTION_TIME = new TestTask(
+            TEST_DIR,
+            "task-420-child-restart-on-parent-execution-time.xml",
+            "0efc26ef-3f3b-4113-a1be-a1392fbb79eb",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_430_CHILD_RESTART_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-430-child-restart-on-own-execution-time-with-subtasks.xml",
+            "0dc350ce-6232-4861-81d8-c422726e9fa7",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_440_CHILD_RESTART_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-440-child-restart-on-parent-execution-time-with-subtasks.xml",
+            "5a7cad09-f7f6-4c55-8714-09b5c73f9a99",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME = new TestTask(
+            TEST_DIR,
+            "task-450-multinode-restart-on-execution-time.xml",
+            "0e8b3300-0e0e-49bd-84c8-c4c9e5c30976",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_460_MULTINODE_CHILD_RESTART_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-460-multinode-child-restart-on-own-execution-time-with-subtasks.xml",
+            "5c7cb832-95d9-48fe-b86b-0278a43b21ee",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_470_MULTINODE_CHILD_RESTART_ON_ROOT_EXECUTION_TIME_WITH_SUBTASKS = new TestTask(
+            TEST_DIR,
+            "task-470-multinode-child-restart-on-root-execution-time-with-subtasks.xml",
+            "dc89a2c8-7d9b-46be-90a7-9be690ec2faf",
+            DEFAULT_TIMEOUT);
 
     /** Good objects on which we test "fail on error" policies. These complete without failures. */
     private static final int NUMBER_OF_GOOD_OBJECTS = 50;
@@ -222,7 +262,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A child activity that is suspended when it exceeds allowed execution time (specified on the parent level).
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test120ChildSuspendOnParentExecutionTime() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -275,7 +315,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * As {@link #test120ChildSuspendOnParentExecutionTime()} but the activities run in subtasks.
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test140ChildSuspendOnParentExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -385,7 +425,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
      *
      * As {@link #test160MultinodeSuspendOnOwnExecutionTimeWithSubtasks()} but the constraint is on the root level.
      */
-    @Test(enabled = false) // FIXME we don't see ancestors' policies
+    @Test
     public void test170MultinodeSuspendOnRootExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -469,7 +509,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A child activity that is suspended when it exceeds given number of errors (specified on the parent level).
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test220ChildSuspendOnParentErrors() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -523,7 +563,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * As {@link #test220ChildSuspendOnParentErrors()} but the activities run in subtasks.
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test240ChildSuspendOnParentErrorsWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -715,7 +755,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A child activity that is skipped when it exceeds allowed execution time (specified on the parent level).
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test320ChildSkipOnParentExecutionTime() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -772,7 +812,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * As {@link #test320ChildSkipOnParentExecutionTime()} but the activities run in subtasks.
      */
-    @Test(enabled = false) // FIXME we don't see parent policies
+    @Test
     public void test340ChildSkipOnParentExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -899,7 +939,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
      *
      * As {@link #test360MultinodeSkipOnOwnExecutionTimeWithSubtasks()}} but the constraint is on the root level.
      */
-    @Test(enabled = false) // FIXME we don't see ancestor policies
+    @Test
     public void test370MultinodeSkipOnRootExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -940,6 +980,360 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .subtask(1)
                     .display()
                     .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A simple activity that is restarted when it exceeds allowed execution time.
+     */
+    @Test
+    public void test400SimpleRestartOnExecutionTime() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TASK_400_SIMPLE_RESTART_ON_EXECUTION_TIME.init(this, task, result);
+
+        when("task is run until it's stopped");
+        TASK_400_SIMPLE_RESTART_ON_EXECUTION_TIME.rerunErrorsOk(result);
+
+        then("the task finished after one restart after exceeding execution time");
+        // @formatter:off
+        TASK_400_SIMPLE_RESTART_ON_EXECUTION_TIME.assertAfter()
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .rootActivityState()
+                    .assertExecutionAttempts(2)
+                    .assertComplete()
+                    .assertSuccess()
+                    // after first restart there, task should finish successfully, policy not activated
+                    .noActivityPolicyStates()
+                    .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A child activity that is skipped when it exceeds allowed execution time (specified on its own level).
+     */
+    @Test
+    public void test410ChildRestartOnOwnExecutionTime() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TASK_410_CHILD_RESTART_ON_OWN_EXECUTION_TIME.init(this, task, result);
+
+        when("task is run until it's stopped");
+        TASK_410_CHILD_RESTART_ON_OWN_EXECUTION_TIME.rerunErrorsOk(result);
+
+        then("the task is finished and second activity was restarted once after exceeding execution time");
+        // @formatter:off
+        TASK_410_CHILD_RESTART_ON_OWN_EXECUTION_TIME.assertAfter()
+                .display()
+                .assertClosed()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertExecutionAttempts(1)
+                    .assertComplete()
+                    .assertSuccess()
+                    .noActivityPolicyStates()
+                    .child("first")
+                        .assertExecutionAttempts(1)
+                        .assertComplete()
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
+                    .child("second")
+                        .assertExecutionAttempts(2)
+                        .assertComplete()
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
+                    .child("third")
+                        .assertExecutionAttempts(1)
+                        .assertComplete()
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
+                    .end()
+                .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A child activity that is skipped when it exceeds allowed execution time (specified on the parent level).
+     */
+    @Test
+    public void test420ChildRestartOnParentExecutionTime() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TASK_420_CHILD_RESTART_ON_PARENT_EXECUTION_TIME.init(this, task, result);
+
+        when("task is run until it's stopped");
+        TASK_420_CHILD_RESTART_ON_PARENT_EXECUTION_TIME.rerunErrorsOk(result);
+
+        then("the task finish, second activity restarted once after exceeding execution time");
+        // @formatter:off
+        TASK_420_CHILD_RESTART_ON_PARENT_EXECUTION_TIME.assertAfter()
+                .display()
+                .assertClosed()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertExecutionAttempts(1)
+                    .assertComplete()
+                    .assertSuccess()
+                    .noActivityPolicyStates()
+                    .child("first")
+                        .assertExecutionAttempts(1)
+                        .assertComplete()
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
+                    .child("second")
+                        .assertExecutionAttempts(2)
+                        .assertComplete()
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
+                    .child("third")
+                        .assertExecutionAttempts(1)
+                        .assertComplete()
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
+                    .end()
+                .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * As {@link #test410ChildRestartOnOwnExecutionTime()} but the activities run in subtasks.
+     */
+    @Test
+    public void test430ChildRestartOnOwnExecutionTimeWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var testTask = TASK_430_CHILD_RESTART_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunTreeErrorsOk(result);
+
+        // @formatter:off
+        then("the task tree is finished, second activity (subtask) restarted once after exceeding execution time");
+        testTask.assertTreeAfter()
+                .display()
+                .assertSuspended()
+                .assertSubtasks(3)
+                .subtask("first", false)
+                    .display()
+                    .assertSuccess()
+                    .assertClosed() // this activity finished before suspension
+                    .end()
+                .subtask("second", false)
+                    .assertSuccess()
+                    .assertClosed() // this one was restarted
+                    .display()
+                    .end()
+                .subtask("third", false)
+                    .display()
+                    .assertSuccess()
+                    .assertClosed()
+                    .end();
+                    // todo where to assert executionAttempts? should it be in child task or parent tree?
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * As {@link #test420ChildRestartOnParentExecutionTime()} but the activities run in subtasks.
+     */
+    @Test
+    public void test440ChildRestartOnParentExecutionTimeWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var testTask = TASK_440_CHILD_RESTART_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunTreeErrorsOk(result);
+
+        then("the task finishes, task (root activity) is restarted after exceeding execution time");  // todo fix
+        // @formatter:off
+        testTask.assertTreeAfter()
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .rootActivityState()
+                    .assertExecutionAttempts(2)
+                    .end()
+                .assertSubtasks(3)
+                .subtask("first", false)
+                    .display()
+                    .assertSuccess()
+                    .assertClosed() // this activity finished before suspension
+                    .end()
+                .subtask("second", false)
+                    .display()
+                    .assertSuccess()
+                    .assertClosed() // but this was restarted
+                    .end()
+                .subtask("third", false)
+                    .display()
+                    .assertSuccess()
+                    .assertClosed()
+                    .end();
+            // todo how to assert executionAttempts for child tasks?
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A multi-node activity that is skipped when it exceeds allowed execution time.
+     */
+    @Test
+    public void test450MultinodeRestartOnExecutionTime() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME.init(this, task, result);
+
+        when("task is run until it's restarted");
+        TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME.rerunTreeErrorsOk(result);
+
+        and("the task and ALL workers are closed"); // they should finish successfully after restart
+        waitForTaskTreeCloseOrCondition(
+                TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME.oid,
+                result,
+                DEFAULT_TIMEOUT,
+                DEFAULT_SLEEP_TIME,
+                tasksClosedPredicate(3)); // main task + 2 workers
+
+        then("everything is OK");
+        // @formatter:off
+        TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME.assertTreeAfter()// todo fix
+                .assertSuspended() // already checked above
+                .rootActivityState()
+                    .assertExecutionAttempts(2)
+                    .end()
+                .assertSubtasks(2)
+                .subtask(0)
+                    .display()
+                    .end()
+                .subtask(1)
+                    .display()
+                    .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A child multi-node activity that is restarted once when it exceeds allowed execution time (specified on its own level).
+     * Children have its own subtasks.
+     *
+     * It's a combination of {@link #test430ChildRestartOnOwnExecutionTimeWithSubtasks()}
+     * and {@link #test450MultinodeRestartOnExecutionTime()}.
+     */
+    @Test
+    public void test460MultinodeRestartOnOwnExecutionTimeWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TestTask testTask = TASK_460_MULTINODE_CHILD_RESTART_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS; // too long to be typed
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped (some workers may continue for a little while)");
+        testTask.rerunTreeErrorsOk(result);
+
+        then("root task is suspended and the first activity task is closed"); // todo fix
+        // @formatter:off
+        testTask.assertTree("")
+                .assertSuspended()
+                .subtask("first", false)
+                .assertClosed()
+                .assertSuccess();
+        // @formatter:on
+
+        then("the second activity task and ALL its workers are suspended after exceeding execution time");// todo fix
+        var secondActivityTaskOid = testTask.assertTree("")
+                .subtask("second", false)
+                .getOid();
+
+        waitForTaskTreeCloseOrCondition(
+                secondActivityTaskOid,
+                result,
+                DEFAULT_TIMEOUT,
+                DEFAULT_SLEEP_TIME,
+                tasksSuspendedPredicate(3)); // coordinator + 2 workers
+
+        // @formatter:off
+        assertTaskTree(secondActivityTaskOid, "second activity task after")// todo fix
+                .display()
+                .assertSuspended()
+                .assertSubtasks(2)
+                .subtask(0)
+                    .display()
+                    .end()
+                .subtask(1)
+                    .display()
+                    .end();
+        // @formatter:on
+        // TODO more asserts
+    }
+
+    /**
+     * A child multi-node activity that is restarted when it exceeds allowed execution time (specified on the root level).
+     * Children have its own subtasks.
+     *
+     * As {@link #test460MultinodeRestartOnOwnExecutionTimeWithSubtasks()} but the constraint is on the root level.
+     */
+    @Test
+    public void test470MultinodeSkipOnRootExecutionTimeWithSubtasks() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        TestTask testTask = TASK_470_MULTINODE_CHILD_RESTART_ON_ROOT_EXECUTION_TIME_WITH_SUBTASKS; // too long to be typed
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped (some workers may continue for a little while)");
+        testTask.rerunTreeErrorsOk(result);
+
+        then("root task is suspended and the first activity task is closed");
+        testTask.assertTree("")
+                .assertSuspended()
+                .subtask("first", false)
+                .assertClosed()
+                .assertSuccess();
+
+        then("the second activity task and ALL its workers are suspended after exceeding execution time");
+        var secondActivityTaskOid = testTask.assertTree("")
+                .subtask("second", false)
+                .getOid();
+
+        waitForTaskTreeCloseOrCondition(
+                secondActivityTaskOid,
+                result,
+                DEFAULT_TIMEOUT,
+                DEFAULT_SLEEP_TIME,
+                tasksSuspendedPredicate(3)); // coordinator + 2 workers
+
+        // @formatter:off
+        assertTaskTree(secondActivityTaskOid, "second activity task after")
+                .display()
+                .assertClosed()
+                .assertSubtasks(2)
+                .subtask(0)
+                .display()
+                .end()
+                .subtask(1)
+                .display()
+                .end();
         // @formatter:on
         // TODO more asserts
     }
