@@ -367,7 +367,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         then("the task tree is suspended after exceeding execution time");
         testTask.assertTreeAfter()
                 .assertSuspended()
-                .assertFatalError()
+                // we don't assert FATAL_ERROR here, because the root task itself may have different operationResultStatus
                 .rootActivityState()
                     .assertInProgressLocal()
                     .assertFatalError()

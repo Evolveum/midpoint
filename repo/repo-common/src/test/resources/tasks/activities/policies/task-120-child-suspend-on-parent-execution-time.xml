@@ -44,6 +44,7 @@
         </composition>
         <policies>
             <policy>
+                <name>Execution time</name>
                 <policyConstraints>
                     <executionTime>
                         <exceeds>PT8S</exceeds>
