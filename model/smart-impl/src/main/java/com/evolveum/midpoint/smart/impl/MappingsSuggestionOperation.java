@@ -241,17 +241,30 @@ class MappingsSuggestionOperation {
         return suggestion;
     }
 
-    private ExpressionType buildScriptExpression(String script) {
+    /**
+     * Builds an {@link ExpressionType} containing a script evaluator
+     * and optional documentation extracted from the suggested mapping response.
+     */
+    private @Nullable ExpressionType buildScriptExpression(SiSuggestMappingResponseType suggestMappingResponse) {
+        if (suggestMappingResponse == null) {
+            return null;
+        }
+
+        var script = suggestMappingResponse.getTransformationScript();
+        String documentation = suggestMappingResponse.getDocumentation();
+
         if (script == null || "input".equals(script)) {
             return null;
         }
+
         return new ExpressionType()
+                .documentation(documentation)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
                                 new ScriptExpressionEvaluatorType().code(script)));
     }
 
-    private String askMicroservice(
+    private SiSuggestMappingResponseType askMicroservice(
             SchemaMatchOneResultType matchPair,
             Collection<ValuesPair> valuesPairs,
             @Nullable String errorLog) throws SchemaException {
@@ -266,8 +279,7 @@ class MappingsSuggestionOperation {
                                 matchPair.getShadowAttribute().getName(),
                                 matchPair.getFocusProperty().getName())));
         return ctx.serviceClient
-                .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class)
-                .getTransformationScript();
+                .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
     }
 
     /** Returns {@code true} if a simple "asIs" mapping is sufficient. */
