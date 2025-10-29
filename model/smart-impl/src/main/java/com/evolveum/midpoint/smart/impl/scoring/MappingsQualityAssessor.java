@@ -42,7 +42,6 @@ public class MappingsQualityAssessor {
         this.expressionFactory = expressionFactory;
     }
 
-
     /**
      * Assesses mapping quality by comparing shadow values to focus values.
      *
@@ -54,16 +53,19 @@ public class MappingsQualityAssessor {
      * @param suggestedExpression Optional expression (i.e. Groovy script) to transform the focus value
      *                            before comparison. If {@code null}, raw focus values are used.
      *
-     * @return Quality in the range {@code [0.0, 1.0]} rounded to two decimals;
-     *         returns {@code -1.0f} if expression evaluation failed.
-     *         returns {@code -2.0f} if no comparable samples were found.
+     * @return an {@link AssessmentResult} containing:
+     *         - quality in the range {@code [0.0, 1.0]} (rounded to two decimals) with status {@link AssessmentStatus#OK}, or
+     *         - status {@link AssessmentStatus#NO_SAMPLES} when no comparable samples were found
      *
+     * @throws ExpressionEvaluationException if the expression evaluation fails
+     * @throws SecurityViolationException if the evaluation is not permitted by the configured expression profile
+     * @throws MappingEvaluationException if transforming the focus value fails due to schema/configuration/communication issues
      */
-    public AssessmentResult assessMappingsQualityDetailed(
+    public AssessmentResult assessMappingsQuality(
             Collection<ValuesPair> valuePairs,
             @Nullable ExpressionType suggestedExpression,
             Task task,
-            OperationResult parentResult) {
+            OperationResult parentResult) throws ExpressionEvaluationException, SecurityViolationException {
         int totalShadowValues = 0;
         int matchedShadowValues = 0;
 
@@ -83,8 +85,8 @@ public class MappingsQualityAssessor {
             if (suggestedExpression != null) {
                 try {
                     focusValue = applyExpression(suggestedExpression, focusValue, task, parentResult);
-                } catch (Exception e) {
-                    return AssessmentResult.evalFailed("Failed to evaluate suggested expression: " + e.getMessage());
+                } catch (SchemaException | CommunicationException | ConfigurationException | ObjectNotFoundException e) {
+                    throw new MappingEvaluationException("Failed to evaluate suggested expression.", e);
                 }
             }
 
@@ -146,31 +148,27 @@ public class MappingsQualityAssessor {
                 BulkActionsProfile.none(), FunctionLibrariesProfile.none(), AccessDecision.DENY);
     }
 
-    public static class AssessmentResult {
-        public final float quality;
-        public final AssessmentStatus status;
-        public final @Nullable String errorLog;
-
-        private AssessmentResult(float quality, AssessmentStatus status, @Nullable String errorLog) {
-            this.quality = quality;
-            this.status = status;
-            this.errorLog = errorLog;
-        }
-
+    public record AssessmentResult(float quality, AssessmentStatus status, @Nullable String errorLog) {
         public static AssessmentResult ok(float quality) {
             return new AssessmentResult(quality, AssessmentStatus.OK, null);
         }
 
-        public static AssessmentResult evalFailed(String errorLog) {
-            return new AssessmentResult(-1.0f, AssessmentStatus.EVAL_FAILED, errorLog);
-        }
-
         public static AssessmentResult noSamples() {
-            return new AssessmentResult(-2.0f, AssessmentStatus.NO_SAMPLES,
+            return new AssessmentResult(0.0f, AssessmentStatus.NO_SAMPLES,
                     "No comparable samples were found for assessing mapping quality");
         }
     }
 
-    public enum AssessmentStatus { OK, NO_SAMPLES, EVAL_FAILED }
+    public enum AssessmentStatus { OK, NO_SAMPLES }
+
+    public static class MappingEvaluationException extends RuntimeException {
+        public MappingEvaluationException(String message) {
+            super(message);
+        }
+
+        public MappingEvaluationException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 
 }
