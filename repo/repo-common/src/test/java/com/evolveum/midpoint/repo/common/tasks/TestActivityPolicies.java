@@ -234,8 +234,22 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
         then("the task is suspended after exceeding execution time");
         TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME.assertAfter()
+                .display()
                 .assertSuspended()
-                .assertFatalError();
+                .assertFatalError()
+                .rootActivityState()
+                    .assertExecutionAttempts(1)
+                    .assertFatalError()
+                    .assertInProgressLocal()
+                    .activityPolicyStates()
+                        .assertPolicyStateCount(1)
+                        .activityPolicyState("Execution time")
+                            .assertReactionCount(1)
+                            .assertTriggerCount(1)
+                            .end()
+                    .end()
+                .end();
+
         // TODO more asserts
     }
 
@@ -274,8 +288,34 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
         then("the task is suspended after exceeding execution time");
         TASK_120_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME.assertAfter()
+                .display()
                 .assertSuspended()
-                .assertFatalError();
+                .assertFatalError()
+                .rootActivityState()
+                    .assertFatalError()
+                    .assertInProgressLocal()
+                    .child("first")
+                        .assertExecutionAttempts(1)
+                        .assertComplete()
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
+                    .child("second")
+                        .assertExecutionAttempts(1)
+                        .assertInProgressLocal()
+                        .assertFatalError()
+                        .activityPolicyStates()
+                            .assertPolicyStateCount(1)
+                            .activityPolicyState("Execution time")
+                                .assertReactionCount(1)
+                                .assertTriggerCount(1)
+                                .end()
+                            .end()
+                        .end()
+                    .child("third")
+                        // todo asserts
+                        .end();
+
         // TODO more asserts
     }
 
@@ -297,11 +337,30 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         then("the task tree is suspended after exceeding execution time");
         testTask.assertTreeAfter()
                 .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .child("first")
+                        .assertExecutionAttempts(1)
+                        .assertComplete()
+                        .assertSuccess()
+                        .end()
+                    .child("second")
+                        .assertExecutionAttempts(1)
+                        .assertInProgressLocal()
+                        .assertFatalError()
+                        .end()
+                    .child("third")
+                        .assertNotStarted()
+                        .end()
+                    .end()
                 .assertSubtasks(2)
                 .subtask("first", false)
                     .display()
                     .assertSuccess()
                     .assertClosed() // this activity finished before suspension
+
                     .end()
                 .subtask("second", false)
                     .assertFatalError()
