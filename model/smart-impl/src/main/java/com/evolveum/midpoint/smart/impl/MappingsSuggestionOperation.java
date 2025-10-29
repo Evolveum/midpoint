@@ -9,7 +9,10 @@ package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPING;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -87,9 +90,9 @@ class MappingsSuggestionOperation {
         Collection<OwnedShadow> ownedShadows;
         try {
             ownedShadows = fetchOwnedShadows(shadowsCollectionState, result);
-        } catch (Throwable t) {
-            shadowsCollectionState.recordException(t);
-            throw t;
+        } catch (Exception e) {
+            shadowsCollectionState.recordException(e);
+            throw e;
         } finally {
             shadowsCollectionState.close(result);
         }
@@ -111,9 +114,9 @@ class MappingsSuggestionOperation {
                                     pairs,
                                     result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
-                } catch (Throwable t) {
+                } catch (Exception e) {
                     // TODO Shouldn't we create an unfinished mapping with just error info?
-                    LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", t, matchPair.getShadowAttributePath());
+                    LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", e, matchPair.getShadowAttributePath());
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.FAILURE);
 
                     // Normally, the activity framework makes sure that the activity result status is computed properly at the end.
@@ -124,9 +127,9 @@ class MappingsSuggestionOperation {
                 ctx.checkIfCanRun();
             }
             return suggestion;
-        } catch (Throwable t) {
-            mappingsSuggestionState.recordException(t);
-            throw t;
+        } catch (Exception e) {
+            mappingsSuggestionState.recordException(e);
+            throw e;
         } finally {
             mappingsSuggestionState.close(result);
         }
@@ -187,7 +190,7 @@ class MappingsSuggestionOperation {
     private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
             Collection<ValuesPair> valuesPairs,
-            OperationResult parentResult) throws SchemaException {
+            OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
 
         LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
                 matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath(), valuesPairs.size());
@@ -216,19 +219,14 @@ class MappingsSuggestionOperation {
             expression = buildScriptExpression(transformationScript);
         }
 
-        var assessment = this.qualityAssessor.assessMappingsQualityDetailed(valuesPairs, expression, this.ctx.task, parentResult);
-        if (assessment.status == MappingsQualityAssessor.AssessmentStatus.EVAL_FAILED) {
-            var retryScript = askMicroservice(matchPair, valuesPairs, assessment.errorLog);
-            expression = buildScriptExpression(retryScript);
-            assessment = this.qualityAssessor.assessMappingsQualityDetailed(valuesPairs, expression, this.ctx.task, parentResult);
-        }
+        var assessment = assessQuality(expression, matchPair, valuesPairs, parentResult);
 
         // TODO remove this ugly hack
         var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropPath);
         var hackedSerialized = serialized.replace("ext:", "");
         var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
         var suggestion = new AttributeMappingsSuggestionType()
-                .expectedQuality(assessment.quality)
+                .expectedQuality(assessment.quality())
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
@@ -245,7 +243,7 @@ class MappingsSuggestionOperation {
      * Builds an {@link ExpressionType} containing a script evaluator
      * and optional documentation extracted from the suggested mapping response.
      */
-    private @Nullable ExpressionType buildScriptExpression(SiSuggestMappingResponseType suggestMappingResponse) {
+    private static @Nullable ExpressionType buildScriptExpression(SiSuggestMappingResponseType suggestMappingResponse) {
         if (suggestMappingResponse == null) {
             return null;
         }
@@ -262,6 +260,30 @@ class MappingsSuggestionOperation {
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
                                 new ScriptExpressionEvaluatorType().code(script)));
+    }
+
+    private MappingsQualityAssessor.AssessmentResult assessQuality(
+            ExpressionType expression,
+            SchemaMatchOneResultType matchPair,
+            Collection<ValuesPair> valuesPairs,
+            OperationResult parentResult
+    ) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
+        MappingsQualityAssessor.AssessmentResult assessment;
+        try {
+            assessment = this.qualityAssessor.assessMappingsQuality(
+                    valuesPairs, expression, this.ctx.task, parentResult);
+        } catch (ExpressionEvaluationException | SecurityViolationException e) {
+            var retryScript = askMicroservice(matchPair, valuesPairs, e.getMessage());
+            expression = buildScriptExpression(retryScript);
+            try {
+                assessment = this.qualityAssessor.assessMappingsQuality(
+                        valuesPairs, expression, this.ctx.task, parentResult);
+            } catch (ExpressionEvaluationException | SecurityViolationException e2) {
+                LOGGER.trace("Expression evaluation failed even after retry for {}.", matchPair.getShadowAttributePath());
+                throw e2;
+            }
+        }
+        return assessment;
     }
 
     private SiSuggestMappingResponseType askMicroservice(
