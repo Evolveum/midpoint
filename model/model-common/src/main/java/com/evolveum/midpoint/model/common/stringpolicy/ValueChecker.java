@@ -427,7 +427,7 @@ class ValueChecker {
                 }
             }
             limResult.setName(name);
-            PolyStringType help = new PolyStringType(characterClass.getCharactersAsString());
+            PolyStringType help = new PolyStringType(characterClass.getDividedCharactersAsString(" "));
             limResult.setHelp(help);
 
             if (requiredMinOccurrences > 0) {
@@ -478,7 +478,7 @@ class ValueChecker {
             translation.setKey("ValuePolicy.invalidCharacters");
             name.setTranslation(translation);
             limResult.setName(name);
-            PolyStringType help = new PolyStringType(StringPolicyUtils.charactersAsString(validChars));
+            PolyStringType help = new PolyStringType(StringPolicyUtils.dividedCharactersAsString(validChars, " "));
             limResult.setHelp(help);
 
             if (!invalidCharacters.isEmpty()) {

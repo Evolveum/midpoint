@@ -6,10 +6,7 @@
 
 package com.evolveum.midpoint.model.common.stringpolicy;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +29,24 @@ public class StringPolicyUtils {
         StringBuilder sb = new StringBuilder();
         for (Character c : characters) {
             sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Covers the need to have separated characters for easier (screen-reader) reading
+     * @param characters
+     * @return
+     */
+    static @NotNull String dividedCharactersAsString(@NotNull Collection<Character> characters, String separator) {
+        StringBuilder sb = new StringBuilder();
+        Iterator<Character> it = characters.iterator();
+        while (it.hasNext()) {
+            Character character = it.next();
+            sb.append(character);
+            if (it.hasNext()) {
+                sb.append(separator);
+            }
         }
         return sb.toString();
     }
