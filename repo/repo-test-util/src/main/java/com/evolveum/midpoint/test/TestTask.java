@@ -188,7 +188,9 @@ public class TestTask extends TestObject<TaskType> {
             throw new IllegalStateException("No activity policy matching '" + policyIdentifier + "' for path " + path + " in task " + oid);
         }
 
-        return def.getIdentifier() + ":" + policy.getId();
+        String identifier = def.getIdentifier() != null ? def.getIdentifier() : "";
+
+        return identifier + ":" + policy.getId();
     }
 
     private ActivityDefinitionType findActivityDefinition(ActivityDefinitionType def, ActivityPath path) {

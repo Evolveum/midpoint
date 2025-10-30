@@ -31,14 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * - They are evaluated periodically during the activity run - currently in
  * {@link ActivityPolicyRulesProcessor#evaluateAndExecuteRules(ItemProcessingResult, OperationResult)} method.
- *
- * == Thresholds
- *
- * A rule may produce a single value (integer or duration) that is used to compare against thresholds defined for individual
- * reactions. This usually happens when the specific constraint has no boundaries defined by itself.
- *
- * TODO implement a check that makes sure that only one constraint without boundaries is defined for a rule.
- * TODO implement a check that makes sure that when thresholds are defined, at least one constraint provides the value.
  */
 public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDumpable {
 
@@ -71,6 +63,14 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         this.policy = policy;
         this.path = path;
         this.dataNeeds = dataNeeds;
+    }
+
+    @Override
+    public void clearEvaluation() {
+        triggers.clear();
+
+        totalCount = null;
+        localCount = null;
     }
 
     public @NotNull ActivityPath getPath() {

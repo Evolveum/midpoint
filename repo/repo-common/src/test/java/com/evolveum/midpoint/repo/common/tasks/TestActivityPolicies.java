@@ -689,6 +689,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         when("task is run until it's stopped");
         testTask.rerunTreeErrorsOk(result);
 
+        final String stopCounterIdentifier =
+                testTask.buildPolicyIdentifier(
+                        ActivityPath.empty(),
+                        "Stop after");
+
         then("the task tree is suspended after exceeding given error count");
         // @formatter:off
         testTask.assertTreeAfter()
@@ -698,11 +703,28 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .subtask("first", false)
                     .display()
                     .assertClosed() // this activity finished before suspension
-                .end()
+                    .activityState(ActivityPath.fromId("first"))
+                        .fullExecutionModePolicyRulesCounters()
+                            .assertCounter(stopCounterIdentifier,1)
+                            .end()
+                        .noActivityPolicyStates()
+                        .end()
+                    .end()
                 .subtask("second", false)
                     .display()
                     .assertSuspended() // but this was suspended
-                .end();
+                    .activityState(ActivityPath.fromId("second"))
+                        .assertFatalError()
+                        .assertInProgressLocal()
+                        .fullExecutionModePolicyRulesCounters()
+                            .assertCounter(stopCounterIdentifier,4)
+                            .end()
+                        .activityPolicyStates()
+                            .activityPolicyState("Stop after")
+                                .assertTriggerCount(1)
+                                .end()
+                            .end()
+                        .end();
         // @formatter:on
         // TODO more asserts
     }
@@ -1125,6 +1147,9 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .assertExecutionAttempts(2)
                     .assertComplete()
                     .assertSuccess()
+                    .itemProcessingStatistics()
+                        .assertTotalCounts(10, 0, 0)
+                        .end()
                     // after first restart there, task should finish successfully, policy not activated
                     .noActivityPolicyStates()
                     .end();
@@ -1150,7 +1175,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         TASK_410_CHILD_RESTART_ON_OWN_EXECUTION_TIME.assertAfter()
                 .display()
                 .assertClosed()
-                .assertFatalError()
+                .assertSuccess()
                 .rootActivityState()
                     .assertExecutionAttempts(1)
                     .assertComplete()

@@ -9,6 +9,9 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 import java.util.List;
 import java.util.Set;
 
+import jakarta.xml.bind.JAXBElement;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.repo.common.activity.policy.DataNeed;
@@ -24,9 +27,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemStatePolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-
-import jakarta.xml.bind.JAXBElement;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ItemStateConstraintEvaluator
@@ -52,9 +52,10 @@ public class ItemStateConstraintEvaluator
         }
 
         OperationResultStatus status = processingResult.operationResult().getStatus();
-        OperationResultStatusType statusType = status.createStatusType();
 
-        if (constraint.getStatus().contains(statusType)) {
+        OperationResultStatusType statusType = status != null ? status.createStatusType() : null;
+
+        if (statusType != null && constraint.getStatus().contains(statusType)) {
             LOGGER.debug("Item state policy constraint '{}' matched for status '{}'.", constraint, status);
 
             LocalizableMessage message = new SingleLocalizableMessage(

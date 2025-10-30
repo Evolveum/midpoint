@@ -119,6 +119,8 @@ public class ActivityPolicyRulesProcessor {
             return;
         }
 
+        rules.forEach(rule -> rule.clearEvaluation());
+
         evaluateRules(processingResult, result);
 
         updateCounters(result);

@@ -40,4 +40,9 @@ public interface EvaluatedPolicyRule {
     boolean hasThreshold();
 
     boolean isOverThreshold();
+
+    /**
+     * Clears the evaluation state of the rule, so that it can be re-evaluated again.
+     */
+    void clearEvaluation();
 }

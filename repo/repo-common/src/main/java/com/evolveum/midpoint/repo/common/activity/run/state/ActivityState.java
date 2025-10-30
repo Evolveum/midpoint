@@ -690,6 +690,7 @@ public abstract class ActivityState implements DebugDumpable {
                         .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
                         .item(stateItemPath.append(ActivityStateType.F_RESTARTING)).replace()
                         .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_POLICIES)).replace()
                         .asItemDeltas());
 
         ActivityRestartingStateType state = getRestartingState();
