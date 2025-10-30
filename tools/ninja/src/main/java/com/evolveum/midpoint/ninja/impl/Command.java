@@ -12,6 +12,8 @@ import com.evolveum.midpoint.ninja.action.mining.ExportMiningOptions;
 import com.evolveum.midpoint.ninja.action.mining.ExportMiningRepositoryAction;
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorMiningRepositoryAction;
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
+import com.evolveum.midpoint.ninja.action.stats.ExportFocusStatisticsAction;
+import com.evolveum.midpoint.ninja.action.stats.ExportFocusStatisticsOptions;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceAction;
 import com.evolveum.midpoint.ninja.action.trace.EditTraceOptions;
 import com.evolveum.midpoint.ninja.action.upgrade.action.*;
@@ -24,6 +26,15 @@ public enum Command {
     IMPORT("import", ImportOptions.class, ImportRepositoryAction.class),
 
     EXPORT("export", ExportOptions.class, ExportRepositoryAction.class),
+
+    EXPORT_CONFIGURATION("export-configuration", ExportConfigurationOptions.class, ExportConfigurationAction.class),
+
+    EXPORT_RESOURCE_SCHEMA("export-resource-schema", ExportResourceSchemaOptions.class, ExportResourceSchemaAction.class),
+
+    EXPORT_SHADOW_STATISTICS("export-shadow-statistics", ExportShadowStatisticsOptions.class, ExportShadowStatisticsAction.class),
+
+    EXPORT_FOCUS_STATISTICS("export-focus-statistics", ExportFocusStatisticsOptions.class, ExportFocusStatisticsAction.class),
+
 
     DELETE("delete", DeleteOptions.class, DeleteRepositoryAction.class),
 

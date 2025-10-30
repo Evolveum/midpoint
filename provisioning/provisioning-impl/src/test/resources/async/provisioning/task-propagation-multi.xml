@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- MID-10870 -->
+
+<task oid="01db4542-f224-11e7-8833-bbe6634814e7"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <name>Propagation: propagated provisioning resources</name>
+
+    <taskIdentifier>01db4542-f224-11e7-8833-bbe6634814e7</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+
+    <!--<activity>-->
+    <!--    <work>-->
+    <!--        <propagation>-->
+    <!--            <resourceRef oid="acfa8b57-dbd2-473b-9e19-92a540d6b7f9" />-->
+    <!--        </propagation>-->
+    <!--    </work>-->
+    <!--</activity>-->
+
+    <activity>
+        <work>
+            <multiPropagation>
+                <resources>
+                    <query>
+                        <q:filter>
+                            <q:and>
+
+                            </q:and>
+                        </q:filter>
+                    </query>
+                </resources>
+            </multiPropagation>
+        </work>
+    </activity>
+</task>

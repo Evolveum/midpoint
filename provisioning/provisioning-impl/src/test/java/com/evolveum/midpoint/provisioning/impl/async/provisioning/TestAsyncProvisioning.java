@@ -6,18 +6,21 @@
 
 package com.evolveum.midpoint.provisioning.impl.async.provisioning;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
+import javax.xml.namespace.QName;
 
+import jakarta.jms.JMSException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -26,21 +29,21 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.FilterUtil;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.schema.messaging.JsonAsyncProvisioningRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import jakarta.jms.JMSException;
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.asserter.PendingOperationsAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Tests basic asynchronous provisioning functionality:
- *  - addObject
- *  - modifyObject
- *  - deleteObject
+ * - addObject
+ * - modifyObject
+ * - deleteObject
  *
  * Subclasses uses various options like:
  * - target: mock or JMS
@@ -64,6 +67,8 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
 
     private String jackAccountOid;
 
+    protected TestObject<TaskType> propagationTask;
+
     protected boolean isUsingConfirmations() {
         return false;
     }
@@ -80,10 +85,75 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        resource = addResourceFromFile(getResourceFile(), singletonList(ASYNC_PROVISIONING_CONNECTOR), false, initResult);
+        TestObject<ResourceType> testObject = TestObject.file(getResourceFile());
+        PrismObject<ResourceType> resource = testObject.getObject().copy();
+        customizeResource(resource);
+
+        this.resource = addResource(TestObject.of(resource.asObjectable()), List.of(ASYNC_PROVISIONING_CONNECTOR), false, initResult);
+
+        propagationTask = getPropagationTask();
+        if (propagationTask != null) {
+            taskManager.addTask(propagationTask.get(), getTestOperationResult());
+
+            assertNewPropagationTask();
+        }
+    }
+
+    protected void customizeResource(PrismObject<ResourceType> resource) {
+
     }
 
     protected abstract File getResourceFile();
+
+    protected TestObject<TaskType> getPropagationTask() {
+        return null;
+    }
+
+    protected String getClockForwardDurationForPropagation() {
+        return null;
+    }
+
+    protected boolean hasPropagationConfigured() {
+        return propagationTask != null;
+    }
+
+    protected void assertNewPropagationTask() throws Exception {
+        OperationResult result = createOperationResult("assertNewPropagationTask");
+        PrismObject<TaskType> propTask = repositoryService.getObject(TaskType.class, propagationTask.oid, null, result);
+        display("Propagation task (new)", propTask);
+        SearchFilterType filterType = propTask.asObjectable()
+                .getActivity()
+                .getWork()
+                .getMultiPropagation()
+                .getResources()
+                .getQuery()
+                .getFilter();
+        displayDumpable("Propagation task filter", filterType);
+        assertFalse("Empty filter in propagation task", FilterUtil.isFilterEmpty(filterType));
+    }
+
+    protected void assertFinishedPropagationTask(Task finishedTask, OperationResultStatusType expectedStatus) {
+        display("Finished propagation task", finishedTask);
+        OperationResultStatusType resultStatus = finishedTask.getResultStatus();
+        if (expectedStatus == null) {
+            if (resultStatus != OperationResultStatusType.SUCCESS && resultStatus != OperationResultStatusType.IN_PROGRESS) {
+                fail("Unexpected propagation task result " + resultStatus);
+            }
+        } else {
+            assertEquals("Unexpected propagation task result", expectedStatus, resultStatus);
+        }
+    }
+
+    protected void runPropagation() throws Exception {
+        if (propagationTask == null) {
+            return;
+        }
+
+        clockForward(getClockForwardDurationForPropagation());
+
+        Task finishedTask = rerunTask(propagationTask.oid);
+        assertFinishedPropagationTask(finishedTask, OperationResultStatusType.SUCCESS);
+    }
 
     @Test
     public void test000Sanity() throws Exception {
@@ -105,6 +175,21 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
     protected void testSanityExtra() throws Exception {
     }
 
+    private void runPropagationAndAssertShadow(
+            String shadowOid, Consumer<PendingOperationsAsserter<Void>> asserterConsumer) throws Exception {
+
+        when("Propagation runs");
+
+        runPropagation();
+
+        then();
+
+        PendingOperationsAsserter<Void> asserter = assertRepoShadow(shadowOid)
+                .pendingOperations();
+
+        asserterConsumer.accept(asserter);
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void test100AddAccount() throws Exception {
@@ -118,8 +203,15 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         when();
         jackAccountOid = provisioningService.addObject(jack, null, null, task, result);
 
-        then();
-        assertSuccessOrInProgress(result);
+        if (!hasPropagationConfigured()) {
+            assertSuccessOrInProgress(result);
+        } else {
+            runPropagationAndAssertShadow(jackAccountOid, asserter -> {
+                asserter.addOperation()
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                        .assertResultStatus(OperationResultStatusType.SUCCESS);
+            });
+        }
 
         dumpRequests();
         String req = getRequest();
@@ -134,9 +226,9 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         assertRepoShadow(jackAccountOid);
         assertShadowFuture(jackAccountOid)
                 .attributes()
-                    .assertValue(ICFS_NAME, "jack")
-                    .assertValue(ICFS_UID, "jack")
-                    .assertValue(ATTR_DRINK, "rum");
+                .assertValue(ICFS_NAME, "jack")
+                .assertValue(ICFS_UID, "jack")
+                .assertValue(ATTR_DRINK, "rum");
     }
 
     @SuppressWarnings("unchecked")
@@ -156,8 +248,15 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         when();
         provisioningService.modifyObject(ShadowType.class, jackAccountOid, modifications, null, null, task, result);
 
-        then();
-        assertSuccessOrInProgress(result);
+        if (!hasPropagationConfigured()) {
+            assertSuccessOrInProgress(result);
+        } else {
+            runPropagationAndAssertShadow(jackAccountOid, asserter -> {
+                asserter.modifyOperation()
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                        .assertResultStatus(OperationResultStatusType.SUCCESS);
+            });
+        }
 
         dumpRequests();
         String req = getRequest();
@@ -187,10 +286,10 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
                 .assertModifyTimestampPresent();
         assertShadowFuture(jackAccountOid)
                 .attributes()
-                    .assertValue(ICFS_NAME, "jack")
-                    .assertValue(ICFS_UID, "jack")
-                    .assertValue(ATTR_DRINK, "rum", "water")
-                    .assertValue(ATTR_SHOE_SIZE, 42);
+                .assertValue(ICFS_NAME, "jack")
+                .assertValue(ICFS_UID, "jack")
+                .assertValue(ATTR_DRINK, "rum", "water")
+                .assertValue(ATTR_SHOE_SIZE, 42);
     }
 
     @SuppressWarnings("unchecked")
@@ -210,8 +309,13 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         when();
         provisioningService.modifyObject(ShadowType.class, jackAccountOid, modifications, null, null, task, result);
 
-        then();
-        assertSuccessOrInProgress(result);
+        if (!hasPropagationConfigured()) {
+            assertSuccessOrInProgress(result);
+        } else {
+            runPropagationAndAssertShadow(jackAccountOid, asserter -> {
+                asserter.assertNoUnfinishedOperations();
+            });
+        }
 
         dumpRequests();
         String req = getRequest();
@@ -238,10 +342,10 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         assertRepoShadow(jackAccountOid);
         assertShadowFuture(jackAccountOid)
                 .attributes()
-                    .assertValue(ICFS_NAME, "jack")
-                    .assertValue(ICFS_UID, "jack")
-                    .assertValue(ATTR_DRINK, "rum")
-                    .assertValue(ATTR_SHOE_SIZE, 44);
+                .assertValue(ICFS_NAME, "jack")
+                .assertValue(ICFS_UID, "jack")
+                .assertValue(ATTR_DRINK, "rum")
+                .assertValue(ATTR_SHOE_SIZE, 44);
     }
 
     @SuppressWarnings("unchecked")
@@ -256,8 +360,15 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
         when();
         provisioningService.deleteObject(ShadowType.class, jackAccountOid, null, null, task, result);
 
-        then();
-        assertSuccessOrInProgress(result);
+        if (!hasPropagationConfigured()) {
+            assertSuccessOrInProgress(result);
+        } else {
+            runPropagationAndAssertShadow(jackAccountOid, asserter -> {
+                asserter.deleteOperation()
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                        .assertResultStatus(OperationResultStatusType.SUCCESS);
+            });
+        }
 
         dumpRequests();
         String req = getRequest();
@@ -274,12 +385,17 @@ public abstract class TestAsyncProvisioning extends AbstractProvisioningIntegrat
             assertRepoShadow(jackAccountOid);
             assertShadowFuture(jackAccountOid);
         } else {
-            assertNoRepoShadow(jackAccountOid);
+            if (hasPropagationConfigured()) {
+                assertRepoShadow(jackAccountOid)
+                        .assertIsDead(true);
+            } else {
+                assertNoRepoShadow(jackAccountOid);
+            }
         }
     }
 
     protected void assertSuccessOrInProgress(OperationResult result) {
-        if (isUsingConfirmations()) {
+        if (isUsingConfirmations() || hasPropagationConfigured()) {
             assertInProgress(result);
         } else {
             assertSuccess(result);

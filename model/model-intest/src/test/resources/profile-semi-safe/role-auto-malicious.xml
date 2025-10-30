@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="939476d2-b334-11f0-821b-9f7be5660bfd">
+    <name>Malicious Auto Role</name>
+    <documentation>
+        Auto-assigned role that contains Groovy expression in the autoassign mapping.
+    </documentation>
+    <inducement>
+        <construction>
+            <resourceRef oid="b6921940-b317-11f0-a8d9-bb8df5a5aed5"/>
+        </construction>
+    </inducement>
+    <autoassign>
+        <enabled>true</enabled>
+        <focus>
+            <mapping>
+                <condition>
+                    <script>
+                        <code>com.evolveum.midpoint.model.intest.TestExpressionProfileSemiSafe.boom()</code>
+                    </script>
+                </condition>
+            </mapping>
+            <selector>
+                <type>UserType</type>
+            </selector>
+        </focus>
+    </autoassign>
+</role>

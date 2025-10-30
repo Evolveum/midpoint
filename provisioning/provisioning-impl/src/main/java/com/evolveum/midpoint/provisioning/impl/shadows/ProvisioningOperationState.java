@@ -185,6 +185,10 @@ public class ProvisioningOperationState implements ShortDumpable {
         return propagatedPendingOperations;
     }
 
+    public boolean hasPropagatedPendingOperations() {
+        return propagatedPendingOperations != null && !propagatedPendingOperations.isEmpty();
+    }
+
     private void setPropagatedPendingOperations(PendingOperations propagatedPendingOperations) {
         this.propagatedPendingOperations = propagatedPendingOperations;
     }

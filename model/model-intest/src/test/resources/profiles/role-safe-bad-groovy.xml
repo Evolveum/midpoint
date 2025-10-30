@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="58ce3538-b00a-11f0-b300-f30341f6d782">
+    <name>safe-bad-groovy</name>
+    <documentation>Role that contains groovy expression, which is not permitted by `safe` expression profile.</documentation>
+    <assignment>
+        <targetRef oid="2a68ff58-b009-11f0-9b5e-236da66bcdb4" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <source>
+                    <path>name</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>"My name is '$name'"</code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="2003a0c3-62a3-413d-9941-6fecaef84a16"/>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'I-am-safe'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+</role>

@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="4925ba3e-b32a-11f0-ba58-1b26237260e8">
+    <name>mallory</name>
+    <fullName>Mallory Malevolent</fullName>
+    <givenName>Mallory</givenName>
+    <familyName>Malevolent</familyName>
+    <description>Mallory tries to execute Groovy code in the assignment expression.</description>
+    <costCenter>nice</costCenter>
+    <locality>Moscow</locality>
+    <assignment>
+        <!-- Harmless role -->
+        <targetRef oid="15f860d0-b32a-11f0-b169-431d2df5bf12" type="RoleType"/>
+        <condition>
+            <expression>
+                <script>
+                    <code>com.evolveum.midpoint.model.intest.TestExpressionProfileSemiSafe.boom()</code>
+                </script>
+            </expression>
+        </condition>
+    </assignment>
+</user>

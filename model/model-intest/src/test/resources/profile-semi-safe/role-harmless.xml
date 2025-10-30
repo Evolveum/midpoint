@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="15f860d0-b32a-11f0-b169-431d2df5bf12">
+    <name>Harmless Role</name>
+    <documentation>
+        Role that does not do much. It is perfectly harmless.
+    </documentation>
+    <inducement>
+        <construction>
+            <resourceRef oid="b6921940-b317-11f0-a8d9-bb8df5a5aed5"/>
+            <attribute>
+                <ref>title</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>Harmless</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+</role>

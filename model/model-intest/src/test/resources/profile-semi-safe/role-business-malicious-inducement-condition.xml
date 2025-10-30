@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="a150b170-b332-11f0-8eba-439d792f85bb">
+    <name>Malicious Inducement Condition Business Role</name>
+    <documentation>
+        Business role that tries to execute Groovy code in inducement condition.
+    </documentation>
+    <assignment>
+        <!-- Business role archetype.
+             Make sure the default business role archetype does not ruin definition of expression profile. -->
+        <targetRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <!-- Harmless role -->
+        <targetRef oid="15f860d0-b32a-11f0-b169-431d2df5bf12" type="RoleType"/>
+        <condition>
+            <expression>
+                <script>
+                    <code>com.evolveum.midpoint.model.intest.TestExpressionProfileSemiSafe.boom()</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+</role>
