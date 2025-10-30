@@ -143,6 +143,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
         LoadableDetachableModel<List<StringLimitationResult>> limitationsModel = new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected List<StringLimitationResult> load() {
                 return getLimitationsForActualPassword(newPasswordValue);
@@ -176,6 +177,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             @Override
             protected String getPasswordPanelLabelComponentId() {
                 return getPasswordLabelComponentId();
+            }
+
+            @Override
+            protected boolean isRepeatPasswordLabelVisible() {
+                return ChangePasswordPanel.this.isRepeatPasswordLabelVisible();
             }
         };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
@@ -471,5 +477,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     private String getPasswordLabelComponentId() {
         return get(ID_PASSWORD_LABEL).getMarkupId();
+    }
+
+    protected boolean isRepeatPasswordLabelVisible() {
+        return false;
     }
 }

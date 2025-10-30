@@ -70,6 +70,7 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_VALIDATION_PROGRESS_BAR = "validationProgressBar";
     private static final String ID_PASSWORD_TWO = "password2";
+    private static final String ID_REPEAT_PASSWORD_LABEL = "repeatPasswordLabel";
     private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
 
@@ -183,6 +184,12 @@ public class PasswordPanel extends InputPanel {
         validationProgressBar.add(new VisibleBehaviour(() -> !showOneLinePasswordPanel));
         inputContainer.add(validationProgressBar);
 
+        Label repeatPasswordLabel = new Label(ID_REPEAT_PASSWORD_LABEL,
+                getString("PasswordPanel.repeatPasswordPlaceholder"));
+        repeatPasswordLabel.setOutputMarkupId(true);
+        repeatPasswordLabel.add(new VisibleBehaviour(this::isRepeatPasswordLabelVisible));
+        inputContainer.add(repeatPasswordLabel);
+
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
                 new ProtectedStringClearPasswordModel(Model.of(new ProtectedStringType()))) {
 
@@ -196,6 +203,7 @@ public class PasswordPanel extends InputPanel {
         };
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
+        password2.add(AttributeAppender.append("placeholder", getRepeatPasswordFieldPlaceholderValue()));
         password2.add(new VisibleEnableBehaviour(() -> !showOneLinePasswordPanel, this::canEditPassword));
         inputContainer.add(password2);
 
@@ -415,5 +423,15 @@ public class PasswordPanel extends InputPanel {
 
     protected String getPasswordPanelLabelComponentId() {
         return null;
+    }
+
+    protected boolean isRepeatPasswordLabelVisible() {
+        return false;
+    }
+
+    private String getRepeatPasswordFieldPlaceholderValue() {
+        return isRepeatPasswordLabelVisible() ?
+                null : getString("PasswordPanel.repeatPasswordPlaceholder");
+
     }
 }
