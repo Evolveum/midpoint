@@ -249,16 +249,12 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .assertExecutionAttempts(1)
                     .assertFatalError()
                     .assertInProgressLocal()
+                    .assertNoCounters()
                     .activityPolicyStates()
                         .assertPolicyStateCount(1)
                         .activityPolicyState("Execution time")
-                            .assertTriggerCount(1)
-                            .end()
-                    .end()
-                .end();
+                            .assertTriggerCount(1);
         // @formatter:on
-
-        // TODO more asserts
     }
 
     /**
@@ -283,6 +279,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .activityState(PATH_FIRST)
                     .assertComplete()
                     .assertSuccess()
+                    .assertNoCounters()
                     .itemProcessingStatistics()
                         .assertRunTimeBetween(4000L, 5000L) // no limit, 4 seconds planned
                     .end()
@@ -290,6 +287,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .activityState(PATH_SECOND)
                     .assertInProgressLocal()
                     .assertFatalError()
+                    .assertNoCounters()
                     .itemProcessingStatistics()
                         .assertRunTimeBetween(8000L, 10000L); // limit is 8 seconds here, 20 seconds planned
         // @formatter:on
@@ -322,7 +320,8 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .assertExecutionAttempts(1)
                         .assertComplete()
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoCounters()
+                        .assertNoActivityPolicyStates()
                         .itemProcessingStatistics()
                             .assertRunTimeBetween(4000L, 5000L) // 4 seconds planned (under limit of 8 seconds total)
                         .end()
@@ -331,6 +330,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .assertExecutionAttempts(1)
                         .assertInProgressLocal()
                         .assertFatalError()
+                        .assertNoCounters()
                         .activityPolicyStates()
                             .assertPolicyStateCount(1)
                             .activityPolicyState("Execution time")
@@ -342,10 +342,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                             .end()
                         .end()
                     .child("third")
-                        // todo asserts
-                        .end();
-
-        // TODO more asserts
+                        .assertNotStarted();
     }
 
     /**
@@ -390,7 +387,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .assertClosed() // this activity finished before suspension
                     .activityState(ActivityPath.fromId("first"))
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .end()
                 .subtask("second", false)
@@ -402,12 +399,8 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .activityPolicyStates()
                         .assertPolicyStateCount(1)
                         .activityPolicyState("Execution time")
-                            .assertTriggerCount(1)
-                            .end()
-                        .end()
-                    .end();
+                            .assertTriggerCount(1);
         // @formatter:on
-        // TODO more asserts
     }
 
     /**
@@ -707,7 +700,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .fullExecutionModePolicyRulesCounters()
                             .assertCounter(stopCounterIdentifier,1)
                             .end()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .end()
                 .subtask("second", false)
@@ -721,12 +714,8 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                             .end()
                         .activityPolicyStates()
                             .activityPolicyState("Stop after")
-                                .assertTriggerCount(1)
-                                .end()
-                            .end()
-                        .end();
+                                .assertTriggerCount(1);
         // @formatter:on
-        // TODO more asserts
     }
 
     /**
@@ -860,12 +849,12 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .assertExecutionAttempts(1)
                     .assertComplete()
                     .assertFatalError()
-                    .noActivityPolicyStates()
+                    .assertNoActivityPolicyStates()
                     .child("first")
                         .assertExecutionAttempts(1)
                         .assertComplete()
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .child("second")
                         .assertExecutionAttempts(1)
@@ -882,7 +871,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .assertExecutionAttempts(1)
                         .assertComplete()
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .end()
                 .end();
@@ -1151,7 +1140,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .assertTotalCounts(10, 0, 0)
                         .end()
                     // after first restart there, task should finish successfully, policy not activated
-                    .noActivityPolicyStates()
+                    .assertNoActivityPolicyStates()
                     .end();
         // @formatter:on
         // TODO more asserts
@@ -1180,24 +1169,24 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .assertExecutionAttempts(1)
                     .assertComplete()
                     .assertSuccess()
-                    .noActivityPolicyStates()
+                    .assertNoActivityPolicyStates()
                     .child("first")
                         .assertExecutionAttempts(1)
                         .assertComplete()
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .child("second")
                         .assertExecutionAttempts(2)
                         .assertComplete()
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .child("third")
                         .assertExecutionAttempts(1)
                         .assertComplete()
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .end()
                 .end();
@@ -1228,24 +1217,24 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .assertExecutionAttempts(1)
                     .assertComplete()
                     .assertSuccess()
-                    .noActivityPolicyStates()
+                    .assertNoActivityPolicyStates()
                     .child("first")
                         .assertExecutionAttempts(1)
                         .assertComplete()
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .child("second")
                         .assertExecutionAttempts(2)
                         .assertComplete()
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .child("third")
                         .assertExecutionAttempts(1)
                         .assertComplete()
                         .assertSuccess()
-                        .noActivityPolicyStates()
+                        .assertNoActivityPolicyStates()
                         .end()
                     .end()
                 .end();
