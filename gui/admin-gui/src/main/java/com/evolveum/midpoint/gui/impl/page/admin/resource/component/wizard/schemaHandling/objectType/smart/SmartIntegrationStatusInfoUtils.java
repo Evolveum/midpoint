@@ -398,13 +398,16 @@ public class SmartIntegrationStatusInfoUtils {
         }
     }
 
-    public static boolean isNotCompletedSuggestion(@Nullable StatusInfo<?> suggestionStatusInfo) {
-        if (suggestionStatusInfo == null) {
+    /** Checks if the suggestion is not completed (in progress or fatal error). */
+    public static boolean isNotCompletedSuggestion(@Nullable StatusInfo<?> statusInfo) {
+        if (statusInfo == null) {
             return false;
         }
-        return suggestionStatusInfo.isExecuting() ||
-                (suggestionStatusInfo.getStatus() == OperationResultStatusType.IN_PROGRESS
-                        || suggestionStatusInfo.getStatus() == OperationResultStatusType.FATAL_ERROR);
+
+        var operationStatus = statusInfo.getStatus();
+        return !statusInfo.isComplete()
+                || OperationResultStatusType.IN_PROGRESS.equals(operationStatus)
+                || OperationResultStatusType.FATAL_ERROR.equals(operationStatus);
     }
 
     private static boolean isCorrelationSuggestionEligible(
