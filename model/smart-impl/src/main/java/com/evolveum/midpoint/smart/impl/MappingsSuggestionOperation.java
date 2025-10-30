@@ -198,6 +198,7 @@ class MappingsSuggestionOperation {
         ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
         ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
         var propertyDef = ctx.getFocusTypeDefinition().findPropertyDefinition(focusPropPath);
+        String transformationScript = null;
         ExpressionType expression;
         if (valuesPairs.isEmpty()) {
             LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
@@ -215,11 +216,12 @@ class MappingsSuggestionOperation {
             expression = null;
         } else {
             LOGGER.trace(" -> going to ask LLM about mapping script");
-            var transformationScript = askMicroservice(matchPair, valuesPairs, null);
-            expression = buildScriptExpression(transformationScript);
+            var mappingResponse = askMicroservice(matchPair, valuesPairs, null, null);
+            transformationScript = mappingResponse.getTransformationScript();
+            expression = buildScriptExpression(mappingResponse);
         }
 
-        var assessment = assessQuality(expression, matchPair, valuesPairs, parentResult);
+        var assessment = assessQualityWithRetry(expression, matchPair, valuesPairs, transformationScript, parentResult);
 
         // TODO remove this ugly hack
         var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropPath);
@@ -262,19 +264,19 @@ class MappingsSuggestionOperation {
                                 new ScriptExpressionEvaluatorType().code(script)));
     }
 
-    private MappingsQualityAssessor.AssessmentResult assessQuality(
+    private MappingsQualityAssessor.AssessmentResult assessQualityWithRetry(
             ExpressionType expression,
             SchemaMatchOneResultType matchPair,
             Collection<ValuesPair> valuesPairs,
-            OperationResult parentResult
-    ) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
+            @Nullable String firstScript,
+            OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
         MappingsQualityAssessor.AssessmentResult assessment;
         try {
             assessment = this.qualityAssessor.assessMappingsQuality(
                     valuesPairs, expression, this.ctx.task, parentResult);
         } catch (ExpressionEvaluationException | SecurityViolationException e) {
-            var retryScript = askMicroservice(matchPair, valuesPairs, e.getMessage());
-            expression = buildScriptExpression(retryScript);
+            var retryResponse = askMicroservice(matchPair, valuesPairs, e.getMessage(), firstScript);
+            expression = buildScriptExpression(retryResponse);
             try {
                 assessment = this.qualityAssessor.assessMappingsQuality(
                         valuesPairs, expression, this.ctx.task, parentResult);
@@ -289,12 +291,14 @@ class MappingsSuggestionOperation {
     private SiSuggestMappingResponseType askMicroservice(
             SchemaMatchOneResultType matchPair,
             Collection<ValuesPair> valuesPairs,
-            @Nullable String errorLog) throws SchemaException {
+            @Nullable String errorLog,
+            @Nullable String retryScript) throws SchemaException {
         var siRequest = new SiSuggestMappingRequestType()
                 .applicationAttribute(matchPair.getShadowAttribute())
                 .midPointAttribute(matchPair.getFocusProperty())
                 .inbound(true)
-                .errorLog(errorLog);
+                .errorLog(errorLog)
+                .previousScript(retryScript);
         valuesPairs.forEach(pair ->
                 siRequest.getExample().add(
                         pair.toSiExample(
