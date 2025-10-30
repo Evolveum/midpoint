@@ -16,37 +16,28 @@ public interface EvaluatedPolicyRule {
 
     Integer getOrder();
 
-    /**
-     * Type of the threshold value used for reaction threshold evaluation.
-     */
-    @NotNull ThresholdValueType getThresholdValueType();
-
-    void setThresholdTypeAndValues(@NotNull ThresholdValueType thresholdValueType, Object localValue, Object totalValue);
+    void setCount(Integer localValue, Integer totalValue);
 
     /**
-     * Current value that should be used for reaction threshold evaluation.
+     * Current count that should be used for policy threshold evaluation.
      * This is the result of policy constraint evaluation.
      *
-     * Type of this value is defined by {@link #getThresholdValueType()}.
-     *
-     * For activity trees, this value is the total value for the activity tree, i.e., it contains the relevant data from
+     * For activity trees, this value is the total count for the activity tree, i.e., it contains the relevant data from
      * all activities that were already finished.
-     *
-     * For example, if we are dealing with a policy that counts failed operations, this value contains the number of failed
-     * operations in the activity tree so far. If we are dealing with execution time, the value contains the total execution
-     * time of all finished activities in the tree.
      */
-    Object getTotalValue();
+    Integer getTotalCount();
 
     /**
-     * Local value of the rule, i.e., the value that was computed for the current activity only.
-     * It is a part of {@link #getTotalValue()}.
+     * Local count of the rule, i.e., the count that was computed for the current activity only.
+     * It is a part of {@link #getTotalCount()}.
      *
-     * @see #getTotalValue()
+     * @see #getTotalCount()
      */
-    Object getLocalValue();
+    Integer getLocalCount();
 
     boolean isTriggered();
 
     boolean hasThreshold();
+
+    boolean isOverThreshold();
 }

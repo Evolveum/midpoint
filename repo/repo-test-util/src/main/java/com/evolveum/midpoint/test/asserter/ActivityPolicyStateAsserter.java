@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ActivityPolicyStateAsserter<RA> extends AbstractAsserter<RA> {
 
-    private ActivityPolicyStateType state;
+    private final ActivityPolicyStateType state;
 
     public ActivityPolicyStateAsserter(ActivityPolicyStateType state, RA returnAsserter, String details) {
         super(returnAsserter, details);
@@ -38,17 +38,8 @@ public class ActivityPolicyStateAsserter<RA> extends AbstractAsserter<RA> {
     public ActivityPolicyStateAsserter<RA> assertTriggerCount(int expectedCount) {
         List<EvaluatedActivityPolicyTriggerType> triggers = state.getTrigger();
 
-        Assertions.assertThat(triggers).hasSize(expectedCount)
-                .withFailMessage("Expected %d triggers, but found %d: %s", expectedCount, triggers.size(), triggers);
-
-        return this;
-    }
-
-    public ActivityPolicyStateAsserter<RA> assertReactionCount(int expectedCount) {
-        List<EvaluatedActivityPolicyReactionType> reactions = state.getReaction();
-
-        Assertions.assertThat(reactions)
-                .withFailMessage("Expected %d reactions, but found %d: %s", expectedCount, reactions.size(), reactions)
+        Assertions.assertThat(triggers)
+                .withFailMessage("Expected %d triggers, but found %d: %s", expectedCount, triggers.size(), triggers)
                 .hasSize(expectedCount);
 
         return this;

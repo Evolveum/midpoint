@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateT
 
 public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
 
-    private ActivityPoliciesStateType state;
+    private final ActivityPoliciesStateType state;
 
     public ActivityPoliciesStateAsserter(ActivityPoliciesStateType state, RA returnAsserter, String details) {
         super(returnAsserter, details);
@@ -40,7 +40,7 @@ public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ActivityPolicyStateAsserter<ActivityPoliciesStateAsserter<RA>> activityPolicyState(String policyName, boolean exact) {
-        ActivityPolicyStateType policyState = state.getActivityPolicies().stream()
+        ActivityPolicyStateType policyState = state.getPolicy().stream()
                 .filter(p ->
                         exact ?
                                 Objects.equals(p.getName(), policyName) :
@@ -52,7 +52,7 @@ public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ActivityPoliciesStateAsserter<RA> assertPolicyStateCount(int expectedCount) {
-        List<ActivityPolicyStateType> policyStates = state.getActivityPolicies();
+        List<ActivityPolicyStateType> policyStates = state.getPolicy();
 
         Assertions.assertThat(policyStates).hasSize(expectedCount);
 
@@ -60,7 +60,7 @@ public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ActivityPoliciesStateAsserter<RA> assertOnePolicyStateTriggers(String identifier, int expectedCount) {
-        List<ActivityPolicyStateType> policyStates = state.getActivityPolicies();
+        List<ActivityPolicyStateType> policyStates = state.getPolicy();
 
         Assertions.assertThat(policyStates).hasSize(1);
         ActivityPolicyStateType policyState = policyStates.get(0);

@@ -8,17 +8,16 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.List;
 
-import com.evolveum.midpoint.repo.common.activity.policy.*;
 import jakarta.xml.bind.JAXBElement;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.repo.common.activity.policy.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
-
-import org.jetbrains.annotations.Nullable;
 
 // todo add localization keys to midpoint.properties
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
@@ -35,8 +34,6 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
 
         Integer localValue = getLocalValue(context);
         Integer totalValue = ComputationUtil.add(localValue, getPreexistingValue(context));
-
-        updateRuleThresholdTypeAndValues(context.getRule(), constraint, localValue, totalValue);
 
         if (totalValue == null) {
             if (shouldTriggerOnNullValue()) {
@@ -82,10 +79,6 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
         }
 
         return List.of();
-    }
-
-    protected void updateRuleThresholdTypeAndValues(
-            EvaluatedPolicyRule rule, C constraint, Integer localValue, Integer totalValue) {
     }
 
     protected boolean shouldTriggerOnNullValue() {

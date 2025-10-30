@@ -10,10 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -63,8 +62,7 @@ abstract class PolicyRuleCounterUpdater {
 
         // Update the rules with the new counter values
         currentValues.forEach((id, value) ->
-                rulesToIncrementMap.get(id).setThresholdTypeAndValues(
-                        ThresholdValueType.COUNTER, value, totalValues.get(id)));
+                rulesToIncrementMap.get(id).setCount(value, totalValues.get(id)));
     }
 
     private Map<String, Integer> computeTotalValues(Map<String, Integer> currentValues) {
@@ -82,8 +80,8 @@ abstract class PolicyRuleCounterUpdater {
         for (EvaluatedPolicyRule rule : getPolicyRulesContext().getPolicyRules()) {
             if (!rule.isTriggered()) {
                 LOGGER.trace("Rule {} is not triggered, skipping counter update", rule.getRuleIdentifier());
-            } else if (rule.getThresholdValueType() != ThresholdValueType.COUNTER) {
-                LOGGER.trace("Rule {} does not have a threshold against counters, skipping counter update", rule.getRuleIdentifier());
+            } else if (!rule.hasThreshold()) {
+                LOGGER.trace("Rule {} does not have a threshold, skipping counter update", rule.getRuleIdentifier());
             } else {
                 LOGGER.trace("Incrementing counter for rule {}", rule.getRuleIdentifier());
                 rulesToIncrementMap.put(rule.getRuleIdentifier().toString(), rule);

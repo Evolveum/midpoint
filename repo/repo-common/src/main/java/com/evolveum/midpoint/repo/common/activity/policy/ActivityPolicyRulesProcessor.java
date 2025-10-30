@@ -9,20 +9,18 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
-
-import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
-
 import jakarta.xml.bind.JAXBElement;
-import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
+import com.evolveum.midpoint.repo.common.activity.ActivityThresholdPolicyViolationException;
+import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.repo.common.activity.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -33,8 +31,6 @@ import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This processor is responsible for collecting, evaluating and enforcing activity policy rules.
@@ -127,7 +123,7 @@ public class ActivityPolicyRulesProcessor {
 
         updateCounters(result);
 
-        executeAndStoreReactions(result);
+        executeAndStoreState(result);
     }
 
     private void evaluateRules(ItemProcessingResult processingResult, OperationResult result) {
@@ -143,9 +139,7 @@ public class ActivityPolicyRulesProcessor {
                 .updateCounters(result);
     }
 
-    private ActivityPolicyStateType createPolicyState(
-            EvaluatedActivityPolicyRule rule, List<EvaluatedPolicyReaction> applicableReactions) {
-
+    private ActivityPolicyStateType createPolicyState(EvaluatedActivityPolicyRule rule) {
         ActivityPolicyStateType state = new ActivityPolicyStateType();
         state.setIdentifier(rule.getRuleIdentifier().toString());
         state.setName(rule.getName());
@@ -154,15 +148,10 @@ public class ActivityPolicyRulesProcessor {
                 .map(t -> t.toPolicyTriggerType())
                 .forEach(t -> state.getTrigger().add(t));
 
-        List<EvaluatedActivityPolicyReactionType> reactionTypes = applicableReactions.stream()
-                .map(r -> r.toPolicyReactionBean())
-                .toList();
-        state.getReaction().addAll(reactionTypes);
-
         return state;
     }
 
-    private void executeAndStoreReactions(OperationResult result)
+    private void executeAndStoreState(OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, ThresholdPolicyViolationException {
 
         // These will be written to activity state at the end
@@ -180,17 +169,14 @@ public class ActivityPolicyRulesProcessor {
                     continue;
                 }
 
-                List<EvaluatedPolicyReaction> reactions = rule.getApplicableReactions();
-                if (reactions.isEmpty()) {
-                    LOGGER.trace("Policy rule {} has no applicable reactions, not executing reactions", rule);
+                if (rule.hasThreshold() && !rule.isOverThreshold()) {
+                    LOGGER.trace("Policy rule {} was triggered, still not yet over threshold, therefore not executing actions", rule);
                     continue;
                 }
 
-                policyStates.add(createPolicyState(rule, reactions));
+                policyStates.add(createPolicyState(rule));
 
-                for (EvaluatedPolicyReaction reaction : reactions) {
-                    executeActions(reaction, result);
-                }
+                executeActions(rule, result);
             }
         } finally {
             Collection<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
@@ -232,50 +218,47 @@ public class ActivityPolicyRulesProcessor {
                 policyBean.getPolicyConstraints());
     }
 
-    private void executeActions(EvaluatedPolicyReaction reaction, OperationResult result)
+    private void executeActions(EvaluatedActivityPolicyRule rule, OperationResult result)
             throws ActivityThresholdPolicyViolationException {
 
-        reaction.enforced();
-
-        for (ActivityPolicyActionType action : reaction.getActions()) {
+        for (ActivityPolicyActionType action : rule.getActions()) {
             if (action instanceof NotificationActivityPolicyActionType na) {
-                if (BooleanUtils.isTrue(na.isSingle()) && reaction.isEnforced()) {
-                    LOGGER.debug("Skipping notification action (single) because it was already enforced, rule: {}", reaction);
-                    continue;
-                }
+                // todo fix single execution check + state has to be loaded from somewhere
+//                if (BooleanUtils.isTrue(na.isSingle()) && reaction.isEnforced()) {
+//                    LOGGER.debug("Skipping notification action (single) because it was already enforced, rule: {}", rule);
+//                    continue;
+//                }
 
-                LOGGER.debug("Sending notification because of policy violation, rule: {}", reaction);
+                LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
 
-                activityRun.sendActivityPolicyRuleTriggeredEvent(reaction.getRule(), result);
+                activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
                 continue;
             }
 
             ActivityRunResultStatus runResultStatus;
             if (action instanceof RestartActivityPolicyActionType) {
-                LOGGER.debug("Restarting activity because of policy violation, rule: {}", reaction);
+                LOGGER.debug("Restarting activity because of policy violation, rule: {}", rule);
                 runResultStatus = ActivityRunResultStatus.RESTART_ACTIVITY_ERROR;
             } else if (action instanceof SkipActivityPolicyActionType) {
-                LOGGER.debug("Skipping activity because of policy violation, rule: {}", reaction);
+                LOGGER.debug("Skipping activity because of policy violation, rule: {}", rule);
                 runResultStatus = ActivityRunResultStatus.SKIP_ACTIVITY_ERROR;
             } else if (action instanceof SuspendTaskActivityPolicyActionType) {
-                LOGGER.debug("Suspending task because of policy violation, rule: {}", reaction);
+                LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
                 runResultStatus = ActivityRunResultStatus.HALTING_ERROR;
             } else {
-                LOGGER.debug("No action to take for policy violation, rule: {}", reaction);
+                LOGGER.debug("No action to take for policy violation, rule: {}", rule);
                 continue;
             }
 
-            throw buildException(reaction, action, runResultStatus);
+            throw buildException(rule, action, runResultStatus);
         }
     }
 
     private ActivityThresholdPolicyViolationException buildException(
-            EvaluatedPolicyReaction reaction, ActivityPolicyActionType action, ActivityRunResultStatus resultStatus) {
-
-        EvaluatedActivityPolicyRule rule = reaction.getRule();
+            EvaluatedActivityPolicyRule rule, ActivityPolicyActionType action, ActivityRunResultStatus resultStatus) {
 
         String ruleName = rule.getName();
-        String reactionName = reaction.getName();
+        String reactionName = rule.getName();
 
         LocalizableMessage message = new SingleLocalizableMessage(
                 "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName, reactionName });
@@ -291,6 +274,6 @@ public class ActivityPolicyRulesProcessor {
                 message,
                 defaultMessage,
                 resultStatus,
-                PolicyViolationContextBuilder.from(reaction, action, executionAttempt));
+                PolicyViolationContextBuilder.from(rule, action, executionAttempt));
     }
 }

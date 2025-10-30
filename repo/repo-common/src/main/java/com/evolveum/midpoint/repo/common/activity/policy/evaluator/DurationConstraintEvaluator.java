@@ -39,8 +39,6 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
         Duration localValue = getLocalValue(context);
         Duration totalValue = add(localValue, getPreexistingValue(context));
 
-        updateRuleThresholdTypeAndValues(context.getRule(), constraint, localValue, totalValue);
-
         if (totalValue == null) {
             if (shouldTriggerOnNullValue()) {
                 LOGGER.trace("Triggering on empty value for constraint {}", constraint.getName());
@@ -97,12 +95,6 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
         // It is strange but value.compare(limit) does not work as expected. For example, PT10S is not greater than PT10.5S.
         // Moreover, we'd need to treat INDETERMINATE result as well - by defaulting to millis comparison as done here.
         return ComputationUtil.durationToMillis(value).compareTo(ComputationUtil.durationToMillis(limit));
-    }
-
-    private void updateRuleThresholdTypeAndValues(EvaluatedPolicyRule rule, C constraint, Duration localValue, Duration totalValue) {
-        if (constraint.asPrismContainerValue().isEmpty()) {
-            rule.setThresholdTypeAndValues(ThresholdValueType.DURATION, localValue, totalValue);
-        }
     }
 
     protected boolean shouldTriggerOnNullValue() {

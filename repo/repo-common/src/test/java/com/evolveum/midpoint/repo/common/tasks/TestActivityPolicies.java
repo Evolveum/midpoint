@@ -252,7 +252,6 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .activityPolicyStates()
                         .assertPolicyStateCount(1)
                         .activityPolicyState("Execution time")
-                            .assertReactionCount(1)
                             .assertTriggerCount(1)
                             .end()
                     .end()
@@ -334,7 +333,6 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .activityPolicyStates()
                             .assertPolicyStateCount(1)
                             .activityPolicyState("Execution time")
-                                .assertReactionCount(1)
                                 .assertTriggerCount(1)
                                 .end()
                             .end()
@@ -667,6 +665,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         then("the task tree is suspended after exceeding given error count");
         // @formatter:off
         testTask.assertTreeAfter()
+                .display()
                 .assertSuspended()
                 .assertSubtasks(2)
                 .subtask("first", false)
@@ -780,7 +779,6 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .assertPolicyStateCount(1)
                         .activityPolicyState("Execution time")
                             .assertTriggerCount(1)
-                            .assertReactionCount(1)
                             .end()
                         .end()
                     .end();
@@ -826,7 +824,6 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                             .assertPolicyStateCount(1)
                             .activityPolicyState("Execution time")
                                 .assertTriggerCount(1)
-                                .assertReactionCount(1)
                                 .end()
                             .end()
                         .end()

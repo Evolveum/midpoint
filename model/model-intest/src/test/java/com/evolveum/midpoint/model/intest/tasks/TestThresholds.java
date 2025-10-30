@@ -49,9 +49,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
  * Tests the thresholds functionality.
  *
  * The purpose of this class is _not_ to test thresholds in any specific activity handler.
- * For simplicity we concentrate on the import and reconciliation activity.
+ * For simplicity, we concentrate on the import and reconciliation activity.
  *
- * We need to test basic functionality of thresholds in single threaded, multi threaded, multi node setup;
+ * We need to test basic functionality of thresholds in single threaded, multithreaded, multi node setup;
  * with different kinds of policy rules (add, modify, delete).
  *
  * Threshold manipulation in specific activities (e.g. live sync) will be checked in tests devoted to these activities.
@@ -646,12 +646,10 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                                     .exceeds(XmlTypeConverter.createDuration(exceedsExecutionTimeThreshold))
                                 .<ActivityPolicyConstraintsType>end()
                             .<ActivityPolicyType>end()
-                            .beginPolicyReaction()
-                                .beginAction()
-                                    .beginSuspendTask()
-                                        // no parameters
-                                    .<ActivityPolicyActionsType>end()
-                                .<PolicyReactionType>end()
+                            .beginPolicyActions()
+                                .beginSuspendTask()
+                                    // no parameters
+                                .<ActivityPolicyActionsType>end()
                             .<ActivityPolicyType>end()
                         .<ActivityPoliciesType>end()
                     .<ActivityDefinitionType>end();

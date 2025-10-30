@@ -12,19 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-
-import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
-import com.evolveum.midpoint.schema.result.OperationResult;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * A policy rule that is being evaluated in a context of given activity.
@@ -54,21 +51,18 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     /** The bean recorded to the activity state (if any). */
     private ActivityPolicyStateType currentState;
 
-    /** Type of the threshold value produced and checked by this rule (if any). */
-    private ThresholdValueType thresholdValueType;
-
     /**
      * The total value (to be checked against the threshold): existing before + computed for the current activity.
      */
-    private Object totalValue;
+    private Integer totalCount;
 
     /**
      * The value (to be checked against the threshold) that was computed for the current activity only (if any).
      *
-     * @see EvaluatedPolicyRule#getLocalValue()
-     * @see EvaluatedPolicyRule#getTotalValue()
+     * @see EvaluatedPolicyRule#getLocalCount()
+     * @see EvaluatedPolicyRule#getTotalCount()
      */
-    private Object localValue;
+    private Integer localCount;
 
     private final @NotNull Set<DataNeed> dataNeeds;
 
@@ -98,32 +92,18 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         return policy.getOrder();
     }
 
-    @Override
-    public Object getLocalValue() {
-        return localValue;
+    public Integer getLocalCount() {
+        return localCount;
+    }
+
+    public Integer getTotalCount() {
+        return totalCount;
     }
 
     @Override
-    public Object getTotalValue() {
-        return totalValue;
-    }
-
-    @Override
-    public @NotNull ThresholdValueType getThresholdValueType() {
-        return thresholdValueType != null ? thresholdValueType : ThresholdValueType.COUNTER;
-    }
-
-    @Override
-    public void setThresholdTypeAndValues(
-            @NotNull ThresholdValueType thresholdValueType, Object localValue, Object totalValue) {
-        if (this.thresholdValueType != null && this.thresholdValueType != thresholdValueType) {
-            throw new IllegalStateException(
-                    "Cannot change threshold value type from " + this.thresholdValueType + " to " + thresholdValueType);
-        }
-
-        this.thresholdValueType = thresholdValueType;
-        this.localValue = localValue;
-        this.totalValue = totalValue;
+    public void setCount(Integer localValue, Integer totalValue) {
+        this.localCount = localValue;
+        this.totalCount = totalValue;
     }
 
     @NotNull
@@ -133,15 +113,43 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
 
     @Override
     public boolean hasThreshold() {
-        return policy.getPolicyReaction().stream()
-                .anyMatch(r -> r.getThreshold() != null);
+        return policy.getPolicyThreshold() != null;
     }
 
-    List<EvaluatedPolicyReaction> getApplicableReactions() {
-        return policy.getPolicyReaction().stream()
-                .map(r -> new EvaluatedPolicyReaction(this, r))
-                .filter(r -> !r.hasThreshold() || r.isWithinThreshold())
-                .toList();
+    @Override
+    public boolean isOverThreshold() {
+        if (!hasThreshold()) {
+            return true;
+        }
+
+        Integer count = totalCount;
+        if (count == null) {
+            count = 0;
+        }
+
+        Integer low = getWaterMarkValue(policy.getPolicyThreshold().getLowWaterMark());
+        Integer high = getWaterMarkValue(policy.getPolicyThreshold().getHighWaterMark());
+
+        if (low != null && count < low) {
+            // below low water-mark
+            return false;
+        }
+
+        if (high != null && count > high) {
+            // above high water-mark
+            return false;
+        }
+
+        // either marks are not set, or the count is within the range
+        return true;
+    }
+
+    private Integer getWaterMarkValue(WaterMarkType waterMark) {
+        if (waterMark == null) {
+            return null;
+        }
+
+        return waterMark.getCount();
     }
 
     @NotNull
@@ -164,12 +172,6 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     @Override
     public boolean isTriggered() {
         return !triggers.isEmpty() || (currentState != null && !currentState.getTrigger().isEmpty());
-    }
-
-    boolean isReactionEnforced(String reactionIdentifier) {
-        return currentState != null
-                && currentState.getReaction().stream()
-                        .anyMatch(r -> reactionIdentifier.equals(r.getRef()) && r.isEnforced());
     }
 
     /** Does this policy rule need execution time to be evaluated? */
@@ -206,5 +208,36 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
                 "policy=" + policy.getName() +
                 ", triggers=" + triggers.size() +
                 '}';
+    }
+
+    public <T extends ActivityPolicyActionType> T getAction(Class<T> policyActionType) {
+        return getActions().stream()
+                .filter(policyActionType::isInstance)
+                .map(policyActionType::cast)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @NotNull
+    public List<ActivityPolicyActionType> getActions() {
+        ActivityPolicyActionsType actions = policy.getPolicyActions();
+        if (actions == null) {
+            return List.of();
+        }
+
+        List<ActivityPolicyActionType> result = new ArrayList<>();
+
+        addAction(result, actions.getNotification());
+        addAction(result, actions.getRestartActivity());
+        addAction(result, actions.getSkipActivity());
+        addAction(result, actions.getSuspendTask());
+
+        return result;
+    }
+
+    private void addAction(List<ActivityPolicyActionType> actions, ActivityPolicyActionType action) {
+        if (action != null) {
+            actions.add(action);
+        }
     }
 }

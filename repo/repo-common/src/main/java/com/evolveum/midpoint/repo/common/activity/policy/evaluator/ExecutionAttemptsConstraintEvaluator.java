@@ -6,20 +6,17 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
-import com.evolveum.midpoint.repo.common.activity.policy.DataNeed;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedPolicyRule;
-import com.evolveum.midpoint.repo.common.activity.policy.ThresholdValueType;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import java.util.Set;
 
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.DataNeed;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
-
-import java.util.Set;
 
 @Component
 public class ExecutionAttemptsConstraintEvaluator
@@ -33,14 +30,6 @@ public class ExecutionAttemptsConstraintEvaluator
     @Override
     protected @Nullable Integer getPreexistingValue(ActivityPolicyRuleEvaluationContext context) {
         return context.getPreexistingExecutionAttemptNumber();
-    }
-
-    @Override
-    protected void updateRuleThresholdTypeAndValues(
-            EvaluatedPolicyRule rule, NumericThresholdPolicyConstraintType constraint, Integer localValue, Integer totalValue) {
-        if (constraint.asPrismContainerValue().isEmpty()) {
-            rule.setThresholdTypeAndValues(ThresholdValueType.INTEGER, localValue, totalValue);
-        }
     }
 
     @Override

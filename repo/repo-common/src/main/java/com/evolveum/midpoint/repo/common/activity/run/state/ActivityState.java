@@ -16,10 +16,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
-
-import com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +25,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.UpdateActivityPoliciesOperation;
@@ -39,7 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
-import com.evolveum.midpoint.task.api.ExecutionSupport;
+import com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.CheckedCommonRunnable;
@@ -659,7 +656,7 @@ public abstract class ActivityState implements DebugDumpable {
             @NotNull Collection<ActivityPolicyStateType> policies, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        ItemPath policiesItemPath = stateItemPath.append(ActivityStateType.F_POLICIES, ActivityPoliciesStateType.F_ACTIVITY_POLICIES);
+        ItemPath policiesItemPath = stateItemPath.append(ActivityStateType.F_POLICIES, ActivityPoliciesStateType.F_POLICY);
 
         return new UpdateActivityPoliciesOperation(getTask(), policiesItemPath, policies, beans).execute(result);
     }

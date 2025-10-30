@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -71,12 +70,6 @@ public class UpdateActivityPoliciesOperation {
 
         List<ItemDelta<?, ?>> deltas = new ArrayList<>();
         for (ActivityPolicyStateType policy : policies) {
-            if (policy.getReaction().isEmpty()) {
-                // policy without reactions will not be stored
-                // (e.g., triggered constraint that updated counter, for example, but did not match any reaction)
-                continue;
-            }
-
             ActivityPolicyStateType existing = getCurrentPolicyState(task, policy);
 
             ItemDelta<?, ?> itemDelta;
@@ -111,24 +104,9 @@ public class UpdateActivityPoliciesOperation {
             return null;
         }
 
-        for (ActivityPolicyStateType storedPolicy : policiesContainer.getRealValues()) {
-            // first, we match policy by identifier
-            if (!Objects.equals(storedPolicy.getIdentifier(), policy.getIdentifier())) {
-                continue;
-            }
-
-            // then, we check if the set of reactions is the same
-            if (computeReactionsRefs(policy).equals(computeReactionsRefs(storedPolicy))) {
-                return storedPolicy;
-            }
-        }
-
-        return null;
-    }
-
-    private Set<String> computeReactionsRefs(ActivityPolicyStateType policy) {
-        return policy.getReaction().stream()
-                .map(r -> r.getRef())
-                .collect(Collectors.toSet());
+        return policiesContainer.getRealValues().stream()
+                .filter(p -> Objects.equals(p.getIdentifier(), policy.getIdentifier()))
+                .findFirst()
+                .orElse(null);
     }
 }

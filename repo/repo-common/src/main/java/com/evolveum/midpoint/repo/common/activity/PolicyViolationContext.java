@@ -7,16 +7,14 @@
 package com.evolveum.midpoint.repo.common.activity;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionType;
-
-import org.jetbrains.annotations.Nullable;
 
 public record PolicyViolationContext(
         @NotNull String ruleIdentifier,
         String ruleName,
-        String reactionName,
-        ActivityPolicyActionType policyAction,
+        ActivityPolicyActionType action,
         Integer executionAttempt) {
 
     public static PolicyViolationContext getPolicyViolationContext(Throwable throwable) {
@@ -36,7 +34,7 @@ public record PolicyViolationContext(
             return null;
         }
 
-        ActivityPolicyActionType action = ctx.policyAction();
+        ActivityPolicyActionType action = ctx.action();
         if (action == null) {
             return null;
         }
