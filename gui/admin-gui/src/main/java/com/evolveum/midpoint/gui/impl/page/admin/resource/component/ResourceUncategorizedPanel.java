@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -287,8 +288,8 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             }
 
             @Override
-            protected boolean showErrorResultInFeedbackPanel() {
-                return ResourceUncategorizedPanel.this.showErrorResultInFeedbackPanel();
+            protected void processErrorResult(OperationResult errorResult) {
+                ResourceUncategorizedPanel.this.processErrorResult(errorResult);
             }
 
             @Override
@@ -300,8 +301,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         add(shadowTablePanel);
     }
 
-    protected boolean showErrorResultInFeedbackPanel() {
-        return false;
+    protected void processErrorResult(OperationResult errorResult) {
     }
 
     protected boolean isHeaderVisible() {

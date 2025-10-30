@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedInfoPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -26,9 +28,11 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class WizardWithNavigationPanel extends WizardPanel {
 
@@ -119,6 +123,10 @@ public class WizardWithNavigationPanel extends WizardPanel {
         };
         stepInProgress.add(stepsView);
         form.add(new WebMarkupContainer(ID_CONTENT_BODY));
+
+        CollapsedInfoPanel collapsedInfoPanel = new CollapsedInfoPanel(ID_COLLAPSED_INFO_PANEL, getWizardModel());
+        collapsedInfoPanel.setOutputMarkupId(true);
+        form.add(collapsedInfoPanel);
     }
 
     protected IModel<String> getTitleModel() {

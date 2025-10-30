@@ -161,11 +161,25 @@
   }
 }
 
-.clamp-2-lines {
-  -webkit-line-clamp: 2;
+.clamp-lines {
   -webkit-box-orient: vertical;
   display: -webkit-box;
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
+}
+
+.clamp-2-lines {
+  @extend .clamp-lines;
+  -webkit-line-clamp: 2;
+}
+
+.clamp-3-lines {
+  @extend .clamp-lines;
+  -webkit-line-clamp: 3;
+}
+
+.clamp-5-lines {
+  @extend .clamp-lines;
+  -webkit-line-clamp: 5;
 }

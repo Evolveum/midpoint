@@ -10,14 +10,18 @@ package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
+
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultCollapsedItem;
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Page;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class WizardModelWithParentSteps extends WizardModel {
 
@@ -26,7 +30,9 @@ public class WizardModelWithParentSteps extends WizardModel {
     private int lastActiveParentStepIndex;
     private int lastActiveStepIndex;
 
-    private Map<String, List<WizardStep>> childrenSteps = new HashMap<>();
+    private final OperationResultCollapsedItem operationResultCollapsedItem = new OperationResultCollapsedItem();
+
+    private final Map<String, List<WizardStep>> childrenSteps = new HashMap<>();
 
     public WizardModelWithParentSteps(@NotNull List<WizardParentStep> steps) {
         super(steps);
@@ -180,10 +186,12 @@ public class WizardModelWithParentSteps extends WizardModel {
     public void next() {
         int index = activeStepIndex;
         int parentIndex = activeParentStepIndex;
+        String oldPanelId = getActiveStep().getStepId();
 
         findNextStep(true);
 
         if (index != activeStepIndex || parentIndex != activeParentStepIndex) {
+            removeOperationResult(oldPanelId);
             fireActiveStepChanged(getActiveStep());
         }
     }
@@ -301,5 +309,41 @@ public class WizardModelWithParentSteps extends WizardModel {
         if (newStep instanceof WizardParentStep parentStep) {
             getChildrenSteps(parentStep).forEach(s -> s.init(this));
         }
+    }
+
+    public IModel<List<CollapsedItem>> getCollapsedItems() {
+        return Model.ofList(getCollapsedItemsList());
+    }
+
+    private @NotNull List<CollapsedItem> getCollapsedItemsList() {
+        return List.of(operationResultCollapsedItem);
+    }
+
+    public boolean isCollapsedItemsVisible() {
+        return operationResultCollapsedItem.isVisible();
+    }
+
+    public Optional<CollapsedItem> getSelectedCollapsedItem() {
+        return getCollapsedItemsList().stream()
+                .filter(CollapsedItem::isSelected).findFirst();
+    }
+
+    @Override
+    public void fireActiveStepChanged(WizardStep step) {
+        super.fireActiveStepChanged(step);
+        removeOperationResult(step.getStepId());
+        getCollapsedItemsList().forEach(item -> item.setSelected(false));
+    }
+
+    public void addOperationResult(String panelId, OperationResult result) {
+        addOperationResult(panelId, null, result);
+    }
+
+    public void addOperationResult(String panelId, String fixPanelId, OperationResult result) {
+        operationResultCollapsedItem.addOperationResult(panelId, fixPanelId, result);
+    }
+
+    public void removeOperationResult(String panelId) {
+        operationResultCollapsedItem.removeOperationResult(panelId);
     }
 }

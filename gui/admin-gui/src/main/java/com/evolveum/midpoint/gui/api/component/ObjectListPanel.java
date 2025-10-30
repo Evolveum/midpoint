@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -65,15 +67,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
-        if (showErrorResultInFeedbackPanel()
-                && getDataProvider() instanceof SelectableBeanDataProvider<?> selectableBeanDataProvider
+        if (getDataProvider() instanceof SelectableBeanDataProvider<?> selectableBeanDataProvider
                 && selectableBeanDataProvider.getErrorResult() != null) {
-            getPageBase().showResult(selectableBeanDataProvider.getErrorResult());
+            processErrorResult(selectableBeanDataProvider.getErrorResult());
         }
     }
 
-    protected boolean showErrorResultInFeedbackPanel() {
-        return false;
+    protected void processErrorResult(OperationResult errorResult) {
     }
 
     protected String getSearchByNameParameterValue() {
