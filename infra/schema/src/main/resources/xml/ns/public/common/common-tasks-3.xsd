@@ -9027,7 +9027,7 @@
             <xsd:element name="policy" type="tns:ActivityPolicyStateType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Policy states related to the evaluation of activity policies.
+                        Policy state related to the evaluation of activity policy.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
