@@ -234,6 +234,7 @@ class MappingsSuggestionOperation {
                         .inbound(new InboundMappingType()
                                 .name(shadowAttrPath.lastName().getLocalPart()
                                         + "-to-" + focusPropPath) //TODO TBD
+                                .strength(MappingStrengthType.STRONG)
                                 .target(new VariableBindingDefinitionType()
                                         .path(hackedReal.toBean()))
                                 .expression(expression)));
