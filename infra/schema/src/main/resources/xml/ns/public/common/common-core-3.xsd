@@ -5562,6 +5562,12 @@
                             <xsd:appinfo>
                                 <a:displayName>MappingType.expression</a:displayName>
                             </xsd:appinfo>
+                            <xsd:documentation>
+                                <p>
+                                    The expression is optional. If omitted, the mapping may simply copy
+                                    the source value(s) to the target ("as is"), depending on configuration.
+                                </p>
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0">
@@ -5569,6 +5575,10 @@
                             <xsd:appinfo>
                                 <a:displayName>MappingType.target</a:displayName>
                             </xsd:appinfo>
+                            <xsd:documentation>
+                                The target element effectively defines where the result
+                                of the mapping will be stored or applied.
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">

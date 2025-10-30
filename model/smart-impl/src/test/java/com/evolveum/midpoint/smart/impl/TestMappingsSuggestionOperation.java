@@ -3,6 +3,7 @@ package com.evolveum.midpoint.smart.impl;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.impl.binding.AbstractPlainStructured;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -23,6 +24,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
@@ -116,10 +118,10 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         if (scripts == null || scripts.length == 0) {
             return new MockServiceClientImpl(matchResponse);
         } else {
-            Object[] responses = new Object[1 + scripts.length];
-            responses[0] = matchResponse;
-            for (int i = 0; i < scripts.length; i++) {
-                responses[i + 1] = new SiSuggestMappingResponseType().transformationScript(scripts[i]);
+            List<AbstractPlainStructured> responses = new ArrayList<>();
+            responses.add(matchResponse);
+            for (String script : scripts) {
+                responses.add(new SiSuggestMappingResponseType().transformationScript(script));
             }
             return new MockServiceClientImpl(responses);
         }

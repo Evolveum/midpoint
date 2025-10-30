@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
@@ -122,7 +123,10 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             @Override
             public void refreshTable(AjaxRequestTarget target) {
                 super.refreshTable(target);
-                target.add(get(ID_FORM));
+                //TODO check it
+                if(get(ID_FORM) != null){
+                    target.add(get(ID_FORM));
+                }
             }
 
             @Override
@@ -202,8 +206,9 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     @NotNull AjaxRequestTarget target,
                     @NotNull PrismContainerValueWrapper<C> valueWrapper,
                     @NotNull StatusInfo<?> statusInfo) {
+                PageBase pageBase = getPageBase();
                 onReviewValue(() -> valueWrapper, target, statusInfo,
-                        ajaxRequestTarget -> performOnDeleteSuggestion(getPageBase(), ajaxRequestTarget,
+                        ajaxRequestTarget -> performOnDeleteSuggestion(pageBase, ajaxRequestTarget,
                                 valueWrapper, statusInfo));
             }
 

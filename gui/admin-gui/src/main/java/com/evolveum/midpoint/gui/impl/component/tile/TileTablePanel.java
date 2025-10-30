@@ -11,6 +11,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.Toggle;
@@ -30,6 +31,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -124,8 +126,6 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         tilesView.setOutputMarkupId(true);
         add(tilesView);
 
-        initHeaderFragment(tilesView);
-
         ISortableDataProvider<O, String> provider = createProvider();
         WebMarkupContainer tilesContainer = createTilesContainer(ID_TILES_CONTAINER, provider, tableId);
         tilesContainer.add(new VisibleBehaviour(this::isTileViewVisible));
@@ -140,6 +140,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         footerContainer.setOutputMarkupId(true);
         footerContainer.add(AttributeAppender.append("class", getTilesFooterCssClasses()));
         tilesView.add(footerContainer);
+
+        initHeaderFragment(tilesView);
 
         NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, getTiles(), true) {
 
@@ -267,6 +269,16 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         };
     }
 
+    public void setCurrentPage(int currentPage) {
+        if (!isTileViewVisible()) {
+            BoxedTablePanel<?> tiles = getBoxedTablePanelComponent();
+            tiles.getDataTable().setCurrentPage(currentPage);
+        } else {
+            PageableListView<?, ?> tiles = getTiles();
+            tiles.setCurrentPage(currentPage);
+        }
+    }
+
     public void navigateToLastPage() {
         if (!isTileViewVisible()) {
             BoxedTablePanel<?> tiles = getBoxedTablePanelComponent();
@@ -293,6 +305,75 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
         long lastPage = (total - 1) / pageSize;
         tiles.setCurrentPage(lastPage);
+    }
+
+    public List<O> getAllItems() {
+        List<O> allItems = new ArrayList<>();
+        ISortableDataProvider<O, String> provider = getProvider();
+        long size = provider.size();
+        Iterator<? extends O> it = provider.iterator(0, size);
+        it.forEachRemaining(allItems::add);
+        return allItems;
+    }
+
+    public List<O> getCurrentPageItems(long currentPage, long itemsPerPage) {
+        long total = getProvider().size();
+        if (total == 0 || itemsPerPage <= 0) {return Collections.emptyList();}
+
+        long start = Math.max(0, currentPage * itemsPerPage);
+        if (start >= total) {return Collections.emptyList();}
+
+        long length = Math.min(itemsPerPage, total - start);
+
+        List<O> page = new ArrayList<>((int) length);
+        Iterator<? extends O> it = getProvider().iterator(start, length);
+        it.forEachRemaining(page::add);
+        return page;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<O> getCurrentPageItems() {
+        if (isTileViewVisible()) {
+            return getTilesModel().getObject().stream()
+                    .map(Tile::getValue)
+                    .map(v -> (O) v)
+                    .toList();
+        }
+
+        BoxedTablePanel<?> table = getBoxedTablePanelComponent();
+        return getCurrentPageItems(
+                table.getDataTable().getCurrentPage(),
+                table.getDataTable().getItemsPerPage());
+    }
+
+    /**
+     * Ensures the table or tile view does not remain on an invalid (empty) page.
+     * Adjusts current page if it exceeds the last available page,
+     * or resets to 0 if there are no items.
+     */
+    protected void adjustPagingIfEmpty() {
+        if (isTileViewVisible()) {
+            adjustPagingIfEmpty(getTiles(), getTiles().getItemCount(), getTiles().getItemsPerPage());
+        } else {
+            BoxedTablePanel<?> table = getBoxedTablePanelComponent();
+            if (table != null && table.getDataTable() != null) {
+                adjustPagingIfEmpty(table.getDataTable(),
+                        table.getDataTable().getItemCount(),
+                        table.getDataTable().getItemsPerPage());
+            }
+        }
+    }
+
+    protected void adjustPagingIfEmpty(IPageable pageable, long total, long pageSize) {
+        if (total > 0) {
+            long maxPage = (total - 1) / pageSize;
+            if (pageable.getCurrentPage() > maxPage) {
+                pageable.setCurrentPage(maxPage);
+            }
+        } else {
+            pageable.setCurrentPage(0);
+        }
     }
 
     protected String getAdditionalFooterCss() {
@@ -374,10 +455,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     public ISortableDataProvider<O, String> getProvider() {
         PageableListView view = getTiles();
-        return view.getProvider();
+        return view == null ? null : view.getProvider();
     }
 
-    protected PageableListView getTiles() {
+    public PageableListView getTiles() {
         return (PageableListView) get(ID_TILE_VIEW).get(ID_TILES_CONTAINER).get(ID_TILES);
     }
 

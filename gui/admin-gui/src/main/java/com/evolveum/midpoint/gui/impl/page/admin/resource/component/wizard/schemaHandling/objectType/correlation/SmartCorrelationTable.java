@@ -193,7 +193,7 @@ public class SmartCorrelationTable
                 findResourceObjectTypeDefinition(),
                 resourceOid);
 
-        return new StatusAwareDataProvider<>(this, Model.of(), dto);
+        return new StatusAwareDataProvider<>(this, Model.of(), dto, false);
     }
 
     @Override

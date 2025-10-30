@@ -89,7 +89,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
         if (suggestionsModelDto == null) {
             return super.createProvider();
         }
-        return new StatusAwareDataProvider<>(this, Model.of(), suggestionsModelDto);
+        return new StatusAwareDataProvider<>(this, Model.of(), suggestionsModelDto, false);
     }
 
     @Override

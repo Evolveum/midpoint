@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.behavior.CaretPreservingOnChangeBehavior;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
@@ -23,13 +24,13 @@ import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.List;
 
 public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
@@ -39,6 +40,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_CODE_LABEL = "codeLabel";
     private static final String ID_LANGUAGE_INPUT = "languageInput";
     private static final String ID_LANGUAGE_LABEL = "languageLabel";
+    private static final String ID_DESCRIPTION_LABEL = "descriptionLabel";
+    private static final String ID_DESCRIPTION_INPUT = "descriptionInput";
     private static final String C_DATA_PREFIX = "<![CDATA[";
     private static final String C_DATA_SUFFIX = "]]>";
 
@@ -52,9 +55,12 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     protected void initLayout(MarkupContainer parent) {
-        IModel<ExpressionUtil.Language> languageModel =createLanguageModel();
+        IModel<ExpressionUtil.Language> languageModel = createLanguageModel();
 
         SimpleAceEditorPanel codePanel = createCodeInputPanel(languageModel);
+
+        parent.add(new Label(ID_DESCRIPTION_LABEL, createStringResource("ScriptExpressionEvaluatorType.description")));
+        parent.add(createDescriptionField(createDescriptionModel()));
 
         parent.add(new Label(ID_LANGUAGE_LABEL, createStringResource("ScriptExpressionEvaluatorType.language")));
 
@@ -72,6 +78,37 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         }
 
         return Model.of(defaultLanguage);
+    }
+
+    /**
+     * Creates a model that provides access to the current description
+     * text of the {@link ExpressionType} for both reading and updating.
+     */
+    private @NotNull IModel<String> createDescriptionModel() {
+        return new IModel<>() {
+            @Override
+            public String getObject() {
+                return getModelObject() != null ? getModelObject().getDescription() : null;
+            }
+
+            @Override
+            public void setObject(String value) {
+                if (getModelObject() != null) {
+                    getModelObject().setDescription(value);
+                }
+            }
+        };
+    }
+
+    /**
+     * Creates an editable text field for the documentation property of the expression.
+     */
+    private @NotNull Component createDescriptionField(IModel<String> model) {
+        TextField<String> documentationField = new TextField<>(ScriptExpressionPanel.ID_DESCRIPTION_INPUT, model);
+        documentationField.setOutputMarkupId(true);
+        documentationField.add(AttributeAppender.append("class", "form-control form-control-sm mb-2"));
+        documentationField.add(new CaretPreservingOnChangeBehavior());
+        return documentationField;
     }
 
     private Component createLanguageInputPanel(IModel<ExpressionUtil.Language> languageModel, SimpleAceEditorPanel codePanel) {

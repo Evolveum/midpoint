@@ -181,7 +181,7 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
 
     @SuppressWarnings("unchecked")
     @Override
-    protected PageableListView<ResourceObjectTypeDefinitionType, PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getTiles() {
+    public PageableListView<ResourceObjectTypeDefinitionType, PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getTiles() {
         WebMarkupContainer container = (WebMarkupContainer) get(ID_TILE_VIEW).get(ID_TILES_CONTAINER);
         return (PageableListView<ResourceObjectTypeDefinitionType, PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>) container
                 .get(ID_TILES_RADIO_FORM).get(ID_TILES_RADIO).get(ID_TILES);

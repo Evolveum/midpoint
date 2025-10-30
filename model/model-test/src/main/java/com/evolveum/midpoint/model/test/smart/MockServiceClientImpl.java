@@ -30,6 +30,10 @@ public class MockServiceClientImpl implements ServiceClient {
         this.responses = List.of(responses).iterator();
     }
 
+    public MockServiceClientImpl(List<Object> responses) {
+        this.responses = responses.iterator();
+    }
+
     @Override
     public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass) throws SchemaException {
         LOGGER.debug("Invoking {} with request:\n{}",

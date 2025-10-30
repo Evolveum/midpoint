@@ -17,63 +17,64 @@
 
 /* Color variants */
 .info-badge.primary {
-  --label-color: #0d6efd;
+  --label-color: #{$primary};
   border-color: var(--label-color);
   color: var(--label-color);
 }
 
 .info-badge.danger {
-  --label-color: #dc3545;
+  --label-color: #{$danger};
   border-color: var(--label-color);
   color: var(--label-color);
 }
 
 .info-badge.purple {
-  --label-color: #6f42c1;
+  --label-color: #{$purple};
   border-color: var(--label-color);
   color: var(--label-color);
 }
 
 .info-badge.success-light {
-  --label-color: #198754;
+  --label-color: #{$success};
   border-color: var(--label-color);
   color: var(--label-color);
-  background-color: #D1E7DD;
+  background-color: #{$success-light};
 }
 
 .badge.badge-light-purple {
-  --label-color: #f0e7fe;
+  --label-color: #{$purple-light};
   background-color: var(--label-color);
   color: white;
 }
 
 .badge.badge-purple {
-  --label-color: #6f42c1;
+  --label-color: #{$purple};
   background-color: var(--label-color);
   color: white;
 }
 
 .bg-success-light {
-  background-color: #D1E7DD !important;
+  background-color: #{$success-light} !important;
 }
 
 .bg-danger-light {
-  background-color: #F8D7DA !important;
+  background-color: #{$danger-light} !important;
 }
 
 .border-purple {
-  border-color: #6f42c1 !important;
+  border-color: #{$purple} !important;
 }
 
 .border-3 {
-  border-width:3px !important;
+  border-width: 3px !important;
 }
-.alert.purple-light {
-  --label-color: #f0e7fe;
+
+.alert.purple-light-alert {
+  --label-color: #{$purple-light};
   background-color: var(--label-color);
-  border-color: #6f42c1;
+  border-color: #{$purple};
 }
 
 .text-purple-dark {
-  color: #290661 !important;
+  color: #{$purple-dark} !important;
 }
