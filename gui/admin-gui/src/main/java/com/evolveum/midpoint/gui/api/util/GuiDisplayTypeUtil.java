@@ -31,6 +31,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -207,7 +209,7 @@ public class GuiDisplayTypeUtil {
 
             String name = LocalizationUtil.translatePolyString(label);
 
-            String tooltip = LocalizationUtil.translate("MainObjectListPanel.newObjectWithName", new Object[]{ name });
+            String tooltip = LocalizationUtil.translate("MainObjectListPanel.newObjectWithName", new Object[] { name });
 
             displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(tooltip));
         }
@@ -336,7 +338,9 @@ public class GuiDisplayTypeUtil {
         return headerColor.substring(0, headerColor.indexOf(";"));
     }
 
-    public static DisplayType getDisplayTypeForStrengthOfMapping(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+    public static DisplayType getDisplayTypeForStrengthOfMapping(
+            @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel,
+            @Nullable String additionalCss) {
         PrismContainerValueWrapper<MappingType> mapping = rowModel.getObject();
         MappingType mappingBean = mapping.getRealValue();
 
@@ -352,10 +356,14 @@ public class GuiDisplayTypeUtil {
             case STRONG -> cssClass = "fa fa-circle";
         }
 
+        if (additionalCss != null) {
+            cssClass += cssClass + " " + additionalCss;
+        }
+
         return new DisplayType()
                 .tooltip(LocalizationUtil.translate(
                         "AbstractSpecificMappingTileTable.tile.help",
-                        new Object[]{LocalizationUtil.translateEnum(strength)}))
+                        new Object[] { LocalizationUtil.translateEnum(strength) }))
                 .beginIcon()
                 .cssClass(cssClass)
                 .end();

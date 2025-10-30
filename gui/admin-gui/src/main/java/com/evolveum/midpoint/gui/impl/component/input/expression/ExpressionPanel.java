@@ -129,7 +129,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
-        if(findParent(Table.class) != null || findParent(TileTablePanel.class) != null) {
+        if (findParent(Table.class) != null || findParent(TileTablePanel.class) != null) {
             isInTable = true;
         }
     }
@@ -465,7 +465,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     }
 
     protected void initDefaultPanelStyle() {
-        if(isReadOnly()){
+        if (isReadOnly()) {
             add(AttributeModifier.append("class", "d-flex align-items-center gap-2"));
         }
     }

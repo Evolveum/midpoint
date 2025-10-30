@@ -6,17 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -57,9 +54,9 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createVirtualMappingContainerModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.isNotCompletedSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadMappingTypeSuggestion;
-import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_INBOUND_MAPPINGS;
 
 /**
  * @author lskublik
@@ -184,17 +181,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         return true;
     }
 
-    public TabbedPanel<ITab> getTabPanel() {
-        //noinspection unchecked
-        return ((TabbedPanel<ITab>) get(ID_TAB_TABLE));
-    }
-
-    @SuppressWarnings("unchecked")
-    protected SmartMappingTable<MappingType> getTable() {
-        TabbedPanel<ITab> tabPanel = getTabPanel();
-        return (SmartMappingTable<MappingType>) tabPanel.get(TabbedPanel.TAB_PANEL_ID);
-    }
-
     protected boolean isInboundVisible() {
         return true;
     }
@@ -204,48 +190,45 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             IModel<Boolean> switchToggleModel,
             String resourceOid,
             MappingDirection initialTab) {
+        IModel<PrismContainerValueWrapper<P>> valueModel = getValueModel();
+        SmartMappingTable<P> columnTileTable =
+                new SmartMappingTable<>(
+                        panelId,
+                        () -> initialTab,
+                        switchToggleModel,
+                        valueModel,
+                        resourceOid) {
+                    @Override
+                    protected void performOnEditMapping(
+                            @NotNull AjaxRequestTarget target,
+                            @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                        if (initialTab == MappingDirection.INBOUND) {
+                            inEditInboundValue(rowModel, target);
+                        } else {
+                            inEditOutboundValue(rowModel, target);
+                        }
+                    }
 
-        SmartMappingTable<P> smartMappingTable = new SmartMappingTable<>(panelId,
-                TABLE_SMART_INBOUND_MAPPINGS,
-                Model.of(ViewToggle.TILE),
-                Model.of(initialTab),
-                switchToggleModel,
+                    @Override
+                    protected void refreshAndDetach(AjaxRequestTarget target) {
+                        super.refreshAndDetach(target);
+                        target.add(getAiPanel());
+                    }
+                };
+
+        columnTileTable.setOutputMarkupId(true);
+        columnTileTable.add(AttributeAppender.append("class", "p-0"));
+
+        return columnTileTable;
+    }
+
+    protected IModel<PrismContainerWrapper<MappingType>> getContainerModel() {
+        return createVirtualMappingContainerModel(
+                getPageBase(),
                 getValueModel(),
-                resourceOid) {
-            @Override
-            public void refreshAndDetach(AjaxRequestTarget target) {
-                super.refreshAndDetach(target);
-                target.add(getAiPanel());
-
-                //rerender also feedback panel only if there is an error message
-                if (getFeedback().hasErrorMessage()) {
-                    target.add(AttributeMappingsTableWizardPanel.this);
-                }
-            }
-
-            @Override
-            public PrismContainerValueWrapper<MappingType> acceptSuggestionItemPerformed(
-                    @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel,
-                    StatusInfo<MappingsSuggestionType> statusInfo,
-                    @NotNull AjaxRequestTarget target) {
-                PrismContainerValueWrapper<MappingType> newValue = createNewValue(rowModel.getObject().getNewValue(), target);
-                deleteItemPerformed(target, Collections.singletonList(rowModel.getObject()), false);
-                return newValue;
-            }
-
-            @SuppressWarnings({ "rawtypes", "unchecked" })
-            @Override
-            public void editItemPerformed(AjaxRequestTarget target, IModel rowModel, boolean isDuplicate) {
-                if (isInboundTabSelected) {
-                    inEditInboundValue(rowModel, target);
-                } else {
-                    inEditOutboundValue(rowModel, target);
-                }
-            }
-        };
-        smartMappingTable.setOutputMarkupId(true);
-        smartMappingTable.add(AttributeAppender.append("class", "p-0"));
-        return smartMappingTable;
+                ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
+                ResourceAttributeDefinitionType.F_REF,
+                initialTab);
     }
 
     protected LoadableModel<StatusInfo<?>> loadExistingSuggestion(String resourceOid) {
@@ -266,7 +249,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 () -> new SmartGeneratingAlertDto(loadExistingSuggestion(resourceOid), switchToggleModel, getPageBase())) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target) {
-                switchToggleModel.setObject(false);
                 ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
                 SmartIntegrationService service = getPageBase().getSmartIntegrationService();
                 getPageBase().taskAwareExecutor(target, OP_SUGGEST_MAPPING)
@@ -275,6 +257,11 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                 .withHideInProgress(true))
                         .runVoid((task, result) -> service
                                 .submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, task, result));
+            }
+
+            @Override
+            protected void onFinishActionPerform(AjaxRequestTarget target) {
+                getTable().refreshAndDetach(target);
             }
 
             @Override
@@ -292,6 +279,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
         aiPanel.setOutputMarkupId(true);
         aiPanel.setOutputMarkupPlaceholderTag(true);
+        aiPanel.add(new VisibleBehaviour(() -> switchToggleModel.getObject().equals(Boolean.TRUE)));
         return aiPanel;
     }
 
@@ -371,12 +359,15 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         return "AttributeMappingsTableWizardPanel.saveButton";
     }
 
-    protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
+    @Override
+    protected String getSubmitButtonCssClass() {
+        return "btn-primary";
+    }
 
+    protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
     }
 
     protected void inEditInboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
-
     }
 
     @Override
@@ -421,6 +412,16 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     protected PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> findResourceObjectTypeDefinition() {
         return getValueModel().getObject()
                 .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    public TabbedPanel<ITab> getTabPanel() {
+        return ((TabbedPanel<ITab>) get(ID_TAB_TABLE));
+    }
+
+    @SuppressWarnings("unchecked")
+    protected SmartMappingTable<MappingType> getTable() {
+        return (SmartMappingTable<MappingType>) getTabPanel().get(TabbedPanel.TAB_PANEL_ID);
     }
 
     protected SmartAlertGeneratingPanel getAiPanel() {

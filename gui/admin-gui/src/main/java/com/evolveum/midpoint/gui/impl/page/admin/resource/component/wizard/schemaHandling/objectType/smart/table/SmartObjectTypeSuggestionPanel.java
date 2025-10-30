@@ -260,7 +260,7 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
         return new ButtonInlineMenuItem(createStringResource("SmartSuggestObjectTypeTilePanel.discard.suggestion")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
+                return new CompositedIconBuilder();
             }
 
             @Override

@@ -339,7 +339,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @SuppressWarnings("unchecked")
     @Override
-    protected PageableListView<ComplexTypeDefinitionType, PrismContainerValueWrapper<ComplexTypeDefinitionType>> getTiles() {
+    public PageableListView<ComplexTypeDefinitionType, PrismContainerValueWrapper<ComplexTypeDefinitionType>> getTiles() {
         WebMarkupContainer container = (WebMarkupContainer) get(ID_TILE_VIEW).get(ID_TILES_CONTAINER);
         return (PageableListView<ComplexTypeDefinitionType, PrismContainerValueWrapper<ComplexTypeDefinitionType>>) container
                 .get(ID_TILES_RADIO_FORM).get(ID_TILES_RADIO).get(ID_TILES);

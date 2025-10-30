@@ -36,6 +36,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,10 +70,21 @@ public class StatusInfoTableUtil {
             @NotNull InlineMenuItem item,
             boolean showWhenPresent,
             @NotNull SerializableFunction<PrismContainerValueWrapper<C>, @Nullable StatusInfo<T>> getStatusInfoFn) {
+        item.setVisibilityChecker(bySuggestion(showWhenPresent, getStatusInfoFn));
+    }
 
-        item.setVisibilityChecker((rowModel, isHeader) -> {
+    /**
+     * Returns a {@link InlineMenuItem.VisibilityChecker} that controls visibility
+     * based on mapping suggestion presence and its status.
+     */
+    @Contract(pure = true)
+    public static <C extends Containerable, T> InlineMenuItem.@NotNull VisibilityChecker bySuggestion(
+            boolean showWhenPresent,
+            @NotNull SerializableFunction<PrismContainerValueWrapper<C>, @Nullable StatusInfo<T>> getStatusInfoFn) {
+
+        return (rowModel, isHeader) -> {
             if (rowModel == null || rowModel.getObject() == null) {
-                return false;
+                return true;
             }
 
             @SuppressWarnings("unchecked")
@@ -81,14 +93,12 @@ public class StatusInfoTableUtil {
 
             boolean present = statusInfo != null;
 
-            // Hide if suggestion exists but not in SUCCESS state
             if (present && statusInfo.getStatus() != OperationResultStatusType.SUCCESS) {
                 return false;
             }
 
-            // Show based on presence/absence flag
             return present == showWhenPresent;
-        });
+        };
     }
 
     /**
@@ -436,13 +446,13 @@ public class StatusInfoTableUtil {
     /**
      * Creates an actions column with inline menu buttons with link style and ellipsis action button.
      */
-    public static <C extends Containerable> @Nullable IColumn<PrismContainerValueWrapper<C>, String> createLinkStyleActionsColumn(
+    public static <O extends Serializable> @Nullable IColumn<O, String> createLinkStyleActionsColumn(
             @NotNull PageBase pageBase,
             @NotNull List<InlineMenuItem> allItems) {
         return !allItems.isEmpty() ? new InlineMenuButtonColumn<>(allItems, pageBase) {
             @Override
             public String getCssClass() {
-                return "inline-menu-column";
+                return "inline-menu-column col";
             }
 
             @Override
@@ -456,7 +466,7 @@ public class StatusInfoTableUtil {
             }
 
             @Override
-            protected String getInlineMenuItemCssClass(IModel<PrismContainerValueWrapper<C>> rowModel) {
+            protected String getInlineMenuItemCssClass(IModel<O> rowModel) {
                 return "btn btn-link btn-sm text-nowrap";
             }
 
@@ -470,6 +480,16 @@ public class StatusInfoTableUtil {
     @FunctionalInterface
     public interface SerializableTriConsumer<A, B, C> extends Serializable {
         void accept(A a, B b, C c);
+    }
+
+    public static StringResourceModel acceptConfirmationTitle(PageBase pageBase, int selectedCount, boolean empty) {
+        if (selectedCount == 0 && empty) {
+            return pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.noItems");
+        }
+
+        return selectedCount == 0
+                ? pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.empty")
+                : pageBase.createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title", selectedCount);
     }
 
 }

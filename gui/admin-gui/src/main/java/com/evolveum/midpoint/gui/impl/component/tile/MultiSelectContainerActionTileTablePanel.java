@@ -485,60 +485,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
     }
 
-    public List<PrismContainerValueWrapper<C>> getCurrentPageItems(long currentPage, long itemsPerPage) {
-        long total = getProvider().size();
-        if (total == 0 || itemsPerPage <= 0) {return Collections.emptyList();}
-
-        long start = Math.max(0, currentPage * itemsPerPage);
-        if (start >= total) {return Collections.emptyList();}
-
-        long length = Math.min(itemsPerPage, total - start);
-
-        List<PrismContainerValueWrapper<C>> page = new ArrayList<>((int) length);
-        Iterator<? extends PrismContainerValueWrapper<C>> it = getProvider().iterator(start, length);
-        it.forEachRemaining(page::add);
-        return page;
-    }
-
-    protected List<PrismContainerValueWrapper<C>> getCurrentPageItems() {
-        if (isTileViewVisible()) {
-            return getTilesModel().getObject().stream()
-                    .map(TemplateTile::getValue)
-                    .toList();
-        }
-        BoxedTablePanel<?> table = getBoxedTablePanelComponent();
-        return getCurrentPageItems(table.getDataTable().getCurrentPage(), table.getDataTable().getItemsPerPage());
-    }
-
-    /**
-     * Ensures the table or tile view does not remain on an invalid (empty) page.
-     * Adjusts current page if it exceeds the last available page,
-     * or resets to 0 if there are no items.
-     */
-    protected void adjustPagingIfEmpty() {
-        if (isTileViewVisible()) {
-            adjustPagingIfEmpty(getTiles(), getTiles().getItemCount(), getTiles().getItemsPerPage());
-        } else {
-            BoxedTablePanel<?> table = getBoxedTablePanelComponent();
-            if (table != null && table.getDataTable() != null) {
-                adjustPagingIfEmpty(table.getDataTable(),
-                        table.getDataTable().getItemCount(),
-                        table.getDataTable().getItemsPerPage());
-            }
-        }
-    }
-
-    private void adjustPagingIfEmpty(IPageable pageable, long total, long pageSize) {
-        if (total > 0) {
-            long maxPage = (total - 1) / pageSize;
-            if (pageable.getCurrentPage() > maxPage) {
-                pageable.setCurrentPage(maxPage);
-            }
-        } else {
-            pageable.setCurrentPage(0);
-        }
-    }
-
     private @NotNull IsolatedCheckBoxPanel createHeaderCheckBoxButton(String idButton) {
         IModel<Boolean> selectModel = buildHeaderCheckboxModel(this::getCurrentPageItems);
 

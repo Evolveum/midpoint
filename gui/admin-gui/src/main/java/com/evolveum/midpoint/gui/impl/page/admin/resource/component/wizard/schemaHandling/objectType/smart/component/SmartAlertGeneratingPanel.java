@@ -284,10 +284,9 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         target.add(SmartAlertGeneratingPanel.this);
         refreshAssociatedComponents(target);
     }
-
+//TODO in some case we need to switch model to false "check it"
     /** Refreshes suggestions (removes existing task and starts again). */
     protected void performRefreshOperation(AjaxRequestTarget target) {
-        getModelObject().setSuggestionDisplayed(Boolean.FALSE);
         getModelObject().removeExistingSuggestionTask(getPageBase());
         performSuggestOperation(target);
     }
