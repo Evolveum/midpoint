@@ -718,7 +718,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     }
 
     @Override
-    protected boolean isRepeatPasswordLabelVisible() {
+    protected boolean arePasswordInputFieldsAssociatedWithLabels() {
         return true;
     }
 }

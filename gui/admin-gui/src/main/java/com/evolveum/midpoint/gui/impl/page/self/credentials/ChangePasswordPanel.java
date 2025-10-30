@@ -23,6 +23,7 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
@@ -72,6 +73,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
     private static final String ID_PASSWORD_PANEL = "passwordPanel";
     private static final String ID_CURRENT_PASSWORD_FIELD = "currentPassword";
+    private static final String ID_CURRENT_PASSWORD_CONTAINER_FIELD = "currentPasswordContainer";
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
     private static final String ID_PASSWORD_HINT_PANEL = "passwordHintPanel";
     private static final String ID_CHANGE_PASSWORD = "changePassword";
@@ -114,6 +116,13 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
     }
 
     private void initLayout() {
+        WebMarkupContainer currentPasswordContainer = new WebMarkupContainer(ID_CURRENT_PASSWORD_CONTAINER_FIELD);
+        currentPasswordContainer.setOutputMarkupId(true);
+        currentPasswordContainer.add(new VisibleBehaviour(this::shouldCheckOldPassword));
+        currentPasswordContainer.add(AttributeAppender.append("class", arePasswordInputFieldsAssociatedWithLabels() ?
+                "password-panel-divider" : null));
+        add(currentPasswordContainer);
+
         IModel<String> currentPasswordModel = new IModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -130,13 +139,12 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordTextField currentPasswordField =
                 new PasswordTextField(ID_CURRENT_PASSWORD_FIELD, currentPasswordModel);
         currentPasswordField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        currentPasswordField.add(new VisibleEnableBehaviour(
-                this::shouldCheckOldPassword,
+        currentPasswordField.add(new EnableBehaviour(
                 () -> !savedPassword));
         currentPasswordField.setRequired(false);
         currentPasswordField.setResetPassword(false);
         currentPasswordField.setOutputMarkupId(true);
-        add(currentPasswordField);
+        currentPasswordContainer.add(currentPasswordField);
 
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
@@ -180,8 +188,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
 
             @Override
-            protected boolean isRepeatPasswordLabelVisible() {
-                return ChangePasswordPanel.this.isRepeatPasswordLabelVisible();
+            protected boolean arePasswordInputFieldsAssociatedWithLabels() {
+                return ChangePasswordPanel.this.arePasswordInputFieldsAssociatedWithLabels();
             }
         };
         passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
@@ -479,7 +487,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         return get(ID_PASSWORD_LABEL).getMarkupId();
     }
 
-    protected boolean isRepeatPasswordLabelVisible() {
+    protected boolean arePasswordInputFieldsAssociatedWithLabels() {
         return false;
     }
 }
