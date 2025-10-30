@@ -3,7 +3,6 @@ package com.evolveum.midpoint.smart.impl;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.impl.binding.AbstractPlainStructured;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -54,10 +53,6 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
             "for-mappings-suggestion", c -> dummyScenario = on(c).initialize());
 
     @Autowired private ExpressionFactory expressionFactory;
-
-    private MappingsQualityAssessor qualityAssessor() {
-        return new MappingsQualityAssessor(expressionFactory);
-    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -118,7 +113,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         if (scripts == null || scripts.length == 0) {
             return new MockServiceClientImpl(matchResponse);
         } else {
-            List<AbstractPlainStructured> responses = new ArrayList<>();
+            List<Object> responses = new ArrayList<>();
             responses.add(matchResponse);
             for (String script : scripts) {
                 responses.add(new SiSuggestMappingResponseType().transformationScript(script));
@@ -176,7 +171,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
                 null,
-                qualityAssessor(),
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderImpl(),
                 task,
                 result);
 
@@ -219,7 +215,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
                 null,
-                qualityAssessor(),
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderImpl(),
                 task,
                 result);
 
@@ -235,7 +232,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test003InvalidScriptReturnsNegativeQuality() throws Exception {
+    public void test003InvalidScriptShouldBeIgnored() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -262,7 +259,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
                 null,
-                qualityAssessor(),
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderImpl(),
                 task,
                 result);
 
@@ -272,11 +270,54 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         assertThat(suggestion.getAttributeMappings())
                 .as("Invalid script should produce a mapping with sentinel quality -1.0")
+                .hasSize(0);
+    }
+
+    @Test
+    public void test004InvalidScriptWithCorrectRetry() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Ensure data requires transformation so the microservice is queried
+        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "1-1-1-1-1");
+        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "2-222-2");
+        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "33-3-33");
+
+        refreshShadows();
+
+        // Intentionally invalid Groovy (method name misspelled) to trigger evaluation failure
+        String invalidScript = "input.repalceAll('-', '')";
+        String validScript = "input.replaceAll('-', '')";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                invalidScript,
+                validScript
+        );
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderImpl(),
+                task,
+                result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("Invalid script should be corrected with retry mechanism.")
                 .hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
-        assertThat(mapping.getExpectedQuality()).isEqualTo(-1.0f);
+        assertThat(mapping.getExpectedQuality()).isEqualTo(1.0f);
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
-                .as("Expression should still be present even if evaluation failed during scoring")
+                .as("Expression should still be present. This should be secured with retry mechanism.")
                 .isNotNull();
     }
 

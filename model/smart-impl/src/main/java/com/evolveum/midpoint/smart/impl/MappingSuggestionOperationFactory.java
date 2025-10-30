@@ -19,9 +19,12 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 public class MappingSuggestionOperationFactory {
 
     private final MappingsQualityAssessor mappingsQualityAssessor;
+    private final OwnedShadowsProvider ownedShadowsProvider;
 
-    public MappingSuggestionOperationFactory(MappingsQualityAssessor mappingsQualityAssessor) {
+    public MappingSuggestionOperationFactory(MappingsQualityAssessor mappingsQualityAssessor,
+            OwnedShadowsProvider ownedShadowsProvider) {
         this.mappingsQualityAssessor = mappingsQualityAssessor;
+        this.ownedShadowsProvider = ownedShadowsProvider;
     }
 
     public MappingsSuggestionOperation create(ServiceClient client, String resourceOid,
@@ -30,6 +33,6 @@ public class MappingSuggestionOperationFactory {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return MappingsSuggestionOperation.init(client, resourceOid, typeIdentification, activityState,
-                this.mappingsQualityAssessor, task, parentResult);
+                this.mappingsQualityAssessor, this.ownedShadowsProvider, task, parentResult);
     }
 }
