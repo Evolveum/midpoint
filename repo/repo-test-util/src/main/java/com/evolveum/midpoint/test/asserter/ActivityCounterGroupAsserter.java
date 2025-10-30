@@ -43,7 +43,6 @@ public class ActivityCounterGroupAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-
     @Override
     protected String desc() {
         return getDetails();

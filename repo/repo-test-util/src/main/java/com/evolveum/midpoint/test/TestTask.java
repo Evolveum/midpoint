@@ -7,10 +7,14 @@
 package com.evolveum.midpoint.test;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -18,7 +22,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Task that is to be used in tests.
@@ -151,5 +155,79 @@ public class TestTask extends TestObject<TaskType> {
         long startTime = System.currentTimeMillis();
         resume(result);
         test.waitForTaskFinish(oid, startTime, defaultTimeout, true);
+    }
+
+    public String buildPolicyIdentifier(ActivityPath path, String policyIdentifier)
+            throws CommonException {
+
+        return buildPolicyIdentifier(path, policyIdentifier, false);
+    }
+
+    public String buildPolicyIdentifier(ActivityPath path, String policyIdentifier, boolean exact)
+            throws CommonException {
+
+        TaskType task = test.getTask(oid).asObjectable();
+
+        ActivityDefinitionType def = findActivityDefinition(task.getActivity(), path);
+        if (def == null) {
+            throw new IllegalStateException("No activity definition for path " + path + " in task " + oid);
+        }
+
+        ActivityPoliciesType policies = def.getPolicies();
+        if (policies == null) {
+            throw new IllegalStateException("No activity policies for path " + path + " in task " + oid);
+        }
+
+        ActivityPolicyType policy = policies.getPolicy().stream()
+                .filter(p -> exact ?
+                        Objects.equals(policyIdentifier, p.getName())
+                        : p.getName() != null && p.getName().contains(policyIdentifier))
+                .findFirst()
+                .orElse(null);
+        if (policy == null) {
+            throw new IllegalStateException("No activity policy matching '" + policyIdentifier + "' for path " + path + " in task " + oid);
+        }
+
+        return def.getIdentifier() + ":" + policy.getId();
+    }
+
+    private ActivityDefinitionType findActivityDefinition(ActivityDefinitionType def, ActivityPath path) {
+        if (path.isEmpty()) {
+            return def;
+        }
+
+        if (def == null) {
+            return null;
+        }
+
+        String first = path.first();
+        ActivityPath remainder = path.rest();
+
+        ActivityCompositionType composition = def.getComposition();
+        if (composition != null) {
+            ActivityDefinitionType child = composition.getActivity().stream()
+                    .filter(a -> Objects.equals(first, a.getIdentifier()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (child != null) {
+                return findActivityDefinition(child, remainder);
+            }
+        }
+
+        if (!remainder.isEmpty()) {
+            return null; // no more to search
+        }
+
+        // noinspection unchecked
+        Collection<Item<?, ?>> items = def.asPrismContainerValue().getItems();
+        return items.stream()
+                .filter(i -> i.getDefinition().getTypeClass().isAssignableFrom(ActivityDefinitionType.class))
+                .map(i -> i.getRealValues())
+                .flatMap(Collection::stream)
+                .map(d -> (ActivityDefinitionType) d)
+                .filter(d -> Objects.equals(first, d.getIdentifier()))
+                .findFirst()
+                .orElse(null);
     }
 }

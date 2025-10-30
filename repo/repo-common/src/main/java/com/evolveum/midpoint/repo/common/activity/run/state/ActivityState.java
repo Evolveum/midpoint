@@ -693,7 +693,7 @@ public abstract class ActivityState implements DebugDumpable {
                         .asItemDeltas());
 
         ActivityRestartingStateType state = getRestartingState();
-        if (BooleanUtils.isTrue(state.isRestartCounters())) {
+        if (BooleanUtils.isNotFalse(state.isRestartCounters())) {
             deltas.add(PrismContext.get().deltaFor(TaskType.class)
                     .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
                     .asItemDelta());

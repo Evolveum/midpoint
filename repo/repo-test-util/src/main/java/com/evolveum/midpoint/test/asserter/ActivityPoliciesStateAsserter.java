@@ -46,7 +46,9 @@ public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
                                 Objects.equals(p.getName(), policyName) :
                                 p.getIdentifier() != null && p.getName().contains(policyName))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(
+                        () -> new AssertionError(
+                                "No activity policy state for policy " + policyName + ", exact=" + exact + " found"));
 
         return policyState != null ? new ActivityPolicyStateAsserter<>(policyState, this, null) : null;
     }

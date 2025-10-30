@@ -8,10 +8,6 @@ package com.evolveum.midpoint.repo.common.tasks;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -19,8 +15,11 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestTask;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
  * This is to comprehensively test activity policies at the low level.
@@ -238,6 +237,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         testTask.rerunErrorsOk(result);
 
         then("the task is suspended after exceeding execution time");
+        // @formatter:off
         testTask.assertAfter()
                 .display()
                 .assertSuspended()
@@ -256,6 +256,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                             .end()
                     .end()
                 .end();
+        // @formatter:on
 
         // TODO more asserts
     }
@@ -361,14 +362,13 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         when("task is run until it's stopped");
         testTask.rerunTreeErrorsOk(result);
 
-        // @formatter:off
         then("the task tree is suspended after exceeding execution time");
+        // @formatter:off
         testTask.assertTreeAfter()
                 .assertSuspended()
                 // we don't assert FATAL_ERROR here, because the root task itself may have different operationResultStatus
                 .rootActivityState()
                     .assertInProgressLocal()
-                    .assertFatalError()
                     .child("first")
                         .assertExecutionAttempts(1)
                         .assertComplete()
@@ -376,8 +376,8 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .end()
                     .child("second")
                         .assertExecutionAttempts(1)
-                        .assertInProgressLocal()
-                        .assertFatalError()
+                        .assertInProgressDelegated()
+                        .assertStatusInProgress()
                         .end()
                     .child("third")
                         .assertNotStarted()
@@ -388,12 +388,23 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .display()
                     .assertSuccess()
                     .assertClosed() // this activity finished before suspension
-
+                    .activityState(ActivityPath.fromId("first"))
+                        .assertSuccess()
+                        .noActivityPolicyStates()
+                        .end()
                     .end()
                 .subtask("second", false)
+                    .display()
                     .assertFatalError()
                     .assertSuspended() // but this was suspended
-                    .display()
+                    .activityState(ActivityPath.fromId("second"))
+                        .assertFatalError()
+                        .activityPolicyStates()
+                        .assertPolicyStateCount(1)
+                        .activityPolicyState("Execution time")
+                            .assertTriggerCount(1)
+                            .end()
+                        .end()
                     .end();
         // @formatter:on
         // TODO more asserts
@@ -629,8 +640,13 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         when("task is run until it's stopped");
         testTask.rerunTreeErrorsOk(result);
 
-        // @formatter:off
+        final String stopAfterPolicyCounterIdentifier =
+                testTask.buildPolicyIdentifier(
+                        ActivityPath.fromId("second"),
+                        "Stop after");
+
         then("the task tree is suspended after exceeding given error count");
+        // @formatter:off
         testTask.assertTreeAfter()
                 .assertSuspended()
                 .assertSubtasks(2)
@@ -640,9 +656,20 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .assertClosed() // this activity finished before suspension
                     .end()
                 .subtask("second", false)
+                    .display()
                     .assertFatalError()
                     .assertSuspended() // but this was suspended
-                    .display()
+                    .activityState(ActivityPath.fromId("second"))
+                        .assertFatalError()
+                        .fullExecutionModePolicyRulesCounters()
+                            .assertCounter(stopAfterPolicyCounterIdentifier,5)
+                            .end()
+                        .activityPolicyStates()
+                            .assertPolicyStateCount(1)
+                            .activityPolicyState("Stop after")
+                                .assertTriggerCount(1)
+                                .end()
+                        .end()
                     .end();
         // @formatter:on
         // TODO more asserts
@@ -700,17 +727,19 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         Thread.sleep(5000);
 
         then("the task is suspended after exceeding given number of errors");
+        // @formatter:off
         testTask.assertTreeAfter()
                 .assertSuspended()
                 .assertSubtasks(2)
                 .subtask(0)
                     .display()
                     .assertSuspended()
-                .end()
+                    .end()
                 .subtask(1)
                     .display()
                     .assertSuspended()
-                .end();
+                    .end();
+        // @formatter:on
         // TODO more asserts
     }
 
@@ -876,8 +905,8 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         when("task is run until it's stopped");
         testTask.rerunTreeErrorsOk(result);
 
-        // @formatter:off
         then("the task tree is finished, activity skipped after exceeding execution time");
+        // @formatter:off
         testTask.assertTreeAfter()
                 .display()
                 .assertSuspended()
@@ -1038,11 +1067,13 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         testTask.rerunTreeErrorsOk(result);
 
         then("root task is suspended and the first activity task is closed");
+        // @formatter:off
         testTask.assertTree("")
                 .assertSuspended()
                 .subtask("first", false)
-                .assertClosed()
-                .assertSuccess();
+                    .assertClosed()
+                    .assertSuccess();
+        // @formatter:on
 
         then("the second activity task and ALL its workers are suspended after exceeding execution time");
         var secondActivityTaskOid = testTask.assertTree("")
