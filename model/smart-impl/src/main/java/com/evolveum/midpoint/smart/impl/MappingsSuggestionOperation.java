@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPI
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -47,8 +46,8 @@ class MappingsSuggestionOperation {
     private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionOperation.class);
 
     private static final int ATTRIBUTE_MAPPING_EXAMPLES = 20;
+    private static final int ATTRIBUTE_TESTING_EXAMPLES = 40;
 
-    private static final String ID_SCHEMA_MATCHING = "schemaMatching";
     private static final String ID_SHADOWS_COLLECTION = "shadowsCollection";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
     private final TypeOperationContext ctx;
@@ -92,6 +91,12 @@ class MappingsSuggestionOperation {
         }
 
         Collection<OwnedShadow> ownedShadows = collectOwnedShadows(result);
+        var ownedList = new ArrayList<>(ownedShadows);
+        int trainCount = Math.min(ATTRIBUTE_MAPPING_EXAMPLES, ownedList.size());
+        int testCount = Math.min(ATTRIBUTE_TESTING_EXAMPLES, ownedList.size());
+        var suggestionShadows = ownedList.subList(0, trainCount);
+        var testingShadows = ownedList.subList(ownedList.size() - testCount, ownedList.size());
+        LOGGER.trace("Train={}, Test={}, Total={}", trainCount, testCount, ownedList.size());
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
@@ -103,14 +108,18 @@ class MappingsSuggestionOperation {
                 mappingsSuggestionState.flush(result);
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
-                var pairs = ownedShadows.stream()
+                var suggestionPairs = suggestionShadows.stream()
+                        .map(os -> os.toValuesPair(shadowAttrPath, focusPropPath))
+                        .toList();
+                var testingPairs = testingShadows.stream()
                         .map(os -> os.toValuesPair(shadowAttrPath, focusPropPath))
                         .toList();
                 try {
                     suggestion.getAttributeMappings().add(
                             suggestMapping(
                                     matchPair,
-                                    pairs,
+                                    suggestionPairs,
+                                    testingPairs,
                                     result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (Exception e) {
@@ -138,10 +147,10 @@ class MappingsSuggestionOperation {
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
-        state.setExpectedProgress(ATTRIBUTE_MAPPING_EXAMPLES);
+        state.setExpectedProgress(ATTRIBUTE_MAPPING_EXAMPLES + ATTRIBUTE_TESTING_EXAMPLES);
         state.flush(result); // because finding an owned shadow can take a while
         try {
-            return ownedShadowsProvider.fetch(ctx, state, result, ATTRIBUTE_MAPPING_EXAMPLES);
+            return ownedShadowsProvider.fetch(ctx, state, result, ATTRIBUTE_MAPPING_EXAMPLES + ATTRIBUTE_TESTING_EXAMPLES);
         } catch (Exception e) {
             state.recordException(e);
             throw e;
@@ -154,6 +163,7 @@ class MappingsSuggestionOperation {
     private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
             Collection<ValuesPair> valuesPairs,
+            Collection<ValuesPair> testingValuesPairs,
             OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
 
         LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
@@ -185,7 +195,7 @@ class MappingsSuggestionOperation {
             expression = buildScriptExpression(mappingResponse);
         }
 
-        var assessment = assessQualityWithRetry(expression, matchPair, valuesPairs, transformationScript, parentResult);
+        var assessment = assessQualityWithRetry(expression, matchPair, testingValuesPairs, transformationScript, parentResult);
 
         // TODO remove this ugly hack
         var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropPath);

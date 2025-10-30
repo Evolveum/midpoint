@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2025 Evolveum and contributors
  *
- * Licenced under the EUPL-1.2 or later.
+ * Licensed under the EUPL-1.2 or later.
  *
  *
  */
