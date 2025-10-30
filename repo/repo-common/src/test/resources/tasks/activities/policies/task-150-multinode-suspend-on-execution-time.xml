@@ -18,16 +18,15 @@
         </work>
         <policies>
             <policy>
+                <name>Execution time</name>
                 <policyConstraints>
                     <executionTime>
                         <exceeds>PT10S</exceeds>
                     </executionTime>
                 </policyConstraints>
-                <policyReaction>
-                    <action>
-                        <suspendTask/>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
             </policy>
         </policies>
         <distribution>

@@ -2032,7 +2032,8 @@
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="policyConstraints" type="tns:ActivityPolicyConstraintsType" minOccurs="0"/>
-            <xsd:element name="policyReaction" type="tns:PolicyReactionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="policyThreshold" type="tns:PolicyThresholdType" minOccurs="0"/>
+            <xsd:element name="policyActions" type="tns:ActivityPolicyActionsType" minOccurs="0"/>
             <xsd:element name="order" type="xsd:int" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -2232,35 +2233,6 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="PolicyReactionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Reaction to the policy constraint.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Unique identifier of the reaction rule. It's used for diagnostic purposes.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="threshold" type="tns:PolicyThresholdType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <!-- TODO -->
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="action" type="tns:ActivityPolicyActionsType"/>
-        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ActivityPolicyActionsType">
@@ -9052,10 +9024,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="activityPolicies" type="tns:ActivityPolicyStateType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="policy" type="tns:ActivityPolicyStateType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Policies related to the execution of the activity, defined directly in `activity/policies` element.
+                        Policy states related to the evaluation of activity policies.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -9094,7 +9066,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="reaction" type="tns:EvaluatedActivityPolicyReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -9111,32 +9082,6 @@
         <xsd:sequence>
             <xsd:element name="constraintName" type="xsd:string" minOccurs="0"/>
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="EvaluatedActivityPolicyReactionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                <!-- TODO -->
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-                <a:since>4.10</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="ref" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="reactionName" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
-            <xsd:element name="enforced" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        True if triggered policy reaction was already enforced, e.g. actions were executed at least once.
-
-                        For example, to avoid sending multiple notifications for the same policy trigger.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

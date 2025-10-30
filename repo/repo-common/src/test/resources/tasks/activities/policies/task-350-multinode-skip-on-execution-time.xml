@@ -24,11 +24,9 @@
                         <exceeds>PT2S</exceeds>
                     </executionTime>
                 </policyConstraints>
-                <policyReaction>
-                    <action>
-                        <skipActivity/>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <skipActivity/>
+                </policyActions>
             </policy>
         </policies>
         <distribution>

@@ -53,13 +53,11 @@
                         <below>2</below>
                     </executionAttempts>
                 </policyConstraints>
-                <policyReaction>
-                    <action>
-                        <restartActivity>
-                            <delay>500</delay>
-                        </restartActivity>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <restartActivity>
+                        <delay>500</delay>
+                    </restartActivity>
+                </policyActions>
             </policy>
         </policies>
     </activity>

@@ -65,16 +65,14 @@
                                 <status>fatal_error</status>
                             </itemState>
                         </policyConstraints>
-                        <policyReaction>
-                            <threshold>
-                                <lowWaterMark>
-                                    <count>5</count>
-                                </lowWaterMark>
-                            </threshold>
-                            <action>
-                                <suspendTask/>
-                            </action>
-                        </policyReaction>
+                        <policyThreshold>
+                            <lowWaterMark>
+                                <count>5</count>
+                            </lowWaterMark>
+                        </policyThreshold>
+                        <policyActions>
+                            <suspendTask/>
+                        </policyActions>
                     </policy>
                 </policies>
             </activity>

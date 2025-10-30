@@ -50,11 +50,9 @@
                         <exceeds>PT2S</exceeds>
                     </executionTime>
                 </policyConstraints>
-                <policyReaction>
-                    <action>
-                        <suspendTask/>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
             </policy>
         </policies>
         <distribution>
