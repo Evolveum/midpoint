@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -29,12 +31,14 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import java.io.Serial;
+
 /**
  * Created by honchar
  */
 public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
     private static final String ID_NAME = "nameLink";
@@ -106,11 +110,21 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
             return displayType;
         };
 
-        ImagePanel imagePanel = new ImagePanel(ID_ICON, displayModel);
+        ImagePanel imagePanel = new ImagePanel(ID_ICON, displayModel) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean shouldBeDescribed() {
+                return false;
+            }
+        };
         imagePanel.setRenderBodyOnly(true);
         add(imagePanel);
 
+        IModel<String> nameLinkTextModel = getLinkTextModel();
         AjaxLink<PrismReferenceValue> nameLink = new AjaxLink<>(ID_NAME, referenceModel) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 DetailsPageUtil.dispatchToObjectDetailsPage(referenceModel.getObject(), LinkedReferencePanel.this, false);
@@ -124,18 +138,11 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
             return ref.getObject() != null;
         }));
+        nameLink.add(AttributeAppender.append("aria-label",
+                getLinkTextAriaLabelModel(displayModel.getObject(), nameLinkTextModel.getObject())));
         add(nameLink);
 
-        Label nameLinkText = new Label(ID_NAME_TEXT, () -> {
-            PrismReferenceValue ref = referenceModel.getObject();
-            if (ref == null) {
-                return "";
-            }
-            if (ref.getTargetName() == null && ref.getObject()== null) {
-                return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(ref.asReferencable(), true, true);
-            }
-            return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), false, getPageBase());
-        });
+        Label nameLinkText = new Label(ID_NAME_TEXT, nameLinkTextModel);
         nameLinkText.setRenderBodyOnly(true);
         nameLink.add(nameLinkText);
     }
@@ -146,5 +153,34 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
     protected String getAdditionalCssStyle() {
         return "d-flex flex-wrap gap-2 align-items-center";
+    }
+
+    private IModel<String> getLinkTextModel() {
+        return () -> {
+            PrismReferenceValue ref = referenceModel.getObject();
+            if (ref == null) {
+                return "";
+            }
+            if (ref.getTargetName() == null && ref.getObject()== null) {
+                return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(ref.asReferencable(), true, true);
+            }
+            return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), false, getPageBase());
+        };
+    }
+
+    private IModel<String> getLinkTextAriaLabelModel(DisplayType iconDisplay, String linkText) {
+        return () -> {
+            StringBuilder sb = new StringBuilder(GuiDisplayTypeUtil.getHelp(iconDisplay));
+            if (sb.isEmpty()) {
+                sb.append(GuiDisplayTypeUtil.getTooltip(iconDisplay));
+            }
+            if (!sb.isEmpty() && StringUtils.isNotEmpty(linkText)) {
+                sb.append(", ");
+            }
+            if (StringUtils.isNotEmpty(linkText)) {
+                sb.append(linkText);
+            }
+            return sb.toString();
+        };
     }
 }

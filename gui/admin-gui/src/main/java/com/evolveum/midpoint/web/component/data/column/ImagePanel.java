@@ -80,14 +80,14 @@ public class ImagePanel extends BasePanel<DisplayType> {
         if (displayBean != null) {
             String toolTip = LocalizationUtil.translatePolyString(displayBean.getTooltip());
             image.add(AttributeModifier.replace("title", toolTip));
-            image.add(AttributeModifier.replace("aria-label", toolTip));
+            image.add(AttributeModifier.replace("aria-label", shouldBeDescribed() ? toolTip : null));
         }
         image.add(AttributeAppender.append("style", () -> StringUtils.isNotBlank(getColor()) ? "color: " + getColor() + ";" : ""));
         image.setOutputMarkupId(true);
         image.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getCssClass())));
 
-        image.add(AttributeAppender.append("role", iconRole.getValue()));
-        image.add(AttributeAppender.append("tabindex", 0));
+        image.add(AttributeAppender.append("role", shouldBeDescribed() ? iconRole.getValue() : null));
+        image.add(AttributeAppender.append("tabindex", shouldBeDescribed() ? 0 : null));
 
         add(image);
 
@@ -113,5 +113,10 @@ public class ImagePanel extends BasePanel<DisplayType> {
         }
 
         return GuiDisplayTypeUtil.removeStringAfterSemicolon(icon.getColor());
+    }
+
+    //todo better name?
+    protected boolean shouldBeDescribed() {
+        return true;
     }
 }
