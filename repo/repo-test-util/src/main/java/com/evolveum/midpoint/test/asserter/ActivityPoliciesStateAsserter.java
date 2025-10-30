@@ -35,11 +35,11 @@ public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public ActivityPolicyStateAsserter<ActivityPoliciesStateAsserter<RA>> activityPolicyState(String policyName) {
-        return activityPolicyState(policyName, false);
+    public ActivityPolicyStateAsserter<ActivityPoliciesStateAsserter<RA>> policy(String policyName) {
+        return policy(policyName, false);
     }
 
-    public ActivityPolicyStateAsserter<ActivityPoliciesStateAsserter<RA>> activityPolicyState(String policyName, boolean exact) {
+    public ActivityPolicyStateAsserter<ActivityPoliciesStateAsserter<RA>> policy(String policyName, boolean exact) {
         ActivityPolicyStateType policyState = state.getPolicy().stream()
                 .filter(p ->
                         exact ?
@@ -53,7 +53,7 @@ public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
         return policyState != null ? new ActivityPolicyStateAsserter<>(policyState, this, null) : null;
     }
 
-    public ActivityPoliciesStateAsserter<RA> assertPolicyStateCount(int expectedCount) {
+    public ActivityPoliciesStateAsserter<RA> assertPolicyCount(int expectedCount) {
         List<ActivityPolicyStateType> policyStates = state.getPolicy();
 
         Assertions.assertThat(policyStates).hasSize(expectedCount);

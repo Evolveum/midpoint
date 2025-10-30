@@ -129,7 +129,7 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                 .assertFatalError()
                 .rootActivityState()
                 .display()
-                .activityPolicyStates()
+                .policies()
                     .assertOnePolicyStateTriggers(identifier, 1)
                     .end()
                 .assertInProgressLocal()
@@ -154,7 +154,7 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                 .assertFatalError()
                 .rootActivityState()
                     .display()
-                    .activityPolicyStates()
+                    .policies()
                         .assertOnePolicyStateTriggers(identifier, 1)
                         .end()
                     .assertInProgressLocal()
@@ -359,13 +359,13 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                 .rootActivityState()
                     .assertExecutionAttempts(3)     // 1 initial + 2 restarts
                     .assertFatalError()
-                    .activityPolicyStates()
+                    .policies()
                         .display()
-                        .assertPolicyStateCount(2)
-                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"Max. 2s execution"))
+                        .assertPolicyCount(2)
+                        .policy(getActivityIdentifier(task.asObjectable(),"Max. 2s execution"))
                             .assertTriggerCount(1)
                         .end()
-                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"count restarts"))
+                        .policy(getActivityIdentifier(task.asObjectable(),"count restarts"))
                             .assertTriggerCount(1);
         // @formatter:on
 
@@ -404,10 +404,10 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                 .rootActivityState()
                     .assertExecutionAttempts(1)
                     .assertFatalError()
-                    .activityPolicyStates()
+                    .policies()
                         .display()
-                        .assertPolicyStateCount(3)
-                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"Execution notification"));
+                        .assertPolicyCount(3)
+                        .policy(getActivityIdentifier(task.asObjectable(),"Execution notification"));
         // @formatter:on
 
         checkDummyTransportMessages(DUMMY_NOTIFICATION_TRANSPORT, 3);

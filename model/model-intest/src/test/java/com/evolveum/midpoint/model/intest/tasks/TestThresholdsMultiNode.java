@@ -178,7 +178,7 @@ public class TestThresholdsMultiNode extends TestThresholds {
                 .rootActivityState()
                     .assertInProgressLocal()
                     .assertStatusInProgress()
-                    .activityPolicyStates()
+                    .policies()
                         .assertOnePolicyStateTriggers("resourceObjects:6", 1)
                     .end()
                 .end()
