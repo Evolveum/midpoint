@@ -6,10 +6,18 @@
 
 package com.evolveum.midpoint.schema.util.task.work;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDistributionDefinitionType;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDistributionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ActivityDefinitionUtil {
 
@@ -19,5 +27,78 @@ public class ActivityDefinitionUtil {
         } else {
             return activity.beginDistribution();
         }
+    }
+
+    public static void visitActivityDefinitions(
+            @NotNull TaskType task, @NotNull Function<ActivityDefinitionType, Boolean> visitor) {
+
+        ActivityDefinitionType def = task.getActivity();
+        if (def == null) {
+            return;
+        }
+
+        visitActivityDefinitions(def, visitor);
+    }
+
+    public static void visitActivityDefinitions(
+            @NotNull ActivityDefinitionType def, @NotNull Function<ActivityDefinitionType, Boolean> visitor) {
+
+        visitor.apply(def);
+
+        ActivityCompositionType composition = def.getComposition();
+        if (composition != null) {
+            for (ActivityDefinitionType child : composition.getActivity()) {
+                visitActivityDefinitions(child, visitor);
+            }
+        }
+
+        // noinspection unchecked
+        Collection<Item<?, ?>> items = def.asPrismContainerValue().getItems();
+        items.stream()
+                .filter(i -> i.getDefinition().getTypeClass().isAssignableFrom(ActivityDefinitionType.class))
+                .map(i -> i.getRealValues())
+                .flatMap(Collection::stream)
+                .map(d -> (ActivityDefinitionType) d)
+                .forEach(d -> visitActivityDefinitions(d, visitor));
+    }
+
+    public static ActivityDefinitionType findActivityDefinition(ActivityDefinitionType def, ActivityPath path) {
+        if (path.isEmpty()) {
+            return def;
+        }
+
+        if (def == null) {
+            return null;
+        }
+
+        String first = path.first();
+        ActivityPath remainder = path.rest();
+
+        ActivityCompositionType composition = def.getComposition();
+        if (composition != null) {
+            ActivityDefinitionType child = composition.getActivity().stream()
+                    .filter(a -> Objects.equals(first, a.getIdentifier()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (child != null) {
+                return findActivityDefinition(child, remainder);
+            }
+        }
+
+        if (!remainder.isEmpty()) {
+            return null; // no more to search
+        }
+
+        // noinspection unchecked
+        Collection<Item<?, ?>> items = def.asPrismContainerValue().getItems();
+        return items.stream()
+                .filter(i -> i.getDefinition().getTypeClass().isAssignableFrom(ActivityDefinitionType.class))
+                .map(i -> i.getRealValues())
+                .flatMap(Collection::stream)
+                .map(d -> (ActivityDefinitionType) d)
+                .filter(d -> Objects.equals(first, d.getIdentifier()))
+                .findFirst()
+                .orElse(null);
     }
 }

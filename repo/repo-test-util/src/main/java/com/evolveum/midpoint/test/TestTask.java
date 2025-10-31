@@ -7,14 +7,13 @@
 package com.evolveum.midpoint.test;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -22,7 +21,10 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Task that is to be used in tests.
@@ -168,7 +170,7 @@ public class TestTask extends TestObject<TaskType> {
 
         TaskType task = test.getTask(oid).asObjectable();
 
-        ActivityDefinitionType def = findActivityDefinition(task.getActivity(), path);
+        ActivityDefinitionType def = ActivityDefinitionUtil.findActivityDefinition(task.getActivity(), path);
         if (def == null) {
             throw new IllegalStateException("No activity definition for path " + path + " in task " + oid);
         }
@@ -191,45 +193,5 @@ public class TestTask extends TestObject<TaskType> {
         String identifier = def.getIdentifier() != null ? def.getIdentifier() : "";
 
         return identifier + ":" + policy.getId();
-    }
-
-    private ActivityDefinitionType findActivityDefinition(ActivityDefinitionType def, ActivityPath path) {
-        if (path.isEmpty()) {
-            return def;
-        }
-
-        if (def == null) {
-            return null;
-        }
-
-        String first = path.first();
-        ActivityPath remainder = path.rest();
-
-        ActivityCompositionType composition = def.getComposition();
-        if (composition != null) {
-            ActivityDefinitionType child = composition.getActivity().stream()
-                    .filter(a -> Objects.equals(first, a.getIdentifier()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (child != null) {
-                return findActivityDefinition(child, remainder);
-            }
-        }
-
-        if (!remainder.isEmpty()) {
-            return null; // no more to search
-        }
-
-        // noinspection unchecked
-        Collection<Item<?, ?>> items = def.asPrismContainerValue().getItems();
-        return items.stream()
-                .filter(i -> i.getDefinition().getTypeClass().isAssignableFrom(ActivityDefinitionType.class))
-                .map(i -> i.getRealValues())
-                .flatMap(Collection::stream)
-                .map(d -> (ActivityDefinitionType) d)
-                .filter(d -> Objects.equals(first, d.getIdentifier()))
-                .findFirst()
-                .orElse(null);
     }
 }
