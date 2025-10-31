@@ -465,12 +465,31 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 tasksSuspendedPredicate(3)); // main task + 2 workers
 
         then("everything is OK");
+        // @formatter:off
         testTask.assertTreeAfter()
+                .display()
                 .assertSuspended() // already checked above
                 .assertSubtasks(2)
-                .subtask(0).display().end()
-                .subtask(1).display().end();
-        // TODO more asserts
+                .rootActivityState()
+                    .assertStatusInProgress()
+                    .assertNoCounters()
+                    .policies()
+                        .assertPolicyCount(1)
+                        .policy("Execution time")
+                            .assertTriggerCount(1)
+                            .end()
+                        .end()
+                    .end()
+                .subtask(0)
+                    .display()
+                    .assertSuspended()
+                    .assertFatalError()
+                    .end()
+                .subtask(1)
+                    .display()
+                    .assertSuspended()
+                    .assertFatalError();
+        // @formatter:on
     }
 
     /**
@@ -492,16 +511,37 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         testTask.rerunTreeErrorsOk(result);
 
         then("root task is suspended and the first activity task is closed");
+        // @formatter:off
         testTask.assertTree("")
+                .display()
                 .assertSuspended()
+                .rootActivityState()
+                    .child("first")
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertNoCounters()
+                        .assertNoPolicies()
+                        .end()
+                    .end()
                 .subtask("first", false)
-                .assertClosed()
-                .assertSuccess();
+                    .display()
+                    .assertClosed()
+                    .assertSuccess()
+                    .activityState(ActivityPath.fromId("first"))
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertNoPolicies()
+                        .assertNoCounters();
+        // @formatter:on
 
         then("the second activity task and ALL its workers are suspended after exceeding execution time");
-        var secondActivityTaskOid = testTask.assertTree("")
-                .subtask("second", false)
-                .getOid();
+        // @formatter:off
+        var secondActivityTaskOid =
+                testTask.assertTree("")
+                    .display()
+                    .subtask("second", false)
+                    .getOid();
+        // @formatter:on
 
         waitForTaskTreeCloseOrCondition(
                 secondActivityTaskOid,
@@ -510,13 +550,44 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 DEFAULT_SLEEP_TIME,
                 tasksSuspendedPredicate(3)); // coordinator + 2 workers
 
+        // @formatter:off
         assertTaskTree(secondActivityTaskOid, "second activity task after")
                 .display()
                 .assertSuspended()
+                .assertInProgress()
+                .activityState(ActivityPath.fromId("second"))
+                    .assertStatusInProgress()
+                    .policies()
+                        .assertPolicyCount(1)
+                        .policy("Execution time")
+                            .assertTriggerCount(1)
+                            .end()
+                        .end()
+                    .end()
                 .assertSubtasks(2)
-                .subtask(0).display().end()
-                .subtask(1).display().end();
-        // TODO more asserts
+                .subtask(0)
+                    .display()
+                    .assertFatalError()
+                    .assertSuspended()
+                    .activityState(ActivityPath.fromId("second")) // worker state for second activity
+                        .assertFatalError()
+                        .assertInProgressLocal()
+                        .assertNoCounters()
+                        .assertNoPolicies()
+                        .end()
+                    .end()
+                .subtask(0)
+                    .display()
+                    .assertFatalError()
+                    .assertSuspended()
+                    .activityState(ActivityPath.fromId("second")) // worker state for second activity
+                        .assertFatalError()
+                        .assertInProgressLocal()
+                        .assertNoCounters()
+                        .assertNoPolicies()
+                        .end()
+                    .end();
+        // @formatter:on
     }
 
     /**
@@ -537,16 +608,20 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         testTask.rerunTreeErrorsOk(result);
 
         then("root task is suspended and the first activity task is closed");
+        // @formatter:off
         testTask.assertTree("")
                 .assertSuspended()
                 .subtask("first", false)
-                .assertClosed()
-                .assertSuccess();
+                    .assertClosed()
+                    .assertSuccess();
+        // @formatter:on
 
         then("the second activity task and ALL its workers are suspended after exceeding execution time");
+        // @formatter:off
         var secondActivityTaskOid = testTask.assertTree("")
                 .subtask("second", false)
                 .getOid();
+        // @formatter:on
 
         waitForTaskTreeCloseOrCondition(
                 secondActivityTaskOid,
@@ -555,12 +630,18 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 DEFAULT_SLEEP_TIME,
                 tasksSuspendedPredicate(3)); // coordinator + 2 workers
 
+        // @formatter:off
         assertTaskTree(secondActivityTaskOid, "second activity task after")
                 .display()
                 .assertSuspended()
                 .assertSubtasks(2)
-                .subtask(0).display().end()
-                .subtask(1).display().end();
+                .subtask(0)
+                    .display()
+                    .end()
+                .subtask(1)
+                    .display()
+                    .end();
+        // @formatter:on
         // TODO more asserts
     }
 
