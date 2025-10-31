@@ -58,7 +58,7 @@ public class ActivityPolicyRulesProcessor {
      *  Reason is that embedded activities do inherit definition from parent activity (if there's no tailoring in place).
      */
     public void collectRulesAndPreexistingValues(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        List<EvaluatedActivityPolicyRule> rules = collectRulesFromActivity(activityRun.getActivity());
+        List<ActivityPolicyRule> rules = collectRulesFromActivity(activityRun.getActivity());
         getPolicyRulesContext().setPolicyRules(rules);
 
         LOGGER.trace("Found {} activity policy rules for activity hierarchy, activity: '{}'",
@@ -81,7 +81,7 @@ public class ActivityPolicyRulesProcessor {
      * @param activity The activity from which to start collecting policy rules (null to stop).
      * @return List of evaluated activity policy rules, ordered by their defined order.
      */
-    private List<EvaluatedActivityPolicyRule> collectRulesFromActivity(@Nullable Activity<?, ?> activity) {
+    private List<ActivityPolicyRule> collectRulesFromActivity(@Nullable Activity<?, ?> activity) {
         if (activity == null) {
             return List.of();
         }
@@ -93,10 +93,10 @@ public class ActivityPolicyRulesProcessor {
         List<ActivityPolicyType> policyBeans = activityPoliciesBean.getPolicy();
 
         policyBeans.stream()
-                .map(policyBean -> new EvaluatedActivityPolicyRule(policyBean, activityPath, getDataNeeds(policyBean)))
+                .map(policyBean -> new ActivityPolicyRule(policyBean, activityPath, getDataNeeds(policyBean)))
                 .sorted(
                         Comparator.comparing(
-                                EvaluatedActivityPolicyRule::getOrder,
+                                ActivityPolicyRule::getOrder,
                                 Comparator.nullsLast(Comparator.naturalOrder())))
                 .forEach(r -> rules.add(r));
 
@@ -114,30 +114,34 @@ public class ActivityPolicyRulesProcessor {
 
         LOGGER.trace("Evaluating/executing activity policy rules for activity '{}'", activityRun.getActivityPath());
 
-        Collection<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
+        Collection<ActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
         if (rules.isEmpty()) {
             return;
         }
 
-        rules.forEach(rule -> rule.clearEvaluation());
+        Collection<EvaluatedActivityPolicyRule> evaluatedRules = rules.stream()
+                .map(EvaluatedActivityPolicyRule::new)
+                .collect(Collectors.toList());
 
-        evaluateRules(processingResult, result);
+        evaluateRules(evaluatedRules, processingResult, result);
 
-        updateCounters(result);
+        updateCounters(evaluatedRules, result);
 
-        executeAndStoreState(result);
+        executeAndStoreState(evaluatedRules, result);
     }
 
-    private void evaluateRules(ItemProcessingResult processingResult, OperationResult result) {
-        for (EvaluatedActivityPolicyRule rule : getPolicyRulesContext().getPolicyRules()) {
+    private void evaluateRules(
+            Collection<EvaluatedActivityPolicyRule> rules, ItemProcessingResult processingResult, OperationResult result) {
+
+        for (EvaluatedActivityPolicyRule rule : rules) {
             evaluateRule(rule, processingResult, result);
         }
     }
 
-    private void updateCounters(OperationResult result)
+    private void updateCounters(Collection<EvaluatedActivityPolicyRule> evaluatedRules, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        new ActivityPolicyRuleUpdater(activityRun)
+        new ActivityPolicyRuleUpdater(activityRun, evaluatedRules)
                 .updateCounters(result);
     }
 
@@ -153,7 +157,7 @@ public class ActivityPolicyRulesProcessor {
         return state;
     }
 
-    private void executeAndStoreState(OperationResult result)
+    private void executeAndStoreState(Collection<EvaluatedActivityPolicyRule> evaluatedRules, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, ThresholdPolicyViolationException {
 
         // These will be written to activity state at the end
@@ -163,9 +167,7 @@ public class ActivityPolicyRulesProcessor {
             LOGGER.trace("Enforcing activity policy rules for {} ({})",
                     activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
 
-            Collection<EvaluatedActivityPolicyRule> rules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
-
-            for (EvaluatedActivityPolicyRule rule : rules) {
+            for (EvaluatedActivityPolicyRule rule : evaluatedRules) {
                 if (!rule.isTriggered()) {
                     LOGGER.trace("Policy rule {} was not triggered, not executing reactions", rule);
                     continue;
@@ -181,10 +183,8 @@ public class ActivityPolicyRulesProcessor {
                 executeActions(rule, result);
             }
         } finally {
-            Collection<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
-
             // update policy states after all rules were enforced (even if ThresholdPolicyViolationException was thrown)
-            Map<String, EvaluatedActivityPolicyRule> ruleMap = rules.stream()
+            Map<String, EvaluatedActivityPolicyRule> ruleMap = evaluatedRules.stream()
                     .collect(Collectors.toMap(r -> r.getRuleIdentifier().toString(), r -> r));
 
             Map<String, ActivityPolicyStateType> updated = activityRun.updateActivityPolicyState(policyStates, result);

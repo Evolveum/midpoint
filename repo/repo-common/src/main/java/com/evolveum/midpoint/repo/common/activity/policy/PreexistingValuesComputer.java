@@ -41,7 +41,7 @@ class PreexistingValuesComputer {
     private final @NotNull ActivityPath myPath;
 
     /** All relevant policy rules. */
-    private final @NotNull List<EvaluatedActivityPolicyRule> rules;
+    private final @NotNull List<ActivityPolicyRule> rules;
 
     private Multimap<ActivityPath, OtherActivityState> allActivityStatesMap;
 
@@ -57,7 +57,7 @@ class PreexistingValuesComputer {
     private final Map<String, Integer> ruleCounters = new HashMap<>();
 
     PreexistingValuesComputer(
-            @NotNull AbstractActivityRun<?, ?, ?> activityRun, @NotNull List<EvaluatedActivityPolicyRule> rules) {
+            @NotNull AbstractActivityRun<?, ?, ?> activityRun, @NotNull List<ActivityPolicyRule> rules) {
         this.activityRun = activityRun;
         this.myPath = activityRun.getActivityPath();
         this.rules = rules;
@@ -78,7 +78,7 @@ class PreexistingValuesComputer {
     }
 
     private void determineExecutionTimeMap() {
-        for (EvaluatedActivityPolicyRule rule : rules) {
+        for (ActivityPolicyRule rule : rules) {
             if (rule.doesNeedExecutionTime()) {
                 var rulePath = rule.getPath();
                 if (!executionTimeMap.containsKey(rulePath)) {
@@ -97,7 +97,7 @@ class PreexistingValuesComputer {
     }
 
     private void determineExecutionAttemptNumberMap() {
-        for (EvaluatedActivityPolicyRule rule : rules) {
+        for (ActivityPolicyRule rule : rules) {
             if (rule.doesNeedExecutionAttemptNumber()) {
                 var rulePath = rule.getPath();
                 if (rulePath.equals(myPath)) {
