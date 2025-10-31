@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.nullIfEmpty;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.HashSet;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,13 +23,13 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.AiUtil;
+import com.evolveum.midpoint.smart.impl.scoring.ObjectTypesQualityAssessor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * Implements "suggest object types" operation.
@@ -38,9 +39,13 @@ class ObjectTypesSuggestionOperation {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesSuggestionOperation.class);
 
     private final OperationContext ctx;
+    private final ObjectTypesQualityAssessor qualityAssessor;
 
-    ObjectTypesSuggestionOperation(OperationContext context) {
+    private boolean retryAttempted;
+
+    ObjectTypesSuggestionOperation(OperationContext context, ObjectTypesQualityAssessor qualityAssessor) {
         this.ctx = context;
+        this.qualityAssessor = qualityAssessor;
     }
 
     /**
@@ -52,7 +57,7 @@ class ObjectTypesSuggestionOperation {
      * ** if the base context is the same, filters are merged by OR-ing them together
      * ** if the base context is different, conflicting intents are renamed by appending a number
      */
-    ObjectTypesSuggestionType suggestObjectTypes(ShadowObjectClassStatisticsType shadowObjectClassStatistics)
+    ObjectTypesSuggestionType suggestObjectTypes(OperationResult parentResult, ShadowObjectClassStatisticsType shadowObjectClassStatistics)
             throws SchemaException {
         var siRequest = new SiSuggestObjectTypesRequestType()
                 .schema(ResourceObjectClassSchemaSerializer.serialize(ctx.objectClassDefinition, ctx.resource))
@@ -71,8 +76,20 @@ class ObjectTypesSuggestionOperation {
                     new ResourceObjectTypeDelineationType()
                             .objectClass(ctx.objectClassDefinition.getTypeName());
 
-            for (String filterString : siObjectType.getFilter()) {
-                delineation.filter(parseAndSerializeFilter(filterString, shadowObjectDef));
+            try {
+                for (String filterString : siObjectType.getFilter()) {
+                    delineation.filter(parseAndSerializeFilter(filterString, shadowObjectDef));
+                }
+                var assessment = qualityAssessor.isFilterRunnable(ctx.resource.getOid(), ctx.objectClassDefinition.getTypeName(), delineation, ctx.task, parentResult);
+            } catch (Exception e) {
+                if (!retryAttempted) {
+                    retryAttempted = true;
+                    LOGGER.debug("Failed to verify runnability for suggested filter on first attempt. Retrying suggestObjectTypes once. Filters: {}",
+                            delineation.getFilter().stream().map(SearchFilterType::toString).collect(Collectors.joining(" AND ")), e);
+                    return suggestObjectTypes(parentResult, shadowObjectClassStatistics);
+                }
+                LOGGER.debug("Failed to verify runnability for suggested filter (no retry): {}",
+                        delineation.getFilter().stream().map(SearchFilterType::toString).collect(Collectors.joining(" AND ")), e);
             }
             AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_FILTER);
 
