@@ -113,11 +113,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private final RepositoryService repositoryService;
     private final ServiceClientFactory clientFactory;
     private final MappingSuggestionOperationFactory mappingSuggestionOperationFactory;
+    private final ObjectTypesSuggestionOperationFactory objectTypesSuggestionOperationFactory;
 
     public SmartIntegrationServiceImpl(ModelService modelService,
             TaskService taskService, ModelInteractionServiceImpl modelInteractionService, TaskManager taskManager,
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
-            ServiceClientFactory clientFactory, MappingSuggestionOperationFactory mappingSuggestionOperationFactory) {
+            ServiceClientFactory clientFactory, MappingSuggestionOperationFactory mappingSuggestionOperationFactory,
+            ObjectTypesSuggestionOperationFactory objectTypesSuggestionOperationFactory) {
         this.modelService = modelService;
         this.taskService = taskService;
         this.modelInteractionService = modelInteractionService;
@@ -125,6 +127,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         this.repositoryService = repositoryService;
         this.clientFactory = clientFactory;
         this.mappingSuggestionOperationFactory = mappingSuggestionOperationFactory;
+        this.objectTypesSuggestionOperationFactory = objectTypesSuggestionOperationFactory;
     }
 
     @Override
@@ -612,9 +615,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("objectClassName", objectClassName)
                 .build();
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
-            var types = new ObjectTypesSuggestionOperation(
-                    OperationContext.init(serviceClient, resourceOid, objectClassName, task, result))
-                    .suggestObjectTypes(statistics);
+            var op = this.objectTypesSuggestionOperationFactory.create(
+                    serviceClient, resourceOid, objectClassName, task, result);
+            var types = op.suggestObjectTypes(result, statistics);
             LOGGER.debug("Object types suggestion:\n{}", types.debugDump(1));
             return types;
         } catch (Throwable t) {
