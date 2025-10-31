@@ -7,8 +7,9 @@
 package com.evolveum.midpoint.notifications.impl.events;
 
 import com.evolveum.midpoint.notifications.api.events.ActivityPolicyRuleEvent;
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
 
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import org.jetbrains.annotations.NotNull;

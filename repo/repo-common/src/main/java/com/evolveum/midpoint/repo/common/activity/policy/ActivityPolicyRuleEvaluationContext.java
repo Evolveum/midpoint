@@ -6,14 +6,13 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import javax.xml.datatype.Duration;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
-
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.Duration;
 
 /**
  * Context that holds important information for evaluation of activity policy rule.

@@ -52,7 +52,7 @@ public class PreexistingValues implements DebugDumpable {
      */
     public static PreexistingValues determine(
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
-            @NotNull List<EvaluatedActivityPolicyRule> rules,
+            @NotNull List<ActivityPolicyRule> rules,
             @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         var computer = new PreexistingValuesComputer(activityRun, rules);
         computer.compute(result);

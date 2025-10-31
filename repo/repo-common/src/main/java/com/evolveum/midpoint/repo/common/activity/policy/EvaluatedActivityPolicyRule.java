@@ -10,125 +10,89 @@ import static com.evolveum.midpoint.util.DebugUtil.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * A policy rule that is being evaluated in a context of given activity.
- *
- * - These objects are created when an activity run ({@link AbstractActivityRun}) starts - in
- * {@link ActivityPolicyRulesProcessor#collectRulesAndPreexistingValues(OperationResult)} method.
- *
- * - They are evaluated periodically during the activity run - currently in
- * {@link ActivityPolicyRulesProcessor#evaluateAndExecuteRules(ItemProcessingResult, OperationResult)} method.
- */
-public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDumpable {
+public class EvaluatedActivityPolicyRule implements DebugDumpable {
 
-    private final @NotNull ActivityPolicyType policy;
+    @NotNull private final ActivityPolicyRule policyRule;
 
-    private final @NotNull ActivityPath path;
+    @NotNull private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
-    private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
-
-    /** The bean recorded to the activity state (if any). */
-    private ActivityPolicyStateType currentState;
-
-    /**
-     * The total value (to be checked against the threshold): existing before + computed for the current activity.
-     */
-    private Integer totalCount;
-
-    /**
-     * The value (to be checked against the threshold) that was computed for the current activity only (if any).
-     *
-     * @see EvaluatedPolicyRule#getLocalCount()
-     * @see EvaluatedPolicyRule#getTotalCount()
-     */
-    private Integer localCount;
-
-    private final @NotNull Set<DataNeed> dataNeeds;
-
-    public EvaluatedActivityPolicyRule(
-            @NotNull ActivityPolicyType policy, @NotNull ActivityPath path, @NotNull Set<DataNeed> dataNeeds) {
-        this.policy = policy;
-        this.path = path;
-        this.dataNeeds = dataNeeds;
+    public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyRule policyRule) {
+        this.policyRule = policyRule;
     }
 
-    @Override
-    public void clearEvaluation() {
-        triggers.clear();
-
-        totalCount = null;
-        localCount = null;
+    public ActivityPolicyType getPolicy() {
+        return policyRule.getPolicy();
     }
 
-    public @NotNull ActivityPath getPath() {
-        return path;
+    public ActivityPath getPath() {
+        return policyRule.getPath();
     }
 
-    @Override
-    public @NotNull ActivityPolicyRuleIdentifier getRuleIdentifier() {
-        return ActivityPolicyRuleIdentifier.of(policy, path);
-    }
-
-    @Override
     public String getName() {
-        return policy.getName();
+        return policyRule.getName();
     }
 
-    @Override
-    public Integer getOrder() {
-        return policy.getOrder();
+    public @NotNull ActivityPolicyRuleIdentifier getRuleIdentifier() {
+        return policyRule.getRuleIdentifier();
     }
 
-    public Integer getLocalCount() {
-        return localCount;
-    }
-
-    public Integer getTotalCount() {
-        return totalCount;
-    }
-
-    @Override
     public void setCount(Integer localValue, Integer totalValue) {
-        this.localCount = localValue;
-        this.totalCount = totalValue;
+        policyRule.setCount(localValue, totalValue);
+    }
+
+    public void setCurrentState(ActivityPolicyStateType currentState) {
+        policyRule.setCurrentState(currentState);
     }
 
     @NotNull
-    public ActivityPolicyType getPolicy() {
-        return policy;
+    public List<ActivityPolicyActionType> getActions() {
+        return policyRule.getActions();
     }
 
-    @Override
+    public boolean isTriggered() {
+        ActivityPolicyStateType currentState = policyRule.getCurrentState();
+        return !triggers.isEmpty() || (currentState != null && !currentState.getTrigger().isEmpty());
+    }
+
+    @NotNull
+    public List<EvaluatedActivityPolicyRuleTrigger<?>> getTriggers() {
+        return triggers;
+    }
+
+    public void setTriggers(List<EvaluatedActivityPolicyRuleTrigger<?>> triggers) {
+        this.triggers.clear();
+
+        if (triggers != null) {
+            this.triggers.addAll(triggers);
+        }
+    }
+
     public boolean hasThreshold() {
-        return policy.getPolicyThreshold() != null;
+        return getPolicy().getPolicyThreshold() != null;
     }
 
-    @Override
     public boolean isOverThreshold() {
         if (!hasThreshold()) {
             return true;
         }
 
-        Integer count = totalCount;
+        Integer count = policyRule.getTotalCount();
         if (count == null) {
             count = 0;
         }
 
-        Integer low = getWaterMarkValue(policy.getPolicyThreshold().getLowWaterMark());
-        Integer high = getWaterMarkValue(policy.getPolicyThreshold().getHighWaterMark());
+        PolicyThresholdType policyThreshold = policyRule.getPolicy().getPolicyThreshold();
+        Integer low = getWaterMarkValue(policyThreshold.getLowWaterMark());
+        Integer high = getWaterMarkValue(policyThreshold.getHighWaterMark());
 
         if (low != null && count < low) {
             // below low water-mark
@@ -152,43 +116,6 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         return waterMark.getCount();
     }
 
-    @NotNull
-    public List<EvaluatedActivityPolicyRuleTrigger<?>> getTriggers() {
-        return triggers;
-    }
-
-    public void setTriggers(List<EvaluatedActivityPolicyRuleTrigger<?>> triggers) {
-        this.triggers.clear();
-
-        if (triggers != null) {
-            this.triggers.addAll(triggers);
-        }
-    }
-
-    public void setCurrentState(ActivityPolicyStateType currentState) {
-        this.currentState = currentState;
-    }
-
-    @Override
-    public boolean isTriggered() {
-        return !triggers.isEmpty() || (currentState != null && !currentState.getTrigger().isEmpty());
-    }
-
-    /** Does this policy rule need execution time to be evaluated? */
-    boolean doesNeedExecutionTime() {
-        return dataNeeds.contains(DataNeed.EXECUTION_TIME);
-    }
-
-    /** Does this policy rule need execution attempt number to be evaluated? */
-    boolean doesNeedExecutionAttemptNumber() {
-        return dataNeeds.contains(DataNeed.EXECUTION_ATTEMPTS);
-    }
-
-    /** Does this policy rule need counters to be evaluated? Currently not used, we take all counters from the whole tree. */
-    public boolean doesUseCounters() {
-        return dataNeeds.contains(DataNeed.COUNTERS);
-    }
-
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -196,7 +123,7 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
         debugDumpLabelLn(sb, "policyRuleType", indent + 1);
         indentDebugDump(sb, indent + 2);
-        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policy, ActivityPolicyType.COMPLEX_TYPE, PrismContext.LANG_XML);
+        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, getPolicy(), ActivityPolicyType.COMPLEX_TYPE, PrismContext.LANG_XML);
         sb.append('\n');
         debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
         return sb.toString();
@@ -205,39 +132,8 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     @Override
     public String toString() {
         return "EvaluatedActivityPolicyRule{" +
-                "policy=" + policy.getName() +
+                "policy=" + getName() +
                 ", triggers=" + triggers.size() +
                 '}';
-    }
-
-    public <T extends ActivityPolicyActionType> T getAction(Class<T> policyActionType) {
-        return getActions().stream()
-                .filter(policyActionType::isInstance)
-                .map(policyActionType::cast)
-                .findFirst()
-                .orElse(null);
-    }
-
-    @NotNull
-    public List<ActivityPolicyActionType> getActions() {
-        ActivityPolicyActionsType actions = policy.getPolicyActions();
-        if (actions == null) {
-            return List.of();
-        }
-
-        List<ActivityPolicyActionType> result = new ArrayList<>();
-
-        addAction(result, actions.getNotification());
-        addAction(result, actions.getRestartActivity());
-        addAction(result, actions.getSkipActivity());
-        addAction(result, actions.getSuspendTask());
-
-        return result;
-    }
-
-    private void addAction(List<ActivityPolicyActionType> actions, ActivityPolicyActionType action) {
-        if (action != null) {
-            actions.add(action);
-        }
     }
 }

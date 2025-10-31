@@ -91,6 +91,10 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public ActivityStateAsserter<RA> assertPartialError() {
+        return assertResultStatus(OperationResultStatusType.PARTIAL_ERROR);
+    }
+
     public ActivityStateAsserter<RA> assertSuccess() {
         return assertResultStatus(OperationResultStatusType.SUCCESS);
     }
