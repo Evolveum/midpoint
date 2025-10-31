@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import jakarta.xml.bind.JAXBElement;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,6 +94,7 @@ public class ActivityPolicyRulesProcessor {
         List<ActivityPolicyType> policyBeans = activityPoliciesBean.getPolicy();
 
         policyBeans.stream()
+                .filter(policyBean-> BooleanUtils.isNotFalse(policyBean.isEnabled()))
                 .map(policyBean -> new ActivityPolicyRule(policyBean, activityPath, getDataNeeds(policyBean)))
                 .sorted(
                         Comparator.comparing(

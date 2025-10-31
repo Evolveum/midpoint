@@ -2030,6 +2030,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="enabled" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the policy rule is enabled.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="policyConstraints" type="tns:ActivityPolicyConstraintsType" minOccurs="0"/>
             <xsd:element name="policyThreshold" type="tns:PolicyThresholdType" minOccurs="0"/>
