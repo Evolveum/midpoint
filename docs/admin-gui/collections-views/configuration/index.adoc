@@ -211,8 +211,6 @@ There is also experimental functionality allowing to hide and show the collectio
 
 === Default Collection Views (since midPoint 4.4)
 
-=== Default Collection Views
-
 MidPoint comes with default collections defined for most of objects.
 These default collections are based on object type, e.g., there is a default collection for all users in midPoint available in the main application left-side menu.
 
@@ -221,79 +219,119 @@ These identifiers are used to adjust the default collection view.
 For example, if you need to add a custom column to the default users list, a new action needs to be defined for the default roles list.
 To be able to correctly merge configurations for one collection view from different sources, identifiers are mandatory, and every single collection view definition has to have an identifier defined.
 
+.Default collections
 [%autowidth]
 |===
-| Identifier | Menu item | Customizable
+| Identifier | Menu item
 
 | allUsers
 | All users
-| Yes
 
 | allOrgs
 | All organizations
-| Yes
 
 | allRoles
 | All roles
-| Yes
 
 | allServices
 | All services
-| Yes
-
-| allPolicies
-| All policies
-| No
 
 | allResources
 | All resource
-| Yes
 
 | allCases
 | All cases
-| Yes
 
 | allTasks
 | All tasks
-| Yes
-
-| allNodes
-| All nodes
-| No
 
 | allReports
 | All reports
-| Yes
 
 | allArchetypes
 | All archetypes
-| Yes
-
-| allMessageTemplates
-| All message templates
-| Yes
 
 | allObjectCollections
 | All object collections
-| Yes
 
 | allObjectTemplates
 | All object templates
-| Yes
-
-| allMarks
-| All marks
-| Yes
 
 | allSchemas
 | All schemas
-| Yes
 
 | allAudits
 | Audit Log Viewer
-| No
 
 |===
+
+
+The list below shows main menu tabs that have expandable submenu options.
+You can add new, dynamically populated menu items to the main navigation bar. 
+These menu items function as expandable submenus, with contents determined by an `ObjectCollection`.
+
+* Dashboards 
+* Users
+* Org. structure
+* Roles
+* Services
+* Resources
+* Cases
+* Server tasks
+* Reports
+* Archetypes
+* Message templates
+* Object collections
+* Object templates
+* Marks
+* Schemas
+
+The configuration is a two-step process:
+
+1. Define an `ObjectCollection` that queries the items for the submenu.
+
+2. Add an `objectCollectionView` to `systemConfiguration` to create the menu item and link it to the collection.
+
+.Example objectCollection definition
+[source,xml]
+----
+<objectCollection> 
+    ... 
+    oid="0f79ac96-0173-4575-a286-2395648abc01" 
+    version="1">
+    <name>Test Organization</name>
+    <type>c:OrgType</type>
+    <filter>
+        <!-- Object collection definition -->
+    </filter>
+</objectCollection>
+----
+
+.Add the objectCollection View to `Resource Objects` > `systemConfiguration`
+[source,xml]
+----
+<adminGuiConfiguration>
+    <objectCollectionViews>
+        <objectCollectionView>
+            <identifier>testOrganizaton</identifier>
+            <display>
+                <label>Test Organization</label>
+                <icon>
+                    <cssClass>fa-solid fa-building</cssClass>
+                </icon>
+            </display>
+            <type>OrgType</type>
+            <collection>
+                <collectionRef oid="0f79ac96-0173-4575-a286-2395648abc01" relation="org:default" type="c:ObjectCollectionType">
+                    <!-- Test Organization -->
+                </collectionRef>
+            </collection>
+        </objectCollectionView>
+...
+    </objectCollectionViews>
+</adminGuiConfiguration>
+----
+
 
 
 == Search configuration
