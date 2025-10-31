@@ -257,12 +257,6 @@ To be able to correctly merge configurations for one collection view from differ
 | allObjectTemplates
 | All object templates
 
-| allSchemas
-| All schemas
-
-| allAudits
-| Audit Log Viewer
-
 |===
 
 
