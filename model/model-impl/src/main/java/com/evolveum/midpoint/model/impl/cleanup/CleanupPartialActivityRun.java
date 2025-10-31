@@ -77,7 +77,7 @@ public final class CleanupPartialActivityRun<CP>
                 // Error is fatal w.r.t. this activity, and partial for the whole cleanup.
                 // But because the status aggregation does not treat this correctly yet (fatal is propagated to the root),
                 // let us report this as partial error for now. FIXME
-                return ActivityRunResult.exception(PARTIAL_ERROR, FINISHED, e);
+                return ActivityRunResult.fromException(PARTIAL_ERROR, FINISHED, e);
             } finally {
                 getRunningTask().setExecutionSupport(null);
             }

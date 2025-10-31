@@ -15,25 +15,32 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Describes the "error state" of the current activity run.
  *
- * Very experimental. TODO rethink this
+ * TODO rename to something like ImmediateStopState
  */
 @Experimental
 public class ErrorState {
 
-    /**
-     * TODO
-     */
-    @NotNull private final AtomicReference<Throwable> stoppingExceptionRef = new AtomicReference<>();
+    /** Holds details about the stop request, namely, what should be the run result of the activity. */
+    @NotNull private final AtomicReference<ImmediateStopRequestDetails> stopRequestDetailsRef = new AtomicReference<>();
 
-    Throwable getStoppingException() {
-        return stoppingExceptionRef.get();
+    ImmediateStopRequestDetails getImmediateStopRequest() {
+        return stopRequestDetailsRef.get();
     }
 
-    public void setStoppingException(@NotNull Throwable reason) {
-        stoppingExceptionRef.set(reason);
+    public void requestImmediateStop(@NotNull Throwable throwable) {
+        requestImmediateStop(ActivityRunResult.fromException(throwable));
     }
 
-    boolean wasStoppingExceptionEncountered() {
-        return getStoppingException() != null;
+    public void requestImmediateStop(@NotNull ActivityRunResult runResult) {
+        stopRequestDetailsRef.set(
+                new ImmediateStopRequestDetails(runResult));
+    }
+
+    public boolean wasImmediateStopRequested() {
+        return stopRequestDetailsRef.get() != null;
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public record ImmediateStopRequestDetails(@NotNull ActivityRunResult runResult) {
     }
 }

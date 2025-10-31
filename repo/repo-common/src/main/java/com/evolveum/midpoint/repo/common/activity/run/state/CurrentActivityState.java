@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.COMPLETE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.SKIPPED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.ABORTED;
 
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -286,8 +286,12 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         setRealizationEndTimestamp(null);
     }
 
-    public void markSkipped(OperationResultStatus resultStatus, Long endTimestamp) throws ActivityRunException {
-        setRealizationState(SKIPPED);
+    public void markAborted(
+            OperationResultStatus resultStatus,
+            @NotNull ActivityAbortingInformationType abortingInformation,
+            Long endTimestamp) throws ActivityRunException {
+        setRealizationState(ABORTED);
+        setAbortingInformation(abortingInformation);
         setRealizationEndTimestamp(endTimestamp);
         setResultStatus(resultStatus);
     }

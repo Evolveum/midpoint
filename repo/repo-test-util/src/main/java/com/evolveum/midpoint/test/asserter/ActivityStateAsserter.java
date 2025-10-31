@@ -34,21 +34,20 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         this.activityState = information;
     }
 
-    public ActivityStateAsserter<RA> assertNotRestarting() {
-        assertThat(activityState.getRestarting())
+    public ActivityStateAsserter<RA> assertNoAbortingInformation() {
+        assertThat(activityState.getAbortingInformation())
                 .withFailMessage("restarting state present even if not expected")
                 .isNull();
         return this;
     }
 
     public ActivityStateAsserter<RA> assertRestarting(boolean restartCounters) {
-        ActivityRestartingStateType restarting = activityState.getRestarting();
+        ActivityAbortingInformationType aborting = activityState.getAbortingInformation();
+        if (!(aborting.getPolicyAction() instanceof RestartActivityPolicyActionType restartAction)) {
+            throw new AssertionError("Expected ActivityRestartingInformationType, got " + aborting);
+        }
 
-        assertThat(restarting).isNotNull();
-
-        boolean real = BooleanUtils.isTrue(restarting.isRestartCounters());
-
-        assertThat(real)
+        assertThat(BooleanUtils.isTrue(restartAction.isRestartCounters()))
                 .withFailMessage("restarting state is not restarting counters %s", restartCounters)
                 .isEqualTo(restartCounters);
 
@@ -71,8 +70,8 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return assertRealizationState(ActivityRealizationStateType.COMPLETE);
     }
 
-    public ActivityStateAsserter<RA> assertSkipped() {
-        return assertRealizationState(ActivityRealizationStateType.SKIPPED);
+    public ActivityStateAsserter<RA> assertAborted() {
+        return assertRealizationState(ActivityRealizationStateType.ABORTED);
     }
 
     public ActivityStateAsserter<RA> assertNotStarted() {

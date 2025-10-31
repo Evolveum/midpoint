@@ -15,24 +15,22 @@ import org.jetbrains.annotations.NotNull;
  * Exception that carries supplementary information on how it should be treated
  * (with the respect to operation result and task run result status).
  */
-@Experimental
 public class TaskException extends Exception {
 
     @NotNull private final OperationResultStatus opResultStatus;
     @NotNull private final TaskRunResult.TaskRunResultStatus runResultStatus;
 
-    public TaskException(String message, @NotNull OperationResultStatus opResultStatus,
-            @NotNull TaskRunResult.TaskRunResultStatus runResultStatus, Throwable cause) {
+    public TaskException(
+            String message,
+            @NotNull OperationResultStatus opResultStatus,
+            @NotNull TaskRunResult.TaskRunResultStatus runResultStatus,
+            Throwable cause) {
         super(message, cause);
         this.opResultStatus = opResultStatus;
         this.runResultStatus = runResultStatus;
     }
 
-    public TaskException(String message, @NotNull OperationResultStatus opResultStatus,
-            @NotNull TaskRunResult.TaskRunResultStatus runResultStatus) {
-        this(message, opResultStatus, runResultStatus, null);
-    }
-
+    @SuppressWarnings("WeakerAccess")
     public @NotNull OperationResultStatus getOpResultStatus() {
         return opResultStatus;
     }
@@ -41,6 +39,7 @@ public class TaskException extends Exception {
         return runResultStatus;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public String getFullMessage() {
         Throwable cause = getCause();
         return getMessage() + (cause != null ? ": " + cause.getMessage() : "");

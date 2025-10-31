@@ -198,7 +198,6 @@ public class TaskRunResult implements Serializable {
     }
 
     public void setRestartAfter(long delayMillis) {
-        this.runResultStatus = TaskRunResultStatus.RESTART_REQUESTED;
         this.taskRestartInstruction = new TaskRestartInstruction(delayMillis);
     }
 

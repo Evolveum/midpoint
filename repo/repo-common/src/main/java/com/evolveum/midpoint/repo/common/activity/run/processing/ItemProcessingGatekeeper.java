@@ -171,11 +171,10 @@ class ItemProcessingGatekeeper<I> {
             try {
                 new ActivityPolicyRulesProcessor(activityRun)
                         .evaluateAndExecuteRules(processingResult, result);
-            } catch (Exception e) {
-                result.recordFatalError(e);
+            } catch (ActivityRunPolicyException e) {
                 processingResult = ItemProcessingResult.fromException(result, e);
-
-                throw e;
+                var activityRunResult = ActivityRunResult.handleException(e, result, activityRun);
+                activityRun.getErrorState().requestImmediateStop(activityRunResult);
             }
 
             if (isError()) {
@@ -196,7 +195,7 @@ class ItemProcessingGatekeeper<I> {
             // Just throwing the exception would simply kill one worker thread. This is something
             // that would easily be lost in the logs.
 
-            activityRun.getErrorState().setStoppingException(e);
+            activityRun.getErrorState().requestImmediateStop(e);
 
             LoggingUtils.logUnexpectedException(LOGGER, "Fatal error while doing administration over "
                             + "processing item {} in {}:{}. Stopping the whole processing.",
@@ -381,6 +380,11 @@ class ItemProcessingGatekeeper<I> {
      * TODO implement better
      */
     private boolean handleError(OperationResult result) {
+        if (activityRun.getErrorState().wasImmediateStopRequested()) {
+            LOGGER.trace("Legacy error handling skipped because immediate stop was already requested");
+            return false;
+        }
+
         OperationResultStatus status = processingResult.operationResult().getStatus();
         Throwable exception = processingResult.getExceptionRequired();
         LOGGER.debug("Starting handling error with status={}, exception={}", status, exception.getMessage(), exception);
@@ -393,7 +397,7 @@ class ItemProcessingGatekeeper<I> {
         return switch (followUpAction) {
             case CONTINUE -> true;
             case STOP -> {
-                activityRun.getErrorState().setStoppingException(exception);
+                activityRun.getErrorState().requestImmediateStop(exception);
                 yield false;
             }
         };

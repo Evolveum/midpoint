@@ -101,13 +101,36 @@ public abstract class ActivityState implements DebugDumpable {
         return stateItemPath.append(ActivityStateType.F_REALIZATION_STATE);
     }
 
-    /** TODO */
     public boolean isComplete() {
         return getRealizationState() == ActivityRealizationStateType.COMPLETE;
     }
 
-    public boolean isSkipped() {
-        return getRealizationState() == ActivityRealizationStateType.SKIPPED;
+    public boolean isAborted() {
+        return getRealizationState() == ActivityRealizationStateType.ABORTED;
+    }
+
+    /** Returns {@code true} if there is a request to restart or skip this particular activity. */
+    public boolean isBeingRestartedOrSkipped() {
+        return isAborted()
+                && getActivityPath().equalsBean(getAbortingInformationRequired().getActivityPath());
+    }
+
+    /** Returns {@code true} if there is a request to restart this particular activity. */
+    public boolean isBeingRestarted() {
+        return isBeingRestartedOrSkipped()
+                && getAbortingInformationRequired().getPolicyAction() instanceof RestartActivityPolicyActionType;
+    }
+
+    public @NotNull RestartActivityPolicyActionType getRestartPolicyActionRequired() {
+        return stateNonNull(
+                (RestartActivityPolicyActionType) getAbortingInformationRequired().getPolicyAction(),
+                "No restart policy action in %s", this);
+    }
+
+    /** Returns {@code true} if there is a request to skip this particular activity. */
+    public boolean isBeingSkipped() {
+        return isBeingRestartedOrSkipped()
+                && getAbortingInformationRequired().getPolicyAction() instanceof SkipActivityPolicyActionType;
     }
 
     public XMLGregorianCalendar getRealizationStartTimestamp() {
@@ -623,31 +646,16 @@ public abstract class ActivityState implements DebugDumpable {
         return stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());
     }
 
-    public void markActivityRestarting(@NotNull RestartActivityPolicyActionType action, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-
-        ItemPath restartingPath = stateItemPath.append(ActivityStateType.F_RESTARTING);
-
-        ActivityRestartingStateType restartingState = new ActivityRestartingStateType();
-
-        boolean restartCounters = BooleanUtils.isTrue(action.isRestartCounters());
-
-        restartingState.setRestartCounters(restartCounters);
-
-        beans.plainRepositoryService.modifyObjectDynamically(
-                TaskType.class, getTask().getOid(), null,
-                task -> PrismContext.get().deltaFor(TaskType.class)
-                        .item(restartingPath)
-                        .replace(restartingState)
-                        .asItemDeltas(), null, result);
+    public ActivityAbortingInformationType getAbortingInformation() {
+        return getItemRealValueClone(ActivityStateType.F_ABORTING_INFORMATION, ActivityAbortingInformationType.class);
     }
 
-    public boolean isRestarting() {
-        return getRestartingState() != null;
+    public ActivityAbortingInformationType getAbortingInformationRequired() {
+        return stateNonNull(getAbortingInformation(), "No aborting information in %s", this);
     }
 
-    private ActivityRestartingStateType getRestartingState() {
-        return getTask().getContainerRealValue(stateItemPath.append(ActivityStateType.F_RESTARTING), ActivityRestartingStateType.class);
+    void setAbortingInformation(@NotNull ActivityAbortingInformationType info) throws ActivityRunException {
+        setItemRealValues(ActivityStateType.F_ABORTING_INFORMATION, info.clone()); // because of parents
     }
     //endregion
 
@@ -676,11 +684,11 @@ public abstract class ActivityState implements DebugDumpable {
     //  of new execution attempt (history) for state+overview/tree
     public void initializeAfterRestart(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        beans.plainRepositoryService.modifyObjectDynamically(
-                TaskType.class, getTask().getOid(), null, this::initializeAfterRestart, null, result);
+        getTask().modify(getInitializationDeltas());
+        getTask().flushPendingModifications(result);
     }
 
-    private @NotNull Collection<? extends ItemDelta<?, ?>> initializeAfterRestart(TaskType task) throws SchemaException {
+    private @NotNull Collection<ItemDelta<?, ?>> getInitializationDeltas() throws SchemaException {
 
         List<ItemDelta<?, ?>> deltas = new ArrayList<>(
                 PrismContext.get().deltaFor(TaskType.class)
@@ -688,18 +696,21 @@ public abstract class ActivityState implements DebugDumpable {
                         .item(stateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
                         .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
                         .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_RESTARTING)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_ABORTING_INFORMATION)).replace()
                         .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
                         .item(stateItemPath.append(ActivityStateType.F_POLICIES)).replace()
                         .asItemDeltas());
 
-        ActivityRestartingStateType state = getRestartingState();
-        if (BooleanUtils.isNotFalse(state.isRestartCounters())) {
+        // The casting should succeed, as it was checked before calling this method
+        var restartAction = (RestartActivityPolicyActionType) getAbortingInformation().getPolicyAction();
+        if (BooleanUtils.isNotFalse(restartAction.isRestartCounters())) {
             deltas.add(PrismContext.get().deltaFor(TaskType.class)
                     .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
                     .asItemDelta());
         }
 
+        // Note we're incrementing the attempt counter only when restarting activity.
+        // Suspending and then resuming the containing task doesn't mean its activities were restarted.
         int newExecutionAttempt = getExecutionAttempt() + 1;
         LOGGER.debug("Incrementing execution attempt to {} for {}", newExecutionAttempt, getActivityPath());
         deltas.add(PrismContext.get().deltaFor(TaskType.class)

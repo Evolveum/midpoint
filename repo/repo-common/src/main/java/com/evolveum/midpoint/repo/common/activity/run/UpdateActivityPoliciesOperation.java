@@ -51,7 +51,7 @@ public class UpdateActivityPoliciesOperation {
     public Map<String, ActivityPolicyStateType> execute(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        LOGGER.trace("Updating activity policies");
+        LOGGER.trace("Updating information about triggered policy rules in the activity state");
 
         updatePolicyStates(result);
 

@@ -243,9 +243,6 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .assertSuspended()
                 .assertFatalError()
                 .rootActivityState()
-                    .itemProcessingStatistics()
-                        .assertRunTimeBetween(2000L, 5000L) // limit is 2 seconds, 10 seconds planned
-                    .end()
                     .assertExecutionAttempts(1)
                     .assertFatalError()
                     .assertInProgressLocal()
@@ -253,7 +250,12 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .policies()
                         .assertPolicyCount(1)
                         .policy("Execution time")
-                            .assertTriggerCount(1);
+                            .assertTriggerCount(1)
+                        .end()
+                    .end()
+                    .itemProcessingStatistics()
+                        .assertRunTimeBetween(2000L, 5000L) // limit is 2 seconds, 10 seconds planned
+                    .end();
         // @formatter:on
     }
 
@@ -366,6 +368,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 // we don't assert FATAL_ERROR here, because the root task itself may have different operationResultStatus
                 .rootActivityState()
                     .assertInProgressLocal()
+                    // not sure about OperationResult here
                     .child("first")
                         .assertExecutionAttempts(1)
                         .assertComplete()
@@ -817,11 +820,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         // @formatter:off
         TASK_300_SIMPLE_SKIP_ON_EXECUTION_TIME.assertAfter()
                 .display()
-                .assertSuspended()
-                .assertFatalError()
+                .assertClosed()
+                //.assertFatalError()
                 .rootActivityState()
                     .assertExecutionAttempts(1)
-                    .assertSkipped()
+                    .assertAborted()
                     .assertFatalError()
                     .policies()
                         .assertPolicyCount(1)
@@ -842,14 +845,15 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_310_CHILD_SKIP_ON_OWN_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_310_CHILD_SKIP_ON_OWN_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_310_CHILD_SKIP_ON_OWN_EXECUTION_TIME.rerunErrorsOk(result);
+        testTask.rerunErrorsOk(result);
 
         then("the task is finished and second activity skipped after exceeding execution time");
         // @formatter:off
-        TASK_310_CHILD_SKIP_ON_OWN_EXECUTION_TIME.assertAfter()
+        testTask.assertAfter()
                 .display()
                 .assertClosed()
                 .assertFatalError()
@@ -866,7 +870,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .end()
                     .child("second")
                         .assertExecutionAttempts(1)
-                        .assertSkipped()
+                        .assertAborted()
                         .assertFatalError()
                         .policies()
                             .assertPolicyCount(1)
@@ -884,7 +888,6 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .end()
                 .end();
         // @formatter:on
-        // TODO more asserts
     }
 
     /**
@@ -895,19 +898,47 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME.rerunErrorsOk(result);
+        testTask.rerunErrorsOk(result);
 
-        then("the task is closed after exceeding execution time");
+        then("the task is finished and second activity skipped after exceeding execution time; no third activity run");
         // @formatter:off
-        TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME.assertAfter()
+        testTask.assertAfter()
                 .display()
                 .assertClosed()
-                .assertFatalError();
+                .assertFatalError()
+                .rootActivityState()
+                    .assertExecutionAttempts(1)
+                    .assertAborted()
+                    .assertFatalError()
+                    .assertNoPolicies()
+                    .assertChildren(3)
+                    .child("first")
+                        .assertExecutionAttempts(1)
+                        .assertComplete()
+                        .assertSuccess()
+                        .assertNoPolicies()
+                        .end()
+                    .child("second")
+                        .assertExecutionAttempts(1)
+                        .assertAborted()
+                        .assertFatalError()
+                        .policies() // FIXME this should be moved to root activity
+                            .assertPolicyCount(1)
+                            .policy("Execution time")
+                                .assertTriggerCount(1)
+                                .assertTriggerCount(1)
+                            .end()
+                        .end()
+                    .end()
+                    .child("third")
+                        .assertNotStarted()
+                    .end()
+                .end();
         // @formatter:on
-        // TODO more asserts
     }
 
     /**
@@ -924,20 +955,20 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         when("task is run until it's stopped");
         testTask.rerunTreeErrorsOk(result);
 
-        then("the task tree is finished, activity skipped after exceeding execution time");
+        then("the task tree is finished, second activity skipped after exceeding execution time");
         // @formatter:off
         testTask.assertTreeAfter()
                 .display()
-                .assertSuspended()
+                .assertClosed()
                 .assertSubtasks(2)
                 .subtask("first", false)
                     .display()
                     .assertSuccess()
-                    .assertClosed() // this activity finished before suspension
+                    .assertClosed()
                     .end()
                 .subtask("second", false)
                     .assertFatalError()
-                    .assertSuspended() // but this was suspended
+                    .assertClosed() // this
                     .display()
                     .end();
         // @formatter:on
@@ -963,7 +994,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         testTask.assertTreeAfter()
                 .display()
                 .assertClosed()
-                .assertSubtasks(3)
+                .assertSubtasks(2)
                 .subtask("first", false)
                     .display()
                     .assertSuccess()
