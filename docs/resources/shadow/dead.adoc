@@ -1,4 +1,4 @@
-= Dead Shadows
+= Manage Dead Shadows
 :page-wiki-name: Pending Operations and Dead Shadows
 :page-wiki-id: 26411269
 :page-wiki-metadata-create-user: semancik
@@ -17,7 +17,7 @@ They help prevent accidental re-creation of those accounts, and ensure data cons
 
 Refer to xref:/midpoint/architecture/concepts/shadow/dead-shadow/[] for more details on what dead shadows are and why they exist.
 
-== Managing dead shadows
+== Manage dead shadows
 
 Dead shadows are quite useful, for example, for auditing and historical traceability, and they usually do not pose any performance problems.
 
@@ -62,9 +62,9 @@ TODO: refresh operation, get operation, forceRefresh option, reshreshOnRead
 There are two flags that define shadow lifecycle: `dead` and `exists`.
 They specify midPoint's best knowledge about the state of a resource (not its "snapshot" used in semi-manual resources).
 
-[%autowidth,cols="h,1,1,1,1,1,1,1,1"]
+[%autowidth,cols="h,1,1,1,1,1,1,1"]
 |===
-| State | shadow/dead | shadow/exists | shadow/pendingOperation | Resource/connector operation(e.g. ticket, async operation) | Resource database | Resource snapshot (CSV export) | Description | Notable transitions
+| State | shadow `dead` flag | shadow `exists` flag | shadow `pendingOperation` | Resource connector operation (e.g., ticket, async operation) | Resource database | Resource snapshot (CSV export) | Description
 
 | Proposed
 | `false`
@@ -77,7 +77,6 @@ Status: REQUESTED
 | Operation is requested but it was not started yet.
 We are processing the request. +
 This is used mostly to detect uniqueness conflicts (to "reserve" identifiers).
-|
 
 
 | Conception
@@ -90,7 +89,6 @@ Status: EXECUTION_PENDING or EXECUTING
 (but being created)
 | Not present
 | A signal to create an account has been sent and it is being executed.
-|
 
 
 | Gestation
@@ -107,11 +105,11 @@ Operation in its grace period
 It probably already exists in the resource (hence `exists=true`).
 But it does not exist in the snapshot yet. +
 Gestating shadows will *not* appear in resource searches.
-This should not be a problem for reconciliation because shadows should be linked and they will be processed by reconciliation anyway.
-| In case that the ADD operation was a failure, the shadow should instantly become a tombstone.
+This should not be a problem for reconciliation because shadows should be linked and they will be processed by reconciliation anyway. +
+In case that the ADD operation was a failure, the shadow should instantly become a tombstone.
 
 
-| LIfe
+| Life
 | `false`
 | `true`
 | No ADD operation (or operation over grace period) +
@@ -121,8 +119,8 @@ There may be MODIFY operations.
 | Present
 | This is the normal state.
 The shadow exists, everything works as expected.
-There are no quantum effects or controversies.
-| In case that the object is not present in the snapshot, the shadow becomes a tombstone.
+There are no quantum effects or controversies. +
+In case that the object is not present in the snapshot, the shadow becomes a tombstone.
 
 
 | Reaping
@@ -136,7 +134,6 @@ Status: EXECUTION_PENDING or EXECUTING
 | Present
 | Signal to delete account was sent.
 It is being executed.
-|
 
 
 | Corpse
@@ -153,8 +150,8 @@ Operation in its grace period
 This is a "*quantum*" state: shadow is dead but also alive at the same time.
 It is probably already deleted in the resource (hence `exists=false`).
 But it still exists in the snapshot. +
-Corpse shadows will appear in resource searches - even though the shadow is marked as `dead=true`.
-| TODO: what to do if DELETE operation was a failure? Return to life? Or do we need a "zombie" state?
+Corpse shadows will appear in resource searches - even though the shadow is marked as `dead=true`. +
+TODO: what to do if DELETE operation was a failure? Return to life? Or do we need a "zombie" state?
 
 
 | Tombstone
@@ -171,10 +168,9 @@ Just this stone on a grave remains.
 And it will also expire eventually. +
 Tombstone shadows will *not* appear in resource searches - because they do not exist on the resource.
 But they will work with get operations.
-And they can be searched with `noFetch`.
-| This is the terminal state.
-Shadow stays dead.
-Cannot be resurrected.
+And they can be searched with `noFetch`. +
+This is the terminal state.
+Shadow stays dead and it cannot be resurrected.
 
 
 |===
