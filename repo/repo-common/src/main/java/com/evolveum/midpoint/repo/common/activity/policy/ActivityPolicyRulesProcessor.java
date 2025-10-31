@@ -225,12 +225,6 @@ public class ActivityPolicyRulesProcessor {
 
         for (ActivityPolicyActionType action : rule.getActions()) {
             if (action instanceof NotificationActivityPolicyActionType na) {
-                // todo fix single execution check + state has to be loaded from somewhere
-//                if (BooleanUtils.isTrue(na.isSingle()) && reaction.isEnforced()) {
-//                    LOGGER.debug("Skipping notification action (single) because it was already enforced, rule: {}", rule);
-//                    continue;
-//                }
-
                 LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
 
                 activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);

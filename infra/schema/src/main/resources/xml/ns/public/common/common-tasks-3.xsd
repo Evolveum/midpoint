@@ -2330,18 +2330,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType">
-                <xsd:sequence>
-                    <!-- todo remove? is this useful? -->
-                    <xsd:element name="single" type="xsd:boolean"  minOccurs="0" default="false">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                If true, notification event is sent only the first time policy reaction is enforced.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
+            <xsd:extension base="tns:ActivityPolicyActionType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
