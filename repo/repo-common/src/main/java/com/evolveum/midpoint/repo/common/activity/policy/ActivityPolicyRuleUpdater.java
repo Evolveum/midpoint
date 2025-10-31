@@ -51,6 +51,10 @@ class ActivityPolicyRuleUpdater {
 
         // Collect rules that need their counters incremented
         var rulesToIncrementMap = collectRulesToIncrement(); // Map: ID -> rule.
+        if (rulesToIncrementMap.isEmpty()) {
+            LOGGER.trace("No rules to increment counters for");
+            return;
+        }
 
         // Increment the counters (stored in the activity state, usually the current one or parent one)
         // Should we update production or simulation counters?
