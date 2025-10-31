@@ -785,4 +785,24 @@ public interface ModelInteractionService {
     boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException;
 
     boolean isSubarchetypeOrArchetype(String archetypeOid, String parentArchetype, OperationResult result);
+
+    /**
+     * Updates enabled status of all activity policies recursively inside {@link ActivityDefinitionType} in the specified task.
+     *
+     * Returns true if any change was made.
+     */
+    boolean updateAllActivityPoliciesEnabledStatus(
+            @NotNull PrismObject<TaskType> object, boolean enabled, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
+
+    /**
+     * Clears all activity policy states recursively inside {@link ActivityDefinitionType} in the specified task.
+     *
+     * Returns true if any change was made.
+     */
+    boolean clearAllActivityPolicyStates(
+            @NotNull PrismObject<TaskType> object, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
 }

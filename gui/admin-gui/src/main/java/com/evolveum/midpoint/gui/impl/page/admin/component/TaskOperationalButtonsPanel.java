@@ -17,6 +17,10 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -171,6 +175,10 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         createShowSimulationResultButton(taskButtons);
         createCleanupPerformanceButton(taskButtons);
         createCleanupResultsButton(taskButtons);
+
+        createChangeActivityPoliciesStatusButton(taskButtons, true);
+        createChangeActivityPoliciesStatusButton(taskButtons, false);
+        createClearActivityPoliciesStateButton(taskButtons);
 
         WebMarkupContainer refreshingButtonsContainer = new WebMarkupContainer(ID_REFRESHING_BUTTONS_CONTAINER);
         refreshingButtonsContainer.add(new VisibleBehaviour(() -> isEditingObject()));
@@ -552,6 +560,96 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         taskDelta.addModifications(itemDeltas);
 
         saveTaskChanges(target, taskDelta);
+    }
+
+    private CompositedIcon getTaskActivityPolicyCompositedIcon(String layerIconCss) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
+        return iconBuilder
+                .setBasicIcon(GuiStyleConstants.CLASS_POLICY_RULES_ICON, IconCssStyle.IN_ROW_STYLE)
+                .appendLayerIcon(IconAndStylesUtil.createIconType(layerIconCss), IconCssStyle.BOTTOM_RIGHT_STYLE)
+                .build();
+    }
+
+    private void createChangeActivityPoliciesStatusButton(RepeatingView view, boolean enable) {
+        IModel<String> label = enable
+                ? createStringResource("TaskOperationalButtonsPanel.enableActivityPolicies")
+                : createStringResource("TaskOperationalButtonsPanel.disableActivityPolicies");
+
+        String layerIconCss = enable
+                ? GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE
+                : GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE;
+
+        AjaxCompositedIconButton button =
+                new AjaxCompositedIconButton(
+                        view.newChildId(),
+                        getTaskActivityPolicyCompositedIcon(layerIconCss),
+                        label) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        toggleActivityPoliciesStatusPerformed(target, enable);
+                    }
+                };
+        button.add(AttributeAppender.append("class", "btn-default"));
+        view.add(button);
+    }
+
+    private void toggleActivityPoliciesStatusPerformed(AjaxRequestTarget target, boolean enable) {
+        Task task = getPageBase().createSimpleTask(OPERATION_EXECUTE_TASK_CHANGES);
+        OperationResult result = task.getResult();
+        try {
+            boolean changed = getPageBase().getModelInteractionService().updateAllActivityPoliciesEnabledStatus(
+                    getPrismObject(), enable, task, result);
+
+            if (!changed) {
+                getPageBase().info(getString("TaskOperationalButtonsPanel.toggleActivityPoliciesStatus.noChanges"));
+                return;
+            }
+        } catch (CommonException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot toggle activity policies status", ex);
+            getPageBase().error(getPageBase().getString("TaskOperationalButtonsPanel.toggleActivityPoliciesStatus.failed"));
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    private void clearActivityPoliciesStatePerformed(AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OPERATION_EXECUTE_TASK_CHANGES);
+        OperationResult result = task.getResult();
+        try {
+            boolean changed = getPageBase().getModelInteractionService().clearAllActivityPolicyStates(
+                    getPrismObject(), task, result);
+
+            if (!changed) {
+                getPageBase().info(getString("TaskOperationalButtonsPanel.clearActivityPoliciesStates.noChanges"));
+                return;
+            }
+        } catch (CommonException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot clear activity policies states", ex);
+            getPageBase().error(getPageBase().getString("TaskOperationalButtonsPanel.clearActivityPoliciesStates.failed"));
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    private void createClearActivityPoliciesStateButton(RepeatingView view) {
+        AjaxCompositedIconButton button =
+                new AjaxCompositedIconButton(
+                        view.newChildId(),
+                        getTaskActivityPolicyCompositedIcon(GuiStyleConstants.CLASS_ICON_TRASH),
+                        createStringResource("TaskOperationalButtonsPanel.clearActivityPoliciesState")) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        clearActivityPoliciesStatePerformed(target);
+                    }
+                };
+        button.add(AttributeAppender.append("class", "btn-default"));
+        view.add(button);
     }
 
     private void createCleanupResultsButton(RepeatingView repeatingView) {

@@ -26,7 +26,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.model.impl.security.ModelSecurityPolicyFinder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.security.enforcer.api.*;
 
@@ -2449,5 +2451,60 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public @NotNull List<ArchetypeType> determineArchetypes(@Nullable ObjectType object, OperationResult result)
             throws SchemaException {
         return archetypeManager.determineArchetypes(object, result);
+    }
+
+    @Override
+    public boolean updateAllActivityPoliciesEnabledStatus(
+            @NotNull PrismObject<TaskType> object, boolean enabled, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+
+        Holder<S_ItemEntry> deltaBuilderHolder = new Holder<>(PrismContext.get().deltaFor(TaskType.class));
+
+        TaskType t = object.asObjectable();
+
+        ActivityDefinitionUtil.visitActivityDefinitions(t, def -> {
+            ActivityPoliciesType policies = def.getPolicies();
+            if (policies == null) {
+                return true;
+            }
+
+            for (ActivityPolicyType policy : policies.getPolicy()) {
+                ItemPath path = policy.asPrismContainerValue().getPath();
+                ItemPath enabledPath = path.append(ActivityPolicyType.F_ENABLED);
+
+                S_ItemEntry sie = deltaBuilderHolder.getValue();
+
+                if (enabled) {
+                    sie = sie.item(enabledPath).replace();
+                } else {
+                    sie = sie.item(enabledPath).replace(false);
+                }
+
+                deltaBuilderHolder.setValue(sie);
+            }
+
+            return true;
+        });
+
+        ObjectDelta<TaskType> delta = deltaBuilderHolder.getValue().asObjectDelta(t.getOid());
+        if (delta.isEmpty()) {
+            return false;
+        }
+
+        modelService.executeChanges(List.of(delta), ModelExecuteOptions.create(), task, result);
+
+        return true;
+    }
+
+    @Override
+    public boolean clearAllActivityPolicyStates(
+            @NotNull PrismObject<TaskType> object, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+
+        // todo implement [viliam]
+
+        return false;
     }
 }
