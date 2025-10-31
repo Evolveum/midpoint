@@ -24,13 +24,15 @@ import com.evolveum.midpoint.prism.Containerable;
 
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import java.io.Serial;
+
 /**
  * @author lskublik
  *
  */
 public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>> extends PrismContainerValuePanel<C, CVW> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
 
@@ -77,34 +79,34 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
         return false;
     }
 
-    @Override
-    protected void addToHeader(WebMarkupContainer header) {
-        super.addToHeader(header);
-        header.add(new AjaxEventBehavior("click") {
-
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                onExpandClick(target);
-            }
-        });
-        header.add(AttributeAppender.append("class", () -> getModelObject().isExpanded() ? "card-header" : ""));
-
-        WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeAppender.append("class", () -> getIcon()));
-        header.add(icon);
-
-        header.add(new VisibleBehaviour(() -> {
-            String panelPath = getPageBase().createComponentPath(ID_MAIN_CONTAINER, ID_VALUE_CONTAINER, ID_INPUT);
-            VerticalFormDefaultContainerablePanel valueContainer =
-                    (VerticalFormDefaultContainerablePanel) VerticalFormPrismContainerValuePanel.this.get(panelPath);
-            return valueContainer.isVisibleVirtualValueWrapper();
-        }));
-
-
-
-        header.add(createExpandCollapseButton());
-        return;
-    }
+    //the code is never reached; createHeaderPanel is responsible for header construction in this class
+//    @Override
+//    protected void addToHeader(WebMarkupContainer header) {
+//        super.addToHeader(header);
+//        header.add(new AjaxEventBehavior("click") {
+//
+//            @Override
+//            protected void onEvent(AjaxRequestTarget target) {
+//                onExpandClick(target);
+//            }
+//        });
+//        header.add(AttributeAppender.append("class", () -> getModelObject().isExpanded() ? "card-header" : ""));
+//
+//        WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
+//        icon.add(AttributeAppender.append("class", () -> getIcon()));
+//        header.add(icon);
+//
+//        header.add(new VisibleBehaviour(() -> {
+//            String panelPath = getPageBase().createComponentPath(ID_MAIN_CONTAINER, ID_VALUE_CONTAINER, ID_INPUT);
+//            VerticalFormDefaultContainerablePanel valueContainer =
+//                    (VerticalFormDefaultContainerablePanel) VerticalFormPrismContainerValuePanel.this.get(panelPath);
+//            return valueContainer.isVisibleVirtualValueWrapper();
+//        }));
+//
+//
+//
+//        header.add(createExpandCollapseButton());
+//    }
 
     @Override
     protected WebMarkupContainer createHeaderPanel() {

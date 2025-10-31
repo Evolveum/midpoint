@@ -10,8 +10,10 @@
     <div wicket:id="valueForm">
         <div class="prism-header mb-3" wicket:id="header">
             <span wicket:id="deleteStatusMessage" role="status" class="sr-only" aria-live="polite"></span>
-            <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer" class="btn btn-tool expand-collapse-button" trigger="hover"></button>
-            <a class="prism-title" wicket:id="label" wicket:message="aria-description:PrismContainerValuePanel.labelDescription"/>
+            <button type="button" data-toggle="collapse" class="btn btn-tool" aria-live="polite" wicket:id="expandableLabelContainer">
+                <i wicket:id="expandCollapseButton" class="expand-collapse-button"/>
+                <span class="prism-title" wicket:id="label"/>
+            </button>
             <wicket:enclosure child="help">
                 <span class="btn btn-tool" wicket:message="title:PrismObjectPanel.help" tabindex="0">
                     <i class="helpTextIcon" wicket:id="help"/>

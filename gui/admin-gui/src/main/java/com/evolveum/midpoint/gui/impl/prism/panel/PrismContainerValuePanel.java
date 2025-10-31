@@ -53,11 +53,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     @Serial private static final long serialVersionUID = 1L;
 
+    protected static final String ID_EXPANDABLE_LABEL_CONTAINER = "expandableLabelContainer";
     protected static final String ID_LABEL = "label";
     protected static final String ID_HELP = "help";
     private static final String ID_SORT_PROPERTIES = "sortProperties";
     private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
-    private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
+    protected static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
 
     public PrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -110,17 +111,27 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     @Override
     protected void addToHeader(WebMarkupContainer header) {
-        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
-        AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
+        AjaxButton expandableLabelContainer = new AjaxButton(ID_EXPANDABLE_LABEL_CONTAINER) {
             @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onExpandClick(target);
             }
         };
+        expandableLabelContainer.setOutputMarkupId(true);
+        expandableLabelContainer.setOutputMarkupPlaceholderTag(true);
+        expandableLabelContainer.add(AttributeModifier.append("aria-expanded", getExpandedContainerValueModel()));
+        expandableLabelContainer.add(AttributeModifier.append("aria-label", getExpandableLabelContainerAriaLabelModel()));
+        header.add(expandableLabelContainer);
+
+        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
+        Label labelComponent = new Label(ID_LABEL, headerLabelModel);
         labelComponent.setOutputMarkupId(true);
         labelComponent.setOutputMarkupPlaceholderTag(true);
-        header.add(labelComponent);
+        expandableLabelContainer.add(labelComponent);
+
+        expandableLabelContainer.add(createExpandCollapseButton());
 
         header.add(getHelpLabel());
 
@@ -157,7 +168,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private void initButtons(WebMarkupContainer header) {
-        header.add(createExpandCollapseButton());
         header.add(createSortButton());
         header.add(createAddMoreButton());
     }
@@ -281,7 +291,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private boolean shouldBeButtonsShown() {
-        return getModelObject().isExpanded();
+        return isContainerExpanded();
     }
 
     private void onSortClicked(AjaxRequestTarget target) {
@@ -301,25 +311,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         target.add(getFeedbackPanel());
     }
 
-    protected ToggleIconButton<?> createExpandCollapseButton() {
-        ToggleIconButton<?> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
-                GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onExpandClick(target);
-            }
-
-            @Override
-            public boolean isOn() {
-                return PrismContainerValuePanel.this.getModelObject().isExpanded();
-            }
-        };
-        expandCollapseButton.add(AttributeAppender.append(
-                "aria-pressed", () -> PrismContainerValuePanel.this.getModelObject().isExpanded()));
+    protected WebMarkupContainer createExpandCollapseButton() {
+        WebMarkupContainer expandCollapseButton = new WebMarkupContainer(ID_EXPAND_COLLAPSE_BUTTON);
         expandCollapseButton.setOutputMarkupId(true);
+        expandCollapseButton.add(AttributeModifier.append("class",
+                () -> isContainerExpanded() ?
+                GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER : GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER));
         return expandCollapseButton;
     }
 
@@ -330,7 +327,34 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     @Override
     protected boolean isRemoveButtonVisible() {
-        return super.isRemoveButtonVisible() && getModelObject().isExpanded() && !(getModelObject() instanceof PrismObjectValueWrapper)
+        return super.isRemoveButtonVisible() && isContainerExpanded() && !(getModelObject() instanceof PrismObjectValueWrapper)
                 && !getModelObject().isVirtual();
+    }
+
+    private boolean isContainerExpanded() {
+        return getModelObject().isExpanded();
+    }
+
+    private LoadableDetachableModel<Boolean> getExpandedContainerValueModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Boolean load() {
+                return isContainerExpanded();
+            }
+        };
+    }
+
+    private LoadableDetachableModel<String> getExpandableLabelContainerAriaLabelModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                return getString(
+                        isContainerExpanded() ? "PrismObjectPanel.collapseContainer" : "PrismObjectPanel.expandContainer");
+            }
+        };
     }
 }

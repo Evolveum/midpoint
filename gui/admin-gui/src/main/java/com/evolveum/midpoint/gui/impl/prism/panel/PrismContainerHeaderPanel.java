@@ -21,13 +21,15 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.AjaxButton;
 
+import java.io.Serial;
+
 /**
  * @author katka
  *
  */
 public class PrismContainerHeaderPanel<C extends Containerable, PCW extends PrismContainerWrapper<C>> extends ItemHeaderPanel<PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>, PCW> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
 
@@ -63,7 +65,7 @@ public class PrismContainerHeaderPanel<C extends Containerable, PCW extends Pris
         ToggleIconButton<?> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
                 GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
