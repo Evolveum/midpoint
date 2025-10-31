@@ -6,13 +6,13 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
+import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
 
@@ -95,7 +95,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public abstract class PageBase extends PageAdminLTE {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageBase.class.getName() + ".";
 
@@ -280,7 +280,7 @@ public abstract class PageBase extends PageAdminLTE {
 
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
         form.add(new VisibleBehaviour(() -> AuthUtil.getPrincipalUser() != null));
-        form.add(AttributeModifier.replace("action", () -> getUrlForLogout()));
+        form.add(AttributeModifier.replace("action", this::getUrlForLogout));
 
         container.add(form);
     }
@@ -304,7 +304,7 @@ public abstract class PageBase extends PageAdminLTE {
 
         IModel<String> deploymentNameModel = new IModel<>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -331,12 +331,12 @@ public abstract class PageBase extends PageAdminLTE {
 
         ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, breadcrumbsModel) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<Breadcrumb> item) {
                 AjaxLink<String> bcLink = new AjaxLink<>(ID_BC_LINK) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -401,7 +401,7 @@ public abstract class PageBase extends PageAdminLTE {
         mainHeader.add(AttributeAppender.append("class", () -> {
             String skin = WebComponentUtil.getMidPointSkin().getNavbarCss();
 
-            if (skin != null && Arrays.stream(skin.split(" ")).noneMatch(s -> "navbar-light".equals(s))) {
+            if (skin != null && Arrays.stream(skin.split(" ")).noneMatch("navbar-light"::equals)) {
                 return "navbar-dark " + skin;
             }
 
@@ -412,7 +412,7 @@ public abstract class PageBase extends PageAdminLTE {
 
         IModel<IconType> logoModel = new IModel<>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public IconType getObject() {
@@ -423,7 +423,7 @@ public abstract class PageBase extends PageAdminLTE {
 
         mainHeader.add(new AttributeAppender("style", new IModel<String>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -523,7 +523,7 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     private VisibleBehaviour createUserStatusBehaviour() {
-        return new VisibleBehaviour(() -> isUserStatusVisible());
+        return new VisibleBehaviour(this::isUserStatusVisible);
     }
 
     private boolean isUserStatusVisible() {

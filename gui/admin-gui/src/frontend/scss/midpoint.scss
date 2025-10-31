@@ -758,7 +758,7 @@ li.dropdown.user.user-menu {
   flex-wrap: nowrap;
   white-space: nowrap;
 
-  > li {
+  > div.breadcrumb-item {
 
     overflow: hidden;
     max-width: fit-content;
@@ -769,14 +769,16 @@ li.dropdown.user.user-menu {
       display: inline-block;
 
       > .fa, > .fas, > .far, > .glyphicon, > .ion, > .fe {
-        margin-right: 5px;
+        margin-right: 3px;
       }
     }
   }
 
-  > li + li:before {
+  > div + div:before {
+    color: inherit;
     content: '>\00a0';
     padding: 0 0 0 5px;
+    margin-right: 3px;
   }
 }
 
