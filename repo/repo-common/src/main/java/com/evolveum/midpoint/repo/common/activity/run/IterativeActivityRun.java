@@ -6,18 +6,15 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.*;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.PARTIAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil.*;
-import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.HALTING_ERROR;
-import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
-import com.evolveum.midpoint.repo.common.activity.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ProcessingCoordinator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -32,7 +29,6 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -129,11 +125,9 @@ public abstract class IterativeActivityRun<
     @NotNull private final ErrorHandlingStrategyExecutor errorHandlingStrategyExecutor;
 
     /**
-     * Error state. In particular, should we stop immediately because of a fatal exception?
-     *
-     * TODO rethink this
+     * Error state. In particular, should we stop immediately e.g. because of a fatal exception?
      */
-    @NotNull protected final ErrorState errorState = new ErrorState();
+    @NotNull private final ErrorState errorState = new ErrorState();
 
     /**
      * Maintains selected statistical information related to processing items in the current run.
@@ -466,7 +460,7 @@ public abstract class IterativeActivityRun<
 
         afterBucketProcessing(result);
 
-        boolean complete = canRun() && !errorState.wasStoppingExceptionEncountered();
+        boolean complete = canRun() && !errorState.wasImmediateStopRequested();
 
         new StatisticsLogger(this)
                 .logBucketCompletion(complete);
@@ -503,26 +497,15 @@ public abstract class IterativeActivityRun<
             return ActivityRunResult.interrupted();
         }
 
-        Throwable stoppingException = errorState.getStoppingException();
-        if (stoppingException != null) {
-            return ActivityRunResult.exception(FATAL_ERROR, getResultStatus(stoppingException), stoppingException);
+        var immediateStopRequestDetails = errorState.getImmediateStopRequest();
+        if (immediateStopRequestDetails != null) {
+            return immediateStopRequestDetails.runResult();
         } else if (transientRunStatistics.getErrors() > 0) {
             return ActivityRunResult
                     .finished(PARTIAL_ERROR)
                     .message(transientRunStatistics.getLastErrorMessage());
         } else {
             return ActivityRunResult.success();
-        }
-    }
-
-    private static @NotNull ActivityRunResultStatus getResultStatus(Throwable stoppingException) {
-        if (stoppingException instanceof ActivityThresholdPolicyViolationException ae) {
-            return ae.getActivityRunResultStatus(); // here can be e.g. halt, restart, or skip
-        } else if (stoppingException instanceof ThresholdPolicyViolationException) {
-            return HALTING_ERROR;
-        } else {
-            // TODO In the future we should distinguish between permanent and temporary errors here.
-            return PERMANENT_ERROR;
         }
     }
 
@@ -555,16 +538,11 @@ public abstract class IterativeActivityRun<
 
     private boolean shouldDetermineOverallSize(OperationResult result) throws ActivityRunException, CommonException {
         ActivityOverallItemCountingOptionType option = getReportingDefinition().getDetermineOverallSize();
-        switch (option) {
-            case ALWAYS:
-                return true;
-            case NEVER:
-                return false;
-            case WHEN_IN_REPOSITORY:
-                return isInRepository(result);
-            default:
-                throw new AssertionError(option);
-        }
+        return switch (option) {
+            case ALWAYS -> true;
+            case NEVER -> false;
+            case WHEN_IN_REPOSITORY -> isInRepository(result);
+        };
     }
 
     private void setExpectedInCurrentBucket(OperationResult result) throws CommonException, ActivityRunException {
@@ -586,20 +564,13 @@ public abstract class IterativeActivityRun<
 
     private boolean shouldDetermineBucketSize(OperationResult result) throws ActivityRunException, CommonException {
         ActivityItemCountingOptionType option = getReportingDefinition().getDetermineBucketSize();
-        switch (option) {
-            case ALWAYS:
-                return true;
-            case NEVER:
-                return false;
-            case WHEN_NOT_BUCKETED:
-                return isNotBucketed();
-            case WHEN_IN_REPOSITORY:
-                return isInRepository(result);
-            case WHEN_IN_REPOSITORY_AND_NOT_BUCKETED:
-                return isInRepository(result) && isNotBucketed();
-            default:
-                throw new AssertionError(option);
-        }
+        return switch (option) {
+            case ALWAYS -> true;
+            case NEVER -> false;
+            case WHEN_NOT_BUCKETED -> isNotBucketed();
+            case WHEN_IN_REPOSITORY -> isInRepository(result);
+            case WHEN_IN_REPOSITORY_AND_NOT_BUCKETED -> isInRepository(result) && isNotBucketed();
+        };
     }
 
     /**
@@ -707,7 +678,7 @@ public abstract class IterativeActivityRun<
     }
 
     public final void setContextDescription(String value) {
-        this.contextDescription = ObjectUtils.defaultIfNull(value, "");
+        this.contextDescription = Objects.requireNonNullElse(value, "");
     }
 
     public final ErrorHandlingStrategyExecutor.FollowUpAction handleError(@NotNull OperationResultStatus status,
@@ -890,7 +861,7 @@ public abstract class IterativeActivityRun<
             this.workerTaskOid = workerTaskOid;
         }
 
-        public static BucketingSituation worker(RunningTask worker) {
+        static BucketingSituation worker(RunningTask worker) {
             return new BucketingSituation(
                     Objects.requireNonNull(
                             worker.getParentTask(),
@@ -899,7 +870,7 @@ public abstract class IterativeActivityRun<
                     worker.getOid());
         }
 
-        public static BucketingSituation standalone(RunningTask task) {
+        static BucketingSituation standalone(RunningTask task) {
             return new BucketingSituation(task.getOid(), null);
         }
     }
@@ -927,7 +898,7 @@ public abstract class IterativeActivityRun<
             skipAtStart = getItemsProcessedWithSkip(statsBean);
         }
 
-        public void end(@NotNull ActivityItemProcessingStatistics endStats) {
+        void end(@NotNull ActivityItemProcessingStatistics endStats) {
             endTimestamp = System.currentTimeMillis();
             ActivityItemProcessingStatisticsType statsBean = endStats.getValueCopy();
             success = getItemsProcessedWithSuccess(statsBean) - successAtStart;

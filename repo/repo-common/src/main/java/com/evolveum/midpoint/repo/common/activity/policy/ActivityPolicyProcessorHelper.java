@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 // todo better name [viliam]
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunPolicyException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -16,7 +18,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 
 /**
  * Helper class for activity policy processing that can be used in non-iterative activities.
@@ -46,7 +47,7 @@ public class ActivityPolicyProcessorHelper {
     }
 
     public static void evaluateAndEnforceRules(ItemProcessingResult processingResult, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ThresholdPolicyViolationException, ObjectAlreadyExistsException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityRunPolicyException {
 
         new ActivityPolicyRulesProcessor(getCurrentActivityRunRequired())
                 .evaluateAndExecuteRules(processingResult, result);

@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.repo.common.activity.*;
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDe
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
@@ -47,7 +45,6 @@ import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
-import com.evolveum.midpoint.repo.common.activity.PolicyViolationContext;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -223,22 +220,25 @@ public abstract class AbstractActivityRun<
         initializeState(result);
 
         if (activityState.isComplete()) {
+            // Completed activities should not be run again. Actually, this is quite a frequent case: it occurs every time
+            // when e.g. resuming a suspended task with completed activities, or returning a control (from subtasks) to
+            // a parent task that contains one or more activities.
             logComplete();
             return ActivityRunResult.finished(activityState.getResultStatus());
-        } else if (activityState.isSkipped()) {
-            logSkipped();
-            return ActivityRunResult.skipped(activityState.getResultStatus());
-        } else if (activityState.isRestarting()) {
-            logRestarted();
-            // we're incrementing the attempt counter only when restarting activity
-            // suspend/resume doesn't mean activity was restarted
-
-            // todo consider whether we want to increment the counter also when
-            //  resuming suspended activity that has to start from the beginning
-            try {
-                activityState.initializeAfterRestart(result);   // todo live data (stats, progress) are already in memory from previous initializeState call
-            } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-                throw new ActivityRunException("Couldn't increment execution attempt", FATAL_ERROR, PERMANENT_ERROR, e);
+        } else if (activityState.isAborted()) {
+            // Aborted activities are similar: they should not be run again.
+            // However, there is one exception regarding restarts - see below.
+            if (!activityState.isBeingRestarted()) {
+                logAborted();
+                return ActivityRunResult.finished(activityState.getResultStatus());
+            } else {
+                // If this activity is being restarted, we simply clear relevant parts of its state and continue with running it.
+                logRestarted();
+                try {
+                    activityState.initializeAfterRestart(result);
+                } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                    throw new ActivityRunException("Couldn't initialize activity after restart", FATAL_ERROR, PERMANENT_ERROR, e);
+                }
             }
         }
 
@@ -252,9 +252,9 @@ public abstract class AbstractActivityRun<
 
         updateAndCloseActivityState(runResult, result);
 
-        if (activityState.isComplete() || activityState.isSkipped()) {
+        if (activityState.isComplete() || activityState.isAborted()) {
             // TODO Is this really called only once on activity completion? Not sure about distributed/delegated ones.
-            onActivityRealizationCompleteOrSkipped(result);
+            onActivityRealizationCompleteOrAborted(result);
             if (activityState.isComplete()) {
                 sendActivityRealizationCompleteEvent(result);
             }
@@ -288,6 +288,7 @@ public abstract class AbstractActivityRun<
      * Executes the activity, converting any exceptions into appropriate {@link ActivityRunResult} instances.
      */
     private @NotNull ActivityRunResult runTreatingExceptions(OperationResult result) {
+        assert !activityState.isComplete() && !activityState.isAborted();
         try {
             invokePreRunnable(result);
             return runInternal(result);
@@ -338,25 +339,10 @@ public abstract class AbstractActivityRun<
             // states, along with the timestamp, are written in subclasses. The "complete" state, along with the timestamp,
             // is written here.
             activityState.markComplete(currentResultStatus, endTimestamp);
-        } else if (runResult.isSkipActivityError()) {
-            activityState.markSkipped(currentResultStatus, endTimestamp);
+        } else if (runResult.isAborted()) {
+            activityState.markAborted(currentResultStatus, runResult.getAbortingInformationRequired(), endTimestamp);
         } else if (currentResultStatus != null && currentResultStatus != activityState.getResultStatus()) {
             activityState.setResultStatus(currentResultStatus);
-        }
-
-        if (runResult.isRestartActivityError()) {
-            RestartActivityPolicyActionType action =
-                    PolicyViolationContext.getPolicyAction(runResult.getThrowable(), RestartActivityPolicyActionType.class);
-
-            if (action == null) {
-                throw new ActivityRunException("Couldn't find restart activity action in the run result", FATAL_ERROR, PERMANENT_ERROR);
-            }
-
-            try {
-                activityState.markActivityRestarting(action, result);
-            } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-                throw new ActivityRunException("Couldn't cleanup activity state before restart", FATAL_ERROR, PERMANENT_ERROR, e);
-            }
         }
 
         try {
@@ -389,8 +375,8 @@ public abstract class AbstractActivityRun<
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
 
-    private void logSkipped() {
-        LOGGER.debug("{}: Skipped run of activity with identifier '{}' and path '{}' (local: {}) as it was already marked as skipped",
+    private void logAborted() {
+        LOGGER.debug("{}: Skipped run of an activity with identifier '{}' and path '{}' (local: {}) that was already aborted",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
 
@@ -460,7 +446,7 @@ public abstract class AbstractActivityRun<
     }
 
     /** Finished (with specified status), or interrupted. */
-    protected ActivityRunResult standardRunResult(@Nullable OperationResultStatus status) {
+    protected ActivityRunResult standardRunResult(@NotNull OperationResultStatus status) {
         if (canRun()) {
             return new ActivityRunResult(status, FINISHED);
         } else {
@@ -699,7 +685,7 @@ public abstract class AbstractActivityRun<
      * TODO this is something like a placeholder for now -- probably it will NOT work in the current implementation!
      */
     @SuppressWarnings("WeakerAccess")
-    protected void onActivityRealizationCompleteOrSkipped(OperationResult result) throws ActivityRunException {
+    protected void onActivityRealizationCompleteOrAborted(OperationResult result) throws ActivityRunException {
         simulationSupport.closeSimulationResultIfOpenedHere(result);
     }
 

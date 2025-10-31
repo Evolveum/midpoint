@@ -381,11 +381,7 @@ public class TaskActivityManager {
                             @NotNull TaskType task) {
                         if (state != null) {
                             try {
-                                states.put(path, new OtherActivityState(
-                                        taskManager.createTaskInstance(task.asPrismObject(), result),
-                                        task.getActivityState(),
-                                        path,
-                                        null));
+                                states.put(path, OtherActivityState.of(task, path, result));
                             } catch (SchemaException e) {
                                 throw new RuntimeException(e);
                             }
@@ -396,11 +392,7 @@ public class TaskActivityManager {
                     public void processWorkerState(
                             @NotNull ActivityPath path, @NotNull ActivityStateType state, @NotNull TaskType task) {
                         try {
-                            states.put(path, new OtherActivityState(
-                                    taskManager.createTaskInstance(task.asPrismObject(), result),
-                                    task.getActivityState(),
-                                    path,
-                                    null));
+                            states.put(path, OtherActivityState.of(task, path, result));
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }

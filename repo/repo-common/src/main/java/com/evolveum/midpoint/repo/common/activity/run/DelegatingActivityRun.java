@@ -6,28 +6,27 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
-import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_DELEGATED;
 
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
-
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.util.exception.CommonException;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.state.OtherActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,8 +34,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import java.util.List;
-
+/**
+ * Activity run that delegates its work to a child task.
+ *
+ * This class manages starting the child task if needed and extracting its state upon completion or abortion
+ * (and passing it further up).
+ */
 public final class DelegatingActivityRun<
         WD extends WorkDefinition,
         AH extends ActivityHandler<WD, AH>> extends AbstractActivityRun<WD, AH, DelegationWorkStateType> {
@@ -63,17 +66,28 @@ public final class DelegatingActivityRun<
         return ActivityStateDefinition.normal(DelegationWorkStateType.COMPLEX_TYPE);
     }
 
+    /** State of the delegation determined when the processing starts. */
     private DelegationState delegationState;
 
     /**
      * Child task: either discovered in {@link #determineDelegationState(OperationResult)}
      * or created in {@link #delegate(OperationResult)}.
      */
-    private TaskType childTask;
+    private Task childTask;
+
+    /**
+     * Activity state of this activity in the child task. Guaranteed to exist for
+     *
+     * - {@link DelegationState#DELEGATED_COMPLETE}
+     * - {@link DelegationState#DELEGATED_ABORTED}
+     */
+    private OtherActivityState activityStateInChildTask;
 
     @Override
     protected @NotNull ActivityRunResult runInternal(OperationResult result)
             throws ActivityRunException, CommonException {
+
+        assert !activityState.isComplete() && !activityState.isAborted(); // from the caller
 
         delegationState = determineDelegationState(result);
 
@@ -84,8 +98,13 @@ public final class DelegatingActivityRun<
             }
             case DELEGATED_IN_PROGRESS -> ActivityRunResult.waiting();
             case DELEGATED_COMPLETE -> {
-                assert childTask != null;
-                yield ActivityRunResult.finished(childTask.getResultStatus());
+                assert activityStateInChildTask != null;
+                yield ActivityRunResult.finished(activityStateInChildTask.getResultStatus());
+            }
+            case DELEGATED_ABORTED -> {
+                assert activityStateInChildTask != null;
+                yield ActivityRunResult.aborted(
+                        activityStateInChildTask.getResultStatus(), activityStateInChildTask.getAbortingInformation());
             }
         };
     }
@@ -94,9 +113,10 @@ public final class DelegatingActivityRun<
         ActivityRealizationStateType realizationState = activityState.getRealizationState();
         if (realizationState == null) {
             return DelegationState.NOT_DELEGATED_YET;
-        } else if (realizationState == ActivityRealizationStateType.IN_PROGRESS_DELEGATED) {
+        } else if (realizationState == IN_PROGRESS_DELEGATED) {
             return determineDelegationStateFromChildTask(result);
         } else {
+            // IN_PROGRESS_LOCAL and IN_PROGRESS_DISTRIBUTED are not expected here; other ones are excluded upstream
             throw new IllegalStateException(String.format("Unexpected realization state %s for activity '%s' in %s",
                     realizationState, getActivityPath(), getRunningTask()));
         }
@@ -104,6 +124,34 @@ public final class DelegatingActivityRun<
 
     private @NotNull DelegationState determineDelegationStateFromChildTask(OperationResult result)
             throws ActivityRunException {
+        String childOid = getChildOid();
+        try {
+            childTask = getBeans().taskManager.getTaskPlain(childOid, result);
+        } catch (ObjectNotFoundException e) {
+            LOGGER.warn("Activity '{}' is marked as delegated but child task (OID {}) was not found. Will create one. In: {}",
+                    getActivityPath(), childOid, getRunningTask());
+            return DelegationState.NOT_DELEGATED_YET;
+        } catch (Exception e) {
+            throw new ActivityRunException(
+                    "Child task (OID %s) for activity '%s' in %s could not be retrieved".formatted(
+                            childOid, getActivityPath(), getRunningTask()),
+                    FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+
+        activityStateInChildTask = OtherActivityState.of(childTask, getActivityPath());
+        var realizationStateInChildTask = activityStateInChildTask.getRealizationState();
+        if (realizationStateInChildTask == null) {
+            return DelegationState.DELEGATED_IN_PROGRESS;
+        } else {
+            return switch (realizationStateInChildTask) {
+                case COMPLETE -> DelegationState.DELEGATED_COMPLETE;
+                case ABORTED -> DelegationState.DELEGATED_ABORTED;
+                case IN_PROGRESS_LOCAL, IN_PROGRESS_DISTRIBUTED, IN_PROGRESS_DELEGATED -> DelegationState.DELEGATED_IN_PROGRESS;
+            };
+        }
+    }
+
+    private @NotNull String getChildOid() throws ActivityRunException {
         ObjectReferenceType childRef = getTaskRef();
         String childOid = childRef != null ? childRef.getOid() : null;
         if (childOid == null) {
@@ -114,30 +162,7 @@ public final class DelegatingActivityRun<
                             getActivityPath(), getRunningTask()),
                     FATAL_ERROR, PERMANENT_ERROR, null);
         }
-
-        try {
-            childTask = getBeans().taskManager
-                    .getTaskPlain(childOid, result)
-                    .getUpdatedTaskObject()
-                    .asObjectable();
-        } catch (ObjectNotFoundException e) {
-            LOGGER.warn("Activity '{}' is marked as delegated but child task (OID {}) was not found. Will create one. In: {}",
-                    getActivityPath(), childOid, getRunningTask());
-            return DelegationState.NOT_DELEGATED_YET;
-        } catch (Exception e) {
-            throw new ActivityRunException(String.format("Child task (OID %s) for activity '%s' in %s could "
-                    + "not be retrieved", childOid, getActivityPath(), getRunningTask()), FATAL_ERROR, PERMANENT_ERROR, e);
-        }
-
-        TaskExecutionStateType childStatus = childTask.getExecutionState();
-        if (childStatus == TaskExecutionStateType.CLOSED) {
-            LOGGER.debug("Child task {} is closed, considering delegated action to be complete", childTask);
-            return DelegationState.DELEGATED_COMPLETE;
-        } else {
-            LOGGER.debug("Child task {} is not closed ({}), considering delegated action to be in progress",
-                    childStatus, childTask);
-            return DelegationState.DELEGATED_IN_PROGRESS;
-        }
+        return childOid;
     }
 
     private ObjectReferenceType getTaskRef() {
@@ -153,10 +178,9 @@ public final class DelegatingActivityRun<
         activityState.flushPendingTaskModificationsChecked(result);
 
         try {
-            Task child = createOrFindTheChild(result);
-            childTask = child.getRawTaskObjectClonedIfNecessary().asObjectable();
+            childTask = createOrFindTheChild(result);
 
-            helper.switchExecutionToChildren(List.of(child), result);
+            helper.switchExecutionToChildren(List.of(childTask), result);
 
             setTaskRef();
             activityState.setRealizationState(IN_PROGRESS_DELEGATED); // We want to set this only after subtask is created
@@ -222,8 +246,7 @@ public final class DelegatingActivityRun<
 
     private void setTaskRef() {
         try {
-            ObjectReferenceType taskRef = ObjectTypeUtil.createObjectRef(childTask);
-            activityState.setWorkStateItemRealValues(DelegationWorkStateType.F_TASK_REF, taskRef);
+            activityState.setWorkStateItemRealValues(DelegationWorkStateType.F_TASK_REF, childTask.getSelfReference());
         } catch (SchemaException e) {
             throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);
         }
@@ -238,6 +261,7 @@ public final class DelegatingActivityRun<
     private enum DelegationState {
         NOT_DELEGATED_YET,
         DELEGATED_IN_PROGRESS,
-        DELEGATED_COMPLETE
+        DELEGATED_COMPLETE,
+        DELEGATED_ABORTED
     }
 }

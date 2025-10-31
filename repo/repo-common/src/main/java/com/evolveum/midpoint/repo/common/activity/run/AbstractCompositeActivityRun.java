@@ -6,9 +6,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult.RestartRequestingInformation;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.OperationResultUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RestartActivityPolicyActionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -116,15 +119,45 @@ public abstract class AbstractCompositeActivityRun<
             throws ActivityRunException {
 
         List<ActivityRunResult> childResults = new ArrayList<>();
-        ActivityRunResult unfinishedChildResult = null; // Result of a child that did not finish (error, waiting, interruption).
+        // Result of a child that was not finished but also not aborted.
+        // It is to be propagated to the composite run result.
+        ActivityRunResult unfinishedChildResult = null;
         for (Activity<?, ?> child : children) {
             @NotNull ActivityRunResult childRunResult = child.getRun().run(result);
             childResults.add(childRunResult);
 
-            if (childRunResult.isSkipActivityError()) {
-                continue; // That child was skipped. We should continue with next one.
+            if (childRunResult.isAborted()) {
+                // A skip or restart (of this activity or some of its ancestors) was requested, so we have to investigate a bit.
+                var pathToSkipOrRestart = childRunResult.getSkippedOrRestartedActivityPath();
+                var abortingInformation = childRunResult.getAbortingInformationRequired();
+                if (pathToSkipOrRestart.equals(child.getPath())) {
+                    if (childRunResult.isToBeSkipped()) {
+                        LOGGER.debug("Skipping child activity '{}' as requested", child.getPath());
+                        continue;
+                    } else {
+                        assert childRunResult.isToBeRestarted();
+                        // We need to reach the nearest task boundary, and request the restart there.
+                        updateOperationResultStatus(childResults); // the result is most probably FATAL_ERROR
+                        runResult.setRunResultStatus(RESTART_REQUESTED); // throwable is not important here
+                        runResult.setRestartRequestingInformation(
+                                new RestartRequestingInformation(
+                                        (RestartActivityPolicyActionType) abortingInformation.getPolicyAction(), // ensured
+                                        child.getRun().getActivityState().getExecutionAttempt()));
+                        return;
+                    }
+                } else if (child.getPath().startsWith(pathToSkipOrRestart)) {
+                    // Some of the ancestors is to be skipped or restarted. We have to abort the whole run.
+                    updateOperationResultStatus(childResults); // the result is most probably FATAL_ERROR
+                    runResult.setRunResultStatus(ABORTED, childRunResult.getThrowable());
+                    runResult.setAbortingInformation(abortingInformation);
+                    return;
+                } else {
+                    throw new IllegalStateException(
+                            ("Inconsistent skip/restart request state in child activity run result. "
+                                    + "Requested path: '%s', child path: '%s', run result: '%s'").formatted(
+                                    pathToSkipOrRestart, child.getPath(), childRunResult.shortDumpLazily()));
+                }
             }
-
             if (!childRunResult.isFinished()) {
                 unfinishedChildResult = childRunResult;
                 break;
@@ -132,12 +165,15 @@ public abstract class AbstractCompositeActivityRun<
         }
 
         if (unfinishedChildResult == null) {
-            // All children finished.
+            // All children finished (or were skipped).
             runResult.setRunResultStatus(canRun() ? FINISHED : INTERRUPTED);
         } else {
             runResult.setRunResultStatus(
                     canRun() ? unfinishedChildResult.getRunResultStatus() : INTERRUPTED,
                     unfinishedChildResult.getThrowable());
+            runResult.setRestartRequestingInformation(
+                    unfinishedChildResult.getRestartRequestingInformation()); // only for RESTART_REQUESTED run result status
+            // aborting information is not relevant here so we don't need to copy it
         }
         updateOperationResultStatus(childResults);
     }

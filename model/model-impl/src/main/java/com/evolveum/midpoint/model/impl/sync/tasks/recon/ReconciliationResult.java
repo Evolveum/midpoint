@@ -8,10 +8,8 @@ package com.evolveum.midpoint.model.impl.sync.tasks.recon;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -20,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class ReconciliationResult implements DebugDumpable {
 
-    private TaskRunResult runResult;
     private PrismObject<ResourceType> resource;
     private ResourceObjectDefinition resourceObjectDefinition;
     private long etime; // seems unused
@@ -32,10 +29,8 @@ public class ReconciliationResult implements DebugDumpable {
     private long resourceReconErrors;
     private long shadowReconCount;
 
-    static ReconciliationResult fromActivityRun(@NotNull ReconciliationActivityRun execution,
-            @NotNull ActivityRunResult executionResult) {
+    static ReconciliationResult fromActivityRun(@NotNull ReconciliationActivityRun execution) {
         ReconciliationResult result = new ReconciliationResult();
-        result.runResult = executionResult.createTaskRunResult();
         ProcessingScope processingScope = findProcessingScope(execution);
         if (processingScope != null) {
             result.resource = processingScope.resource.asPrismObject();
@@ -64,14 +59,6 @@ public class ReconciliationResult implements DebugDumpable {
             }
         }
         return null;
-    }
-
-    public TaskRunResult getRunResult() {
-        return runResult;
-    }
-
-    public void setRunResult(TaskRunResult runResult) {
-        this.runResult = runResult;
     }
 
     public PrismObject<ResourceType> getResource() {
@@ -164,8 +151,6 @@ public class ReconciliationResult implements DebugDumpable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("ReconciliationTaskResult");
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "runResult", runResult.toString(), indent);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "resource", resource.toString(), indent);
         sb.append("\n");

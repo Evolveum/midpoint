@@ -9,13 +9,18 @@ package com.evolveum.midpoint.repo.common.activity.run.state;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +36,7 @@ public class OtherActivityState extends ActivityState {
 
     /**
      * Task in which this activity state resides.
+     * Later, we could remove it, as we probably need only the activities execution state from it.
      */
     @NotNull private final Task task;
 
@@ -52,9 +58,23 @@ public class OtherActivityState extends ActivityState {
             var workState =
                     taskActivityState.asPrismContainerValue().findItem(stateItemPath.append(ActivityStateType.F_WORK_STATE));
             ItemDefinition<?> workStateItemDef = workState != null ? workState.getDefinition() : null;
-            workStateComplexTypeDefinition = workStateItemDef instanceof PrismContainerDefinition<?> ?
-                    ((PrismContainerDefinition<?>) workStateItemDef).getComplexTypeDefinition() : null;
+            workStateComplexTypeDefinition = workStateItemDef instanceof PrismContainerDefinition<?> prismContainerDefinition ?
+                    prismContainerDefinition.getComplexTypeDefinition() : null;
         }
+    }
+
+    /** Convenience method that creates {@link ActivityState} for arbitrary task and activity within it. */
+    public static @NotNull OtherActivityState of(@NotNull Task task, @NotNull ActivityPath activityPath) {
+        return new OtherActivityState(task, task.getActivitiesStateOrClone(), activityPath, null);
+    }
+
+    public static @NotNull OtherActivityState of(
+            @NotNull TaskType taskBean,
+            @NotNull ActivityPath activityPath,
+            @NotNull OperationResult result) throws SchemaException {
+        return of(
+                CommonTaskBeans.get().taskManager.createTaskInstance(taskBean.asPrismObject(), result),
+                activityPath);
     }
 
     public @NotNull Task getTask() {

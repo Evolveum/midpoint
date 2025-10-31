@@ -8,9 +8,9 @@ package com.evolveum.midpoint.repo.common.activity;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Result status of an activity run. Besides providing the success or failure status (with severity), it also indicates
@@ -25,6 +25,9 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 public enum ActivityRunResultStatus {
 
     /**
+     * Activity is not meant to run again, and no special action from neither activity framework nor task engine is needed.
+     * The activity itself may be completed or aborted.
+     *
      * @see TaskRunResultStatus#FINISHED
      */
     FINISHED(TaskRunResultStatus.FINISHED),
@@ -45,17 +48,20 @@ public enum ActivityRunResultStatus {
     HALTING_ERROR(TaskRunResultStatus.HALTING_ERROR),
 
     /**
-     * Error that prevents activity from running, if the task has more activities, it should continue with the next one.
-     * If the task does not have any more activities, it should finish.
+     * Situation (typically an error) that makes activity abort, i.e., definitely stop its execution, without
+     * an option of continuing. The activity can be either skipped or restarted (later).
+     *
+     * There's no mapping to {@link TaskRunResultStatus}, because there's nontrivial logic deciding between
+     * {@link TaskRunResultStatus#FINISHED} and {@link TaskRunResultStatus#RESTART_REQUESTED}.
      */
-    SKIP_ACTIVITY_ERROR(TaskRunResultStatus.HALTING_ERROR), // FIXME rethink to mapping to TRRS
+    ABORTED(null),
 
     /**
-     * Error that prevents the activity from running.
-     * The current activity should be restarted.
-     * Limits might be in place to limit the number of restarts and to decide what to do if the limit is exceeded.
+     * When an activity has to be restarted (because of a policy rule), it is marked as aborted with a pending restart,
+     * and then the enclosing task run result is set to {@link TaskRunResultStatus#RESTART_REQUESTED}. However, it there
+     * are intermediate activities that go to the task boundary, they must be stepped out first. This status is used to do that.
      */
-    RESTART_ACTIVITY_ERROR(TaskRunResultStatus.RESTART_REQUESTED),
+    RESTART_REQUESTED(TaskRunResultStatus.RESTART_REQUESTED),
 
     /**
      * The activity run cannot continue now, because the enclosing task was interrupted (e.g. by suspending it or
@@ -75,13 +81,14 @@ public enum ActivityRunResultStatus {
      */
     WAITING(TaskRunResultStatus.WAITING);
 
-    @NotNull private final TaskRunResultStatus taskRunResultStatus;
+    /** Some statuses may not have a direct mapping to {@link TaskRunResultStatus}; in that case, this is null. */
+    @Nullable private final TaskRunResultStatus taskRunResultStatus;
 
-    ActivityRunResultStatus(@NotNull TaskRunResultStatus taskRunResultStatus) {
+    ActivityRunResultStatus(@Nullable TaskRunResultStatus taskRunResultStatus) {
         this.taskRunResultStatus = taskRunResultStatus;
     }
 
-    public @NotNull TaskRunResultStatus toTaskRunResultStatus() {
+    public @Nullable TaskRunResultStatus toTaskRunResultStatus() {
         return taskRunResultStatus;
     }
 }

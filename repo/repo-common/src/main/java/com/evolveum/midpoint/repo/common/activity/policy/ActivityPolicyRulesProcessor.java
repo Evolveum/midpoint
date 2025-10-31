@@ -6,6 +6,10 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.ABORTED;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.HALTING_ERROR;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,10 +19,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
-import com.evolveum.midpoint.repo.common.activity.ActivityThresholdPolicyViolationException;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedAbortException;
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunPolicyException;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -28,13 +32,12 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * This processor is responsible for collecting, evaluating and enforcing activity policy rules.
+ * This processor is responsible for collecting, evaluating and executing activity policy rules.
  */
 public class ActivityPolicyRulesProcessor {
 
@@ -112,7 +115,7 @@ public class ActivityPolicyRulesProcessor {
     }
 
     public void evaluateAndExecuteRules(ItemProcessingResult processingResult, @NotNull OperationResult result)
-            throws ThresholdPolicyViolationException, SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityRunPolicyException {
 
         LOGGER.trace("Evaluating/executing activity policy rules for activity '{}'", activityRun.getActivityPath());
 
@@ -160,13 +163,13 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void executeAndStoreState(Collection<EvaluatedActivityPolicyRule> evaluatedRules, OperationResult result)
-            throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, ThresholdPolicyViolationException {
+            throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, ActivityRunPolicyException {
 
         // These will be written to activity state at the end
         Collection<ActivityPolicyStateType> policyStates = new ArrayList<>();
 
         try {
-            LOGGER.trace("Enforcing activity policy rules for {} ({})",
+            LOGGER.trace("Executing activity policy rules for {} ({})",
                     activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
 
             for (EvaluatedActivityPolicyRule rule : evaluatedRules) {
@@ -222,8 +225,7 @@ public class ActivityPolicyRulesProcessor {
                 policyBean.getPolicyConstraints());
     }
 
-    private void executeActions(EvaluatedActivityPolicyRule rule, OperationResult result)
-            throws ActivityThresholdPolicyViolationException {
+    private void executeActions(EvaluatedActivityPolicyRule rule, OperationResult result) throws ActivityRunPolicyException {
 
         for (ActivityPolicyActionType action : rule.getActions()) {
             if (action instanceof NotificationActivityPolicyActionType na) {
@@ -233,45 +235,30 @@ public class ActivityPolicyRulesProcessor {
                 continue;
             }
 
-            ActivityRunResultStatus runResultStatus;
-            if (action instanceof RestartActivityPolicyActionType) {
-                LOGGER.debug("Restarting activity because of policy violation, rule: {}", rule);
-                runResultStatus = ActivityRunResultStatus.RESTART_ACTIVITY_ERROR;
-            } else if (action instanceof SkipActivityPolicyActionType) {
-                LOGGER.debug("Skipping activity because of policy violation, rule: {}", rule);
-                runResultStatus = ActivityRunResultStatus.SKIP_ACTIVITY_ERROR;
+            String ruleName = rule.getName();
+            String reactionName = rule.getName();
+
+            LocalizableMessage message = new SingleLocalizableMessage(
+                    "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName, reactionName });
+
+            String defaultMessage =
+                    "Policy violation, rule: "
+                            + ruleName
+                            + (reactionName != null ? "/" + reactionName : "");
+
+            if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {
+                LOGGER.debug("Aborting activity because of policy violation, rule: {}", rule);
+                var abortInfo = new ActivityAbortingInformationType()
+                        .activityPath(rule.getPath().toBean())
+                        .policyAction(action.clone());
+                var cause = new ActivityPolicyBasedAbortException(message, defaultMessage, abortInfo);
+                throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, ABORTED, cause);
             } else if (action instanceof SuspendTaskActivityPolicyActionType) {
                 LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
-                runResultStatus = ActivityRunResultStatus.HALTING_ERROR;
+                throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, HALTING_ERROR, null);
             } else {
                 LOGGER.debug("No action to take for policy violation, rule: {}", rule);
-                continue;
             }
-
-            throw buildException(rule, action, runResultStatus);
         }
-    }
-
-    private ActivityThresholdPolicyViolationException buildException(
-            EvaluatedActivityPolicyRule rule, ActivityPolicyActionType action, ActivityRunResultStatus resultStatus) {
-
-        String ruleName = rule.getName();
-        String reactionName = rule.getName();
-
-        LocalizableMessage message = new SingleLocalizableMessage(
-                "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName, reactionName });
-
-        String defaultMessage =
-                "Policy violation, rule: "
-                        + ruleName
-                        + (reactionName != null ? "/" + reactionName : "");
-
-        Integer executionAttempt = activityRun.getActivityState().getExecutionAttempt();
-
-        return new ActivityThresholdPolicyViolationException(
-                message,
-                defaultMessage,
-                resultStatus,
-                PolicyViolationContextBuilder.from(rule, action, executionAttempt));
     }
 }

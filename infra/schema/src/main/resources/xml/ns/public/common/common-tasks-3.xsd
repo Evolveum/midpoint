@@ -3504,11 +3504,17 @@
             </xsd:element>
             <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0"/>
             <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0" default="1"/>
-            <xsd:element name="restarting" type="tns:ActivityRestartingStateType" minOccurs="0"/>
             <xsd:element name="realizationState" type="tns:ActivityRealizationStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        State of the activity realization: in progress local/delegated/distributed, complete, or skipped.
+                        State of the activity realization: in progress local/delegated/distributed, complete, or aborted.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="abortingInformation" type="tns:ActivityAbortingInformationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        More details about why and how was the activity aborted. Used when realizationState = ABORTED.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3644,10 +3650,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ActivityRestartingStateType">
+    <xsd:complexType name="ActivityAbortingInformationType">
         <xsd:annotation>
             <xsd:documentation>
-
+                More details why an activity was aborted.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -3655,21 +3661,24 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="policyRef" type="xsd:string">
+            <xsd:element name="activityPath" type="tns:ActivityPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to the restarting policy that caused the activity to be restarted.
+                        Which is the topmost activity has to be aborted? (Because if a composite activity is aborted, it means
+                        that all its descendants that have been started but not finished have to be aborted as well.)
+
+                        This information is used when propagating the aborting information upwards the tree.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="reactionRef" type="xsd:string">
+            <xsd:element name="policyAction" type="tns:ActivityPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to the reaction within the restarting policy that caused the activity to be restarted.
+                        Policy action that caused the activity to be aborted.
+                        Currently supported are SkipActivityPolicyActionType and RestartActivityPolicyActionType.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="restartCounters" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3751,6 +3760,9 @@
                     <xsd:documentation>
                         State of the activity processing: null (not started), in progress, complete.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
@@ -3868,17 +3880,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="skipped">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Activity execution was stopped before completion, without interruption or error.
-                        Task execution should continue with next activity.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SKIPPED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="complete">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3886,6 +3887,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="COMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="aborted">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity execution was aborted before completion. Usually because of a policy rule requesting
+                        to skip or restart an activity.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ABORTED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
