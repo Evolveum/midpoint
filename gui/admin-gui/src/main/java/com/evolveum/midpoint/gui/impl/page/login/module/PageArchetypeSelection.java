@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -207,9 +208,13 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
             protected void onClick(AjaxRequestTarget target) {
                 archetypeSelected(tileModel, target);
                 target.add(getArchetypesContainer());
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
         };
         tilePanel.setHorizontal(false);
+        tilePanel.add(new AttributeModifier("data-component-id", () ->
+                tileModel.getObject().isSelected() ? tilePanel.getPageRelativePath() : null));
         return tilePanel;
     }
 
