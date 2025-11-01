@@ -679,44 +679,4 @@ public abstract class ActivityState implements DebugDumpable {
         }
         return value;
     }
-
-    // todo make it cleaner, move to custom operation class together with preparation/store
-    //  of new execution attempt (history) for state+overview/tree
-    public void initializeAfterRestart(@NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        getTask().modify(getInitializationDeltas());
-        getTask().flushPendingModifications(result);
-    }
-
-    private @NotNull Collection<ItemDelta<?, ?>> getInitializationDeltas() throws SchemaException {
-
-        List<ItemDelta<?, ?>> deltas = new ArrayList<>(
-                PrismContext.get().deltaFor(TaskType.class)
-                        .item(stateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_ABORTING_INFORMATION)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_POLICIES)).replace()
-                        .asItemDeltas());
-
-        // The casting should succeed, as it was checked before calling this method
-        var restartAction = (RestartActivityPolicyActionType) getAbortingInformation().getPolicyAction();
-        if (BooleanUtils.isNotFalse(restartAction.isRestartCounters())) {
-            deltas.add(PrismContext.get().deltaFor(TaskType.class)
-                    .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
-                    .asItemDelta());
-        }
-
-        // Note we're incrementing the attempt counter only when restarting activity.
-        // Suspending and then resuming the containing task doesn't mean its activities were restarted.
-        int newExecutionAttempt = getExecutionAttempt() + 1;
-        LOGGER.debug("Incrementing execution attempt to {} for {}", newExecutionAttempt, getActivityPath());
-        deltas.add(PrismContext.get().deltaFor(TaskType.class)
-                .item(stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT)).replace(newExecutionAttempt)
-                .asItemDelta());
-
-        return deltas;
-    }
 }

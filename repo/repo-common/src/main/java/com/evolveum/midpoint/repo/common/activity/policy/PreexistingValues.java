@@ -68,7 +68,7 @@ public class PreexistingValues implements DebugDumpable {
     }
 
     @Nullable Integer getExecutionAttemptNumber(@NotNull ActivityPath path) {
-        return null;
+        return executionAttemptNumberMap.get(path);
     }
 
     Map<String, Integer> getPreexistingCounters() {

@@ -48,7 +48,8 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
 
         Integer below = constraint.getBelow();
         if (below != null && totalValue < below) {
-            LOGGER.trace("Numeric value {} is below the threshold of constraint {}, creating trigger", totalValue, constraint.getName());
+            LOGGER.trace("Numeric value {} is below the threshold {} of constraint {}, creating trigger",
+                    totalValue, below, constraint.getName());
 
             LocalizableMessage message = createMessage(constraint.getName(), totalValue, constraint.getBelow(), EvaluatorUtils.ThresholdType.BELOW);
             LocalizableMessage shortMessage = createShortMessage(constraint.getName(), EvaluatorUtils.ThresholdType.BELOW);
@@ -58,7 +59,8 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
 
         Integer exceeds = constraint.getExceeds();
         if (exceeds != null && totalValue > exceeds) {
-            LOGGER.trace("Numeric value {} exceeds the threshold of constraint {}, creating trigger", totalValue, constraint.getName());
+            LOGGER.trace("Numeric value {} exceeds the threshold {} of constraint {}, creating trigger",
+                    totalValue, exceeds, constraint.getName());
 
             LocalizableMessage message = createMessage(constraint.getName(), totalValue, constraint.getExceeds(), EvaluatorUtils.ThresholdType.EXCEEDS);
             LocalizableMessage shortMessage = createShortMessage(constraint.getName(), EvaluatorUtils.ThresholdType.EXCEEDS);

@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.schema.statistics.ActivityBucketManagementStatisticsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketManagementOperationStatisticsType;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,10 +27,13 @@ public class ActivityBucketManagementStatistics extends Initializable {
     ActivityBucketManagementStatistics(CurrentActivityState<?> activityState) {
     }
 
-    public void initialize(ActivityBucketManagementStatisticsType initialValue) {
-        doInitialize(() -> {
-            addTo(value, initialValue);
-        });
+    public void initialize(ActivityBucketManagementStatisticsType initialValue, boolean reset) {
+        doInitialize(
+                reset,
+                () -> {
+                    ActivityBucketManagementStatisticsUtil.clear(value);
+                    addTo(value, initialValue);
+                });
     }
 
     /** Returns a current value of this statistics. It is copied because of thread safety issues. */

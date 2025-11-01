@@ -45,11 +45,11 @@ public class ActivityStatistics {
         this.bucketManagement = new ActivityBucketManagementStatistics(activityState);
     }
 
-    public void initialize() {
-        itemProcessing.initialize(getStoredItemProcessing());
-        synchronizationStatistics.initialize(getStoredSynchronizationStatistics());
-        actionsExecuted.initialize(getStoredActionsExecuted());
-        bucketManagement.initialize(getStoredBucketManagement());
+    public void initialize(boolean reset) {
+        itemProcessing.initialize(getStoredItemProcessing(), reset);
+        synchronizationStatistics.initialize(getStoredSynchronizationStatistics(), reset);
+        actionsExecuted.initialize(getStoredActionsExecuted(), reset);
+        bucketManagement.initialize(getStoredBucketManagement(), reset);
     }
 
     public @NotNull ActivityItemProcessingStatistics getLiveItemProcessing() {

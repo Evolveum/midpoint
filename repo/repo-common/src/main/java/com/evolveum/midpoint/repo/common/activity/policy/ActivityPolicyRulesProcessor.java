@@ -97,7 +97,7 @@ public class ActivityPolicyRulesProcessor {
         List<ActivityPolicyType> policyBeans = activityPoliciesBean.getPolicy();
 
         policyBeans.stream()
-                .filter(policyBean-> BooleanUtils.isNotFalse(policyBean.isEnabled()))
+                .filter(policyBean -> BooleanUtils.isNotFalse(policyBean.isEnabled()))
                 .map(policyBean -> new ActivityPolicyRule(policyBean, activityPath, getDataNeeds(policyBean)))
                 .sorted(
                         Comparator.comparing(

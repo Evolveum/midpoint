@@ -100,9 +100,6 @@ class PreexistingValuesComputer {
         for (ActivityPolicyRule rule : rules) {
             if (rule.doesNeedExecutionAttemptNumber()) {
                 var rulePath = rule.getPath();
-                if (rulePath.equals(myPath)) {
-                    continue;
-                }
                 var executionAttempt = allActivityStatesMap.get(rulePath).stream()
                         .filter(state -> !state.isDelegating()) // maybe not necessary
                         .mapToInt(state -> state.getExecutionAttempt())

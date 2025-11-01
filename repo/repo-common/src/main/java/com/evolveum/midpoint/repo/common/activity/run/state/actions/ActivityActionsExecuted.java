@@ -24,8 +24,13 @@ public class ActivityActionsExecuted extends Initializable {
         value = new ActivityActionsExecutedType();
     }
 
-    public synchronized void initialize(ActivityActionsExecutedType initialValue) {
-        doInitialize(() -> add(initialValue));
+    public synchronized void initialize(ActivityActionsExecutedType initialValue, boolean reset) {
+        doInitialize(
+                reset,
+                () -> {
+                    ActionsExecutedInformationUtil.clear(value);
+                    add(initialValue);
+                });
     }
 
     public synchronized void add(ActivityActionsExecutedType increment) {

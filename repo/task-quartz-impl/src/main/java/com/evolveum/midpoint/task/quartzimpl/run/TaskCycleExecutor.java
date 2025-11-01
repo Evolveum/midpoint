@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.task.quartzimpl.run;
 
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
+
 import org.jetbrains.annotations.NotNull;
 import org.quartz.SchedulerException;
 
@@ -253,12 +255,13 @@ class TaskCycleExecutor {
                     ? runResult.getTaskRestartInstruction().delayMillis()
                     : 0;
             long startAt = System.currentTimeMillis() + Math.max(delayMillis, 0);
-            LOGGER.trace("Rescheduling task {} to run in {} ms because of activity restart", task, delayMillis);
+            var rootTask = (TaskQuartzImpl) task.getRootTask();
+            LOGGER.trace("Rescheduling root task {} to run in {} ms because of activity restart", rootTask, delayMillis);
             // TODO consider we may be within a tree of tasks here
-            task.setExecutionAndSchedulingStateImmediate(  // todo can't be like this [viliam]
+            rootTask.setExecutionAndSchedulingStateImmediate(  // todo can't be like this [viliam]
                     TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
                     TaskSchedulingStateType.SUSPENDED, result);
-            beans.localScheduler.rescheduleLater(task, startAt);  // todo does the first parameter need to be RunningTaskQuartzImpl? [viliam]
+            beans.localScheduler.rescheduleLater(rootTask, startAt);
         } catch (PreconditionViolationException | SchedulerException ex) {
             LOGGER.error("Couldn't reschedule task {} (rescheduled because of activity restart): {}",
                     task, ex.getMessage(), ex);

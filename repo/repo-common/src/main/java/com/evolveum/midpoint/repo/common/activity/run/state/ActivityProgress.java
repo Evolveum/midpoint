@@ -48,12 +48,15 @@ public class ActivityProgress extends Initializable {
         this.activityState = activityState;
     }
 
-    public void initialize(ActivityProgressType initialValue) {
-        doInitialize(() -> {
-            if (initialValue != null) {
-                ActivityProgressUtil.addTo(this.value, initialValue);
-            }
-        });
+    public void initialize(ActivityProgressType initialValue, boolean reset) {
+        doInitialize(
+                reset,
+                () -> {
+                    clear(value);
+                    if (initialValue != null) {
+                        ActivityProgressUtil.addTo(value, initialValue);
+                    }
+                });
     }
 
     /**

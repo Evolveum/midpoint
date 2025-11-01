@@ -59,7 +59,8 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
 
         Long totalValueMillis = ComputationUtil.durationToMillis(totalValue);
         if (lowerLimit != null && compare(totalValue, lowerLimit) < 0) {
-            LOGGER.trace("Duration value {} is below the threshold of constraint {}, creating trigger", totalValue, constraint.getName());
+            LOGGER.trace("Duration value {} is below the threshold {} of constraint {}, creating trigger",
+                    totalValue, lowerLimit, constraint.getName());
 
             LocalizableMessage message = createMessage(constraint.getName(), totalValue, totalValueMillis, lowerLimit, EvaluatorUtils.ThresholdType.BELOW);
             LocalizableMessage shortMessage = createShortMessage(constraint.getName(), EvaluatorUtils.ThresholdType.BELOW);
@@ -68,7 +69,8 @@ public abstract class DurationConstraintEvaluator<C extends DurationThresholdPol
         }
 
         if (upperLimit != null && compare(totalValue, upperLimit) > 0) {
-            LOGGER.trace("Duration value {} exceeds the threshold of constraint {}, creating trigger", totalValue, constraint.getName());
+            LOGGER.trace("Duration value {} exceeds the threshold {} of constraint {}, creating trigger",
+                    totalValue, upperLimit, constraint.getName());
 
             LocalizableMessage message = createMessage(constraint.getName(), totalValue, totalValueMillis, upperLimit, EvaluatorUtils.ThresholdType.EXCEEDS);
             LocalizableMessage shortMessage = createShortMessage(constraint.getName(), EvaluatorUtils.ThresholdType.EXCEEDS);

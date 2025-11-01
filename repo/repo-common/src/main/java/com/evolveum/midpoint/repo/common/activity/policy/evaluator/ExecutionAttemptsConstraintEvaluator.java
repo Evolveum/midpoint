@@ -24,7 +24,8 @@ public class ExecutionAttemptsConstraintEvaluator
 
     @Override
     public Integer getLocalValue(ActivityPolicyRuleEvaluationContext context) {
-        return context.getActivityRun().getActivityState().getExecutionAttempt();
+        // We consider only the preexisting value, i.e., the number of attempts of an activity where the rule is defined.
+        return null;
     }
 
     @Override
