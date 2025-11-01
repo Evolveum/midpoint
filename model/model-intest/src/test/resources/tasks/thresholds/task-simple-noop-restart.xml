@@ -25,36 +25,27 @@
                         <exceeds>PT2S</exceeds>
                     </executionTime>
                 </policyConstraints>
-                <policyReaction>
-                    <name>restart me</name>
-                    <action>
-                        <notification/>
-                        <restartActivity>
-                            <delay>1000</delay>
-                            <restartCounters>true</restartCounters>
-                        </restartActivity>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <notification/>
+                    <restartActivity>
+                        <delay>1000</delay>
+                        <restartCounters>true</restartCounters>
+                    </restartActivity>
+                </policyActions>
                 <order>20</order>
             </policy>
 
             <policy>
                 <name>count restarts</name>
                 <policyConstraints>
-                    <executionAttempts/>
+                    <executionAttempts>
+                        <exceeds>2</exceeds>
+                    </executionAttempts>
                 </policyConstraints>
-                <policyReaction>
-                    <name>suspend the task because of me</name>
-                    <threshold>
-                        <lowWaterMark>
-                            <count>3</count>
-                        </lowWaterMark>
-                    </threshold>
-                    <action>
-                        <notification/>
-                        <suspendTask/>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <notification/>
+                    <suspendTask/>
+                </policyActions>
                 <order>10</order>
             </policy>
         </policies>

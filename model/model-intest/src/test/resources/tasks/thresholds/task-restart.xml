@@ -29,14 +29,11 @@
                         <below>3</below>
                     </executionAttempts>
                 </policyConstraints>
-                <policyReaction>
-                    <name>restart activity</name>
-                    <action>
-                        <restartActivity>
-                            <delay>1000</delay>
-                        </restartActivity>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <restartActivity>
+                        <delay>1000</delay>
+                    </restartActivity>
+                </policyActions>
             </policy>
         </policies>
     </activity>

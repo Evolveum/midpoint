@@ -45,34 +45,25 @@
                         <exceeds>PT3S</exceeds>
                     </executionTime>
                 </policyConstraints>
-                <policyReaction>
-                    <name>restart me</name>
-                    <action>
-                        <restartActivity>
-                            <delay>2000</delay>
-                            <restartCounters>true</restartCounters>
-                        </restartActivity>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <restartActivity>
+                        <delay>2000</delay>
+                        <restartCounters>true</restartCounters>
+                    </restartActivity>
+                </policyActions>
                 <order>20</order>
             </policy>
 
             <policy>
                 <name>count restarts</name>
                 <policyConstraints>
-                    <executionAttempts/>
+                    <executionTime>
+                        <exceeds>3</exceeds>
+                    </executionTime>
                 </policyConstraints>
-                <policyReaction>
-                    <name>suspend the task because of me</name>
-                    <threshold>
-                        <lowWaterMark>
-                            <count>3</count>
-                        </lowWaterMark>
-                    </threshold>
-                    <action>
-                        <suspendTask/>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
                 <order>10</order>
             </policy>
         </policies>

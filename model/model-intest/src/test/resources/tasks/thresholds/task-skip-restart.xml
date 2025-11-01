@@ -25,19 +25,13 @@
                     <policy>
                         <name>Max. 1s execution</name>
                         <policyConstraints>
-                            <executionTime/>
+                            <executionTime>
+                                <exceeds>PT1S</exceeds>
+                            </executionTime>
                         </policyConstraints>
-                        <policyReaction>
-                            <name>skip activity</name>
-                            <threshold>
-                                <lowWaterMark>
-                                    <duration>PT1S</duration>
-                                </lowWaterMark>
-                            </threshold>
-                            <action>
-                                <skipActivity/>
-                            </action>
-                        </policyReaction>
+                        <policyActions>
+                            <skipActivity/>
+                        </policyActions>
                     </policy>
                 </policies>
             </activity>
@@ -60,14 +54,11 @@
                                 <below>2</below>
                             </executionAttempts>
                         </policyConstraints>
-                        <policyReaction>
-                            <name>restart activity</name>
-                            <action>
-                                <restartActivity>
-                                    <delay>1000</delay>
-                                </restartActivity>
-                            </action>
-                        </policyReaction>
+                        <policyActions>
+                            <restartActivity>
+                                <delay>1000</delay>
+                            </restartActivity>
+                        </policyActions>
                     </policy>
                 </policies>
             </activity>

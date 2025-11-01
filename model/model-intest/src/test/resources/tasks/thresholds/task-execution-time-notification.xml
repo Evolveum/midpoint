@@ -20,52 +20,41 @@
         </work>
         <policies>
             <policy>
-                <name>Execution notification</name>
+                <name>First notification</name>
                 <policyConstraints>
-                    <executionTime/>
+                    <executionTime>
+                        <exceeds>PT1S</exceeds>
+                        <below>PT2S</below>
+                    </executionTime>
                 </policyConstraints>
-                <policyReaction>
-                    <name>First notification</name>
-                    <threshold>
-                        <lowWaterMark>
-                            <duration>PT1S</duration>
-                        </lowWaterMark>
-                        <highWaterMark>
-                            <duration>PT2S</duration>
-                        </highWaterMark>
-                    </threshold>
-                    <action>
-                        <notification/>
-                    </action>
-                </policyReaction>
-                <policyReaction>
-                    <name>Second notification</name>
-                    <threshold>
-                        <lowWaterMark>
-                            <duration>PT2S</duration>
-                        </lowWaterMark>
-                        <highWaterMark>
-                            <duration>PT4S</duration>
-                        </highWaterMark>
-                    </threshold>
-                    <action>
-                        <notification>
-                            <single>true</single>
-                        </notification>
-                    </action>
-                </policyReaction>
-                <policyReaction>
-                    <name>Third notification and suspend</name>
-                    <threshold>
-                        <lowWaterMark>
-                            <duration>PT4S</duration>
-                        </lowWaterMark>
-                    </threshold>
-                    <action>
-                        <notification/>
-                        <suspendTask/>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <notification/>
+                </policyActions>
+            </policy>
+            <policy>
+                <name>First notification</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT1S</exceeds>
+                        <below>PT2S</below>
+                    </executionTime>
+                </policyConstraints>
+                <policyActions>
+                    <notification/>
+                </policyActions>
+            </policy>
+            <policy>
+                <name>Third notification and suspend</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT2S</exceeds>
+                        <below>PT4S</below>
+                    </executionTime>
+                </policyConstraints>
+                <policyActions>
+                    <notification/>
+                    <suspendTask/>
+                </policyActions>
             </policy>
         </policies>
     </activity>

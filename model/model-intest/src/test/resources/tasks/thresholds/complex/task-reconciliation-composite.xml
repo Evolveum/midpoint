@@ -33,11 +33,9 @@
                                 <errorCategory>policyThreshold</errorCategory>
                             </itemState>
                         </policyConstraints>
-                        <policyReaction>
-                            <action>
-                                <skipActivity/>
-                            </action>
-                        </policyReaction>
+                        <policyActions>
+                            <skipActivity/>
+                        </policyActions>
                     </policy>
                 </policies>
                 <tailoring>
@@ -61,12 +59,10 @@
                                 <exceeds>PT1S</exceeds>
                             </executionTime>
                         </policyConstraints>
-                        <policyReaction>
-                            <action>
-                                <notification/>
-                                <suspendTask/>
-                            </action>
-                        </policyReaction>
+                        <policyActions>
+                            <notification/>
+                            <suspendTask/>
+                        </policyActions>
                     </policy>
                 </policies>
             </activity>

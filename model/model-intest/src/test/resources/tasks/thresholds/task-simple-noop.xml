@@ -24,13 +24,10 @@
                         <exceeds>PT2S</exceeds>
                     </executionTime>
                 </policyConstraints>
-                <policyReaction>
-                    <name>suspend with notification</name>
-                    <action>
-                        <notification/>
-                        <suspendTask/>
-                    </action>
-                </policyReaction>
+                <policyActions>
+                    <notification/>
+                    <suspendTask/>
+                </policyActions>
             </policy>
         </policies>
     </activity>
