@@ -16,14 +16,12 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
@@ -64,15 +62,19 @@ public abstract class ActivityState implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityState.class);
 
-    private static final @NotNull ItemPath BUCKETING_ROLE_PATH =
+    private static final ItemPath BUCKETED_WORK_COMPLETE_PATH =
+            ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_WORK_COMPLETE);
+    private static final ItemPath ABORTING_WORKER_REF_PATH =
+            ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_ABORTING_WORKER_REF);
+    private static final ItemPath BUCKET_PROCESSING_ROLE_PATH =
             ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKETS_PROCESSING_ROLE);
-    private static final @NotNull ItemPath SCAVENGER_PATH =
+    private static final ItemPath SCAVENGER_PATH =
             ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
-    private static final @NotNull ItemPath SIMULATION_RESULT_REF_PATH =
+    private static final ItemPath SIMULATION_RESULT_REF_PATH =
             ItemPath.create(ActivityStateType.F_SIMULATION, ActivitySimulationStateType.F_RESULT_REF);
-    private static final @NotNull ItemPath SIMULATION_RESULT_CREATED_PATH =
+    private static final ItemPath SIMULATION_RESULT_CREATED_PATH =
             ItemPath.create(ActivityStateType.F_SIMULATION, ActivitySimulationStateType.F_RESULT_CREATED);
-    private static final @NotNull ItemPath RUN_RECORD_PATH =
+    private static final ItemPath RUN_RECORD_PATH =
             ItemPath.create(
                     ActivityStateType.F_STATISTICS,
                     ActivityStatisticsType.F_ITEM_PROCESSING,
@@ -153,17 +155,39 @@ public abstract class ActivityState implements DebugDumpable {
     //endregion
 
     //region Bucketing
-    public BucketsProcessingRoleType getBucketingRole() {
-        return getPropertyRealValue(BUCKETING_ROLE_PATH, BucketsProcessingRoleType.class);
+    public void setBucketProcessingRole(BucketsProcessingRoleType role) throws ActivityRunException {
+        setItemRealValues(BUCKET_PROCESSING_ROLE_PATH, role);
+    }
+
+    public BucketsProcessingRoleType getBucketProcessingRole() {
+        return getPropertyRealValue(BUCKET_PROCESSING_ROLE_PATH, BucketsProcessingRoleType.class);
     }
 
     public boolean isWorker() {
-        return getBucketingRole() == BucketsProcessingRoleType.WORKER;
+        return getBucketProcessingRole() == BucketsProcessingRoleType.WORKER;
     }
 
     public boolean isScavenger() {
         return Boolean.TRUE.equals(getPropertyRealValue(SCAVENGER_PATH, Boolean.class));
     }
+
+    public boolean isBucketedWorkComplete() {
+        return Boolean.TRUE.equals(
+                getPropertyRealValue(BUCKETED_WORK_COMPLETE_PATH, Boolean.class));
+    }
+
+    public void setAbortingWorkerRef(ObjectReferenceType workerRef) throws ActivityRunException {
+        setItemRealValues(ABORTING_WORKER_REF_PATH, workerRef);
+    }
+
+    public ObjectReferenceType getAbortingWorkerRef() {
+        return getAbortingWorkerRef(ABORTING_WORKER_REF_PATH);
+    }
+
+    public boolean isBucketedWorkAborted() {
+        return getAbortingWorkerRef() != null;
+    }
+
     //endregion
 
     //region Generic access
@@ -173,7 +197,7 @@ public abstract class ActivityState implements DebugDumpable {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private ObjectReferenceType getReferenceRealValue(ItemPath path) {
+    private ObjectReferenceType getAbortingWorkerRef(ItemPath path) {
         return getTask()
                 .getReferenceRealValue(stateItemPath.append(path));
     }
@@ -371,7 +395,7 @@ public abstract class ActivityState implements DebugDumpable {
     }
 
     public @Nullable ObjectReferenceType getSimulationResultRef() {
-        return getReferenceRealValue(SIMULATION_RESULT_REF_PATH);
+        return getAbortingWorkerRef(SIMULATION_RESULT_REF_PATH);
     }
 
     public @Nullable String getSimulationResultOid() {

@@ -1223,7 +1223,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A multi-node activity that is skipped when it exceeds allowed execution time.
      */
-    @Test(enabled = false)
+    @Test
     public void test350MultinodeSkipOnExecutionTime() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -1244,7 +1244,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         then("everything is OK");
         // @formatter:off
         TASK_350_MULTINODE_SKIP_ON_EXECUTION_TIME.assertTreeAfter()
-                .assertSuspended() // already checked above
+                .assertClosed() // already checked above
                 .assertSubtasks(2)
                 .subtask(0)
                     .display()
@@ -1263,7 +1263,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
      * It's a combination of {@link #test330ChildSkipOnOwnExecutionTimeWithSubtasks()}
      * and {@link #test350MultinodeSkipOnExecutionTime()}.
      */
-    @Test(enabled = false)
+    @Test
     public void test360MultinodeSkipOnOwnExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -1274,38 +1274,27 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         when("task is run until it's stopped (some workers may continue for a little while)");
         testTask.rerunTreeErrorsOk(result);
 
-        then("root task is suspended and the first activity task is closed");
+        then("root task is closed");
         // @formatter:off
         testTask.assertTree("")
-                .assertSuspended()
-                .subtask("first", false)
                 .assertClosed()
-                .assertSuccess();
-        // @formatter:on
-
-        then("the second activity task and ALL its workers are suspended after exceeding execution time");
-        var secondActivityTaskOid = testTask.assertTree("")
+                .subtask("first", false)
+                    .assertClosed()
+                    .assertSuccess()
+                .end()
                 .subtask("second", false)
-                .getOid();
-
-        waitForTaskTreeCloseOrCondition(
-                secondActivityTaskOid,
-                result,
-                DEFAULT_TIMEOUT,
-                DEFAULT_SLEEP_TIME,
-                tasksSuspendedPredicate(3)); // coordinator + 2 workers
-
-        // @formatter:off
-        assertTaskTree(secondActivityTaskOid, "second activity task after")
-                .display()
-                .assertSuspended()
-                .assertSubtasks(2)
-                .subtask(0)
-                    .display()
+                    .assertClosed()
+                    .assertSubtasks(2)
+                        .subtask(0)
+                        .display()
                     .end()
-                .subtask(1)
-                    .display()
-                    .end();
+                        .subtask(1)
+                        .display()
+                    .end()
+                .end()
+                .subtask("third", false)
+                    .assertClosed()
+                .end();
         // @formatter:on
         // TODO more asserts
     }
@@ -1316,7 +1305,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
      *
      * As {@link #test360MultinodeSkipOnOwnExecutionTimeWithSubtasks()}} but the constraint is on the root level.
      */
-    @Test(enabled = false)
+    @Test
     public void test370MultinodeSkipOnRootExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -1327,38 +1316,25 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         when("task is run until it's stopped (some workers may continue for a little while)");
         testTask.rerunTreeErrorsOk(result);
 
-        then("root task is suspended and the first activity task is closed");
+        then("root task is closed");
         // @formatter:off
         testTask.assertTree("")
-                .assertSuspended()
+                .assertClosed()
                 .subtask("first", false)
                     .assertClosed()
-                    .assertSuccess();
-        // @formatter:on
-
-        then("the second activity task and ALL its workers are suspended after exceeding execution time");
-        var secondActivityTaskOid = testTask.assertTree("")
+                    .assertSuccess()
+                .end()
                 .subtask("second", false)
-                .getOid();
-
-        waitForTaskTreeCloseOrCondition(
-                secondActivityTaskOid,
-                result,
-                DEFAULT_TIMEOUT,
-                DEFAULT_SLEEP_TIME,
-                tasksSuspendedPredicate(3)); // coordinator + 2 workers
-
-        // @formatter:off
-        assertTaskTree(secondActivityTaskOid, "second activity task after")
-                .display()
-                .assertClosed()
-                .assertSubtasks(2)
-                .subtask(0)
-                    .display()
+                    .assertClosed()
+                    .assertSubtasks(2)
+                        .subtask(0)
+                        .display()
                     .end()
-                .subtask(1)
-                    .display()
-                    .end();
+                        .subtask(1)
+                        .display()
+                    .end()
+                .end();
+                // there is no third subtask, because the parent activity was aborted when second one was executing
         // @formatter:on
         // TODO more asserts
     }
@@ -1581,7 +1557,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
     /**
      * A multi-node activity that is skipped when it exceeds allowed execution time.
      */
-    @Test(enabled = false)
+    @Test
     public void test450MultinodeRestartOnExecutionTime() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -1602,7 +1578,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         then("everything is OK");
         // @formatter:off
         TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME.assertTreeAfter()// todo fix
-                .assertSuspended() // already checked above
+                .assertClosed() // already checked above
                 .rootActivityState()
                     .assertExecutionAttempts(2)
                     .end()
@@ -1624,7 +1600,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
      * It's a combination of {@link #test430ChildRestartOnOwnExecutionTimeWithSubtasks()}
      * and {@link #test450MultinodeRestartOnExecutionTime()}.
      */
-    @Test(enabled = false)
+    @Test
     public void test460MultinodeRestartOnOwnExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -1635,38 +1611,27 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         when("task is run until it's stopped (some workers may continue for a little while)");
         testTask.rerunTreeErrorsOk(result);
 
-        then("root task is suspended and the first activity task is closed"); // todo fix
+        then("root task is closed");
         // @formatter:off
         testTask.assertTree("")
-                .assertSuspended()
-                .subtask("first", false)
                 .assertClosed()
-                .assertSuccess();
-        // @formatter:on
-
-        then("the second activity task and ALL its workers are suspended after exceeding execution time");// todo fix
-        var secondActivityTaskOid = testTask.assertTree("")
+                .subtask("first", false)
+                    .assertClosed()
+                    .assertSuccess()
+                .end()
                 .subtask("second", false)
-                .getOid();
-
-        waitForTaskTreeCloseOrCondition(
-                secondActivityTaskOid,
-                result,
-                DEFAULT_TIMEOUT,
-                DEFAULT_SLEEP_TIME,
-                tasksSuspendedPredicate(3)); // coordinator + 2 workers
-
-        // @formatter:off
-        assertTaskTree(secondActivityTaskOid, "second activity task after")// todo fix
-                .display()
-                .assertSuspended()
-                .assertSubtasks(2)
-                .subtask(0)
-                    .display()
+                    .assertClosed()
+                    .assertSubtasks(2)
+                        .subtask(0)
+                        .display()
                     .end()
-                .subtask(1)
-                    .display()
-                    .end();
+                        .subtask(1)
+                        .display()
+                    .end()
+                .end()
+                .subtask("third", false)
+                    .assertClosed()
+                .end();
         // @formatter:on
         // TODO more asserts
     }
@@ -1677,8 +1642,8 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
      *
      * As {@link #test460MultinodeRestartOnOwnExecutionTimeWithSubtasks()} but the constraint is on the root level.
      */
-    @Test(enabled = false)
-    public void test470MultinodeSkipOnRootExecutionTimeWithSubtasks() throws Exception {
+    @Test
+    public void test470MultinodeRestartOnRootExecutionTimeWithSubtasks() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -1688,35 +1653,26 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         when("task is run until it's stopped (some workers may continue for a little while)");
         testTask.rerunTreeErrorsOk(result);
 
-        then("root task is suspended and the first activity task is closed");
-        testTask.assertTree("")
-                .assertSuspended()
-                .subtask("first", false)
-                .assertClosed()
-                .assertSuccess();
-
-        then("the second activity task and ALL its workers are suspended after exceeding execution time");
-        var secondActivityTaskOid = testTask.assertTree("")
-                .subtask("second", false)
-                .getOid();
-
-        waitForTaskTreeCloseOrCondition(
-                secondActivityTaskOid,
-                result,
-                DEFAULT_TIMEOUT,
-                DEFAULT_SLEEP_TIME,
-                tasksSuspendedPredicate(3)); // coordinator + 2 workers
-
+        then("root task is closed");
         // @formatter:off
-        assertTaskTree(secondActivityTaskOid, "second activity task after")
-                .display()
+        testTask.assertTree("")
                 .assertClosed()
-                .assertSubtasks(2)
-                .subtask(0)
-                .display()
+                .subtask("first", false)
+                    .assertClosed()
+                    .assertSuccess()
                 .end()
-                .subtask(1)
-                .display()
+                .subtask("second", false)
+                    .assertClosed()
+                    .assertSubtasks(2)
+                        .subtask(0)
+                        .display()
+                    .end()
+                        .subtask(1)
+                        .display()
+                    .end()
+                .end()
+                .subtask("third", false)
+                    .assertClosed()
                 .end();
         // @formatter:on
         // TODO more asserts

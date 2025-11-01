@@ -39,22 +39,17 @@ class SubtaskHelper {
         this.activityRun = activityRun;
     }
 
-    /**
-     * Checks that there are no relevant subtasks existing. (They should have been deleted during state purging process,
-     * unless the state is persistent.)
-     */
-    void checkNoRelevantSubtasksDoExist(OperationResult result) throws ActivityRunException {
-        LOGGER.debug("Going to check for existing subtasks");
-        try {
-            List<? extends Task> relevantChildren = getRelevantChildren(result);
-            if (!relevantChildren.isEmpty()) {
-                // The error may be permanent or transient. But reporting it as permanent is more safe, as it causes
-                // the parent task to always suspend, catching the attention of the administrators.
-                throw new ActivityRunException("Couldn't (re)create activity subtask(s) because there are existing one(s): "
-                        + "that are not closed: " + relevantChildren, FATAL_ERROR, PERMANENT_ERROR);
+    /** Deletes all existing subtasks that are relevant for this activity. */
+    void deleteRemainingWorkers(OperationResult result) throws SchemaException {
+        LOGGER.trace("Deleting all existing workers for activity run {}", activityRun);
+        List<? extends Task> relevantChildren = getRelevantChildren(result);
+        for (Task relevantChild : relevantChildren) {
+            try {
+                getBeans().taskManager.deleteTask(relevantChild.getOid(), result);
+                LOGGER.debug("Deleted worker {}", relevantChild);
+            } catch (ObjectNotFoundException e) {
+                LOGGER.trace("Worker {} already deleted: {}", relevantChild, e.getMessage(), e);
             }
-        } catch (Exception e) {
-            throw new ActivityRunException("Couldn't delete activity subtask(s)", FATAL_ERROR, PERMANENT_ERROR, e);
         }
     }
 

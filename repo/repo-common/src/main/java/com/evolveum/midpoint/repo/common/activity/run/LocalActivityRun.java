@@ -169,17 +169,6 @@ public abstract class LocalActivityRun<
         activityState.flushPendingTaskModificationsChecked(result);
     }
 
-    /** Returns (potentially not fresh) activity state of the coordinator task. Assuming we are in worker task. */
-    ActivityState getCoordinatorActivityState() {
-        try {
-            return activityState.getCurrentActivityStateInParentTask(
-                    false, getActivityStateDefinition().workStateTypeName(), null);
-        } catch (SchemaException | ObjectNotFoundException e) {
-            // Shouldn't occur for running tasks with fresh = false.
-            throw new SystemException("Unexpected exception: " + e.getMessage(), e);
-        }
-    }
-
     // TODO better method name?
     private void updateStateOnRunEnd(
             @NotNull OperationResult closedLocalResult, @NotNull ActivityRunResult runResult, @NotNull OperationResult result)

@@ -90,7 +90,7 @@ public class ActivityTreeStateOverview {
             }
             ActivityTaskStateOverviewType taskEntry =
                     findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
-                            .bucketsProcessingRole(run.getActivityState().getBucketingRole())
+                            .bucketsProcessingRole(run.getActivityState().getBucketProcessingRole())
                             .executionState(ActivityTaskExecutionStateType.RUNNING)
                             .node(beans.taskManager.getNodeId())
                             .resultStatus(run.getCurrentResultStatusBean());

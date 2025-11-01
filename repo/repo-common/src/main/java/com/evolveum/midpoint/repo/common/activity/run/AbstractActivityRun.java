@@ -22,6 +22,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.Map;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.concepts.Lazy;
@@ -48,10 +50,6 @@ import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -260,7 +258,29 @@ public abstract class AbstractActivityRun<
             }
         }
 
+        if (activityState.isAborted() && activityState.isWorker()) {
+            markBucketedWorkAsAborted(result);
+        }
+
         return runResult;
+    }
+
+    private void markBucketedWorkAsAborted(OperationResult result) throws ActivityRunException {
+        LOGGER.trace("Marking bucketed work as aborted in coordinator activity state");
+        var coordinatorActivityState = getCoordinatorActivityState();
+        coordinatorActivityState.setAbortingWorkerRef(getRunningTask().getSelfReference());
+        coordinatorActivityState.flushPendingTaskModificationsChecked(result);
+    }
+
+    /** Returns (potentially not fresh) activity state of the coordinator task. Assuming we are in worker task. */
+    ActivityState getCoordinatorActivityState() {
+        try {
+            return activityState.getCurrentActivityStateInParentTask(
+                    false, getActivityStateDefinition().workStateTypeName(), null);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            // Shouldn't occur for running tasks with fresh = false.
+            throw new SystemException("Unexpected exception: " + e.getMessage(), e);
+        }
     }
 
     /**
