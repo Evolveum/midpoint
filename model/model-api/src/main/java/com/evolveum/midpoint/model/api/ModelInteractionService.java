@@ -797,12 +797,13 @@ public interface ModelInteractionService {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
 
     /**
-     * Clears all activity policy states recursively inside {@link ActivityDefinitionType} in the specified task.
+     * Clears all activity policy states and related counters recursively inside
+     * {@link ActivityDefinitionType} in the specified task.
      *
      * Returns true if any change was made.
      */
     boolean clearAllActivityPolicyStates(
             @NotNull PrismObject<TaskType> object, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
 }

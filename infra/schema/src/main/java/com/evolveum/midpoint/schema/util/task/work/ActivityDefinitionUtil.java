@@ -8,16 +8,15 @@ package com.evolveum.midpoint.schema.util.task.work;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDistributionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ActivityDefinitionUtil {
 
@@ -30,25 +29,27 @@ public class ActivityDefinitionUtil {
     }
 
     public static void visitActivityDefinitions(
-            @NotNull TaskType task, @NotNull Function<ActivityDefinitionType, Boolean> visitor) {
+            @NotNull TaskType task, @NotNull BiFunction<ActivityDefinitionType, ActivityPath, Boolean> visitor) {
 
         ActivityDefinitionType def = task.getActivity();
         if (def == null) {
             return;
         }
 
-        visitActivityDefinitions(def, visitor);
+        visitActivityDefinitions(def, ActivityPath.empty(), visitor);
     }
 
     public static void visitActivityDefinitions(
-            @NotNull ActivityDefinitionType def, @NotNull Function<ActivityDefinitionType, Boolean> visitor) {
+            @NotNull ActivityDefinitionType def,
+            @NotNull ActivityPath path,
+            @NotNull BiFunction<ActivityDefinitionType, ActivityPath, Boolean> visitor) {
 
-        visitor.apply(def);
+        visitor.apply(def, path);
 
         ActivityCompositionType composition = def.getComposition();
         if (composition != null) {
             for (ActivityDefinitionType child : composition.getActivity()) {
-                visitActivityDefinitions(child, visitor);
+                visitActivityDefinitions(child, path.append(child.getIdentifier()), visitor);
             }
         }
 
@@ -59,7 +60,7 @@ public class ActivityDefinitionUtil {
                 .map(i -> i.getRealValues())
                 .flatMap(Collection::stream)
                 .map(d -> (ActivityDefinitionType) d)
-                .forEach(d -> visitActivityDefinitions(d, visitor));
+                .forEach(d -> visitActivityDefinitions(d, path.append(d.getIdentifier()), visitor));
     }
 
     public static ActivityDefinitionType findActivityDefinition(ActivityDefinitionType def, ActivityPath path) {
