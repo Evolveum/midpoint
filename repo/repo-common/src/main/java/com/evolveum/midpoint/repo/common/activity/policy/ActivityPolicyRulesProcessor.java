@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,8 +66,8 @@ public class ActivityPolicyRulesProcessor {
         List<ActivityPolicyRule> rules = collectRulesFromActivity(activityRun.getActivity());
         getPolicyRulesContext().setPolicyRules(rules);
 
-        LOGGER.trace("Found {} activity policy rules for activity hierarchy, activity: '{}'",
-                rules.size(), activityRun.getActivityPath());
+        LOGGER.trace("Found {} activity policy rules for activity hierarchy, activity: '{}', rules: {}",
+                rules.size(), activityRun.getActivityPath(), StringUtils.join(rules.stream().map(ActivityPolicyRule::getName).toArray(), ","));
 
         PreexistingValues preexistingValues = PreexistingValues.determine(activityRun, rules, result);
         getPolicyRulesContext().setPreexistingValues(preexistingValues);

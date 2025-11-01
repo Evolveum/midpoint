@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.cleanup;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
@@ -86,7 +88,7 @@ public class CleanupActivityHandler
 
         ActivityStateDefinition stateDef = ActivityStateDefinition.normal();
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.AUDIT_RECORDS, CleanupPoliciesType::getAuditRecords,
@@ -97,7 +99,7 @@ public class CleanupActivityHandler
                 parentActivity));
 
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.CLOSED_TASKS, CleanupPoliciesType::getClosedTasks,
@@ -108,7 +110,7 @@ public class CleanupActivityHandler
                 parentActivity));
 
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.CLOSED_CASES, CleanupPoliciesType::getClosedCases,
@@ -119,7 +121,7 @@ public class CleanupActivityHandler
                 parentActivity));
 
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.DEAD_NODES, CleanupPoliciesType::getDeadNodes,
@@ -130,7 +132,7 @@ public class CleanupActivityHandler
                 parentActivity));
 
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.OUTPUT_REPORTS, CleanupPoliciesType::getOutputReports,
@@ -141,7 +143,7 @@ public class CleanupActivityHandler
                 parentActivity));
 
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) ->
                         new CleanupPartialActivityRun<>(
                                 context, Part.CLOSED_CERTIFICATION_CAMPAIGNS, CleanupPoliciesType::getClosedCertificationCampaigns,

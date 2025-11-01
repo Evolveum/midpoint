@@ -10,6 +10,9 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
 
 import java.util.ArrayList;
+
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -99,14 +102,14 @@ public class DistributedReportExportActivityHandler
             Activity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> parentActivity) {
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new ReportDataCreationActivityRun(context),
                 this::createEmptyAggregatedDataObject,
                 (i) -> "data-creation",
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new ReportDataAggregationActivityRun(context),
                 null,
                 (i) -> "data-aggregation",

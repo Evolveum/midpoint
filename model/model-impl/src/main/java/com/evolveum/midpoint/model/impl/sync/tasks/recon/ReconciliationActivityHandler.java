@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Reconciliatio
 
 import java.util.ArrayList;
 
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
@@ -74,7 +75,7 @@ public class ReconciliationActivityHandler
             Activity<ReconciliationWorkDefinition, ReconciliationActivityHandler> parentActivity) {
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new OperationCompletionActivityRun(context,
                         "Reconciliation (operation completion)"),
                 null,
@@ -98,7 +99,7 @@ public class ReconciliationActivityHandler
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new ResourceObjectsReconciliationActivityRun(context,
                         "Reconciliation (on resource)" + modeSuffix(context)),
                 this::beforeResourceObjectsReconciliation,
@@ -106,7 +107,7 @@ public class ReconciliationActivityHandler
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new RemainingShadowsActivityRun(context,
                         "Reconciliation (remaining shadows)" + modeSuffix(context)),
                 null,
@@ -118,7 +119,7 @@ public class ReconciliationActivityHandler
 
     private ActivityDefinition<ReconciliationWorkDefinition> createPreviewDefinition(
             @NotNull ActivityDefinition<ReconciliationWorkDefinition> original) {
-        ActivityDefinition<ReconciliationWorkDefinition> clone = original.cloneWithoutId();
+        ActivityDefinition<ReconciliationWorkDefinition> clone = ActivityHandlerUtils.cloneWithoutIdForChildActivity(original);
         clone.getExecutionModeDefinition().setMode(ExecutionModeType.PREVIEW);
         clone.getControlFlowDefinition().setSkip();
         return clone;

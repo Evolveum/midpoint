@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.composite;
 
 import java.util.ArrayList;
+
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -77,7 +80,7 @@ public class CompositeMockActivityHandler
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
         if (workDefinition.isOpeningEnabled()) {
             children.add(EmbeddedActivity.create(
-                    parentActivity.getDefinition().cloneWithoutId(),
+                    ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                     (context, result) -> new MockOpeningActivityRun(context),
                     this::runBeforeExecution,
                     (i) -> "opening",
@@ -86,7 +89,7 @@ public class CompositeMockActivityHandler
         }
         if (workDefinition.isClosingEnabled()) {
             children.add(EmbeddedActivity.create(
-                    parentActivity.getDefinition().cloneWithoutId(),
+                    ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                     (context, result) -> new MockClosingActivityRun(context),
                     this::runBeforeExecution,
                     (i) -> "closing",

@@ -43,6 +43,7 @@ public class ActivityPoliciesDefinition {
         return new ActivityPoliciesDefinition(bean.clone());
     }
 
+    @NotNull
     public ActivityPoliciesType getPolicies() {
         return bean;
     }
