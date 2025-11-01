@@ -2504,6 +2504,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
 
         // todo implement [viliam]
+//        try {
+//            Task taskToClean = taskManager.getTaskPlain(object.getOid(), result);
+//            List<Task> tasks = taskToClean.listSubtasksDeeply(true, result);
+//        } catch (SchemaException ex) {
+//
+//        }
 
         return false;
     }
