@@ -131,13 +131,13 @@ public class WizardPanel extends BasePanel implements WizardListener {
         header.add(stepStatus);
 
         IModel<List<IModel<String>>> stepsModel = createStepsModel();
-        WizardHeaderStepHelper wizardHeaderStepHelper = new WizardHeaderStepHelper(wizardModel.getActiveStepIndex(),
-                stepsModel.getObject().size(), WizardPanel.this);
         ListView<IModel<String>> steps = new ListView<>(ID_STEPS, stepsModel) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<IModel<String>> listItem) {
+                WizardHeaderStepHelper wizardHeaderStepHelper = new WizardHeaderStepHelper(wizardModel.getActiveStepIndex(),
+                        stepsModel.getObject().size(), WizardPanel.this);
                 WizardHeaderStepPanel step = new WizardHeaderStepPanel(
                         ID_STEP, listItem.getIndex(), listItem.getModelObject(), wizardHeaderStepHelper);
                 // todo fix, if steps are invisible index might shift?
