@@ -19,7 +19,7 @@ They can be used as a safe and easy-to-understand boolean expressions.
 ----
 
 If an object provided to the expression matches the specified filter, the expression evaluates as `true`.
-The object should be provided as _root node_ of the expression (see xref:https://docs.evolveum.com/midpoint/reference/expressions/expressions/#root-node[Root Node] for details), which is usually the xref:/midpoint/reference/schema/focus-and-projections/[focus] of the processing.
+The object should be provided as _root node_ of the expression (see xref:/midpoint/reference/expressions/expressions/#root-node[Root Node] for details), which is usually the xref:/midpoint/reference/schema/focus-and-projections/[focus] of the processing.
 
 Filter expression evaluator is designed to be _safe_.
 It is meant to evaluate _boolean_ expressions, which makes it an ideal tool for specifying xref:/midpoint/reference/expressions/mappings/condition/[mapping conditions], especially in xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[role autoassignment] configurations.
