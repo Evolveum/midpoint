@@ -21,12 +21,14 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import org.apache.wicket.model.Model;
 
+import java.io.Serial;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class DateRangePicker extends BasePanel<DateRange> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(DateRangePicker.class);
 

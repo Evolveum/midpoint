@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.api.component.togglebutton;
 
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.Strings;
 
 /**
  * Simple button that toggles two states (on-off, alphasort-numericsort, etc).
@@ -48,17 +48,11 @@ public abstract class ToggleIconButton<T> extends AjaxLink<T> {
 
     private void initLayout() {
         setEscapeModelStrings(false);
-        setBody(new Model<String>(){
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getObject() {
-                if (isOn()) {
-                    return "<i class=\""+cssClassOn+"\"></i>";
-                } else {
-                    return "<i class=\""+cssClassOff+"\"></i>";
-                }
-            }
+        setBody(() -> {
+            String cssClass = isOn() ? cssClassOn : cssClassOff;
+
+            return "<i class=\"" + Strings.escapeMarkup(cssClass) + "\"></i>";
         });
     }
 

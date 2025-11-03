@@ -50,7 +50,7 @@ MidPoint expressions are designed and built especially to support the model of x
 == Expression Evaluators
 
 Expression evaluators are individual clauses that create (or transform) a value.
-Each value construction needs to have at least one constructor to be useful.
+Each value construction needs to have at least one evaluator to be useful.
 
 
 === Literal
@@ -141,9 +141,9 @@ The As Is expression evaluator is the default evaluator that will be used if no 
 Path expression is the most reliable and most efficient way to reference a property or a variable.
 The expression simply takes path to the desired value.
 
-Following constructor is referencing the `name` property in the object stored in `focus` variable.
+Following evaluator is referencing the `name` property in the object stored in `focus` variable.
 
-.Path constructor referencing user's name property
+.Path expression evaluator referencing user's name property
 [source,xml]
 ----
 <expression>
@@ -152,52 +152,78 @@ Following constructor is referencing the `name` property in the object stored in
 ----
 
 [TIP]
-The path constructor is following the path through xref:/midpoint/devel/prism/[prism objects] directly which is much faster.
-This also allows the path constructor to follow the modification mode (delta) of the source property which is very useful in some situations.
-Therefore, as a rule of the thumb the path constructor should always be preferred if it is possible to use it.
+The path evaluator is following the path through xref:/midpoint/devel/prism/[prism objects] directly which is much faster.
+This also allows the path evaluator to follow the modification mode (delta) of the source property which is very useful in some situations.
+Therefore, as a rule of the thumb the path evaluator should always be preferred if it is possible to use it.
 
 === Script
 
-Script constructor is the most flexible of all the constructors as it allows to invoke an expression written in an expression or scripting language.
+Script expression evaluator is the most flexible of all the evaluators as it allows to invoke an expression written in an expression or scripting language.
 There are several script languages to choose from.
 The script expressions are described in more details in a xref:/midpoint/reference/expressions/expressions/script/[Script Expression] page.
 This page only provides few examples.
 
-.Expression constructor using Groovy script
+.Expression evaluator using Groovy script
 [source,xml]
 ----
 <expression>
-<script>
-  <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-  <code>
-    'uid=' + user.getName() + ',ou=people,dc=example,dc=com'
-  </code>
-</script>
+    <script>
+        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+        <code>
+            'uid=' + user.getName() + ',ou=people,dc=example,dc=com'
+        </code>
+    </script>
+</expression>
 ----
 
-.Expression constructor using ECMAScript (JavaScript) script
+.Expression evaluator using ECMAScript (JavaScript) script
 [source,xml]
 ----
 <expression>
-<script>
-  <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
-  <code>
-    'uid=' + user.getName() + ',ou=people,dc=example,dc=com'
-  </code>
-</script>
+    <script>
+        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
+        <code>
+            'uid=' + user.getName() + ',ou=people,dc=example,dc=com'
+        </code>
+    </script>
+</expression>
 ----
 
 See xref:/midpoint/reference/expressions/expressions/script/[Script Expression] page for more details.
 
+=== Filter
+
+Filter expression evaluator allows use of filters expressed in xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language].
+Filter expressions are evaluating whether specific objects matches a filter.
+They can be used as a safe and easy-to-understand boolean expressions.
+
+.Filter expression evaluator
+[source,xml]
+----
+<expression>
+    <filter>
+        <filter>
+            <q:text>costCenter = 'A001'</q:text>
+        </filter>
+    </filter>
+</expression>
+----
+
+Filter expression evaluator is designed to be _safe_.
+It is meant to evaluate _boolean_ expressions, which makes it an ideal tool for specifying xref:/midpoint/reference/expressions/mappings/condition/[mapping conditions], especially in xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[role autoassignment] configurations.
+
+See xref:/midpoint/reference/expressions/expressions/filter/[Filter Expression Evaluator] page for more details.
+
+
 === Generate
 
-The _generate_ constructor is used to generate a random value.
+The _generate_ evaluator is used to generate a random value.
 The value is generated according to the xref:/midpoint/reference/security/credentials/password-policy/[value policy]. If there is a value policy already associated with a target property then it is sufficient to specify just plain `<generate/>` element.
 The applicable policy will be automatically determined and used.
 This usually applies to password policies.
 If no implicit policy is applicable to the target property or if a different policy is desired the policy may be overridden using `valuePolicyRef` element as illustrated below.
 
-.Generate constructor
+.Generate evaluator
 [source,xml]
 ----
 <expression>
@@ -580,7 +606,7 @@ Currently, the _root node_ only applies to _Path_ expression
 In Path the root node can be addressed without a variable name.
 Therefore, the following two expressions are equivalent (assuming that focus is set as a root node).
 
-.Expression constructor using explicit variable
+.Expression evaluator using explicit variable
 [source,xml]
 ----
 <expression>
@@ -588,7 +614,7 @@ Therefore, the following two expressions are equivalent (assuming that focus is 
 </expression>
 ----
 
-.Expression constructor using root node
+.Expression evaluator using root node
 [source,xml]
 ----
 <expression>
