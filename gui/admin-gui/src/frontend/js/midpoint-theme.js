@@ -770,6 +770,7 @@ export default class MidPointTheme {
     initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose) {
         const picker = new TempusDominus(containerId, configuration);
         const pickerStatus = document.getElementById(pickerStatusId);
+
         if (pickerStatus) {
             picker.subscribe('show.td', () => {
                 pickerStatus.textContent = '';
@@ -784,6 +785,23 @@ export default class MidPointTheme {
                 }, 250);
             });
         }
+        picker.subscribe('show.td', () => {
+            const prevButton = $('.calendar-header .previous');
+            const nextButton = $('.calendar-header .next');
+
+            prevButton.on('click', function () {
+                event.preventDefault();
+                const button = $(this);
+                button.focus();
+            });
+
+            nextButton.on('click', function () {
+                event.preventDefault();
+                const button = $(this);
+                button.focus();
+            });
+
+        });
     }
 
     createCurrentDateForDatePicker(containerId, configuration) {
