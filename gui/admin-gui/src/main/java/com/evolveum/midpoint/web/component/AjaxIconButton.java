@@ -14,6 +14,7 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.string.Strings;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -30,16 +31,7 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
         super(id, icon);
 
         this.title = title;
-
-        add(AttributeAppender.append("class", new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return !AjaxIconButton.this.isEnabled() ? "disabled" : "";
-            }
-        }));
+        add(AttributeAppender.append("class", () -> !AjaxIconButton.this.isEnabled() ? "disabled" : ""));
     }
 
     @Override
@@ -60,7 +52,7 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
         String icon = getModelObject();
         if (StringUtils.isNotEmpty(icon)) {
             String margin = showTitleAsLabel ? "mr-1" : "";
-            sb.append("<i class=\"" + margin + " ").append(icon).append("\"></i>");
+            sb.append("<i class=\"" + margin + " ").append(Strings.escapeMarkup(icon)).append("\"></i>");
         }
 
         if (StringUtils.isEmpty(icon)) {
