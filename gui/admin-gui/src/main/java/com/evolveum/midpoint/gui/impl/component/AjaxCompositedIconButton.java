@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -17,12 +19,11 @@ import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 
-import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.Strings;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -91,9 +92,9 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         if (icon.hasBasicIcon()) {
             String margin = titleAsLabel ? "mr-1" : "";
             margin = isHorizontalLayout() ? margin + " mt-1" : margin;
-            sb.append("<i class=\"" + margin + " ").append(icon.getBasicIcon()).append("\"");
+            sb.append("<i class=\"" + margin + " ").append(escapeMarkup(icon.getBasicIcon())).append("\"");
             if (icon.hasBasicIconHtmlColor()) {
-                sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
+                sb.append(" style=\"color: " + escapeMarkup(icon.getBasicIconHtmlColor()) + ";\"");
             }
             sb.append("></i> ");
 
@@ -107,19 +108,27 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
                 if (entry == null) {
                     continue;
                 }
-                if (StringUtils.isNotEmpty(entry.getIconType().getCssClass())) {
-                    sb.append("<i class=\"").append(entry.getIconType().getCssClass()).append("\"");
-                    if (StringUtils.isNotEmpty(entry.getIconType().getColor())) {
-                        sb.append(" style=\"color: ")
-                                .append(GuiDisplayTypeUtil.removeStringAfterSemicolon(entry.getIconType().getColor()))
-                                .append(";\"");
-                    }
-                    sb.append(">").append(entry.hasLabel() ? entry.getLabelModel().getObject() : "").append("</i> ");
+
+                IconType iconType = entry.getIconType();
+                if (StringUtils.isEmpty(iconType.getCssClass())) {
+                    continue;
                 }
+
+                sb.append("<i class=\"").append(escapeMarkup(iconType.getCssClass())).append("\"");
+                if (StringUtils.isNotEmpty(iconType.getColor())) {
+                    sb.append(" style=\"color: ")
+                            .append(escapeMarkup(GuiDisplayTypeUtil.removeStringAfterSemicolon(iconType.getColor())))
+                            .append(";\"");
+                }
+                sb.append(">").append(entry.hasLabel() ? escapeMarkup(entry.getLabelModel().getObject()) : "").append("</i> ");
             }
         }
 
         replaceComponentTagBody(markupStream, openTag, sb.toString());
+    }
+
+    private CharSequence escapeMarkup(String markup) {
+        return markup != null ? Strings.escapeMarkup(markup) : null;
     }
 
     @Override
