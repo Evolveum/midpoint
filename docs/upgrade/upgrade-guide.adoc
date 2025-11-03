@@ -175,9 +175,8 @@ It contains startup configuration, logfiles, schema extensions, non-bundled conn
 Each midPoint release usually extends database schema with new tables, columns, indexes and similar database configuration.
 
 MidPoint is distributed with a convenient SQL script that alters the database schema as necessary.
-The scripts are located in the `doc/config/sql/` subdirectory of the distribution package.
-Since version 4.4, separate versions for the xref:/midpoint/reference/repository/native-postgresql/[Native repository]
-and the xref:/midpoint/reference/repository/generic/[Generic repository] are provided.
+The scripts are located in the `doc/config/sql/native` subdirectory of the distribution package.
+See xref:/midpoint/reference/repository/native-postgresql/[Native repository] for more information about upgrade scripts.
 
 Database upgrade is thoroughly described in xref:/midpoint/reference/upgrade/database-schema-upgrade[this document].
 There are also deployment specific details to consider, e.g. is the audit in the same database?

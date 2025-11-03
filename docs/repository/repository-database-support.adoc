@@ -68,7 +68,7 @@ Need for MySQL/MariaDB in midPoint community seems to be negligible (see the xre
 These database engines will not be supported any longer.
 
 * H2 support was dropped in midPoint 4.9.
-Demo, proof of concept or evaluation deployments should use either docker compose with native PostgreSQL repository or generic repository together with Oracle/MS SQL Server.
+Demo, proof of concept or evaluation deployments should use docker compose with native PostgreSQL repository.
 For more information see xref:/midpoint/install/containers/docker/[Docker Compose].
 
 * Support for other commercial database engines (Oracle, Microsoft SQL) using generic repository implementation was dropped in midPoint 4.10.
@@ -211,7 +211,5 @@ Therefore, please be prepared that Evolveum team may request access to your test
 == See Also
 
 * xref:native-postgresql/[]
-
-* xref:generic/[]
 
 * xref:native-postgresql/migration/[]
