@@ -1,0 +1,189 @@
+= Filter Expression Evaluator
+:page-upkeep-status: green
+:page-toc: top
+
+Filter expression evaluator allows use of filters expressed in xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language].
+Filter expressions are evaluating whether specific objects matches a filter.
+They can be used as a safe and easy-to-understand boolean expressions.
+
+.Filter expression evaluator
+[source,xml]
+----
+<expression>
+    <filter>
+        <filter>
+            <q:text>costCenter = 'A001'</q:text>
+        </filter>
+    </filter>
+</expression>
+----
+
+If an object provided to the expression matches the specified filter, the expression evaluates as `true`.
+The object should be provided as _root node_ of the expression (see xref:https://docs.evolveum.com/midpoint/reference/expressions/expressions/#root-node[Root Node] for details), which is usually the xref:/midpoint/reference/schema/focus-and-projections/[focus] of the processing.
+
+Filter expression evaluator is designed to be _safe_.
+It is meant to evaluate _boolean_ expressions, which makes it an ideal tool for specifying xref:/midpoint/reference/expressions/mappings/condition/[mapping conditions], especially in xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[role autoassignment] configurations.
+
+
+== Filter Expression Evaluator Structure
+
+Filter expression evaluator is using filters expressed in xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language].
+The filter is expressed in the `filter` element inside expression evaluator.
+
+.Filter expression evaluator
+[source,xml]
+----
+<expression>
+    <filter>
+        <filter>
+            <q:text>costCenter = 'A001'</q:text>
+        </filter>
+    </filter>
+</expression>
+----
+
+In addition to the `filter` element, the evaluator has a setting similar to other evaluators.
+Meaning of individual filter expression fields is as follows.
+Only selected fields that are meaningful for filter expressions are presented.
+
+[%autowidth]
+|===
+| Field |  | Description
+
+| `description`
+| optional
+| Free-form textual description of the expression.
+
+| `documentation`
+| optional
+| Technical documentation for the expression.
+
+
+| `trace`
+| optional
+| Explicitly trace the execution of this expression.
+The execution will be logged on INFO level if this property is set to true to make sure that it will be visible in the logs. +
+
+| `includeNullInputs`
+| optional
+| If set to true (which is the default) the filter will be evaluated with null value as argument when the input is changed from or to an empty value.
+This generally works well for most cases.
+It may be set to false as an optimization.
+
+| `filter`
+| mandatory
+| Filter to match the objects against.
+
+|===
+
+For example, tracing of the filter expression can be enabled by using the `trace` element, and description can be provided using `description` element:
+
+.Filter expression evaluator
+[source,xml]
+----
+<expression>
+    <filter>
+        <description>
+            This role is specifically designed for A001 cost centre, it is also automatically assigned.
+        </description>
+        <trace>true</trace>
+        <filter>
+            <q:text>costCenter = 'A001'</q:text>
+        </filter>
+    </filter>
+</expression>
+----
+
+== Variables
+
+The expressions used in midPoint are usually using variables that are set up by midPoint expression engine.
+For example, the following expression will evaluate to the content of the `organization` property of a xref:/midpoint/reference/schema/focus-and-projections/[focus] (user):
+
+[source,xml]
+----
+<expression>
+    <filter>
+        <filter>
+            <q:text>costCenter = $focus/organization</q:text>
+        </filter>
+    </filter>
+</expression>
+----
+
+See xref:/midpoint/reference/expressions/expressions/[Expression] page for more generic information about the use of variables in expressions.
+
+== Typical Use
+
+It is meant to evaluate _boolean_ expressions, which makes it an ideal tool for specifying xref:/midpoint/reference/expressions/mappings/condition/[mapping conditions], especially in xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[role autoassignment] configurations.
+
+Following role autoassignment configuration assigns role `Cook` in case that `locality` property of the user is set to value `kitchen`.
+
+[source,xml]
+----
+<role oid="9f6add7c-b9bf-11e9-abf6-2348fcd328f1">
+    <name>Cook</name>
+    ...
+    <autoassign>
+        <enabled>true</enabled>
+        <focus>
+            <mapping>
+                <source>
+                    <path>locality</path>
+                </source>
+                <condition>
+                    <filter>
+                        <filter>
+                            <q:text>locality = 'kitchen'</q:text>
+                        </filter>
+                    </filter>
+                </condition>
+            </mapping>
+        </focus>
+    </autoassign>
+</role>
+----
+
+Filter expression evaluator can be used in a similar way also in other scenarios, where _boolean_ return value is expected.
+xref:/midpoint/reference/expressions/mappings/condition/[Mapping conditions] are a prime opportunity for use of filter expression evaluator.
+For example, filter expression evaluators may be useful in mapping conditions in xref:/midpoint/reference/expressions/object-template/[object template], as a safe alternative to scripting expressions (see below).
+
+WARNING: Filter expression evaluators used in xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[role autoassignment] mappings should not be confused with filter that can be expressed in autoassignment _selector_.
+See xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[Role Autoassignment] page for more details.
+
+== Security of Filter Expression Evaluators
+
+Expressions are a code that runs inside midPoint servers.
+As such, expressions can be incredibly powerful.
+However, expressions that are too powerful pose a significant security risk.
+
+Filter expression evaluator is designed to be _safe_.
+Filter expressions are limited to evaluation whether specific objects matches a filter.
+The evaluator has no unchecked means to execute custom code.
+
+.Expressions inside filters
+NOTE: MidPoint filters have an ability to include expressions.
+These expressions-inside-filters may include unsafe expression evaluators, such as xref:/midpoint/reference/expressions/expressions/script/[script expressions].
+Even though execution of expressions inside filters is enabled by default, the execution is subject to
+xref:/midpoint/reference/expressions/expressions/profiles/[expression profile] restrictions.
+Therefore, if only _safe_ expression evaluators are allowed by an expression profile, only _safe_ expression evaluators can be used inside the filters.
+
+== Limitations
+
+* Filter expression evaluator can only provide _boolean_ values as its output.
+
+* Evaluation of filters is using without regard to content of midPoint repository.
+This evaluation method is very efficient.
+However, there may be limitations.
+For example, filter expression evaluator may not be able to completely process organizational structure information,
+such as evaluation of deep organizational hierarchy.
+Also, the filters are not able to process items that are not retrieved from the repository in that particular context of expression evaluation, such as the `jpegPhoto` property.
+
+== See Also
+
+* xref:/midpoint/reference/concepts/query/midpoint-query-language/[MidPoint Query Language]
+
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
+
+* xref:/midpoint/reference/expressions/expressions/[Expression]
+
+* xref:/midpoint/reference/expressions/mappings/[Mapping]
