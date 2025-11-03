@@ -123,57 +123,8 @@ Some clients, notably https://www.pgadmin.org/[pgAdmin], send the whole content 
 Please, do not use them to run upgrade scripts!
 ====
 
-
-== Upgrading Generic Repository
-
-This section describes how to upgrade the xref:/midpoint/reference/repository/generic/[Generic repository].
-
-=== Upgrade Script Location
-
-[%autowidth,cols="h,1"]
-|===
-| Distribution | Script location
-
-| Binary
-| <distribution root>/doc/config/sql/generic/
-
-| Source
-| <source code root>/config/sql/generic/
-
-|===
-
-The script file name is constructed in a form:
-
-<database>-upgrade-<from version>-<to version>.sql
-
-e.g. `oracle-upgrade-4.5-4.6.sql` is an upgrade script for PostgreSQL database that upgrades midPoint 4.5 to midPoint 4.6.
-
-=== Executing the script
-
-The scripts should be executed by the usual way the SQL script is executed for any particular database.
-Perhaps the best way is to use command-line tools.
-Please refer to the documentation of your database system for the details.
-E.g., the upgrade script for PostgreSQL database is usually executed like this:
-
-[source,bash]
-----
-psql -h localhost -U midpoint -W -d midpoint -f oracle-upgrade-4.5-4.6.sql
-----
-
-The scripts are designed to be run only once - unlike upgrade scripts for the Native repository, they are not idempotent.
-
-[TIP]
-====
-Strictly speaking, the _version_ term above refers to the _database schema version_, not the midPoint version.
-These are the same for the majority of cases.
-For generic repository, the latest version of repository script is "4.6" and there were no changes afterward for generic repository.
-See xref:/midpoint/reference/repository/generic/database-schema-versioning/[Database schema versioning] for more information.
-====
-
 == See Also
 
 * xref:/midpoint/reference/upgrade/upgradeability/[Upgradeability]
 
 * xref:/midpoint/reference/upgrade/upgrade-guide/[Upgrade HOWTO]
-
-* xref:/midpoint/reference/repository/generic/database-schema-versioning/[Database schema versioning] (Generic repository)
