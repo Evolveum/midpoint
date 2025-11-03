@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="result" class="mb-1 p-2">
+        <div class="d-flex flex-column">
+            <div class="d-flex flex-row">
+                <div class="w-100">
+                    <div style="float: left;" class="px-1">
+                        <i wicket:id="icon"/>
+                    </div>
+                    <div class="clamp-3-lines text-bold" wicket:id="title"/>
+                </div>
+                <div class="h-100 ml-auto">
+                    <button class="btn my-auto p-0 mr-1" wicket:id="expandCollapseButton"/>
+                </div>
+            </div>
+            <div class="d-flex flex-column" wicket:id="details">
+                <div class="clamp-5-lines" wicket:id="detailsText"/>
+                <div class="d-flex flex-row pt-1">
+                    <button class="btn btn-primary" wicket:id="fixButton"/>
+                    <button class="btn btn-default ml-2" wicket:id="showDetailsButton"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>

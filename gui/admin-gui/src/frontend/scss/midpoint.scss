@@ -15,6 +15,7 @@
 @import "../../../node_modules/admin-lte/build/scss/mixins/_miscellaneous";
 @import "../../../node_modules/admin-lte/build/scss/mixins/dark-mode";
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins";
+@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/utilities";
 // AdminLTE and Bootstrap end
 
 @import "admin-lte-overrides";
@@ -2475,4 +2476,64 @@ footer.main-footer a {
 
 .bg-light-secondary {
   background-color: #f4f4f4;
+}
+
+.collapsed-wizard-panel {
+  height: 100%;
+
+  .fake-panel {
+    width: 50px;
+  }
+
+  .collapsed-wizard-container {
+    @extend .bg-white;
+    height: 100%;
+
+    &:has(.selected) {
+      position: absolute;
+      right: 0px;
+    }
+
+    .collapsed-menu {
+      @extend .border-left;
+      width: 50px;
+
+      .collapsed-menu-icon {
+        @extend .rounded;
+        height: 42px;
+        width: 42px;
+
+        &:hover {
+          @extend .bg-primary-200;
+        }
+      }
+
+      .selected, .selected:hover {
+        @extend .text-primary;
+        @extend .bg-primary-100;
+      }
+
+      .badge-parent {
+        position: relative;
+      }
+
+      .badge {
+        @extend .px-1;
+        padding-bottom: 2px !important;
+        padding-top: 2px !important;
+        right: 3px;
+        top: -39px;
+        position: absolute;
+        pointer-events: none;
+      }
+
+    }
+
+    .collapsed-details-panel {
+      @extend .border-left;
+      @extend .p-2;
+      width: 350px;
+      height: 100%;
+    }
+  }
 }

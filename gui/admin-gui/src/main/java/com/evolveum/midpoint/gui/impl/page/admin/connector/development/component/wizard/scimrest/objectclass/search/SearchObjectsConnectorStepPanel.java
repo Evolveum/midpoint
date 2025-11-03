@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.task.api.Task;
@@ -144,8 +146,10 @@ public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<Con
             }
 
             @Override
-            protected boolean showErrorResultInFeedbackPanel() {
-                return true;
+            protected void processErrorResult(OperationResult errorResult) {
+                if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+                    wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", errorResult);
+                }
             }
 
             @Override
@@ -202,14 +206,5 @@ public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<Con
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         super.onSubmitPerformed(target);
         onNextPerformed(target);
-    }
-
-    @Override
-    public boolean onBackPerformed(AjaxRequestTarget target) {
-        if (((ResourceUncategorizedPanel)get(ID_PANEL)).getShadowTable().getDataProvider() instanceof SelectableBeanDataProvider<?> selectableBeanDataProvider
-                && selectableBeanDataProvider.getErrorResult() != null){
-            getPageBase().showResult(selectableBeanDataProvider.getErrorResult());
-        }
-        return super.onBackPerformed(target);
     }
 }
