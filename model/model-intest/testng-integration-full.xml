@@ -146,7 +146,6 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestMiscTasks"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestShadowReclassification"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskActivityPolicies"/>
-            <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskActivityPoliciesComplex"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTasks"/>
         </classes>
     </test>

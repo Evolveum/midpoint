@@ -52,11 +52,6 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    TestObject<TaskType> getReconciliationWithExecutionTimeTask() {
-        return TASK_RECONCILIATION_EXECUTION_TIME_SINGLE;
-    }
-
-    @Override
     long getTimeout() {
         return 50000;
     }
@@ -397,10 +392,5 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
                             .assertFailureCount(1, getThreads(), true)
                     .end();
         // @formatter:on
-    }
-
-    @Override
-    void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
-
     }
 }
