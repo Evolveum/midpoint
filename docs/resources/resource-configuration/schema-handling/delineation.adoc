@@ -6,10 +6,20 @@ This describes _delineation_ in resource configuration and how to use it to segm
 
 == Introduction
 
-Delineation defines clear, logical partitions within a single resource, and so enables you, for example, to separate user accounts from service accounts.
+Delineation defines clear, logical partitions within a single resource.
+This enables you to segment your input data so that you can use different attribute mappings, role assignment rules, or policies for individual segments.
+
+Delineation serves as a first level segmentation of resource objects into distinct partitions or scopes.
+This means that first you segment the resource into partitions using delineation, and then you can further segment each partition using other methods, such as mapping rules or filters.
 
 Delineation is primarily intended for scenarios where the boundaries between the partitions are stable and unlikely to change over time, i.e., objects do not move between the partitions.
+For example, you might want to separate user accounts from service accounts on a given resource.
 Although delineation can also be applied in more dynamic scenarios (such as to distinguish staff from students in an academic deployment), if you know you might be moving objects from one partition to another (e.g., a student becomes a staff member), you might want to consider a different segmenting method.
+
+The example below illustrates how delineation can be used to separate user accounts from service accounts on a given resource.
+
+.Example of delineation usage to separate user accounts from service accounts
+image::delineation1.webp[Sample separating user accounts from service accounts using delineation]
 
 [TIP]
 ====
@@ -18,6 +28,7 @@ In the event of a system recovery, shifting objects between delineations could p
 To workaround this, either only recover your configuration, or ensure that both configuration and data (repository) are recovered to the same point in time. +
 Also, note that after an object moves from one delineated partition to another, you need to trigger xref:/midpoint/reference/tasks/shadow-reclassification-task[reclassification] to ensure the object is correctly associated with its new delineation.
 ====
+
 
 == Define delineation
 
@@ -125,6 +136,8 @@ No value means it should be used at the end.
 | Defines how the base context should be used for the classification.
 The valid values for this property are listed in a <<baseContextClassificationUse_values,separate table>> below.
 |===
+
+NOTE: The `baseContext` and `filter` items are processed already on the resource side to limit the set of objects retrieved from the resource.
 
 [[baseContextClassificationUse_values]]
 .Valid values for the `baseContextClassificationUse` property
