@@ -6,10 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.component.menu.listGroup;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -27,16 +29,15 @@ import org.apache.wicket.model.LoadableDetachableModel;
  */
 public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePanel<ListGroupMenuItem<T>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_LINK = "link";
     private static final String ID_ICON = "icon";
     private static final String ID_LABEL = "label";
     private static final String ID_BADGE = "badge";
     private static final String ID_CHEVRON = "chevron";
-    private static final String ID_CHEVRON_LINK = "chevronLink";
 
-    private int level;
+    private final int level;
 
     public MenuItemLinkPanel(String id, IModel<ListGroupMenuItem<T>> model, int level) {
         super(id, model);
@@ -51,7 +52,8 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         add(AttributeAppender.append("class", () -> getModelObject().isActive() ? "active" : null));
         add(AttributeAppender.append("class", () -> getModelObject().isDisabled() ? "disabled" : null));
 
-        AjaxLink link = new AjaxLink<>(ID_LINK) {
+        AjaxLink<?> link = new AjaxLink<>(ID_LINK) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -81,17 +83,7 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         badge.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getBadge())));
         link.add(badge);
 
-        AjaxLink chevronLink = new AjaxLink<>(ID_CHEVRON_LINK) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onChevronClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
-                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
-                target.appendJavaScript("MidPointTheme.restoreFocus();");
-            }
-        };
-        chevronLink.add(new AttributeModifier("data-component-id", chevronLink::getPageRelativePath));
-        chevronLink.add(new VisibleBehaviour(this::isChevronLinkVisible));
-
+        WebMarkupContainer chevron = new WebMarkupContainer(ID_CHEVRON);
         IModel<String> chevronTitleModel = LoadableDetachableModel.of(() -> {
             if (isChevronLinkVisible()) {
                 String labelValue = getModelObject().getLabel();
@@ -103,16 +95,24 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
             }
             return null;
         });
-        chevronLink.add(AttributeAppender.append("aria-label", chevronTitleModel));
-        chevronLink.add(AttributeAppender.append("title", chevronTitleModel));
-        chevronLink.add(AttributeAppender.append("aria-pressed", () -> getModelObject().isOpen() ? "true" : "false"));
-        chevronLink.setOutputMarkupId(true);
-        add(chevronLink);
+        chevron.add(new AjaxEventBehavior("click") {
+            @Serial private static final long serialVersionUID = 1L;
 
-        WebMarkupContainer chevron = new WebMarkupContainer(ID_CHEVRON);
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                onChevronClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", chevron.getPageRelativePath()));
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
+            }
+        });
+
+        chevron.add(AttributeAppender.append("aria-label", chevronTitleModel));
+        chevron.add(AttributeAppender.append("title", chevronTitleModel));
+        chevron.add(AttributeAppender.append("aria-pressed", () -> getModelObject().isOpen() ? "true" : "false"));
+        chevron.setOutputMarkupId(true);
         chevron.add(AttributeAppender.append("class",
                 () -> getModelObject().isOpen() ? "fa fa-chevron-down" : "fa fa-chevron-left"));
-        chevronLink.add(chevron);
+        link.add(chevron);
     }
 
     protected boolean isChevronLinkVisible() {

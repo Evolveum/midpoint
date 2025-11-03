@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -100,7 +101,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
 
         SelectableItemListPopoverPanel<FilterableSearchItemWrapper<?>> popoverPanel =
                 new SelectableItemListPopoverPanel<>(ID_MORE_PROPERTIES_POPOVER, morePopupModel) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void addItemsPerformed(List<FilterableSearchItemWrapper<?>> itemList, AjaxRequestTarget target) {

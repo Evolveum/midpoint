@@ -9,12 +9,12 @@
 <wicket:panel>
     <div wicket:id="valueForm" class="card">
         <div class="bg-white border-bottom-0 p-2 pl-3 pr-3 mb-0 btn w-100" wicket:id="header">
-            <div class="row">
+            <div class="row" wicket:message="title:PrismObjectPanel.expandCollapseContainer" trigger="hover">
                 <span>
                     <i wicket:id="icon"></i>
                     <span wicket:id="label"/>
+                    <i wicket:id="expandCollapseButton" class="btn-tool text-body ml-auto"></i>
                 </span>
-                <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer" class="btn btn-tool text-body ml-auto" trigger="hover"></button>
             </div>
         </div>
         <div class="mb-3 ml-3" wicket:id="metadata"/>

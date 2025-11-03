@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.RunFlag;
@@ -48,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
  *
  * Expression profiles:
  *
+ * . `safe` - allow only safe expression evaluators. No scripting.
  * . `restricted` - allows a lot of expressions, except with some limitations on Groovy method calls
  * . `trusted` - no restrictions whatsoever
  * . `little-trusted` - allows almost nothing; just an invocation of one specifically trusted library function
@@ -85,6 +85,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private static final TestObject<ArchetypeType> ARCHETYPE_RESTRICTED_ROLE = TestObject.file(
             TEST_DIR, "archetype-restricted-role.xml", "a2242707-43cd-4f18-b986-573cb468693d");
+    private static final TestObject<ArchetypeType> ARCHETYPE_SAFE_ROLE = TestObject.file(
+            TEST_DIR, "archetype-safe-role.xml", "2a68ff58-b009-11f0-9b5e-236da66bcdb4");
     private static final TestObject<ArchetypeType> ARCHETYPE_NO_PRIVILEGE_ELEVATION = TestObject.file(
             TEST_DIR, "archetype-no-privilege-elevation.xml", "f2d01dd2-50b4-4d4d-babd-e00671923f2c");
     private static final TestObject<ArchetypeType> ARCHETYPE_TRUSTED_ROLE = TestObject.file(
@@ -128,6 +130,19 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "role-restricted-bad-inducement-target-filter.xml", "bae5a90d-87c0-44f8-a585-0ea11e42ee9a");
     private static final TestObject<RoleType> ROLE_NO_ELEVATION_ASSIGNMENT_TARGET_SEARCH_FILTER = TestObject.file(
             TEST_DIR, "role-no-elevation-assignment-target-search-filter.xml", "69d783c8-8b59-4b2f-988f-db6097b828c2");
+    private static final TestObject<RoleType> ROLE_SAFE_AUTO_GOOD = TestObject.file(
+            TEST_DIR, "role-safe-auto-good.xml", "9296ee02-b011-11f0-a82e-270fe586cfa4");
+    private static final TestObject<RoleType> ROLE_SAFE_AUTO_GOOD_PATH = TestObject.file(
+            TEST_DIR, "role-safe-auto-good-path.xml", "0eb28c12-b0d0-11f0-80ac-933cebd439a5");
+    private static final TestObject<RoleType> ROLE_SAFE_AUTO_BAD_GROOVY = TestObject.file(
+            TEST_DIR, "role-safe-auto-bad-groovy.xml", "19dd7966-b013-11f0-8b8b-470dc5f10d86");
+    private static final TestObject<RoleType> ROLE_SAFE_AUTO_BAD_GROOVY_IN_FILTER = TestObject.file(
+            TEST_DIR, "role-safe-auto-bad-groovy-in-filter.xml", "189fa17c-b014-11f0-bda9-770dec5699c7");
+    private static final TestObject<RoleType> ROLE_SAFE_GOOD = TestObject.file(
+            TEST_DIR, "role-safe-good.xml", "b14670c8-b009-11f0-b4a4-4bed7dcbb685");
+    private static final TestObject<RoleType> ROLE_SAFE_BAD_GROOVY = TestObject.file(
+            TEST_DIR, "role-safe-bad-groovy.xml", "58ce3538-b00a-11f0-b300-f30341f6d782");
+
 
     private static final File FILE_SCRIPTING_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-execute-script.xml");
     private static final File FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-expression-execute-script.xml");
@@ -159,6 +174,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 FUNCTION_LIBRARY_ONE,
                 FUNCTION_LIBRARY_TWO,
                 ARCHETYPE_RESTRICTED_ROLE,
+                ARCHETYPE_SAFE_ROLE,
                 ARCHETYPE_NO_PRIVILEGE_ELEVATION,
                 ARCHETYPE_TRUSTED_ROLE,
                 ARCHETYPE_LITTLE_TRUSTED_ROLE,
@@ -176,7 +192,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 ROLE_RESTRICTED_BAD_INDUCEMENT_CONDITION, // seemingly does not evaluate inducement here
                 ROLE_RESTRICTED_BAD_ROLE_CONDITION, // the same here
                 ROLE_RESTRICTED_BAD_INDUCEMENT_TARGET_FILTER, // same here
-                ROLE_NO_ELEVATION_ASSIGNMENT_TARGET_SEARCH_FILTER);
+                ROLE_NO_ELEVATION_ASSIGNMENT_TARGET_SEARCH_FILTER,
+                ROLE_SAFE_GOOD,
+                ROLE_SAFE_BAD_GROOVY);
     }
 
     @Override
@@ -216,9 +234,74 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         BOOMED_FLAG.assertNotSet();
     }
 
-    /** This checks that filter expressions are not supported - hence, safe. :) */
+    /** "Correct" safe auto-assigned role is used. */
     @Test
-    public void test110RestrictedRoleAutoFilterExpression() throws Exception {
+    public void test102SafeRoleAutoGood() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        resetBoomed();
+
+        given("auto-assigned role is imported");
+        ROLE_SAFE_AUTO_GOOD.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name(getTestNameShort())
+                    .costCenter("safe");
+            var userOid = addObject(user.asPrismObject(), task, result);
+
+            then("user is created");
+            assertSuccess(result);
+            assertUserAfter(userOid)
+                    .assignments()
+                    .single()
+                    .assertRole(ROLE_SAFE_AUTO_GOOD.oid);
+        } finally {
+            deleteObject(RoleType.class, ROLE_SAFE_AUTO_GOOD.oid);
+        }
+
+        // only by mistake, as the role does not involve such a call
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /** "Correct" safe auto-assigned role is used. */
+    @Test
+    public void test104SafeRoleAutoGoodPath() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        resetBoomed();
+
+        given("auto-assigned role is imported");
+        ROLE_SAFE_AUTO_GOOD_PATH.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name(getTestNameShort())
+                    .organization("safe")
+                    .costCenter("safe");
+            var userOid = addObject(user.asPrismObject(), task, result);
+
+            then("user is created");
+            assertSuccess(result);
+            assertUserAfter(userOid)
+                    .assignments()
+                        .single()
+                            .assertRole(ROLE_SAFE_AUTO_GOOD_PATH.oid);
+        } finally {
+            deleteObject(RoleType.class, ROLE_SAFE_AUTO_GOOD_PATH.oid);
+        }
+
+        // only by mistake, as the role does not involve such a call
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /** This checks that expressions inside filters are not supported - hence, safe. :) */
+    @Test
+    public void test110RestrictedRoleAutoExpressionInsideFilter() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -242,6 +325,12 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         }
 
         BOOMED_FLAG.assertNotSet();
+    }
+
+    /** This checks that expressions inside filters are not supported - hence, safe. :) */
+    @Test
+    public void test112SafeRoleAutoGroovyInFilter() throws Exception {
+        runNegativeSafeRoleAutoassignmentTest(ROLE_SAFE_AUTO_BAD_GROOVY_IN_FILTER, "Access to script expression evaluator not allowed");
     }
 
     /** Non-compliant script in mapping expression. */
@@ -281,6 +370,43 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             }
         } finally {
             deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_BAD_MAPPING_EXPRESSION.oid);
+        }
+
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /** Non-compliant groovy script in mapping expression. */
+    @Test
+    public void test122SafeRoleAutoBadGroovy() throws Exception {
+        runNegativeSafeRoleAutoassignmentTest(ROLE_SAFE_AUTO_BAD_GROOVY, "Access to script expression evaluator not allowed");
+    }
+
+    private void runNegativeSafeRoleAutoassignmentTest(
+            @NotNull TestObject<RoleType> role, @NotNull String expectedMessage)
+            throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        resetBoomed();
+
+        given("auto-assigned role is imported");
+        role.init(this, task, result);
+
+        try {
+            when("user that should get auto role is added");
+            UserType user = new UserType()
+                    .name(getTestNameShort())
+                    .costCenter("safe");
+            try {
+                addObject(user.asPrismObject(), task, result);
+                fail("unexpected success");
+            } catch (SecurityViolationException e) {
+                assertExpectedException(e)
+                        .hasMessageContaining(expectedMessage);
+                assertFailure(result);
+            }
+        } finally {
+            deleteObject(RoleType.class, role.oid);
         }
 
         BOOMED_FLAG.assertNotSet();
@@ -350,10 +476,40 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 .display();
     }
 
+    /** "Correct" semi-safe role is used. */
+    @Test
+    public void test202SafeRoleGood() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("user with correct restricted role is added");
+        String name = getTestNameShort();
+        UserType user = new UserType()
+                .name(name)
+                .assignment(ROLE_SAFE_GOOD.assignmentTo());
+        var userOid = addObject(user.asPrismObject(), task, result);
+
+        then("user is created");
+        assertSuccess(result);
+        assertUserAfter(userOid)
+                .assertDescription(name)
+                .assertLiveLinks(1);
+        assertDummyAccountByUsername(RESOURCE_SIMPLE_TARGET.name, name)
+                .display();
+    }
+
     /** "Incorrect" restricted role is used: bad focus mapping. */
     @Test
     public void test210RestrictedRoleBadFocusMapping() throws Exception {
         runNegativeRoleAssignmentTest(ROLE_RESTRICTED_BAD_FOCUS_MAPPING, null); // FIXME path
+    }
+
+    /** "Incorrect" semi-safe role is used: groovy expressions. */
+    @Test
+    public void test212SafeRoleGroovy() throws Exception {
+        runNegativeRoleAssignmentTest(
+                ROLE_SAFE_BAD_GROOVY, null,
+                "Access to script expression evaluator not allowed", "");
     }
 
     private void runNegativeRoleAssignmentTest(

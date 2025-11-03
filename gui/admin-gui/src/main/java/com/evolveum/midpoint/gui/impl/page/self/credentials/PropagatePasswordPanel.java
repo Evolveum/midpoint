@@ -68,6 +68,8 @@ import java.util.*;
 
 public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordPanel<F> {
 
+    @Serial private static final long serialVersionUID = 1L;
+
     private static final String DOT_CLASS = PropagatePasswordPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadUserAccounts";
     private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
@@ -146,6 +148,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
     private IModel<List<PasswordAccountDto>> getShadowListModel() {
         return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected List<PasswordAccountDto> load() {
                 List<PasswordAccountDto> accountDtoList = new ArrayList<>();
@@ -302,9 +306,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 super.onUpdateRow(cellItem, target, table, rowModel, selected);
                 if (rowModel.getObject().isMidpoint()) {
                     table.visitChildren(IsolatedCheckBoxPanel.class,
-                            (IVisitor<IsolatedCheckBoxPanel, IsolatedCheckBoxPanel>) (panel, iVisit) -> {
-                                target.add(panel);
-                            });
+                            (IVisitor<IsolatedCheckBoxPanel, IsolatedCheckBoxPanel>)
+                                    (panel, iVisit) -> target.add(panel));
                 }
             }
 
@@ -317,7 +320,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             }
         });
 
-        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.name")) {
+        columns.add(new AbstractColumn<>(createStringResource("ChangePasswordPanel.name")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -335,7 +338,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             }
         });
 
-        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.resourceName")) {
+        columns.add(new AbstractColumn<>(createStringResource("ChangePasswordPanel.resourceName")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -371,7 +374,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             }
         });
 
-        IconColumn enabled = new IconColumn<PasswordAccountDto>(createStringResource("ChangePasswordPanel.enabled")) {
+        IconColumn<PasswordAccountDto> enabled = new IconColumn<>(createStringResource("ChangePasswordPanel.enabled")) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -398,7 +401,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
         };
         columns.add(enabled);
 
-        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.passwordValidation")) {
+        columns.add(new AbstractColumn<>(createStringResource("ChangePasswordPanel.passwordValidation")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -418,7 +421,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 };
 
                 PasswordPolicyValidationPanel validationPanel = new PasswordPolicyValidationPanel(componentId, limitationsModel);
-                validationPanel.add(new VisibleEnableBehaviour(() -> !limitationsModel.getObject().isEmpty()));
+                validationPanel.add(new VisibleBehaviour(() -> !limitationsModel.getObject().isEmpty()));
                 validationPanel.setOutputMarkupId(true);
                 cellItem.add(validationPanel);
             }
@@ -429,12 +432,12 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             }
         });
 
-        columns.add(new AbstractColumn<PasswordAccountDto, String>(createStringResource("ChangePasswordPanel.propagationResult")) {
+        columns.add(new AbstractColumn<>(createStringResource("ChangePasswordPanel.propagationResult")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<PasswordAccountDto>> cellItem, String componentId, IModel<PasswordAccountDto> rowModel) {
-                LoadableModel<OperationResult> resultStatusModel = new LoadableModel<OperationResult>() {
+                LoadableModel<OperationResult> resultStatusModel = new LoadableModel<>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
@@ -584,7 +587,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
         SchemaRegistry registry = getPrismContext().getSchemaRegistry();
         selectedAccounts.forEach(account -> {
-            PrismObjectDefinition objDef = account.isMidpoint() ?
+            PrismObjectDefinition<?> objDef = account.isMidpoint() ?
                     registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
                     registry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
@@ -668,6 +671,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
     protected PasswordLimitationsPanel createLimitationPanel(String id,
             LoadableDetachableModel<List<StringLimitationResult>> limitationsModel) {
         return new PasswordLimitationsPanel(id, limitationsModel) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected boolean showInTwoColumns() {
                 if (getModelObject().size() > 5) {
@@ -689,11 +694,13 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                 && CredentialsPropagationUserControlType.IDENTITY_MANAGER_MANDATORY.equals(propagationUserControl);
     }
 
+    @Override
     protected void updateNewPasswordValuePerformed(AjaxRequestTarget target) {
         super.updateNewPasswordValuePerformed(target);
         updatePasswordValidationColumnOfTable(target);
     }
 
+    @Override
     protected boolean removePasswordValueAttribute() {
         return false;
     }
@@ -708,5 +715,10 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             result.removeIf(PasswordAccountDto::isPasswordOutbound);
         }
         return result;
+    }
+
+    @Override
+    protected boolean arePasswordInputFieldsAssociatedWithLabels() {
+        return true;
     }
 }

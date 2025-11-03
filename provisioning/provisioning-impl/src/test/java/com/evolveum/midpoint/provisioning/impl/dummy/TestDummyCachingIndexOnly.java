@@ -6,33 +6,26 @@
 
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-
-import org.testng.SkipException;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class TestDummyCachingIndexOnly extends TestDummyCaching {
 
@@ -64,21 +57,6 @@ public class TestDummyCachingIndexOnly extends TestDummyCaching {
     @Override
     protected @NotNull Collection<? extends QName> getCachedAccountAttributesWithIndexOnly() throws SchemaException, ConfigurationException {
         return getAccountDefaultDefinition().getAttributeNames();
-    }
-
-    @Override
-    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        super.initSystem(initTask, initResult);
-
-        if (repositoryService instanceof SqlRepositoryServiceImpl sqlRepositoryService) {
-            // These are experimental features, so they need to be explicitly enabled.
-            // This will be eliminated later, when we make them enabled by default.
-            sqlRepositoryService.sqlConfiguration().setEnableIndexOnlyItems(true);
-            sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
-            sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
-        } else {
-            // It's Sqale repo and it has no explicit switch for index only.
-        }
     }
 
     @Override

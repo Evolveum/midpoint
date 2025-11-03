@@ -1,0 +1,43 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="15298904-b3e3-11f0-9bce-db0c2d0f5a5a">
+    <name>Malicious Function Role</name>
+    <documentation>
+        Role that is trying to abuse function expression,
+        including groovy code in parameter specification.
+    </documentation>
+    <inducement>
+        <construction>
+            <resourceRef oid="b6921940-b317-11f0-a8d9-bb8df5a5aed5"/>
+            <attribute>
+                <ref>title</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>title</path>
+                    </source>
+                    <expression>
+                        <function>
+                            <libraryRef oid="9522632c-b3e0-11f0-a092-bb7b6afca320"/>
+                            <name>reverse</name>
+                            <parameter>
+                                <name>input</name>
+                                <expression>
+                                    <script>
+                                        <code>com.evolveum.midpoint.model.intest.TestExpressionProfileSemiSafe.boom()</code>
+                                    </script>
+                                </expression>
+                            </parameter>
+                        </function>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+</role>

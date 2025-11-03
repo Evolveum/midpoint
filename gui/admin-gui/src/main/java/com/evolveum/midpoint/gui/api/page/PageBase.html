@@ -30,15 +30,15 @@
             </div>
             <div class="navbar-right">
                 <div class="nav-item d-none d-md-inline" style="min-width: 0; width: 100%" wicket:message="aria-label:PageBase.breadcrumb" role="navigation">
-                    <ol class="breadcrumb d-none d-xl-flex justify-content-end p-0" style="width: 100%; overflow: hidden;">
-                        <li wicket:id="breadcrumb" style="padding: 5px;">
+                    <div class="breadcrumb d-none d-xl-flex justify-content-end p-0" style="width: 100%; overflow: hidden;">
+                        <div class="breadcrumb-item" wicket:id="breadcrumb" style="padding: 5px;">
                             <a  wicket:id="bcLink" tabindex="4">
                                 <i wicket:id="bcIcon"></i>&nbsp;
                                 <span class="sr-only" wicket:id="bcSrCurrentMessage"><wicket:message key="PageBase.bcSrCurrentMessage"/></span>
                                 <span wicket:id="bcName"/>
                             </a>
-                        </li>
-                    </ol>
+                        </div>
+                    </div>
                 </div>
                 <ul class="navbar-nav" role="menu">
                     <wicket:enclosure child="cartLink">

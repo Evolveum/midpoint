@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="9296ee02-b011-11f0-a82e-270fe586cfa4">
+    <name>Auto Nice Role</name>
+    <documentation>
+        Auto-assigned role that contains only "correct" mappings w.r.t. `safe` expression profile.
+    </documentation>
+    <inducement>
+        <construction>
+            <resourceRef oid="b6921940-b317-11f0-a8d9-bb8df5a5aed5"/>
+            <attribute>
+                <ref>title</ref>
+                <outbound>
+                    <name>m-auto-nice-title</name>
+                    <trace>true</trace>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>AutoNice</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+    <autoassign>
+        <enabled>true</enabled>
+        <focus>
+            <mapping>
+                <condition>
+                    <filter>
+                        <filter>
+                            <q:text>costCenter = 'nice'</q:text>
+                        </filter>
+                    </filter>
+                </condition>
+            </mapping>
+            <selector>
+                <type>UserType</type>
+            </selector>
+        </focus>
+    </autoassign>
+</role>

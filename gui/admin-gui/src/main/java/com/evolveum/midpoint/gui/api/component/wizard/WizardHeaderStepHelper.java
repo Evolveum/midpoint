@@ -6,11 +6,11 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-
 import org.apache.wicket.model.IModel;
 
-public class WizardHeaderStepHelper {
+import java.io.Serializable;
+
+public class WizardHeaderStepHelper implements Serializable {
 
     int activeStepIndex;
     int totalStepsCount;

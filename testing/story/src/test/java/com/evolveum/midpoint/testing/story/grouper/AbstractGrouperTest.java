@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,13 +21,12 @@ import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -93,22 +91,11 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
 
     private static final String USERNAME_FORMAT = "user-%08d";
 
-    @Autowired(required = false)
-    protected SqlRepositoryConfiguration sqlRepositoryService;
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         //TracerImpl.checkHashCodeEqualsRelation = true;
-
-        // These are experimental features, so they need to be explicitly enabled. This will be eliminated later,
-        // when we make them enabled by default.
-        if (sqlRepositoryService != null) {
-            sqlRepositoryService.setEnableIndexOnlyItems(true);
-            sqlRepositoryService.setEnableNoFetchExtensionValuesInsertion(true);
-            sqlRepositoryService.setEnableNoFetchExtensionValuesDeletion(true);
-        }
 
         openDJController.addEntriesFromLdifFile(LDIF_INITIAL_OBJECTS_FILE);
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -187,10 +187,12 @@
             <path>assignment</path>
         </target>
         <condition>
-            <script>
-                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                <code>subtype == 'PIRATE'</code>
-            </script>
+            <filter>
+                <!-- Test for filter expressions (#10060) -->
+                <filter>
+                    <q:text>subtype = 'PIRATE'</q:text>
+                </filter>
+            </filter>
         </condition>
     </mapping>
 
@@ -210,17 +212,18 @@
             <path>assignment</path>
         </target>
         <condition>
-            <script>
-                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                <code>subtype == 'PIRATE'</code>
-            </script>
+            <filter>
+                <!-- Test for filter expressions (#10060) -->
+                <filter>
+                    <q:text>subtype = 'PIRATE'</q:text>
+                </filter>
+            </filter>
         </condition>
     </mapping>
 
     <!-- similar mapping with assignmentTargetSearch and more sources -->
     <mapping>
         <name>assignment-from-subtype-thief</name>
-        <trace>false</trace>
         <authoritative>true</authoritative>
         <source>
             <path>subtype</path>
@@ -243,11 +246,16 @@
             <path>assignment</path>
         </target>
         <condition>
-            <trace>false</trace>
-            <script>
+            <filter>
+                <!-- Test for filter expressions (#10060) -->
+                <filter>
+                    <q:text>subtype = 'THIEF' and honorificPrefix = 'Thf.'</q:text>
+                </filter>
+            </filter>
+            <!-- <script>
                 <trace>false</trace>
                 <code>subtype == 'THIEF' &amp;&amp; basic.stringify(honorificPrefix) == 'Thf.'</code>
-            </script>
+            </script> -->
         </condition>
     </mapping>
 
@@ -269,6 +277,7 @@
             <path>assignment</path>
         </target>
         <condition>
+            <!-- Testing Groovy expression in condition (cf. #10060) -->
             <script>
                 <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                 <code>subtype == 'BUCCANEER'</code>

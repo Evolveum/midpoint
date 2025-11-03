@@ -102,6 +102,10 @@ public class CharacterClass {
         return StringPolicyUtils.charactersAsString(characters);
     }
 
+    public @NotNull String getDividedCharactersAsString(String separator) {
+        return StringPolicyUtils.dividedCharactersAsString(characters, separator);
+    }
+
     @Override
     public String toString() {
         return "CharacterClass{" +
