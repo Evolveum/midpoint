@@ -5,7 +5,6 @@
 
 [IMPORTANT]
 This page documents only the new Native repository introduced in midPoint 4.4.
-For old Generic repository configuration see xref:../generic/configuration/[this page].
 
 == Configuration overview
 
@@ -295,7 +294,6 @@ Of course, you still need the installed and prepared PostgreSQL database!
 == See Also
 
 * xref:../native-postgresql/[Native PostgreSQL Repository]
-* xref:../generic/[Old Generic Repository]
 * xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
 * xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
 * xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]
