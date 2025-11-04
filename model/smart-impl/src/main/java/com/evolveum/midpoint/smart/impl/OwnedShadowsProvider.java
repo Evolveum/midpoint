@@ -9,6 +9,7 @@
 package com.evolveum.midpoint.smart.impl;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.util.exception.*;
  */
 public interface OwnedShadowsProvider {
 
-    Collection<OwnedShadow> fetch(
+    List<OwnedShadow> fetch(
             TypeOperationContext ctx,
             OperationContext.StateHolder state,
             OperationResult result,

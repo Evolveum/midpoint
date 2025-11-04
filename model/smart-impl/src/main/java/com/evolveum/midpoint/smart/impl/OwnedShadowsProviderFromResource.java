@@ -10,6 +10,7 @@ package com.evolveum.midpoint.smart.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.stereotype.Component;
 
@@ -26,21 +27,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Default implementation that fetches owned shadows via ModelService from the resource.
  */
 @Component
-public class OwnedShadowsProviderImpl implements OwnedShadowsProvider {
+public class OwnedShadowsProviderFromResource implements OwnedShadowsProvider {
 
-    private static final Trace LOGGER = TraceManager.getTrace(OwnedShadowsProviderImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OwnedShadowsProviderFromResource.class);
 
     @Override
-    public Collection<OwnedShadow> fetch(
+    public List<OwnedShadow> fetch(
             TypeOperationContext ctx,
             OperationContext.StateHolder state,
             OperationResult result,
             int maxExamples)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
-        // Maybe we should search the repository instead. The argument for going to the resource is to get some data even
-        // if they are not in the repository yet. But this is not a good argument, because if we get an account from the resource,
-        // it won't have the owner anyway.
         var ownedShadows = new ArrayList<OwnedShadow>(maxExamples);
         ctx.b.modelService.searchObjectsIterative(
                 ShadowType.class,

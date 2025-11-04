@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPI
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -46,7 +47,7 @@ class MappingsSuggestionOperation {
     private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionOperation.class);
 
     private static final int ATTRIBUTE_MAPPING_EXAMPLES = 20;
-    private static final int ATTRIBUTE_TESTING_EXAMPLES = 40;
+    private static final int ATTRIBUTE_TESTING_EXAMPLES = 200;
 
     private static final String ID_SHADOWS_COLLECTION = "shadowsCollection";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
@@ -90,8 +91,7 @@ class MappingsSuggestionOperation {
             return new MappingsSuggestionType();
         }
 
-        Collection<OwnedShadow> ownedShadows = collectOwnedShadows(result);
-        var ownedList = new ArrayList<>(ownedShadows);
+        var ownedList = collectOwnedShadows(result);
         int trainCount = Math.min(ATTRIBUTE_MAPPING_EXAMPLES, ownedList.size());
         int testCount = Math.min(ATTRIBUTE_TESTING_EXAMPLES, ownedList.size());
         var suggestionShadows = ownedList.subList(0, trainCount);
@@ -108,12 +108,8 @@ class MappingsSuggestionOperation {
                 mappingsSuggestionState.flush(result);
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
-                var suggestionPairs = suggestionShadows.stream()
-                        .map(os -> os.toValuesPair(shadowAttrPath, focusPropPath))
-                        .toList();
-                var testingPairs = testingShadows.stream()
-                        .map(os -> os.toValuesPair(shadowAttrPath, focusPropPath))
-                        .toList();
+                var suggestionPairs = toValuesPairs(suggestionShadows, shadowAttrPath, focusPropPath);
+                var testingPairs = toValuesPairs(testingShadows, shadowAttrPath, focusPropPath);
                 try {
                     suggestion.getAttributeMappings().add(
                             suggestMapping(
@@ -143,7 +139,7 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private Collection<OwnedShadow> collectOwnedShadows(OperationResult result)
+    private List<OwnedShadow> collectOwnedShadows(OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
@@ -157,6 +153,15 @@ class MappingsSuggestionOperation {
         } finally {
             state.close(result);
         }
+    }
+
+    private static List<ValuesPair> toValuesPairs(
+            List<OwnedShadow> shadows,
+            ItemPath shadowAttrPath,
+            ItemPath focusPropPath) {
+        return shadows.stream()
+                .map(os -> os.toValuesPair(shadowAttrPath, focusPropPath))
+                .toList();
     }
 
 

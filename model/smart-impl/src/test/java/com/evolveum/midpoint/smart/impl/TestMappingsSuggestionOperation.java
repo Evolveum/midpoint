@@ -172,7 +172,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ACCOUNT_DEFAULT,
                 null,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderImpl(),
+                new OwnedShadowsProviderFromResource(),
                 task,
                 result);
 
@@ -216,7 +216,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ACCOUNT_DEFAULT,
                 null,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderImpl(),
+                new OwnedShadowsProviderFromResource(),
                 task,
                 result);
 
@@ -260,7 +260,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ACCOUNT_DEFAULT,
                 null,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderImpl(),
+                new OwnedShadowsProviderFromResource(),
                 task,
                 result);
 
@@ -269,7 +269,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
 
         assertThat(suggestion.getAttributeMappings())
-                .as("Invalid script should produce a mapping with sentinel quality -1.0")
+                .as("Invalid script should result in no mapping being produced")
                 .hasSize(0);
     }
 
@@ -303,7 +303,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ACCOUNT_DEFAULT,
                 null,
                 new MappingsQualityAssessor(expressionFactory),
-                new OwnedShadowsProviderImpl(),
+                new OwnedShadowsProviderFromResource(),
                 task,
                 result);
 
