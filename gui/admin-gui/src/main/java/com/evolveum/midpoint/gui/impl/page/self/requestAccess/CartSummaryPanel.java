@@ -118,6 +118,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
     private void initModels() {
         systemRelations = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<RelationDefinitionType> load() {
@@ -144,11 +145,13 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
         ISortableDataProvider<ShoppingCartItem, String> provider = new ListDataProvider<>(this, shoppingCartItemsModel);
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 Fragment fragment = new Fragment(id, ID_TABLE_FOOTER_FRAGMENT, CartSummaryPanel.this);
                 fragment.add(new AjaxLink<>(ID_CLEAR_CART) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -172,6 +175,8 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         add(table);
 
         IModel validityModel = new IModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public Object getObject() {
                 return getModelObject().getSelectedValidity();
@@ -195,6 +200,8 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         form.add(customValidity);
 
         form.add(new AbstractFormValidator() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public FormComponent<?>[] getDependentFormComponents() {
                 FormComponent from = customValidity.getFrom();
@@ -249,6 +256,8 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         validity.setLabel(createStringResource("ShoppingCartPanel.validity"));
         validity.add(new VisibleBehaviour(this::isValidityVisible));
         validity.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(validity);
@@ -267,6 +276,8 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         form.add(comment);
 
         AjaxLink openConflict = new AjaxLink<>(ID_OPEN_CONFLICT) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 openConflictPerformed(target);
@@ -282,6 +293,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         form.add(messages);
 
         AjaxSubmitLink submit = new AjaxSubmitLink(ID_SUBMIT) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -324,6 +336,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
     private IModel<List> createValidityOptions() {
         return new LoadableModel<>(false) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List load() {
@@ -407,10 +420,13 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     private List<IColumn<ShoppingCartItem, String>> createColumns() {
         List<IColumn<ShoppingCartItem, String>> columns = new ArrayList<>();
         columns.add(new RoundedIconColumn<>(null) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<IResource> createPreferredImage(IModel<ShoppingCartItem> model) {
                 return new LoadableModel<>(false) {
+                    @Serial private static final long serialVersionUID = 1L;
+
                     @Override
                     protected IResource load() {
                         ObjectReferenceType ref = model.getObject().getAssignment().getTargetRef();
@@ -456,24 +472,17 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             }
         });
         columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.accessName")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
                 item.add(AttributeAppender.append("class", "align-middle"));
-                item.add(new Label(id, () -> {
-                    ShoppingCartItem cartItem = model.getObject();
-
-                    List<RelationDefinitionType> systemRelations = CartSummaryPanel.this.systemRelations.getObject();
-                    String relation = LocalizationUtil.translatePolyString(
-                            RelationUtil.getRelationLabel(cartItem.getRelation(), systemRelations));
-
-                    return LocalizationUtil.translate(
-                            "ShoppingCartPanel.accessNameValue", new Object[] {
-                                    cartItem.getName(), relation });
-                }));
+                item.add(new Label(id, () -> getShoppingCartItemName(model.getObject())));
             }
         });
         columns.add(new AbstractColumn<>(createStringResource("ShoppingCartPanel.selectedUsers")) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
                 Label label = new Label(id, () -> {
@@ -493,24 +502,37 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             }
         });
         columns.add(new AbstractColumn<>(() -> "") {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
                 Fragment fragment = new Fragment(id, ID_TABLE_BUTTON_COLUMN, CartSummaryPanel.this);
-                fragment.add(new AjaxLink<>(ID_EDIT) {
+
+                AjaxLink<?> editLink = new AjaxLink<>(ID_EDIT) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         editItemPerformed(target, model);
                     }
-                });
-                fragment.add(new AjaxLink<>(ID_REMOVE) {
+                };
+                editLink.setOutputMarkupId(true);
+                editLink.add(AttributeAppender.append("aria-label",
+                        createStringResource("CartSummaryPanel.editButton", getShoppingCartItemName(model.getObject()))));
+                fragment.add(editLink);
+
+                AjaxLink<?> removeLink = new AjaxLink<>(ID_REMOVE) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         removeItemPerformed(target, model);
                     }
-                });
+                };
+                removeLink.setOutputMarkupId(true);
+                removeLink.add(AttributeAppender.append("aria-label",
+                        createStringResource("CartSummaryPanel.removeButton", getShoppingCartItemName(model.getObject()))));
+                fragment.add(removeLink);
 
                 item.add(AttributeAppender.append("style", "width: 120px;"));
                 item.add(fragment);
@@ -524,6 +546,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         PageBase page = getPageBase();
 
         ShoppingCartEditPanel panel = new ShoppingCartEditPanel(model, getModel(), !isAllowOnlyGlobalValiditySettings()) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
@@ -560,6 +583,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
     private void clearCartPerformed(AjaxRequestTarget target) {
         ConfirmationPanel content = new ConfirmationPanel(Popupable.ID_CONTENT, createStringResource("ShoppingCartPanel.clearCartConfirmMessage")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
@@ -622,5 +646,15 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             shoppingCartItemsModel.detach();
         }
         super.onDetach();
+    }
+
+    private String getShoppingCartItemName(ShoppingCartItem cartItem) {
+        List<RelationDefinitionType> systemRelations = CartSummaryPanel.this.systemRelations.getObject();
+        String relation = LocalizationUtil.translatePolyString(
+                RelationUtil.getRelationLabel(cartItem.getRelation(), systemRelations));
+
+        return LocalizationUtil.translate(
+                "ShoppingCartPanel.accessNameValue", new Object[] {
+                        cartItem.getName(), relation });
     }
 }
