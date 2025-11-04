@@ -115,6 +115,9 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
 
             @Override
             protected void populateItem(final ListItem<T> item) {
+                if (item.getIndex() == 0) {
+                    item.add(AttributeAppender.append("class", "mt-1"));
+                }
                 CheckBox check = new CheckBox(ID_ITEM_CHECKBOX,
                         new PropertyModel<>(item.getModel(), FilterableSearchItemWrapper.F_SELECTED));
                 check.add(new AjaxFormComponentUpdatingBehavior("change") {
