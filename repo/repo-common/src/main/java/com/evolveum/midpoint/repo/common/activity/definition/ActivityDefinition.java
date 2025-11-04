@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPoliciesDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
@@ -202,6 +201,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         distributionDefinition.applyChangeTailoring(tailoring);
         reportingDefinition.applyChangeTailoring(tailoring);
         executionModeDefinition.applyChangeTailoring(tailoring);
+        policiesDefinition.applyChangeTailoring(tailoring);
     }
 
     public void applySubtaskTailoring(@NotNull ActivitySubtaskDefinitionType subtaskSpecification) {

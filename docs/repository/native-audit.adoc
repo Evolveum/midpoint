@@ -4,10 +4,6 @@
 :page-since: "4.4"
 :page-toc: top
 
-[IMPORTANT]
-This page documents the audit trail based on the new Native PostgreSQL Repository introduced in midPoint 4.4.
-For the old Generic SQL audit trail see xref:../generic/generic-audit/[this page].
-
 *First things first!* You want to check configuration overview lower, make the necessary changes in the new `config.xml`,
 but before you run your midPoint in production mode, you have to consider *audit migration* and *partitioning*.
 
@@ -767,7 +763,6 @@ although the default settings do release unused physical connections.
 == See Also
 
 * xref:../native-postgresql/[Native PostgreSQL Repository]
-* xref:../generic/[Old Generic Repository]
 * xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
 * xref:/midpoint/reference/repository/native-postgresql/migration/[Migration to Native PostgreSQL Repository]
 * xref:/midpoint/reference/tasks/task-manager/configuration/[Task Manager Configuration]

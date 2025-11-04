@@ -17,6 +17,8 @@ import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 /**
  * A sub-activity that does not have its own (explicit) definition. Typical examples are sub-activities of reconciliation,
  * cleanup, or focus validity scan activity.
+ *
+ * Note that {@link #getParent()} always returns `Activity<WD, AH>`, not `Activity<?, ?>`.
  */
 public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         extends Activity<WD, AH> {
@@ -39,7 +41,7 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
     @NotNull private final CandidateIdentifierFormatter candidateIdentifierFormatter;
 
     /** Defines the activity state, e.g. its data type and persistence characteristics. */
-    @NotNull private final ActivityStateDefinition<?> activityStateDefinition;
+    @NotNull private final ActivityStateDefinition activityStateDefinition;
 
     @NotNull private final Activity<WD, AH> parent;
 
@@ -48,7 +50,7 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
             @NotNull ActivityRunSupplier<WD, AH> activityRunSupplier,
             @Nullable PreRunnable<WD, AH> preRunnable,
             @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter,
-            @NotNull ActivityStateDefinition<?> activityStateDefinition,
+            @NotNull ActivityStateDefinition activityStateDefinition,
             @NotNull ActivityTree tree,
             @NotNull Activity<WD, AH> parent) {
         super(definition, tree);
@@ -70,7 +72,7 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
             @NotNull ActivityRunSupplier<WD, AH> activityRunSupplier,
             @Nullable PreRunnable<WD, AH> preRunnable,
             @NotNull CandidateIdentifierFormatter candidateIdentifierFormatter,
-            @NotNull ActivityStateDefinition<?> activityStateDefinition,
+            @NotNull ActivityStateDefinition activityStateDefinition,
             @NotNull Activity<WD, AH> parent) {
         return new EmbeddedActivity<>(definition, activityRunSupplier, preRunnable, candidateIdentifierFormatter,
                 activityStateDefinition, parent.getTree(), parent);
@@ -93,7 +95,7 @@ public class EmbeddedActivity<WD extends WorkDefinition, AH extends ActivityHand
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getActivityStateDefinition() {
         return activityStateDefinition;
     }
 

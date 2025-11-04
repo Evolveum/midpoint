@@ -149,13 +149,13 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
     }
 
     @Override
-    public CaseAsserter<RA> displayXml() throws SchemaException {
+    public CaseAsserter<RA> displayXml() {
         super.displayXml();
         return this;
     }
 
     @Override
-    public CaseAsserter<RA> displayXml(String message) throws SchemaException {
+    public CaseAsserter<RA> displayXml(String message) {
         super.displayXml(message);
         return this;
     }

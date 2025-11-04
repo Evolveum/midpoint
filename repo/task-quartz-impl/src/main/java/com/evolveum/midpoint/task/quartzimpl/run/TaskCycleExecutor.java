@@ -6,6 +6,12 @@
 
 package com.evolveum.midpoint.task.quartzimpl.run;
 
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
+
+import org.jetbrains.annotations.NotNull;
+import org.quartz.SchedulerException;
+
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -13,20 +19,17 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-
 import com.evolveum.midpoint.task.quartzimpl.TaskBeans;
-
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
-
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
 
 /**
  * Executes so called "task cycles" i.e. executions of the task handler.
@@ -42,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
  */
 class TaskCycleExecutor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskCycleExecutor.class);
 
     private static final String DOT_CLASS = TaskCycleExecutor.class.getName() + ".";
     private static final String OP_EXECUTE_RECURRING_TASK = DOT_CLASS + "executeRecurringTask";
@@ -223,15 +226,45 @@ class TaskCycleExecutor {
             LOGGER.trace("Task encountered permanent error. Suspending it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR) {
-            LOGGER.trace("Task encountered halting error. Suspending it. Task = {}", task);
+            LOGGER.trace("Task encountered halting error. Suspending it along with all tasks that wait for it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.RESTART_REQUESTED) {
+            treatRestartRequestedRunResult(runResult, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task finished normally. Closing it. Task = {}", task);
             beans.taskStateManager.closeTask(task, result);
-        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.IS_WAITING) {
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.WAITING) {
             LOGGER.trace("Task switched to waiting state. No need to change the task state here. Task = {}", task);
         } else {
             invalidValue(runResult);
+        }
+    }
+
+    // todo we should suspend and reschedule delegate probably, not worker [viliam]
+    //  how to make sure we'll not reschedule it twice, when there are multiple workers for example?
+    private void treatRestartRequestedRunResult(TaskRunResult runResult, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+
+        LOGGER.trace("Task handler requested restart of the activity with {}. Suspending it. Task = {}",
+                runResult.getTaskRestartInstruction(), task);
+
+        beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
+
+        try {
+            long delayMillis = runResult.getTaskRestartInstruction() != null
+                    ? runResult.getTaskRestartInstruction().delayMillis()
+                    : 0;
+            long startAt = System.currentTimeMillis() + Math.max(delayMillis, 0);
+            var rootTask = (TaskQuartzImpl) task.getRootTask();
+            LOGGER.trace("Rescheduling root task {} to run in {} ms because of activity restart", rootTask, delayMillis);
+            // TODO consider we may be within a tree of tasks here
+            rootTask.setExecutionAndSchedulingStateImmediate(  // todo can't be like this [viliam]
+                    TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
+                    TaskSchedulingStateType.SUSPENDED, result);
+            beans.localScheduler.rescheduleLater(rootTask, startAt);
+        } catch (PreconditionViolationException | SchedulerException ex) {
+            LOGGER.error("Couldn't reschedule task {} (rescheduled because of activity restart): {}",
+                    task, ex.getMessage(), ex);
         }
     }
 
@@ -248,13 +281,16 @@ class TaskCycleExecutor {
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
             throw new StopTaskException();
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR) {
-            LOGGER.trace("Task encountered halting error. Suspending it. Task = {}", task);
+            LOGGER.trace("Task encountered halting error. Suspending it along with all tasks that wait for it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
+            throw new StopTaskException();
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.RESTART_REQUESTED) {
+            treatRestartRequestedRunResult(runResult, result);
             throw new StopTaskException();
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task handler finished normally. Continuing as scheduled. Task = {}", task);
             // no stopping exception here
-        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.IS_WAITING) {
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.WAITING) {
             LOGGER.trace("Task switched to waiting state. No need to change the task state. Stopping. Task = {}", task);
             throw new StopTaskException();
         } else {
@@ -297,7 +333,7 @@ class TaskCycleExecutor {
         try {
             task.refresh(result);
         } catch (ObjectNotFoundException ex) {
-            LOGGER.error("Error refreshing task "+task+": Object not found: "+ex.getMessage(),ex);
+            LOGGER.error("Error refreshing task " + task + ": Object not found: " + ex.getMessage(), ex);
             throw new StopTaskException();
         }
 

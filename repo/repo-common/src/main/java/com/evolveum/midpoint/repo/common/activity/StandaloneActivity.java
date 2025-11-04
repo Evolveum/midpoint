@@ -63,7 +63,7 @@ public class StandaloneActivity<WD extends WorkDefinition, AH extends ActivityHa
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getActivityStateDefinition() {
         return handler.getRootActivityStateDefinition();
     }
 

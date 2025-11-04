@@ -9,8 +9,11 @@ package com.evolveum.midpoint.test;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
+import com.evolveum.midpoint.task.api.TaskManager;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Objects;
@@ -45,6 +48,11 @@ public class TestSpringBeans {
                 .getBean("cacheRepositoryService", RepositoryService.class);
     }
 
+    public static @NotNull TaskManager getTaskManager() {
+        return getApplicationContext()
+                .getBean(TaskManager.class);
+    }
+
     public static @NotNull RepoSimpleObjectResolver getRepoSimpleObjectResolver() {
         return getApplicationContext()
                 .getBean(RepoSimpleObjectResolver.class);
@@ -55,12 +63,15 @@ public class TestSpringBeans {
     }
 
     /**
-     * We assume that only a single instance of the object importer exists.
-     *
-     * TODO What about tests running below AbstractModelIntegrationTest level?
+     * We assume that only a single instance of the object importer bean exists.
+     * If not found, a simple default implementation is returned.
      */
     public static @NotNull ObjectImporter getObjectImporter() {
-        return getApplicationContext()
-                .getBean(ObjectImporter.class);
+        try {
+            return getApplicationContext()
+                    .getBean(ObjectImporter.class);
+        } catch (NoSuchBeanDefinitionException e) {
+            return new SimpleObjectImporterImpl(getCacheRepositoryService(), getTaskManager());
+        }
     }
 }

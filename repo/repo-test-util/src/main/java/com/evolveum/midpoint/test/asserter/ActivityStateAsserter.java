@@ -18,6 +18,7 @@ import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -33,8 +34,44 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         this.activityState = information;
     }
 
+    public ActivityStateAsserter<RA> assertNoAbortingInformation() {
+        assertThat(activityState.getAbortingInformation())
+                .withFailMessage("restarting state present even if not expected")
+                .isNull();
+        return this;
+    }
+
+    public ActivityStateAsserter<RA> assertRestarting(boolean restartCounters) {
+        ActivityAbortingInformationType aborting = activityState.getAbortingInformation();
+        if (!(aborting.getPolicyAction() instanceof RestartActivityPolicyActionType restartAction)) {
+            throw new AssertionError("Expected ActivityRestartingInformationType, got " + aborting);
+        }
+
+        assertThat(BooleanUtils.isTrue(restartAction.isRestartCounters()))
+                .withFailMessage("restarting state is not restarting counters %s", restartCounters)
+                .isEqualTo(restartCounters);
+
+        return this;
+    }
+
+    public ActivityStateAsserter<RA> assertRestarting() {
+        return assertRestarting(true);
+    }
+
+    public ActivityStateAsserter<RA> assertExecutionAttempts(Integer expected) {
+        assertThat(activityState.getExecutionAttempt())
+                .as("execution attempts")
+                .isEqualTo(expected);
+
+        return this;
+    }
+
     public ActivityStateAsserter<RA> assertComplete() {
         return assertRealizationState(ActivityRealizationStateType.COMPLETE);
+    }
+
+    public ActivityStateAsserter<RA> assertAborted() {
+        return assertRealizationState(ActivityRealizationStateType.ABORTED);
     }
 
     public ActivityStateAsserter<RA> assertNotStarted() {
@@ -52,6 +89,10 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
     public ActivityStateAsserter<RA> assertRealizationState(ActivityRealizationStateType expected) {
         assertThat(activityState.getRealizationState()).as("realization state").isEqualTo(expected);
         return this;
+    }
+
+    public ActivityStateAsserter<RA> assertPartialError() {
+        return assertResultStatus(OperationResultStatusType.PARTIAL_ERROR);
     }
 
     public ActivityStateAsserter<RA> assertSuccess() {
@@ -107,14 +148,29 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return asserter;
     }
 
-    public ActivityPoliciesStateAsserter<ActivityStateAsserter<RA>> activityPolicyStates() {
+    public ActivityStateAsserter<RA> assertNoPolicies() {
+        assertThat(activityState.getPolicies())
+                .as("activity policy states")
+                .isNull();
+        return this;
+    }
+
+    public ActivityPoliciesStateAsserter<ActivityStateAsserter<RA>> policies() {
         ActivityPoliciesStateType state = Objects.requireNonNull(
-                activityState.getPolicies(), "no policy groups");
+                activityState.getPolicies(), "no activity policy states present");
 
         ActivityPoliciesStateAsserter<ActivityStateAsserter<RA>> asserter =
                 new ActivityPoliciesStateAsserter<>(state, this, "activity policy group in " + getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public ActivityStateAsserter<RA> assertNoCounters() {
+        assertThat(activityState.getCounters())
+                .as("activity counters")
+                .isNull();
+
+        return this;
     }
 
     public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> previewModePolicyRulesCounters() {

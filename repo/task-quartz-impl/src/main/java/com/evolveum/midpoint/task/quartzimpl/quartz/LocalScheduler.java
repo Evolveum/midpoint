@@ -424,7 +424,7 @@ public class LocalScheduler {
     }
 
     // TODO what to do with the SchedulerException?
-    public void rescheduleLater(RunningTaskQuartzImpl task, long startAt) throws SchedulerException {
+    public void rescheduleLater(TaskQuartzImpl task, long startAt) throws SchedulerException {
         Trigger trigger = QuartzUtil.createTriggerForTask(task, startAt);
         quartzScheduler.scheduleJob(trigger);
     }

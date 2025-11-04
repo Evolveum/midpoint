@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.activity.run;
 
 import java.util.*;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -20,8 +22,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class UpdateActivityPoliciesOperation {
 
@@ -51,7 +51,7 @@ public class UpdateActivityPoliciesOperation {
     public Map<String, ActivityPolicyStateType> execute(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        LOGGER.trace("Updating activity policies");
+        LOGGER.trace("Updating information about triggered policy rules in the activity state");
 
         updatePolicyStates(result);
 
@@ -70,11 +70,12 @@ public class UpdateActivityPoliciesOperation {
 
         List<ItemDelta<?, ?>> deltas = new ArrayList<>();
         for (ActivityPolicyStateType policy : policies) {
-            ActivityPolicyStateType current = getCurrentPolicyState(task, policy.getIdentifier());
+            ActivityPolicyStateType existing = getCurrentPolicyState(task, policy);
+
             ItemDelta<?, ?> itemDelta;
 
             ActivityPolicyStateType updatedPolicy;
-            if (current == null) {
+            if (existing == null) {
                 itemDelta = beans.prismContext.deltaFor(TaskType.class)
                         .item(policiesItemPath)
                         .add(policy.clone())
@@ -83,9 +84,8 @@ public class UpdateActivityPoliciesOperation {
                 deltas.add(itemDelta);
                 updatedPolicy = policy;
             } else {
-                // MID-10412 todo if policy state exists we probably don't want to update it??? (it should already contain triggers)
-                //  this looks shady
-                updatedPolicy = current;
+                // we don't update "similar" policy (same identifier and set of reactions)
+                updatedPolicy = existing;
             }
 
             updatedPolicy.freeze();
@@ -95,7 +95,7 @@ public class UpdateActivityPoliciesOperation {
         return deltas;
     }
 
-    private ActivityPolicyStateType getCurrentPolicyState(TaskType task, String identifier) {
+    private ActivityPolicyStateType getCurrentPolicyState(TaskType task, ActivityPolicyStateType policy) {
         //noinspection unchecked
         PrismContainer<ActivityPolicyStateType> policiesContainer =
                 (PrismContainer<ActivityPolicyStateType>) task.asPrismContainerValue().findItem(policiesItemPath);
@@ -104,12 +104,9 @@ public class UpdateActivityPoliciesOperation {
             return null;
         }
 
-        for (ActivityPolicyStateType policy : policiesContainer.getRealValues()) {
-            if (Objects.equals(identifier, policy.getIdentifier())) {
-                return policy;
-            }
-        }
-
-        return null;
+        return policiesContainer.getRealValues().stream()
+                .filter(p -> Objects.equals(p.getIdentifier(), policy.getIdentifier()))
+                .findFirst()
+                .orElse(null);
     }
 }

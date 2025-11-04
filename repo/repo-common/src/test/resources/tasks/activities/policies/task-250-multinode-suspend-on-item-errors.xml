@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
+        oid="7b046dca-ab34-49c4-ae67-f693e7874cde">
+    <name>task-multinode-suspend-on-item-errors</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <extension>
+                <ext:searchIterativeMock>
+                    <ext:objectSet>
+                        <type>ServiceType</type>
+                        <query>
+                            <q:filter>
+                                <q:text>name startsWith "test-bad"</q:text>
+                            </q:filter>
+                        </query>
+                    </ext:objectSet>
+                    <ext:failOn>
+                        <q:text>name contains "bad"</q:text>
+                    </ext:failOn>
+                    <ext:delay>400</ext:delay>
+                </ext:searchIterativeMock>
+            </extension>
+        </work>
+        <policies>
+            <policy>
+                <name>Stop after 5 errors</name>
+                <policyConstraints>
+                    <itemState>
+                        <status>fatal_error</status>
+                    </itemState>
+                </policyConstraints>
+                <policyThreshold>
+                    <lowWaterMark>
+                        <count>5</count>
+                    </lowWaterMark>
+                </policyThreshold>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
+            </policy>
+        </policies>
+        <distribution>
+            <buckets>
+                <oidSegmentation/>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+    </activity>
+</task>

@@ -32,6 +32,11 @@ public class ActionsExecutedInformationUtil {
         return summarized;
     }
 
+    public static void clear(ActivityActionsExecutedType data) {
+        data.getObjectActionsEntry().clear();
+        data.getResultingObjectActionsEntry().clear();
+    }
+
     public static void addTo(ActivityActionsExecutedType sum, @Nullable ActivityActionsExecutedType delta) {
         if (delta != null) {
             addTo(sum.getObjectActionsEntry(), delta.getObjectActionsEntry());

@@ -106,73 +106,54 @@ Deltas contain detailed information about the operation.
 Event type defines the kind of operation that was executed.
 Currently, defined event types are shown in the table below.
 
-[NOTE]
-Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/generic-audit/[Generic Repository].
-The new xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
-
 [%autowidth]
 |===
-| Event Type | Event DB ID | Description
+| Event Type | Description
 
 | `GET_OBJECT`
-| 0
 | Unused
 
 | `ADD_OBJECT`
-| 1
 | Creating a new object (e.g. adding a user, account, resource, ...)
 
 | `MODIFY_OBJECT`
-| 2
 | Modification of an existing object
 
 | `DELETE_OBJECT`
-| 3
 | Removing an object
 
 | `EXECUTE_CHANGES_RAW`
-| 4
 | Executing changes directly in the repository, e.g. changes made via debug pages.
 
 | `SYNCHRONIZATION`
-| 5
 | Synchronizing a change notification.
 This type should only be present in `REQUEST` stage, the `EXECUTION` stage of the event will provide a more specific event type.
 
 | `CREATE_SESSION`
-| 6
 | Creating a new session, e.g. user login.
 
 | `TERMINATE_SESSION`
-| 7
 | End of a session, e.g. user logout.
 
 | `WORK_ITEM`
-| 8
 | Creation or completion of a work item (e.g. a request to approve particular assignment).
 
 | `WORKFLOW_PROCESS_INSTANCE`
-| 9
 | Creation or completion of a workflow process instance (may include 0, 1 or many work items).
 
 | `RECONCILIATION`
-| 10
 | Initiation or completion of reconciliation
 
 | `SUSPEND_TASK`
-| 11
 | Suspending a task
 
 | `RESUME_TASK`
-| 12
 | Resuming a task
 
 | `RUN_TASK_IMMEDIATELY`
-| 13
 | Running a task immediately (now)
 
 | `DISCOVER_OBJECT`
-| 14
 | Created shadow after discovering object on resource. +
 See xref:#_auditing_of_resource_object_changes[Auditing of Resource Object Changes] chapter.
 
@@ -187,26 +168,19 @@ This may include processing xref:/midpoint/reference/roles-policies/roles/rbac/[
 Therefore, the details of the operation may considerably differ at the beginning of the operation and at the end.
 Event stages are defined to denote this difference and to record events at various stages through the operation lifecycle.
 
-[NOTE]
-Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/generic-audit/[Generic Repository].
-The new xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
-
 [%autowidth]
 |===
-| Event Stage | Stage DB ID | Description
+| Event Stage | Description
 
 | `REQUEST`
-| 0
 | The operation is requested.
 The record shows operation details (e.g. deltas) in the form as originally intended by the user or client.
 
 | `EXECUTION`
-| 1
 | The operation after execution.
 The record shows operation details (e.g. deltas) in the form as it was executed.
 
 | `RESOURCE`
-| 2
 | Stage which contains events that were recorded on provisioning level (objects on resources).
 Both before and after something happened in provisioning, e.g. when auditing operations executed through provisioning
 on managed resource as well as getting changes through live synchronization process. +
@@ -236,38 +210,29 @@ This feature can be turned off in system configuration (`systemConfiguration/aud
 The result of the executed operation.
 All the possible values are described in the following table.
 
-[NOTE]
-Column *Event DB ID* is relevant only for the older xref:/midpoint/reference/repository/generic/generic-audit/[Generic Repository].
-The new xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Repository] uses custom types displaying the name in the first column.
-
 [%autowidth]
 |===
-| Event Outcome | Outcome DB ID | Description
+| Event Outcome | Description
 
 | `SUCCESS`
-| 0
 | Used when operation and sub operations finish successfully.
 The operation is completed and the result is final.
 
 | `WARNING`
-| 1
 | Used when operation finish successfully, but minor problem occurred.
 For example operation code recovered from some error and after that operation finished successfully.
 The operation is completed and the result is final.
 
 | `PARTIAL_ERROR`
-| 2
 | Used when operation contains at least one operation witch status `SUCCESS`/`WARNING`
 and at least one operation with status `FATAL_ERROR`.
 The operation is completed and the result is final.
 
 | `FATAL_ERROR`
-| 3
 | Used when operation didn't finish correctly.
 The operation is completed and the result is final.
 
 | `NOT_APPLICABLE`
-| 4
 | Result does not make any sense for the operation.
 This is useful in cases that the operation is not supported (e.g. an optional part of the interface).
 This is different from `UNKNOWN`, as in this case we really know that its result is not applicable.
@@ -275,19 +240,16 @@ In `UNKNOWN` case we know nothing.
 The operation is completed and the result is final.
 
 | `IN_PROGRESS`
-| 5
 | The operation is being executed.
 This is set for operations that are executed asynchronously or take a significant amount of time.
 Short synchronous operations do not need to set this status, they may go well with the default `UNKNOWN` status.
 The operation is in progress and the final result is not yet known.
 
 | `UNKNOWN`
-| 6
 | No information about operation is present.
 Presence of this status usually means programming bug, e.g. someone forgot to set or compute appropriate operation result.
 
 | `HANDLED_ERROR`
-| 7
 | The operation didn't finish correctly but that was expected and handled.
 It is equivalent to success for all practical cases except for displaying the result.
 But using success status for this situation might be misleading.
@@ -373,14 +335,8 @@ will NOT work, because the level is explicitly overridden based on the System co
 
 === Database Table Auditing
 
-Audit service writing to database tables is closely related to the xref:/midpoint/reference/repository/[repository] implementation:
-
-* If the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] is used,
-see xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail]
+See xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail]
 for more details, including how to configure it.
-
-* If the deprcated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,
-see xref:/midpoint/reference/repository/generic/generic-audit/[Generic SQL Audit Trail].
 
 == XDAS
 
@@ -575,8 +531,6 @@ For that we need to add the next snippet of code to the xref:/midpoint/reference
 
 Native repository stores the information directly in `ma_audit_event` table in column `resourceOid`,
 see xref:/midpoint/reference/repository/native-audit/#audit-tables[audit tables] for more details.
-Generic repository uses `m_audit_resource` to store the information, see
-xref:/midpoint/reference/repository/generic/generic-audit/#audit-tables[audit tables] for more details.
 
 === Custom column
 
@@ -599,12 +553,7 @@ In case that you are interested in xref:/support/subscription-sponsoring/[suppor
 
 When we need some other information in the audit table, we can store custom properties in additional custom columns in the database.
 This configuration is useful only when SQL audit trail is used.
-
-* If the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] is used,
-see xref:/midpoint/reference/repository/native-audit/#custom-column[Custom Column] in Native SQL Audit Trail.
-
-* If the deprecated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,
-see xref:/midpoint/reference/repository/generic/generic-audit/#custom-column[Custom Column] in Generic SQL Audit Trail.
+See xref:/midpoint/reference/repository/native-audit/#custom-column[Custom Column] in Native SQL Audit Trail.
 
 == Auditing of create/termination session event for channels rest and actuator
 
@@ -660,12 +609,7 @@ With these settings, midPoint will include the specified item paths in audit rec
 
 By default, audit uses the same data source like the main repository.
 Since version 4.2 it is possible to set up audit in different database.
-
-* If the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] is used,
-see xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[Audit to separate database] in the Native SQL Audit Trail.
-
-* If the deprcated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,
-see xref:/midpoint/reference/repository/generic/generic-audit/#audit-to-separate-database[Audit to separate database] in the Generic SQL Audit Trail.
+See xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[Audit to separate database] in the Native SQL Audit Trail.
 
 [#_auditing_of_resource_object_changes]
 == Auditing of Resource Object Changes
@@ -708,18 +652,10 @@ See xref:/midpoint/reference/deployment/removing-obsolete-information/[] for det
 == Configuration examples
 
 It is unlikely that only audit to a logfile is used, audit to a database is typically used as well.
-Because there are two different repository implementations, the examples are available on these pages:
-
-* If the xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL Repository] is used,
-see the xref:/midpoint/reference/repository/native-audit/#configuration-examples[examples for the Native SQL Audit Trail].
-
-* If the deprcated xref:/midpoint/reference/repository/generic/[Generic SQL Repository] is used,
-see the xref:/midpoint/reference/repository/generic/generic-audit/#configuration-examples[examples for the Generic SQL Audit Trail].
+See the xref:/midpoint/reference/repository/native-audit/#configuration-examples[examples for the Native SQL Audit Trail].
 
 == See Also
 
 * xref:/midpoint/reference/repository/native-audit/[Native PostgreSQL Audit Trail]
-
-* xref:/midpoint/reference/repository/generic/generic-audit/[Generic SQL Audit Trail]
 
 * xref:/midpoint/reference/deployment/removing-obsolete-information/[]

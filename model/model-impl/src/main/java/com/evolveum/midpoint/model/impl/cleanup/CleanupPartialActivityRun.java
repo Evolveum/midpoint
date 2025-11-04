@@ -20,8 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.*;
 
 /**
  * Activity execution for an elementary cleanup part.
@@ -78,12 +77,12 @@ public final class CleanupPartialActivityRun<CP>
                 // Error is fatal w.r.t. this activity, and partial for the whole cleanup.
                 // But because the status aggregation does not treat this correctly yet (fatal is propagated to the root),
                 // let us report this as partial error for now. FIXME
-                return ActivityRunResult.exception(PARTIAL_ERROR, FINISHED, e);
+                return ActivityRunResult.fromException(PARTIAL_ERROR, FINISHED, e);
             } finally {
                 getRunningTask().setExecutionSupport(null);
             }
         } else {
-            LOGGER.trace(part.label + ": No clean up policy for this kind of items present.");
+            LOGGER.trace("{}: No clean up policy for this kind of items present.", part.label);
         }
         return standardRunResult();
     }

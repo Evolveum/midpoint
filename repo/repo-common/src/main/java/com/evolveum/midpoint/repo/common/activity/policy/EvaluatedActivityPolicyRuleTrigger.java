@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Evolveum and contributors
+ * Copyright (c) 2010-2025 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.Objects;
+
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedActivityPolicyTriggerType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -82,5 +85,13 @@ public class EvaluatedActivityPolicyRuleTrigger<AC extends AbstractPolicyConstra
     }
 
     protected void debugDumpSpecific(StringBuilder sb, int indent) {
+    }
+
+    public EvaluatedActivityPolicyTriggerType toPolicyTriggerType() {
+        EvaluatedActivityPolicyTriggerType state = new EvaluatedActivityPolicyTriggerType();
+        state.setConstraintName(constraint.getName());
+        state.setMessage(LocalizationUtil.createLocalizableMessageType(getMessage()));
+
+        return state;
     }
 }

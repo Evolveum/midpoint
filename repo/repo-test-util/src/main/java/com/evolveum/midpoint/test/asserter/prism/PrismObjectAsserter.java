@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.asserter.*;
 
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -243,6 +244,13 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return asserter;
     }
 
+    public TaskAsserter<PrismObjectAsserter<O,RA>> asTask() {
+        //noinspection unchecked
+        TaskAsserter<PrismObjectAsserter<O,RA>> asserter = new TaskAsserter<>((PrismObject<TaskType>) getObject(), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
     protected String desc() {
         return descWithDetails(object);
     }
@@ -257,13 +265,17 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
-    public PrismObjectAsserter<O,RA> displayXml() throws SchemaException {
+    public PrismObjectAsserter<O,RA> displayXml() {
         displayXml(desc());
         return this;
     }
 
-    public PrismObjectAsserter<O,RA> displayXml(String message) throws SchemaException {
-        IntegrationTestTools.displayXml(message, object);
+    public PrismObjectAsserter<O,RA> displayXml(String message) {
+        try {
+            IntegrationTestTools.displayXml(message, object);
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "while displaying XML");
+        }
         return this;
     }
 

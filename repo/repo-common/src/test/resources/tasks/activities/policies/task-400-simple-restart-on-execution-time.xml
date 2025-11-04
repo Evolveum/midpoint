@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="ec8896c5-236b-4f66-a0de-9a35c040b490">
+    <name>task-simple-restart-on-execution-time</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <noOp>
+                <steps>10</steps>
+                <delay>300</delay>
+            </noOp>
+        </work>
+        <policies>
+            <policy>
+                <name>Execution time at most 2 seconds</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT2S</exceeds>
+                    </executionTime>
+                    <executionAttempts>
+                        <below>2</below>
+                    </executionAttempts>
+                </policyConstraints>
+                <policyActions>
+                    <restartActivity>
+                        <delay>500</delay>
+                    </restartActivity>
+                </policyActions>
+            </policy>
+        </policies>
+    </activity>
+</task>

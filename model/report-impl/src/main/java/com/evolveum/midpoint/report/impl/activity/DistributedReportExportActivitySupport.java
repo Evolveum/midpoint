@@ -9,13 +9,12 @@ package com.evolveum.midpoint.report.impl.activity;
 import static java.util.Objects.requireNonNull;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
 
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
 
@@ -95,7 +94,6 @@ class DistributedReportExportActivitySupport extends ExportActivitySupport {
                 wholeActivityPath,
                 runningTask,
                 ReportExportWorkStateType.COMPLEX_TYPE,
-                CommonTaskBeans.get(),
                 result);
     }
 }

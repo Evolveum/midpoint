@@ -63,7 +63,7 @@ public class AutoScalingActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.perpetual(ActivityAutoScalingWorkStateType.COMPLEX_TYPE);
     }
 }

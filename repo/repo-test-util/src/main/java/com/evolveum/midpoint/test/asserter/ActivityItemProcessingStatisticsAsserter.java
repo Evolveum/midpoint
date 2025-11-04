@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.schema.statistics.OutcomeKeyedCounterTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
+import com.evolveum.midpoint.schema.util.task.WallClockTimeComputer;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemProcessingStatisticsType;
 
@@ -29,6 +30,14 @@ public class ActivityItemProcessingStatisticsAsserter<RA> extends AbstractAssert
 
     public ActivityItemProcessingStatisticsAsserter<RA> assertRuns(int expected) {
         assertThat(information.getRun().size()).as("# of runs").isEqualTo(expected);
+        return this;
+    }
+
+    public ActivityItemProcessingStatisticsAsserter<RA> assertRunTimeBetween(Long minimumMillis, Long maximumMillis) {
+        long timeSpent =
+                WallClockTimeComputer.create(information.getRun())
+                        .getSummaryTime();
+        assertThat(timeSpent).as("time spent").isBetween(minimumMillis, maximumMillis);
         return this;
     }
 

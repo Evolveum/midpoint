@@ -15,6 +15,8 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliation;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliationOptions;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.state.OtherActivityState;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -35,6 +37,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -354,5 +358,47 @@ public class TaskActivityManager {
         // Note: tailoring is currently ignored here; it is applied only when the activity is run, because
         // run-time child activities are known only then.
         return definition.getAffectedObjectsInformation(state).toBean();
+    }
+
+    /**
+     * Returns all activity state beans in the task tree. Note that for delegated activities, there are usually two states
+     * returned: one from the delegator task and one from the delegate task. In a similar way, for distributed activities,
+     * there is usually one state from the coordinator task and multiple states from the worker tasks.
+     */
+    public @NotNull Multimap<ActivityPath, OtherActivityState> getAllActivityStates(String rootTaskOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        Multimap<ActivityPath, OtherActivityState> states = ArrayListMultimap.create();
+        ActivityTreeUtil.processStates(
+                getTaskWithSubtasks(rootTaskOid, result),
+                createTaskResolver(result),
+                new ActivityTreeUtil.ActivityStateProcessor() {
+
+                    @Override
+                    public void process(
+                            @NotNull ActivityPath path,
+                            @Nullable ActivityStateType state,
+                            @Nullable List<ActivityStateType> workerStates,
+                            @NotNull TaskType task) {
+                        if (state != null) {
+                            try {
+                                states.put(path, OtherActivityState.of(task, path, result));
+                            } catch (SchemaException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void processWorkerState(
+                            @NotNull ActivityPath path, @NotNull ActivityStateType state, @NotNull TaskType task) {
+                        try {
+                            states.put(path, OtherActivityState.of(task, path, result));
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+
+        return states;
     }
 }

@@ -10,10 +10,12 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.WARNING;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isInMaintenance;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.TEMPORARY_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.REPLACE;
+
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -57,9 +59,9 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
  *   - {@link ResourceSearchSpecification} that contains precise query intended to obtain resource objects
  *     (plus search options). This spec is later fine-tuned by activity run to cover its specific needs
  *     (like selecting only shadows that were not updated for given time - see {@link
- *     SearchBasedActivityRunSpecifics#customizeQuery(ObjectQuery, OperationResult)}), to cater for bucketing, handling errored
- *     objects, and so on. This search specification is used only for search-based activities, e.g. not for live sync
- *     or async update.
+ *     SearchBasedActivityRunSpecifics#customizeQuery(SearchSpecification, OperationResult)}, to cater for bucketing,
+ *     handling errored objects, and so on. This search specification is used only for search-based activities, e.g.
+ *     not for live sync or async update.
  *
  *   - {@link PostSearchFilter} that filters any object returned by the item source (e.g. search operation
  *     in search-based activities).

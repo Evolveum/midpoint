@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.search;
 
 import static com.evolveum.midpoint.repo.common.tasks.handlers.composite.MockComponentActivityRun.NS_EXT;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import javax.xml.namespace.QName;
 
@@ -30,6 +31,7 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
     private static final ItemName MESSAGE_NAME = new ItemName(NS_EXT, "message");
     private static final ItemName FAIL_ON_NAME = new ItemName(NS_EXT, "failOn");
     private static final ItemName FREEZE_IF_SCAVENGER = new ItemName(NS_EXT, "freezeIfScavenger");
+    private static final ItemName DELAY = new ItemName(NS_EXT, "delay");
 
     static final QName WORK_DEFINITION_TYPE_QNAME = new QName(NS_EXT, "SearchIterativeMockDefinitionType");
     static final QName WORK_DEFINITION_ITEM_QNAME = new QName(NS_EXT, "searchIterativeMock");
@@ -38,6 +40,7 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
     @Nullable private final String message;
     @Nullable private final SearchFilterType failOn;
     private final boolean freezeIfScavenger;
+    private final long delay;
 
     SearchIterativeMockWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
         super(info);
@@ -47,6 +50,7 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
         this.failOn = pcv.getPropertyRealValue(FAIL_ON_NAME, SearchFilterType.class);
         this.freezeIfScavenger = Boolean.TRUE.equals(
                 pcv.getPropertyRealValue(FREEZE_IF_SCAVENGER, Boolean.class));
+        this.delay = or0(pcv.getPropertyRealValue(DELAY, Long.class));
     }
 
     private @NotNull ObjectSetType getObjectSet(PrismContainerValue<?> pcv) {
@@ -72,12 +76,17 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
         return freezeIfScavenger;
     }
 
+    public long getDelay() {
+        return delay;
+    }
+
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "objectSet", objectSet, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "failOn", failOn, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "freezeIfScavenger", freezeIfScavenger, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "freezeIfScavenger", freezeIfScavenger, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "delay", delay, indent+1);
     }
 
     @Override

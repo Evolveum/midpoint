@@ -6,38 +6,35 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.FULL_EXECUTION_MODE_POLICY_RULES;
+import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.PREVIEW_MODE_POLICY_RULES;
 
 import static java.util.Objects.requireNonNull;
 
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.FINISHED;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 import java.util.Map;
 
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
-
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
-
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.repo.common.activity.*;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
@@ -56,9 +53,10 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Implements (represents) a run (execution) of an activity in the current task.
+ * Implements/represents a run (execution) of an activity in a task.
  *
  * Responsibilities _at this [highest] level of abstraction_:
  *
@@ -72,12 +70,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * . Provides methods for navigation to more distant objects of the framework and other auxiliary objects (beans).
  *
  * . Provides skeleton of the execution - see {@link #run(OperationResult)}, managing (among others):
- *    a. activity state initialization and closing,
- *    b. execution of "before run" code,
- *    c. conversion of exceptions into {@link ActivityRunResult} (such conversion is done at various other levels, btw),
- *    d. start/end logging,
- *    e. updating task statistics,
- *    f. sending notifications.
+ * a. activity state initialization and closing,
+ * b. execution of "before run" code,
+ * c. conversion of exceptions into {@link ActivityRunResult} (such conversion is done at various other levels, btw),
+ * d. start/end logging,
+ * e. updating task statistics,
+ * f. sending notifications.
  *
  * +
  * Some of these duties are related to ones of {@link LocalActivityRun#runInternal(OperationResult)}
@@ -106,7 +104,7 @@ public abstract class AbstractActivityRun<
     /**
      * Captures traits of the activity state (e.g. if it has to be created).
      */
-    @NotNull final ActivityStateDefinition<WS> activityStateDefinition;
+    @NotNull final ActivityStateDefinition activityStateDefinition;
 
     /**
      * The "live" version of the activity state.
@@ -148,7 +146,8 @@ public abstract class AbstractActivityRun<
 
     @NotNull final SimulationSupport simulationSupport;
 
-    @NotNull final ActivityPolicyRulesContext activityPolicyRulesContext = new ActivityPolicyRulesContext();
+    /** Relevant policy rules for this activity. Plus accompanying information need for their evaluation and execution. */
+    @NotNull private final ActivityPolicyRulesContext activityPolicyRulesContext = new ActivityPolicyRulesContext();
 
     protected AbstractActivityRun(@NotNull ActivityRunInstantiationContext<WD, AH> context) {
         this.taskRun = context.getTaskRun();
@@ -177,9 +176,8 @@ public abstract class AbstractActivityRun<
     /**
      * Called during initialization. Should not access reporting characteristics.
      */
-    protected ActivityStateDefinition<WS> determineActivityStateDefinition() {
-        //noinspection unchecked
-        return (ActivityStateDefinition<WS>) activity.getActivityStateDefinition();
+    protected ActivityStateDefinition determineActivityStateDefinition() {
+        return activity.getActivityStateDefinition();
     }
 
     /**
@@ -220,12 +218,27 @@ public abstract class AbstractActivityRun<
         initializeState(result);
 
         if (activityState.isComplete()) {
+            // Completed activities should not be run again. Actually, this is quite a frequent case: it occurs every time
+            // when e.g. resuming a suspended task with completed activities, or returning a control (from subtasks) to
+            // a parent task that contains one or more activities.
             logComplete();
             return ActivityRunResult.finished(activityState.getResultStatus());
+        } else if (activityState.isAborted()) {
+            // Aborted activities are similar: they should not be run again.
+            // However, there is one exception regarding restarts - see below.
+            if (!activityState.isBeingRestarted()) {
+                logAborted();
+                return ActivityRunResult.finished(activityState.getResultStatus());
+            } else {
+                // If this activity is being restarted, we simply clear relevant parts of its state and continue with running it.
+                logRestarted();
+                try {
+                    activityState.initializeAfterRestart(result);
+                } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                    throw new ActivityRunException("Couldn't initialize activity after restart", FATAL_ERROR, PERMANENT_ERROR, e);
+                }
+            }
         }
-
-        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(this);
-        processor.collectRules();
 
         noteStartTimestamp();
         logStart();
@@ -237,24 +250,37 @@ public abstract class AbstractActivityRun<
 
         updateAndCloseActivityState(runResult, result);
 
-        if (activityState.isComplete()) {
+        if (activityState.isComplete() || activityState.isAborted()) {
             // TODO Is this really called only once on activity completion? Not sure about distributed/delegated ones.
-            onActivityRealizationComplete(result);
-            sendActivityRealizationCompleteEvent(result);
-
-            try {
-                // this evaluation handles activity policy rules with "below" constraints (at the end of activity run)
-                processor.evaluateAndEnforceRules(result);
-            } catch (ThresholdPolicyViolationException e) {
-                throw new ActivityRunException(
-                        "Threshold policy violation", FATAL_ERROR, PERMANENT_ERROR, e);
-            } catch (CommonException e) {
-                throw new ActivityRunException(
-                        "Couldn't evaluate and enforce activity policy rules", FATAL_ERROR, PERMANENT_ERROR, e);
+            onActivityRealizationCompleteOrAborted(result);
+            if (activityState.isComplete()) {
+                sendActivityRealizationCompleteEvent(result);
             }
         }
 
+        if (activityState.isAborted() && activityState.isWorker()) {
+            markBucketedWorkAsAborted(result);
+        }
+
         return runResult;
+    }
+
+    private void markBucketedWorkAsAborted(OperationResult result) throws ActivityRunException {
+        LOGGER.trace("Marking bucketed work as aborted in coordinator activity state");
+        var coordinatorActivityState = getCoordinatorActivityState();
+        coordinatorActivityState.setAbortingWorkerRef(getRunningTask().getSelfReference());
+        coordinatorActivityState.flushPendingTaskModificationsChecked(result);
+    }
+
+    /** Returns (potentially not fresh) activity state of the coordinator task. Assuming we are in worker task. */
+    ActivityState getCoordinatorActivityState() {
+        try {
+            return activityState.getCurrentActivityStateInParentTask(
+                    false, getActivityStateDefinition().workStateTypeName(), null);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            // Shouldn't occur for running tasks with fresh = false.
+            throw new SystemException("Unexpected exception: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -282,6 +308,7 @@ public abstract class AbstractActivityRun<
      * Executes the activity, converting any exceptions into appropriate {@link ActivityRunResult} instances.
      */
     private @NotNull ActivityRunResult runTreatingExceptions(OperationResult result) {
+        assert !activityState.isComplete() && !activityState.isAborted();
         try {
             invokePreRunnable(result);
             return runInternal(result);
@@ -292,10 +319,9 @@ public abstract class AbstractActivityRun<
 
     /** Temporary implementation. */
     private void invokePreRunnable(OperationResult result) throws ActivityRunException, CommonException {
-        if (!(activity instanceof EmbeddedActivity)) {
+        if (!(activity instanceof EmbeddedActivity<WD, AH> embeddedActivity)) {
             return;
         }
-        EmbeddedActivity<WD, AH> embeddedActivity = (EmbeddedActivity<WD, AH>) activity;
 
         if (this instanceof DelegatingActivityRun) {
             return; // We want this to run only for local + distributing runs
@@ -333,6 +359,8 @@ public abstract class AbstractActivityRun<
             // states, along with the timestamp, are written in subclasses. The "complete" state, along with the timestamp,
             // is written here.
             activityState.markComplete(currentResultStatus, endTimestamp);
+        } else if (runResult.isAborted()) {
+            activityState.markAborted(currentResultStatus, runResult.getAbortingInformationRequired(), endTimestamp);
         } else if (currentResultStatus != null && currentResultStatus != activityState.getResultStatus()) {
             activityState.setResultStatus(currentResultStatus);
         }
@@ -360,6 +388,16 @@ public abstract class AbstractActivityRun<
                         + "(took: {} msecs)",
                 getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath(),
                 runResult, endTimestamp - startTimestamp);
+    }
+
+    private void logRestarted() {
+        LOGGER.debug("{}: Restarting run of activity with identifier '{}' and path '{}' (local: {})",
+                getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
+    }
+
+    private void logAborted() {
+        LOGGER.debug("{}: Skipped run of an activity with identifier '{}' and path '{}' (local: {}) that was already aborted",
+                getClass().getSimpleName(), activity.getIdentifier(), activity.getPath(), activity.getLocalPath());
     }
 
     private void logComplete() {
@@ -428,7 +466,7 @@ public abstract class AbstractActivityRun<
     }
 
     /** Finished (with specified status), or interrupted. */
-    protected ActivityRunResult standardRunResult(@Nullable OperationResultStatus status) {
+    protected ActivityRunResult standardRunResult(@NotNull OperationResultStatus status) {
         if (canRun()) {
             return new ActivityRunResult(status, FINISHED);
         } else {
@@ -479,31 +517,35 @@ public abstract class AbstractActivityRun<
         activityState.getLiveProgress().increment(outcome, counters);
     }
 
-    public @NotNull ActivityStateDefinition<WS> getActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getActivityStateDefinition() {
         return activityStateDefinition;
     }
 
     @Override
-    public Map<String, Integer> incrementCounters(@NotNull CountersGroup counterGroup,
-            @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
+    public Map<String, Integer> incrementCounters(
+            @NotNull CountersGroup counterGroup,
+            @NotNull Collection<String> countersIdentifiers,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        synchronized (activityStateForThresholdsLock) {
-            if (activityStateForThresholds == null) {
-                activityStateForThresholds = determineActivityStateForThresholds(result);
-            }
-        }
-        return activityStateForThresholds.incrementCounters(counterGroup, countersIdentifiers, result);
+        return getActivityStateForThresholds(result)
+                .incrementCounters(counterGroup, countersIdentifiers, result);
     }
 
     public Map<String, ActivityPolicyStateType> updateActivityPolicyState(
             @NotNull Collection<ActivityPolicyStateType> states, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        return getActivityStateForThresholds(result)
+                .updatePolicies(states, result);
+    }
+
+    private @NotNull ActivityState getActivityStateForThresholds(OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
         synchronized (activityStateForThresholdsLock) {
             if (activityStateForThresholds == null) {
                 activityStateForThresholds = determineActivityStateForThresholds(result);
             }
+            return activityStateForThresholds;
         }
-        return activityStateForThresholds.updatePolicies(states, result);
     }
 
     protected @NotNull ActivityState determineActivityStateForThresholds(@NotNull OperationResult result)
@@ -514,6 +556,11 @@ public abstract class AbstractActivityRun<
     @Override
     public @NotNull ExecutionModeType getActivityExecutionMode() {
         return activity.getDefinition().getExecutionMode();
+    }
+
+    public ExecutionSupport.CountersGroup getCountersGroup() {
+        return getActivityExecutionMode() == ExecutionModeType.FULL ?
+                FULL_EXECUTION_MODE_POLICY_RULES : PREVIEW_MODE_POLICY_RULES;
     }
 
     // TODO sort these methods out
@@ -657,8 +704,8 @@ public abstract class AbstractActivityRun<
      *
      * TODO this is something like a placeholder for now -- probably it will NOT work in the current implementation!
      */
-    @SuppressWarnings({ "WeakerAccess", "unused" })
-    protected void onActivityRealizationComplete(OperationResult result) throws ActivityRunException {
+    @SuppressWarnings("WeakerAccess")
+    protected void onActivityRealizationCompleteOrAborted(OperationResult result) throws ActivityRunException {
         simulationSupport.closeSimulationResultIfOpenedHere(result);
     }
 

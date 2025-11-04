@@ -58,7 +58,7 @@ public class LiveSyncActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.perpetual(LiveSyncWorkStateType.COMPLEX_TYPE);
     }
 

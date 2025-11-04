@@ -6,12 +6,12 @@
 
 package com.evolveum.midpoint.model.impl.controller;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.*;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.embedded;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
@@ -23,12 +23,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
-import com.evolveum.midpoint.model.impl.security.ModelSecurityPolicyFinder;
-import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
-import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.security.enforcer.api.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -66,13 +60,16 @@ import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableReferenceDefinition;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.model.impl.security.GuiProfileCompiler;
+import com.evolveum.midpoint.model.impl.security.ModelSecurityPolicyFinder;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -88,20 +85,26 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
+import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.enforcer.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.*;
@@ -1024,7 +1027,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public  <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy,
+    public <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy,
             Task task, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
@@ -1064,8 +1067,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             try {
                 valuePolicy = getValuePolicy(object, task, result);
             } catch (ObjectNotFoundException | SchemaException | CommunicationException
-                     | ConfigurationException | SecurityViolationException
-                     | ExpressionEvaluationException e) {
+                    | ConfigurationException | SecurityViolationException
+                    | ExpressionEvaluationException e) {
                 LOGGER.error("Failed to get value policy for generating value. ", e);
                 result.recordException("Error while getting value policy. Reason: " + e.getMessage(), e);
                 throw e;
@@ -1080,7 +1083,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     try {
                         generateValue(object, valuePolicy, policyItemDefinition, task, generateValueResult);
                     } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException
-                             | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                            | CommunicationException | ConfigurationException | SecurityViolationException e) {
                         LOGGER.error("Failed to generate value for {} ", policyItemDefinition, e);
                         generateValueResult.recordException(
                                 "Failed to generate value for " + policyItemDefinition + ". Reason: " + e.getMessage(), e);
@@ -1139,8 +1142,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
                 }
             } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException
-                     | CommunicationException | ConfigurationException | ObjectAlreadyExistsException
-                     | PolicyViolationException | SecurityViolationException e) {
+                    | CommunicationException | ConfigurationException | ObjectAlreadyExistsException
+                    | PolicyViolationException | SecurityViolationException e) {
                 LOGGER.error("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
                 result.recordException("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
                 throw e;
@@ -1888,7 +1891,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         try {
             var principalRef = SecurityUtil.getPrincipalRequired().toObjectReference();
             TaskType newTask = modelService.getObject(
-                    TaskType.class, templateTaskOid, createCollection(createExecutionPhase()), opTask, result)
+                            TaskType.class, templateTaskOid, createCollection(createExecutionPhase()), opTask, result)
                     .asObjectable();
             newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
             newTask.setOid(null);
@@ -2436,7 +2439,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public boolean isSubarchetypeOrArchetype(String archetypeOid, String parentArchetype, OperationResult result){
+    public boolean isSubarchetypeOrArchetype(String archetypeOid, String parentArchetype, OperationResult result) {
         try {
             return archetypeManager.isSubArchetypeOrArchetype(archetypeOid, parentArchetype, result);
         } catch (ObjectNotFoundException | SchemaException e) {
@@ -2449,5 +2452,151 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public @NotNull List<ArchetypeType> determineArchetypes(@Nullable ObjectType object, OperationResult result)
             throws SchemaException {
         return archetypeManager.determineArchetypes(object, result);
+    }
+
+    @Override
+    public boolean updateAllActivityPoliciesEnabledStatus(
+            @NotNull PrismObject<TaskType> object, boolean enabled, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+
+        Holder<S_ItemEntry> deltaBuilderHolder = new Holder<>(PrismContext.get().deltaFor(TaskType.class));
+
+        TaskType t = object.asObjectable();
+
+        ActivityDefinitionUtil.visitActivityDefinitions(t, (def, activityPath) -> {
+            ActivityPoliciesType policies = def.getPolicies();
+            if (policies == null) {
+                return true;
+            }
+
+            for (ActivityPolicyType policy : policies.getPolicy()) {
+                ItemPath path = policy.asPrismContainerValue().getPath();
+                ItemPath enabledPath = path.append(ActivityPolicyType.F_ENABLED);
+
+                S_ItemEntry sie = deltaBuilderHolder.getValue();
+
+                if (enabled) {
+                    sie = sie.item(enabledPath).replace();
+                } else {
+                    sie = sie.item(enabledPath).replace(false);
+                }
+
+                deltaBuilderHolder.setValue(sie);
+            }
+
+            return true;
+        });
+
+        ObjectDelta<TaskType> delta = deltaBuilderHolder.getValue().asObjectDelta(t.getOid());
+        if (delta.isEmpty()) {
+            return false;
+        }
+
+        modelService.executeChanges(List.of(delta), ModelExecuteOptions.create(), task, result);
+
+        return true;
+    }
+
+    @Override
+    public boolean clearAllActivityPolicyStates(
+            @NotNull PrismObject<TaskType> object, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+
+        TaskType taskObject = object.asObjectable();
+
+        // all policy identifiers needed when searching to counters which should be deleted
+        Collection<String> identifiers =
+                ActivityPolicyUtils.listPolicyRuleIdentifiers(taskObject.getActivity(), ActivityPath.empty())
+                        .stream()
+                        .map(i -> i.toString())
+                        .collect(Collectors.toSet());
+
+        Task taskToClean = taskManager.getTaskPlain(object.getOid(), result);
+        clearAllActivityPolicyStates(taskToClean, identifiers, task, result);
+
+        List<? extends Task> tasks = taskToClean.listSubtasksDeeply(true, result);
+        if (tasks != null) {
+            for (Task t : tasks) {
+                clearAllActivityPolicyStates(t, identifiers, task, result);
+            }
+        }
+
+        return false;
+    }
+
+    private void clearAllActivityPolicyStates(
+            @NotNull Task taskToClean,
+            @NotNull Collection<String> policyIdentifiers,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+
+        TaskActivityStateType taskActivityState = taskToClean.getActivitiesStateOrClone();
+        if (taskActivityState == null) {
+            return;
+        }
+
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class).asObjectDelta(taskToClean.getOid());
+
+        clearAllActivityPolicyState(taskActivityState.getActivity(), delta, policyIdentifiers);
+
+        if (delta.isEmpty()) {
+            return;
+        }
+
+        modelService.executeChanges(List.of(delta), ModelExecuteOptions.create(), task, result);
+    }
+
+    private void clearAllActivityPolicyState(
+            ActivityStateType state,
+            @NotNull ObjectDelta<TaskType> delta,
+            @NotNull Collection<String> policyIdentifiers) {
+
+        if (state == null) {
+            return;
+        }
+
+        // cleanup activity policy states
+        ActivityPoliciesStateType policies = state.getPolicies();
+        if (policies != null) {
+            for (ActivityPolicyStateType policyState : policies.getPolicy()) {
+                // noinspection unchecked
+                PrismContainerValue<ActivityPolicyStateType> value = policyState.asPrismContainerValue();
+                // noinspection unchecked
+                delta.addModificationDeleteContainer(value.getPath(), value.clone());
+            }
+        }
+
+        // cleanup activity policy counters
+        ActivityCounterGroupsType counterGroups = state.getCounters();
+        clearActivityGroupCounters(counterGroups.getFullExecutionModePolicyRules(), delta, policyIdentifiers);
+        clearActivityGroupCounters(counterGroups.getPreviewModePolicyRules(), delta, policyIdentifiers);
+
+        // recursive cleanup of child activity states
+        for (ActivityStateType childActivityState : state.getActivity()) {
+            clearAllActivityPolicyState(childActivityState, delta, policyIdentifiers);
+        }
+    }
+
+    private void clearActivityGroupCounters(
+            ActivityCounterGroupType counterGroup,
+            @NotNull ObjectDelta<TaskType> delta,
+            @NotNull Collection<String> policyIdentifiers) {
+
+        if (counterGroup == null) {
+            return;
+        }
+
+        for (ActivityCounterType counter : counterGroup.getCounter()) {
+            if (policyIdentifiers.contains(counter.getIdentifier())) {
+                // noinspection unchecked
+                PrismContainerValue<ActivityCounterType> value = counter.asPrismContainerValue();
+                // noinspection unchecked
+                delta.addModificationDeleteContainer(value.getPath(), value.clone());
+            }
+        }
     }
 }

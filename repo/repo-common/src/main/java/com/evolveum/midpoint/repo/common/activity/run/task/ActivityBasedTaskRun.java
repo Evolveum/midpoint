@@ -6,43 +6,65 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.task;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
-import com.evolveum.midpoint.repo.common.activity.run.state.LegacyProgressUpdater;
-import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.ABORTED;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.FINISHED;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
+import java.util.Objects;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RestartActivityPolicyActionType;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.Activity;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.ActivityTree;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyProcessorHelper;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.state.LegacyProgressUpdater;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskException;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
 
 /**
- * A run of an activity-based task.
+ * This class groups everything related to an execution (a run) of a task related somehow to an activity.
+ *
+ * It may be a task that executes the activity locally, a task that orchestrates execution of the activity on other nodes,
+ * a task that just delegates to another task, etc.
  */
 public class ActivityBasedTaskRun implements TaskRun {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityBasedTaskRun.class);
 
+    private static final int DEFAULT_RESTART_DELAY = 5000;
+
+    /** After how many attempts should we stop increasing the delay exponentially? */
+    private static final int EXPONENTIAL_BACKOFF_LIMIT = 10;
+
     @NotNull private final RunningTask runningTask;
     @NotNull private final ActivityBasedTaskHandler activityBasedTaskHandler;
 
     private ActivityTree activityTree;
+
+    /** Path of {@link #localRootActivity}. */
     private ActivityPath localRootPath;
+
+    /**
+     * The activity that is the local root for this task. I.e. what part of the activity tree is executed within this task.
+     *
+     * @see Activity#localRoot
+     */
     private Activity<?, ?> localRootActivity;
 
     ActivityBasedTaskRun(@NotNull RunningTask runningTask, @NotNull ActivityBasedTaskHandler activityBasedTaskHandler) {
@@ -61,7 +83,7 @@ public class ActivityBasedTaskRun implements TaskRun {
             localRootActivity = activityTree.getActivity(localRootPath);
             localRootActivity.setLocalRoot();
         } catch (CommonException e) {
-            throw new TaskException("Couldn't initialize activity tree", FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new TaskException("Couldn't initialize activity tree", FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR, e);
         }
 
         if (localRootActivity.isSkipped()) {
@@ -78,22 +100,109 @@ public class ActivityBasedTaskRun implements TaskRun {
             }
 
             AbstractActivityRun<?, ?, ?> localRootRun = localRootActivity.createRun(this, result);
+
+            ActivityPolicyProcessorHelper.setCurrentActivityRun(localRootRun);
+
             ActivityRunResult runResult = localRootRun.run(result);
 
             if (isRootRun()) {
                 updateStateOnRootRunEnd(runResult, result);
             }
 
-            logEnd(localRootRun, runResult);
-            return runResult.createTaskRunResult();
+            var taskRunResult = createTaskRunResult(localRootRun, runResult);
+
+            logEnd(localRootRun, runResult, taskRunResult);
+
+            return taskRunResult;
         } catch (ActivityRunException e) {
             // These should be only really unexpected ones. So we won't bother with e.g. updating the tree state.
+            // Nor we handle activity aborts here.
             logException(e);
-            throw e.toTaskException();
+            var taskRunResultStatus = Objects.requireNonNullElse(
+                    e.getRunResultStatus().toTaskRunResultStatus(), TaskRunResultStatus.PERMANENT_ERROR);
+            throw new TaskException(e.getMessage(), e.getOpResultStatus(), taskRunResultStatus, e.getCause());
         } catch (Throwable t) {
             logException(t);
             throw t;
+        } finally {
+            ActivityPolicyProcessorHelper.clearCurrentActivityRun();
         }
+    }
+
+    private TaskRunResult createTaskRunResult(AbstractActivityRun<?, ?, ?> localRootRun, ActivityRunResult activityRunResult) {
+        var throwable = activityRunResult.getThrowable();
+        var message = activityRunResult.getMessage();
+
+        TaskRunResult runResult = new TaskRunResult();
+
+        runResult.setOperationResultStatus(activityRunResult.getOperationResultStatus());
+
+        runResult.setThrowable(throwable);
+
+        if (message != null) {
+            runResult.setMessage(message);
+        } else if (throwable != null) {
+            runResult.setMessage(throwable.getMessage());
+        }
+
+        var taskRunResultStatus = determineTaskRunResultStatus(localRootRun, activityRunResult);
+        runResult.setRunResultStatus(taskRunResultStatus);
+        if (taskRunResultStatus == TaskRunResultStatus.RESTART_REQUESTED) {
+            runResult.setRestartAfter(determineRestartAfter(localRootRun, activityRunResult));
+        }
+        // progress is intentionally kept null (meaning "do not update it in the task")
+        return runResult;
+    }
+
+    private TaskRunResultStatus determineTaskRunResultStatus(
+            AbstractActivityRun<?, ?, ?> localRootRun, ActivityRunResult activityRunResult) {
+        var activityRunResultStatus = Objects.requireNonNullElse(activityRunResult.getRunResultStatus(), FINISHED);
+        var taskRunResultStatus = activityRunResultStatus.toTaskRunResultStatus();
+        if (taskRunResultStatus != null) {
+            return taskRunResultStatus;
+        }
+
+        assert activityRunResultStatus == ABORTED;
+        var activityState = localRootRun.getActivityState();
+        if (activityState.isBeingRestartedOrSkipped() && !activityState.isWorker()) {
+            // We are at the place where restart/skip is being processed: decide accordingly
+            if (activityState.isBeingRestarted()) {
+                return TaskRunResultStatus.RESTART_REQUESTED;
+            } else {
+                assert activityState.isBeingSkipped();
+                return TaskRunResultStatus.FINISHED;
+            }
+        } else {
+            // We are not at the place where restart/skip is being processed, so let's just close this task
+            return TaskRunResultStatus.FINISHED;
+        }
+    }
+
+    private long determineRestartAfter(AbstractActivityRun<?, ?, ?> localRootRun, ActivityRunResult activityRunResult) {
+        RestartActivityPolicyActionType action;
+        int executionAttempt;
+        if (activityRunResult.isRestartRequested()) {
+            var restartRequestingInformation = activityRunResult.getRestartRequestingInformationRequired();
+            action = restartRequestingInformation.restartAction();
+            executionAttempt = restartRequestingInformation.executionAttempt();
+        } else {
+            var activityState = localRootRun.getActivityState();
+            assert activityState.isBeingRestarted();
+            action = activityState.getRestartPolicyActionRequired();
+            executionAttempt = activityState.getExecutionAttempt();
+        }
+
+        long baseDelay = Objects.requireNonNullElse(action.getDelay(), DEFAULT_RESTART_DELAY);
+        long computedDelay;
+        if (baseDelay <= 0) {
+            computedDelay = 0;
+            LOGGER.trace("No delay for activity restart as per policy action configuration");
+        } else {
+            computedDelay = baseDelay * (1L << Math.min(executionAttempt - 1, EXPONENTIAL_BACKOFF_LIMIT));
+            LOGGER.trace("Base delay = {} ms, execution attempt = {}, computed delay = {} ms",
+                    baseDelay, executionAttempt, computedDelay);
+        }
+        return computedDelay;
     }
 
     private void setupTaskArchetypeIfNeeded(OperationResult result) throws ActivityRunException {
@@ -108,7 +217,8 @@ public class ActivityBasedTaskRun implements TaskRun {
                 task.flushPendingModifications(result);
             }
         } catch (CommonException e) {
-            throw new ActivityRunException("Couldn't setup the task archetype", FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException(
+                    "Couldn't setup the task archetype", FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR, e);
         }
     }
 
@@ -123,7 +233,7 @@ public class ActivityBasedTaskRun implements TaskRun {
 
             // this will not flush the task run identifier, it will be flushed
             // later together with the realization state
-            activityTree.createTaskRunIdentifier(result);
+            activityTree.createTaskRunIdentifier();
             activityTree.recordTaskRunHistoryStart();
         }
         activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PROGRESS, result);
@@ -162,10 +272,12 @@ public class ActivityBasedTaskRun implements TaskRun {
     }
 
     private void logStart() {
-        LOGGER.trace("Starting activity-based task run (is root run = {}):\n"
-                + " - local root path: '{}'\n"
-                + " - local root activity: {}\n"
-                + " - activity tree:\n{}",
+        LOGGER.trace("""
+                        Starting activity-based task run (is root run = {}):
+                         - local root path: '{}'
+                         - local root activity: {}
+                         - activity tree:
+                        {}""",
                 isRootRun(), localRootPath, localRootActivity,
                 activityTree.debugDumpLazily(2));
         if (isRootRun()) {
@@ -173,9 +285,16 @@ public class ActivityBasedTaskRun implements TaskRun {
         }
     }
 
-    private void logEnd(AbstractActivityRun<?, ?, ?> localRootRun, ActivityRunResult runResult) {
-        LOGGER.trace("Local root activity run object after task run ({})\n{}",
-                runResult.shortDumpLazily(), localRootRun.debugDumpLazily());
+    private void logEnd(AbstractActivityRun<?, ?, ?> localRootRun, ActivityRunResult runResult, TaskRunResult taskRunResult) {
+        LOGGER.trace("""
+                        Local root activity run ends.
+                         - activity run result: {}
+                         - task run result: {}
+                         - AbstractActivityRun object:
+                        {}""",
+                runResult.shortDumpLazily(),
+                taskRunResult,
+                localRootRun.debugDumpLazily(3));
     }
 
     private void logException(Throwable t) {
@@ -207,4 +326,6 @@ public class ActivityBasedTaskRun implements TaskRun {
     public Long heartbeat() {
         return LegacyProgressUpdater.compute(this);
     }
+
+
 }

@@ -6,24 +6,22 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityTreePurger;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityTreePurger;
 import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
-
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -106,9 +104,9 @@ public class ActivityTree implements DebugDumpable {
      * This is called at the beginning of a task run, this doesn't flush pending
      * modifications to the database.
      */
-    public void createTaskRunIdentifier(OperationResult result) throws ActivityRunException {
+    public void createTaskRunIdentifier() throws ActivityRunException {
         String taskRunIdentifier = UUID.randomUUID().toString();
-        treeStateOverview.createTaskRunIdentifier(taskRunIdentifier, result);
+        treeStateOverview.setTaskRunIdentifier(taskRunIdentifier);
     }
 
     public void recordTaskRunHistoryStart() throws ActivityRunException  {

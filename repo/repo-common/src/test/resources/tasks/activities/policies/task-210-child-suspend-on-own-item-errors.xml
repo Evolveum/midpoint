@@ -1,0 +1,91 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
+        oid="7c377ab5-22dc-4c4a-9ee4-6b58224bfffe">
+    <name>task-child-suspend-on-own-item-errors</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <identifier>first</identifier>
+                <work>
+                    <extension>
+                        <!-- This activity should process 10 objects with just one failure -->
+                        <ext:searchIterativeMock>
+                            <ext:objectSet>
+                                <type>ServiceType</type>
+                                <query>
+                                    <q:filter>
+                                        <q:text>name startsWith "test-bad-00"</q:text>
+                                    </q:filter>
+                                </query>
+                            </ext:objectSet>
+                            <ext:failOn>
+                                <q:text>name contains "bad-000"</q:text>
+                            </ext:failOn>
+                            <ext:delay>100</ext:delay>
+                        </ext:searchIterativeMock>
+                    </extension>
+                </work>
+            </activity>
+            <activity>
+                <order>2</order>
+                <identifier>second</identifier>
+                <work>
+                    <extension>
+                        <ext:searchIterativeMock>
+                            <ext:objectSet>
+                                <type>ServiceType</type>
+                                <query>
+                                    <q:filter>
+                                        <q:text>name startsWith "test-bad"</q:text>
+                                    </q:filter>
+                                </query>
+                            </ext:objectSet>
+                            <ext:failOn>
+                                <q:text>name contains "bad"</q:text>
+                            </ext:failOn>
+                            <ext:delay>100</ext:delay>
+                        </ext:searchIterativeMock>
+                    </extension>
+                </work>
+                <policies>
+                    <policy>
+                        <name>Stop after 5 errors</name>
+                        <policyConstraints>
+                            <itemState>
+                                <status>fatal_error</status>
+                            </itemState>
+                        </policyConstraints>
+                        <policyThreshold>
+                            <lowWaterMark>
+                                <count>5</count>
+                            </lowWaterMark>
+                        </policyThreshold>
+                        <policyActions>
+                            <suspendTask/>
+                        </policyActions>
+                    </policy>
+                </policies>
+            </activity>
+            <activity>
+                <order>3</order>
+                <identifier>third</identifier>
+                <work>
+                    <noOp>
+                        <steps>3</steps>
+                        <delay>100</delay>
+                    </noOp>
+                </work>
+            </activity>
+        </composition>
+    </activity>
+</task>

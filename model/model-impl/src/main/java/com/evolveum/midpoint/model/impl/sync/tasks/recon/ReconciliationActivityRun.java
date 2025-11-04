@@ -46,18 +46,18 @@ public final class ReconciliationActivityRun
     @Override
     protected @NotNull ActivityRunResult runLocally(OperationResult result) throws ActivityRunException, CommonException {
         ActivityRunResult activityRunResult = super.runLocally(result);
-        sendReconciliationResult(activityRunResult);
+        sendReconciliationResult();
         return activityRunResult;
     }
 
     /**
      * Note that handling of the reconciliation result works only if the reconciliation activity is executed locally.
      */
-    private void sendReconciliationResult(@NotNull ActivityRunResult runResult) {
+    private void sendReconciliationResult() {
         ReconciliationResultListener listener = getActivityHandler().getReconciliationResultListener();
         if (listener != null) {
             listener.process(
-                    ReconciliationResult.fromActivityRun(this, runResult));
+                    ReconciliationResult.fromActivityRun(this));
         }
     }
 

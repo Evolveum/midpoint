@@ -5,27 +5,26 @@
   -->
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="54464a8e-7cd3-47e3-9bf6-0d07692a893b">
-    <name>Simple noop</name>
+        oid="18bf2508-4582-4fab-99d4-964fd6d23858">
+    <name>task-simple-suspend-on-execution-time</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-    <executionState>runnable</executionState>
+    <executionState>closed</executionState>
     <activity>
         <work>
             <noOp>
-                <steps>23</steps>
-                <delay>1000</delay>
+                <steps>100</steps>
+                <delay>100</delay>
             </noOp>
         </work>
         <policies>
             <policy>
-                <name>Max. 6s execution</name>
+                <name>Execution time at most 2 seconds</name>
                 <policyConstraints>
                     <executionTime>
-                        <exceeds>PT6S</exceeds>
+                        <exceeds>PT2S</exceeds>
                     </executionTime>
                 </policyConstraints>
                 <policyActions>
-                    <notification/>
                     <suspendTask/>
                 </policyActions>
             </policy>

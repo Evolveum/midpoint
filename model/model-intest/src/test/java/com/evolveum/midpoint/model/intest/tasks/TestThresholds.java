@@ -22,7 +22,6 @@ import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -49,9 +48,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
  * Tests the thresholds functionality.
  *
  * The purpose of this class is _not_ to test thresholds in any specific activity handler.
- * For simplicity we concentrate on the import and reconciliation activity.
+ * For simplicity, we concentrate on the import and reconciliation activity.
  *
- * We need to test basic functionality of thresholds in single threaded, multi threaded, multi node setup;
+ * We need to test basic functionality of thresholds in single threaded, multithreaded, multi node setup;
  * with different kinds of policy rules (add, modify, delete).
  *
  * Threshold manipulation in specific activities (e.g. live sync) will be checked in tests devoted to these activities.
@@ -610,54 +609,6 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertSuccess();
     }
 
-    @Test
-    public void test520ReconcileWithExecutionTime() throws Exception {
-        given();
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        TestObject<TaskType> reconTask = getReconciliationWithExecutionTimeTask();
-
-        when();
-
-        deleteIfPresent(reconTask, result);
-        addObject(reconTask, task, result,
-                aggregateCustomizer(
-                        executionTimeCustomizer("PT2S")));
-        waitForTaskSuspend(reconTask.oid, result, getTimeout(), 500);
-
-        then();
-
-        assertTest520TaskAfter(reconTask);
-    }
-
-    protected Consumer<PrismObject<TaskType>> executionTimeCustomizer(String exceedsExecutionTimeThreshold) {
-        return object -> {
-            if (exceedsExecutionTimeThreshold == null) {
-                return;
-            }
-
-            object.asObjectable().getActivity()
-                    .beginPolicies()
-                        .beginPolicy()
-                            .name("Max. execution time is " + exceedsExecutionTimeThreshold)
-                            .beginPolicyConstraints()
-                                .beginExecutionTime()
-                                    .exceeds(XmlTypeConverter.createDuration(exceedsExecutionTimeThreshold))
-                                .<ActivityPolicyConstraintsType>end()
-                            .<ActivityPolicyType>end()
-                            .beginPolicyActions()
-                                .beginSuspendTask()
-                                    // no parameters
-                                .<ActivityPolicyActionsType>end()
-                            .<ActivityPolicyType>end()
-                        .<ActivityPoliciesType>end()
-                    .<ActivityDefinitionType>end();
-        };
-    }
-
-    abstract void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
-
     abstract void assertTest420TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     abstract TestObject<TaskType> getSimulateTask();
@@ -671,8 +622,6 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     abstract TestObject<TaskType> getReconciliationSimulateExecuteTask();
 
     abstract TestObject<TaskType> getReconciliationExecuteTask();
-
-    abstract TestObject<TaskType> getReconciliationWithExecutionTimeTask();
 
     abstract long getTimeout();
 

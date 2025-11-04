@@ -87,7 +87,7 @@ public class ClassicReportExportActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(ReportExportWorkStateType.COMPLEX_TYPE);
     }
 

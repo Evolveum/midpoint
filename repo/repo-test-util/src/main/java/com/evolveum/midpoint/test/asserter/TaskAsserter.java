@@ -6,8 +6,26 @@
 
 package com.evolveum.midpoint.test.asserter;
 
+import static java.util.Objects.requireNonNullElseGet;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.FULL_STATE_ONLY;
+import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
+import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
@@ -16,32 +34,15 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
-
-import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.FULL_STATE_ONLY;
-import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
-import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
-
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-
-import static java.util.Objects.requireNonNullElseGet;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.assertEquals;
 
 @SuppressWarnings("UnusedReturnValue")
 public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
@@ -56,7 +57,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         super(object, details);
     }
 
-    private TaskAsserter(PrismObject<TaskType> object, RA returnAsserter, String details) {
+    public TaskAsserter(PrismObject<TaskType> object, RA returnAsserter, String details) {
         super(object, returnAsserter, details);
     }
 
@@ -421,19 +422,32 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<TaskAsserter<RA>> subtask(String name) {
+        return subtask(name, true);
+    }
+
+    public TaskAsserter<TaskAsserter<RA>> subtask(String name, boolean exact) {
         List<String> otherNames = new ArrayList<>();
 
         List<ObjectReferenceType> subtasks = getObjectable().getSubtaskRef();
         for (int i = 0; i < subtasks.size(); i++) {
             TaskType subtask = subtaskFromRef(subtasks, i);
             String subtaskName = subtask.getName().getOrig();
-            if (subtaskName.equals(name)) {
+            if (matches(subtaskName, name, exact)) {
                 return subtask(subtasks, i);
             } else {
                 otherNames.add(subtaskName);
             }
         }
-        throw new AssertionError("No subtask with the name '" + name + "' found. Subtasks: " + otherNames);
+        throw new AssertionError("No subtask with the name %s'%s' found. Subtasks: %s".formatted(
+                exact ? "" : "containing text ", name, otherNames));
+    }
+
+    private boolean matches(String actualName, String expectedName, boolean exact) {
+        if (exact) {
+            return actualName.equals(expectedName);
+        } else {
+            return actualName.contains(expectedName);
+        }
     }
 
     private @NotNull TaskAsserter<TaskAsserter<RA>> subtask(List<ObjectReferenceType> subtasks, int index) {

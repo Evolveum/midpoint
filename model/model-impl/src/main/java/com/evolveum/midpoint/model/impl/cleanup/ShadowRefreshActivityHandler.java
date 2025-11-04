@@ -64,8 +64,8 @@ public class ShadowRefreshActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
-        return new ActivityStateDefinition<>(
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
+        return new ActivityStateDefinition(
                 ScanWorkStateType.COMPLEX_TYPE,
                 ActivityStatePersistenceType.PERPETUAL_EXCEPT_STATISTICS
         );

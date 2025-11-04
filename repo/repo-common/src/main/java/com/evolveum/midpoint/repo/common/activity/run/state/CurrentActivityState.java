@@ -11,25 +11,30 @@ import static com.evolveum.midpoint.repo.common.activity.run.reports.BucketsRepo
 import static com.evolveum.midpoint.repo.common.activity.run.reports.BucketsReport.Kind.EXECUTION;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.COMPLETE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.ABORTED;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.reports.BucketsReport;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ConnIdOperationsReport;
@@ -47,8 +52,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 /**
  * Activity state for the current activity run. Provides the full functionality, including creation of the work state
  * and maintenance of live progress and statistics.
@@ -65,7 +68,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
 
     @NotNull private final AbstractActivityRun<?, ?, WS> activityRun;
 
-    @NotNull private final ActivityStateDefinition<WS> activityStateDefinition;
+    @NotNull private final ActivityStateDefinition activityStateDefinition;
 
     @NotNull private final ComplexTypeDefinition workStateComplexTypeDefinition;
 
@@ -88,10 +91,9 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     private boolean initialized;
 
     public CurrentActivityState(@NotNull AbstractActivityRun<?, ?, WS> activityRun) {
-        super(activityRun.getBeans());
         this.activityRun = activityRun;
         this.activityStateDefinition = activityRun.getActivityStateDefinition();
-        this.workStateComplexTypeDefinition = determineWorkStateDefinition(activityStateDefinition.getWorkStateTypeName());
+        this.workStateComplexTypeDefinition = determineWorkStateDefinition(activityStateDefinition.workStateTypeName());
         this.liveProgress = new ActivityProgress(this);
         this.liveStatistics = new ActivityStatistics(this);
 
@@ -119,18 +121,87 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         }
         try {
             stateItemPath = findOrCreateActivityState(result);
-            updatePersistenceType(result);
-            if (activityRun.shouldCreateWorkStateOnInitialization()) {
-                createWorkStateIfNeeded(result);
-            }
-            liveProgress.initialize(getStoredProgress());
-            liveStatistics.initialize();
+            updatePersistenceAndExecutionAttempt(result);
+            createWorkStateIfNeeded(result);
+            initializeLiveObjects(false);
             initialized = true;
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
             // We consider all such exceptions permanent. There's basically nothing that could resolve "by itself".
             throw new ActivityRunException("Couldn't initialize activity state for " + getActivity() + ": " + e.getMessage(),
-                    FATAL_ERROR, PERMANENT_ERROR, e);
+                    FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR, e);
         }
+    }
+
+    /**
+     * These objects store extra state ("live") in memory for the duration of the activity run.
+     * So they must be reinitialized e.g. during activity restart.
+     *
+     * @param reset true if we expect the object is already initialized and we want to reset its state
+     */
+    private void initializeLiveObjects(boolean reset) {
+        liveProgress.initialize(getStoredProgress(), reset);
+        liveStatistics.initialize(reset);
+    }
+
+    // todo make it cleaner, move to custom operation class together with preparation/store
+    //  of new execution attempt (history) for state+overview/tree
+    public void initializeAfterRestart(@NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+        getTask().modify(getInitializationDeltas());
+        getTask().flushPendingModifications(result);
+
+        createWorkStateIfNeeded(result);
+        initializeLiveObjects(true);
+    }
+
+    private @NotNull Collection<ItemDelta<?, ?>> getInitializationDeltas() throws SchemaException {
+
+        // TODO see also ActivityTreePurger -- maybe unify the logic?
+
+        // keeping these:
+        //  - F_IDENTIFIER
+        //  - F_TASK_RUN_IDENTIFIER ???
+        //  - F_PERSISTENCE - it should be already correct
+        //  - F_EXECUTION_ATTEMPT - incremented below
+        //  - F_COUNTERS - depending on policy action below
+
+        List<ItemDelta<?, ?>> deltas = new ArrayList<>(
+                PrismContext.get().deltaFor(TaskType.class)
+                        .item(stateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_REALIZATION_STATE)).replace() // to remove ABORTED flag
+                        .item(stateItemPath.append(ActivityStateType.F_ABORTING_INFORMATION)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_REALIZATION_START_TIMESTAMP)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_REALIZATION_END_TIMESTAMP)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_RUN_START_TIMESTAMP)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_RUN_END_TIMESTAMP)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_POLICIES)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_SIMULATION)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_REPORTS)).replace()
+                        .item(stateItemPath.append(ActivityStateType.F_ACTIVITY)).replace() // children should go away
+                        .asItemDeltas());
+
+        // The casting should succeed, as it was checked before calling this method
+        var restartAction = (RestartActivityPolicyActionType) getAbortingInformation().getPolicyAction();
+        if (BooleanUtils.isNotFalse(restartAction.isRestartCounters())) {
+            deltas.add(PrismContext.get().deltaFor(TaskType.class)
+                    .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
+                    .asItemDelta());
+        }
+
+        // Note we're incrementing the attempt counter only when restarting activity.
+        // Suspending and then resuming the containing task doesn't mean its activities were restarted.
+        int newExecutionAttempt = getExecutionAttempt() + 1;
+        LOGGER.debug("Incrementing execution attempt to {} for activity '{}'", newExecutionAttempt, getActivityPath());
+        deltas.add(PrismContext.get().deltaFor(TaskType.class)
+                .item(stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT)).replace(newExecutionAttempt)
+                .asItemDelta());
+
+        return deltas;
     }
 
     /**
@@ -203,7 +274,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
                 .item(stateItemPath.append(ActivityStateType.F_ACTIVITY))
                 .add(new ActivityStateType()
                         .identifier(identifier)
-                        .persistence(activityStateDefinition.getPersistence()))
+                        .persistence(activityStateDefinition.persistence()))
                 .asItemDelta();
         task.modify(itemDelta);
         task.flushPendingModifications(result);
@@ -213,9 +284,11 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
 
     private void createWorkStateIfNeeded(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        ItemPath path = stateItemPath.append(ActivityStateType.F_WORK_STATE);
-        if (!getTask().doesItemExist(path)) {
-            createWorkState(path, result);
+        if (activityRun.shouldCreateWorkStateOnInitialization()) {
+            ItemPath path = stateItemPath.append(ActivityStateType.F_WORK_STATE);
+            if (!getTask().doesItemExist(path)) {
+                createWorkState(path, result);
+            }
         }
     }
 
@@ -236,17 +309,30 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         LOGGER.debug("Work state created in {} in {}", stateItemPath, task);
     }
 
-    private void updatePersistenceType(OperationResult result) throws ActivityRunException {
+    private void updatePersistenceAndExecutionAttempt(OperationResult result) throws ActivityRunException {
+        boolean flush = false;
+
         ActivityStatePersistenceType storedValue =
                 getPropertyRealValue(ActivityStateType.F_PERSISTENCE, ActivityStatePersistenceType.class);
-        ActivityStatePersistenceType requiredValue = activityStateDefinition.getPersistence();
+        ActivityStatePersistenceType requiredValue = activityStateDefinition.persistence();
         if (requiredValue != storedValue) {
             setItemRealValues(ActivityStateType.F_PERSISTENCE, requiredValue);
+            flush = true;
+        }
+
+        // This code could be removed, as the default value of executionAttempt is 1. Unless we want it to be indexed by DB,
+        // or unless we want to be explicit about it.
+        if (getPropertyRealValue(ActivityStateType.F_EXECUTION_ATTEMPT, Integer.class) == null) {
+            setItemRealValues(ActivityStateType.F_EXECUTION_ATTEMPT, 1);
+            flush = true;
+        }
+
+        if (flush) {
             flushPendingTaskModificationsChecked(result);
         }
     }
 
-    /** Closes the activity state. Currently this means closing the reports. */
+    /** Closes the activity state. Currently, this means closing the reports. */
     public void close() {
         bucketsReport.close();
         itemsReport.close();
@@ -273,6 +359,16 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     public void recordRealizationStart(XMLGregorianCalendar startTimestamp) throws ActivityRunException {
         setRealizationStartTimestamp(startTimestamp);
         setRealizationEndTimestamp(null);
+    }
+
+    public void markAborted(
+            OperationResultStatus resultStatus,
+            @NotNull ActivityAbortingInformationType abortingInformation,
+            Long endTimestamp) throws ActivityRunException {
+        setRealizationState(ABORTED);
+        setAbortingInformation(abortingInformation);
+        setRealizationEndTimestamp(endTimestamp);
+        setResultStatus(resultStatus);
     }
 
     public void markComplete(OperationResultStatus resultStatus, Long endTimestamp) throws ActivityRunException {

@@ -279,7 +279,7 @@ public class ActivityPerformanceInformation implements DebugDumpable, Serializab
             List<ActivityRunRecordType> allExecutions = statistics.stream()
                     .flatMap(s -> s.getRun().stream())
                     .collect(Collectors.toList());
-            WallClockTimeComputer wallClockTimeComputer = new WallClockTimeComputer(allExecutions);
+            WallClockTimeComputer wallClockTimeComputer = WallClockTimeComputer.create(allExecutions);
             return new WallClockInfo(wallClockTimeComputer.getSummaryTime(), wallClockTimeComputer.getEarliestStartTime());
         }
     }

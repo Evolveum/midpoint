@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.common.activity.run.state.sync;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.run.state.Initializable;
 import com.evolveum.midpoint.schema.statistics.ActivitySynchronizationStatisticsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
@@ -22,11 +21,16 @@ public class ActivitySynchronizationStatistics extends Initializable {
     @NotNull private final ActivitySynchronizationStatisticsType value;
 
     public ActivitySynchronizationStatistics() {
-        value = new ActivitySynchronizationStatisticsType(PrismContext.get());
+        value = new ActivitySynchronizationStatisticsType();
     }
 
-    public synchronized void initialize(ActivitySynchronizationStatisticsType initialValue) {
-        doInitialize(() -> add(initialValue));
+    public synchronized void initialize(ActivitySynchronizationStatisticsType initialValue, boolean reset) {
+        doInitialize(
+                reset,
+                () -> {
+                    clear(value);
+                    add(initialValue);
+                });
     }
 
     public synchronized void add(ActivitySynchronizationStatisticsType increment) {

@@ -29,7 +29,7 @@ public class WallClockTimeComputer {
     private final Set<Interval> nonOverlappingIntervals;
 
     @SafeVarargs
-    WallClockTimeComputer(List<ActivityRunRecordType>... lists) {
+    private WallClockTimeComputer(List<ActivityRunRecordType>... lists) {
         intervals = Arrays.stream(lists)
                 .flatMap(Collection::stream)
                 .map(Interval::create)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Evolveum and contributors
+ * Copyright (c) 2010-2025 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -11,69 +11,56 @@ import static com.evolveum.midpoint.util.DebugUtil.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
 public class EvaluatedActivityPolicyRule implements DebugDumpable {
 
-    private final @NotNull ActivityPolicyType policy;
+    @NotNull private final ActivityPolicyRule policyRule;
 
-    private final @NotNull ActivityPath path;
+    @NotNull private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
-    private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
-
-    /**
-     * Whether the rule was enforced (i.e. the action was taken).
-     */
-    private boolean enforced;
-
-    private ActivityPolicyStateType currentState;
-
-    public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyType policy, @NotNull ActivityPath path) {
-        this.policy = policy;
-        this.path = path;
+    public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyRule policyRule) {
+        this.policyRule = policyRule;
     }
 
-    public String getRuleId() {
-        return ActivityPolicyUtils.createIdentifier(path, policy);
+    public ActivityPolicyType getPolicy() {
+        return policyRule.getPolicy();
+    }
+
+    public ActivityPath getPath() {
+        return policyRule.getPath();
     }
 
     public String getName() {
-        return policy.getName();
+        return policyRule.getName();
+    }
+
+    public @NotNull ActivityPolicyRuleIdentifier getRuleIdentifier() {
+        return policyRule.getRuleIdentifier();
+    }
+
+    public void setCount(Integer localValue, Integer totalValue) {
+        policyRule.setCount(localValue, totalValue);
+    }
+
+    public void setCurrentState(ActivityPolicyStateType currentState) {
+        policyRule.setCurrentState(currentState);
     }
 
     @NotNull
-    public ActivityPolicyType getPolicy() {
-        return policy;
+    public List<ActivityPolicyActionType> getActions() {
+        return policyRule.getActions();
     }
 
-    public boolean containsAction(Class<? extends ActivityPolicyActionType> policyActionType) {
-        return getActions(policy.getPolicyActions()).stream()
-                .anyMatch(policyActionType::isInstance);
-    }
-
-    private List<ActivityPolicyActionType> getActions(ActivityPolicyActionsType actions) {
-        if (actions == null) {
-            return List.of();
-        }
-
-        List<ActivityPolicyActionType> result = new ArrayList<>();
-
-        addAction(result, actions.getNotification());
-        addAction(result, actions.getSuspendTask());
-
-        return result;
-    }
-
-    private void addAction(List<ActivityPolicyActionType> actions, ActivityPolicyActionType action) {
-        if (action != null) {
-            actions.add(action);
-        }
+    public boolean isTriggered() {
+        ActivityPolicyStateType currentState = policyRule.getCurrentState();
+        return !triggers.isEmpty() || (currentState != null && !currentState.getTrigger().isEmpty());
     }
 
     @NotNull
@@ -89,24 +76,44 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         }
     }
 
-    public ActivityPolicyStateType getCurrentState() {
-        return currentState;
+    public boolean hasThreshold() {
+        return getPolicy().getPolicyThreshold() != null;
     }
 
-    public void setCurrentState(ActivityPolicyStateType currentState) {
-        this.currentState = currentState;
+    public boolean isOverThreshold() {
+        if (!hasThreshold()) {
+            return true;
+        }
+
+        Integer count = policyRule.getTotalCount();
+        if (count == null) {
+            count = 0;
+        }
+
+        PolicyThresholdType policyThreshold = policyRule.getPolicy().getPolicyThreshold();
+        Integer low = getWaterMarkValue(policyThreshold.getLowWaterMark());
+        Integer high = getWaterMarkValue(policyThreshold.getHighWaterMark());
+
+        if (low != null && count < low) {
+            // below low water-mark
+            return false;
+        }
+
+        if (high != null && count > high) {
+            // above high water-mark
+            return false;
+        }
+
+        // either marks are not set, or the count is within the range
+        return true;
     }
 
-    public boolean isTriggered() {
-        return !triggers.isEmpty() || (currentState != null && !currentState.getTriggers().isEmpty());
-    }
+    private Integer getWaterMarkValue(WaterMarkType waterMark) {
+        if (waterMark == null) {
+            return null;
+        }
 
-    public boolean isEnforced() {
-        return enforced || (currentState != null && currentState.isEnforced());
-    }
-
-    public void enforced() {
-        enforced = true;
+        return waterMark.getCount();
     }
 
     @Override
@@ -116,7 +123,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
         debugDumpLabelLn(sb, "policyRuleType", indent + 1);
         indentDebugDump(sb, indent + 2);
-        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policy, ActivityPolicyType.COMPLEX_TYPE, PrismContext.LANG_XML);
+        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, getPolicy(), ActivityPolicyType.COMPLEX_TYPE, PrismContext.LANG_XML);
         sb.append('\n');
         debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
         return sb.toString();
@@ -125,7 +132,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
     @Override
     public String toString() {
         return "EvaluatedActivityPolicyRule{" +
-                "policy=" + policy.getName() +
+                "policy=" + getName() +
                 ", triggers=" + triggers.size() +
                 '}';
     }

@@ -9,6 +9,9 @@ package com.evolveum.midpoint.model.impl.tasks.scanner;
 import static com.evolveum.midpoint.model.impl.tasks.scanner.FocusValidityScanPartialRun.ScanScope.*;
 
 import java.util.ArrayList;
+
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -57,13 +60,13 @@ public class FocusValidityScanActivityHandler
     public ArrayList<Activity<?, ?>> createChildActivities(
             Activity<FocusValidityScanWorkDefinition, FocusValidityScanActivityHandler> parentActivity) {
         ArrayList<Activity<?, ?>> children = new ArrayList<>();
-        ActivityStateDefinition<AbstractActivityWorkStateType> stateDef =
+        ActivityStateDefinition stateDef =
                 ActivityStateDefinition.perpetual(ScanWorkStateType.COMPLEX_TYPE);
         ValidityScanQueryStyleType queryStyle = parentActivity.getWorkDefinition().getQueryStyle();
         switch (queryStyle) {
             case SINGLE_QUERY:
                 children.add(EmbeddedActivity.create(
-                        parentActivity.getDefinition().cloneWithoutId(),
+                        ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                         (context, result) -> new FocusValidityScanPartialRun(context, COMBINED),
                         null,
                         (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_FULL_ID,
@@ -72,14 +75,14 @@ public class FocusValidityScanActivityHandler
                 break;
             case SEPARATE_OBJECT_AND_ASSIGNMENT_QUERIES:
                 children.add(EmbeddedActivity.create(
-                        parentActivity.getDefinition().cloneWithoutId(),
+                        ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                         (context, result) -> new FocusValidityScanPartialRun(context, OBJECTS),
                         null,
                         (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_OBJECTS_ID,
                         stateDef,
                         parentActivity));
                 children.add(EmbeddedActivity.create(
-                        parentActivity.getDefinition().cloneWithoutId(),
+                        ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                         (context, result) -> new FocusValidityScanPartialRun(context, ASSIGNMENTS),
                         null,
                         (i) -> ModelPublicConstants.FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID,

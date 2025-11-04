@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="462daf2c-638f-4208-a6c8-fb015f59e500">
+    <name>task-multinode-skip-on-execution-time</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <noOp>
+                <steps>40</steps>
+                <delay>250</delay>
+            </noOp>
+        </work>
+        <policies>
+            <policy>
+                <name>Execution time at most 2 seconds</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT2S</exceeds>
+                    </executionTime>
+                </policyConstraints>
+                <policyActions>
+                    <skipActivity/>
+                </policyActions>
+            </policy>
+        </policies>
+        <distribution>
+            <buckets>
+                <implicitSegmentation>
+                    <numberOfBuckets>4</numberOfBuckets>
+                </implicitSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+    </activity>
+</task>

@@ -94,12 +94,15 @@ public class ActivityItemProcessingStatistics extends Initializable {
         return activityState.getActivityRun().areRunRecordsSupported();
     }
 
-    public void initialize(ActivityItemProcessingStatisticsType initialValue) {
-        doInitialize(() -> {
-            if (initialValue != null) {
-                ActivityItemProcessingStatisticsUtil.addTo(this.value, initialValue);
-            }
-        });
+    public void initialize(ActivityItemProcessingStatisticsType initialValue, boolean reset) {
+        doInitialize(
+                reset,
+                () -> {
+                    clear(value);
+                    if (initialValue != null) {
+                        ActivityItemProcessingStatisticsUtil.addTo(value, initialValue);
+                    }
+                });
     }
 
     /** Returns a current value of this statistics. It is copied because of thread safety issues. */

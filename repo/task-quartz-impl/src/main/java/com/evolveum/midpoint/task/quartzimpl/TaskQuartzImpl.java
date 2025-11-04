@@ -541,6 +541,10 @@ public class TaskQuartzImpl implements Task {
         return isLiveRunningInstance() ? CloneUtil.clone(value) : value;
     }
 
+    private <T> Collection<T> cloneIfRunning(Collection<T> collection) {
+        return isLiveRunningInstance() ? CloneUtil.cloneCollectionMembers(collection) : collection;
+    }
+
     private <X> X getProperty(ItemPath name) {
         synchronized (prismAccess) {
             PrismProperty<X> property = taskPrism.findProperty(name);
@@ -972,12 +976,29 @@ public class TaskQuartzImpl implements Task {
             List<ItemDelta<?, ?>> deltas = Arrays.asList(
                     createPropertyDelta(TaskType.F_EXECUTION_STATE, newExecState),
                     createPropertyDelta(TaskType.F_SCHEDULING_STATE, newSchedulingState));
-            modifyRepositoryWithoutQuartz(deltas,
-                    t -> oldSchedulingState == null || oldSchedulingState == t.asObjectable().getSchedulingState(), result);
+            modifyRepositoryWithoutQuartz(deltas, oldSchedulingStatePrecondition(oldSchedulingState), result);
             // This is intentionally placed after repo change, to ensure consistent state even after precondition violation.
             applyModificationsTransient(deltas);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
+        }
+    }
+
+    private static ModificationPrecondition<TaskType> oldSchedulingStatePrecondition(TaskSchedulingStateType oldState) {
+        if (oldState == null) {
+            return null; // no checking
+        } else {
+            return new ModificationPrecondition<>() {
+                @Override
+                public boolean holds(PrismObject<TaskType> t) {
+                    return t.asObjectable().getSchedulingState() == oldState;
+                }
+
+                @Override
+                public String toString() {
+                    return "previous scheduling state is " + oldState;
+                }
+            };
         }
     }
 
@@ -1413,6 +1434,15 @@ public class TaskQuartzImpl implements Task {
     }
 
     // todo should return clone for running task?
+
+    @Override
+    public <T extends Containerable> T getContainerRealValue(ItemPath path, Class<T> expectedType) {
+        synchronized (prismAccess) {
+            PrismContainer<T> container = taskPrism.findContainer(path);
+            return container != null && !container.hasNoValues() ? container.getRealValue(expectedType) : null;
+        }
+    }
+
     @Override
     public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
         synchronized (prismAccess) {
@@ -1434,6 +1464,14 @@ public class TaskQuartzImpl implements Task {
         synchronized (prismAccess) {
             Item<?, ?> item = taskPrism.findItem(path);
             return item != null && !item.isEmpty() ? cloneIfRunning(item.getRealValue(expectedType)) : null;
+        }
+    }
+
+    @Override
+    public <T> @NotNull Collection<T> getItemRealValuesOrClone(ItemPath path, Class<T> expectedType) {
+        synchronized (prismAccess) {
+            Item<?, ?> item = taskPrism.findItem(path);
+            return item != null && !item.isEmpty() ? cloneIfRunning(item.getRealValues(expectedType)) : List.of();
         }
     }
 

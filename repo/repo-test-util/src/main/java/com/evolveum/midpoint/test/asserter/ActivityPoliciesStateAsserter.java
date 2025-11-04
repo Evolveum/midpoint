@@ -7,17 +7,18 @@
 package com.evolveum.midpoint.test.asserter;
 
 import java.util.List;
+import java.util.Objects;
+
+import org.assertj.core.api.Assertions;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 
-import org.assertj.core.api.Assertions;
-
 public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
 
-    private ActivityPoliciesStateType state;
+    private final ActivityPoliciesStateType state;
 
     public ActivityPoliciesStateAsserter(ActivityPoliciesStateType state, RA returnAsserter, String details) {
         super(returnAsserter, details);
@@ -34,14 +35,40 @@ public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public ActivityPolicyStateAsserter<ActivityPoliciesStateAsserter<RA>> policy(String policyName) {
+        return policy(policyName, false);
+    }
+
+    public ActivityPolicyStateAsserter<ActivityPoliciesStateAsserter<RA>> policy(String policyName, boolean exact) {
+        ActivityPolicyStateType policyState = state.getPolicy().stream()
+                .filter(p ->
+                        exact ?
+                                Objects.equals(p.getName(), policyName) :
+                                p.getIdentifier() != null && p.getName().contains(policyName))
+                .findFirst()
+                .orElseThrow(
+                        () -> new AssertionError(
+                                "No activity policy state for policy " + policyName + ", exact=" + exact + " found"));
+
+        return policyState != null ? new ActivityPolicyStateAsserter<>(policyState, this, null) : null;
+    }
+
+    public ActivityPoliciesStateAsserter<RA> assertPolicyCount(int expectedCount) {
+        List<ActivityPolicyStateType> policyStates = state.getPolicy();
+
+        Assertions.assertThat(policyStates).hasSize(expectedCount);
+
+        return this;
+    }
+
     public ActivityPoliciesStateAsserter<RA> assertOnePolicyStateTriggers(String identifier, int expectedCount) {
-        List<ActivityPolicyStateType> policyStates = state.getActivityPolicies();
+        List<ActivityPolicyStateType> policyStates = state.getPolicy();
 
         Assertions.assertThat(policyStates).hasSize(1);
         ActivityPolicyStateType policyState = policyStates.get(0);
 
         Assertions.assertThat(policyState.getIdentifier()).isEqualTo(identifier);
-        Assertions.assertThat(policyState.getTriggers()).hasSize(expectedCount);
+        Assertions.assertThat(policyState.getTrigger()).hasSize(expectedCount);
 
         return this;
     }

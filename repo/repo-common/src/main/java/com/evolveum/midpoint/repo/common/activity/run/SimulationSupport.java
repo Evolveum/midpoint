@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
@@ -134,8 +134,8 @@ class SimulationSupport {
     }
 
     private int getBucketSequentialNumber() {
-        WorkBucketType bucket = activityRun instanceof IterativeActivityRun ?
-                ((IterativeActivityRun<?, ?, ?, ?>) activityRun).getBucket() : null;
+        WorkBucketType bucket = activityRun instanceof IterativeActivityRun<?, ?, ?, ?> iterativeActivityRun ?
+                iterativeActivityRun.getBucket() : null;
         return bucket != null ? bucket.getSequentialNumber() : 0;
     }
 

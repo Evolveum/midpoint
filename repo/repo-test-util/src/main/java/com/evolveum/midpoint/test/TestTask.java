@@ -7,10 +7,13 @@
 package com.evolveum.midpoint.test;
 
 import java.io.File;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -18,6 +21,9 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -90,9 +96,24 @@ public class TestTask extends TestObject<TaskType> {
     }
 
     public void rerunErrorsOk(OperationResult result) throws CommonException {
+        rerunErrorsOk(null, result);
+    }
+
+    /**
+     * A variant of {@link #rerunErrorsOk(OperationResult)} that is suitable for running task trees, as it ignores
+     * the operation result, and looks at the root task status only.
+     */
+    public void rerunTreeErrorsOk(OperationResult result) throws CommonException {
+        rerunErrorsOk(
+                checkerBuilder -> checkerBuilder.checkOnlySchedulingState(true),
+                result);
+    }
+
+    public void rerunErrorsOk(TaskFinishChecker.BuilderCustomizer builderCustomizer, OperationResult result)
+            throws CommonException {
         long startTime = System.currentTimeMillis();
         test.restartTask(oid, result);
-        test.waitForTaskFinish(oid, startTime, defaultTimeout, true);
+        test.waitForTaskFinish(oid, startTime, defaultTimeout, true, 0, builderCustomizer);
     }
 
     public void restart(OperationResult result) throws CommonException {
@@ -136,5 +157,41 @@ public class TestTask extends TestObject<TaskType> {
         long startTime = System.currentTimeMillis();
         resume(result);
         test.waitForTaskFinish(oid, startTime, defaultTimeout, true);
+    }
+
+    public String buildPolicyIdentifier(ActivityPath path, String policyIdentifier)
+            throws CommonException {
+
+        return buildPolicyIdentifier(path, policyIdentifier, false);
+    }
+
+    public String buildPolicyIdentifier(ActivityPath path, String policyIdentifier, boolean exact)
+            throws CommonException {
+
+        TaskType task = test.getTask(oid).asObjectable();
+
+        ActivityDefinitionType def = ActivityDefinitionUtil.findActivityDefinition(task.getActivity(), path);
+        if (def == null) {
+            throw new IllegalStateException("No activity definition for path " + path + " in task " + oid);
+        }
+
+        ActivityPoliciesType policies = def.getPolicies();
+        if (policies == null) {
+            throw new IllegalStateException("No activity policies for path " + path + " in task " + oid);
+        }
+
+        ActivityPolicyType policy = policies.getPolicy().stream()
+                .filter(p -> exact ?
+                        Objects.equals(policyIdentifier, p.getName())
+                        : p.getName() != null && p.getName().contains(policyIdentifier))
+                .findFirst()
+                .orElse(null);
+        if (policy == null) {
+            throw new IllegalStateException("No activity policy matching '" + policyIdentifier + "' for path " + path + " in task " + oid);
+        }
+
+        String identifier = def.getIdentifier() != null ? def.getIdentifier() : "";
+
+        return identifier + ":" + policy.getId();
     }
 }

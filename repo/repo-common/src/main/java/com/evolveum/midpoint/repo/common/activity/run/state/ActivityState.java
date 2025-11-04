@@ -6,21 +6,35 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.state;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.isLocal;
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.UpdateActivityPoliciesOperation;
 import com.evolveum.midpoint.repo.common.activity.run.state.counters.CountersIncrementOperation;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
-import com.evolveum.midpoint.task.api.ExecutionSupport;
+import com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.CheckedCommonRunnable;
@@ -33,36 +47,42 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.prism.Referencable.getOid;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.isLocal;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-import static com.evolveum.midpoint.util.MiscUtil.*;
-
+/**
+ * Used to manipulate {@link ActivityStateType} objects in a task:
+ *
+ * - either the current one ({@link CurrentActivityState})
+ * - or some other one ({@link OtherActivityState}) - e.g. parent activity (in the same task or its parent task), or any
+ * other activity in the task tree.
+ *
+ * The most recommended usage style is to update the current activity state. It is e.g. the most safe regarding the concurrency.
+ *
+ * NOTE: This class is NOT intended to hold everything related to "activity state". It is just
+ */
 public abstract class ActivityState implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityState.class);
 
-    private static final @NotNull ItemPath BUCKETING_ROLE_PATH =
+    private static final ItemPath BUCKETED_WORK_COMPLETE_PATH =
+            ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_WORK_COMPLETE);
+    private static final ItemPath ABORTING_WORKER_REF_PATH =
+            ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_ABORTING_WORKER_REF);
+    private static final ItemPath BUCKET_PROCESSING_ROLE_PATH =
             ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKETS_PROCESSING_ROLE);
-    private static final @NotNull ItemPath SCAVENGER_PATH =
+    private static final ItemPath SCAVENGER_PATH =
             ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
-    private static final @NotNull ItemPath SIMULATION_RESULT_REF_PATH =
+    private static final ItemPath SIMULATION_RESULT_REF_PATH =
             ItemPath.create(ActivityStateType.F_SIMULATION, ActivitySimulationStateType.F_RESULT_REF);
-    private static final @NotNull ItemPath SIMULATION_RESULT_CREATED_PATH =
+    private static final ItemPath SIMULATION_RESULT_CREATED_PATH =
             ItemPath.create(ActivityStateType.F_SIMULATION, ActivitySimulationStateType.F_RESULT_CREATED);
+    private static final ItemPath RUN_RECORD_PATH =
+            ItemPath.create(
+                    ActivityStateType.F_STATISTICS,
+                    ActivityStatisticsType.F_ITEM_PROCESSING,
+                    ActivityItemProcessingStatisticsType.F_RUN);
 
     private static final int MAX_TREE_DEPTH = 30;
 
-    @NotNull protected final CommonTaskBeans beans;
+    @NotNull protected final CommonTaskBeans beans = CommonTaskBeans.get();
 
     /**
      * Path to the work state container value related to this run. Can be null if the state was not
@@ -71,8 +91,7 @@ public abstract class ActivityState implements DebugDumpable {
      */
     ItemPath stateItemPath;
 
-    protected ActivityState(@NotNull CommonTaskBeans beans) {
-        this.beans = beans;
+    protected ActivityState() {
     }
 
     //region Specific getters
@@ -84,9 +103,36 @@ public abstract class ActivityState implements DebugDumpable {
         return stateItemPath.append(ActivityStateType.F_REALIZATION_STATE);
     }
 
-    /** TODO */
     public boolean isComplete() {
         return getRealizationState() == ActivityRealizationStateType.COMPLETE;
+    }
+
+    public boolean isAborted() {
+        return getRealizationState() == ActivityRealizationStateType.ABORTED;
+    }
+
+    /** Returns {@code true} if there is a request to restart or skip this particular activity. */
+    public boolean isBeingRestartedOrSkipped() {
+        return isAborted()
+                && getActivityPath().equalsBean(getAbortingInformationRequired().getActivityPath());
+    }
+
+    /** Returns {@code true} if there is a request to restart this particular activity. */
+    public boolean isBeingRestarted() {
+        return isBeingRestartedOrSkipped()
+                && getAbortingInformationRequired().getPolicyAction() instanceof RestartActivityPolicyActionType;
+    }
+
+    public @NotNull RestartActivityPolicyActionType getRestartPolicyActionRequired() {
+        return stateNonNull(
+                (RestartActivityPolicyActionType) getAbortingInformationRequired().getPolicyAction(),
+                "No restart policy action in %s", this);
+    }
+
+    /** Returns {@code true} if there is a request to skip this particular activity. */
+    public boolean isBeingSkipped() {
+        return isBeingRestartedOrSkipped()
+                && getAbortingInformationRequired().getPolicyAction() instanceof SkipActivityPolicyActionType;
     }
 
     public XMLGregorianCalendar getRealizationStartTimestamp() {
@@ -109,17 +155,39 @@ public abstract class ActivityState implements DebugDumpable {
     //endregion
 
     //region Bucketing
-    public BucketsProcessingRoleType getBucketingRole() {
-        return getPropertyRealValue(BUCKETING_ROLE_PATH, BucketsProcessingRoleType.class);
+    public void setBucketProcessingRole(BucketsProcessingRoleType role) throws ActivityRunException {
+        setItemRealValues(BUCKET_PROCESSING_ROLE_PATH, role);
+    }
+
+    public BucketsProcessingRoleType getBucketProcessingRole() {
+        return getPropertyRealValue(BUCKET_PROCESSING_ROLE_PATH, BucketsProcessingRoleType.class);
     }
 
     public boolean isWorker() {
-        return getBucketingRole() == BucketsProcessingRoleType.WORKER;
+        return getBucketProcessingRole() == BucketsProcessingRoleType.WORKER;
     }
 
     public boolean isScavenger() {
         return Boolean.TRUE.equals(getPropertyRealValue(SCAVENGER_PATH, Boolean.class));
     }
+
+    public boolean isBucketedWorkComplete() {
+        return Boolean.TRUE.equals(
+                getPropertyRealValue(BUCKETED_WORK_COMPLETE_PATH, Boolean.class));
+    }
+
+    public void setAbortingWorkerRef(ObjectReferenceType workerRef) throws ActivityRunException {
+        setItemRealValues(ABORTING_WORKER_REF_PATH, workerRef);
+    }
+
+    public ObjectReferenceType getAbortingWorkerRef() {
+        return getAbortingWorkerRef(ABORTING_WORKER_REF_PATH);
+    }
+
+    public boolean isBucketedWorkAborted() {
+        return getAbortingWorkerRef() != null;
+    }
+
     //endregion
 
     //region Generic access
@@ -129,7 +197,7 @@ public abstract class ActivityState implements DebugDumpable {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private ObjectReferenceType getReferenceRealValue(ItemPath path) {
+    private ObjectReferenceType getAbortingWorkerRef(ItemPath path) {
         return getTask()
                 .getReferenceRealValue(stateItemPath.append(path));
     }
@@ -137,6 +205,12 @@ public abstract class ActivityState implements DebugDumpable {
     <T> T getItemRealValueClone(ItemPath path, Class<T> expectedType) {
         return getTask()
                 .getItemRealValueOrClone(stateItemPath.append(path), expectedType);
+    }
+
+    @SuppressWarnings({ "WeakerAccess", "SameParameterValue" })
+    <T> @NotNull Collection<T> getItemRealValuesClone(ItemPath path, Class<T> expectedType) {
+        return getTask()
+                .getItemRealValuesOrClone(stateItemPath.append(path), expectedType);
     }
     // FIXME exception handling
 
@@ -174,9 +248,9 @@ public abstract class ActivityState implements DebugDumpable {
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
      */
-     public void addDeleteItemRealValues(@NotNull ItemPath path, @NotNull Collection<?> valuesToAdd,
-             @NotNull Collection<?> valuesToDelete)
-             throws ActivityRunException {
+    public void addDeleteItemRealValues(@NotNull ItemPath path, @NotNull Collection<?> valuesToAdd,
+            @NotNull Collection<?> valuesToDelete)
+            throws ActivityRunException {
         Task task = getTask();
         LOGGER.trace("addDeleteItemRealValues: path={}, valuesToAdd={}, valuesToDelete={} in {}",
                 path, valuesToAdd, valuesToDelete, task);
@@ -304,7 +378,7 @@ public abstract class ActivityState implements DebugDumpable {
         try {
             runnable.run();
         } catch (CommonException e) {
-            throw new ActivityRunException(message, FATAL_ERROR, PERMANENT_ERROR, e);
+            throw new ActivityRunException(message, FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR, e);
         }
     }
 
@@ -321,7 +395,7 @@ public abstract class ActivityState implements DebugDumpable {
     }
 
     public @Nullable ObjectReferenceType getSimulationResultRef() {
-        return getReferenceRealValue(SIMULATION_RESULT_REF_PATH);
+        return getAbortingWorkerRef(SIMULATION_RESULT_REF_PATH);
     }
 
     public @Nullable String getSimulationResultOid() {
@@ -332,6 +406,17 @@ public abstract class ActivityState implements DebugDumpable {
         return Boolean.TRUE.equals(
                 getPropertyRealValue(SIMULATION_RESULT_CREATED_PATH, Boolean.class));
     }
+
+    public @NotNull Collection<ActivityRunRecordType> getRawRunRecordsClone() {
+        return getItemRealValuesClone(RUN_RECORD_PATH, ActivityRunRecordType.class);
+    }
+
+    /** Beware! May not be quite precise if the state was not set up yet. */
+    @Experimental
+    public boolean isDelegating() {
+        return getItemRealValueClone(getWorkStateItemPath(), AbstractActivityWorkStateType.class) instanceof DelegationWorkStateType;
+    }
+
     //endregion
 
     //region debugDump + toString
@@ -368,7 +453,7 @@ public abstract class ActivityState implements DebugDumpable {
             throws SchemaException, ObjectNotFoundException {
         ActivityPath activityPath = getActivityPath();
         argCheck(!activityPath.isEmpty(), "Root activity has no parent");
-        return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, beans, result);
+        return getActivityStateUpwards(activityPath.allExceptLast(), getTask(), workStateTypeName, result);
     }
 
     /**
@@ -413,7 +498,6 @@ public abstract class ActivityState implements DebugDumpable {
                                 activityPath.allExceptLast(),
                                 current.getTask(),
                                 null,
-                                beans,
                                 result);
                     } catch (SchemaException | ObjectNotFoundException e) {
                         throw SystemException.unexpected(e, "when obtaining parent activity state for " + current);
@@ -435,10 +519,9 @@ public abstract class ActivityState implements DebugDumpable {
             @NotNull ActivityPath activityPath,
             @NotNull Task task,
             @Nullable QName workStateTypeName,
-            @NotNull CommonTaskBeans beans,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        return getActivityStateUpwards(activityPath, task, workStateTypeName, 0, beans, result);
+        return getActivityStateUpwards(activityPath, task, workStateTypeName, 0, result);
     }
 
     private static @NotNull ActivityState getActivityStateUpwards(
@@ -446,18 +529,17 @@ public abstract class ActivityState implements DebugDumpable {
             @NotNull Task task,
             @Nullable QName workStateTypeName,
             int level,
-            @NotNull CommonTaskBeans beans,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         TaskActivityStateType taskActivityState = getTaskActivityStateRequired(task);
         if (isLocal(activityPath, taskActivityState)) {
-            return new OtherActivityState(task, taskActivityState, activityPath, workStateTypeName, beans);
+            return new OtherActivityState(task, taskActivityState, activityPath, workStateTypeName);
         }
         if (level >= MAX_TREE_DEPTH) {
             throw new IllegalStateException("Maximum tree depth reached while looking for activity state in " + task);
         }
         Task parentTask = task.getParentTask(result);
-        return getActivityStateUpwards(activityPath, parentTask, workStateTypeName, level + 1, beans, result);
+        return getActivityStateUpwards(activityPath, parentTask, workStateTypeName, level + 1, result);
     }
 
     /**
@@ -465,10 +547,11 @@ public abstract class ActivityState implements DebugDumpable {
      *
      * @param fresh true if we always need to load the parent task from repository; false if we can use
      * cached version (created when the running task started)
-     *
      * @param result Can be null if we are 100% sure it will not be used.
      */
-    public @NotNull ActivityState getCurrentActivityStateInParentTask(boolean fresh, @NotNull QName workStateTypeName,
+    public @NotNull ActivityState getCurrentActivityStateInParentTask(
+            boolean fresh,
+            @NotNull QName workStateTypeName,
             @Nullable OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         Task parentTask = getParentTask(fresh, result);
@@ -476,8 +559,7 @@ public abstract class ActivityState implements DebugDumpable {
                 parentTask,
                 parentTask.getActivitiesStateOrClone(),
                 getActivityPath(),
-                workStateTypeName,
-                beans);
+                workStateTypeName);
     }
 
     /**
@@ -488,8 +570,8 @@ public abstract class ActivityState implements DebugDumpable {
             throws SchemaException, ObjectNotFoundException {
         Task task = getTask();
         Task parentTask;
-        if (!fresh && task instanceof RunningTask) {
-            parentTask = ((RunningTask) task).getParentTask();
+        if (!fresh && task instanceof RunningTask runningTask) {
+            parentTask = runningTask.getParentTask();
         } else {
             parentTask = task.getParentTask(result);
         }
@@ -503,14 +585,21 @@ public abstract class ActivityState implements DebugDumpable {
      *
      * TODO cleanup and test thoroughly
      */
-    public static @NotNull ActivityState getActivityStateDownwards(@NotNull ActivityPath activityPath, @NotNull Task task,
-            @NotNull QName workStateTypeName, @NotNull CommonTaskBeans beans, OperationResult result)
+    public static @NotNull ActivityState getActivityStateDownwards(
+            @NotNull ActivityPath activityPath,
+            @NotNull Task task,
+            @NotNull QName workStateTypeName,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        return getActivityStateDownwards(activityPath, task, workStateTypeName, 0, beans, result);
+        return getActivityStateDownwards(activityPath, task, workStateTypeName, 0, result);
     }
 
-    private static @NotNull ActivityState getActivityStateDownwards(@NotNull ActivityPath activityPath, @NotNull Task task,
-            @NotNull QName workStateTypeName, int level, @NotNull CommonTaskBeans beans, OperationResult result)
+    private static @NotNull ActivityState getActivityStateDownwards(
+            @NotNull ActivityPath activityPath,
+            @NotNull Task task,
+            @Nullable QName workStateTypeName,
+            int level,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         TaskActivityStateType taskActivityState = getTaskActivityStateRequired(task);
         if (level >= MAX_TREE_DEPTH) {
@@ -518,7 +607,9 @@ public abstract class ActivityState implements DebugDumpable {
         }
 
         ActivityPath localRootPath = ActivityStateUtil.getLocalRootPath(taskActivityState);
-        stateCheck(activityPath.startsWith(localRootPath), "Activity (%s) is not within the local tree (%s)",
+        stateCheck(
+                activityPath.startsWith(localRootPath),
+                "Activity (%s) is not within the local tree (%s)",
                 activityPath, localRootPath);
 
         ActivityStateType currentWorkState = taskActivityState.getActivity();
@@ -529,14 +620,14 @@ public abstract class ActivityState implements DebugDumpable {
             currentWorkState = ActivityStateUtil.findChildActivityStateRequired(currentWorkState, identifier);
             stateCheck(currentWorkState.getId() != null, "Activity work state without ID: %s", currentWorkState);
             currentWorkStatePath = currentWorkStatePath.append(ActivityStateType.F_ACTIVITY, currentWorkState.getId());
-            if (currentWorkState.getWorkState() instanceof DelegationWorkStateType) {
-                ObjectReferenceType childRef = ((DelegationWorkStateType) currentWorkState.getWorkState()).getTaskRef();
-                Task child = beans.taskManager.getTaskPlain(childRef.getOid(), result);
-                return getActivityStateDownwards(activityPath, child, workStateTypeName, level + 1, beans, result);
+            if (currentWorkState.getWorkState() instanceof DelegationWorkStateType delegationWorkState) {
+                ObjectReferenceType childRef = delegationWorkState.getTaskRef();
+                Task child = CommonTaskBeans.get().taskManager.getTaskPlain(childRef.getOid(), result);
+                return getActivityStateDownwards(activityPath, child, workStateTypeName, level + 1, result);
             }
         }
         LOGGER.trace(" -> resulting work state path: {}", currentWorkStatePath);
-        return new OtherActivityState(task, taskActivityState, activityPath, workStateTypeName, beans);
+        return new OtherActivityState(task, taskActivityState, activityPath, workStateTypeName);
     }
 
     private static TaskActivityStateType getTaskActivityStateRequired(@NotNull Task task) {
@@ -549,12 +640,46 @@ public abstract class ActivityState implements DebugDumpable {
     //endregion
 
     //region Counters (thresholds)
-    public Map<String, Integer> incrementCounters(@NotNull ExecutionSupport.CountersGroup counterGroup,
-            @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
+    public Map<String, Integer> incrementCounters(
+            @NotNull CountersGroup counterGroup,
+            @NotNull Collection<String> countersIdentifiers,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        ItemPath counterGroupItemPath = stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());
-        return new CountersIncrementOperation(getTask(), counterGroupItemPath, countersIdentifiers, beans)
-                .execute(result);
+        var op = new CountersIncrementOperation(
+                getTask(),
+                getCountersGroupItemPath(counterGroup),
+                countersIdentifiers,
+                beans);
+        return op.execute(result);
+    }
+
+    public @NotNull Map<String, Integer> getCounters(@NotNull CountersGroup counterGroup) {
+        var counterGroupData = getItemRealValueClone(
+                ActivityStateType.F_COUNTERS.append(counterGroup.getItemName()),
+                ActivityCounterGroupType.class);
+        if (counterGroupData == null) {
+            return Collections.emptyMap();
+        }
+        return counterGroupData.getCounter().stream()
+                .collect(Collectors.toMap(
+                        ActivityCounterType::getIdentifier,
+                        ActivityCounterType::getValue));
+    }
+
+    private @NotNull ItemPath getCountersGroupItemPath(@NotNull CountersGroup counterGroup) {
+        return stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());
+    }
+
+    public ActivityAbortingInformationType getAbortingInformation() {
+        return getItemRealValueClone(ActivityStateType.F_ABORTING_INFORMATION, ActivityAbortingInformationType.class);
+    }
+
+    public ActivityAbortingInformationType getAbortingInformationRequired() {
+        return stateNonNull(getAbortingInformation(), "No aborting information in %s", this);
+    }
+
+    void setAbortingInformation(@NotNull ActivityAbortingInformationType info) throws ActivityRunException {
+        setItemRealValues(ActivityStateType.F_ABORTING_INFORMATION, info.clone()); // because of parents
     }
     //endregion
 
@@ -563,9 +688,19 @@ public abstract class ActivityState implements DebugDumpable {
             @NotNull Collection<ActivityPolicyStateType> policies, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        ItemPath policiesItemPath = stateItemPath.append(ActivityStateType.F_POLICIES, ActivityPoliciesStateType.F_ACTIVITY_POLICIES);
+        ItemPath policiesItemPath = stateItemPath.append(ActivityStateType.F_POLICIES, ActivityPoliciesStateType.F_POLICY);
 
         return new UpdateActivityPoliciesOperation(getTask(), policiesItemPath, policies, beans).execute(result);
     }
     //endregion
+
+    public int getExecutionAttempt() {
+        var rawValue = getTask().getPropertyRealValue(
+                stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT), Integer.class);
+        int value = Objects.requireNonNullElse(rawValue, 1);
+        if (value <= 0) {
+            throw new IllegalStateException("Execution attempt must be greater than 0, but was: " + value);
+        }
+        return value;
+    }
 }

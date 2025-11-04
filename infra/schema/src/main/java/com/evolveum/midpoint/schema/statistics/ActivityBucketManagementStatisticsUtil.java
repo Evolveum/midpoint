@@ -29,6 +29,10 @@ public class ActivityBucketManagementStatisticsUtil {
                 .print();
     }
 
+    public static void clear(ActivityBucketManagementStatisticsType data) {
+        data.getOperation().clear();
+    }
+
     public static void addTo(@NotNull ActivityBucketManagementStatisticsType aggregate,
             @Nullable ActivityBucketManagementStatisticsType part) {
         if (part == null) {

@@ -1,0 +1,67 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="5a7cad09-f7f6-4c55-8714-09b5c73f9a99">
+    <name>task-child-restart-on-own-execution-time-with-subtasks</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <identifier>first</identifier>
+                <work>
+                    <noOp>
+                        <steps>3</steps>
+                        <delay>100</delay>
+                    </noOp>
+                </work>
+            </activity>
+            <activity>
+                <order>2</order>
+                <identifier>second</identifier>
+                <work>
+                    <noOp>
+                        <steps>10</steps>
+                        <delay>300</delay>
+                    </noOp>
+                </work>
+            </activity>
+            <activity>
+                <order>3</order>
+                <identifier>third</identifier>
+                <work>
+                    <noOp>
+                        <steps>3</steps>
+                        <delay>100</delay>
+                    </noOp>
+                </work>
+            </activity>
+        </composition>
+        <policies>
+            <policy>
+                <name>Execution time at most 2 seconds</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT2S</exceeds>
+                    </executionTime>
+                    <executionAttempts>
+                        <below>2</below>
+                    </executionAttempts>
+                </policyConstraints>
+                <policyActions>
+                    <restartActivity>
+                        <delay>500</delay>
+                    </restartActivity>
+                </policyActions>
+            </policy>
+        </policies>
+        <distribution>
+            <subtasks/>
+        </distribution>
+    </activity>
+</task>

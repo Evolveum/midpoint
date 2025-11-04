@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="2e45c709-1cbe-4030-84a6-1e25e37e3846">
+    <name>task-multinode-suspend-on-item-errors-unbalanced</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <extension>
+                <ext:searchIterativeMock>
+                    <ext:objectSet>
+                        <type>ServiceType</type>
+                        <query>
+                            <q:filter>
+                                <q:text>name startsWith "test-"</q:text>
+                            </q:filter>
+                        </query>
+                    </ext:objectSet>
+                    <ext:failOn>
+                        <q:text>name contains "bad"</q:text>
+                    </ext:failOn>
+                    <ext:delay>200</ext:delay>
+                </ext:searchIterativeMock>
+            </extension>
+        </work>
+        <policies>
+            <policy>
+                <name>Stop after 5 errors</name>
+                <policyConstraints>
+                    <itemState>
+                        <status>fatal_error</status>
+                    </itemState>
+                </policyConstraints>
+                <policyThreshold>
+                    <lowWaterMark>
+                        <count>5</count>
+                    </lowWaterMark>
+                </policyThreshold>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
+            </policy>
+        </policies>
+        <distribution>
+            <buckets>
+                <explicitSegmentation>
+                    <discriminator>name</discriminator>
+                    <content xsi:type="StringPrefixWorkBucketContentType">
+                        <prefix>test-good</prefix>
+                    </content>
+                    <content xsi:type="StringPrefixWorkBucketContentType">
+                        <prefix>test-bad</prefix>
+                    </content>
+                </explicitSegmentation>
+            </buckets>
+            <workers>
+                <workersPerNode>
+                    <count>2</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+    </activity>
+</task>

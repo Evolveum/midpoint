@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.common.activity;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.*;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateOverviewProgressInformationVisibilityType.HIDDEN;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateOverviewProgressInformationVisibilityType.VISIBLE;
@@ -21,10 +21,11 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -85,11 +86,11 @@ public class ActivityTreeStateOverview {
                 entry.realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
                         .resultStatus(OperationResultStatusType.IN_PROGRESS)
                         .progressInformationVisibility(progressVisible ? VISIBLE : HIDDEN)
-                        .persistence(run.getActivity().getActivityStateDefinition().getPersistence());
+                        .persistence(run.getActivity().getActivityStateDefinition().persistence());
             }
             ActivityTaskStateOverviewType taskEntry =
                     findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
-                            .bucketsProcessingRole(run.getActivityState().getBucketingRole())
+                            .bucketsProcessingRole(run.getActivityState().getBucketProcessingRole())
                             .executionState(ActivityTaskExecutionStateType.RUNNING)
                             .node(beans.taskManager.getNodeId())
                             .resultStatus(run.getCurrentResultStatusBean());
@@ -117,7 +118,7 @@ public class ActivityTreeStateOverview {
                     .realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
                     .resultStatus(OperationResultStatusType.IN_PROGRESS)
                     .progressInformationVisibility(VISIBLE) // workers are always in subtasks
-                    .persistence(run.getActivity().getActivityStateDefinition().getPersistence());
+                    .persistence(run.getActivity().getActivityStateDefinition().persistence());
             // bucket progress is updated on bucketing operations
             return createOverviewReplaceDeltas(overview);
         }, result);
@@ -407,16 +408,17 @@ public class ActivityTreeStateOverview {
         }
     }
 
-    public void createTaskRunIdentifier(String taskRunIdentifier, OperationResult result)
+    void setTaskRunIdentifier(String taskRunIdentifier)
             throws ActivityRunException {
         try {
             rootTask.setItemRealValues(PATH_TASK_RUN_IDENTIFIER, taskRunIdentifier);
         } catch (SchemaException ex) {
-            throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
+            throw new ActivityRunException(
+                    "Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
         }
     }
 
-    public void recordTaskRunHistoryStart() throws ActivityRunException {
+    void recordTaskRunHistoryStart() throws ActivityRunException {
         try {
             String taskRunIdentifier = rootTask.getPropertyRealValue(PATH_TASK_RUN_IDENTIFIER, String.class);
             List<TaskRunRecordType> historyList = rootTask.getTaskRunRecords();

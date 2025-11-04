@@ -119,6 +119,13 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         if (def == null) {
             return true;
         }
+
+        if (def.isAbstract()) {
+            // currently added specifically for ActivityAbortingInformationType.policyAction item which points to abstract type
+            LOGGER.trace("Skip creating wrapper for abstract definition {}", def);
+            return true;
+        }
+
         if (QNameUtil.match(FocusType.F_LINK_REF, def.getItemName()) || QNameUtil.match(FocusType.F_PERSONA_REF, def.getItemName())) {
             LOGGER.trace("Skip creating wrapper for {}, it is not supported", def);
             return true;

@@ -11,13 +11,11 @@ import static java.util.Collections.singletonList;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 import java.io.InputStream;
+import java.io.Serial;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
@@ -32,6 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -62,8 +64,11 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.reports.ReportDownloadHelper;
 import com.evolveum.midpoint.web.page.admin.server.LivesyncTokenEditorPanel;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -80,6 +85,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String ID_TASK_BUTTONS_CONTAINER = "taskButtonsContainer";
     private static final String ID_REFRESHING_BUTTONS = "refreshingButtons";
     private static final String ID_REFRESHING_BUTTONS_CONTAINER = "refreshingButtonsContainer";
+    private static final String ID_ACTIVITY_POLICIES_DROPDOWN ="activityPoliciesDropdown";
 
     private static final int REFRESH_INTERVAL = 4000;
     private Boolean refreshEnabled;
@@ -171,6 +177,8 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         createShowSimulationResultButton(taskButtons);
         createCleanupPerformanceButton(taskButtons);
         createCleanupResultsButton(taskButtons);
+
+        createPoliciesButton(taskButtonsContainer);
 
         WebMarkupContainer refreshingButtonsContainer = new WebMarkupContainer(ID_REFRESHING_BUTTONS_CONTAINER);
         refreshingButtonsContainer.add(new VisibleBehaviour(() -> isEditingObject()));
@@ -552,6 +560,115 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         taskDelta.addModifications(itemDeltas);
 
         saveTaskChanges(target, taskDelta);
+    }
+
+    private void toggleActivityPoliciesStatusPerformed(AjaxRequestTarget target, boolean enable) {
+        Task task = getPageBase().createSimpleTask(OPERATION_EXECUTE_TASK_CHANGES);
+        OperationResult result = task.getResult();
+        try {
+            boolean changed = getPageBase().getModelInteractionService().updateAllActivityPoliciesEnabledStatus(
+                    getPrismObject(), enable, task, result);
+
+            if (!changed) {
+                getPageBase().info(getString("TaskOperationalButtonsPanel.toggleActivityPoliciesStatus.noChanges"));
+                target.add(getPageBase().getFeedbackPanel());
+                return;
+            }
+        } catch (CommonException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot toggle activity policies status", ex);
+            getPageBase().error(getPageBase().getString("TaskOperationalButtonsPanel.toggleActivityPoliciesStatus.failed"));
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    private void clearActivityPoliciesStatePerformed(AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OPERATION_EXECUTE_TASK_CHANGES);
+        OperationResult result = task.getResult();
+        try {
+            boolean changed = getPageBase().getModelInteractionService().clearAllActivityPolicyStates(
+                    getPrismObject(), task, result);
+
+            if (!changed) {
+                getPageBase().info(getString("TaskOperationalButtonsPanel.clearActivityPoliciesStates.noChanges"));
+                return;
+            }
+        } catch (CommonException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot clear activity policies states", ex);
+            getPageBase().error(getPageBase().getString("TaskOperationalButtonsPanel.clearActivityPoliciesStates.failed"));
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    private void createPoliciesButton(WebMarkupContainer parent) {
+        List<InlineMenuItem> items = new ArrayList<>();
+        items.add(new InlineMenuItem(createStringResource("TaskOperationalButtonsPanel.enableActivityPolicies")) {
+
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    @Serial
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        toggleActivityPoliciesStatusPerformed(target, true);
+                    }
+                };
+            }
+        });
+        items.add(new InlineMenuItem(createStringResource("TaskOperationalButtonsPanel.disableActivityPolicies")) {
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    @Serial
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        toggleActivityPoliciesStatusPerformed(target, false);
+                    }
+                };
+            }
+        });
+        items.add(new InlineMenuItem(createStringResource("TaskOperationalButtonsPanel.clearActivityPoliciesState")) {
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+
+                    @Serial
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        clearActivityPoliciesStatePerformed(target);
+                    }
+                };
+            }
+        });
+        DropdownButtonDto dto = new DropdownButtonDto(null, GuiStyleConstants.CLASS_POLICY_RULES_ICON, "", items);
+
+        DropdownButtonPanel bp = new DropdownButtonPanel(ID_ACTIVITY_POLICIES_DROPDOWN, dto) {
+
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn-sm btn-default";
+            }
+        };
+        bp.setOutputMarkupId(true);
+        parent.add(bp);
     }
 
     private void createCleanupResultsButton(RepeatingView repeatingView) {
