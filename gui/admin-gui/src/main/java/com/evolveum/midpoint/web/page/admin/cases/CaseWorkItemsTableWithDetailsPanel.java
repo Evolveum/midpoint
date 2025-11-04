@@ -9,18 +9,18 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serial;
+
 /**
  * Created by honchar.
  */
 public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<PrismContainerWrapper<CaseWorkItemType>> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_WORKITEMS_TABLE = "workitemsTable";
 
@@ -39,7 +39,7 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
 
         CaseWorkItemListWithDetailsPanel caseWorkItems =
                 new CaseWorkItemListWithDetailsPanel(ID_WORKITEMS_TABLE) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected IModel<PrismContainerWrapper<CaseWorkItemType>> getContainerModel() {

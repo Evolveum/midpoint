@@ -6,11 +6,15 @@
 
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -47,7 +51,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -58,7 +61,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = CaseWorkItemsPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_POWER_DONOR_OBJECT = DOT_CLASS + "loadPowerDonorObject";
@@ -122,8 +125,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
     @Override
     protected IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createIconColumn() {
         return new IconColumn<>(Model.of("")) {
-
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
@@ -138,13 +140,26 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         return CaseWorkItemsPanel.this.createNameColumn();
     }
 
+    @Override
+    protected String getRowObjectName(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+        if (rowModel == null || rowModel.getObject() == null) {
+            return "";
+        }
+        return getWorkItemNameTranslated(rowModel);
+    }
+
+    private String getWorkItemNameTranslated(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+        PolyStringType workitemName = ColumnUtils.unwrapRowModel(rowModel).getName();
+        return LocalizationUtil.translatePolyString(workitemName);
+    }
+
     private ContainerListDataProvider<CaseWorkItemType> createProvider(IModel<Search<CaseWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = CaseWorkItemsPanel.this.getPageBase().getOperationOptionsBuilder()
                 .resolveNames()
                 .build();
         ContainerListDataProvider<CaseWorkItemType> provider = new ContainerListDataProvider<>(this,
                 searchModel, options) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
@@ -163,12 +178,11 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
 
     private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createNameColumn() {
         return new LinkColumn<>(createStringResource("PolicyRulesPanel.nameColumn")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                PolyStringType workitemName = ColumnUtils.unwrapRowModel(rowModel).getName();
-                return Model.of(WebComponentUtil.getTranslatedPolyString(workitemName));
+                return () -> getWorkItemNameTranslated(rowModel);
             }
 
             @Override
@@ -198,7 +212,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         List<InlineMenuItem> menu = new ArrayList<>();
 
         menu.add(new ButtonInlineMenuItem(createStringResource("pageWorkItem.button.reject")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
@@ -244,7 +258,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
             }
         });
         menu.add(new ButtonInlineMenuItem(createStringResource("pageWorkItem.button.approve")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
@@ -291,7 +305,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         });
 
         menu.add(new ButtonInlineMenuItem(createStringResource("pageWorkItems.button.reconsider")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {

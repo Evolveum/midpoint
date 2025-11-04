@@ -190,6 +190,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         };
     }
 
+    @Override
+    protected String getRowObjectName(IModel<SelectableBean<O>> rowModel) {
+        if (rowModel == null || rowModel.getObject() == null) {
+            return "";
+        }
+        return WebComponentUtil.getName(rowModel.getObject().getValue());
+    }
+
     protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
         O object = rowModel.getObject().getValue();
         if (object == null) {

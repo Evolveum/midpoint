@@ -16,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import java.io.Serial;
+
 /**
  * Created by honchar
  */
@@ -24,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
         display = @PanelDisplay(label = "PageCase.workitemsTab"))
 @Counter(provider = CaseWorkitemsCounter.class)
 public class CaseWorkitemsPanel extends AbstractObjectMainPanel<CaseType, AssignmentHolderDetailsModel<CaseType>> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_WORKITEMS_PANEL = "workitemsPanel";
 
@@ -38,7 +40,7 @@ public class CaseWorkitemsPanel extends AbstractObjectMainPanel<CaseType, Assign
         PrismContainerWrapperModel<CaseType, CaseWorkItemType> workitemsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), CaseType.F_WORK_ITEM);
 
         add(new CaseWorkItemsTableWithDetailsPanel(ID_WORKITEMS_PANEL, workitemsModel){
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected UserProfileStorage.TableId getTableId(){

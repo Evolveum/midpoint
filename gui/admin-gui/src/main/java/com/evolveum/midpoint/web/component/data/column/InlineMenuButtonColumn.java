@@ -29,6 +29,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +43,11 @@ import java.util.List;
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     protected List<InlineMenuItem> menuItems;
 
-    private PageBase pageBase;
+    private final PageBase pageBase;
 
     public InlineMenuButtonColumn(List<InlineMenuItem> menuItems, PageBase pageBase) {
         super(null);
@@ -110,12 +111,13 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
         return new MenuMultiButtonPanel<T>(componentId, rowModel, buttonMenuItems.size(), Model.ofList(filteredMenuItems)) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createButton(int index, String componentId, IModel<T> model) {
                 CompositedIconBuilder builder = getIconCompositedBuilder(index, buttonMenuItems);
-                AjaxCompositedIconButton btn = new AjaxCompositedIconButton(componentId, builder.build(), () -> getButtonTitle(index, buttonMenuItems)) {
+                String buttonActionName = getButtonTitle(index, buttonMenuItems);
+                AjaxCompositedIconButton btn = new AjaxCompositedIconButton(componentId, builder.build(), () -> buttonActionName) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         setRowModelToButtonAction(rowModel, buttonMenuItems);
@@ -137,7 +139,9 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 btn.add(AttributeAppender.append("class", getInlineMenuItemCssClass()));
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
                 btn.titleAsLabel(showButtonLabel(index, buttonMenuItems));
-                btn.add(AttributeAppender.append("aria-label", getButtonTitle(index, buttonMenuItems)));
+                btn.add(AttributeAppender.append("aria-label",
+                        createStringResource("InlineMenuButtonColumn.button.action.title",
+                                buttonActionName, getRowObjectName(rowModel))));
                 btn.add(AttributeAppender.append("aria-pressed", "false"));
                 return btn;
             }
@@ -153,6 +157,10 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 }
             }
         };
+    }
+
+    protected String getRowObjectName(IModel<T> rowModel) {
+        return "";
     }
 
     protected boolean isButtonMenuItemEnabled(IModel<T> rowModel){

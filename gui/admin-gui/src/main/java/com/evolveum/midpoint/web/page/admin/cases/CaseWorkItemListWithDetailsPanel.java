@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,12 +44,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CASE_WORK_ITEM_ACTIONS_PANEL = "caseWorkItemActionsPanel";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
 
-    private WorkItemDetailsPanel workItemDetails = null;
+    private final WorkItemDetailsPanel workItemDetails = null;
 
     public CaseWorkItemListWithDetailsPanel(String id) {
         super(id, CaseWorkItemType.class);
@@ -59,7 +60,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         super.onInitialize();
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
                 createStringResource("MultivalueContainerListPanel.cancelButton")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -73,14 +74,14 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 
         CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL,
                 new LoadableModel<>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected CaseWorkItemType load() {
-                        return getDetailsPanelItemsList().size() > 0 ? getDetailsPanelItemsList().get(0).getRealValue() : null;
+                        return !getDetailsPanelItemsList().isEmpty() ? getDetailsPanelItemsList().get(0).getRealValue() : null;
                     }
                 }) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {
@@ -105,7 +106,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         };
         actionsPanel.setOutputMarkupId(true);
         actionsPanel.add(new VisibleBehaviour(() -> {
-            CaseWorkItemType workItemSelected = getDetailsPanelItemsList().size() > 0 ? getDetailsPanelItemsList().get(0).getRealValue() : null;
+            CaseWorkItemType workItemSelected = !getDetailsPanelItemsList().isEmpty() ? getDetailsPanelItemsList().get(0).getRealValue() : null;
             return CaseTypeUtil.isCaseWorkItemNotClosed(workItemSelected);
         }));
         getDetailsPanelContainer().add(actionsPanel);
@@ -142,11 +143,13 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     private MultivalueContainerDetailsPanel<CaseWorkItemType> createWorkItemDetailsPanel(
             ListItem<PrismContainerValueWrapper<CaseWorkItemType>> item) {
         return new MultivalueContainerDetailsPanel<>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected DisplayNamePanel<CaseWorkItemType> createDisplayNamePanel(String displayNamePanelId) {
                 ItemRealValueModel<CaseWorkItemType> displayNameModel = new ItemRealValueModel<>(item.getModel());
                 return new DisplayNamePanel<>(displayNamePanelId, displayNameModel) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected IModel<String> getDescriptionLabelModel() {
@@ -163,7 +166,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
 
         columns.add(new AjaxLinkColumn<>(createStringResource("PolicyRulesPanel.nameColumn")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {

@@ -885,6 +885,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 //                        cellItem.add(Attr))
                     super.populateItem(cellItem, componentId, rowModel);
                 }
+
+                @Override
+                protected String getRowObjectName(IModel<PO> rowModel) {
+                    return ContainerableListPanel.this.getRowObjectName(rowModel);
+                }
             };
             return actionsColumn;
         }
@@ -904,6 +909,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected boolean isMenuItemVisible(IModel<PO> rowModel) {
         return true;
+    }
+
+    protected String getRowObjectName(IModel<PO> rowModel) {
+        return "";
     }
 
     protected List<IColumn<PO, String>> collectColumns() {
