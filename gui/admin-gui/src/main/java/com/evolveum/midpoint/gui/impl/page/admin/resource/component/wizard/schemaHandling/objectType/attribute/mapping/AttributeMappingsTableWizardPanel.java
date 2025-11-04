@@ -29,6 +29,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -72,6 +74,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
         display = @PanelDisplay(label = "AttributeMappingsTableWizardPanel.outboundTable", icon = "fa fa-arrow-right-from-bracket"))
 public abstract class AttributeMappingsTableWizardPanel<P extends Containerable> extends AbstractResourceNavigationWizardBasicPanel<P> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTableWizardPanel.class);
     private static final String CLASS_DOT = AttributeMappingsTableWizardPanel.class.getName() + ".";
     private static final String OP_SUGGEST_MAPPING = CLASS_DOT + "suggestMapping";
 
@@ -79,6 +82,9 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     private static final String ID_TAB_TABLE = "panel";
 
     private final MappingDirection initialTab;
+    IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
+    boolean isInboundTabSelected = true;
+
 
     public AttributeMappingsTableWizardPanel(
             String id,
@@ -96,11 +102,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     private void initLayout() {
         String resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
-
-        IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
-        if (isNotCompletedSuggestion(loadExistingSuggestion(resourceOid).getObject())) {
-            switchToggleModel.setObject(Boolean.FALSE);
-        }
+        reloadSwitchModel(resourceOid);
 
         SmartAlertGeneratingPanel aiPanel = createSmartAlertGeneratingPanel(resourceOid, switchToggleModel);
         add(aiPanel);
@@ -112,11 +114,16 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         TabSeparatedTabbedPanel<ITab> tabPanel = new TabSeparatedTabbedPanel<>(ID_TAB_TABLE, tabs) {
             @Override
             protected void onAjaxUpdate(@NotNull Optional<AjaxRequestTarget> optional) {
-                optional.ifPresent(target -> target.add(getButtonsContainer()));
+                optional.ifPresent(target -> {
+                    target.add(getButtonsContainer());
+                    target.add(getAiPanel());
+                });
             }
 
             @Override
             protected void onClickTabPerformed(int index, @NotNull Optional<AjaxRequestTarget> target) {
+                reloadSwitchModel(resourceOid);
+                isInboundTabSelected = !isInboundTabSelected;
                 if (getTable().isValidFormComponents()) {
                     super.onClickTabPerformed(index, target);
                 }
@@ -127,6 +134,12 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
         tabPanel.setOutputMarkupId(true);
         add(tabPanel);
+    }
+
+    private void reloadSwitchModel(String resourceOid) {
+        if (isNotCompletedSuggestion(loadExistingSuggestion(resourceOid, getSelectedMappingType()).getObject())) {
+            switchToggleModel.setObject(Boolean.FALSE);
+        }
     }
 
     private void switchTabs(TabSeparatedTabbedPanel<ITab> tabPanel) {
@@ -228,35 +241,58 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 getValueModel(),
                 ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
                 ResourceAttributeDefinitionType.F_REF,
-                initialTab);
+                getSelectedMappingType());
     }
 
-    protected LoadableModel<StatusInfo<?>> loadExistingSuggestion(String resourceOid) {
+    protected LoadableModel<StatusInfo<?>> loadExistingSuggestion(String resourceOid, MappingDirection mappingDirection) {
         Task task = getPageBase().createSimpleTask("Load generation statusInfo");
         OperationResult result = task.getResult();
         return new LoadableModel<>() {
             @Override
             protected StatusInfo<MappingsSuggestionType> load() {
-                return loadMappingTypeSuggestion(getPageBase(), resourceOid, task, result);
+                return loadMappingTypeSuggestion(getPageBase(), resourceOid, mappingDirection, task, result);
             }
         };
     }
 
     private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
-            String resourceOid,
-            IModel<Boolean> switchToggleModel) {
+            @NotNull String resourceOid,
+            @NotNull IModel<Boolean> switchToggleModel) {
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
-                () -> new SmartGeneratingAlertDto(loadExistingSuggestion(resourceOid), switchToggleModel, getPageBase())) {
+                () -> new SmartGeneratingAlertDto(loadExistingSuggestion(resourceOid, getSelectedMappingType()), switchToggleModel, getPageBase())) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target) {
                 ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
+                if (objectTypeIdentification == null) {
+                    LOGGER.warn("Cannot perform suggest mapping operation - no resource object type definition found.");
+                    return;
+                }
+
                 SmartIntegrationService service = getPageBase().getSmartIntegrationService();
+                if (getSelectedMappingType() == MappingDirection.INBOUND) {
+                    performInboundMappingSuggestion(service, objectTypeIdentification, target);
+                } else {
+                    performOutboundMappingSuggestion(service, objectTypeIdentification, target);
+                }
+            }
+
+            private void performInboundMappingSuggestion(
+                    @NotNull SmartIntegrationService service,
+                    @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
+                    @NotNull AjaxRequestTarget target) {
                 getPageBase().taskAwareExecutor(target, OP_SUGGEST_MAPPING)
                         .withOpResultOptions(OpResult.Options.create()
                                 .withHideSuccess(true)
                                 .withHideInProgress(true))
                         .runVoid((task, result) -> service
                                 .submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, task, result));
+            }
+
+            private void performOutboundMappingSuggestion(
+                    @NotNull SmartIntegrationService service,
+                    @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
+                    @NotNull AjaxRequestTarget target) {
+                //TODO implement outbound suggestion
             }
 
             @Override
@@ -282,8 +318,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         aiPanel.add(new VisibleBehaviour(() -> switchToggleModel.getObject().equals(Boolean.TRUE)));
         return aiPanel;
     }
-
-    boolean isInboundTabSelected = true;
 
     public MappingDirection getSelectedMappingType() {
         return isInboundTabSelected ? MappingDirection.INBOUND : MappingDirection.OUTBOUND;
@@ -391,13 +425,11 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     protected ContainerPanelConfigurationType getConfiguration(String panelType) {
-        return WebComponentUtil.getContainerConfiguration(
-                getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
-                panelType);
+        var objectDetailsPageConfiguration = getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration();
+        return WebComponentUtil.getContainerConfiguration(objectDetailsPageConfiguration.getObject(), panelType);
     }
 
     protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
-
     }
 
     private @Nullable ResourceObjectTypeIdentification getResourceObjectTypeIdentification() {

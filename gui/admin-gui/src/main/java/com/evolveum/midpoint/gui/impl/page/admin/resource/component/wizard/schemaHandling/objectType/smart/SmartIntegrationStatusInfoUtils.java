@@ -265,8 +265,15 @@ public class SmartIntegrationStatusInfoUtils {
     public static @Nullable StatusInfo<MappingsSuggestionType> loadMappingTypeSuggestion(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
+            @NotNull MappingDirection mappingDirection,
             @NotNull Task task,
             @NotNull OperationResult result) {
+
+        if(mappingDirection == MappingDirection.OUTBOUND){
+            //TODO replace with actual outbound call when supported
+            LOGGER.warn("Outbound mapping suggestions are not yet supported. Returning null.");
+            return null;
+        }
         var smart = pageBase.getSmartIntegrationService();
 
         try {
