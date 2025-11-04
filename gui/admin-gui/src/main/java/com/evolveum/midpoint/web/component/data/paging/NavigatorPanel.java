@@ -14,6 +14,7 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.Loop;
 import org.apache.wicket.markup.html.list.LoopItem;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
@@ -26,24 +27,32 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serial;
+
 /**
  * @author lazyman
  */
 public class NavigatorPanel extends Panel {
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final int PAGING_SIZE = 5;
 
     private static final String ID_PAGINATION = "pagination";
     private static final String ID_PREVIOUS = "previous";
     private static final String ID_PREVIOUS_LINK = "previousLink";
+    private static final String ID_PREVIOUS_LINK_LABEL = "previousLinkLabel";
     private static final String ID_FIRST = "first";
     private static final String ID_FIRST_LINK = "firstLink";
+    private static final String ID_FIRST_LINK_LABEL = "firstLinkLabel";
     private static final String ID_LAST = "last";
     private static final String ID_LAST_LINK = "lastLink";
+    private static final String ID_LAST_LINK_LABEL = "lastLinkLabel";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_PAGE_LINK = "pageLink";
     private static final String ID_NEXT = "next";
     private static final String ID_NEXT_LINK = "nextLink";
+    private static final String ID_NEXT_LINK_LABEL = "nextLinkLabel";
 
     private final IPageable pageable;
     private final IModel<Boolean> showPageListingModel;
@@ -65,7 +74,7 @@ public class NavigatorPanel extends Panel {
 
     private void initLayout() {
         WebMarkupContainer pagination = new WebMarkupContainer(ID_PAGINATION);
-        pagination.add(AttributeAppender.append("class", () -> getPaginationCssClass()));
+        pagination.add(AttributeAppender.append("class", this::getPaginationCssClass));
         add(pagination);
 
         initFirst(pagination);
@@ -84,6 +93,7 @@ public class NavigatorPanel extends Panel {
         previous.add(AttributeAppender.append("class", (IModel<String>) () -> isPreviousEnabled() ? "" : "disabled"));
         pagination.add(previous);
         AjaxLink<Void> previousLink = new AjaxLink<>(ID_PREVIOUS_LINK) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -95,8 +105,13 @@ public class NavigatorPanel extends Panel {
                 previousPerformed(target);
             }
         };
-        previousLink.add(new EnableBehaviour(() -> isPreviousEnabled()));
+        previousLink.add(new EnableBehaviour(this::isPreviousEnabled));
+        previousLink.add(AttributeAppender.append("aria-disabled", () -> !isPreviousEnabled()));
         previous.add(previousLink);
+
+        Label previousLinkLabel = new Label(ID_PREVIOUS_LINK_LABEL, getString("NavigatorPanel.previousLink"));
+        previousLinkLabel.setOutputMarkupId(true);
+        previousLink.add(previousLinkLabel);
     }
 
     private void initFirst(WebMarkupContainer pagination) {
@@ -104,6 +119,7 @@ public class NavigatorPanel extends Panel {
         first.add(AttributeAppender.append("class", (IModel<String>) () -> isFirstEnabled() ? "" : "disabled"));
         pagination.add(first);
         AjaxLink<Void> firstLink = new AjaxLink<>(ID_FIRST_LINK) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -115,26 +131,30 @@ public class NavigatorPanel extends Panel {
                 firstPerformed(target);
             }
         };
-        firstLink.add(new EnableBehaviour(() -> BooleanUtils.isTrue(showPageListingModel.getObject()) && isFirstEnabled()));
+        var isFirstLinkEnabled = BooleanUtils.isTrue(showPageListingModel.getObject()) && isFirstEnabled();
+        firstLink.add(new EnableBehaviour(() -> isFirstLinkEnabled));
+        firstLink.add(AttributeAppender.append("aria-disabled", () -> !isFirstLinkEnabled));
         first.add(firstLink);
+
+        Label firstLinkLabel = new Label(ID_FIRST_LINK_LABEL, getString("NavigatorPanel.firstLink"));
+        firstLinkLabel.setOutputMarkupId(true);
+        firstLink.add(firstLinkLabel);
     }
 
     private void initNavigation(WebMarkupContainer pagination) {
         IModel<Integer> model = () -> {
             int count = (int) getPageCount();
-            if (count < PAGING_SIZE) {
-                return count;
-            }
-
-            return PAGING_SIZE;
+            return Math.min(count, PAGING_SIZE);
         };
 
         Loop navigation = new Loop(ID_NAVIGATION, model) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final LoopItem item) {
                 final NavigatorPageLink pageLink = new NavigatorPageLink(ID_PAGE_LINK,
                         computePageNumber(item.getIndex())) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -192,6 +212,7 @@ public class NavigatorPanel extends Panel {
         pagination.add(next);
 
         AjaxLink<Void> nextLink = new AjaxLink<>(ID_NEXT_LINK) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -203,8 +224,13 @@ public class NavigatorPanel extends Panel {
                 nextPerformed(target);
             }
         };
-        nextLink.add(new EnableBehaviour(() -> isNextEnabled()));
+        nextLink.add(new EnableBehaviour(this::isNextEnabled));
+        nextLink.add(AttributeAppender.append("aria-disabled", () -> !isNextEnabled()));
         next.add(nextLink);
+
+        Label nextLinkLabel = new Label(ID_NEXT_LINK_LABEL, getString("NavigatorPanel.nextLink"));
+        nextLinkLabel.setOutputMarkupId(true);
+        nextLink.add(nextLinkLabel);
     }
 
     private void initLast(WebMarkupContainer pagination) {
@@ -213,6 +239,7 @@ public class NavigatorPanel extends Panel {
         pagination.add(last);
 
         AjaxLink<Void> lastLink = new AjaxLink<>(ID_LAST_LINK) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -224,8 +251,14 @@ public class NavigatorPanel extends Panel {
                 lastPerformed(target);
             }
         };
-        lastLink.add(new EnableBehaviour(() -> !isCountingDisabled() && BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled()));
+        var isLastLinkEnabled = !isCountingDisabled() && BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled();
+        lastLink.add(new EnableBehaviour(() -> isLastLinkEnabled));
+        lastLink.add(AttributeAppender.append("aria-disabled", () -> !isLastLinkEnabled));
         last.add(lastLink);
+
+        Label lastLinkLabel = new Label(ID_LAST_LINK_LABEL, getString("NavigatorPanel.lastLink"));
+        lastLinkLabel.setOutputMarkupId(true);
+        lastLink.add(lastLinkLabel);
     }
 
     private boolean isPreviousEnabled() {

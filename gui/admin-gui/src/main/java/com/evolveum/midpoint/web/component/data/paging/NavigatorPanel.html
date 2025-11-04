@@ -10,12 +10,12 @@
     <ul class="pagination mb-0" wicket:id="pagination">
         <li class="page-item" wicket:id="first">
             <a class="page-link" wicket:id="firstLink" wicket:message="aria-label:Pagination.firstPage">
-                <wicket:message key="NavigatorPanel.firstLink"/>
+                <span aria-hidden="true" wicket:id="firstLinkLabel" />
             </a>
         </li>
         <li class="page-item" wicket:id="previous">
             <a class="page-link" wicket:id="previousLink" wicket:message="aria-label:Pagination.previousPage">
-                <wicket:message key="NavigatorPanel.previousLink"/>
+                <span aria-hidden="true" wicket:id="previousLinkLabel" />
             </a>
         </li>
         <li class="page-item" wicket:id="navigation">
@@ -23,12 +23,12 @@
         </li>
         <li class="page-item" wicket:id="next">
             <a class="page-link" wicket:id="nextLink" wicket:message="aria-label:Pagination.nextPage">
-                <wicket:message key="NavigatorPanel.nextLink"/>
+                <span aria-hidden="true" wicket:id="nextLinkLabel" />
             </a>
         </li>
         <li class="page-item" wicket:id="last">
             <a class="page-link" wicket:id="lastLink" wicket:message="aria-label:Pagination.lastPage">
-                <wicket:message key="NavigatorPanel.lastLink"/>
+                <span aria-hidden="true" wicket:id="lastLinkLabel" />
             </a>
         </li>
     </ul>
