@@ -200,7 +200,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         setOutputMarkupId(true);
         WebMarkupContainer infoContainer = new WebMarkupContainer(ID_INFO_CONTAINER);
         infoContainer.setOutputMarkupId(true);
-        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && !isInTable()));
+        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && (!isInTable()|| isReadOnly())));
         add(infoContainer);
 
         Label infoLabel = new Label(ID_INFO_LABEL, infoLabelModel);
