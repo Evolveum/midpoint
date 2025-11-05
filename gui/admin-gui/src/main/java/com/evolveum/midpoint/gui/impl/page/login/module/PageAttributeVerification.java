@@ -7,9 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -34,9 +36,16 @@ public class PageAttributeVerification extends PageAbstractAttributeVerification
     protected List<VerificationAttributeDto> loadAttrbuteVerificationDtoList() {
         AttributeVerificationModuleAuthentication module = getAuthenticationModuleConfiguration();
         List<ItemPath> moduleAttributes = module.getPathsToVerify();
-        return moduleAttributes.stream()
-                .map(itemPath -> new VerificationAttributeDto(createItemWrapper(itemPath), itemPath))
-                .collect(Collectors.toList());
+        List<VerificationAttributeDto> attributeDtoList = new ArrayList<>();
+        for (ItemPath path : moduleAttributes) {
+            var wrapper = createItemWrapper(path);
+            if (wrapper == null) {
+                error("Error occurred while verification attributes loading.");
+                return new ArrayList<>();
+            }
+            attributeDtoList.add(new VerificationAttributeDto(wrapper, path));
+        }
+        return attributeDtoList;
     }
 
     @Override

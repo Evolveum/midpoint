@@ -206,10 +206,12 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
     protected PrismPropertyWrapper<?> createItemWrapper(ItemPath itemPath) {
         try {
             var itemDefinition = resolveAttributeDefinition(itemPath);
+            if (itemDefinition == null) {
+                return null;
+            }
             var wrapperContext = createWrapperContext();
-            var itemWrapper = (PrismPropertyWrapper<?>) createItemWrapper(itemDefinition.instantiate(), ItemStatus.ADDED,
+            return (PrismPropertyWrapper<?>) createItemWrapper(itemDefinition.instantiate(), ItemStatus.ADDED,
                     wrapperContext);
-            return itemWrapper;
         } catch (SchemaException e) {
             LOGGER.debug("Unable to create item wrapper for path {}", itemPath);
         }
