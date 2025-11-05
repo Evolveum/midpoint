@@ -19,6 +19,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -54,6 +55,7 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
     private static final String ID_ARCHETYPE_PANEL = "archetype";
     private static final String ID_ARCHETYPE_OID = "archetypeOid";
     private static final String ID_ALLOW_UNDEFINED_ARCHETYPE = "allowUndefinedArchetype";
+    private static final String ID_PANEL_STATUS = "panelStatus";
 
     private final IModel<String> archetypeOidModel = Model.of();
 
@@ -125,6 +127,10 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
         archetypeSelectionPanel.setOutputMarkupId(true);
         form.add(archetypeSelectionPanel);
 
+        Label panelStatus = new Label(ID_PANEL_STATUS);
+        panelStatus.setOutputMarkupId(true);
+        archetypeSelectionPanel.add(panelStatus);
+
         ListView<Tile<ArchetypeType>> archetypeListPanel = new ListView<>(ID_ARCHETYPES_PANEL, tilesModel) {
 
             @Serial private static final long serialVersionUID = 1L;
@@ -147,7 +153,7 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
         List<ObjectReferenceType> archetypeRefs = archetypeSelectionType.getArchetypeRef();
         List<ArchetypeType> archetypes = resolveArchetypeObjects(archetypeRefs);
         tiles = archetypes.stream()
-                .map(archetype -> createTile(archetype))
+                .map(this::createTile)
                 .collect(Collectors.toList());
         if (moduleAuthentication.isAllowUndefined()) {
             var undefinedArchetypeTile = createUndefinedArchetypeTile();
@@ -210,12 +216,22 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
                 target.add(getArchetypesContainer());
                 target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
                 target.appendJavaScript("MidPointTheme.restoreFocus();");
+                updatePanelStatusLabel(tileModel, target);
             }
         };
         tilePanel.setHorizontal(false);
         tilePanel.add(new AttributeModifier("data-component-id", () ->
                 tileModel.getObject().isSelected() ? tilePanel.getPageRelativePath() : null));
         return tilePanel;
+    }
+
+    private void updatePanelStatusLabel(IModel<Tile<ArchetypeType>> tileModel, AjaxRequestTarget target) {
+        String statusId = getArchetypeSelectionPanelStatusComponent().getMarkupId();
+        boolean isSelected = tileModel.getObject().isSelected();
+        String message = createStringResource(
+                isSelected ? "PageArchetypeSelection.archetype.selected" : "PageArchetypeSelection.archetype.deselected",
+                tileModel.getObject().getTitle()).getString();
+        target.appendJavaScript("MidPointTheme.updateStatusMessage('" + statusId + "', '" + message + "', 250)");
     }
 
     private void archetypeSelected(IModel<Tile<ArchetypeType>> tileModel, AjaxRequestTarget target) {
@@ -246,4 +262,10 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
     protected String getArchetypeOid() {
         return archetypeOidModel.getObject();
     }
+
+    private Component getArchetypeSelectionPanelStatusComponent() {
+        return getArchetypesContainer().get(ID_PANEL_STATUS);
+    }
+
+
 }
