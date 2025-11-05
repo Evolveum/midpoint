@@ -1,4 +1,4 @@
-MidPoint 4.10 Development Branch
+MidPoint 4.10 RC3
 -------------------------------
 
 General information:
