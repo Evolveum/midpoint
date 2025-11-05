@@ -136,6 +136,11 @@ public class PageResetPassword extends AbstractPageLogin {
             protected boolean isHintPanelVisible() {
                 return getPasswordHintConfigurability() == PasswordHintConfigurabilityType.ALWAYS_CONFIGURE;
             }
+
+            @Override
+            protected boolean arePasswordInputFieldsAssociatedWithLabels() {
+                return true;
+            }
         };
         changePasswordPanel.setOutputMarkupId(true);
         form.add(changePasswordPanel);
