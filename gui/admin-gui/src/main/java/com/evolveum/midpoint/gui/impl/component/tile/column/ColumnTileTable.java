@@ -550,4 +550,17 @@ public abstract class ColumnTileTable<O extends Serializable>
         return super.createSearchModel();
     }
 
+    @Override
+    public boolean displayNoValuePanel() {
+//        return getProvider().size() == 0;
+        return false; //disable for now
+    }
+
+    @Override
+    protected List<Component> createNoValueButtonToolbar(String id) {
+        List<Component> buttons = new ArrayList<>();
+        AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(id);
+        buttons.add(newObjectPerformButton);
+        return buttons;
+    }
 }

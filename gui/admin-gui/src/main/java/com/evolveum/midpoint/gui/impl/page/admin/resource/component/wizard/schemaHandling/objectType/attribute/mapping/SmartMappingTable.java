@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.AbstractMappingsTable.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundAttributeMappingsTable.getMappingUsedIconColumn;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_INBOUND_MAPPINGS;
@@ -19,6 +21,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -27,6 +30,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
 import com.evolveum.midpoint.gui.impl.component.tile.column.ColumnTileTable;
+import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
@@ -128,6 +132,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
                         inlineMenuItems.add(createDiscardItemMenu());
                         inlineMenuItems.add(createAcceptItemMenu());
+                        inlineMenuItems.add(createDuplicateInlineMenu());
+                        inlineMenuItems.add(createChangeMappingNameInlineMenu());
+                        inlineMenuItems.add(createChangeLifecycleButtonInlineMenu());
                         return inlineMenuItems;
                     }
 
@@ -166,7 +173,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                             @Override
                             protected Search<?> load() {
                                 SearchBuilder<?> searchBuilder = new SearchBuilder<>(MappingType.class)
-                                        .setFullTextSearchEnabled(true)
+//                                        .setFullTextSearchEnabled(true)
                                         .modelServiceLocator(getPageBase());
                                 return searchBuilder.build();
                             }
@@ -190,13 +197,17 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         SmartMappingTable.this.deleteItemPerform(value);
                     }
 
+                    @SuppressWarnings("unchecked")
                     @Override
                     protected @NotNull ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> createProvider() {
                         var dto = StatusAwareDataFactory.createMappingModel(this, resourceOid, switchToggleModel,
                                 () -> getContainerModel().getObject(), findResourceObjectTypeDefinition(), getMappingType(),
                                 acceptedSuggestionsCache);
-
-                        return new StatusAwareDataProvider<>(this, Model.of(), dto, true) {
+                        return new StatusAwareDataProvider<>(
+                                this,
+                                (IModel<Search<MappingType>>) (IModel<?>) getSearchModel(),
+                                dto,
+                                true) {
                             @Override
                             protected List<PrismContainerValueWrapper<MappingType>> searchThroughList() {
                                 var list = super.searchThroughList();
@@ -220,34 +231,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     private @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getInboundMappingColumns() {
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
-        columns.add(new IconColumn<>(Model.of()) {
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                PrismContainerValueWrapper<MappingType> mapping = rowModel.getObject();
-                MappingType mappingBean = mapping.getRealValue();
-
-                InboundMappingUseType mappingUsed = ((InboundMappingType) mappingBean).getUse();
-                if (mappingUsed == null) {
-                    mappingUsed = InboundMappingUseType.ALL;
-                }
-                for (MappingUsedFor usedFor : Arrays.stream(MappingUsedFor.values()).toList()) {
-                    if (usedFor.getType().equals(mappingUsed)) {
-                        return new DisplayType()
-                                .tooltip(usedFor.getTooltip())
-                                .beginIcon()
-                                .cssClass(usedFor.getIcon())
-                                .end();
-                    }
-                }
-                return new DisplayType();
-            }
-
-            @Override
-            public String getCssClass() {
-                return "px-0 tile-column-icon";
-            }
-        });
+        columns.add(getMappingUsedIconColumn("tile-column-icon"));
 
         columns.add(new IconColumn<>(Model.of()) {
 
@@ -447,13 +431,59 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         }
     }
 
-//    protected @NotNull InlineMenuItem createDuplicateInlineMenu(PrismContainerValueWrapper<MappingType> tileModel) {
-//        InlineMenuItem duplicateInlineMenu = super.createDuplicateInlineMenu(tileModel);
-//        setVisibilityBySuggestion(duplicateInlineMenu, false, this::getStatusInfo);
-//        return duplicateInlineMenu;
-//    }
+    protected @NotNull InlineMenuItem createDuplicateInlineMenu() {
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("DuplicationProcessHelper.menu.duplicate"))
+                .action(DuplicationProcessHelper.createDuplicateColumnAction(getPageBase(),
+                        this::createDuplicateValuePerform))
+                .headerMenuItem(false)
+                .visibilityChecker(bySuggestion(false, this::getStatusInfo))
+                .buildInlineMenu();
+    }
 
-    protected final PrismContainerValueWrapper<MappingType> createNewValue(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
+    protected final void createDuplicateValuePerform(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
+        createNewValue(value, target);
+        refreshAndDetach(target);
+    }
+
+    private @NotNull InlineMenuItem createChangeLifecycleButtonInlineMenu() {
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("AttributeMappingsTable.button.changeLifecycle"))
+                .action(createChangeLifecycleColumnAction(getPageBase(), this::refreshAndDetach,
+                        () -> getTable().getSelectedContainerItems()))
+                .visibilityChecker((rowModel, isHeader) -> isHeader)
+                .buildInlineMenu();
+    }
+
+    private @NotNull InlineMenuItem createChangeMappingNameInlineMenu() {
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("AttributeMappingsTable.button.changeMappingName"))
+                .action(createChangeNameColumnAction(getPageBase(), this::refreshAndDetach))
+                .headerMenuItem(false)
+                .visibilityChecker(changeNameVisibilityChecker())
+                .buildInlineMenu();
+    }
+
+    private InlineMenuItem.@NotNull VisibilityChecker changeNameVisibilityChecker() {
+        return (rowModel, isHeader) -> {
+            InlineMenuItem.VisibilityChecker visibilityChecker = bySuggestion(false, this::getStatusInfo);
+            boolean visible = visibilityChecker.isVisible(rowModel, isHeader);
+            if (!visible) {
+                return false;
+            }
+            try {
+                @SuppressWarnings("unchecked") PrismPropertyWrapper<String> property =
+                        ((PrismContainerValueWrapper<MappingType>) rowModel.getObject()).findProperty(MappingType.F_NAME);
+                return property.isReadOnly();
+            } catch (SchemaException e) {
+                return false;
+            }
+        };
+    }
+
+    protected final PrismContainerValueWrapper<MappingType> createNewValue(
+            PrismContainerValue<MappingType> value,
+            AjaxRequestTarget target) {
         return createNewVirtualMappingValue(
                 value,
                 getValueModel(),

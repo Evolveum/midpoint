@@ -36,6 +36,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,10 +72,18 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
     @Override
     protected IColumn<PrismContainerValueWrapper<MappingType>, String> createUsedIconColumn() {
+        return getMappingUsedIconColumn(null);
+    }
+
+    public static @NotNull IconColumn<PrismContainerValueWrapper<MappingType>> getMappingUsedIconColumn(
+            @Nullable String additionalCssClass) {
         return new IconColumn<>(Model.of()) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+            public void populateItem(
+                    Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem,
+                    String componentId,
+                    IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
                 super.populateItem(cellItem, componentId, rowModel);
                 cellItem.add(AttributeAppender.append("class", "text-center"));
             }
@@ -102,7 +111,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
             @Override
             public String getCssClass() {
-                return "px-0";
+                return "px-0 " + additionalCssClass;
             }
         };
     }
