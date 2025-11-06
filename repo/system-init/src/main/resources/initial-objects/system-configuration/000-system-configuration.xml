@@ -1940,19 +1940,46 @@
                 <type>const</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator id="223">
-                <type>script</type>
-                <decision>deny</decision> <!-- default decision of those script languages that are not explicitly enumerated. -->
-                <script id="224">
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                    <decision>allow</decision>
-                    <typeChecking>true</typeChecking>
-                    <permissionProfile>script-safe</permissionProfile>
-                </script>
+            <evaluator id="273">
+                <type>filter</type>
+                <decision>allow</decision>
             </evaluator>
+            <evaluator id="274">
+                <type>function</type>
+                <decision>allow</decision>
+            </evaluator>
+            <bulkActionsProfile>prohibitive</bulkActionsProfile>
+            <privilegeElevation>deny</privilegeElevation>
         </expressionProfile>
+        <expressionProfile id="275">
+            <identifier>permissive</identifier>
+            <description>Unlimited access to all expressions</description>
+            <decision>allow</decision>
+            <privilegeElevation>allow</privilegeElevation>
+        </expressionProfile>
+        <expressionProfile id="276">
+            <identifier>prohibitive</identifier>
+            <description>No access to any expressions</description>
+            <decision>deny</decision>
+            <bulkActionsProfile>prohibitive</bulkActionsProfile>
+            <privilegeElevation>deny</privilegeElevation>
+        </expressionProfile>
+        <bulkActionsProfile id="277">
+            <identifier>prohibitive</identifier>
+            <decision>deny</decision>
+        </bulkActionsProfile>
         <permissionProfile id="225">
-            <identifier>script-safe</identifier>
+            <identifier>script-limited</identifier>
+            <description>
+                "Limited" script permission profile. It is supposed to contain operations that are mostly "safe",
+                i.e. operations that have very little risk to harm the system, circumvent midPoint security
+                and so on.
+                However, this profile may incomplete, and it is likely it is not completely secure.
+                The very nature of script permission checks (a.k.a. sandbox) does not guarantee complete safety.
+                This profile is meant as a means to limit (mostly unintentional) harm done by the scripts,
+                it is not meant as a strict security measure.
+                It is provided here "AS IS", without any guarantees. Use at your own risk.
+            </description>
             <decision>deny</decision> <!-- Default decision for those classes that are not explicitly enumerated. -->
             <package id="226">
                 <name>com.evolveum.midpoint.xml.ns._public.common.common_3</name>

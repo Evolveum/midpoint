@@ -89,6 +89,7 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * Add OAuth 2 credential flow to mail servers notification configuration
 * Added languages, specifically Korean, Dutch, and Ukrainian.
 * Removed support for deprecated generic repository implementation (Oracle, SQL Server). See bug:MID-10866[].
+* Improved `safe` expression profile in default system configuration.
 
 === Other Bug Fixes
 
@@ -548,6 +549,7 @@ For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/
 * 028-archetype-application-role.xml: fixed the plural label.
 * 041-role-approver.xml: added manualProvisioningContext item to read authorization of the CaseType object in order to correctly display case details page.
 * 010-value-policy.xml: improved localization
+* 000-system-configuration.xml: improved `safe` expression profile, added `permissive` and `prohobitive` profiles, renamed `script-safe` to `script-limited` permission profile.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
@@ -614,6 +616,16 @@ If a user has no authorization to see particular projection (shadow), the "previ
 This is now changed (fixed): only the relevant projections are hidden now.
 All the remaining data are displayed to the user.
 See also bug:MID-10397[].
+
+* Expression profile changes:
+
+** Script expression evaluator was removed from `safe` expression profile, as it is not considered to be safe.
+
+** Two new expression profiles were added: `permissive` (allowing all expressions) and `prohibitive` (allowing no expressions).
+
+** Permission profile `script-safe` was renamed to `script-limited`, as the existing mechanism for script permission checks is not considered to provide complete safety and security.
+This profile is not considered to provide strict security, therefore the name was changed to avoid mis-interpretation.
+Corresponding description was added to the profile.
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8
