@@ -826,7 +826,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return null;
     }
 
-    private void addErrorPanel(boolean force, MidpointForm form, MessagePanel.MessagePanelType type, String message, Object... params) {
+    private void addErrorPanel(boolean force, MidpointForm<?> form, MessagePanel.MessagePanelType type, String message, Object... params) {
         if (!force && form.get(ID_MAIN_PANEL) != null) {
             return;
         }
@@ -835,12 +835,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         form.addOrReplace(panel);
     }
 
-    protected DetailsNavigationPanel initNavigation() {
+    protected DetailsNavigationPanel<O> initNavigation() {
         return createNavigationPanel(getPanelConfigurations());
     }
 
     private DetailsNavigationPanel<O> createNavigationPanel(IModel<List<ContainerPanelConfigurationType>> panels) {
-        DetailsNavigationPanel panel = new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
+        DetailsNavigationPanel<O> panel = new DetailsNavigationPanel<>(AbstractPageObjectDetails.ID_NAVIGATION, objectDetailsModels, panels) {
 
             @Override
             protected void onClickPerformed(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
@@ -853,7 +853,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     public void replacePanel(ContainerPanelConfigurationType config, AjaxRequestTarget target) {
-        MidpointForm form = getMainForm();
+        MidpointForm<?> form = getMainForm();
         try {
             initMainPanel(config, form);
             target.add(getFeedbackPanel());
