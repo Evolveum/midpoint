@@ -68,6 +68,14 @@
                 <type>function</type>
                 <decision>allow</decision>
             </evaluator>
+            <evaluator id="278">
+                <type>generate</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator id="279">
+                <type>proportional</type>
+                <decision>allow</decision>
+            </evaluator>
             <bulkActionsProfile>prohibitive</bulkActionsProfile>
             <privilegeElevation>deny</privilegeElevation>
         </expressionProfile>
