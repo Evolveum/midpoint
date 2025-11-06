@@ -46,29 +46,29 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
 
     }
 
-    @Override
-    protected Component createValuesPanel() {
-        Component valueContainer = super.createValuesPanel();
-        valueContainer.add(AttributeAppender.append(
-                "aria-label",
-                () -> {
-                    if (getModelObject() != null && getModelObject().isMultiValue()) {
-                        //TODO check it
-                        if (getHeader() == null) {
-                            return getParentPage().createStringResource(
-                                    "PrismContainerPanel.container");
-                        }
-                        return getParentPage().createStringResource(
-                                        "PrismContainerPanel.container", getHeader().createLabelModel().getObject())
-                                .getString();
-                    }
-                    return null;
-                }));
+//    @Override
+//    protected Component createValuesPanel() {
+//        Component valueContainer = super.createValuesPanel();
+//        valueContainer.add(AttributeAppender.append(
+//                "aria-label",
+//                () -> {
+//                    if (getModelObject() != null && getModelObject().isMultiValue()) {
+//                        //TODO check it
+//                        if (getHeader() == null) {
+//                            return getParentPage().createStringResource(
+//                                    "PrismContainerPanel.container");
+//                        }
+//                        return getParentPage().createStringResource(
+//                                        "PrismContainerPanel.container", getHeader().createLabelModel().getObject())
+//                                .getString();
+//                    }
+//                    return null;
+//                }));
 //        valueContainer.add(AttributeAppender.append(
 //                "tabindex",
 //                () -> getModelObject() != null && getModelObject().isMultiValue() ? "0" : null));
-        return valueContainer;
-    }
+//        return valueContainer;
+//    }
 
     private PrismContainerHeaderPanel getHeader() {
         return (PrismContainerHeaderPanel) get(ID_HEADER);
