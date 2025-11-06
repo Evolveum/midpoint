@@ -253,7 +253,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-3 header-border-right";
+                return "col header-border-right";
             }
 
             @Override
