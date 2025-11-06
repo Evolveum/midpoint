@@ -27,14 +27,13 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.AiUtil;
-import com.evolveum.midpoint.smart.impl.scoring.ObjectTypesQualityAssessor;
+import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
@@ -58,11 +57,11 @@ class ObjectTypesSuggestionOperation {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesSuggestionOperation.class);
 
     private final OperationContext ctx;
-    private final ObjectTypesQualityAssessor qualityAssessor;
+    private final ObjectTypeFiltersValidator filtersValidator;
 
-    ObjectTypesSuggestionOperation(OperationContext context, ObjectTypesQualityAssessor qualityAssessor) {
+    ObjectTypesSuggestionOperation(OperationContext context, ObjectTypeFiltersValidator filtersValidator) {
         this.ctx = context;
-        this.qualityAssessor = qualityAssessor;
+        this.filtersValidator = filtersValidator;
     }
 
     /**
@@ -73,9 +72,9 @@ class ObjectTypesSuggestionOperation {
      * service to guide a second attempt. If issues persist, partial results are used.
      */
     ObjectTypesSuggestionType suggestObjectTypes(
-            OperationResult parentResult,
-            ShadowObjectClassStatisticsType shadowObjectClassStatistics)
-            throws SchemaException {
+            ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            OperationResult parentResult)
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         Collection<ObjectTypeWithFilters> suggestedObjectTypes = null;
         String errorLog = null;
         String previousScript = null;
@@ -91,7 +90,7 @@ class ObjectTypesSuggestionOperation {
                     LOGGER.warn("Validation issues found on attempt 1; retrying with feedback.");
                 } else {
                     LOGGER.warn("Validation issues persist after retry; using partial result.");
-                    suggestedObjectTypes = e.getPartialResult();
+                    suggestedObjectTypes = e.getValidObjectTypes();
                 }
             }
         }
@@ -145,15 +144,18 @@ class ObjectTypesSuggestionOperation {
         return response;
     }
 
-    private Collection<ObjectTypeWithFilters> parseAndValidateFilters(List<SiSuggestedObjectTypeType> objectTypes, OperationResult parentResult)
-            throws SuggestObjectTypesValidationException {
+    private Collection<ObjectTypeWithFilters> parseAndValidateFilters(
+            List<SiSuggestedObjectTypeType> objectTypes,
+            OperationResult parentResult)
+            throws SuggestObjectTypesValidationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+
         final List<ObjectTypeWithFilters> objectTypesWithFilters = new ArrayList<>();
 
         final StringBuilder originalFiltersSb = new StringBuilder();
         final StringBuilder errorLogsSb = new StringBuilder();
 
         for (final SiSuggestedObjectTypeType objectType : objectTypes) {
-            if (originalFiltersSb.length() > 0) {
+            if (!originalFiltersSb.isEmpty()) {
                 originalFiltersSb.append('\n').append("---").append('\n');
             }
             originalFiltersSb.append("[").append(objectType.getKind()).append("/").append(objectType.getIntent()).append("] ");
@@ -167,8 +169,7 @@ class ObjectTypesSuggestionOperation {
                             objectType,
                             ctx.objectClassDefinition.getPrismObjectDefinition(),
                             parentResult);
-                } catch (SystemException | SchemaException | ExpressionEvaluationException | CommunicationException
-                    | SecurityViolationException | ConfigurationException | ObjectNotFoundException | IllegalStateException e) {
+                } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException  e) {
                     LOGGER.warn("Failed validating suggested object type (kind={}, intent={}, displayName={}) for object class {}. Filters: {}",
                             objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(), ctx.objectClassDefinition.getTypeName(), objectType.getFilter(), e);
                     appendError(errorLogsSb, objectType, e);
@@ -178,9 +179,8 @@ class ObjectTypesSuggestionOperation {
                 try {
                     originalFiltersSb.append('\n').append("Base context: ").append(objectType.getBaseContextObjectClassName());
                     originalFiltersSb.append('\n').append("Filters: ").append(objectType.getBaseContextFilter());
-                    baseCtx = parseAndValidateBaseContext(objectType, parentResult);
-                } catch (SystemException | SchemaException | ExpressionEvaluationException | CommunicationException
-                        | SecurityViolationException | ConfigurationException | ObjectNotFoundException | IllegalStateException e) {
+                    baseCtx = parseAndValidateBaseContext(objectType.getBaseContextObjectClassName(), objectType.getBaseContextFilter(), parentResult);
+                } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException | IllegalStateException e) {
                     LOGGER.warn("Failed validating base context for suggested object type (kind={}, intent={}, displayName={}). Base context objectClass={}, filter={}",
                             objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(),
                             ctx.objectClassDefinition.getTypeName(), objectType.getBaseContextFilter(), e);
@@ -195,7 +195,7 @@ class ObjectTypesSuggestionOperation {
                     baseCtx != null ? baseCtx.filter() : null));
         }
 
-        if (errorLogsSb.length() > 0) {
+        if (!errorLogsSb.isEmpty()) {
             throw new SuggestObjectTypesValidationException(
                     originalFiltersSb.toString(),
                     errorLogsSb.toString(),
@@ -220,7 +220,7 @@ class ObjectTypesSuggestionOperation {
         for (String filterString : objectType.getFilter()) {
             filters.add(parseAndSerializeFilter(filterString, shadowObjectDef));
         }
-        qualityAssessor.isFilterRunnable(
+        filtersValidator.testObjectTypeFilter(
                 ctx.resource.getOid(),
                 ctx.objectClassDefinition.getTypeName(),
                 filters,
@@ -230,12 +230,10 @@ class ObjectTypesSuggestionOperation {
     }
 
     private ParsedBaseContext parseAndValidateBaseContext(
-            SiSuggestedObjectTypeType objectType,
+            String baseContextClassLocalName,
+            String baseContextFilterString,
             OperationResult parentResult) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ObjectNotFoundException, IllegalStateException {
-        var baseContextClassLocalName = objectType.getBaseContextObjectClassName();
-        var baseContextFilterString = objectType.getBaseContextFilter();
-
         stateCheck(baseContextClassLocalName != null,
                 "Base context class name must be set if base context filter is set");
         stateCheck(baseContextFilterString != null,
@@ -246,7 +244,7 @@ class ObjectTypesSuggestionOperation {
         var baseContextFilter = parseAndSerializeFilter(
                 baseContextFilterString, baseContextObjectDef.getPrismObjectDefinition());
 
-        qualityAssessor.isBaseContextFilterRunnable(
+        filtersValidator.testBaseContextFilter(
                 ctx.resource.getOid(),
                 baseContextClassQName,
                 baseContextFilter,
@@ -309,19 +307,19 @@ class ObjectTypesSuggestionOperation {
     static class SuggestObjectTypesValidationException extends SchemaException {
         private final String originalFilters;
         private final String errorLogs;
-        private final Collection<ObjectTypeWithFilters> partialResult;
+        private final Collection<ObjectTypeWithFilters> validObjectTypes;
 
         SuggestObjectTypesValidationException(String originalFilters, String errorLogs,
-                Collection<ObjectTypeWithFilters> partialResult) {
+                Collection<ObjectTypeWithFilters> validObjectTypes) {
             super("Some suggested object types failed validation.");
             this.originalFilters = originalFilters;
             this.errorLogs = errorLogs;
-            this.partialResult = partialResult;
+            this.validObjectTypes = validObjectTypes;
         }
 
         String getOriginalFilters() { return originalFilters; }
         String getErrorLogs() { return errorLogs; }
-        Collection<ObjectTypeWithFilters> getPartialResult() { return partialResult; }
+        Collection<ObjectTypeWithFilters> getValidObjectTypes() { return validObjectTypes; }
     }
 
 }

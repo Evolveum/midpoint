@@ -617,7 +617,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var op = this.objectTypesSuggestionOperationFactory.create(
                     serviceClient, resourceOid, objectClassName, task, result);
-            var types = op.suggestObjectTypes(result, statistics);
+            var types = op.suggestObjectTypes(statistics, result);
             LOGGER.debug("Object types suggestion:\n{}", types.debugDump(1));
             return types;
         } catch (Throwable t) {

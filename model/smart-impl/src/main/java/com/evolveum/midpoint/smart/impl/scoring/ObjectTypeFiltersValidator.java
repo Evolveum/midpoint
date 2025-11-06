@@ -11,6 +11,7 @@ package com.evolveum.midpoint.smart.impl.scoring;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -40,17 +41,23 @@ import javax.xml.namespace.QName;
  * Verifies if suggested object type delineation filters are runnable.
  */
 @Component
-public class ObjectTypesQualityAssessor {
+public class ObjectTypeFiltersValidator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypesQualityAssessor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeFiltersValidator.class);
 
     private static final String ID_IS_FILTER_RUNNABLE = "isFilterRunnable";
     private static final String ID_IS_BASE_CONTEXT_FILTER_RUNNABLE = "isBaseContextFilterRunnable";
 
+    private final ProvisioningService provisioningService;
+
+    public ObjectTypeFiltersValidator(ProvisioningService provisioningService) {
+        this.provisioningService = provisioningService;
+    }
+
     /**
      * Checks whether the suggested delineation is runnable for the resource and object class.
      */
-    public boolean isFilterRunnable(
+    public void testObjectTypeFilter(
             String resourceOid,
             QName objectClassName,
             List<SearchFilterType> filterBeans,
@@ -82,9 +89,7 @@ public class ObjectTypesQualityAssessor {
             ObjectQuery query = resource.queryFor(objectClassName).maxSize(1).build();
             query.addFilter(PrismContext.get().queryFactory().createAndOptimized(parts));
 
-            SmartIntegrationBeans.get().provisioningService.searchShadows(query, null, task, result);
-
-            return true;
+            provisioningService.searchShadows(query, null, task, result);
         } finally {
             result.close();
         }
@@ -93,7 +98,7 @@ public class ObjectTypesQualityAssessor {
     /**
      * Validates base context filter executability via provisioning layer.
      */
-    public boolean isBaseContextFilterRunnable(
+    public void testBaseContextFilter(
             String resourceOid,
             QName baseContextObjectClassName,
             SearchFilterType baseContextFilterBean,
@@ -120,9 +125,7 @@ public class ObjectTypesQualityAssessor {
 
             ObjectQuery query = resource.queryFor(baseContextObjectClassName).maxSize(1).build();
             query.addFilter(parsed);
-            SmartIntegrationBeans.get().provisioningService.searchShadows(query, null, task, result);
-
-            return true;
+            provisioningService.searchShadows(query, null, task, result);
         } finally {
             result.close();
         }

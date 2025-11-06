@@ -10,7 +10,6 @@ package com.evolveum.midpoint.smart.impl;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,6 @@ public class SmartIntegrationBeans {
 
     @Autowired public ModelService modelService;
     @Autowired public RepositoryService repositoryService;
-    @Autowired public ProvisioningService provisioningService;
     @Autowired public SmartIntegrationServiceImpl smartIntegrationService;
     @Autowired public Clock clock;
     @Autowired public LocalizationService localizationService;
