@@ -72,6 +72,11 @@ And midPoint is designed to process archetypes very efficiently.
 Which is extremely important as expressions are evaluated very often.
 Therefore all of that makes archetypes a very good fit for expression profile specification.
 
+Expression profiles are constraining evaluation of expressions, no matter how they were introduced in the object and regardless of xref:/midpoint/reference/security/authorization/[authorizations].
+In case that expression is constrained by a profile, that profile will stop evaluation of the expression even if _superuser_ is initiating the operation.
+In that respect, expression profile are an _orthogonal_ mechanisms to authorizations, providing additional security layer.
+In practice, coordinated use of expression profiles and authorizations is necessary to create safe configuration.
+// TODO: xref: Expression security
 
 == Configuration
 
@@ -93,3 +98,5 @@ Please see xref:/midpoint/features/planned/expression-profiles/[Expression Profi
 * xref:/midpoint/reference/expressions/[Mappings and Expressions]
 
 * xref:/midpoint/security/security-guide/[Security Guide]
+
+// TODO: xref: Expression security

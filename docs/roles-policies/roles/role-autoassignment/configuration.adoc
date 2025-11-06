@@ -32,9 +32,11 @@ Each role can have a condition when it should be assigned:
                     <path>organizationalUnit</path>
                 </source>
                 <condition>
-                    <script>
-                        <code>basic.stringify(organizationalUnit) == 'support'</code>
-                    </script>
+                    <filter>
+                        <filter>
+                            <q:text>costCenter = 'A001'</q:text>
+                        </filter>
+                    </filter>
                 </condition>
             </mapping>
         </focus>
@@ -42,16 +44,16 @@ Each role can have a condition when it should be assigned:
 </role>
 ----
 
-The role above will be automatically assigned to any user that has property `organizationalUnit` set to `support`.
-Please note that explicit `stringify()` invocation is needed in this case as the `organizationalUnit` property is of xref:/midpoint/reference/concepts/polystring/[PolyString] type.
+The role above will be automatically assigned to any user that has property `costCenter` set to `A001`.
 As all midPoint mapping even this mapping is xref:/midpoint/reference/concepts/relativity/[relativistic].
-If user becomes an intern (the `employeeType` property is changed) then the role is automatically assigned.
-When the user stops being an intern the role is unassigned.
-Obviously, it also works with multivalued properties and so on.
-Simply speaking, this is a well-mannered midPoint mapping.
+If user cost center is set to `A001` (the `costCenter` property is changed) then the role is automatically assigned.
+When the user cost center is changed to a different value, the role is unassigned.
+Of course, it also works with multivalued properties.
+Simply speaking, autoassignment is a proper well-mannered midPoint xref:/midpoint/reference/expressions/mappings/[mapping].
 
-This is all that is needed for simple cases: just specify the condition.
+_Condition_ is all that is needed for simple cases.
 MidPoint takes care of all the rest.
+
 
 Since midPoint 4.2 it is possible to restrict auto assignment evaluation to specific object using selector object.
 Using example below, autoassignment will be applied only for the user with archetype employee:
@@ -74,36 +76,37 @@ Using example below, autoassignment will be applied only for the user with arche
 
 == Relation and Other Parameters
 
-The simple example above shows just a very simple mapping.
-There is just a source and a condition.
-There is no expression.
-This is how the mapping is designed.
-MidPoint prepares the assignment data structure.
-Then the assignment is passed as a default source to the mapping.
-Therefore all the mapping needs to do for the role to be assigned is to pass the default input on.
-And that is just what the default asIs expression evaluator does.
-Therefore all the the mapping needs to do is to decide whether the assignment has to pass though or not.
-And that is what the condition does.
+The example above implements a very simple case.
+There is just a _source_ and a _condition_ in the role autoassignment mapping.
+There is no _expression_.
+This is the way the role autoassignment mapping is designed.
+MidPoint prepares the _assignment_ data structure, which is passed as a default source to the mapping.
+Therefore, all the mapping needs to do for the role to be assigned is to pass the default input on.
+The default `asIs` expression evaluator does that, therefore there is no need to specify the _expression_ explicitly.
+All the mapping needs to do is to decide whether the assignment has to pass though or not.
+That decision is controlled by the _condition_.
 
-This is very simple and efficient way.
-But it is also quite powerful.
-The mapping expression is not usually there.
-But it can be there.
-The expression can modify the default assignment.
-For example it can specify assignment parameters, activation and so on.
+This is very simple and efficient method.
+Yet, it can be quite powerful as well.
+The mapping expression is usually not needed.
+However, it can be specified when there is a need to modify or customize the default _assignment_.
+For example, the _expression_ can specify assignment parameters, relation, activation and so on.
 
 In fact the mapping is evaluated in exactly the same way as xref:/midpoint/reference/expressions/object-template/[object template] mappings.
-Therefore it has all the powers of an object template mapping.
-Just the mapping source is populated with prepared assignment and the target is pre-set to `assignment` container so the mapping is easier to use within roles.
+Therefore, it has all the powers of an object template mapping.
+Just the mapping source is populated with prepared _assignment_, and the target is pre-set to `assignment` container.
+
+// TODO: expression in mapping - example
 
 == Global Configuration and Limitations
 
 Role autoassignment is a very elegant mechanism.
-But there are implications.
-If anything about the user is changed midPoint has to decide whether any new roles have to be assigned.
-But to do that midPoint has to evaluate all the autoassigment rules in all the roles - even those that are not assigned to the user yet.
-As some midPoint deployments use a large number of roles this can be a significant performance hit.
-Therefore there are two configuration steps that need to be taken to enable this mechanism.
+However, there are implications.
+If anything about the user is changed, midPoint has to decide whether any new roles have to be assigned or unassigned.
+To do that, midPoint has to evaluate all the autoassigment rules in all the roles - even those that are not assigned to the user yet.
+As some midPoint deployments use a large number of roles, evaluation of all roles can be a significant performance hit.
+Therefore, the role autoassignment mechanism is not enabled by default.
+There are two configuration steps that need to be taken to enable this mechanism.
 Firstly, role autoassignment need to be enabled in global system configuration:
 
 [source,xml]
@@ -117,7 +120,7 @@ Firstly, role autoassignment need to be enabled in global system configuration:
 </systemConfiguration>
 ----
 
-Secondlly, each role that has an autoassign rules needs to be explicitly marked by using the `autoassign/enabled` flag:
+Secondly, each role that has an autoassignment rules needs to be explicitly marked by using the `autoassign/enabled` flag:
 
 .Autoassignment mapping in a role
 [source,xml]
@@ -132,25 +135,33 @@ Secondlly, each role that has an autoassign rules needs to be explicitly marked 
 ----
 
 This configuration limits the work that midPoint has to do for every operation.
-MidPoint will only process those roles that are explicitly marked for processing.
-And midPoint will entirely skip the lookup of the roles if the mechanism is not used at all.
+MidPoint will only process those roles that are explicitly marked for autoassignment processing.
+If the autoassingment mechanism is not used at all, MidPoint will entirely skip the lookup of the roles.
 
 It perhaps goes without saying that the more autoassign roles are there the worse is the performance impact.
 The actual impact depends on the number of such roles, their complexity and overall complexity of the midPoint deployment.
 It is usually perfectly acceptable to have tens of autoassign roles.
-But thousands of autoassign roles are usually not a good idea.
-And the performance is usually not the worst issue there.
+However, thousands of autoassign roles are usually not a good idea.
+The performance is usually not the worst issue there.
 Maintenance of thousands of autoassignment rules is very likely to be the real burden.
 In that case it may be better to consider a more systemic approach by using xref:/midpoint/reference/expressions/object-template/[object template].
 
-== Future Development
+== Limitations and Notes
 
-Current role autoassignment implementation is simple and powerful.
-But it may be too powerful for some use-cases.
-For example, it is not easy to create a nice and simple user interface for the autoassignment expressions as they are very likely to be script expressions.
-Therefore current midPoint (3.7) user interface does not support that.
+* MidPoint user interface does not support configuration of role autoassignment.
 
-Proposed future development is to allow alternative way to specify autoassignment conditions, for example by using search filters or some other formalized method that allows to create an easy user interface.
+* xref:/midpoint/reference/expressions/expressions/filter/[Filter expression evaluator] is recommended method for specification of autoassignment conditions (since midPoint 4.10 when the evaluator was introduced).
+Filter expression evaluator is a safe method for specifying conditions.
+This approach avoids the need to use potentially dangerous xref:/midpoint/reference/expressions/expressions/script/[script expressions].
+xref:/midpoint/reference/expressions/expressions/profiles/[Expression profiles] can be used to limit dangerous expressions in the roles and other object types.
+// TODO: ref to page describing safe use of expressions
+
+* In addition to a condition in autoassignment mapping, there is also an alternative way to specify a filter-based condition for autoassignment.
+_Selector_ part of the autoassignment configuration may contain a filter.
+However, unlike the mapping, the selector does not work both ways.
+When the selector is used instead of mapping, the role is automatically assigned, yet it is not unassgined.
+The use of filters in the selector is not meant as a repalcement for mapping conditions.
+The selector is meant to limit the number of objects that are considered for role autoassignment.
 
 ++++
 {% include missing-incomplete.html %}
