@@ -44,7 +44,7 @@ public class ExpressionValidationBehavior extends Behavior {
         if (current != null) {
             current = current
                     .replace("is-info", "")
-                    .replace("is-valid-all-set no-valid-border", "")
+                    .replace("is-valid-all-set", "")
                     .replace("is-invalid", "")
                     .trim();
 
