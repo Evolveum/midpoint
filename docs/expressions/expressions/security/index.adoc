@@ -24,7 +24,7 @@ Expressions are the fuel that drives midPoint flexibility on too many levels.
 It is difficult to image really complex configuration where all the roles are designed by system administrator.
 And it is also difficult to imagine a life with just a static roles.
 That would easily lead to role explosion.
-Therefore, midPoint contains several mechanism that make use of expressions reasonably secure.
+Therefore, midPoint contains several mechanisms that make use of expressions reasonably secure.
 
 == Expression Profiles
 
@@ -44,7 +44,108 @@ See xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profil
 
 == Safe Expression Evaluators
 
-// TODO: pre-defined profile in system config?
+The features and characteristics of individual expression evaluators vary.
+Some expression evaluators (such as xref:/midpoint/reference/expressions/expressions/script/[`script`]) are very powerful, yet they can cause a lot of harm.
+Other evaluators (such as `asIs`) are simple, yet they are very safe to use.
+
+Following table summarizes security properties of expression evaluators.
+
+[%autowidth]
+|===
+| Evaluator | Is safe? | Comments
+
+| literal (`value`)
+| Yes
+|
+
+| `asIs`
+| Yes
+|
+
+| `path`
+| Yes
+|
+
+| `filter`
+| Yes
+|
+
+| `generate`
+| Yes
+|
+// TODO: check system config profile
+
+| `const`
+| Yes
+|
+
+| `function`
+| Yes
+| Assuming that the invoked function is safe.
+
+| `proportional`
+| Yes
+|
+// TODO: check system config profile
+
+| `script`
+| No
+|
+
+| `assignmentTargetSearch`
+| Uncertain
+| Safety of this evaluator was not yet properly analysed.
+
+| `associationTargetSearch`
+| Uncertain
+| Safety of this evaluator was not yet properly analysed.
+
+| `referenceSearch`
+| Uncertain
+| Safety of this evaluator was not yet properly analysed.
+
+| `shadowOwnerReferenceSearch`
+| Uncertain
+| Safety of this evaluator was not yet properly analysed.
+
+| `associationFromLink`
+| Uncertain
+| Safety of this evaluator was not yet properly analysed.
+
+| `assignmentFromAssociation`
+| Uncertain
+| Safety of this evaluator was not yet properly analysed.
+
+| `sequentialValue`
+| Uncertain
+| Safety of this evaluator was not yet properly analysed.
+
+| `assignmentFromAssociation`
+| Uncertain
+| Safety of this evaluator was not yet properly analysed.
+
+| `assignmentFromAssociation`
+| Uncertain
+| Safety of this evaluator was not yet properly analysed.
+
+|===
+
+Evaluators marked as _safe_ are generally safe to use.
+They do not have potential to execute arbitrary code or do execute operations that could impact security of the system.
+However, even _safe_ expression operators still have potential for mis-configuration, which can impact the system indirectly.
+For example, an evaluator may provide incorrect value, which may affect correctness of configuration or policies.
+Also, an evaluator may affect performance of the system by using inefficient search filter.
+
+Default midPoint xref:/midpoint/reference/concepts/system-configuration-object/[system configuration] contains a definition of `safe` xref:/midpoint/reference/expressions/expressions/profiles/[expression profile], which includes only safe expression evaluators.
+
+NOTE: Prior to midPoint 4.10, the default system configuration contained expression profile identified as `safe`.
+However, this expression profile contained `script` expression evaluator.
+Although the script expressions were constrained by a permission profile, this configuration did not provide level of security adequate for current needs.
+The profile included a description which warned users of this drawback.
+However, denoting the profile as `safe` might have lead to unrealistic expectations and mis-configurations.
+Therefore, the `script` expression evaluator was removed from the `safe` profile in midPoint 4.10.
+Also, the `script-safe` permission profile was renamed to `script-limited` to avoid mis-interpretation of the name.
+When upgrading midPoint deployments from versions earlier than 4.10, make sure that the profiles are correctly updated.
 
 == Security of Scripting Expressions
 
@@ -64,6 +165,9 @@ See xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profil
 // TODO: place logic in meta-roles (archetypes, policies) when needed
 // TODO: use function libraries
 
+// TODO: Safety of invoked functions, e.g. input sanitization
+
+
 * xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Metaroles] can be used to group all the necessary logic, including expressions.
 Meta roles can be setup by a trusted administrator.
 Delegated administrators then just "use" the metarole, with possible parametrization using parameters in assignment extension.
@@ -76,7 +180,7 @@ This can be used to make sure that expressions used in the roles are safe.
 
 // TODO: implementation of expression profiles is incomplete. Make sure to test the configuration thoroughly.
 // TODO: Scripting sandbox (e.g. groovy) are limited, mostly unreliable.
-
+// TODO: safety of some evaluators was not yet properly analysed
 == See Also
 
 * xref:/midpoint/reference/expressions/[Mappings and Expressions]
