@@ -341,7 +341,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (chartModel != null) {
             return new WidgetTableChartedHeader<>(headerId, new PropertyModel<>(config, "display"), chartModel);
         } else {
-            return new WidgetTableHeader(headerId, new PropertyModel<>(config, "display"));
+            return new WidgetTableHeader(headerId, new PropertyModel<>(config, "display")) {
+                @Serial private static final long serialVersionUID = 1L;
+
+                @Override
+                protected String getHeaderTagName() {
+                    return "h2";
+                }
+            };
         }
     }
 
