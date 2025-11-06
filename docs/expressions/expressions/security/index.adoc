@@ -1,0 +1,84 @@
+---
+midpoint-feature: expression
+doc-type: config
+---
+= Expression Security
+:page-upkeep-status: yellow
+:page-visibility: hidden
+
+MidPoint is a very flexible system.
+Being an identity governance platform, all the flexibility is needed to allow practical and efficient deployments.
+However, with great power comes great responsibility.
+
+One of the most powerful parts of midPoint are xref:/midpoint/reference/expressions/[mappings and expressions]. Expressions allow to customize midPoint behavior, and they are essential for the success of midPoint deployments.
+However, the expressions are very powerful, maybe even a bit too powerful for some use cases.
+The expressions can use general-purpose scripting languages such as Groovy or JavaScript.
+Therefore, such expressions have almost unlimited capabilities.
+Which means that the expressions can damage the system or compromise security of the system.
+
+As a general guideline, *utmost care* should be applied wherever expressions are used.
+Expressions, especially xref:/midpoint/reference/expressions/expressions/script/[scripting expressions], create inherent security risks.
+
+However, there is a limit to such an recommendation.
+Expressions are the fuel that drives midPoint flexibility on too many levels.
+It is difficult to image really complex configuration where all the roles are designed by system administrator.
+And it is also difficult to imagine a life with just a static roles.
+That would easily lead to role explosion.
+Therefore, midPoint contains several mechanism that make use of expressions reasonably secure.
+
+== Expression Profiles
+
+Expression profiles are definitions, what an expression can and cannot do.
+For example, an expression profile may dictate, that particular expression can only use `asIs` and `path` evaluators.
+In case that `script` evaluator is used, only Groovy can be used as a scripting language, the script should be type-checked and only use of particular safe classes should be allowed.
+
+Expression profiles are defined in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration].
+Use of expression profiles is integrated with xref:/midpoint/reference/schema/archetypes/[archetypes].
+
+Expression profiles are constraining evaluation of expressions, no matter how they were introduced in the object and regardless of xref:/midpoint/reference/security/authorization/[authorizations].
+In case that expression is constrained by a profile, that profile will stop evaluation of the expression even if _superuser_ is initiating the operation.
+In that respect, expression profile are an _orthogonal_ mechanisms to authorizations, providing complementary security layer.
+In practice, coordinated use of expression profiles and authorizations is necessary to create safe configuration (see below).
+
+See xref:/midpoint/reference/expressions/expressions/profiles/[Expression Profiles] page for more details.
+
+== Safe Expression Evaluators
+
+// TODO: pre-defined profile in system config?
+
+== Security of Scripting Expressions
+
+// TODO: discuss safe expression language - how surprisingly hard it is
+// TODO: Groovy sandboxing is unreliable
+
+== Authorizations
+
+== Semi-Safe Configuration
+
+// TODO: How to use expressions in a secure way
+
+// TODO: combination of authorizations and profiles
+
+// TODO: expression profiles: safe, open, closed
+
+// TODO: place logic in meta-roles (archetypes, policies) when needed
+// TODO: use function libraries
+
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Metaroles] can be used to group all the necessary logic, including expressions.
+Meta roles can be setup by a trusted administrator.
+Delegated administrators then just "use" the metarole, with possible parametrization using parameters in assignment extension.
+However, even this method is not yet fully supported in midPoint user interface.
+
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object lifecycle] mechanism can be used to drive role definitions through an approval process.
+This can be used to make sure that expressions used in the roles are safe.
+
+== Limitations
+
+// TODO: implementation of expression profiles is incomplete. Make sure to test the configuration thoroughly.
+// TODO: Scripting sandbox (e.g. groovy) are limited, mostly unreliable.
+
+== See Also
+
+* xref:/midpoint/reference/expressions/[Mappings and Expressions]
+
+* xref:/midpoint/security/security-guide/[Security Guide]

@@ -41,9 +41,11 @@ Perhaps the most convenient way to automatically assign a role is to use autoass
                     <path>employeeType</path>
                 </source>
                 <condition>
-                    <script>
-                        <code>employeeType == 'intern'</code>
-                    </script>
+                    <filter>
+                        <filter>
+                            <q:text>costCenter = 'A001'</q:text>
+                        </filter>
+                    </filter>
                 </condition>
             </mapping>
         </focus>
@@ -51,8 +53,10 @@ Perhaps the most convenient way to automatically assign a role is to use autoass
 </role>
 ----
 
-The role above will be automatically assigned to any user that has property `employeeType` set to `intern`. As all midPoint mapping even this mapping is xref:/midpoint/reference/concepts/relativity/[relativistic]. If user becomes an intern (the `employeeType` property is changed) then the role is automatically assigned.
-When the user stops being an intern the role is unassigned.
+The role above will be automatically assigned to any user that has property `costCenter` set to `A001`.
+As all midPoint mapping even this mapping is xref:/midpoint/reference/concepts/relativity/[relativistic].
+If user cost center is set to `A001` (the `costCenter` property is changed) then the role is automatically assigned.
+When the user cost center is changed to a different value, the role is unassigned.
 
 See xref:/midpoint/reference/roles-policies/roles/role-autoassignment/configuration/[Role Autoassign Configuration] page for more details.
 
