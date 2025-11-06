@@ -832,24 +832,49 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="errorLog" type="xsd:string" minOccurs="0">
+            <xsd:element name="validationErrorFeedback" type="tns:SiValidationErrorFeedbackEntryType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Optional error context from midPoint explaining why the previous suggestion could not be applied
-                        (e.g., expression evaluation failure). Provided to help the service refine the next suggestion.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="previousScript" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Previously suggested transformation script (if any). Sending it back allows the service to
-                        iteratively improve or fix the script when the last attempt failed.
+                        Optional feedback from validating previously suggested object types. Each entry identifies
+                        suggestion that failed validation and explains why (e.g., MQL filter parse/compile/runtime
+                        errors). The microservice can use this context to refine subsequent suggestions.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="SiValidationErrorFeedbackEntryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Feedback entry describing issues detected when applying or validating one object type.
+                It carries the problematic suggestion and a list of human-readable error messages related
+                to their filters. Provide this entry back to the service to guide the next iteration of suggestions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectType" type="tns:SiSuggestedObjectTypeType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested object type that failed validation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="filterErrors" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable error messages encountered while parsing, compiling, or evaluating the
+                        delineation filter for the associated suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="SiSuggestObjectTypesResponseType">
         <xsd:annotation>
             <xsd:documentation>
@@ -870,6 +895,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
     <xsd:complexType name="SiSuggestedObjectTypeType">
         <xsd:annotation>
             <xsd:documentation>
