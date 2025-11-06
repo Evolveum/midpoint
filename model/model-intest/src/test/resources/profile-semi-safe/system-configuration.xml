@@ -11,7 +11,7 @@
     <name>SystemConfiguration</name>
     <defaultObjectPolicyConfiguration>
         <type>UserType</type>
-        <expressionProfile>closed</expressionProfile>
+        <expressionProfile>prohibitive</expressionProfile>
     </defaultObjectPolicyConfiguration>
     <defaultObjectPolicyConfiguration>
         <type>RoleType</type>
@@ -33,55 +33,59 @@
         <autoassignEnabled>true</autoassignEnabled>
     </roleManagement>
     <expressions>
-        <expressionProfile>
+        <expressionProfile id="218">
             <identifier>safe</identifier>
             <description>
-                Expression profile which contains only safe expression evaluators.
-                THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.
-                DO NOT USE FOR OTHER PURPOSES THAN THIS TEST.
+                "Safe" expression profile. It is supposed to contain only operations that are "safe",
+                i.e. operations that have very little risk to harm the system, circumvent midPoint security
+                and so on. Use of those operations should be reasonably safe in all expressions.
+                However, there are limitations. This profile may incomplete or it may even be not completely secure.
+                Proper security testing of this profile was not yet conducted. It is provided here "AS IS",
+                without any guarantees. Use at your own risk.
             </description>
             <decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
-            <evaluator>
+            <evaluator id="219">
                 <type>asIs</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator>
+            <evaluator id="220">
                 <type>path</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator>
+            <evaluator id="221">
                 <type>value</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator>
+            <evaluator id="222">
                 <type>const</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator>
+            <evaluator id="273">
                 <type>filter</type>
                 <decision>allow</decision>
             </evaluator>
-            <evaluator>
+            <evaluator id="274">
                 <type>function</type>
                 <decision>allow</decision>
             </evaluator>
+            <bulkActionsProfile>prohibitive</bulkActionsProfile>
             <privilegeElevation>deny</privilegeElevation>
         </expressionProfile>
-        <!-- TODO: safe-plus-functions profile? -->
-        <expressionProfile>
-            <identifier>open</identifier>
+        <expressionProfile id="275">
+            <identifier>permissive</identifier>
             <description>Unlimited access to all expressions</description>
             <decision>allow</decision>
+            <privilegeElevation>allow</privilegeElevation>
         </expressionProfile>
-        <expressionProfile>
-            <identifier>closed</identifier>
+        <expressionProfile id="276">
+            <identifier>prohibitive</identifier>
             <description>No access to any expressions</description>
             <decision>deny</decision>
-            <bulkActionsProfile>closed</bulkActionsProfile>
+            <bulkActionsProfile>prohibitive</bulkActionsProfile>
             <privilegeElevation>deny</privilegeElevation>
         </expressionProfile>
-        <bulkActionsProfile>
-            <identifier>closed</identifier>
+        <bulkActionsProfile id="277">
+            <identifier>prohibitive</identifier>
             <decision>deny</decision>
         </bulkActionsProfile>
     </expressions>
