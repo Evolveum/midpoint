@@ -14,6 +14,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -55,7 +56,6 @@ public class PolyStringEditorPanel extends InputPanel {
     private static final String ID_ORIG_VALUE_WITH_BUTTON = "origValueWithButton";
     private static final String ID_KEY_VALUE_LABEL = "keyValueLabel";
     private static final String ID_KEY_VALUE = "keyValue";
-    private static final String ID_LANGUAGE_LIST_LABEL = "languagesListLabel";
     private static final String ID_LANGUAGES_REPEATER = "languagesRepeater";
     private static final String ID_LANGUAGE_NAME = "languageName";
     private static final String ID_TRANSLATION = "translation";
@@ -69,6 +69,10 @@ public class PolyStringEditorPanel extends InputPanel {
     private static final String ID_REMOVE_LANGUAGE_BUTTON = "removeLanguageButton";
     private static final String ID_INPUT = "input";
     private static final String ID_PANEL_STATUS = "panelStatus";
+    private static final String ID_LANGUAGES_LIST_LABEL = "languagesListLabel";
+    private static final String ID_VALUE_TO_ADD_LABEL = "valueToAddLabel";
+    private static final String ID_LANGUAGE_NAME_LABEL = "languageNameLabel";
+    private static final String ID_TRANSLATION_LABEL = "translationLabel";
 
     private final StringBuilder currentlySelectedLang = new StringBuilder();
     private final IModel<PolyString> model;
@@ -247,10 +251,6 @@ public class PolyStringEditorPanel extends InputPanel {
         keyValue.setOutputMarkupId(true);
         fullDataContainer.add(keyValue);
 
-        Label languageListLabel = new Label(ID_LANGUAGE_LIST_LABEL, createStringResource("PolyStringEditorPanel.languagesList"));
-        languageListLabel.setOutputMarkupId(true);
-        fullDataContainer.add(languageListLabel);
-
         IModel<String> langChoiceModel = Model.of();
         WebMarkupContainer languageEditorContainer = new WebMarkupContainer(ID_LANGUAGE_EDITOR);
         languageEditorContainer.setOutputMarkupId(true);
@@ -274,6 +274,7 @@ public class PolyStringEditorPanel extends InputPanel {
             }
         });
         languageEditorContainer.add(languageChoicePanel);
+        createLabelForComponent(languageEditorContainer, ID_LANGUAGES_LIST_LABEL, languageChoicePanel.getBaseFormComponent());
 
         final TextPanel<String> newLanguageValue = new TextPanel<>(ID_VALUE_TO_ADD, Model.of());
         newLanguageValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
@@ -302,6 +303,7 @@ public class PolyStringEditorPanel extends InputPanel {
         });
         newLanguageValue.setOutputMarkupId(true);
         languageEditorContainer.add(newLanguageValue);
+        createLabelForComponent(languageEditorContainer, ID_VALUE_TO_ADD_LABEL, newLanguageValue.getBaseFormComponent());
 
         AjaxLink<Void> addLanguageButton = new AjaxLink<>(ID_ADD_LANGUAGE_VALUE_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -331,6 +333,8 @@ public class PolyStringEditorPanel extends InputPanel {
                         languageName.setOutputMarkupId(true);
                         listItem.add(languageName);
 
+                        createLabelForComponent(listItem, ID_LANGUAGE_NAME_LABEL, languageName.getBaseFormComponent());
+
                         TextPanel<String> translation = new TextPanel<>(ID_TRANSLATION, Model.of(getLanguageValueByKey(listItem.getModelObject())));
                         translation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
                             private static final long serialVersionUID = 1L;
@@ -350,6 +354,8 @@ public class PolyStringEditorPanel extends InputPanel {
                             }
                         });
                         listItem.add(translation);
+
+                        createLabelForComponent(listItem, ID_TRANSLATION_LABEL, translation.getBaseFormComponent());
 
                         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_LANGUAGE_BUTTON) {
                             private static final long serialVersionUID = 1L;
@@ -381,6 +387,12 @@ public class PolyStringEditorPanel extends InputPanel {
         showHideLanguagesButton.setOutputMarkupId(true);
         showHideLanguagesButton.add(new VisibleBehaviour(() -> !showFullData));
         origValueWithButton.add(showHideLanguagesButton);
+    }
+
+    private void createLabelForComponent(WebMarkupContainer parent, String componentId, FormComponent<?> formComponent) {
+        WebMarkupContainer label = new WebMarkupContainer(componentId);
+        label.add(AttributeAppender.append("for", () -> formComponent.getMarkupId()));
+        parent.add(label);
     }
 
     private String getLocalizedPolyStringValue() {

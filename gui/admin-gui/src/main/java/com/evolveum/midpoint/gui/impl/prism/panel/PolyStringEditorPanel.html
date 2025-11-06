@@ -39,26 +39,34 @@
                 <div class="col-9" wicket:id="keyValue"/>
             </div>
         </div>
-        <div class="property-stripe">
-            <div class="row no-gutters prism-property">
-                <div class="col-3" wicket:id="languagesListLabel"/>
-            </div>
-        </div>
         <div class="property-stripe" wicket:id="languageEditor">
             <div class="row no-gutters prism-property">
-                <div class="col-3 pr-2" wicket:id="languagesList"/>
-                <div class="col-8 pr-2" wicket:id="valueToAdd"/>
-                <div class="col-1">
-                    <a class="btn btn-tool" wicket:id="addLanguageValue" wicket:message="title:PolyStringEditorPanel.addLanguageValue"><i class="fa fa-plus-circle"/></a>
+                <div class="col-12 d-flex align-items-center">
+                    <label wicket:id="languagesListLabel" class="col-3 pl-0 font-weight-normal mb-0">
+                        <wicket:message key="PolyStringEditorPanel.language"/>
+                    </label>
+                    <div class="col-3 px-0" wicket:id="languagesList"/>
+                    <label wicket:id="valueToAddLabel" class="pl-4 pr-2 font-weight-normal mb-0">
+                        <wicket:message key="PolyStringEditorPanel.languageKey"/>
+                    </label>
+                    <div class="flex-fill" wicket:id="valueToAdd"/>
+
+                    <a class="btn btn-tool" wicket:id="addLanguageValue"
+                            wicket:message="title:PolyStringEditorPanel.addLanguageValue">
+                        <i class="fa fa-plus-circle"/>
+                    </a>
                 </div>
             </div>
         </div>
         <div class="property-stripe" wicket:id="languagesRepeater">
             <div class="row no-gutters prism-property">
-                <div class="col-3 pr-2" wicket:id="languageName"/>
-                <div class="col-8 pr-2" wicket:id="translation"/>
-                <div class="col-1">
-                    <a class="btn btn-tool" wicket:id="removeLanguageButton" wicket:message="title:PolyStringEditorPanel.removeLanguageButton"><i class="fa fa-minus-circle"/></a>
+                <div class="col-12 d-flex align-items-center">
+                    <label wicket:id="languageNameLabel" class="col-3 pl-0 font-weight-normal mb-0"><wicket:message key="PolyStringEditorPanel.language"/></label>
+                    <div class="col-3 px-0" wicket:id="languageName"/>
+                    <label wicket:id="translationLabel" class="pl-4 pr-2 font-weight-normal mb-0"><wicket:message key="PolyStringEditorPanel.languageKey"/></label>
+                    <div class="flex-fill" wicket:id="translation"/>
+                    <a class="btn btn-tool" wicket:id="removeLanguageButton" wicket:message="title:PolyStringEditorPanel.removeLanguageButton">
+                        <i class="fa fa-minus-circle"/></a>
                 </div>
             </div>
         </div>
