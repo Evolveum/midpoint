@@ -121,9 +121,6 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         ContainerPanelConfigurationType panelConfig = panelConfigDto.getContainerPanelConfig();
         WebMarkupContainer navigationDetails = new WebMarkupContainer(ID_NAVIGATION_DETAILS);
         navigationDetails.add(AttributeAppender.append(
-                "aria-haspopup",
-                () -> doesSubMenuExist(panelConfig) ? true : null));
-        navigationDetails.add(AttributeAppender.append(
                 "aria-expanded",
                 () -> {
                     if (isSubMenuVisible(panelConfigDto)) {
@@ -208,7 +205,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 }));
 
         addIcon(link, panelConfig);
-        addSrCurrentMessage(link, panelConfig);
+        addSrCurrentMessage(link, panelConfigDto);
         addLabel(link, panelConfig);
         addCount(link, panelConfig);
         addSubmenuLink(link, panelConfigDto);
@@ -216,7 +213,8 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         return link;
     }
 
-    private void addSrCurrentMessage(AjaxSubmitLink link, ContainerPanelConfigurationType panelConfig) {
+    private void addSrCurrentMessage(AjaxSubmitLink link, ContainerPanelDto panelConfigDto) {
+        ContainerPanelConfigurationType panelConfig = panelConfigDto.getContainerPanelConfig();
         Label srCurrentMessage = new Label(ID_NAV_ITEM_SR_CURRENT_MESSAGE, () -> {
             ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
             String key = "";
@@ -226,16 +224,24 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             if (hasActiveSubmenu(storageConfig, panelConfig)) {
                 key = "DetailsNavigationPanel.srActiveSubItemMessage";
             }
-            if (ID_SUB_NAVIGATION.equals(this.getId())) {
-                key = "DetailsNavigationPanel.srSubItemMessage";
-                return getPageBase().createStringResource(key).getString();
+            if (key.isEmpty()) {
+                key = "DetailsNavigationPanel.srMenuItemMessage";
             }
-            return getPageBase().createStringResource(key).getString();
+            StringBuilder sb = new StringBuilder(getString(key));
+            if (doesSubMenuExist(panelConfig)) {
+                sb.append(getString(panelConfigDto.isExpanded() ?
+                        "DetailsNavigationPanel.srSubItemsExpanded" : "DetailsNavigationPanel.srSubItemsCollapsed"));
+            }
+//            if (ID_SUB_NAVIGATION.equals(this.getId())) {
+//                key = "DetailsNavigationPanel.srSubItemMessage";
+//                return getPageBase().createStringResource(key).getString();
+//            }
+            return sb.toString();
         });
-        srCurrentMessage.add(new VisibleBehaviour(() -> {
-            ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
-            return isMenuActive(storageConfig, panelConfig) || hasActiveSubmenu(storageConfig, panelConfig);
-        }));
+//        srCurrentMessage.add(new VisibleBehaviour(() -> {
+//            ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
+//            return isMenuActive(storageConfig, panelConfig) || hasActiveSubmenu(storageConfig, panelConfig);
+//        }));
         link.add(srCurrentMessage);
     }
 
@@ -292,6 +298,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 }
                 target.add(DetailsNavigationPanel.this);
                 DetailsNavigationPanel.this.onClickPerformed(config, target);
+                clickedMenuItemName = createButtonLabel(config).getObject();
             }
         };
         subPanel.add(new VisibleBehaviour(() -> isSubMenuVisible(containerPanelDto)));
