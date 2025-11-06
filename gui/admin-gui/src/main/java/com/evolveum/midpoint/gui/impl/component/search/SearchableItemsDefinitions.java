@@ -254,6 +254,12 @@ public class SearchableItemsDefinitions {
         SEARCHABLE_OBJECTS.put(OperationExecutionType.class, List.of(
                 ItemPath.create(OperationExecutionType.F_TIMESTAMP)
         ));
+
+        SEARCHABLE_OBJECTS.put(MappingType.class, List.of(
+                ItemPath.create(MappingType.F_NAME),
+                ItemPath.create(MappingType.F_TARGET),
+                ItemPath.create(MappingType.F_SOURCE)
+        ));
     }
 
     static {

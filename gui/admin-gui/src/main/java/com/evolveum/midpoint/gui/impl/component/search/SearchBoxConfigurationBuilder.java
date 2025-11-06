@@ -99,6 +99,12 @@ public class SearchBoxConfigurationBuilder {
         FIXED_SEARCH_ITEMS.put(OperationExecutionType.class, List.of(
                 OperationExecutionType.F_TIMESTAMP
         ));
+
+        FIXED_SEARCH_ITEMS.put(MappingType.class, List.of(
+                ItemPath.create(MappingType.F_NAME),
+                ItemPath.create(MappingType.F_TARGET),
+                ItemPath.create(MappingType.F_SOURCE)
+        ));
     }
 
     private Class<?> type;
