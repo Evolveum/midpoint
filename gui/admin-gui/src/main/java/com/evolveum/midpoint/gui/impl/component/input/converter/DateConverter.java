@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.input.converter;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.core.request.ClientInfo;
 import org.apache.wicket.protocol.http.request.WebClientInfo;
@@ -77,7 +78,12 @@ public class DateConverter implements IConverter<Date> {
 
     private ConversionException newConversionException(Exception cause) {
         return new ConversionException(cause)
-                .setVariable("formatter", dateTimePattern);
+                .setResourceKey("DateConverter.conversionError")
+                .setVariable("formatter", dateTimePattern)
+                .setVariable("dateTimePattern",
+                        StringUtils.joinWith(
+                                ", ",
+                                dateTimePattern.stream().map(s -> StringUtils.wrap(s, "'")).toArray()));
     }
 
     private DateTimeFormatter getFormatter(String dateTimePattern) {

@@ -42,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Expression profiles:
  *
  * . `safe` - allow only safe expression evaluators. No scripting.
+ * . `permissive` - allow all expressions
+ * . `prohibitive` - allow no expressions
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
