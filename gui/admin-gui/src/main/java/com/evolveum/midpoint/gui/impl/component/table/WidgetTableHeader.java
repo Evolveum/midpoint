@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -27,12 +28,20 @@ public class WidgetTableHeader extends BasePanel<DisplayType> {
     }
 
     @Override
+    protected void onComponentTag(ComponentTag tag) {
+        tag.setName(getHeaderTagName());
+        super.onComponentTag(tag);
+    }
+
+    @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
     private void initLayout() {
+        add(AttributeAppender.append("class", isHeaderTag() ? null : "h3"));
+
         Label label = new Label(ID_TITLE, Model.of(WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(getModelObject()))));
         label.setRenderBodyOnly(true);
         add(label);
@@ -40,5 +49,13 @@ public class WidgetTableHeader extends BasePanel<DisplayType> {
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeAppender.append("class", Model.of(GuiDisplayTypeUtil.getIconCssClass(getModelObject()))));
         add(icon);
+    }
+
+    protected String getHeaderTagName() {
+        return "div";
+    }
+
+    private boolean isHeaderTag() {
+        return getHeaderTagName().startsWith("h");
     }
 }

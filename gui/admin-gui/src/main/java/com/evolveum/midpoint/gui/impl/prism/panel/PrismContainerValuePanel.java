@@ -137,17 +137,18 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         initButtons(header);
 
-        header.add(AttributeAppender.append(
-                "aria-label",
-                () -> {
-                    String key = "PrismContainerPanel.header";
-                    if (getModelObject().getDefinition().isMultiValue()) {
-                        key = "PrismContainerValuePanel.header";
-                    }
-                    return getParentPage().createStringResource(
-                                    key, headerLabelModel.getObject())
-                            .getString();
-                }));
+        //commented due to wcag issue "Accessible labels are confusing"
+//        header.add(AttributeAppender.append(
+//                "aria-label",
+//                () -> {
+//                    String key = "PrismContainerPanel.header";
+//                    if (getModelObject().getDefinition().isMultiValue()) {
+//                        key = "PrismContainerValuePanel.header";
+//                    }
+//                    return getParentPage().createStringResource(
+//                                    key, headerLabelModel.getObject())
+//                            .getString();
+//                }));
 
         //TODO always visible if isObject
     }
