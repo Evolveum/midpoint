@@ -110,6 +110,9 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     }
 
     protected void createContainersPanel() {
+        Label showHideMessage = new Label(ID_SHOW_HIDE_MESSAGE, Model.of(""));
+        showHideMessage.setOutputMarkupId(true);
+        add(showHideMessage);
 
         WebMarkupContainer containersLabel = new WebMarkupContainer(ID_CONTAINERS_LABEL);
         add(containersLabel);
