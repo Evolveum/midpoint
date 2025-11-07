@@ -6,11 +6,10 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import java.io.Serial;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -40,9 +39,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 
 public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl> {
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismValueMetadataPanel.class);
 
@@ -74,13 +74,18 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
 
         WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
         buttonsContainer.setOutputMarkupId(true);
-        buttonsContainer.add(new VisibleBehaviour(() -> list.getObject().stream().filter(c -> c.isSelected()).count() == 0));
+        buttonsContainer.add(new VisibleBehaviour(() ->
+                list.getObject().stream().noneMatch(ContainersPopupDto::isSelected)));
         add(buttonsContainer);
 
         ListView<ContainersPopupDto> buttons = new ListView<>(ID_BUTTONS, list) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void populateItem(ListItem<ContainersPopupDto> item) {
                 AjaxButton button  = new AjaxButton(ID_BUTTON, createStringResource(item.getModelObject().getItemName())) {
+                    @Serial private static final long serialVersionUID = 1L;
+
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         item.getModelObject().setSelected(true);
@@ -95,7 +100,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         buttonsContainer.add(buttons);
 
         WebMarkupContainer card = new WebMarkupContainer(ID_CARD);
-        card.add(new VisibleBehaviour(() -> list.getObject().stream().filter(c -> c.isSelected()).count() > 0));
+        card.add(new VisibleBehaviour(() -> list.getObject().stream().anyMatch(ContainersPopupDto::isSelected)));
         add(card);
 
         createMetadataNavigationPanel(card, list);
@@ -117,7 +122,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         return new ItemPanelSettingsBuilder()
                 .editabilityHandler(wrapper -> true)
                 .headerVisibility(false)
-                .visibilityHandler(w -> createItemVisibilityBehavior(w))
+                .visibilityHandler(this::createItemVisibilityBehavior)
                 .build();
     }
 
@@ -134,6 +139,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
 
     private void createMetadataNavigationPanel(WebMarkupContainer card, IModel<List<ContainersPopupDto>> listModel) {
         ListView<ContainersPopupDto> metadataList = new ListView<>(ID_METADATA_LIST, listModel) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<ContainersPopupDto> listItem) {
@@ -149,14 +155,22 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
 
     private AjaxButton createNavigationItem(String id, IModel<ContainersPopupDto> model) {
         AjaxButton button  = new AjaxButton(id, createStringResource(model.getObject().getItemName())) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 ContainersPopupDto container = model.getObject();
                 container.setSelected(true);
                 setContainersToShow(container, ajaxRequestTarget);
+                ajaxRequestTarget.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
+                ajaxRequestTarget.appendJavaScript("MidPointTheme.restoreFocus();");
             }
         };
         button.add(AttributeAppender.append("class", createButtonClassModel(model)));
+        button.add(AttributeAppender.append("aria-label", () -> model.getObject().isSelected() ?
+                "PrismValueMetadataPanel.panelIsShown.ariaLabel" : null));
+        button.add(AttributeAppender.append("aria-selected", () -> model.getObject().isSelected()));
+        button.add(AttributeAppender.append("data-component-id", button::getPageRelativePath));
         button.setOutputMarkupId(true);
         button.setOutputMarkupPlaceholderTag(true);
 
@@ -252,6 +266,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
 
     private IModel<List<ContainersPopupDto>> createMetadataListModel() {
         return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ContainersPopupDto> load() {
