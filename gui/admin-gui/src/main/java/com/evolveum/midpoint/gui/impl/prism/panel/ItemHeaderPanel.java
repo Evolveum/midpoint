@@ -96,11 +96,14 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         Label help = new Label(ID_HELP);
         IModel<String> helpModel = new PropertyModel<>(getModel(), "help");
         help.add(AttributeModifier.replace("title", createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
-        help.add(new InfoTooltipBehavior());
+        help.add(new InfoTooltipBehavior() {
+
+            @Override
+            public IModel<String> createAriaLabelModel() {
+                return getParentPage().createStringResource("ItemHeaderPanel.helpTooltip", createLabelModel().getObject());
+            }
+        });
         help.add(new VisibleBehaviour(this::isHelpTextVisible));
-        help.add(AttributeAppender.append(
-                "aria-label",
-                getParentPage().createStringResource("ItemHeaderPanel.helpTooltip", createLabelModel().getObject())));
         add(help);
     }
 
@@ -119,11 +122,14 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
             public String getCssClass() {
                 return "far fa-lightbulb text-warning";
             }
+
+            @Override
+            public IModel<String> createAriaLabelModel() {
+                return getParentPage().createStringResource("ItemHeaderPanel.experimentalTooltip", createLabelModel().getObject());
+            }
         });
-        experimental.add(AttributeModifier.replace("title", createStringResource("ItemHeaderPanel.experimentalFeature")));
         experimental.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isExperimental()));
         add(experimental);
-
     }
 
     private void createDeprecated() {
@@ -137,6 +143,11 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
             @Override
             public String getCssClass() {
                 return "fa fa-fw fa-warning text-warning";
+            }
+
+            @Override
+            public IModel<String> createAriaLabelModel() {
+                return getParentPage().createStringResource("ItemHeaderPanel.deprecatedTooltip", createLabelModel().getObject());
             }
         });
         deprecated.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isDeprecated()));
