@@ -35,9 +35,9 @@
                     <policy>
                         <name>policy threshold skip</name>
                         <policyConstraints>
-                            <itemState>
+                            <itemProcessingResult>
                                 <errorCategory>policyThreshold</errorCategory>
-                            </itemState>
+                            </itemProcessingResult>
                         </policyConstraints>
                         <policyActions>
                             <skipActivity/>

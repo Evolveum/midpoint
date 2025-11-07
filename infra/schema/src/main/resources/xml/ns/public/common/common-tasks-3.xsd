@@ -17,7 +17,7 @@
         elementFormDefault="qualified"
         xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
         jaxb:extensionBindingPrefixes="xjc"
-        jaxb:version="3.0" xmlns:xsdS="http://www.w3.org/2001/XMLSchema">
+        jaxb:version="3.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -2062,51 +2062,29 @@
                     <xsd:element name="executionTime" type="tns:DurationThresholdPolicyConstraintType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                The execution time constraint doesn’t use counters, implicit value to check
-                                constraint/threshold is the activity execution time.
+                                The execution time constrain evaluates activity execution time.
 
                                 When the exceeds element is specified, constraint will trigger if the task execution
                                 time exceeds the specified value. When the below element is specified, constraint will
                                 trigger if the task execution time is below the specified value.
-
-                                If this constraint is not combined with other constraints, then exceeds/below element
-                                doesn’t have to be specified and policyReaction/threshold/interval can be used to evaluate
-                                the threshold, while not taking into account processed items (policy counter).
-
-                                If this constraint is combined with other constraints, then it has to have exceeds/below
-                                element specified, otherwise it will never trigger. In this case, the
-                                policyReaction/threshold/[low|high]WaterMark/count will be used to evaluate the threshold
-                                against counter for policy.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executionAttempts" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                This constraint deals with how many times the activity realization was attempted.
+                                This constraint evaluates how many times the activity realization was attempted.
 
                                 When the "exceeds" element is specified, constraint will trigger if the number of attempts
                                 exceeds the specified value. When the "below" element is specified, constraint will trigger
                                 if the number of attempts is below the specified value.
-
-                                If this constraint is not combined with other constraints, then exceeds/below element
-                                doesn’t have to be specified and policyReaction/threshold/[low|high]WaterMark/count can be
-                                used to evaluate the threshold, while not taking into account processed items (policy counter).
-
-                                If this constraint is combined with other constraints, then it has to have exceeds/below
-                                element specified, otherwise it will never trigger. In this case, the
-                                policyReaction/threshold/[low|high]WaterMark/count will be used to evaluate the threshold
-                                against counter for policy.
-
-                                Implementation note: This constraint doesn't use counters. The value being observed is the number
-                                of execution attempts stored in the activity state.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="itemState" type="tns:ItemStatePolicyConstraintType" minOccurs="0">
+                    <xsd:element name="itemProcessingResult" type="tns:ItemProcessingResultPolicyConstraintType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Item state constraint uses policy counters to evaluate the threshold if defined.
+                                Constraint that evaluates result of one item (object) that was processed by activity.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2147,10 +2125,10 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ItemStatePolicyConstraintType">
+    <xsd:complexType name="ItemProcessingResultPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
-                Constraint based on the state of the item.
+                Constraint based on the result of the processing for one object that is processed by the activity.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.10</a:since>

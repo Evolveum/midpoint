@@ -81,8 +81,8 @@ public class ActivityPolicyConstraintsEvaluator {
         if (constraints.getExecutionTime() != null) {
             list.add(createJAXBElement(ActivityPolicyConstraintsType.F_EXECUTION_TIME, constraints.getExecutionTime()));
         }
-        if (constraints.getItemState() != null) {
-            list.add(createJAXBElement(ActivityPolicyConstraintsType.F_ITEM_STATE, constraints.getItemState()));
+        if (constraints.getItemProcessingResult() != null) {
+            list.add(createJAXBElement(ActivityPolicyConstraintsType.F_ITEM_PROCESSING_RESULT, constraints.getItemProcessingResult()));
         }
         if (constraints.getExecutionAttempts() != null) {
             list.add(createJAXBElement(ActivityPolicyConstraintsType.F_EXECUTION_ATTEMPTS, constraints.getExecutionAttempts()));
@@ -105,7 +105,7 @@ public class ActivityPolicyConstraintsEvaluator {
             if (ActivityPolicyConstraintsType.F_EXECUTION_ATTEMPTS.equals(element.getName())) {
                 return executionAttemptsConstraintEvaluator;
             }
-        } else if (constraint instanceof ItemStatePolicyConstraintType) {
+        } else if (constraint instanceof ItemProcessingResultPolicyConstraintType) {
             return itemStateEvaluator;
         } else if (constraint instanceof PolicyConstraintsType) {
             return compositeEvaluator;

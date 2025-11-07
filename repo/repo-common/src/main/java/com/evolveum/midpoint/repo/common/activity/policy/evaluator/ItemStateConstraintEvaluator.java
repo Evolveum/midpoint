@@ -25,22 +25,22 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemStatePolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingResultPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 @Component
 public class ItemStateConstraintEvaluator
-        implements ActivityPolicyConstraintEvaluator<ItemStatePolicyConstraintType, EvaluatedItemStatePolicyTrigger> {
+        implements ActivityPolicyConstraintEvaluator<ItemProcessingResultPolicyConstraintType, EvaluatedItemStatePolicyTrigger> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemStateConstraintEvaluator.class);
 
     @Override
     public List<EvaluatedItemStatePolicyTrigger> evaluate(
-            JAXBElement<ItemStatePolicyConstraintType> element,
+            JAXBElement<ItemProcessingResultPolicyConstraintType> element,
             ActivityPolicyRuleEvaluationContext context,
             OperationResult result) {
 
-        ItemStatePolicyConstraintType constraint = element.getValue();
+        ItemProcessingResultPolicyConstraintType constraint = element.getValue();
 
         ItemProcessingResult processingResult = context.getProcessingResult();
 
@@ -88,7 +88,7 @@ public class ItemStateConstraintEvaluator
     }
 
     @Override
-    public Set<DataNeed> getDataNeeds(JAXBElement<ItemStatePolicyConstraintType> constraint) {
+    public Set<DataNeed> getDataNeeds(JAXBElement<ItemProcessingResultPolicyConstraintType> constraint) {
         return Set.of(DataNeed.COUNTERS);
     }
 }

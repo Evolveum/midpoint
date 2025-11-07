@@ -9,12 +9,12 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemStatePolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingResultPolicyConstraintType;
 
-public class EvaluatedItemStatePolicyTrigger extends EvaluatedActivityPolicyRuleTrigger<ItemStatePolicyConstraintType> {
+public class EvaluatedItemStatePolicyTrigger extends EvaluatedActivityPolicyRuleTrigger<ItemProcessingResultPolicyConstraintType> {
 
     public EvaluatedItemStatePolicyTrigger(
-            @NotNull ItemStatePolicyConstraintType constraint,
+            @NotNull ItemProcessingResultPolicyConstraintType constraint,
             LocalizableMessage message,
             LocalizableMessage shortMessage) {
 
