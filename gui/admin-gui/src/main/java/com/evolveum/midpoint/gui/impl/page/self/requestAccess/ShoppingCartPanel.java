@@ -6,11 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -28,7 +32,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements AccessRequestMixin {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     public static final String STEP_ID = "cart";
 
     private enum State {
@@ -37,10 +41,11 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
 
     private static final String ID_CONFLICT_SOLVER = "conflictSolver";
     private static final String ID_CART_SUMMARY = "cartSummary";
+    public static final String ID_PANEL_STATUS = "panelStatus";
 
-    private PageBase page;
+    private final PageBase page;
 
-    private IModel<State> state = Model.of(State.SUMMARY);
+    private final IModel<State> state = Model.of(State.SUMMARY);
 
     public ShoppingCartPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
@@ -53,6 +58,16 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
         super.onInitialize();
 
         initLayout();
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        String statusId = get(ID_PANEL_STATUS).getMarkupId();
+        String message = state.getObject() == State.CONFLICTS ?
+                getString("ShoppingCartPanel.conflictSolver.ariaLabel") : "";
+        response.render(OnDomReadyHeaderItem.forScript(
+                String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", statusId, message, 250)));
     }
 
     @Override
@@ -102,13 +117,19 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
     }
 
     private void initLayout() {
+        Label panelStatusLabel = new Label(ID_PANEL_STATUS);
+        panelStatusLabel.setOutputMarkupId(true);
+        add(panelStatusLabel);
+
         CartSummaryPanel cartSummary = new CartSummaryPanel(ID_CART_SUMMARY, getWizard(), getModel(), page) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void openConflictPerformed(AjaxRequestTarget target) {
                 ShoppingCartPanel.this.openConflictPerformed(target);
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", panelStatusLabel.getPageRelativePath()));
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
 
             @Override
@@ -121,7 +142,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
 
         ConflictSolverPanel conflictSolver = new ConflictSolverPanel(ID_CONFLICT_SOLVER, getModel()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void backToSummaryPerformed(AjaxRequestTarget target) {
