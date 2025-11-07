@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -13,7 +14,10 @@ import java.util.stream.Collectors;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -30,13 +34,14 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  */
 public class ConflictSolverPanel extends BasePanel<RequestAccess> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_DONE_CARD = "doneCard";
     private static final String ID_BACK_TO_SUMMARY = "backToSummary";
     private static final String ID_TOGGLE = "toggle";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
+    public static final String ID_PANEL_STATUS = "panelStatus";
 
     private IModel<ConflictState> selected = Model.of(ConflictState.UNRESOLVED);
 
@@ -46,14 +51,32 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
         initLayout();
     }
 
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        String statusId = get(ID_PANEL_STATUS) != null ? get(ID_PANEL_STATUS).getMarkupId() : null;
+        if (statusId == null) {
+            return;
+        }
+        String message = getModelObject().isAllConflictsSolved() ? getString("ConflictSolverPanel.doneAllTitle") : "";
+        response.render(OnDomReadyHeaderItem.forScript(
+                String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", statusId, message, 250)));
+    }
+
     private void initLayout() {
         setOutputMarkupId(true);
+
+        Label panelStatusLabel = new Label(ID_PANEL_STATUS);
+        panelStatusLabel.setOutputMarkupId(true);
+        add(panelStatusLabel);
 
         WebMarkupContainer doneCard = new WebMarkupContainer(ID_DONE_CARD);
         doneCard.add(new VisibleBehaviour(() -> getModelObject().isAllConflictsSolved()));
         add(doneCard);
 
         AjaxLink backToSummary = new AjaxLink<>(ID_BACK_TO_SUMMARY) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 backToSummaryPerformed(target);
