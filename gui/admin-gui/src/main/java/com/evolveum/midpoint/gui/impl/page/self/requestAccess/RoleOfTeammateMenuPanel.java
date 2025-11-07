@@ -110,6 +110,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
         add(link);
 
         Select2Choice<ObjectReferenceType> select = new Select2Choice<>(ID_INPUT, selectionModel, new ObjectReferenceProvider(this));
+        select.add(new AttributeModifier("data-component-id", select::getPageRelativePath));
 
         Integer minInput = getAutocompleteConfiguration().getAutocompleteMinChars();
         if (minInput == null) {
@@ -123,6 +124,8 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
             protected void onUpdate(AjaxRequestTarget target) {
                 onSelectionUpdate(target, selectionModel.getObject());
                 target.add(RoleOfTeammateMenuPanel.this.get(createComponentPath(ID_CONTAINER, ID_INPUT)));
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", select.getPageRelativePath()));
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
         });
         container.add(select);
@@ -132,6 +135,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
             @Override
             public void onClick(AjaxRequestTarget target) {
                 target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
                 onManualSelectionPerformed(target);
 
             }
