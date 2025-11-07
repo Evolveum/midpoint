@@ -59,10 +59,12 @@ class ObjectTypesSuggestionOperation {
 
     private final OperationContext ctx;
     private final ObjectTypeFiltersValidator filtersValidator;
+    private final QName typeName;
 
     ObjectTypesSuggestionOperation(OperationContext context, ObjectTypeFiltersValidator filtersValidator) {
         this.ctx = context;
         this.filtersValidator = filtersValidator;
+        this.typeName = ctx.objectClassDefinition.getTypeName();
     }
 
     /**
@@ -99,9 +101,8 @@ class ObjectTypesSuggestionOperation {
         var typeIdsSeen = new HashSet<ResourceObjectTypeIdentification>();
         for (var objectTypeWithFilters : suggestedObjectTypes) {
             var siObjectType = objectTypeWithFilters.suggestedObjectType();
-            var delineation =
-                    new ResourceObjectTypeDelineationType()
-                            .objectClass(ctx.objectClassDefinition.getTypeName());
+            var delineation = new ResourceObjectTypeDelineationType()
+                    .objectClass(typeName);
             objectTypeWithFilters.filters().forEach(delineation::filter);
             AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_FILTER);
 
@@ -155,34 +156,33 @@ class ObjectTypesSuggestionOperation {
         for (final SiSuggestedObjectTypeType objectType : objectTypes) {
             List<SearchFilterType> filters = new ArrayList<>();
             ParsedBaseContext baseCtx = null;
-            SiValidationErrorFeedbackEntryType feedbackForThisType = new SiValidationErrorFeedbackEntryType().objectType(objectType);
+            SiValidationErrorFeedbackEntryType llmFeedback = new SiValidationErrorFeedbackEntryType().objectType(objectType);
 
             if (objectType.getFilter() != null && !objectType.getFilter().isEmpty()) {
                 try {
-                    filters = parseAndValidateObjectTypeFilters(
-                            objectType,
-                            ctx.objectClassDefinition.getPrismObjectDefinition(),
-                            parentResult);
+                    filters = parseObjectTypeFilters(objectType, ctx.objectClassDefinition.getPrismObjectDefinition());
+                    filtersValidator.testObjectTypeFilter(ctx.resource.getOid(), typeName, filters, ctx.task, parentResult);
                 } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException e) {
                     LOGGER.warn("Failed validating suggested object type (kind={}, intent={}, displayName={}) for object class {}. Filters: {}",
-                            objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(), ctx.objectClassDefinition.getTypeName(), objectType.getFilter(), e);
-                    feedbackForThisType.getFilterErrors().add(e.getMessage());
+                            objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(), typeName, objectType.getFilter(), e);
+                    llmFeedback.getFilterErrors().add(e.getMessage());
                     hasAnyErrors = true;
                 }
             }
             if (objectType.getBaseContextObjectClassName() != null || objectType.getBaseContextFilter() != null) {
                 try {
-                    baseCtx = parseAndValidateBaseContext(objectType.getBaseContextObjectClassName(), objectType.getBaseContextFilter(), parentResult);
+                    baseCtx = parseBaseContext(objectType.getBaseContextObjectClassName(), objectType.getBaseContextFilter());
+                    filtersValidator.testBaseContextFilter(ctx.resource.getOid(), baseCtx.classQName(), baseCtx.filter(), ctx.task, parentResult);
                 } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException | IllegalStateException e) {
                     LOGGER.warn("Failed validating base context for suggested object type (kind={}, intent={}, displayName={}). Base context objectClass={}, filter={}",
                             objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(),
-                            ctx.objectClassDefinition.getTypeName(), objectType.getBaseContextFilter(), e);
-                    feedbackForThisType.getFilterErrors().add(e.getMessage());
+                            typeName, objectType.getBaseContextFilter(), e);
+                    llmFeedback.getFilterErrors().add(e.getMessage());
                     hasAnyErrors = true;
                 }
             }
 
-            feedbackEntries.add(feedbackForThisType);
+            feedbackEntries.add(llmFeedback);
             objectTypesWithFilters.add(new ObjectTypeWithFilters(objectType, filters, baseCtx));
         }
 
@@ -192,47 +192,26 @@ class ObjectTypesSuggestionOperation {
         return objectTypesWithFilters;
     }
 
-    private List<SearchFilterType> parseAndValidateObjectTypeFilters(
+    private List<SearchFilterType> parseObjectTypeFilters(
             SiSuggestedObjectTypeType objectType,
-            PrismObjectDefinition<ShadowType> shadowObjectDef,
-            OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            PrismObjectDefinition<ShadowType> shadowObjectDef) throws SchemaException {
         final List<SearchFilterType> filters = new ArrayList<>();
         for (String filterString : objectType.getFilter()) {
             filters.add(parseAndSerializeFilter(filterString, shadowObjectDef));
         }
-        filtersValidator.testObjectTypeFilter(
-                ctx.resource.getOid(),
-                ctx.objectClassDefinition.getTypeName(),
-                filters,
-                ctx.task,
-                parentResult);
         return filters;
     }
 
-    private ParsedBaseContext parseAndValidateBaseContext(
+    private ParsedBaseContext parseBaseContext(
             String baseContextClassLocalName,
-            String baseContextFilterString,
-            OperationResult parentResult) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException, IllegalStateException {
+            String baseContextFilterString) throws SchemaException, IllegalStateException {
         stateCheck(baseContextClassLocalName != null,
                 "Base context class name must be set if base context filter is set");
         stateCheck(baseContextFilterString != null,
                 "Base context filter must be set if base context class name is set");
-
         QName baseContextClassQName = new QName(NS_RI, baseContextClassLocalName);
         var baseContextObjectDef = ctx.resourceSchema.findObjectClassDefinitionRequired(baseContextClassQName);
-        var baseContextFilter = parseAndSerializeFilter(
-                baseContextFilterString, baseContextObjectDef.getPrismObjectDefinition());
-
-        filtersValidator.testBaseContextFilter(
-                ctx.resource.getOid(),
-                baseContextClassQName,
-                baseContextFilter,
-                ctx.task,
-                parentResult);
-
+        var baseContextFilter = parseAndSerializeFilter(baseContextFilterString, baseContextObjectDef.getPrismObjectDefinition());
         return new ParsedBaseContext(baseContextClassQName, baseContextFilter);
     }
 
@@ -268,9 +247,7 @@ class ObjectTypesSuggestionOperation {
             var parsedFilter = PrismContext.get().createQueryParser().parseFilter(shadowObjectDef, filterString);
             return PrismContext.get().querySerializer().serialize(parsedFilter).toSearchFilterType();
         } catch (Exception e) {
-            throw new SchemaException(
-                    "Cannot process suggested filter (%s): %s".formatted(filterString, e.getMessage()),
-                    e);
+            throw new SchemaException("Cannot process suggested filter (%s): %s".formatted(filterString, e.getMessage()), e);
         }
     }
 
