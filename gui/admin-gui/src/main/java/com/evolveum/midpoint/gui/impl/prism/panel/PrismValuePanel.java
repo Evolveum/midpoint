@@ -140,9 +140,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         showMetadataButton.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getValueMetadata() != null && CollectionUtils.isNotEmpty(getModelObject().getValueMetadata().getValues())));
         showMetadataButton.add(AttributeAppender.append(
                 "aria-pressed", () -> PrismValuePanel.this.getModelObject().isShowMetadata()));
-        showMetadataButton.add(AttributeAppender.append("aria-label",
+        showMetadataButton.add(AttributeAppender.append("aria-label", () -> getString(
                 PrismValuePanel.this.getModelObject().isShowMetadata() ?
-                        "PrismValuePanel.metadataButton.pressed.ariaLabel" : "PrismValuePanel.metadataButton.notPressed.ariaLabel"));
+                        "PrismValuePanel.metadataButton.pressed.ariaLabel" : "PrismValuePanel.metadataButton.notPressed.ariaLabel")));
 
         addToHeader(buttonContainer);
         return buttonContainer;

@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -55,6 +57,9 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     private static final String ID_METADATA = "metadata";
     private static final String ID_METADATA_LIST = "metadataList";
     private static final String ID_METADATA_QNAME = "metadataQName";
+
+    //used to set the focus to the navigation button on its first appearing on the page
+    boolean isFirstNavigationButtonVisualization = true;
 
     public PrismValueMetadataPanel(String id, IModel<ValueMetadataWrapperImpl> model) {
         super(id, model);
@@ -143,7 +148,8 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
 
             @Override
             protected void populateItem(ListItem<ContainersPopupDto> listItem) {
-                AjaxButton button  = createNavigationItem(ID_METADATA_QNAME, listItem.getModel());
+                boolean isFirst = listModel.getObject().indexOf(listItem.getModelObject()) == 0;
+                AjaxButton button  = createNavigationItem(ID_METADATA_QNAME, listItem.getModel(), isFirst);
 
                 listItem.setOutputMarkupId(true);
                 listItem.add(button);
@@ -153,9 +159,22 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         metadataList.setOutputMarkupId(true);
     }
 
-    private AjaxButton createNavigationItem(String id, IModel<ContainersPopupDto> model) {
-        AjaxButton button  = new AjaxButton(id, createStringResource(model.getObject().getItemName())) {
+    private AjaxButton createNavigationItem(String id, IModel<ContainersPopupDto> model, boolean isFirst) {
+        IModel<String> buttonLabelModel = createStringResource(model.getObject().getItemName());
+        AjaxButton button  = new AjaxButton(id, buttonLabelModel) {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void renderHead(IHeaderResponse response) {
+                super.renderHead(response);
+
+                if (isFirst && isFirstNavigationButtonVisualization) {
+                    String buttonMarkupId = this.getMarkupId();
+                    String script = "document.getElementById('" + buttonMarkupId + "').focus();";
+                    response.render(OnDomReadyHeaderItem.forScript(script));
+                    isFirstNavigationButtonVisualization = false;
+                }
+            }
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -168,7 +187,8 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         };
         button.add(AttributeAppender.append("class", createButtonClassModel(model)));
         button.add(AttributeAppender.append("aria-label", () -> model.getObject().isSelected() ?
-                "PrismValueMetadataPanel.panelIsShown.ariaLabel" : null));
+                createStringResource("PrismValueMetadataPanel.panelIsShown.ariaLabel", buttonLabelModel.getObject()).getString()
+                : null));
         button.add(AttributeAppender.append("aria-selected", () -> model.getObject().isSelected()));
         button.add(AttributeAppender.append("data-component-id", button::getPageRelativePath));
         button.setOutputMarkupId(true);
