@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createVirtualMappingContainerModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.isNotCompletedSuggestion;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadMappingTypeSuggestion;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeMappingTypeSuggestion;
 
 /**
  * @author lskublik
@@ -77,6 +77,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTableWizardPanel.class);
     private static final String CLASS_DOT = AttributeMappingsTableWizardPanel.class.getName() + ".";
     private static final String OP_SUGGEST_MAPPING = CLASS_DOT + "suggestMapping";
+    private static final String OP_LOAD_SUGGESTION = CLASS_DOT + "loadSuggestion";
 
     private static final String ID_AI_PANEL = "aiPanel";
     private static final String ID_TAB_TABLE = "panel";
@@ -84,7 +85,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     private final MappingDirection initialTab;
     IModel<Boolean> switchToggleModel = Model.of(Boolean.TRUE);
     boolean isInboundTabSelected = true;
-
 
     public AttributeMappingsTableWizardPanel(
             String id,
@@ -137,7 +137,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     private void reloadSwitchModel(String resourceOid) {
-        if (isNotCompletedSuggestion(loadExistingSuggestion(resourceOid, getSelectedMappingType()).getObject())) {
+        if (isNotCompletedSuggestion(loadSuggestion(resourceOid).getObject())) {
             switchToggleModel.setObject(Boolean.FALSE);
         }
     }
@@ -244,13 +244,18 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 getSelectedMappingType());
     }
 
-    protected LoadableModel<StatusInfo<?>> loadExistingSuggestion(String resourceOid, MappingDirection mappingDirection) {
-        Task task = getPageBase().createSimpleTask("Load generation statusInfo");
+    protected LoadableModel<StatusInfo<?>> loadSuggestion(String resourceOid) {
+        Task task = getPageBase().createSimpleTask(OP_LOAD_SUGGESTION);
         OperationResult result = task.getResult();
         return new LoadableModel<>() {
             @Override
             protected StatusInfo<MappingsSuggestionType> load() {
-                return loadMappingTypeSuggestion(getPageBase(), resourceOid, mappingDirection, task, result);
+                return loadObjectTypeMappingTypeSuggestion(getPageBase(),
+                        resourceOid,
+                        getResourceObjectTypeIdentification(),
+                        getSelectedMappingType(),
+                        task,
+                        result);
             }
         };
     }
@@ -259,7 +264,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @NotNull String resourceOid,
             @NotNull IModel<Boolean> switchToggleModel) {
         SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
-                () -> new SmartGeneratingAlertDto(loadExistingSuggestion(resourceOid, getSelectedMappingType()), switchToggleModel, getPageBase())) {
+                () -> new SmartGeneratingAlertDto(loadSuggestion(resourceOid), switchToggleModel, getPageBase())) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target) {
                 ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
