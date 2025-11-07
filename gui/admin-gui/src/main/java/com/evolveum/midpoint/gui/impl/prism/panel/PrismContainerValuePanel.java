@@ -180,10 +180,15 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     protected Label getHelpLabel() {
-
         Label help = new Label(ID_HELP);
         help.add(AttributeModifier.replace("title", new PropertyModel<>(getModel(), "helpText")));
-        help.add(new InfoTooltipBehavior());
+        help.add(new InfoTooltipBehavior() {
+
+            @Override
+            public IModel<String> createAriaLabelModel() {
+                return getParentPage().createStringResource("PrismContainerValuePanel.helpTooltip", getLabelModel().getObject());
+            }
+        });
         help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getHelpText()) && shouldBeButtonsShown()));
         help.setOutputMarkupId(true);
         return help;
