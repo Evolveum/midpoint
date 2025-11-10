@@ -2177,10 +2177,10 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:choice>
+                    <xsd:sequence>
                         <xsd:element name="below" type="xsd:int" minOccurs="0"/>
                         <xsd:element name="exceeds" type="xsd:int" minOccurs="0"/>
-                    </xsd:choice>
+                    </xsd:sequence>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2268,10 +2268,10 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ActivityPolicyActionType">
                 <xsd:sequence>
-                    <xsd:element name="delay" type="xsd:int" minOccurs="0" default="5000">
+                    <xsd:element name="delay" type="xsd:int" minOccurs="0" default="5">
                         <xsd:annotation>
                             <xsd:documentation>
-                                What delay (in milliseconds) to introduce between attempts. Actual delay is taken as
+                                What delay (in seconds) to introduce between attempts. Actual delay is taken as
                                 a random number between 0 and delay*(2^(n-1)), where n is the number attempts so far.
                             </xsd:documentation>
                         </xsd:annotation>

@@ -6,15 +6,13 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-// todo better name [viliam]
-
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunPolicyException;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunPolicyException;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -22,6 +20,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * Helper class for activity policy processing that can be used in non-iterative activities.
  */
+@Experimental
 public class ActivityPolicyProcessorHelper {
 
     private static final ThreadLocal<AbstractActivityRun<?, ?, ?>> ACTIVITY_RUN_THREAD_LOCAL = new ThreadLocal<>();

@@ -198,7 +198,7 @@ public class ActivityBasedTaskRun implements TaskRun {
             computedDelay = 0;
             LOGGER.trace("No delay for activity restart as per policy action configuration");
         } else {
-            computedDelay = baseDelay * (1L << Math.min(executionAttempt - 1, EXPONENTIAL_BACKOFF_LIMIT));
+            computedDelay = baseDelay * (1L << Math.min(executionAttempt - 1, EXPONENTIAL_BACKOFF_LIMIT)) * 1000L;
             LOGGER.trace("Base delay = {} ms, execution attempt = {}, computed delay = {} ms",
                     baseDelay, executionAttempt, computedDelay);
         }
