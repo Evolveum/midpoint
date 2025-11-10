@@ -8,25 +8,31 @@ doc-type: intro
 :page-moved-from: /midpoint/reference/mark/
 :page-upkeep-status: green
 :page-keywords: object operation policy, object marks, default policy, filter, shadow policy marks, shadow, marks
-:page-description: This describes Object Marks, a midPoint feature that enables you to classify objects into groups to which you can then apply policies.
+:page-description: This describes Object Marks, a midPoint feature that enables flexible object classification, which you can use not only to apply policies to specific groups but also to organize and report on your data.
 
 
-This describes Object Marks, a midPoint feature that enables you to classify objects into groups to which you can then apply policies.
+This describes Object Marks, a midPoint feature that enables flexible object classification, which you can use not only to apply policies to specific groups but also to organize and report on your data.
 
 == Introduction
 
-Object Marks are light-weight marking mechanism for objects that helps you ease administration of midPoint and/or induce specific behavior policies to marked objects.
+Object Marks are a light-weight marking mechanism for objects that helps you ease administration of midPoint and/or induce specific behavior policies to marked objects.
+
+They are designed to:
+
+* *Enable fine-grained policy control* - You can define object restrictions based on object classification. +
+For example, protect your imported data from being altered by marking them as "unmanaged".
+* *Support flexible lifecycle management* - You can temporarily or permanently categorize objects for specific lifecycle actions, such as review, archiving, or other special handling. +
+For example, you can mark users as "inactive" after a certain period of inactivity and define a policy that automatically initiates a deprovisioning process, such as revoking access rights, or archiving data, thus ensuring compliance with organizational policies.
+* *Provide metadata for reporting and automation* - Marks can serve as metadata tags that facilitate reporting, auditing, and automated workflows. +
+For example, mark objects as "under review" and set up a policy that restricts changes to those objects until a review process is complete.
+* *Workflow automation* - Set up a policy that triggers specific workflows related to account setup, access provisioning, or training assignments, if a user is marked as "onboarding".
+
+You can use marks to track object states or categories without altering their core attributes.
 
 Marked objects can be filtered by marks in the Admin GUI and may receive additional policies based on effective marks.
 
 Object marks are `MarkType` with the `Object Mark` archetype.
 
-Grouping objects with marks, and applying policies to those groups enables you to cover many business scenarios, such as:
-
-* *Lifecycle management* - Mark users as "inactive" after a certain period of inactivity and define a policy that automatically initiates a deprovisioning process, such as revoking access rights, or archiving data, thus ensuring compliance with organizational policies.
-* *Audit and compliance* - Mark objects as "under review" and set up a policy that restricts changes to those objects until a review process is complete.
-* *Data protection* - Protect your imported data from being altered by marking them as "unmanaged".
-* *Workflow automation* - Set up a policy that triggers specific workflows related to account setup, access provisioning, or training assignments, if a user is marked as "onboarding".
 
 [IMPORTANT]
 ====
@@ -36,6 +42,46 @@ Grouping objects with marks, and applying policies to those groups enables you t
 
 == How it works
 
+This shows you how object marks integrate with midPoint policies.
+
+Object marks sit between the actual objects and policies that are applied to them.
+They provide a layer of classification that allows you to define and enforce policies based on the assigned marks.
+
+The following diagram shows how you can use marks as classifiers based on which policies treat objects differently:
+
+++++
+<div class="mermaid">
+flowchart TD
+    subgraph A["Objects"]
+    direction LR
+        U1["User A (Mark: 'active')"]
+        U2["User B (Mark: 'inactive')"]
+        U3["User C (Mark: 'review')"]
+    end
+
+    A --> B["Policy evaluates marks"]
+
+    B -->|Policy for 'active'| C1["Provisioned to target systems"]
+    B -->|Policy for 'inactive'| C2["Provisioning blocked"]
+    B -->|Policy for 'review'| C3["Sent to manager for approval"]
+
+    subgraph D["System Outcomes"]
+        C1
+        C2
+        C3
+    end
+
+    classDef obj fill:#e0f2fe,stroke:#0369a1,stroke-width:1px,color:#111;
+    classDef proc fill:#ede9fe,stroke:#7c3aed,stroke-width:1px,color:#111;
+    classDef out fill:#dcfce7,stroke:#15803d,stroke-width:1px,color:#111;
+
+    class U1,U2,U3 obj;
+    class B proc;
+    class C1,C2,C3 out;
+
+</div>
+++++
+
 A typical scenario in which marks are used to control the behavior of groups of objects has the following steps:
 
 . Create object marks that support your use case.
@@ -43,7 +89,13 @@ A typical scenario in which marks are used to control the behavior of groups of 
 . Define the default operation policy for objects that do not have an explicitly specified mark.
 . Create policies that apply to individual object marks.
 
-TIP: See how you can xref:/midpoint/reference/admin-gui/resource-wizard/object-type/policies[classify objects and define the default operation policy in the midPoint GUI].
+[TIP]
+====
+See how:
+
+* you can xref:/midpoint/reference/admin-gui/resource-wizard/object-type/policies[classify objects and define the default operation policy in the midPoint GUI],
+* object marks integrate with xref:/midpoint/reference/admin-gui/dashboards[dashboards].
+====
 
 == Basic concepts
 
@@ -55,17 +107,17 @@ Effective marks are stored in object `effectiveMarkRef` of type `ObjectReference
 
 === Policy statements
 
-Effective marks could be manually added / induced / excluded from object by modifying policy statement of particular object.
+Effective marks can be manually added / induced / excluded from an object by modifying policy statements of a particular object.
 
 A policy statement has two main properties:
 
-* *markRef* - object reference, which specifies mark
-* *type* - enumeration, which specifies type of policy statement
-** `apply` - referenced mark is manually added as effective mark
-** `exclude` - referenced mark will not be effective, even if other policy may specify it so.
+* *markRef* - An object reference which specifies the mark.
+* *type* - An enumeration which specifies the type of the policy statement.
+The values are:
+    ** `apply` - The referenced mark is manually added as an effective mark.
+    ** `exclude` - The referenced mark will not be effective, even if another policy may specify it so.
 
-
-.Marking shadow as protected
+.Marking a shadow as protected
 [source, xml]
 ----
 <policyStatement>
@@ -78,52 +130,53 @@ A policy statement has two main properties:
 
 == Object operation policy
 
-NOTE: Currently, the object operation policy is supported for shadow objects only.
+NOTE: Currently, the object operation policy is only supported for shadow objects.
 
-Object Marks allows to specify operation policy, which may enabled or disable specific operations for marked objects.
+You can use object marks to specify operation policies that can enable or disable specific operations for marked objects.
 
-The supported object operation policies for shadows are:
+The supported object operation policies are:
 
-.Supported object operation policies for shadows
+.Supported object operation policies
 [%autowidth]
 |===
 | Operation | Kind | Behavior if disabled
 
 2+| `add`
-| New shadows having this operation disabled cannot be added on the resource, neither manually nor automatically.
+| New shadows with this operation disabled cannot be added on the resource, neither manually nor automatically.
 Any such attempt results in an error.
 2+| `modify`
-| Shadows having this operation disabled cannot be modified on the resource, neither manually nor automatically.
+| Shadows with this operation disabled cannot be modified on the resource, neither manually nor automatically.
 Any such attempt results in an error.
 2+| `delete`
-| Shadows having this operation disabled cannot be deleted from the resource, neither manually nor automatically.
+| Shadows with this operation disabled cannot be deleted from the resource, neither manually nor automatically.
 Any such attempt results in an error.
-(Except for manual deletion from GUI, where the severity of `info` is respected.)
+(Except for manual deletions from GUI where the severity of `info` is respected.)
 .2+| `synchronize`
 | `inbound`
-| Shadows having this operation disabled are excluded from inbound synchronization.
+| Shadows with this operation disabled are excluded from inbound synchronization.
 | `outbound`
 | Changes in focus objects do not trigger mappings and are not propagated to the resource.
 .3+| `synchronize/membership` (applies to entitlements only)
 | `inbound`
-| The membership information regarding entitlement shadows having this operation disabled is excluded from inbound synchronization.
+| The membership information regarding entitlement shadows with this operation disabled is excluded from inbound synchronization.
 | `outbound`
-| The membership information regarding entitlement shadows having this operation disabled is not propagated from focus objects to the resource.
+| The membership information regarding entitlement shadows with this operation disabled is not propagated from focus objects to the resource.
 | `tolerant`
-| This is actually not an operation, but a boolean (`true`/`false`) flag that overrides whether the membership information regarding this entitlement is tolerated on the resource, if it's not provided by any mappings.
-Please see xref:/midpoint/reference/resources/entitlements/#_tolerating_existing_association_values[Tolerating Existing Association Values].
+| This is actually not an operation, but a boolean (`true`/`false`) flag that overrides whether the membership information regarding this entitlement is tolerated on the resource, if it is not provided by any mappings.
+Refer to xref:/midpoint/reference/resources/entitlements/#_tolerating_existing_association_values[Tolerating Existing Association Values].
 |===
 
-*Default object operation policy* for objects without marks specifying policy is to have *all operations enabled*.
-This default can be changed by setting `defaultOperationPolicy` for specific resource object type definition.
+The *default object operation policy* for objects without marks specifying policies is to have *all operations enabled*.
+This default can be changed by setting `defaultOperationPolicy` for specific resource object type definitions.
 
-If object has multiple effective marks specifying object operation policy, these policies are merged.
+If an object has multiple effective marks that specify object operation policies, these policies are merged.
 Operations disabled by any of the marks are always disabled.
 
 The `tolerant` flag should not have values of `true` and `false` mixed together.
-The current implementation is that the value of `true` is the result, should such a combination occur (with a warning into the log), but this behavior may change in the future.
+If those values are mixed, the value `true` takes precedence, and a warning is entered into the log.
+However, this behavior may be subject to a change in the future.
 
-.Object operation policy of protected mark
+.Object operation policy of protected mark (i.e., locked from automatic operations)
 [source, xml]
 ----
 <objectOperationPolicy>
@@ -171,52 +224,52 @@ These object marks are intended to mark objects violating various policies.
 | Object Mark | Description
 
 | Assignment modified
-| Assignment was modified in an illegal, suspicious or interesting way.
+| Assignment was modified in an illegal, suspicious, or interesting way.
 
 | Assignment state
-| Assignment is in illegal, suspicious or interesting state.
+| Assignment is in an illegal, suspicious, or interesting state.
 
 | Assignment time validity
-| Assignment time validity has started, ended or otherwise reached interesting point in time.
+| Assignment time validity has started, ended, or otherwise reached an interesting point in time.
 
 | Exclusion violation
-| Violation of exclusion policy, such as segregation duty violation
+| Violation of an exclusion policy, such as a segregation of duty violation.
 
 | Has assignment
-| Object has illegal, suspicious or interesting assignment.
+| Object has an illegal, suspicious, or interesting assignment.
 
 | Has no assignment
-| Object does not have required, recommended or interesting assignment.
+| Object does not have a required, recommended, or interesting assignment.
 
 | Neglected
-| Mark for object that is not properly cared for, such as role that was not reviewed for a long time.
+| Mark for an object that is not properly cared for, such as a role that has not been reviewed in a long time.
 
 | Object modified
-| Object was modified in an illegal, suspicious or interesting way.
+| Object was modified in an illegal, suspicious, or interesting way.
 
 | Object state
-| Object is in illegal, suspicious or interesting state.
+| Object is in an illegal, suspicious, or interesting state.
 
 | Object time validity
-| Object time validity has started, ended or otherwise reached interesting point in time.
+| Object time validity has started, ended, or otherwise reached an interesting point in time.
 
 | Orphaned
-| Mark for object which does not have an owner.
+| Mark for an object that does not have an owner.
 
 | Overassigned
-| Excessive number of assignees. Usually indicates object assigned too many time, such as role assigned to too many users.
+| An excessive number of assignees. Usually indicates an object has been assigned too many times, such as a role assigned to too many users.
 
 | Requirement violation
-| Violation of requirement policy, such as insufficient clearance
+| Violation of a requirement policy, such as an insufficient clearance.
 
 | Suspicious
-| Mark for Suspicious object. It should be (manually) investigated.
+| Mark for a suspicious object. It should be (manually) investigated.
 
 | Underassigned
-| Unsifficient number of assignees. Usually indicates shortage of staff, vacancies or other understaffing situations.
+| An insufficient number of assignees. Usually indicates a shortage of staff, vacancies, or other understaffing situations.
 
 | Understaffed security
-| Mark for security role or responsibility which is not properly staffed, it is not assigned to the users according to policy.
+| Mark for a security role or responsibility that is not properly staffed, i.e., it is not assigned to users according to a policy.
 
 |===
 
@@ -264,7 +317,7 @@ Refer to xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#m
 | No
 | No
 | No
-| Shadow object marked as `Unmanaged` is tolerated by midPoint, but not managed by it.
+| Shadow objects marked as `Unmanaged` are tolerated by midPoint, but not managed by it.
 Refer to xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#unmanaged-mark[] for details.
 
 
@@ -274,7 +327,7 @@ Refer to xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#u
 |Yes
 |Yes
 |Yes
-| Shadow object which should not be updated automatically by synchronization, but may be edited / deleted manually later.
+| Shadow object that should not be updated automatically by synchronization, but may be edited / deleted manually later.
 
 |*Correlate later*
 |No
@@ -282,7 +335,7 @@ Refer to xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#u
 |Yes
 |Yes
 |Yes
-|Shadow object which can not be correlated automaticly and should be skipped during synchronization.
+|Shadow object that can not be correlated automatically and should be skipped during synchronization.
 
 |*Do not touch*
 |No
@@ -290,7 +343,8 @@ Refer to xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#u
 |No
 |No
 |No
-|Shadow object which we do not want to be synchronized / modified by midPoint. (same as protected), but reason may be different.
+|Shadow object that we do not want to be synchronized / modified by midPoint.
+Used in the same way as "Protected" when you have different reasons than for the "Protected" mark.
 
 |*Invalid data*
 |No
@@ -298,6 +352,16 @@ Refer to xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/#u
 |No
 |No
 |No
-|Shadow object which has bad data and should be ignored by synchronization. Same behavior as `Protected`, but different semantic meaning.
+|Shadow object that has bad data and should be ignored by synchronization. Used in the same way as "Protected" but with a different semantic meaning.
 |===
 
+== Best practices
+
+* Use clear and descriptive names for marks, such as "inactive", "requires-approval", or "archived".
+* Consider the granularity of your marks.
+Too many marks can complicate management, while too few may not provide sufficient differentiation.
+* Regularly audit marks to ensure they are still relevant and accurately reflect the state of the objects.
+
+== See also
+
+* xref:/midpoint/reference/admin-gui/resource-wizard/object-type/policies[]
