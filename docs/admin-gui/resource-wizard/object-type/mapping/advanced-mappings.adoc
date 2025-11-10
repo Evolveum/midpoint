@@ -20,6 +20,7 @@ In addition to the xref:/midpoint/reference/admin-gui/resource-wizard/object-typ
 
 . For an existing inbound mapping, click icon:edit[] *Edit*, and configure:
 
+[[mapping-strength]]
     * *Strength*: Defines how aggressively the mapping is applied:
         ** _Strong_: Always enforces source values.
         For single-value attributes, the source value replaces the target value, while for multi-value attributes, source values are added to target values.
