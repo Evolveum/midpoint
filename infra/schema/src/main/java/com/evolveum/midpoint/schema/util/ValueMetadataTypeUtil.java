@@ -103,6 +103,21 @@ public class ValueMetadataTypeUtil {
         }
     }
 
+    public static @NotNull ValidationMetadataType getOrCreateValidationMetadata(@NotNull ValueMetadataType metadata) {
+        var existing = metadata.getValidation();
+        if (existing != null) {
+            return existing;
+        } else {
+            var newValue = new ValidationMetadataType();
+            metadata.setValidation(newValue);
+            return newValue;
+        }
+    }
+
+    public static @Nullable ValidationMetadataType getValidationMetadata(@NotNull ValueMetadataType metadata) {
+        return metadata.getValidation();
+    }
+
     public static @NotNull MappingSpecificationType getOrCreateMappingSpecification(@NotNull ProvenanceMetadataType metadata) {
         var existing = metadata.getMappingSpecification();
         if (existing != null) {

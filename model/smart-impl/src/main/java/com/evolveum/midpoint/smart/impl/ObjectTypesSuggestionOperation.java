@@ -92,7 +92,7 @@ class ObjectTypesSuggestionOperation {
                             validationFeedback != null ? validationFeedback.size() : 0);
                 } else {
                     LOGGER.warn("Validation issues persist after retry; using partial result.");
-                    suggestedObjectTypes = e.getValidObjectTypes();
+                    suggestedObjectTypes = e.getObjectTypesWithFiltersAndErrors();
                 }
             }
         }
@@ -105,6 +105,9 @@ class ObjectTypesSuggestionOperation {
                     .objectClass(typeName);
             objectTypeWithFilters.filters().forEach(delineation::filter);
             AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_FILTER);
+            if (objectTypeWithFilters.filterError() != null) {
+                AiUtil.markAsInvalid(delineation, objectTypeWithFilters.filterError(), ResourceObjectTypeDelineationType.F_FILTER);
+            }
 
             var baseCtx = objectTypeWithFilters.baseCtx();
             if (baseCtx != null) {
@@ -112,6 +115,9 @@ class ObjectTypesSuggestionOperation {
                         .objectClass(baseCtx.classQName())
                         .filter(baseCtx.filter()));
                 AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+                if (objectTypeWithFilters.baseCtxError() != null) {
+                    AiUtil.markAsInvalid(delineation, objectTypeWithFilters.baseCtxError(), ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+                }
             }
 
             var typeId = ResourceObjectTypeIdentification.of(
@@ -150,13 +156,13 @@ class ObjectTypesSuggestionOperation {
             throws SuggestObjectTypesValidationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
 
         final List<ObjectTypeWithFilters> objectTypesWithFilters = new ArrayList<>();
-        final List<SiValidationErrorFeedbackEntryType> feedbackEntries = new ArrayList<>();
         boolean hasAnyErrors = false;
 
         for (final SiSuggestedObjectTypeType objectType : objectTypes) {
-            List<SearchFilterType> filters = new ArrayList<>();
+            List<SearchFilterType> filters = null;
             ParsedBaseContext baseCtx = null;
-            SiValidationErrorFeedbackEntryType llmFeedback = new SiValidationErrorFeedbackEntryType().objectType(objectType);
+            String filterError = null;
+            String baseCtxError = null;
 
             if (objectType.getFilter() != null && !objectType.getFilter().isEmpty()) {
                 try {
@@ -165,7 +171,7 @@ class ObjectTypesSuggestionOperation {
                 } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException e) {
                     LOGGER.warn("Failed validating suggested object type (kind={}, intent={}, displayName={}) for object class {}. Filters: {}",
                             objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(), typeName, objectType.getFilter(), e);
-                    llmFeedback.getFilterErrors().add(e.getMessage());
+                    filterError = e.getMessage();
                     hasAnyErrors = true;
                 }
             }
@@ -177,17 +183,16 @@ class ObjectTypesSuggestionOperation {
                     LOGGER.warn("Failed validating base context for suggested object type (kind={}, intent={}, displayName={}). Base context objectClass={}, filter={}",
                             objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(),
                             typeName, objectType.getBaseContextFilter(), e);
-                    llmFeedback.getFilterErrors().add(e.getMessage());
+                    baseCtxError = e.getMessage();
                     hasAnyErrors = true;
                 }
             }
 
-            feedbackEntries.add(llmFeedback);
-            objectTypesWithFilters.add(new ObjectTypeWithFilters(objectType, filters, baseCtx));
+            objectTypesWithFilters.add(new ObjectTypeWithFilters(objectType, filters, baseCtx, filterError, baseCtxError));
         }
 
         if (hasAnyErrors) {
-            throw new SuggestObjectTypesValidationException(feedbackEntries, objectTypesWithFilters);
+            throw new SuggestObjectTypesValidationException(objectTypesWithFilters);
         }
         return objectTypesWithFilters;
     }
@@ -254,7 +259,9 @@ class ObjectTypesSuggestionOperation {
     private record ObjectTypeWithFilters(
             SiSuggestedObjectTypeType suggestedObjectType,
             Collection<SearchFilterType> filters,
-            ParsedBaseContext baseCtx) {}
+            ParsedBaseContext baseCtx,
+            @Nullable String filterError,
+            @Nullable String baseCtxError) {}
 
     private record ParsedBaseContext(QName classQName, SearchFilterType filter) {}
 
@@ -263,19 +270,34 @@ class ObjectTypesSuggestionOperation {
      * and partial results to guide a retry and/or allow building a result even when some entries failed.
      */
     static class SuggestObjectTypesValidationException extends SchemaException {
-        private final List<SiValidationErrorFeedbackEntryType> validationFeedback;
-        private final Collection<ObjectTypeWithFilters> validObjectTypes;
+        private final Collection<ObjectTypeWithFilters> objectTypesWithFiltersAndErrors;
 
-        SuggestObjectTypesValidationException(
-                List<SiValidationErrorFeedbackEntryType> validationFeedback,
-                Collection<ObjectTypeWithFilters> validObjectTypes) {
+        SuggestObjectTypesValidationException(Collection<ObjectTypeWithFilters> validObjectTypes) {
             super("Some suggested object types failed validation.");
-            this.validationFeedback = validationFeedback;
-            this.validObjectTypes = validObjectTypes;
+            this.objectTypesWithFiltersAndErrors = validObjectTypes;
         }
 
-        List<SiValidationErrorFeedbackEntryType> getValidationFeedback() { return validationFeedback; }
-        Collection<ObjectTypeWithFilters> getValidObjectTypes() { return validObjectTypes; }
+        Collection<ObjectTypeWithFilters> getObjectTypesWithFiltersAndErrors() { return objectTypesWithFiltersAndErrors; }
+
+        /**
+         * Builds structured validation feedback for the microservice retry.
+         * Each entry contains the original suggested object type and all related error messages.
+         */
+        List<SiValidationErrorFeedbackEntryType> getValidationFeedback() {
+            List<SiValidationErrorFeedbackEntryType> feedback = new ArrayList<>();
+            for (ObjectTypeWithFilters otwf : objectTypesWithFiltersAndErrors) {
+                var entry = new SiValidationErrorFeedbackEntryType()
+                        .objectType(otwf.suggestedObjectType());
+                if (otwf.filterError() != null) {
+                    entry.filterErrors(otwf.filterError());
+                }
+                if (otwf.baseCtxError() != null) {
+                    entry.filterErrors(otwf.baseCtxError());
+                }
+                feedback.add(entry);
+            }
+            return feedback;
+        }
     }
 
 }

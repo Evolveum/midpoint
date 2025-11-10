@@ -233,4 +233,146 @@ public class AiUtil {
 
         return candidateOids.equals(expectedOids);
     }
+
+    /**
+     * Marks all leaf values (property and reference values) as invalid by attaching validation metadata.
+     * Optional reason can be provided. Does nothing if the value is {@code null}.
+     */
+    public static <C extends Containerable> C markAsInvalid(@NotNull C value, @Nullable String reason) {
+        markAsInvalid(value.asPrismContainerValue(), reason);
+        return value;
+    }
+
+    /** Convenience variant to mark specific items within the containerable as invalid. */
+    public static <C extends Containerable> C markAsInvalid(@NotNull C containerable, @Nullable String reason, ItemPath... paths) {
+        for (ItemPath path : paths) {
+            Item<?, ?> item = containerable.asPrismContainerValue().findItem(path);
+            if (item != null) {
+                for (var v : item.getValues()) {
+                    markAsInvalid(v, reason);
+                }
+            }
+        }
+        return containerable;
+    }
+
+    /** Marks leaf values as invalid with an optional reason. */
+    public static void markAsInvalid(@Nullable PrismValue value, @Nullable String reason) {
+        if (value != null) {
+            value.acceptVisitor(visitable -> {
+                if (visitable instanceof ValueMetadata) {
+                    return false; // do not mark metadata itself
+                } else if (visitable instanceof PrismValue prismValue) {
+                    if (prismValue instanceof PrismContainerValue<?>) {
+                        return true; // drill down, but do not mark the container value itself
+                    } else {
+                        setValidationOnValue(prismValue, reason);
+                        return false; // PPVs and PRVs have no children to visit
+                    }
+                } else if (visitable instanceof Item) {
+                    return true; // visit the values
+                } else {
+                    throw new IllegalArgumentException("Unexpected visitable type: " + visitable.getClass());
+                }
+            });
+        }
+    }
+
+    /** Returns {@code true} if the value has validation metadata at the root level. */
+    public static boolean isMarkedAsInvalid(@Nullable PrismValue value) {
+        return value != null && value.hasValueMetadata() && hasValidation(value);
+    }
+
+    /** Removes validation metadata recursively from the given value and its children. */
+    public static void unmarkAsInvalid(@Nullable PrismValue value) {
+        if (value == null) {
+            return;
+        }
+        value.acceptVisitor(visitable -> {
+            if (visitable instanceof ValueMetadata) {
+                return false;
+            } else if (visitable instanceof PrismValue prismValue) {
+                if (prismValue instanceof PrismContainerValue<?>) {
+                    return true;
+                } else {
+                    removeValidationMetadata(prismValue);
+                    return false;
+                }
+            } else {
+                return visitable instanceof Item;
+            }
+        });
+    }
+
+    private static boolean hasValidation(@NotNull PrismValue value) {
+        if (!value.hasValueMetadata()) {
+            return false;
+        }
+        ValueMetadata vmc = value.getValueMetadata();
+        if (vmc.hasNoValues()) {
+            return false;
+        }
+        for (PrismContainerValue<Containerable> pcv : vmc.getValues()) {
+            ValueMetadataType vmType = pcv.getRealValue();
+            if (vmType != null && vmType.getValidation() != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void setValidationOnValue(@NotNull PrismValue prismValue, @Nullable String reason) {
+        ValueMetadata vmc = prismValue.getValueMetadata();
+        ValueMetadataType target = null;
+        for (PrismContainerValue<Containerable> pcv : vmc.getValues()) {
+            ValueMetadataType vmType = pcv.getRealValue();
+            if (vmType != null && vmType.getValidation() != null) {
+                target = vmType;
+                break;
+            }
+        }
+        if (target == null) {
+            // Create a dedicated metadata value for validation
+            target = Objects.requireNonNull(vmc.createNewValue().getRealValue());
+            target.setValidation(new ValidationMetadataType());
+        }
+        if (reason != null) {
+            ValueMetadataTypeUtil.getOrCreateValidationMetadata(target).setReason(reason);
+        } else {
+            // ensure validation node exists even if reason is null
+            ValueMetadataTypeUtil.getOrCreateValidationMetadata(target);
+        }
+    }
+
+    /**
+     * Removes validation metadata entries from the given PrismValue. If a metadata value becomes empty
+     * after removing validation, the metadata value is removed as well. Returns true if anything was removed.
+     */
+    private static boolean removeValidationMetadata(@NotNull PrismValue prismValue) {
+        ValueMetadata vmc = prismValue.getValueMetadata();
+        if (vmc.hasNoValues()) {
+            return false;
+        }
+        boolean changed = false;
+        Iterator<PrismContainerValue<Containerable>> it = vmc.getValues().iterator();
+        while (it.hasNext()) {
+            PrismContainerValue<?> pcv = it.next();
+            ValueMetadataType vmType = pcv.getRealValue();
+            if (vmType == null) {
+                continue;
+            }
+            if (vmType.getValidation() != null) {
+                vmType.setValidation(null);
+                changed = true;
+                if (vmType.asPrismContainerValue().isEmpty()) {
+                    it.remove();
+                }
+            }
+        }
+        if (changed && vmc.hasNoValues()) {
+            vmc.clear();
+        }
+        return changed;
+    }
+
 }
