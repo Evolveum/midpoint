@@ -22,12 +22,14 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
+import java.io.Serial;
+
 /**
  * @author skublik
  */
 public class CompositedIconPanel extends BasePanel<CompositedIcon> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_LAYERED_ICON = "layeredIcon";
     private static final String ID_BASIC_ICON = "basicIcon";

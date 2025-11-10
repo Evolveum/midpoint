@@ -286,7 +286,7 @@ public class ColumnUtils {
             return createStringResource("ColumnUtils.getUserIconColumn.createTitleModel." + titleValue) == null ?
                     "" : createStringResource("ColumnUtils.getUserIconColumn.createTitleModel." + titleValue).getString();
         } else {
-            return object.asPrismContainer().getDefinition().getTypeName().getLocalPart();
+            return StringUtils.capitalize(WebPrismUtil.getLocalizedDisplayName(object.asPrismContainer()));
         }
     }
 
