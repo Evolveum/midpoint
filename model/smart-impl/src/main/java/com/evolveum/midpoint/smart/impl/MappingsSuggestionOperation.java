@@ -41,6 +41,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Implements "suggest mappings" operation.
+ *
+ * High-level flow:
+ * - Collect representative owned shadows for training and testing.
+ * - For each matched attribute pair, evaluate whether simple as-is mapping suffices or a script is needed.
+ * - If needed, ask the microservice for a script, validate and (if necessary) retry once with error feedback.
+ * - Build {@link AttributeMappingsSuggestionType} with expected quality and expression.
  */
 class MappingsSuggestionOperation {
 
@@ -114,6 +120,8 @@ class MappingsSuggestionOperation {
                     suggestion.getAttributeMappings().add(
                             suggestMapping(
                                     matchPair,
+                                    shadowAttrPath,
+                                    focusPropPath,
                                     suggestionPairs,
                                     testingPairs,
                                     result));
@@ -167,6 +175,8 @@ class MappingsSuggestionOperation {
 
     private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
+            ItemPath shadowAttrPath,
+            ItemPath focusPropPath,
             Collection<ValuesPair> valuesPairs,
             Collection<ValuesPair> testingValuesPairs,
             OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
@@ -174,51 +184,97 @@ class MappingsSuggestionOperation {
         LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
                 matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath(), valuesPairs.size());
 
-        ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
-        ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
         var propertyDef = ctx.getFocusTypeDefinition().findPropertyDefinition(focusPropPath);
-        String transformationScript = null;
-        ExpressionType expression;
-        if (valuesPairs.isEmpty()) {
-            LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
-            expression = null;
-        } else if (valuesPairs.stream().allMatch(pair ->
-                (pair.shadowValues() == null || pair.shadowValues().stream().allMatch(Objects::isNull))
-                        || (pair.focusValues() == null || pair.focusValues().stream().allMatch(Objects::isNull)))) {
-            LOGGER.trace(" -> all shadow or focus values are null, using 'asIs' mapping (without calling LLM)");
-            expression = null;
-        } else if (doesAsIsSuffice(valuesPairs, propertyDef)) {
-            LOGGER.trace(" -> 'asIs' does suffice according to the data, so we'll use it (without calling LLM)");
-            expression = null;
-        } else if (isTargetDataMissing(valuesPairs)) {
-            LOGGER.trace(" -> target data missing; we assume they are probably not there yet, so 'asIs' is fine (no LLM call)");
-            expression = null;
+
+        ExpressionType expression = null;
+        MappingsQualityAssessor.AssessmentResult assessment = null;
+
+        if (isScriptNeeded(valuesPairs, propertyDef)) {
+            String errorLog = null;
+            String retryScript = null;
+
+            for (int attempt = 1; attempt <= 2; attempt++) {
+                var mappingResponse = askMicroservice(matchPair, valuesPairs, errorLog, retryScript);
+                retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
+                expression = buildScriptExpression(mappingResponse);
+                try {
+                    assessment = this.qualityAssessor.assessMappingsQuality(
+                            testingValuesPairs, expression, this.ctx.task, parentResult);
+                    break;
+                } catch (ExpressionEvaluationException | SecurityViolationException e) {
+                    if (attempt == 1) {
+                        errorLog = e.getMessage();
+                        LOGGER.warn("Validation issues found on attempt 1; retrying.");
+                    } else {
+                        LOGGER.warn("Validation issues persist after retry; giving up.");
+                        throw e;
+                    }
+                }
+            }
         } else {
-            LOGGER.trace(" -> going to ask LLM about mapping script");
-            var mappingResponse = askMicroservice(matchPair, valuesPairs, null, null);
-            transformationScript = mappingResponse.getTransformationScript();
-            expression = buildScriptExpression(mappingResponse);
+            assessment = this.qualityAssessor.assessMappingsQuality(
+                    testingValuesPairs, expression, this.ctx.task, parentResult);
         }
 
-        var assessment = assessQualityWithRetry(expression, matchPair, testingValuesPairs, transformationScript, parentResult);
+        var suggestion = buildAttributeMappingSuggestion(shadowAttrPath, focusPropPath, assessment.quality(), expression);
+        AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
+        return suggestion;
+    }
 
-        // TODO remove this ugly hack
-        var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropPath);
-        var hackedSerialized = serialized.replace("ext:", "");
-        var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
-        var suggestion = new AttributeMappingsSuggestionType()
-                .expectedQuality(assessment.quality())
+    /**
+     * Decides whether a transformation script is needed (i.e., the microservice should be queried).
+     * Returns true if data suggests an as-is mapping is insufficient and a script should be requested; otherwise false.
+     */
+    private boolean isScriptNeeded(
+            Collection<ValuesPair> valuesPairs,
+            PrismPropertyDefinition<?> propertyDef) throws SchemaException {
+        if (valuesPairs.isEmpty()) {
+            LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
+            return false;
+        }
+        boolean allNulls = valuesPairs.stream().allMatch(pair ->
+                (pair.shadowValues() == null || pair.shadowValues().stream().allMatch(Objects::isNull))
+                        || (pair.focusValues() == null || pair.focusValues().stream().allMatch(Objects::isNull)));
+        if (allNulls) {
+            LOGGER.trace(" -> all shadow or focus values are null, using 'asIs' mapping (without calling LLM)");
+            return false;
+        }
+        if (doesAsIsSuffice(valuesPairs, propertyDef)) {
+            LOGGER.trace(" -> 'asIs' does suffice according to the data, so we'll use it (without calling LLM)");
+            return false;
+        }
+        if (isTargetDataMissing(valuesPairs)) {
+            LOGGER.trace(" -> target data missing; we assume they are probably not there yet, so 'asIs' is fine (no LLM call)");
+            return false;
+        }
+
+        LOGGER.trace(" -> going to ask LLM about mapping script");
+        return true;
+    }
+
+    /** Build the final suggestion structure while encapsulating path handling quirks. */
+    private static AttributeMappingsSuggestionType buildAttributeMappingSuggestion(
+            ItemPath shadowAttrPath,
+            ItemPath focusPropPath,
+            float expectedQuality,
+            @Nullable ExpressionType expression) {
+        var sanitizedFocusPath = sanitizeFocusPathForTarget(focusPropPath);
+        return new AttributeMappingsSuggestionType()
+                .expectedQuality(expectedQuality)
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
-                                .name(shadowAttrPath.lastName().getLocalPart()
-                                        + "-to-" + focusPropPath) //TODO TBD
+                                .name(shadowAttrPath.lastName().getLocalPart() + "-to-" + focusPropPath)
                                 .strength(MappingStrengthType.STRONG)
-                                .target(new VariableBindingDefinitionType()
-                                        .path(hackedReal.toBean()))
+                                .target(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
                                 .expression(expression)));
-        AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
-        return suggestion;
+    }
+
+    /** Centralized place for the historical "ext:" removal hack for focus path serialization. */
+    private static ItemPath sanitizeFocusPathForTarget(ItemPath focusPropPath) {
+        var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropPath);
+        var hackedSerialized = serialized.replace("ext:", "");
+        return PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
     }
 
     /**
@@ -229,43 +285,16 @@ class MappingsSuggestionOperation {
         if (suggestMappingResponse == null) {
             return null;
         }
-
         var script = suggestMappingResponse.getTransformationScript();
         String scriptDescription = suggestMappingResponse.getDescription();
-
         if (script == null || "input".equals(script)) {
             return null;
         }
-
         return new ExpressionType()
                 .description(scriptDescription)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
                                 new ScriptExpressionEvaluatorType().code(script)));
-    }
-
-    private MappingsQualityAssessor.AssessmentResult assessQualityWithRetry(
-            ExpressionType expression,
-            SchemaMatchOneResultType matchPair,
-            Collection<ValuesPair> valuesPairs,
-            @Nullable String firstScript,
-            OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
-        MappingsQualityAssessor.AssessmentResult assessment;
-        try {
-            assessment = this.qualityAssessor.assessMappingsQuality(
-                    valuesPairs, expression, this.ctx.task, parentResult);
-        } catch (ExpressionEvaluationException | SecurityViolationException e) {
-            var retryResponse = askMicroservice(matchPair, valuesPairs, e.getMessage(), firstScript);
-            expression = buildScriptExpression(retryResponse);
-            try {
-                assessment = this.qualityAssessor.assessMappingsQuality(
-                        valuesPairs, expression, this.ctx.task, parentResult);
-            } catch (ExpressionEvaluationException | SecurityViolationException e2) {
-                LOGGER.trace("Expression evaluation failed even after retry for {}.", matchPair.getShadowAttributePath());
-                throw e2;
-            }
-        }
-        return assessment;
     }
 
     private SiSuggestMappingResponseType askMicroservice(
@@ -290,9 +319,13 @@ class MappingsSuggestionOperation {
 
     /** Returns {@code true} if a simple "asIs" mapping is sufficient. */
     private boolean doesAsIsSuffice(Collection<ValuesPair> valuesPairs, PrismPropertyDefinition<?> propertyDef) {
+        if (propertyDef == null) {
+            LOGGER.trace("No focus property definition available; cannot verify asIs mapping.");
+            return false;
+        }
         for (var valuesPair : valuesPairs) {
-            var shadowValues = valuesPair.shadowValues();
-            var focusValues = valuesPair.focusValues();
+            var shadowValues = valuesPair.shadowValues() != null ? valuesPair.shadowValues() : List.of();
+            var focusValues = valuesPair.focusValues() != null ? valuesPair.focusValues() : List.of();
             if (shadowValues.size() != focusValues.size()) {
                 return false;
             }
@@ -322,7 +355,7 @@ class MappingsSuggestionOperation {
 
     /** Returns {@code true} if there are no target data altogether. */
     private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs) {
-        return valuesPairs.stream().allMatch(pair -> pair.focusValues().isEmpty());
+        return valuesPairs.stream().allMatch(pair -> pair.focusValues() == null || pair.focusValues().isEmpty());
     }
 
 }

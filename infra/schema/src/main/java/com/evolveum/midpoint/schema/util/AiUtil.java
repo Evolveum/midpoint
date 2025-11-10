@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Utility class for AI-related features.
@@ -61,26 +63,7 @@ public class AiUtil {
      * TODO The question is whether we should also mark the container values as AI-provided.
      */
     public static void markAsAiProvided(@Nullable PrismValue value) {
-        if (value != null) {
-            value.acceptVisitor(
-                    visitable -> {
-                        if (visitable instanceof ValueMetadata) {
-                            return false; // we do not want to mark metadata itself
-                        } else if (visitable instanceof PrismValue prismValue) {
-                            if (visitable instanceof PrismContainerValue<?>) {
-                                return true; // we want to drill down, but we do not want to mark the container value itself
-                            } else {
-                                ValueMetadataTypeUtil.getOrCreateMetadata(prismValue, AI_PROVENANCE_METADATA);
-                                return false; // PPVs and PRVs have no children to visit
-                            }
-                        } else if (visitable instanceof Item) {
-                            return true; // we want to visit the values
-                        } else {
-                            throw new IllegalArgumentException("Unexpected visitable type: " + visitable.getClass());
-                        }
-                    }
-            );
-        }
+        forEachLeafValue(value, pv -> ValueMetadataTypeUtil.getOrCreateMetadata(pv, AI_PROVENANCE_METADATA));
     }
 
     //TODO tmp method for using in connector generation wizard, remove after MVP
@@ -104,21 +87,8 @@ public class AiUtil {
      * Needed for cases like {@code newValue}, where cloned metadata differs from the static AI_PROVENANCE_METADATA instance.
      */
     private static boolean hasAiProvenance(@NotNull PrismValue value) {
-        if (!value.hasValueMetadata()) {
-            return false;
-        }
-        ValueMetadata vmc = value.getValueMetadata();
-        if (vmc.hasNoValues()) {
-            return false;
-        }
-        for (PrismContainerValue<Containerable> pcv : vmc.getValues()) {
-            ValueMetadataType vmType = pcv.getRealValue();
-            if (vmType != null && vmType.getProvenance() != null
-                    && containsMatchingOriginRefMetadata(vmType.getProvenance(), AI_PROVENANCE_METADATA)) {
-                return true;
-            }
-        }
-        return false;
+        return anyMetadataEntry(value, vmType -> vmType.getProvenance() != null
+                && containsMatchingOriginRefMetadata(vmType.getProvenance(), AI_PROVENANCE_METADATA));
     }
 
     private static ProvenanceMetadataType createAiProvenanceMetadata() {
@@ -155,23 +125,7 @@ public class AiUtil {
      * </p>
      */
     public static void unmarkAsAiProvided(@Nullable PrismValue value) {
-        if (value == null) {
-            return;
-        }
-        value.acceptVisitor(visitable -> {
-            if (visitable instanceof ValueMetadata) {
-                return false;
-            } else if (visitable instanceof PrismValue prismValue) {
-                if (prismValue instanceof PrismContainerValue<?>) {
-                    return true;
-                } else {
-                    removeAiProvenanceMetadata(prismValue);
-                    return false;
-                }
-            } else {
-                return visitable instanceof Item;
-            }
-        });
+        forEachLeafValue(value, AiUtil::removeAiProvenanceMetadata);
     }
 
     /**
@@ -233,4 +187,81 @@ public class AiUtil {
 
         return candidateOids.equals(expectedOids);
     }
+
+    /** Convenience variant to mark specific items within the containerable as invalid. */
+    public static <C extends Containerable> C markAsInvalid(@NotNull C containerable, @Nullable String validationError, ItemPath... paths) {
+        for (ItemPath path : paths) {
+            Item<?, ?> item = containerable.asPrismContainerValue().findItem(path);
+            if (item != null) {
+                for (var v : item.getValues()) {
+                    markAsInvalid(v, validationError);
+                }
+            }
+        }
+        return containerable;
+    }
+
+    /** Marks leaf values as invalid with an optional validationError. */
+    public static void markAsInvalid(@Nullable PrismValue value, @Nullable String validationError) {
+        forEachLeafValue(value, pv -> setValidationOnValue(pv, validationError));
+    }
+
+    /** Returns {@code true} if the value has validation metadata at the root level. */
+    public static boolean isMarkedAsInvalid(@Nullable PrismValue value) {
+        return value != null && value.hasValueMetadata() && hasValidation(value);
+    }
+
+    private static boolean hasValidation(@NotNull PrismValue value) {
+        return anyMetadataEntry(value, vmType -> vmType.getValidation() != null);
+    }
+
+    private static void setValidationOnValue(@NotNull PrismValue prismValue, @Nullable String validationError) {
+        ValueMetadata vmc = prismValue.getValueMetadata();
+        ValueMetadataType target = ValueMetadataTypeUtil.getOrCreateMetadataWithValidation(vmc);
+        if (validationError != null) {
+            ValueMetadataTypeUtil.getOrCreateValidationMetadata(target).setValidationError(validationError);
+        } else {
+            ValueMetadataTypeUtil.getOrCreateValidationMetadata(target);
+        }
+    }
+
+    /** Shared visitor to act on leaf values (property/reference). Skips metadata and recurses into containers. */
+    private static void forEachLeafValue(@Nullable PrismValue value, @NotNull Consumer<PrismValue> onLeaf) {
+        if (value == null) {
+            return;
+        }
+        value.acceptVisitor(visitable -> {
+            if (visitable instanceof ValueMetadata) {
+                return false;
+            } else if (visitable instanceof PrismValue prismValue) {
+                if (prismValue instanceof PrismContainerValue<?>) {
+                    return true;
+                } else {
+                    onLeaf.accept(prismValue);
+                    return false;
+                }
+            } else {
+                return visitable instanceof Item;
+            }
+        });
+    }
+
+    /** Checks if any metadata entry on the root value satisfies the provided predicate. */
+    private static boolean anyMetadataEntry(@NotNull PrismValue value, @NotNull Predicate<ValueMetadataType> predicate) {
+        if (!value.hasValueMetadata()) {
+            return false;
+        }
+        ValueMetadata vmc = value.getValueMetadata();
+        if (vmc.hasNoValues()) {
+            return false;
+        }
+        for (PrismContainerValue<Containerable> pcv : vmc.getValues()) {
+            ValueMetadataType vmType = pcv.getRealValue();
+            if (vmType != null && predicate.test(vmType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
