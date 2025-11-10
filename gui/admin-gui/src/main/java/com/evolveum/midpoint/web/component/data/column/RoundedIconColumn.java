@@ -6,8 +6,10 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.icon.AbstractIconColumn;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
@@ -17,10 +19,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.request.resource.IResource;
 
+import java.io.Serial;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class RoundedIconColumn<T, S> extends AbstractIconColumn<T, S> {
+    @Serial private static final long serialVersionUID = 1L;
 
     public RoundedIconColumn(IModel<String> title) {
         super(title);
@@ -41,7 +46,9 @@ public class RoundedIconColumn<T, S> extends AbstractIconColumn<T, S> {
     }
 
     protected String getAlternativeTextForImage(IModel<T> model) {
-        return null;
+        DisplayType displayType = createDisplayType(model);
+        String help = GuiDisplayTypeUtil.getHelp(displayType);
+        return StringUtils.isNotEmpty(help) ? help : null;
     }
 
     protected DisplayType createDisplayType(IModel<T> model) {

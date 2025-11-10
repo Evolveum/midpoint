@@ -21,20 +21,20 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
-import org.w3c.dom.Attr;
+import java.io.Serial;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class RoundedImagePanel extends BasePanel<DisplayType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
     private static final String ID_CSS_ICON = "cssIcon";
     private static final String ID_IMAGE = "image";
 
-    private IModel<IResource> preferredImage;
+    private final IModel<IResource> preferredImage;
 
     public RoundedImagePanel(String id, IModel<DisplayType> model, IModel<IResource> preferredImage) {
         super(id, model);
@@ -46,13 +46,13 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
 
     private void initLayout() {
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(new VisibleBehaviour(() -> isCssIconVisible()));
+        icon.add(new VisibleBehaviour(this::isCssIconVisible));
         icon.add(AttributeAppender.append("class", getCssClassesIconContainer()));
         add(icon);
 
         Label cssIcon = new Label(ID_CSS_ICON);
-        cssIcon.add(AttributeAppender.append("class", () -> getCssIcon()));
-        cssIcon.add(AttributeAppender.append("style", () -> getIconColorStyle()));
+        cssIcon.add(AttributeAppender.append("class", this::getCssIcon));
+        cssIcon.add(AttributeAppender.append("style", this::getIconColorStyle));
         icon.add(cssIcon);
 
         NonCachingImage image = new NonCachingImage(ID_IMAGE, preferredImage);
