@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
@@ -52,8 +53,14 @@ public abstract class SimpleCustomSearchPanel extends BasePanel<String> {
         });
         container.add(searchInput);
 
+        AjaxIconButton submitSearch = buildSearchButton(searchInput);
+        container.add(submitSearch);
+    }
+
+    private @NotNull AjaxIconButton buildSearchButton(TextField<String> searchInput) {
         AjaxIconButton submitSearch = new AjaxIconButton(
-                ID_SEARCH_BUTTON, Model.of("fa fa-search"), Model.of("Search")) {
+                ID_SEARCH_BUTTON, Model.of(GuiStyleConstants.CLASS_ICON_SEARCH),
+                createStringResource("SimpleCustomSearchPanel.search")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 updateSearchModel(target, searchInput.getModelObject());
@@ -63,7 +70,7 @@ public abstract class SimpleCustomSearchPanel extends BasePanel<String> {
         submitSearch.showTitleAsLabel(true);
         submitSearch.setOutputMarkupId(true);
         submitSearch.add(AttributeModifier.append("class", "btn btn-primary"));
-        container.add(submitSearch);
+        return submitSearch;
     }
 
     /**
