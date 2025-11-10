@@ -1,0 +1,32 @@
+<policies xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="ActivityPoliciesType">
+
+    <!--
+        Restart activity if it runs more than 30 minutes, after three restarts, suspend the task and send the notification.
+    -->
+
+    <policy>
+        <name>Restart activity if it runs more than 30 minutes</name>
+        <policyConstraints>
+            <executionTime>
+                <exceeds>PT30M</exceeds>
+            </executionTime>
+        </policyConstraints>
+        <policyActions>
+            <restartActivity/>
+        </policyActions>
+    </policy>
+    <policy>
+        <name>Activity restarts, suspend task</name>
+        <policyConstraints>
+            <executionAttempts>
+                <exceeds>3</exceeds>
+            </executionAttempts>
+        </policyConstraints>
+        <policyActions>
+            <notification/>
+            <suspendTask/>
+        </policyActions>
+    </policy>
+</policies>

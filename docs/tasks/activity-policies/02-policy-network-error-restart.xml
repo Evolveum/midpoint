@@ -1,0 +1,53 @@
+<policies xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="ActivityPoliciesType">
+
+    <policy>
+        <name>Restart activity if there's network error for 5 processed objects</name>
+        <policyConstraints>
+            <itemProcessingResult>
+                <!-- <status>fatal_error</status> -->
+                <errorCategory>network</errorCategory>
+            </itemProcessingResult>
+        </policyConstraints>
+        <policyThreshold>
+            <!--
+                When there are 5 objects that failed to be processed because of network error,
+                restart the activity with a delay.
+            -->
+            <lowWaterMark>
+                <count>5</count>
+            </lowWaterMark>
+        </policyThreshold>
+        <policyActions>
+            <restartActivity>
+                <!-- restart in ~10 minutes -->
+                <delay>600</delay>
+            </restartActivity>
+        </policyActions>
+    </policy>
+    <policy>
+        <name>Notification about restart policy</name>
+        <policyConstraints>
+            <executionAttempts>
+                <below>3</below>
+                <exceeds>1</exceeds>
+            </executionAttempts>
+        </policyConstraints>
+        <policyActions>
+            <notification/>
+        </policyActions>
+    </policy>
+    <policy>
+        <name>Notification and skip if policy was restarted 3 times</name>
+        <policyConstraints>
+            <executionAttempts>
+                <exceeds>3</exceeds>
+            </executionAttempts>
+        </policyConstraints>
+        <policyActions>
+            <notification/>
+            <skipActivity/>
+        </policyActions>
+    </policy>
+</policies>

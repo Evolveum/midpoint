@@ -1,0 +1,17 @@
+<policies xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:type="ActivityPoliciesType">
+
+    <policy>
+        <name>Suspend the task after 30 minutes, send notification</name>
+        <policyConstraints>
+            <executionTime>
+                <exceeds>PT30M</exceeds>
+            </executionTime>
+        </policyConstraints>
+        <policyActions>
+            <notification/>
+            <suspendTask/>
+        </policyActions>
+    </policy>
+</policies>
