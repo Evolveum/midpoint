@@ -285,14 +285,14 @@ class ObjectTypesSuggestionOperation {
          */
         List<SiValidationErrorFeedbackEntryType> getValidationFeedback() {
             List<SiValidationErrorFeedbackEntryType> feedback = new ArrayList<>();
-            for (ObjectTypeWithFilters otwf : objectTypesWithFiltersAndErrors) {
+            for (ObjectTypeWithFilters objectTypeWithFilter : objectTypesWithFiltersAndErrors) {
                 var entry = new SiValidationErrorFeedbackEntryType()
-                        .objectType(otwf.suggestedObjectType());
-                if (otwf.filterError() != null) {
-                    entry.filterErrors(otwf.filterError());
+                        .objectType(objectTypeWithFilter.suggestedObjectType());
+                if (objectTypeWithFilter.filterError() != null) {
+                    entry.filterErrors(objectTypeWithFilter.filterError());
                 }
-                if (otwf.baseCtxError() != null) {
-                    entry.filterErrors(otwf.baseCtxError());
+                if (objectTypeWithFilter.baseCtxError() != null) {
+                    entry.filterErrors(objectTypeWithFilter.baseCtxError());
                 }
                 feedback.add(entry);
             }

@@ -118,6 +118,23 @@ public class ValueMetadataTypeUtil {
         return metadata.getValidation();
     }
 
+    /**
+     * Returns a ValueMetadataType value within the given ValueMetadata (vmc) that already contains
+     * an initialized ValidationMetadataType section. If none exists, creates a new ValueMetadataType
+     * entry, initializes the validation section, and returns it.
+     */
+    public static @NotNull ValueMetadataType getOrCreateMetadataWithValidation(@NotNull ValueMetadata vmc) {
+        for (PrismContainerValue<Containerable> pcv : vmc.getValues()) {
+            ValueMetadataType vmType = pcv.getRealValue();
+            if (vmType != null && vmType.getValidation() != null) {
+                return vmType;
+            }
+        }
+        ValueMetadataType created = Objects.requireNonNull(vmc.createNewValue().getRealValue());
+        created.setValidation(new ValidationMetadataType());
+        return created;
+    }
+
     public static @NotNull MappingSpecificationType getOrCreateMappingSpecification(@NotNull ProvenanceMetadataType metadata) {
         var existing = metadata.getMappingSpecification();
         if (existing != null) {
