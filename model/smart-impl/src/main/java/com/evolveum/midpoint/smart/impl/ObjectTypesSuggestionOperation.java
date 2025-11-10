@@ -159,7 +159,7 @@ class ObjectTypesSuggestionOperation {
         boolean hasAnyErrors = false;
 
         for (final SiSuggestedObjectTypeType objectType : objectTypes) {
-            List<SearchFilterType> filters = null;
+            List<SearchFilterType> filters = new ArrayList<>();
             ParsedBaseContext baseCtx = null;
             String filterError = null;
             String baseCtxError = null;
