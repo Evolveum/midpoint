@@ -1,5 +1,4 @@
 = Activity policies
-:toc:
 :page-since: "4.10"
 :page-toc: top
 :page-upkeep-status: green
