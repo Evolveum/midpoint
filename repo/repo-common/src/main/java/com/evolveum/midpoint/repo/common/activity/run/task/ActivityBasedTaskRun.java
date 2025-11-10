@@ -47,7 +47,10 @@ public class ActivityBasedTaskRun implements TaskRun {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityBasedTaskRun.class);
 
-    private static final int DEFAULT_RESTART_DELAY = 5000;
+    /**
+     * Default delay (in seconds) before restarting an activity when no delay is specified in the restart policy action.
+     */
+    private static final int DEFAULT_RESTART_DELAY = 5;
 
     /** After how many attempts should we stop increasing the delay exponentially? */
     private static final int EXPONENTIAL_BACKOFF_LIMIT = 10;
