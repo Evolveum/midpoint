@@ -9,21 +9,17 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
-import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -42,7 +38,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationUseType;
 
 @PageDescriptor(urls = {
 @Url(mountUrl = "/correlation", matchUrlForSecurity = "/correlation")},
@@ -104,7 +99,7 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
         for (ItemPath path : paths) {
             var wrapper = createItemWrapper(path);
             if (wrapper == null) {
-                error("Error occurred while verification attributes loading.");
+                getFeedbackMessages().add(new FeedbackMessage(PageCorrelation.this, "Error occurred while verification attributes loading.", 0));//error("Error occurred while verification attributes loading.");
                 return new ArrayList<>();
             }
             attributeDtoList.add(new VerificationAttributeDto(wrapper, path));

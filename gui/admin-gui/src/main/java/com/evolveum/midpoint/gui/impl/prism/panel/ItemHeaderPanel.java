@@ -156,7 +156,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     protected void createRequired(String id) {
         WebMarkupContainer required = new WebMarkupContainer(id);
-        required.add(new VisibleBehaviour(() -> isRequired()));
+        required.add(new VisibleBehaviour(this::isRequired));
         add(required);
     }
 

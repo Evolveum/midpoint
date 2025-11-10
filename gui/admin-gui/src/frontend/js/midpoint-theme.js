@@ -486,6 +486,11 @@ export default class MidPointTheme {
         });
 
         jQuery(function ($) {
+            var clickableByEnterElements = $(".clickable-by-enter");
+            self.focusByArrowKeys(clickableByEnterElements, self);
+        });
+
+        jQuery(function ($) {
             const popup = $(".search-popover.popover-body");
             const closeButton = $(".btn.btn-sm.btn-default");
             const focusableElements = popup.find('a, input');
@@ -600,6 +605,33 @@ export default class MidPointTheme {
                 e.preventDefault()
             }
         }
+    }
+
+    focusByArrowKeys(elements, self) {
+        if (!elements || elements.length === 0) {
+                return;
+        }
+        elements.each(function(index) {
+                $(this).on("keydown", function(e) {
+                    let currentElement = $(this);
+                    let currentIndex = elements.index(currentElement);  // Get the index of the current element
+                    let nextIndex, prevIndex;
+
+                    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+                        // Prevent the default behavior (moving out of the set)
+                        e.preventDefault();
+                        // Move focus to the next element within the set
+                        nextIndex = (currentIndex + 1) % elements.length;
+                        elements.eq(nextIndex).focus();
+                    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+                        // Prevent the default behavior (moving out of the set)
+                        e.preventDefault();
+                        // Move focus to the previous element within the set
+                        prevIndex = (currentIndex - 1 + elements.length) % elements.length;
+                        elements.eq(prevIndex).focus();
+                    }
+                });
+            });
     }
 
     initSelect2MultiChoice(containerHtmlElement) {
