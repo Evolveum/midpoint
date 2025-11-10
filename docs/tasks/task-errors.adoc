@@ -1,4 +1,6 @@
 = Tasks errors
+:page-since: "4.10"
+:page-upkeep-status: green
 
 MidPoint user interface allows searching for errors for specific task run realization.
 Search widget can also list all available task run realization history for given task.
