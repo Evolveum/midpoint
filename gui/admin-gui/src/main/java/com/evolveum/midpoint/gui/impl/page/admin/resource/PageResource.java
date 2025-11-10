@@ -240,9 +240,8 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         SynchronizationWizardPanel<?, ?> synchronizationWizardPanel = showWizard(
                 valueModel,
                 target,
-                SynchronizationWizardPanel.class,
-                null,
-                null);
+                SynchronizationWizardPanel.class
+        );
         addWizardBreadcrumbsForObjectType(synchronizationWizardPanel, 0);
     }
 
