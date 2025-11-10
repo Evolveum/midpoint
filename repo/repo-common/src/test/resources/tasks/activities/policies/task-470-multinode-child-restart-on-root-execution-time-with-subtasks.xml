@@ -67,7 +67,7 @@
                 </policyConstraints>
                 <policyActions>
                     <restartActivity>
-                        <delay>500</delay>
+                        <delay>1</delay>
                     </restartActivity>
                 </policyActions>
             </policy>

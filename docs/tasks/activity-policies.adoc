@@ -1,0 +1,256 @@
+= Activity policies
+:toc:
+:page-since: "4.10"
+:page-toc: top
+:page-upkeep-status: green
+
+== Introduction
+
+Activity policy rules provide a way to define actions to certain situations happening during activity execution.
+These situations are defined by policy constraints, while reactions are defined by policy actions.
+Each policy can have one or more constraints and one or more actions.
+
+Activity policies are primarily intended to be used to improve task reliability and resilience.
+They are defined per activity, so different activities in the same task may have different policies.
+
+If policy has to evaluate object that is being processed by clockwork (like provisioning, reconciliation, etc.), then
+xref:./thresholds[thresholds] or xref:/midpoint/reference/roles-policies/policies/policy-rules/[global policy rules] with proper constraints should be used instead.
+
+Currently, focus policy rule constraints can not be used in activity policies.
+
+Policies are collected during activity initialization from activity definition and parent activity definitions (in case of composite activity).
+Policies are evaluated in multiple places:
+
+* Right after activity is initialized, before first item is processed
+* After each item of iterative activity is processed
+
+High level overview of activity policy processing is following:
+
+* If constraint is not triggered, nothing happens
+* If constraint is triggered
+** If policy has threshold defined
+*** Counter for the policy is incremented.
+*** If threshold is reached, policy actions are executed.
+** If policy doesn't have threshold defined
+*** Policy actions are executed.
+** Policy trigger and message are stored in activity state along with reference to specific policy.
+
+== Policy constraints
+
+Policy constraints define conditions when policy should be triggered.
+
+=== Execution time
+
+The execution time constraint doesn't evaluate item processed by activity, implicit value to check against is the activity execution time.
+
+When the `exceeds` element is specified, constraint will trigger if the task execution time exceeds the specified value.
+When the `below` element is specified, constraint will trigger if the task execution time is below the specified value.
+
+Execution time for composite activities (like reconciliation) is computed as sum of execution times of child activities.
+
+.Example of execution time constraint using exceeds
+[source,xml]
+----
+<policyConstraints>
+    <executionTime>
+        <!-- <below>PT15M</exceeds> -->
+        <exceeds>PT1H</exceeds>
+    </executionTime>
+</policyConstraints>
+----
+
+=== Execution attempts
+
+The execution attempts constraint doesn't evaluate item processed by activity, implicit value to check against is the number of execution attempts stored in activity state.
+Execution attempts represents number for activity realizations.
+Suspending and resuming the activity (task) doesn't increase the number of execution attempts.
+
+When the `exceeds` element is specified, constraint will trigger if the number of attempts exceeds the specified value.
+When the `below` element is specified, constraint will trigger if the number of attempts is below the specified value.
+
+.Example of policy constraint that is triggered after 3 execution attempts.
+[source,xml]
+----
+<policyConstraints>
+    <executionAttempts>
+        <exceeds>3</exceeds>
+    </executionTime>
+</policyConstraints>
+----
+
+=== Item processing result
+
+Item processing result constraint evaluates result created when item (object) is processed by activity.
+The constraint contains two parameters:
+
+* `status` -- operation result status to match. It can be either PARTIAL_ERROR or FATAL_ERROR.
+If not present, we decide solely on error category. If error categories are not specified,
+any error matches.
+* `errorCategory` -- error category (network, security, policy, ...) to match.
+If not present, we decide solely on the status.
++
+NOTE: Some errors are not propagated to the level where they can be recognized by this selector.
+
+.Example of item processing result constraint
+[source,xml]
+----
+<policyConstraints>
+    <itemProcessingResult>
+        <status>partial_error</status>
+        <errorCategory>network</errorCategory>
+    </itemProcessingResult>
+</policyConstraints>
+----
+
+=== And/or/not
+
+Logical constraints are implemented to help with combining multiple constraints into one.
+By default `AND` is used to combine constraints defined directly under `policyConstraints` element.
+
+== Policy actions
+
+Policy actions are the configured reactions that the system executes when a policy constraint is triggered.
+They define what should happen (immediately or after a threshold) to an activity or task.
+Typical actions include sending a notification or suspending the task.
+
+=== Notification
+
+Send notification policy action uses the standard notification mechanism, so it can be configured in the system configuration.
+
+.Part of system configuration object with default activity policy notifier
+[source,xml]
+----
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
+    <!-- Other system configuration elements -->
+
+    <notificationConfiguration>
+        <handler>
+            <simpleActivityPolicyRuleNotifier><!--1-->
+                <transport>mail</transport>
+            </simpleActivityPolicyRuleNotifier>
+        </handler>
+    </notificationConfiguration>
+
+    <!-- Example to redirect email notification to file -->
+    <messageTransportConfiguration>
+        <mail>
+            <name>mail</name>
+            <redirectToFile>~/mail.txt</redirectToFile>
+            <defaultFrom>idm@example.com</defaultFrom>
+        </mail>
+    </messageTransportConfiguration>
+</systemConfiguration>
+----
+
+<1> Activity policy notifier using default configuration for to, cc, bcc, body, etc.
+
+.Notification action configuration in activity policy
+[source,xml]
+----
+<policyActions>
+    <notification/>
+</policyActions>
+----
+
+=== Suspend task
+
+Suspend task policy action will immediately suspend the whole task.
+Task will finish with fatal error result.
+
+=== Restart activity
+
+Restart activity action restarts the current activity realization - activity starts processing from the beginning.
+This action is useful when activity processing fails due to temporary problems (like network issues).
+
+Restart of the activity happens in two steps.
+First the current activity realization is stopped by suspending the task.
+Then the task is resumed, which causes the activity to start from the beginning.
+Restart of the task may be delayed using `delay` parameter, which is specified in seconds.`
+Default delay parameter value is 5 seconds.
+Actual delay is taken as a random number between `0` and `delay * (2 ^ (n - 1))`, where `n` is number of execution attempts of the activity.
+If the delay is set to `0`, the task will be resumed immediately.
+
+Second optional parameter for this parameter is called `restartCounters`.
+It can be used to preserve activity policy counters during restarts.
+
+.Example of restart activity action with delay and preserving activity policy counters
+[source,xml]
+----
+<policyActions>
+    <restartActivity>
+        <!-- 10 minutes delay -->
+        <delay>600</delay>
+        <restartCounters>true</restartCounters>
+    </restartActivity>
+</policyActions>
+----
+
+=== Skip activity
+
+Skip activity policy action stops the current activity realization immediately.
+Marks the activity state as `skipped` in the task state machine.
+No further items of that activity are processed or committed.
+
+The execution continues with the next activity (if any) in a composite or sequential flow.
+If the skipped activity was the last one, the task completes normally, but with fatal error in operation result as policy was triggered.
+
+If task is suspended and resumed later, the skipped activity is not executed again.
+
+.Example of skip activity action with delay and preserving activity policy counters
+[source,xml]
+----
+<policyActions>
+    <skipActivity/>
+</policyActions>
+----
+
+== User interface
+
+Activity policies are configured in activity definition XML only.
+
+All activity policies may be enabled or disabled via user interface in task details.
+This is useful when user wants to force task to finish even when some policies prevent it from doing so (e.g. there's a triggered policy that suspends the task).
+
+Task details UI also allows user to clear all activity policy triggers and counters, while keeping the policies and activity state untouched.
+
+== Limitations
+
+* Activity policies are evaluated only for iterative (plain iterative or search based) activities.
+Activities are not supported in:
+** Non-iterative scripting
+** Role analysis clustering
+** Role analysis patter detection
+** Repartition
+** Cleanup
+** Composite
+* Focus policy constraints currently can't be used in activity policies
+* User interface support is limited to XML configuration only
+
+== Examples
+
+.Simple policy that will suspend the task if activity runs for more than 30 minutes and sends notification.
+[source,xml]
+----
+include::activity-policies/00-policy-simple.xml[]
+----
+
+.Restart activity if it runs more than 30 minutes, after 3 restarts suspend the task
+[source,xml]
+----
+include::activity-policies/01-policy-simple-restart-suspend.xml[]
+----
+
+.Policy rule that restarts activity with delay if there was a network error and skips activity after three restarts attempts
+[source,xml]
+----
+include::activity-policies/02-policy-network-error-restart.xml[]
+----
+
+== See also
+
+* xref:/midpoint/reference/tasks/thresholds[]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
+* xref:/midpoint/architecture/concepts/task/[Task]
+* xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/task-partitioning/[Task partitioning]
+* Related issue bug:MID-10411[]

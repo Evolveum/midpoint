@@ -46,7 +46,7 @@
                 </policyConstraints>
                 <policyActions>
                     <restartActivity>
-                        <delay>2000</delay>
+                        <delay>2</delay>
                         <restartCounters>true</restartCounters>
                     </restartActivity>
                 </policyActions>
