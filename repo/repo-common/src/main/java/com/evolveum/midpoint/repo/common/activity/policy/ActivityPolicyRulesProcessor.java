@@ -175,7 +175,7 @@ public class ActivityPolicyRulesProcessor {
 
             for (EvaluatedActivityPolicyRule rule : evaluatedRules) {
                 if (!rule.isTriggered()) {
-                    LOGGER.trace("Policy rule {} was not triggered, not executing reactions", rule);
+                    LOGGER.trace("Policy rule {} was not triggered, not executing actions", rule);
                     continue;
                 }
 
@@ -237,15 +237,12 @@ public class ActivityPolicyRulesProcessor {
             }
 
             String ruleName = rule.getName();
-            String reactionName = rule.getName();
 
             LocalizableMessage message = new SingleLocalizableMessage(
-                    "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName, reactionName });
+                    "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName });
 
             String defaultMessage =
-                    "Policy violation, rule: "
-                            + ruleName
-                            + (reactionName != null ? "/" + reactionName : "");
+                    "Policy violation, rule: " + ruleName;
 
             if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {
                 LOGGER.debug("Aborting activity because of policy violation, rule: {}", rule);
