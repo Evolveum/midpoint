@@ -98,6 +98,7 @@ public class DateTimePickerPanel extends InputPanel {
                 return null;
             }
         };
+        input.add(AttributeAppender.append("placeholder", () -> dateTimePickerOptions.getDateTimeFormat().get(0)));
         input.setType(Date.class);
         input.setOutputMarkupId(true);
         input.add(new AjaxFormComponentUpdatingBehavior("change") {
