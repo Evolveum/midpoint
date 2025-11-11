@@ -12,6 +12,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 
+import com.evolveum.midpoint.model.common.stringpolicy.StringPolicyUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
@@ -66,12 +68,18 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
                 (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + getModelObject().isSuccess())));
         icon.add(AttributeModifier.append("tabindex", () -> addTabIndex ? "0" : null));
         add(icon);
-
-        LabelWithHelpPanel label = new LabelWithHelpPanel(ID_LIMITATION, getLimitationLabelModel()){
+     LabelWithHelpPanel label = new LabelWithHelpPanel(ID_LIMITATION, getLimitationLabelModel()){
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> getHelpModel() {
+                String help = LocalizationUtil.translatePolyString(StringLimitationPanel.this.getModelObject().getHelp());
+                if (StringUtils.isEmpty(help)) {
+                    return Model.of();
+                }
+                if (StringLimitationPanel.this.getModelObject().isCharactersSequence()) {
+                    return Model.of(getCharactersWithClarifiedSpecialSymbolsWrappedToSpan(help));
+                }
                 return Model.of(LocalizationUtil.translatePolyString(StringLimitationPanel.this.getModelObject().getHelp()));
             }
         };
@@ -115,5 +123,25 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
 
     public void enableTabIndex() {
         addTabIndex = true;
+    }
+
+
+    private String getCharactersWithClarifiedSpecialSymbolsWrappedToSpan(String help) {
+        StringBuilder sb = new StringBuilder();
+
+        char[] charArray = help.toCharArray();
+        for (char ch : charArray) {
+            sb.append("<span aria-label=\"");
+            var translationKeyForCharacter = StringPolicyUtils.getTranslationKeyForCharacter(ch);
+            if (translationKeyForCharacter != null) {
+                sb.append(getString(translationKeyForCharacter));
+            } else {
+                sb.append(ch);
+            }
+            sb.append("\"><span aria-hidden=\"true\">");
+            sb.append(ch);
+            sb.append("</span></span>");
+        }
+        return sb.toString();
     }
 }

@@ -427,8 +427,9 @@ class ValueChecker {
                 }
             }
             limResult.setName(name);
-            PolyStringType help = new PolyStringType(characterClass.getDividedCharactersAsString(" "));
+            PolyStringType help = new PolyStringType(characterClass.getCharactersAsString());
             limResult.setHelp(help);
+            limResult.setCharactersSequence(true);
 
             if (requiredMinOccurrences > 0) {
                 limResult.setMinOccurs(requiredMinOccurrences);
@@ -478,8 +479,9 @@ class ValueChecker {
             translation.setKey("ValuePolicy.invalidCharacters");
             name.setTranslation(translation);
             limResult.setName(name);
-            PolyStringType help = new PolyStringType(StringPolicyUtils.dividedCharactersAsString(validChars, " "));
+            PolyStringType help = new PolyStringType(StringPolicyUtils.charactersAsString(validChars));
             limResult.setHelp(help);
+            limResult.setCharactersSequence(true);
 
             if (!invalidCharacters.isEmpty()) {
                 LocalizableMessage msg = new LocalizableMessageBuilder()

@@ -13,6 +13,41 @@ import org.jetbrains.annotations.Nullable;
 
 public class StringPolicyUtils {
 
+    //useful for clarification of the special symbol, maps the special symbol and localization key with its name
+    private static final Map<Character, String> specialSymbolsMap = new HashMap<>();
+
+    static {
+        specialSymbolsMap.put('!', "ValuePolicy.character.exclamationMark");
+        specialSymbolsMap.put('$', "ValuePolicy.character.dollarSign");
+        specialSymbolsMap.put('%', "ValuePolicy.character.percent");
+        specialSymbolsMap.put('(', "ValuePolicy.character.leftParenthesis");
+        specialSymbolsMap.put(')', "ValuePolicy.character.rightParenthesis");
+        specialSymbolsMap.put('+', "ValuePolicy.character.plusSign");
+        specialSymbolsMap.put(',', "ValuePolicy.character.comma");
+        specialSymbolsMap.put('-', "ValuePolicy.character.minusSign");
+        specialSymbolsMap.put('.', "ValuePolicy.character.period");
+        specialSymbolsMap.put(':', "ValuePolicy.character.colon");
+        specialSymbolsMap.put(';', "ValuePolicy.character.semicolon");
+        specialSymbolsMap.put('<', "ValuePolicy.character.lessThanSign");
+        specialSymbolsMap.put('>', "ValuePolicy.character.greaterThanSign");
+        specialSymbolsMap.put('?', "ValuePolicy.character.questionMark");
+        specialSymbolsMap.put('@', "ValuePolicy.character.atSymbol");
+        specialSymbolsMap.put('[', "ValuePolicy.character.leftSquareBracket");
+        specialSymbolsMap.put(']', "ValuePolicy.character.rightSquareBracket");
+        specialSymbolsMap.put('^', "ValuePolicy.character.caret");
+        specialSymbolsMap.put('_', "ValuePolicy.character.underscore");
+        specialSymbolsMap.put('`', "ValuePolicy.character.backtick");
+        specialSymbolsMap.put('{', "ValuePolicy.character.leftCurlyBrace");
+        specialSymbolsMap.put('|', "ValuePolicy.character.verticalBar");
+        specialSymbolsMap.put('}', "ValuePolicy.character.rightCurlyBrace");
+        specialSymbolsMap.put('~', "ValuePolicy.character.tilde");
+        specialSymbolsMap.put('#', "ValuePolicy.character.hash");
+        specialSymbolsMap.put('&', "ValuePolicy.character.ampersand");
+        specialSymbolsMap.put('"', "ValuePolicy.character.doubleQuote");
+        specialSymbolsMap.put('*', "ValuePolicy.character.asterisk");
+        specialSymbolsMap.put('\'', "ValuePolicy.character.apostrophe");
+    }
+
     static @NotNull Set<Character> stringAsCharacters(@Nullable String value) {
         if (value == null) {
             return Collections.emptySet();
@@ -49,5 +84,9 @@ public class StringPolicyUtils {
             }
         }
         return sb.toString();
+    }
+
+    public static @Nullable String getTranslationKeyForCharacter(Character ch) {
+        return specialSymbolsMap.get(ch);
     }
 }
