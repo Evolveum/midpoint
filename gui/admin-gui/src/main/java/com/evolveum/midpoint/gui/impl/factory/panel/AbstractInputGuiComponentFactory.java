@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.validator.ChoiceRequiredValidator;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -76,7 +77,11 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
             formComponent.setLabel(label);
 
-            markIfAiGeneratedValue(formComponent, propertyWrapper);
+            IModel<? extends PrismValueWrapper<T>> valueWrapperModel = panelCtx.getValueWrapperModel();
+            if (valueWrapperModel != null && valueWrapperModel.getObject() != null) {
+                PrismValueWrapper<T> prismValueWrapper = panelCtx.getValueWrapperModel().getObject();
+                markIfAiGeneratedValue(formComponent, prismValueWrapper);
+            }
 
             Class<? extends Containerable> parentClass = getChoicesParentClass(panelCtx);
             if (parentClass != null) {
@@ -117,13 +122,13 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
      */
     private static <T> void markIfAiGeneratedValue(
             @NotNull FormComponent<T> formComponent,
-            @NotNull PrismPropertyWrapper<T> propertyWrapper) {
+            PrismValueWrapper<T> prismValueWrapper) {
 
-        boolean isAiRelated = hasAiMark(propertyWrapper, false);
+        boolean isAiRelated = hasAiMark(prismValueWrapper, false);
         if (isAiRelated) {
             formComponent.setOutputMarkupId(true);
             formComponent.add(AttributeModifier.append("class", () -> {
-                boolean hasAiProvidedValue = hasAiMark(propertyWrapper, true);
+                boolean hasAiProvidedValue = hasAiMark(prismValueWrapper, true);
                 return hasAiProvidedValue && !formComponent.hasErrorMessage()
                         ? IS_AI_FLAG_FIELD_CLASS
                         : "";
@@ -135,11 +140,10 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
     }
 
     private static <T> boolean hasAiMark(
-            @NotNull PrismPropertyWrapper<T> propertyWrapper, boolean newValue) {
-        return propertyWrapper.getValues() != null &&
-                propertyWrapper.getValues().stream()
-                        .map(vw -> newValue ? vw.getNewValue() : vw.getOldValue())
-                        .anyMatch(AiUtil::isMarkedAsAiProvided);
+            PrismValueWrapper<T> prismValueWrapper,
+            boolean newValue) {
+        return prismValueWrapper != null && AiUtil.isMarkedAsAiProvided(
+                newValue ? prismValueWrapper.getNewValue() : prismValueWrapper.getOldValue());
     }
 
     private Class<? extends Containerable> getChoicesParentClass(PrismPropertyPanelContext<T> panelCtx) {
