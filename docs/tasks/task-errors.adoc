@@ -5,7 +5,8 @@
 MidPoint user interface allows searching for errors for specific task run realization.
 Search widget can also list all available task run realization history for given task.
 
-#TODO: screenshot#
+.Task run errors search widget displaying last three task run intervals
+image::task-errors-gui.png[Task run errors in task details UI, width=600]
 
 To achieve this, new data structure `taskRunRecord` is stored in task object when starting new run realization.
 This structure contains following data:

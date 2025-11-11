@@ -213,6 +213,9 @@ This is useful when user wants to force task to finish even when some policies p
 
 Task details UI also allows user to clear all activity policy triggers and counters, while keeping the policies and activity state untouched.
 
+.Activity policies options in task details
+image::activity-policies/activity-policies-gui.png[Activity policies in task details UI, width=600]
+
 == Limitations
 
 * Activity policies are evaluated only for iterative (plain iterative or search based) activities.
