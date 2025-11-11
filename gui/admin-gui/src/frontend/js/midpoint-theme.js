@@ -559,7 +559,10 @@ export default class MidPointTheme {
                 return;
             }
 
-            var parent = $(this).closest("ul[role='menu']");
+            var parent = $(this).closest("ul.nav.nav-pills.nav-sidebar");
+            if (!parent) {
+                parent = $(this).closest("ul[role='menu']");
+            }
             var list = parent.children("li[role='menuitem']");
             var focusIndex = null;
             if (e.key == "Arrow Up" || e.code == "ArrowUp" || e.keyCode == 38) {
@@ -583,9 +586,11 @@ export default class MidPointTheme {
             }
 
             var focusItem = list.get(focusIndex);
-            focusItem.focus();
-            focusItem.scrollIntoView({ block: "center" });
-            e.preventDefault()
+            if (focusItem) {
+                focusItem.focus();
+                focusItem.scrollIntoView({ block: "center" });
+                e.preventDefault()
+            }
         });
     }
 
