@@ -2544,9 +2544,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         clearAllActivityPolicyState(taskActivityState.getActivity(), delta, policyIdentifiers);
 
         if (delta.isEmpty()) {
+            LOGGER.trace("No activity policy state to clear in task {}", taskToClean.getOid());
             return;
         }
 
+        LOGGER.debug("Clearing activity policy states for task {}", taskToClean.getOid());
         modelService.executeChanges(List.of(delta), ModelExecuteOptions.create(), task, result);
     }
 
@@ -2566,14 +2568,16 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 // noinspection unchecked
                 PrismContainerValue<ActivityPolicyStateType> value = policyState.asPrismContainerValue();
                 // noinspection unchecked
-                delta.addModificationDeleteContainer(value.getPath(), value.clone());
+                delta.addModificationDeleteContainer(value.getParent().getPath(), value.clone());
             }
         }
 
         // cleanup activity policy counters
         ActivityCounterGroupsType counterGroups = state.getCounters();
-        clearActivityGroupCounters(counterGroups.getFullExecutionModePolicyRules(), delta, policyIdentifiers);
-        clearActivityGroupCounters(counterGroups.getPreviewModePolicyRules(), delta, policyIdentifiers);
+        if (counterGroups != null) {
+            clearActivityGroupCounters(counterGroups.getFullExecutionModePolicyRules(), delta, policyIdentifiers);
+            clearActivityGroupCounters(counterGroups.getPreviewModePolicyRules(), delta, policyIdentifiers);
+        }
 
         // recursive cleanup of child activity states
         for (ActivityStateType childActivityState : state.getActivity()) {
