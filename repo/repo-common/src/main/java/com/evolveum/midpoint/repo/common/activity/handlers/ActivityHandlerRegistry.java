@@ -56,6 +56,13 @@ public class ActivityHandlerRegistry {
      * Registers both the work definition factory and the activity handler.
      *
      * The definition class must be unique for each activity handler!
+     *
+     * @param typeName The name of the work definition type.
+     * @param itemName The name of the item holding the work definition type data (usually found in.
+     *                 {@link com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType}).
+     * @param definitionClass The class of work definition.
+     * @param supplier The supplier of work definition class instances for specified work definition type and item name.
+     * @param activityHandler The handler to register with given work definition class.
      */
     public void register(
             @NotNull QName typeName,
