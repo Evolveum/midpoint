@@ -47,6 +47,8 @@ public class StringLimitationResult implements Serializable {
     /** "Must be first" flag in the limitation - if applicable. */
     private Boolean mustBeFirst;
 
+    private boolean isCharactersSequence;
+
     public static @NotNull List<LocalizableMessage> extractMessages(@NotNull List<StringLimitationResult> results) {
         return results.stream()
                 .flatMap(r -> r.getMessages().stream())
@@ -108,5 +110,13 @@ public class StringLimitationResult implements Serializable {
     public void recordFailure(@NotNull LocalizableMessage msg) {
         messages.add(msg);
         setSuccess(false);
+    }
+
+    public boolean isCharactersSequence() {
+        return isCharactersSequence;
+    }
+
+    public void setCharactersSequence(boolean isCharactersSequence) {
+        this.isCharactersSequence = isCharactersSequence;
     }
 }
