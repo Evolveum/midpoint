@@ -208,11 +208,19 @@ public class AiUtil {
 
     /** Returns {@code true} if the value has validation metadata at the root level. */
     public static boolean isMarkedAsInvalid(@Nullable PrismValue value) {
-        return value != null && value.hasValueMetadata() && hasValidation(value);
+        return value != null && value.hasValueMetadata() && hasErrorValidation(value);
     }
 
-    private static boolean hasValidation(@NotNull PrismValue value) {
-        return anyMetadataEntry(value, vmType -> vmType.getValidation() != null);
+    /** Returns a user-friendly message if the filter is marked as invalid. */
+    public static @Nullable String getFilterInvalidMessage(@Nullable PrismValue value){
+        boolean markedAsInvalid = isMarkedAsInvalid(value);
+        //TODO implement logic to get actual validation error message
+        return markedAsInvalid ? "This filter is invalid. Update or remove it to continue." : null;
+    }
+
+    private static boolean hasErrorValidation(@NotNull PrismValue value) {
+        return anyMetadataEntry(value, vmType ->
+                vmType.getValidation() != null && vmType.getValidation().getValidationError() != null);
     }
 
     private static void setValidationOnValue(@NotNull PrismValue prismValue, @Nullable String validationError) {
