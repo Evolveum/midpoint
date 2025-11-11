@@ -9,10 +9,10 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import java.util.List;
 import java.util.Set;
 
+import jakarta.xml.bind.JAXBElement;
+
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-
-import jakarta.xml.bind.JAXBElement;
 
 public interface ActivityPolicyConstraintEvaluator<
         C extends AbstractPolicyConstraintType,

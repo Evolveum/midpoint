@@ -29,10 +29,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingResult
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 @Component
-public class ItemStateConstraintEvaluator
+public class ItemProcessingResultConstraintEvaluator
         implements ActivityPolicyConstraintEvaluator<ItemProcessingResultPolicyConstraintType, EvaluatedItemStatePolicyTrigger> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ItemStateConstraintEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ItemProcessingResultConstraintEvaluator.class);
 
     @Override
     public List<EvaluatedItemStatePolicyTrigger> evaluate(
