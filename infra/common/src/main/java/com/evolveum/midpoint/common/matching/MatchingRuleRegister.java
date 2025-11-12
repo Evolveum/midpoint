@@ -38,6 +38,11 @@ public class MatchingRuleRegister {
 
     @PostConstruct
     public void registerMatchingRules() {
+        if(PrismContext.get() == null) {
+            LOGGER.debug("PrismContext is not initialized yet. Cannot register custom matching rules.");
+            return;
+        }
+
         MatchingRuleRegistry registry = PrismContext.get().getMatchingRuleRegistry();
 
         if (registry instanceof MatchingRuleRegistryImpl impl) {
