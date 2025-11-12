@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -237,15 +238,47 @@ public class SmartIntegrationStatusInfoUtils {
         }
     }
 
-    public static @Nullable List<StatusInfo<MappingsSuggestionType>> loadMappingTypeSuggestions(
+    /**
+     * Loads the mapping type suggestion statuses for the given resource.
+     * <p>
+     * This method queries the {@code SmartIntegrationService} for mapping suggestion operation
+     * statuses related to the specified {@code resourceOid}. If an {@code objectTypeIdentification}
+     * is provided, the results are filtered to include only those suggestions that do not match
+     * the specified kind and intent.
+     */
+    public static @Nullable List<StatusInfo<MappingsSuggestionType>> loadObjectTypeMappingTypeSuggestions(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
+            @NotNull MappingDirection mappingDirection,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
             @NotNull Task task,
             @NotNull OperationResult result) {
+
+        if (mappingDirection == MappingDirection.OUTBOUND) {
+            //TODO replace with actual outbound call when supported
+            LOGGER.warn("Outbound mapping suggestions are not yet supported. Returning null.");
+            return null;
+        }
+
         var smart = pageBase.getSmartIntegrationService();
 
         try {
-            return smart.listSuggestMappingsOperationStatuses(resourceOid, task, result);
+            var statusInfos = smart.listSuggestMappingsOperationStatuses(resourceOid, task, result);
+            if (objectTypeIdentification == null) {
+                return statusInfos;
+            }
+
+            return statusInfos.stream()
+                    .filter(s -> {
+                        BasicResourceObjectSetType request = s.getRequest();
+                        if (request != null) {
+                            return request.getKind() != null
+                                    && request.getKind().equals(objectTypeIdentification.getKind())
+                                    && request.getIntent() != null
+                                    && request.getIntent().equals(objectTypeIdentification.getIntent());
+                        }
+                        return false;
+                    }).toList();
         } catch (Throwable t) {
             result.recordException(t);
             LoggingUtils.logException(LOGGER, "Couldn't load correlation status for {}", t, resourceOid);
@@ -262,20 +295,33 @@ public class SmartIntegrationStatusInfoUtils {
      * statuses related to the specified {@code resourceOid}. Although the service may return
      * multiple statuses, only the first one is relevant and returned here.
      */
-    public static @Nullable StatusInfo<MappingsSuggestionType> loadMappingTypeSuggestion(
+    public static @Nullable StatusInfo<MappingsSuggestionType> loadObjectTypeMappingTypeSuggestion(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
+            @Nullable ResourceObjectTypeIdentification objectTypeIdentification,
+            @NotNull MappingDirection mappingDirection,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        var smart = pageBase.getSmartIntegrationService();
 
         try {
-            List<StatusInfo<MappingsSuggestionType>> statusInfos = smart.listSuggestMappingsOperationStatuses(
-                    resourceOid, task, result);
-            if (statusInfos == null || statusInfos.isEmpty()) {
+            List<StatusInfo<MappingsSuggestionType>> statusInfos = loadObjectTypeMappingTypeSuggestions(
+                    pageBase,
+                    resourceOid,
+                    mappingDirection,
+                    objectTypeIdentification,
+                    task,
+                    result);
+
+            if (statusInfos != null && statusInfos.size() > 1) {
+                LOGGER.debug("Expected exactly one mapping suggestion status for resource {}, but found {}.",
+                        resourceOid, statusInfos.size());
+                result.recordException(
+                        new IllegalStateException("Expected mapping suggestion status size to be 0 or 1, but found "
+                                + statusInfos.size()));
                 return null;
             }
-            return statusInfos.get(0);
+
+            return (statusInfos == null || statusInfos.isEmpty()) ? null : statusInfos.get(0);
         } catch (Throwable t) {
             result.recordException(t);
             LoggingUtils.logException(LOGGER, "Couldn't load Mapping status for {}", t, resourceOid);
@@ -321,71 +367,60 @@ public class SmartIntegrationStatusInfoUtils {
         List<PrismContainerValueWrapper<MappingType>> wrappers = new ArrayList<>();
 
         try {
-            List<StatusInfo<MappingsSuggestionType>> statuses =
-                    loadMappingTypeSuggestions(pageBase, resourceOid, task, result);
-            if (statuses == null || statuses.isEmpty()) {
+            ResourceObjectTypeIdentification objectTypeIdentification = ResourceObjectTypeIdentification.of(rotDef);
+            var suggestionStatusInfo = loadObjectTypeMappingTypeSuggestion(pageBase, resourceOid, objectTypeIdentification,
+                    mappingDirection, task, result);
+
+            if (!isMappingSuggestionEligible(suggestionStatusInfo, rotDef)
+                    || (!includeNonCompletedSuggestions && isNotCompletedSuggestion(suggestionStatusInfo))) {
                 return new SuggestionProviderResult<>(Collections.emptyList(), byWrapper);
             }
 
-            for (StatusInfo<MappingsSuggestionType> suggestionStatusInfo : statuses) {
-                if (!isMappingSuggestionEligible(suggestionStatusInfo, rotDef)) {
-                    continue;
-                }
+            MappingsSuggestionType suggestionParent = ensureMappingsSuggestionsPresent(suggestionStatusInfo, mappingDirection);
+            @SuppressWarnings("unchecked")
+            var attrMappingsContainer = (PrismContainer<AttributeMappingsSuggestionType>) suggestionParent.asPrismContainerValue()
+                    .findContainer(MappingsSuggestionType.F_ATTRIBUTE_MAPPINGS);
+            if (attrMappingsContainer == null) {
+                return new SuggestionProviderResult<>(Collections.emptyList(), byWrapper);
+            }
 
-                if (!includeNonCompletedSuggestions && isNotCompletedSuggestion(suggestionStatusInfo)) {
-                    continue;
-                }
+            PrismContainerWrapper<AttributeMappingsSuggestionType> attrMappingsWrapper = pageBase.createItemWrapper(
+                    attrMappingsContainer, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
 
-                MappingsSuggestionType suggestionParent = ensureMappingsSuggestionsPresent(suggestionStatusInfo, mappingDirection);
+            for (PrismContainerValueWrapper<AttributeMappingsSuggestionType> suggestion : attrMappingsWrapper.getValues()) {
+                try {
+                    var defWrapper = suggestion.findContainer(AttributeMappingsSuggestionType.F_DEFINITION);
+                    if (defWrapper == null || defWrapper.getValues().isEmpty()) {
+                        result.recordWarning("Suggestion without resource attribute definition skipped");
+                        continue;
+                    }
 
-                @SuppressWarnings("unchecked") PrismContainer<AttributeMappingsSuggestionType> attrMappingsContainer =
-                        (PrismContainer<AttributeMappingsSuggestionType>) suggestionParent.asPrismContainerValue()
-                                .findContainer(MappingsSuggestionType.F_ATTRIBUTE_MAPPINGS);
-                if (attrMappingsContainer == null) {
-                    continue;
-                }
-
-                PrismContainerWrapper<AttributeMappingsSuggestionType> attrMappingsWrapper =
-                        pageBase.createItemWrapper(attrMappingsContainer, ItemStatus.NOT_CHANGED,
-                                new WrapperContext(task, result));
-
-                for (PrismContainerValueWrapper<AttributeMappingsSuggestionType> suggestion : attrMappingsWrapper.getValues()) {
-                    try {
-                        PrismContainerWrapper<ResourceAttributeDefinitionType> defWrapper =
-                                suggestion.findContainer(AttributeMappingsSuggestionType.F_DEFINITION);
-                        if (defWrapper == null || defWrapper.getValues().isEmpty()) {
-                            result.recordWarning("Suggestion without resource attribute definition skipped");
+                    for (var defItemWrapper : defWrapper.getValues()) {
+                        PrismContainerWrapper<MappingType> inboundWrapper = defItemWrapper
+                                .findContainer(mappingDirection.getContainerName());
+                        if (inboundWrapper == null || inboundWrapper.getValues().isEmpty()) {
+                            result.recordWarning("Suggestion without inbound mappings skipped");
                             continue;
                         }
 
-                        for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> defItemWrapper : defWrapper.getValues()) {
-                            PrismContainerWrapper<MappingType> inboundWrapper =
-                                    defItemWrapper.findContainer(mappingDirection.getContainerName());
-                            if (inboundWrapper == null || inboundWrapper.getValues().isEmpty()) {
-                                result.recordWarning("Suggestion without inbound mappings skipped");
-                                continue;
-                            }
+                        PrismPropertyDefinition<Object> refDef = defItemWrapper.getDefinition().findPropertyDefinition(
+                                ResourceAttributeDefinitionType.F_REF);
 
-                            PrismPropertyDefinition<Object> refDef =
-                                    defItemWrapper.getDefinition()
-                                            .findPropertyDefinition(ResourceAttributeDefinitionType.F_REF);
+                        for (PrismContainerValueWrapper<MappingType> mappingVw : inboundWrapper.getValues()) {
+                            MappingUtils.createVirtualItemInMapping(
+                                    mappingVw,
+                                    defItemWrapper,
+                                    refDef,
+                                    pageBase,
+                                    ResourceAttributeDefinitionType.F_REF,
+                                    mappingDirection);
 
-                            for (PrismContainerValueWrapper<MappingType> mappingVw : inboundWrapper.getValues()) {
-                                MappingUtils.createVirtualItemInMapping(
-                                        mappingVw,
-                                        defItemWrapper,
-                                        refDef,
-                                        pageBase,
-                                        ResourceAttributeDefinitionType.F_REF,
-                                        mappingDirection);
-
-                                wrappers.add(mappingVw);
-                                byWrapper.put(mappingVw, suggestionStatusInfo);
-                            }
+                            wrappers.add(mappingVw);
+                            byWrapper.put(mappingVw, suggestionStatusInfo);
                         }
-                    } catch (SchemaException e) {
-                        result.recordPartialError("Failed to wrap mapping items.", e);
                     }
+                } catch (SchemaException e) {
+                    result.recordPartialError("Failed to wrap mapping items.", e);
                 }
             }
 

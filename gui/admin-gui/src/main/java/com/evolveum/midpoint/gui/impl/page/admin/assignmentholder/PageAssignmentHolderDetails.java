@@ -385,19 +385,27 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         IModel<PrismContainerValueWrapper<C>> valueModel =
                 createPrismContainerValueWrapperIModel(newValue, pathToValue);
 
-        return showWizard(valueModel, target, clazz, exitLabel, postSaveHandler);
+        return constructPanel(valueModel, target, clazz, exitLabel, postSaveHandler);
     }
 
     protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
             @NotNull IModel<PrismContainerValueWrapper<C>> valueModel,
             @NotNull AjaxRequestTarget target,
-            @NotNull Class<P> clazz,
-            @Nullable IModel<String> exitLabel,
-            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
+            @NotNull Class<P> clazz) {
 
         setShowedByWizard(true);
         getObjectDetailsModels().saveDeltas();
         getObjectDetailsModels().reloadPrismObjectModel();
+
+        return constructPanel(valueModel, target, clazz, null, null);
+    }
+
+    private <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> @Nullable P constructPanel(
+            @NotNull IModel<PrismContainerValueWrapper<C>> valueModel,
+            @NotNull AjaxRequestTarget target,
+            @NotNull Class<P> clazz,
+            @Nullable IModel<String> exitLabel,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
 
         getFeedbackPanel().setVisible(false);
         Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageAssignmentHolderDetails.this);
@@ -416,8 +424,8 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             target.add(fragment);
             return wizard;
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
-                    + " with parameters type: String, WizardPanelHelper", e);
+            LOGGER.error("Couldn't create panel by constructor for class {} with parameters type: String, WizardPanelHelper",
+                    clazz.getSimpleName(), e);
         }
         return null;
     }

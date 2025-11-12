@@ -17,6 +17,7 @@ import java.util.Objects;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
+import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AiUtil;
-import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -41,22 +41,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Implements "suggest mappings" operation.
+ *
+ * High-level flow:
+ * - Collect representative owned shadows for training and testing.
+ * - For each matched attribute pair, evaluate whether simple as-is mapping suffices or a script is needed.
+ * - If needed, ask the microservice for a script, validate and (if necessary) retry once with error feedback.
+ * - Build {@link AttributeMappingsSuggestionType} with expected quality and expression.
  */
 class MappingsSuggestionOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionOperation.class);
 
     private static final int ATTRIBUTE_MAPPING_EXAMPLES = 20;
+    private static final int ATTRIBUTE_TESTING_EXAMPLES = 200;
 
-    private static final String ID_SCHEMA_MATCHING = "schemaMatching";
     private static final String ID_SHADOWS_COLLECTION = "shadowsCollection";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
     private final TypeOperationContext ctx;
     private final MappingsQualityAssessor qualityAssessor;
+    private final OwnedShadowsProvider ownedShadowsProvider;
 
-    private MappingsSuggestionOperation(TypeOperationContext ctx, MappingsQualityAssessor qualityAssessor) {
+    private MappingsSuggestionOperation(
+            TypeOperationContext ctx,
+            MappingsQualityAssessor qualityAssessor,
+            OwnedShadowsProvider ownedShadowsProvider) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
+        this.ownedShadowsProvider = ownedShadowsProvider;
     }
 
     static MappingsSuggestionOperation init(
@@ -65,13 +76,15 @@ class MappingsSuggestionOperation {
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable CurrentActivityState<?> activityState,
             MappingsQualityAssessor qualityAssessor,
+            OwnedShadowsProvider ownedShadowsProvider,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return new MappingsSuggestionOperation(
                 TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result),
-                qualityAssessor);
+                qualityAssessor,
+                ownedShadowsProvider);
     }
 
     MappingsSuggestionType suggestMappings(OperationResult result, ShadowObjectClassStatisticsType statistics, SchemaMatchResultType schemaMatch)
@@ -84,19 +97,12 @@ class MappingsSuggestionOperation {
             return new MappingsSuggestionType();
         }
 
-        var shadowsCollectionState = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
-        shadowsCollectionState.setExpectedProgress(ATTRIBUTE_MAPPING_EXAMPLES);
-        shadowsCollectionState.flush(result); // because finding an owned shadow can take a while
-        Collection<OwnedShadow> ownedShadows;
-        try {
-            ownedShadows = fetchOwnedShadows(shadowsCollectionState, result);
-        } catch (Exception e) {
-            shadowsCollectionState.recordException(e);
-            throw e;
-        } finally {
-            shadowsCollectionState.close(result);
-        }
-
+        var ownedList = collectOwnedShadows(result);
+        int trainCount = Math.min(ATTRIBUTE_MAPPING_EXAMPLES, ownedList.size());
+        int testCount = Math.min(ATTRIBUTE_TESTING_EXAMPLES, ownedList.size());
+        var suggestionShadows = ownedList.subList(0, trainCount);
+        var testingShadows = ownedList.subList(ownedList.size() - testCount, ownedList.size());
+        LOGGER.trace("Train={}, Test={}, Total={}", trainCount, testCount, ownedList.size());
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
@@ -106,12 +112,18 @@ class MappingsSuggestionOperation {
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
                 mappingsSuggestionState.flush(result);
-                var pairs = getValuesPairs(matchPair, ownedShadows);
+                ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
+                ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
+                var suggestionPairs = toValuesPairs(suggestionShadows, shadowAttrPath, focusPropPath);
+                var testingPairs = toValuesPairs(testingShadows, shadowAttrPath, focusPropPath);
                 try {
                     suggestion.getAttributeMappings().add(
                             suggestMapping(
                                     matchPair,
-                                    pairs,
+                                    shadowAttrPath,
+                                    focusPropPath,
+                                    suggestionPairs,
+                                    testingPairs,
                                     result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (Exception e) {
@@ -135,111 +147,134 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private Collection<ValuesPair> getValuesPairs(SchemaMatchOneResultType m, Collection<OwnedShadow> ownedShadows) {
-        return extractPairs(
-                ownedShadows,
-                PrismContext.get().itemPathParser().asItemPath(m.getShadowAttributePath()),
-                PrismContext.get().itemPathParser().asItemPath(m.getFocusPropertyPath()));
+    private List<OwnedShadow> collectOwnedShadows(OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
+        state.setExpectedProgress(ATTRIBUTE_MAPPING_EXAMPLES + ATTRIBUTE_TESTING_EXAMPLES);
+        state.flush(result); // because finding an owned shadow can take a while
+        try {
+            return ownedShadowsProvider.fetch(ctx, state, result, ATTRIBUTE_MAPPING_EXAMPLES + ATTRIBUTE_TESTING_EXAMPLES);
+        } catch (Exception e) {
+            state.recordException(e);
+            throw e;
+        } finally {
+            state.close(result);
+        }
     }
 
-    private Collection<ValuesPair> extractPairs(
-            Collection<OwnedShadow> ownedShadows, ItemPath shadowAttrPath, ItemPath focusPropPath) {
-        return ownedShadows.stream()
-                .map(ownedShadow -> new ValuesPair(
-                        getItemRealValues(ownedShadow.shadow, shadowAttrPath),
-                        getItemRealValues(ownedShadow.owner, focusPropPath)))
+    private static List<ValuesPair> toValuesPairs(
+            List<OwnedShadow> shadows,
+            ItemPath shadowAttrPath,
+            ItemPath focusPropPath) {
+        return shadows.stream()
+                .map(os -> os.toValuesPair(shadowAttrPath, focusPropPath))
                 .toList();
     }
 
-    private Collection<?> getItemRealValues(ObjectType objectable, ItemPath itemPath) {
-        var item = objectable.asPrismObject().findItem(itemPath);
-        return item != null ? item.getRealValues() : List.of();
-    }
-
-    private Collection<OwnedShadow> fetchOwnedShadows(OperationContext.StateHolder state, OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
-        // Maybe we should search the repository instead. The argument for going to the resource is to get some data even
-        // if they are not in the repository yet. But this is not a good argument, because if we get an account from the resource,
-        // it won't have the owner anyway.
-        var ownedShadows = new ArrayList<OwnedShadow>(ATTRIBUTE_MAPPING_EXAMPLES);
-        ctx.b.modelService.searchObjectsIterative(
-                ShadowType.class,
-                Resource.of(ctx.resource)
-                        .queryFor(ctx.typeDefinition.getTypeIdentification())
-                        .build(),
-                (object, lResult) -> {
-                    try {
-                        var owner = ctx.b.modelService.searchShadowOwner(object.getOid(), null, ctx.task, lResult);
-                        if (owner != null) {
-                            ownedShadows.add(new OwnedShadow(object.asObjectable(), owner.asObjectable()));
-                            state.incrementProgress(result);
-                        }
-                    } catch (Exception e) {
-                        LoggingUtils.logException(LOGGER, "Couldn't fetch owner for {}", e, object);
-                    }
-                    return ctx.canRun() && ownedShadows.size() < ATTRIBUTE_MAPPING_EXAMPLES;
-                },
-                null, ctx.task, result);
-        return ownedShadows;
-    }
-
-    private record OwnedShadow(ShadowType shadow, FocusType owner) {
-    }
 
     private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
+            ItemPath shadowAttrPath,
+            ItemPath focusPropPath,
             Collection<ValuesPair> valuesPairs,
+            Collection<ValuesPair> testingValuesPairs,
             OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
 
         LOGGER.trace("Going to suggest mapping for {} -> {} based on {} values pairs",
                 matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath(), valuesPairs.size());
 
-        ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
-        ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
         var propertyDef = ctx.getFocusTypeDefinition().findPropertyDefinition(focusPropPath);
-        String transformationScript = null;
-        ExpressionType expression;
-        if (valuesPairs.isEmpty()) {
-            LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
-            expression = null;
-        } else if (valuesPairs.stream().allMatch(pair ->
-                (pair.shadowValues() == null || pair.shadowValues().stream().allMatch(Objects::isNull))
-                        || (pair.focusValues() == null || pair.focusValues().stream().allMatch(Objects::isNull)))) {
-            LOGGER.trace(" -> all shadow or focus values are null, using 'asIs' mapping (without calling LLM)");
-            expression = null;
-        } else if (doesAsIsSuffice(valuesPairs, propertyDef)) {
-            LOGGER.trace(" -> 'asIs' does suffice according to the data, so we'll use it (without calling LLM)");
-            expression = null;
-        } else if (isTargetDataMissing(valuesPairs)) {
-            LOGGER.trace(" -> target data missing; we assume they are probably not there yet, so 'asIs' is fine (no LLM call)");
-            expression = null;
+
+        ExpressionType expression = null;
+        MappingsQualityAssessor.AssessmentResult assessment = null;
+
+        if (isScriptNeeded(valuesPairs, propertyDef)) {
+            String errorLog = null;
+            String retryScript = null;
+
+            for (int attempt = 1; attempt <= 2; attempt++) {
+                var mappingResponse = askMicroservice(matchPair, valuesPairs, errorLog, retryScript);
+                retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
+                expression = buildScriptExpression(mappingResponse);
+                try {
+                    assessment = this.qualityAssessor.assessMappingsQuality(
+                            testingValuesPairs, expression, this.ctx.task, parentResult);
+                    break;
+                } catch (ExpressionEvaluationException | SecurityViolationException e) {
+                    if (attempt == 1) {
+                        errorLog = e.getMessage();
+                        LOGGER.warn("Validation issues found on attempt 1; retrying.");
+                    } else {
+                        LOGGER.warn("Validation issues persist after retry; giving up.");
+                        throw e;
+                    }
+                }
+            }
         } else {
-            LOGGER.trace(" -> going to ask LLM about mapping script");
-            var mappingResponse = askMicroservice(matchPair, valuesPairs, null, null);
-            transformationScript = mappingResponse.getTransformationScript();
-            expression = buildScriptExpression(mappingResponse);
+            assessment = this.qualityAssessor.assessMappingsQuality(
+                    testingValuesPairs, expression, this.ctx.task, parentResult);
         }
 
-        var assessment = assessQualityWithRetry(expression, matchPair, valuesPairs, transformationScript, parentResult);
+        var suggestion = buildAttributeMappingSuggestion(shadowAttrPath, focusPropPath, assessment.quality(), expression);
+        AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
+        return suggestion;
+    }
 
-        // TODO remove this ugly hack
-        var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropPath);
-        var hackedSerialized = serialized.replace("ext:", "");
-        var hackedReal = PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
-        var suggestion = new AttributeMappingsSuggestionType()
-                .expectedQuality(assessment.quality())
+    /**
+     * Decides whether a transformation script is needed (i.e., the microservice should be queried).
+     * Returns true if data suggests an as-is mapping is insufficient and a script should be requested; otherwise false.
+     */
+    private boolean isScriptNeeded(
+            Collection<ValuesPair> valuesPairs,
+            PrismPropertyDefinition<?> propertyDef) throws SchemaException {
+        if (valuesPairs.isEmpty()) {
+            LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
+            return false;
+        }
+        boolean allNulls = valuesPairs.stream().allMatch(pair ->
+                (pair.shadowValues() == null || pair.shadowValues().stream().allMatch(Objects::isNull))
+                        || (pair.focusValues() == null || pair.focusValues().stream().allMatch(Objects::isNull)));
+        if (allNulls) {
+            LOGGER.trace(" -> all shadow or focus values are null, using 'asIs' mapping (without calling LLM)");
+            return false;
+        }
+        if (doesAsIsSuffice(valuesPairs, propertyDef)) {
+            LOGGER.trace(" -> 'asIs' does suffice according to the data, so we'll use it (without calling LLM)");
+            return false;
+        }
+        if (isTargetDataMissing(valuesPairs)) {
+            LOGGER.trace(" -> target data missing; we assume they are probably not there yet, so 'asIs' is fine (no LLM call)");
+            return false;
+        }
+
+        LOGGER.trace(" -> going to ask LLM about mapping script");
+        return true;
+    }
+
+    /** Build the final suggestion structure while encapsulating path handling quirks. */
+    private static AttributeMappingsSuggestionType buildAttributeMappingSuggestion(
+            ItemPath shadowAttrPath,
+            ItemPath focusPropPath,
+            float expectedQuality,
+            @Nullable ExpressionType expression) {
+        var sanitizedFocusPath = sanitizeFocusPathForTarget(focusPropPath);
+        return new AttributeMappingsSuggestionType()
+                .expectedQuality(expectedQuality)
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
-                                .name(shadowAttrPath.lastName().getLocalPart()
-                                        + "-to-" + focusPropPath) //TODO TBD
+                                .name(shadowAttrPath.lastName().getLocalPart() + "-to-" + focusPropPath)
                                 .strength(MappingStrengthType.STRONG)
-                                .target(new VariableBindingDefinitionType()
-                                        .path(hackedReal.toBean()))
+                                .target(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
                                 .expression(expression)));
-        AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
-        return suggestion;
+    }
+
+    /** Centralized place for the historical "ext:" removal hack for focus path serialization. */
+    private static ItemPath sanitizeFocusPathForTarget(ItemPath focusPropPath) {
+        var serialized = PrismContext.get().itemPathSerializer().serializeStandalone(focusPropPath);
+        var hackedSerialized = serialized.replace("ext:", "");
+        return PrismContext.get().itemPathParser().asItemPath(hackedSerialized);
     }
 
     /**
@@ -250,43 +285,16 @@ class MappingsSuggestionOperation {
         if (suggestMappingResponse == null) {
             return null;
         }
-
         var script = suggestMappingResponse.getTransformationScript();
         String scriptDescription = suggestMappingResponse.getDescription();
-
         if (script == null || "input".equals(script)) {
             return null;
         }
-
         return new ExpressionType()
                 .description(scriptDescription)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
                                 new ScriptExpressionEvaluatorType().code(script)));
-    }
-
-    private MappingsQualityAssessor.AssessmentResult assessQualityWithRetry(
-            ExpressionType expression,
-            SchemaMatchOneResultType matchPair,
-            Collection<ValuesPair> valuesPairs,
-            @Nullable String firstScript,
-            OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
-        MappingsQualityAssessor.AssessmentResult assessment;
-        try {
-            assessment = this.qualityAssessor.assessMappingsQuality(
-                    valuesPairs, expression, this.ctx.task, parentResult);
-        } catch (ExpressionEvaluationException | SecurityViolationException e) {
-            var retryResponse = askMicroservice(matchPair, valuesPairs, e.getMessage(), firstScript);
-            expression = buildScriptExpression(retryResponse);
-            try {
-                assessment = this.qualityAssessor.assessMappingsQuality(
-                        valuesPairs, expression, this.ctx.task, parentResult);
-            } catch (ExpressionEvaluationException | SecurityViolationException e2) {
-                LOGGER.trace("Expression evaluation failed even after retry for {}.", matchPair.getShadowAttributePath());
-                throw e2;
-            }
-        }
-        return assessment;
     }
 
     private SiSuggestMappingResponseType askMicroservice(
@@ -311,9 +319,13 @@ class MappingsSuggestionOperation {
 
     /** Returns {@code true} if a simple "asIs" mapping is sufficient. */
     private boolean doesAsIsSuffice(Collection<ValuesPair> valuesPairs, PrismPropertyDefinition<?> propertyDef) {
+        if (propertyDef == null) {
+            LOGGER.trace("No focus property definition available; cannot verify asIs mapping.");
+            return false;
+        }
         for (var valuesPair : valuesPairs) {
-            var shadowValues = valuesPair.shadowValues();
-            var focusValues = valuesPair.focusValues();
+            var shadowValues = valuesPair.shadowValues() != null ? valuesPair.shadowValues() : List.of();
+            var focusValues = valuesPair.focusValues() != null ? valuesPair.focusValues() : List.of();
             if (shadowValues.size() != focusValues.size()) {
                 return false;
             }
@@ -343,7 +355,7 @@ class MappingsSuggestionOperation {
 
     /** Returns {@code true} if there are no target data altogether. */
     private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs) {
-        return valuesPairs.stream().allMatch(pair -> pair.focusValues().isEmpty());
+        return valuesPairs.stream().allMatch(pair -> pair.focusValues() == null || pair.focusValues().isEmpty());
     }
 
 }

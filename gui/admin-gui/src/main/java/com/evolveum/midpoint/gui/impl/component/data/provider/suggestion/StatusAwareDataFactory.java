@@ -184,7 +184,6 @@ public final class StatusAwareDataFactory {
                 OperationResult result = task.getResult();
 
                 ResourceObjectTypeDefinitionType rotDef = parentWrapper.getRealValue();
-
                 var suggestionWrappers = SmartIntegrationStatusInfoUtils.loadMappingSuggestionWrappers(
                         page,
                         resourceOid,

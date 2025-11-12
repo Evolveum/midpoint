@@ -30,7 +30,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
 
 /**
  * Identifies a resource object type - by kind and intent.
- *
+ * <p>
  * The values are *never* `unknown`.
  */
 public class ResourceObjectTypeIdentification implements Serializable {

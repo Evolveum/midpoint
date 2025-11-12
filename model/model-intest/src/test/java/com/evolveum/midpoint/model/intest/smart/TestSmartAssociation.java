@@ -92,17 +92,17 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                     ResourceObjectTypeIdentification.of(ENTITLEMENT, "expert")
             ),
             List.of(
-                    new ExpectedAssociation("accountDefaultToEntitlementAppgroupGroup",
+                    new ExpectedAssociation("AccountDefault-EntitlementAppgroup",
                             "ACCOUNT", "default", "ENTITLEMENT", "app-group"),
-                    new ExpectedAssociation("accountDefaultToEntitlementGenericgroupGroup",
+                    new ExpectedAssociation("AccountDefault-EntitlementGenericgroup",
                             "ACCOUNT", "default", "ENTITLEMENT", "generic-group"),
-                    new ExpectedAssociation("accountDefaultToEntitlementOrggroupGroup",
+                    new ExpectedAssociation("AccountDefault-EntitlementOrggroup",
                             "ACCOUNT", "default", "ENTITLEMENT", "org-group"),
 
-                    new ExpectedAssociation("accountPersonToEntitlementContractContract",
+                    new ExpectedAssociation("AccountPerson-EntitlementContract",
                             "ACCOUNT", "person", "ENTITLEMENT", "contract"),
 
-                    new ExpectedAssociation("entitlementContractToGenericOrgUnitOrg",
+                    new ExpectedAssociation("EntitlementContract-GenericOrgUnit",
                             "ENTITLEMENT", "contract", "GENERIC", "orgUnit")
             )
     );
@@ -127,25 +127,25 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             ),
 
             List.of(
-                    new ExpectedAssociation("entitlementAppgroupToEntitlementGenericgroupGroup",
+                    new ExpectedAssociation("EntitlementAppgroup-EntitlementGenericgroup",
                             "ENTITLEMENT", "app-group", "ENTITLEMENT", "generic-group"),
-                    new ExpectedAssociation("entitlementAppgroupToEntitlementOrggroupGroup",
+                    new ExpectedAssociation("EntitlementAppgroup-EntitlementOrggroup",
                             "ENTITLEMENT", "app-group", "ENTITLEMENT", "org-group"),
 
-                    new ExpectedAssociation("entitlementGenericgroupToEntitlementAppgroupGroup",
+                    new ExpectedAssociation("EntitlementGenericgroup-EntitlementAppgroup",
                             "ENTITLEMENT", "generic-group", "ENTITLEMENT", "app-group"),
-                    new ExpectedAssociation("entitlementGenericgroupToEntitlementOrggroupGroup",
+                    new ExpectedAssociation("EntitlementGenericgroup-EntitlementOrggroup",
                             "ENTITLEMENT", "generic-group", "ENTITLEMENT", "org-group"),
 
-                    new ExpectedAssociation("entitlementOrggroupToEntitlementAppgroupGroup",
+                    new ExpectedAssociation("EntitlementOrggroup-EntitlementAppgroup",
                             "ENTITLEMENT", "org-group", "ENTITLEMENT", "app-group"),
-                    new ExpectedAssociation("entitlementOrggroupToEntitlementGenericgroupGroup",
+                    new ExpectedAssociation("EntitlementOrggroup-EntitlementGenericgroup",
                             "ENTITLEMENT", "org-group", "ENTITLEMENT", "generic-group"),
 
-                    new ExpectedAssociation("genericOrgUnitToEntitlementContractContractOrg",
+                    new ExpectedAssociation("GenericOrgUnit-EntitlementContract",
                             "GENERIC", "orgUnit", "ENTITLEMENT", "contract"),
 
-                    new ExpectedAssociation("entitlementContractToGenericOrgUnitOrg",
+                    new ExpectedAssociation("EntitlementContract-GenericOrgUnit",
                             "ENTITLEMENT", "contract", "GENERIC", "orgUnit")
 
             )
@@ -160,7 +160,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             ),
 
             List.of(
-                    new ExpectedAssociation("entitlementExpertToAccountDefaultExpertReference",
+                    new ExpectedAssociation("EntitlementExpert-AccountDefault",
                             "ENTITLEMENT", "expert", "ACCOUNT", "default")
             )
     );

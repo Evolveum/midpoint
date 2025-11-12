@@ -101,7 +101,7 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
     }
 
     protected void postProcessWrapper(PrismContainerValueWrapper<C> valueWrapper) {
-        // nothig to do, use when e.g. references needs to be resolved, etc..
+        // nothing to do, use when e.g. references needs to be resolved, etc..
     }
 
     private <V extends Comparable<V>> V getPropertyValue(PrismContainerValueWrapper<C> o1, String propertyName) {
@@ -156,14 +156,22 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
             return list;
         }
 
-        List<PrismContainerValueWrapper<C>> filtered = list.stream().filter(valueWrapper -> {
+        return list.stream().filter(valueWrapper -> {
             try {
-                return ObjectQuery.match(valueWrapper.getRealValue(), query.getFilter(), getPageBase().getMatchingRuleRegistry());
+                return matchItems(valueWrapper, query);
             } catch (SchemaException e) {
                 throw new TunnelException(e.getMessage());
             }
         }).collect(Collectors.toList());
-        return filtered;
+    }
+
+    /**
+     *  Returns true if the given valueWrapper matches the given query
+     * */
+    protected boolean matchItems(
+            @NotNull PrismContainerValueWrapper<C> valueWrapper,
+            @NotNull ObjectQuery query) throws SchemaException {
+        return ObjectQuery.match(valueWrapper.getRealValue(), query.getFilter(), getPageBase().getMatchingRuleRegistry());
     }
 
     @Override

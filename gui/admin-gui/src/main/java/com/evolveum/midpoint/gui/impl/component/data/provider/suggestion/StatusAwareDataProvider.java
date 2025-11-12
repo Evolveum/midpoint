@@ -149,7 +149,6 @@ public class StatusAwareDataProvider<C extends Containerable>
         return all.stream().filter(PrismContainerValueWrapper::isSelected).toList();
     }
 
-
     /**
      * Configures the initial sort state for this data provider.
      * <p>

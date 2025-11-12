@@ -41,6 +41,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.util.List;
 
 /**
@@ -99,7 +100,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         formContainer.add(labelShowEmpty);
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_VALUE) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {

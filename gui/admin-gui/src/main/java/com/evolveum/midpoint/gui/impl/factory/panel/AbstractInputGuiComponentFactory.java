@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.validator.ChoiceRequiredValidator;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.web.component.behavior.CaretPreservingOnChangeBehavior;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
@@ -36,6 +39,8 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+
+import static com.evolveum.midpoint.schema.util.AiUtil.getFilterInvalidMessage;
 
 import static java.util.Map.entry;
 
@@ -76,7 +81,14 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
             formComponent.setLabel(label);
 
-            markIfAiGeneratedValue(formComponent, propertyWrapper);
+            IModel<? extends PrismValueWrapper<T>> valueWrapperModel = panelCtx.getValueWrapperModel();
+            if (valueWrapperModel != null && valueWrapperModel.getObject() != null) {
+                PrismValueWrapper<T> prismValueWrapper = panelCtx.getValueWrapperModel().getObject();
+                boolean isInvalidFilter = markIfInvalidFilter(formComponent, propertyWrapper, prismValueWrapper);
+                if (!isInvalidFilter) {
+                    markIfAiGeneratedValue(formComponent, prismValueWrapper);
+                }
+            }
 
             Class<? extends Containerable> parentClass = getChoicesParentClass(panelCtx);
             if (parentClass != null) {
@@ -117,13 +129,13 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
      */
     private static <T> void markIfAiGeneratedValue(
             @NotNull FormComponent<T> formComponent,
-            @NotNull PrismPropertyWrapper<T> propertyWrapper) {
+            PrismValueWrapper<T> prismValueWrapper) {
 
-        boolean isAiRelated = hasAiMark(propertyWrapper, false);
+        boolean isAiRelated = hasAiMark(prismValueWrapper, false);
         if (isAiRelated) {
             formComponent.setOutputMarkupId(true);
             formComponent.add(AttributeModifier.append("class", () -> {
-                boolean hasAiProvidedValue = hasAiMark(propertyWrapper, true);
+                boolean hasAiProvidedValue = hasAiMark(prismValueWrapper, true);
                 return hasAiProvidedValue && !formComponent.hasErrorMessage()
                         ? IS_AI_FLAG_FIELD_CLASS
                         : "";
@@ -134,12 +146,48 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
         }
     }
 
+    /**
+     * Marks the form component as invalid if it represents a resource delineation filter
+     * that has been marked as invalid.
+     */
+    private static <T> boolean markIfInvalidFilter(
+            @NotNull FormComponent<T> formComponent,
+            @NotNull PrismPropertyWrapper<T> propertyWrapper,
+            @NotNull PrismValueWrapper<T> prismValueWrapper) {
+
+        ItemPath path = propertyWrapper.getPath().namedSegmentsOnly();
+        ItemPath delineationFilterPath = ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_DELINEATION,
+                ResourceObjectTypeDelineationType.F_FILTER);
+
+        if (!path.equals(delineationFilterPath)) {
+            return false;
+        }
+
+        PrismValue value = prismValueWrapper.getNewValue();
+        boolean markedAsInvalid = AiUtil.isMarkedAsInvalid(value);
+
+        if (!markedAsInvalid) {
+            return false;
+        }
+
+        formComponent.add(AttributeModifier.append("class", "is-invalid-filter"));
+
+        String filterInvalidMessage = getFilterInvalidMessage(value);
+        if (filterInvalidMessage != null && !filterInvalidMessage.isBlank()) {
+            formComponent.error(filterInvalidMessage);
+        }
+
+        return true;
+    }
+
     private static <T> boolean hasAiMark(
-            @NotNull PrismPropertyWrapper<T> propertyWrapper, boolean newValue) {
-        return propertyWrapper.getValues() != null &&
-                propertyWrapper.getValues().stream()
-                        .map(vw -> newValue ? vw.getNewValue() : vw.getOldValue())
-                        .anyMatch(AiUtil::isMarkedAsAiProvided);
+            PrismValueWrapper<T> prismValueWrapper,
+            boolean newValue) {
+        return prismValueWrapper != null && AiUtil.isMarkedAsAiProvided(
+                newValue ? prismValueWrapper.getNewValue() : prismValueWrapper.getOldValue());
     }
 
     private Class<? extends Containerable> getChoicesParentClass(PrismPropertyPanelContext<T> panelCtx) {
