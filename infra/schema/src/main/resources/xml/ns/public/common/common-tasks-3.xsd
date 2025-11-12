@@ -2304,6 +2304,9 @@
                                 If set to false, the counters are not reset and the activity is restarted
                                 with the same counters as before.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
