@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -103,7 +105,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
     }
 
     private void initLayout() {
-        CartSummaryPanel cartSummary = new CartSummaryPanel(ID_CART_SUMMARY, getWizard(), getModel(), page) {
+        CartSummaryPanel cartSummary = new CartSummaryPanel(ID_CART_SUMMARY, (WizardModelBasic) getWizard(), getModel(), page) {
 
             private static final long serialVersionUID = 1L;
 
@@ -133,7 +135,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
             protected void solveConflictPerformed(AjaxRequestTarget target, IModel<Conflict> conflictModel, IModel<ConflictItem> itemToKeepModel) {
                 super.solveConflictPerformed(target, conflictModel, itemToKeepModel);
 
-                target.add(getWizard().getHeader());
+                target.add(((WizardModelBasic)getWizard()).getHeader());
             }
         };
         conflictSolver.add(new VisibleBehaviour(() -> state.getObject() == State.CONFLICTS));

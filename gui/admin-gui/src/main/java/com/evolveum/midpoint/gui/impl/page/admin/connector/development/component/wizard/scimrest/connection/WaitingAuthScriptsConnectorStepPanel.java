@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
@@ -49,7 +50,7 @@ public class WaitingAuthScriptsConnectorStepPanel extends WaitingScriptConnector
     }
 
     @Override
-    protected String getTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateAuthenticationScript(task, result);
     }
 
@@ -81,5 +82,10 @@ public class WaitingAuthScriptsConnectorStepPanel extends WaitingScriptConnector
     @Override
     protected @NotNull Model<String> getIconModel() {
         return Model.of("fa fa-cogs");
+    }
+
+    @Override
+    protected ConnDevScriptIntentType getScriptIntent() {
+        return ConnDevScriptIntentType.AUTH;
     }
 }

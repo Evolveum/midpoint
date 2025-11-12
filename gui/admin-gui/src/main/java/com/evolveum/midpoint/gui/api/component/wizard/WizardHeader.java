@@ -16,9 +16,9 @@ public class WizardHeader extends NavigationPanel implements WizardListener {
 
     private static final long serialVersionUID = 1L;
 
-    private WizardModel model;
+    private WizardModelBasic model;
 
-    public WizardHeader(String id, WizardModel model) {
+    public WizardHeader(String id, WizardModelBasic model) {
         super(id);
 
         this.model = model;

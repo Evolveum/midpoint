@@ -16,7 +16,7 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -44,7 +44,7 @@ public class TaskWizardPanel extends AbstractWizardPanel<TaskType, TaskDetailsMo
     @Override
     protected void initLayout() {
         getPageBase().getFeedbackPanel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
-        add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps()))));
+        add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createBasicSteps()))));
     }
 
     private List<WizardStep> createBasicSteps() {

@@ -7,13 +7,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConfirmationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.ComplexTypeDefinitionPanel;
-import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
@@ -26,9 +25,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -38,8 +35,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,20 +49,23 @@ import java.util.Optional;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.showSchema", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class ShowSchemaConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
+public class ShowSchemaConnectorStepPanel extends ScriptConfirmationPanel {
 
     private static final String PANEL_TYPE = "cdw-show-schema";
 
     private static final String ID_PANEL = "panel";
 
-    private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
+    public ShowSchemaConnectorStepPanel(
+            WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
+            IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
+        super(helper, valueModel);
+    }
 
-    private LoadableModel<String> resourceOidModel;
-
-    public ShowSchemaConnectorStepPanel(WizardPanelHelper<? extends Containerable,
-            ConnectorDevelopmentDetailsModel> helper, IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
-        super(helper);
-        this.valueModel = valueModel;
+    @Override
+    protected List<ConnectorDevelopmentArtifacts.KnownArtifactType> getScriptClassifications() {
+        return List.of(
+                ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION,
+                ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION);
     }
 
     @Override
@@ -119,7 +117,7 @@ public class ShowSchemaConnectorStepPanel extends AbstractWizardStepPanel<Connec
                 List<PrismContainerValueWrapper<? extends DefinitionType>> values = super.createListOfItem(searchItemModel);
                 Optional<PrismContainerValueWrapper<? extends DefinitionType>> configuredObjectClass = values.stream()
                         .filter(value -> Strings.CS.equals(
-                                value.getRealValue().getName().getLocalPart(), valueModel.getObject().getRealValue().getName()))
+                                value.getRealValue().getName().getLocalPart(), getValueModel().getObject().getRealValue().getName()))
                         .findFirst();
 
                 if (configuredObjectClass.isEmpty()) {

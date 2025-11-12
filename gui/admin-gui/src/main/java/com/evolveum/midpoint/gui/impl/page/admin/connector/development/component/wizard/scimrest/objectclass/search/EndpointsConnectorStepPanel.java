@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.commons.lang3.StringUtils;
@@ -250,6 +252,19 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
-        return super.onNextPerformed(target);
+
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        getDetailsModel().getConnectorDevelopmentOperation();
+        if (result != null && !result.isError()) {
+            super.onNextPerformed(target);
+        } else {
+            target.add(getFeedback());
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        return ConnectorDevelopmentWizardUtil.existContainerValue(objectClassModel.getObject(), ConnDevObjectClassInfoType.F_ENDPOINT);
     }
 }

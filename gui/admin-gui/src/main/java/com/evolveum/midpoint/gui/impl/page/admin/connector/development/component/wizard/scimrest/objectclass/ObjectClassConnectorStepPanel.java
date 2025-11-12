@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
@@ -72,7 +74,16 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
 
     public ObjectClassConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
-        createValueModel(helper.getDetailsModel().getServiceLocator());
+    }
+
+    @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+        createValueModel(getHelper().getDetailsModel().getServiceLocator());
+    }
+
+    public final void setObjectClass(String objectClass) {
+        this.objectClass = objectClass;
     }
 
     private void createValueModel(ModelServiceLocator modelServiceLocator) {
@@ -109,12 +120,14 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
                 PrismContainerValueWrapper<ConnDevObjectClassInfoType> newItemWrapper = model.getObject().getValues().stream()
                         .filter(value ->
                                 (!StringUtils.isEmpty(objectClass)
-                                        && StringUtils.equals(objectClass, value.getRealValue().getName()))
+                                        && Strings.CS.equals(objectClass, value.getRealValue().getName()))
                                         || (objectClass == null && value.getStatus() == ValueStatus.ADDED && StringUtils.isEmpty(value.getRealValue().getName())))
                         .findFirst()
-                        .orElse(model.getObject().getValues().get(0));
-                newItemWrapper.setExpanded(true);
-                newItemWrapper.setShowEmpty(true);
+                        .orElse(null);
+                if (newItemWrapper != null) {
+                    newItemWrapper.setExpanded(true);
+                    newItemWrapper.setShowEmpty(true);
+                }
                 return newItemWrapper;
             }
 
@@ -272,8 +285,6 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
     @Override
     public List<WizardStep> createChildrenSteps() {
         return List.of(
-//                new ObjectClassBasicConnectorStepPanel(getHelper(), valueModel),
-//                new WaitingObjectClassConnectorStepPanel(getHelper()),
                 new ObjectClassSelectConnectorStepPanel(getHelper(), valueModel),
                 new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), valueModel),
                 new WaitingNativeSchemaConnectorStepPanel(getHelper(), valueModel),

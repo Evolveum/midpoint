@@ -27,6 +27,7 @@ import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.*;
@@ -135,10 +136,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -337,7 +334,8 @@ public final class WebComponentUtil {
         }
         PrismObject<ObjectType> prismObject = ref.asReferenceValue().getObject();
         if (prismObject == null) {
-            prismObject = WebModelServiceUtils.loadObject(ref, pageBase);
+            @NotNull Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder().noFetch().build();
+            prismObject = WebModelServiceUtils.loadObject(ref, options, pageBase);
         }
         if (prismObject == null) {
             return getReferencedObjectDisplayNamesAndNames(ref, false, true);

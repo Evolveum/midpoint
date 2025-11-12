@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingObjectClassScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
 
 import org.apache.wicket.model.IModel;
 
@@ -39,16 +42,14 @@ import org.jetbrains.annotations.NotNull;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingNativeSchema", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class WaitingNativeSchemaConnectorStepPanel extends WaitingScriptConnectorStepPanel {
+public class WaitingNativeSchemaConnectorStepPanel extends WaitingObjectClassScriptConnectorStepPanel {
 
     private static final String PANEL_TYPE = "cdw-connector-waiting-native-schema";
-    private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
 
     public WaitingNativeSchemaConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
-            IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
-        super(helper);
-        this.valueModel = valueModel;
+            IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        super(helper, objectClassModel);
     }
 
     @Override
@@ -57,9 +58,9 @@ public class WaitingNativeSchemaConnectorStepPanel extends WaitingScriptConnecto
     }
 
     @Override
-    protected String getTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateNativeSchema(
-                valueModel.getObject().getRealValue().getName(), task, result);
+                getObjectClassModel().getObject().getRealValue().getName(), task, result);
     }
 
     @Override
@@ -90,5 +91,10 @@ public class WaitingNativeSchemaConnectorStepPanel extends WaitingScriptConnecto
     @Override
     protected @NotNull Model<String> getIconModel() {
         return Model.of("fa fa-cogs");
+    }
+
+    @Override
+    protected ConnDevScriptIntentType getScriptIntent() {
+        return ConnDevScriptIntentType.NATIVE;
     }
 }

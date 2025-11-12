@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRelationInfoType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +59,7 @@ public class WaitingRelationScriptConnectorStepPanel extends WaitingScriptConnec
     }
 
     @Override
-    protected String getTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateRelationScript(
                 valueModel.getObject().getRealValue(), task, result);
     }
@@ -90,5 +92,10 @@ public class WaitingRelationScriptConnectorStepPanel extends WaitingScriptConnec
     @Override
     protected @NotNull Model<String> getIconModel() {
         return Model.of("fa fa-cogs");
+    }
+
+    @Override
+    protected ConnDevScriptIntentType getScriptIntent() {
+        return ConnDevScriptIntentType.RELATION;
     }
 }

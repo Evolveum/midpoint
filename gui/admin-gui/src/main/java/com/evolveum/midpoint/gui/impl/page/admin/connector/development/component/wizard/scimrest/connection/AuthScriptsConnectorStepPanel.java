@@ -6,13 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -45,26 +41,6 @@ public class AuthScriptsConnectorStepPanel extends ScriptConnectorStepPanel {
 
     public AuthScriptsConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
-    }
-
-    @Override
-    protected ConnDevArtifactType getOriginalContainerValue() {
-        try {
-            PrismContainerWrapper<ConnDevArtifactType> container = getDetailsModel().getObjectWrapper().findContainer(
-                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTHENTICATION_SCRIPT));
-            if (container != null) {
-                return container.getValue().getRealValue();
-            }
-        } catch (SchemaException e) {
-            //todo
-            return null;
-        }
-        return null;
-    }
-
-    @Override
-    protected String getTokenForTaskForObtainResult() {
-        return TASK_AUTH_SCRIPTS_KEY;
     }
 
     @Override
@@ -109,14 +85,8 @@ public class AuthScriptsConnectorStepPanel extends ScriptConnectorStepPanel {
         };
     }
 
-    //    @Override
-//    public boolean onNextPerformed(AjaxRequestTarget target) {
-//        WizardModel model = getWizard();
-//        if (model.hasNext()) {
-//            model.next();
-//            target.add(model.getPanel());
-//        }
-//
-//        return false;
-//    }
+    @Override
+    protected ConnDevScriptIntentType getTaskIntent() {
+        return ConnDevScriptIntentType.AUTH;
+    }
 }

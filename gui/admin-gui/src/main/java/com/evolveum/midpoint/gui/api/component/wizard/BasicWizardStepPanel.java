@@ -92,7 +92,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+                getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
                 onExitPreProcessing(target);
                 onExitPerformed(target);
             }
@@ -111,7 +111,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
-                getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+                getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
                 onSubmitPerformed(target);
             }
 

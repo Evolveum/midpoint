@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -13,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -26,6 +28,9 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtifactResultType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,6 +47,7 @@ import org.apache.wicket.model.PropertyModel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author lskublik
@@ -52,7 +58,7 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
 
     private static final String CLASS_DOT = ScriptsConnectorStepPanel.class.getName() + ".";
     private static final String OP_LOAD_DOCS = CLASS_DOT + "loadDocumentations";
-    private static final String OP_SAVE_AUTH_SCRIPT_DOCS = CLASS_DOT + "saveAuthScript";
+    private static final String OP_SAVE_SCRIPT = CLASS_DOT + "saveScript";
 
     private LoadableModel<List<ConnDevArtifactType>> valueModel;
     private boolean useOriginal = false;
@@ -63,9 +69,14 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
     }
 
     @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+        createModels();
+    }
+
+    @Override
     protected void onInitialize() {
         super.onInitialize();
-        createModels();
         initLayout();
     }
 
@@ -84,7 +95,7 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
                 List<String> tokens = getTokensForTasksForObtainResults();
                 List<ConnDevArtifactType> list = new ArrayList<>();
                 tokens.forEach(token -> {
-                    Task task = getPageBase().createSimpleTask(OP_LOAD_DOCS);
+                    Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_DOCS);
                     OperationResult result = task.getResult();
 
                     StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
@@ -108,10 +119,29 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
 
     protected abstract List<ConnDevArtifactType> getOriginalContainerValues();
 
-    protected abstract List<String> getTokensKeys();
+    protected abstract List<ConnDevScriptIntentType> getTaskIntents();
 
     private List<String> getTokensForTasksForObtainResults() {
-        return getTokensKeys().stream().map(key -> getHelper().getVariable(key)).toList();
+
+        return getTaskIntents().stream()
+                .map(intent -> {
+                    try {
+                        return ConnectorDevelopmentWizardUtil.getTaskToken(
+                                WorkDefinitionsType.F_GENERATE_CONNECTOR_ARTIFACT,
+                                getObjectClassName(),
+                                intent,
+                                getDetailsModel().getObjectWrapper().getOid(),
+                                getDetailsModel().getPageAssignmentHolder());
+                    } catch (CommonException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    protected String getObjectClassName() {
+        return null;
     }
 
     private void initLayout() {
@@ -192,7 +222,7 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         for (ConnDevArtifactType scriptArtifact : valueModel.getObject()) {
-            Task task = getPageBase().createSimpleTask(OP_SAVE_AUTH_SCRIPT_DOCS);
+            Task task = getPageBase().createSimpleTask(OP_SAVE_SCRIPT);
             try {
                 saveScript(scriptArtifact, task, task.getResult());
                 if (task.getResult() == null || task.getResult().isError()) {
@@ -271,4 +301,15 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
         target.add(getWizard().getPanel());
     }
 
+    @Override
+    public boolean isCompleted() {
+        if (valueModel.getObject().isEmpty()) {
+            return false;
+        }
+
+        boolean isComplete = valueModel.getObject().stream().allMatch(
+                scriptArtifact -> ConnectorDevelopmentWizardUtil.existScript(getDetailsModel(), scriptArtifact));
+        valueModel.detach();
+        return isComplete;
+    }
 }

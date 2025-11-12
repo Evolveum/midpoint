@@ -288,6 +288,7 @@
             <xsd:element name="subjectAttribute" type="xsd:string"/>
             <xsd:element name="object" type="xsd:string"/>
             <xsd:element name="objectAttribute" type="xsd:string"/>
+            <xsd:element name="confirm" type="xsd:boolean"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -370,6 +371,7 @@
             <xsd:element name="intent" type="tns:ConnDevScriptIntentType"/>
             <xsd:element name="filename" type="xsd:string"/>
             <xsd:element name="content" type="xsd:string"/>
+            <xsd:element name="confirm" type="xsd:boolean"/>
         </xsd:sequence>
     </xsd:complexType>
 

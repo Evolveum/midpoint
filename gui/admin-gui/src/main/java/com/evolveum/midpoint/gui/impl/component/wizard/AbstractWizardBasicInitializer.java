@@ -16,7 +16,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -183,7 +183,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel {
     }
 
     protected void onExitPerformed(AjaxRequestTarget target) {
-        getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+        getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
     }
 
     protected void onBackPerformed(AjaxRequestTarget target) {

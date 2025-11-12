@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedInfoPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -21,6 +24,7 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 
 import com.evolveum.midpoint.gui.api.component.wizard.*;
 
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -28,13 +32,11 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-public class WizardWithNavigationPanel extends WizardPanel {
+public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM extends AssignmentHolderDetailsModel<AH>> extends BasePanel implements WizardListener {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_HEADER = "header";
@@ -45,19 +47,39 @@ public class WizardWithNavigationPanel extends WizardPanel {
     private static final String ID_STEP_BADGE = "stepBadge";
     private static final String ID_STEP_IN_PROGRESS = "stepInProgress";
     private static final String ID_PARENT_STEP_LABEL = "parentStepLabel";
+    private static final String ID_CONTENT_BODY = "contentBody";
     private static final String ID_COLLAPSED_INFO_PANEL = "collapsedInfoPanel";
 
-    public WizardWithNavigationPanel(String id, WizardModel wizardModel) {
-        super(id, wizardModel);
+    private final AbstractWizardController<AH, ADM> controller;
+
+    public WizardWithNavigationPanel(String id, AbstractWizardController<AH, ADM> controller) {
+        super(id);
+        this.controller = controller;
+        this.controller.setPanel(this);
+
+        controller.addWizardListener(this);
     }
 
     @Override
-    protected void customizeHeader(IHeaderResponse response) {
-        //we don't need it
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        customizeHeader(response);
+    }
+
+    private void customizeHeader(IHeaderResponse response) {
+        response.render(OnDomReadyHeaderItem.forScript(
+                "MidPointTheme.updatePageUrlParameter('" + WizardModelBasic.PARAM_STEP + "', '" + controller.getActiveStep().getStepId() + "');"));
     }
 
     @Override
-    protected void initLayout() {
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+        this.controller.init(getPage());
+    }
+
+    private void initLayout() {
         MidpointForm form = new MidpointForm<>(ID_MAIN_FORM);
         add(form);
 
@@ -93,7 +115,7 @@ public class WizardWithNavigationPanel extends WizardPanel {
         form.add(navigation);
 
         IModel<List<WizardParentStep>> modelParentsView = () -> {
-            List list = new ArrayList<>(getWizardModel().getSteps());
+            List list = new ArrayList<>(getController().getAllParentSteps());
             return list;
         };
         ListView<WizardParentStep> parentsView = new ListView<>(ID_CARD, modelParentsView) {
@@ -101,30 +123,30 @@ public class WizardWithNavigationPanel extends WizardPanel {
             protected void populateItem(ListItem<WizardParentStep> listItem) {
                 populateCard(
                         listItem,
-                        getWizardModel().getActiveParentStepIndex(),
-                        getWizardModel().getActiveChildrenSteps().isEmpty());
+                        getController().getActiveParentStepIndex(),
+                        getController().getActiveChildrenSteps().isEmpty());
             }
         };
         navigation.add(parentsView);
 
         WebMarkupContainer stepInProgress = new WebMarkupContainer(ID_STEP_IN_PROGRESS);
         stepInProgress.setOutputMarkupId(true);
-        stepInProgress.add(new VisibleBehaviour(() -> !getWizardModel().getActiveChildrenSteps().isEmpty()));
+        stepInProgress.add(new VisibleBehaviour(() -> !getController().getActiveChildrenSteps().isEmpty()));
         navigation.add(stepInProgress);
 
-        stepInProgress.add(new Label(ID_PARENT_STEP_LABEL, () -> getWizardModel().getActiveParentStep().getTitle().getObject()));
+        stepInProgress.add(new Label(ID_PARENT_STEP_LABEL, () -> getController().getActiveParentStep().getTitle().getObject()));
 
-        IModel<List<WizardStep>> modelStepsView = () -> new ArrayList<>(getWizardModel().getActiveChildrenSteps());
+        IModel<List<WizardStep>> modelStepsView = () -> new ArrayList<>(getController().getActiveChildrenSteps());
         ListView<WizardStep> stepsView = new ListView<>(ID_CARD, modelStepsView) {
             @Override
             protected void populateItem(ListItem<WizardStep> listItem) {
-                populateCard(listItem, getWizardModel().getActiveStepIndex(), true);
+                populateCard(listItem, getController().getActiveStepIndex(), true);
             }
         };
         stepInProgress.add(stepsView);
         form.add(new WebMarkupContainer(ID_CONTENT_BODY));
 
-        CollapsedInfoPanel collapsedInfoPanel = new CollapsedInfoPanel(ID_COLLAPSED_INFO_PANEL, getWizardModel());
+        CollapsedInfoPanel collapsedInfoPanel = new CollapsedInfoPanel(ID_COLLAPSED_INFO_PANEL, getController());
         collapsedInfoPanel.setOutputMarkupId(true);
         form.add(collapsedInfoPanel);
     }
@@ -160,15 +182,14 @@ public class WizardWithNavigationPanel extends WizardPanel {
         listItem.add(badge);
     }
 
-    @Override
-    public WizardModelWithParentSteps getWizardModel() {
-        return (WizardModelWithParentSteps) super.getWizardModel();
+    private WizardModelWithParentSteps getController() {
+        return controller;
     }
 
     @Override
     public void onStepChanged(WizardStep newStep) {
-        WizardStep step = getActiveStep();
-        ((Component)step).add(AttributeAppender.append("class", () -> getActiveStep().appendCssToWizard()));
+        WizardStep step = getController().getActiveStep();
+        ((Component)step).add(AttributeAppender.append("class", () -> getController().getActiveStep().appendCssToWizard()));
 
         ((MidpointForm)get(ID_MAIN_FORM)).addOrReplace((Component) step);
     }

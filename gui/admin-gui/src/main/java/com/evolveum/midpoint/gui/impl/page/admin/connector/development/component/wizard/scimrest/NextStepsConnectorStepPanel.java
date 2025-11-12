@@ -10,7 +10,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardMode
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
@@ -173,26 +173,15 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
     }
 
     private void createNewRelation(AjaxRequestTarget target) {
-        RelationConnectorStepPanel step = new RelationConnectorStepPanel(getHelper());
-        createNewParentStep(target, step);
+        ConnectorDevelopmentController controller = (ConnectorDevelopmentController) getWizard();
+        controller.initNewRelation();
+        target.add(getWizard().getPanel());
     }
 
     private void createNewObjectClass(AjaxRequestTarget target) {
-        ObjectClassConnectorStepPanel step = new ObjectClassConnectorStepPanel(getHelper());
-        createNewParentStep(target, step);
-    }
-
-    private void createNewParentStep(AjaxRequestTarget target, WizardParentStep step) {
-        WizardModel wizardModel = getWizard();
-        wizardModel.addStepAfter(step, ObjectClassConnectorStepPanel.class);
-        if (wizardModel instanceof WizardModelWithParentSteps wizardModelWithParentSteps) {
-            wizardModelWithParentSteps.setActiveParentStepById(step.getDefaultStepId());
-        } else {
-            wizardModel.setActiveStepById(step.getDefaultStepId());
-        }
-        wizardModel.fireActiveStepChanged();
+        ConnectorDevelopmentController controller = (ConnectorDevelopmentController) getWizard();
+        controller.initNewObjectClass();
         target.add(getWizard().getPanel());
-
     }
 
     @Override
@@ -265,6 +254,11 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
         public String getDescription() {
             return descriptionKey;
         }
+    }
+
+    @Override
+    public boolean isStatusStep() {
+        return true;
     }
 
     public enum ConnectorAction implements TileEnum {

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
@@ -13,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
@@ -76,9 +78,14 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
     }
 
     @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+        createValuesModel();
+    }
+
+    @Override
     protected void onInitialize() {
         super.onInitialize();
-        createValuesModel();
         initLayout();
     }
 
@@ -158,7 +165,7 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
                     @Override
                     protected void onBeforeRender() {
                         super.onBeforeRender();
-                        ((VerticalFormPrismContainerPanel)getSingleContainerPanel().getContainer().get("1"))
+                        ((VerticalFormPrismContainerPanel) getSingleContainerPanel().getContainer().get("1"))
                                 .getContainer().add(AttributeAppender.remove("class"));
                     }
 
@@ -332,6 +339,30 @@ public class CredentialsConnectorStepPanel extends AbstractWizardStepPanel<Conne
             super.onNextPerformed(target);
         } else {
             target.add(getFeedback());
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        for (PrismContainerValueWrapper<ConnDevAuthInfoType> authValue : valuesModel.getObject()) {
+            List<ItemName> visibleItems = new ArrayList<>();
+            ConnDevAuthInfoType authType = authValue.getRealValue();
+            try {
+                PrismPropertyWrapper<ConnDevIntegrationType> integration =
+                        getDetailsModel().getObjectWrapper().findProperty(
+                                ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_INTEGRATION_TYPE));
+                visibleItems.addAll(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
+
+                if (visibleItems.stream().allMatch(
+                        visibleItem -> ConnectorDevelopmentWizardUtil.existTestingResourcePropertyValue(
+                                getDetailsModel(), getPanelType(), visibleItem))) {
+                    return true;
+                }
+
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+            }
         }
         return false;
     }

@@ -11,7 +11,14 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -21,9 +28,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -36,6 +41,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.Connector
 import com.evolveum.midpoint.prism.Containerable;
 
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * @author lskublik
@@ -60,7 +68,7 @@ public class WaitingForDocumentationConnectorStepPanel extends WaitingConnectorS
     }
 
     @Override
-    protected String getTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitDiscoverDocumentation(task, result);
     }
 
@@ -89,4 +97,8 @@ public class WaitingForDocumentationConnectorStepPanel extends WaitingConnectorS
         return PANEL_TYPE;
     }
 
+    @Override
+    protected ItemName getActivityType() {
+        return WorkDefinitionsType.F_DISCOVER_DOCUMENTATION;
+    }
 }

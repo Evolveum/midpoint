@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.basic;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
@@ -35,7 +35,7 @@ public class ResourceObjectTypeBasicWizardPanel extends AbstractWizardPanel<Reso
     protected void initLayout() {
         add(createWizardFragment(new WizardPanel(
                 getIdOfWizardPanel(),
-                new WizardModel(createBasicSteps()))));
+                new WizardModelBasic(createBasicSteps()))));
     }
 
     private List<WizardStep> createBasicSteps() {

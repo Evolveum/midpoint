@@ -276,4 +276,13 @@ public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<Co
         }
         return false;
     }
+
+    @Override
+    public boolean isCompleted() {
+        if (valueModel.getObject() == null) {
+            return false;
+        }
+
+        return valueModel.getObject().getStatus() != ValueStatus.ADDED;
+    }
 }

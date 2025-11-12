@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -279,5 +280,14 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
             target.add(getFeedback());
         }
         return false;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        if (valueModel.getObject() == null) {
+            return false;
+        }
+
+        return valueModel.getObject().getStatus() != ValueStatus.ADDED;
     }
 }

@@ -389,9 +389,14 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem applicationMenu = createMainMenuItem("PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(applicationMenu, PageTypes.APPLICATION);
 
-        MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
-                GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
-        applicationMenu.addMenuItem(connectorGenerator);
+        applicationMenu.addMenuItem(createObjectListPageMenuItem(PageTypes.CONNECTOR_DEVELOPMENT));
+
+        boolean connectorGeneratorActive = classMatches(PageConnectorDevelopment.class);
+//        if (connectorGeneratorActive) {
+            MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
+                    GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
+            applicationMenu.addMenuItem(connectorGenerator);
+//        }
 
         return applicationMenu;
     }
@@ -777,6 +782,13 @@ public class LeftMenuPanel extends BasePanel<Void> {
             repositoryObjectsMenu.addMenuItem(editMenuItem);
         }
         return repositoryObjectsMenu;
+    }
+
+    private MenuItem createObjectListPageMenuItem(PageTypes pageDesc) {
+        String label = "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list";
+        String icon = pageDesc.getIcon();
+        Class<? extends PageBase> page = pageDesc.getListClass();
+        return createObjectListPageMenuItem(label, icon, page);
     }
 
     private MenuItem createObjectListPageMenuItem(String key, String iconClass, Class<? extends PageBase> menuItemPage) {

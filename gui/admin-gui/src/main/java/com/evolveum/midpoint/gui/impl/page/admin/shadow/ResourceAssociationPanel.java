@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.shadow;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -138,7 +138,7 @@ public class ResourceAssociationPanel extends ItemRefinedPanel<ResourceObjectAss
         OnePanelPopupPanel popup = new OnePanelPopupPanel(getPageBase().getMainPopupBodyId()) {
             @Override
             protected WebMarkupContainer createPanel(String id) {
-                return new WizardPanel(id, new WizardModel(List.of(step)));
+                return new WizardPanel(id, new WizardModelBasic(List.of(step)));
             }
 
             @Override
