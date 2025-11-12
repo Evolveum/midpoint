@@ -157,8 +157,7 @@ public final class StatusAwareDataFactory {
                 List<PrismContainerValueWrapper<MappingType>> normal = new ArrayList<>();
 
                 // Only load Smart suggestions for inbound mappings
-                if (Boolean.TRUE.equals(switchSuggestionModel.getObject())
-                        && mappingDirection == MappingDirection.INBOUND) {
+                if (Boolean.TRUE.equals(switchSuggestionModel.getObject())) {
                     loadSuggestions(suggestions);
                 }
 
