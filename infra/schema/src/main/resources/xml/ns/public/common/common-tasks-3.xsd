@@ -705,6 +705,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="taskRunRecord" type="tns:TaskRunRecordType"/>
 
     <xsd:complexType name="TaskExecutionEnvironmentType">
         <xsd:annotation>
@@ -2003,6 +2004,7 @@
             <xsd:element name="policy" type="tns:ActivityPolicyType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="activityPolicies" type="tns:ActivityPoliciesType"/>
 
     <xsd:complexType name="ActivityPolicyType">
         <xsd:annotation>
@@ -2044,6 +2046,7 @@
             <xsd:element name="order" type="xsd:int" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="activityPolicy" type="tns:ActivityPolicyType"/>
 
     <xsd:complexType name="ActivityPolicyConstraintsType">
         <xsd:annotation>
@@ -2124,6 +2127,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="activityPolicyConstraints" type="tns:ActivityPolicyConstraintsType"/>
 
     <xsd:complexType name="ItemProcessingResultPolicyConstraintType">
         <xsd:annotation>
@@ -2163,6 +2167,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="itemProcessingResultPolicyConstraint" type="tns:ItemProcessingResultPolicyConstraintType"/>
 
     <xsd:complexType name="NumericThresholdPolicyConstraintType">
         <xsd:annotation>
@@ -2178,13 +2183,26 @@
             <xsd:extension base="tns:AbstractPolicyConstraintType">
                 <xsd:sequence>
                     <xsd:sequence>
-                        <xsd:element name="below" type="xsd:int" minOccurs="0"/>
-                        <xsd:element name="exceeds" type="xsd:int" minOccurs="0"/>
+                        <xsd:element name="below" type="xsd:int" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    If constraint metric value is smaller than "below" value for activity, the constraint is triggered.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="exceeds" type="xsd:int" minOccurs="0">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    If constraint metric value is greater than "exceeds" value for activity, the constraint is triggered.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
                     </xsd:sequence>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="numericThresholdPolicyConstraint" type="tns:NumericThresholdPolicyConstraintType"/>
 
     <xsd:complexType name="DurationThresholdPolicyConstraintType">
         <xsd:annotation>
@@ -2219,6 +2237,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="durationThresholdPolicyConstraint" type="tns:DurationThresholdPolicyConstraintType"/>
 
     <xsd:complexType name="ActivityPolicyActionsType">
         <xsd:annotation>
@@ -2239,6 +2258,7 @@
             <xsd:element name="skipActivity" type="tns:SkipActivityPolicyActionType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="activityPolicyActions" type="tns:ActivityPolicyActionsType"/>
 
     <xsd:complexType name="SkipActivityPolicyActionType">
         <xsd:annotation>
@@ -2254,6 +2274,7 @@
             <xsd:extension base="tns:ActivityPolicyActionType" />
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="skipActivityPolicyAction" type="tns:SkipActivityPolicyActionType"/>
 
     <xsd:complexType name="RestartActivityPolicyActionType">
         <xsd:annotation>
@@ -2289,6 +2310,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="restartActivityPolicyAction" type="tns:RestartActivityPolicyActionType"/>
 
     <xsd:complexType name="ActivityPolicyActionType" abstract="true">
         <xsd:annotation>
@@ -2303,6 +2325,7 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:complexType>
+    <xsd:element name="activityPolicyAction" type="tns:ActivityPolicyActionType"/>
 
     <xsd:complexType name="NotificationActivityPolicyActionType">
         <xsd:annotation>
@@ -2318,6 +2341,7 @@
             <xsd:extension base="tns:ActivityPolicyActionType"/>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="notificationActivityPolicyAction" type="tns:NotificationActivityPolicyActionType"/>
 
     <xsd:complexType name="SuspendTaskActivityPolicyActionType">
         <xsd:annotation>
@@ -2333,6 +2357,7 @@
             <xsd:extension base="tns:ActivityPolicyActionType" />
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="suspendTaskActivityPolicyAction" type="tns:SuspendTaskActivityPolicyActionType"/>
 
     <xsd:complexType name="WorkDefinitionsType">
         <xsd:annotation>
@@ -2862,6 +2887,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="activityPoliciesDefinitionTailoring" type="tns:ActivityPoliciesDefinitionTailoringType"/>
 
     <xsd:complexType name="ActivityControlFlowDefinitionTailoringType">
         <xsd:annotation>
@@ -9030,6 +9056,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="activityPoliciesState" type="tns:ActivityPoliciesStateType" />
 
     <xsd:complexType name="ActivityPolicyStateType">
         <xsd:annotation>
@@ -9065,6 +9092,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="activityPolicyState" type="tns:ActivityPolicyStateType" />
 
     <xsd:complexType name="EvaluatedActivityPolicyTriggerType">
         <xsd:annotation>
@@ -9081,6 +9109,7 @@
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="evaluatedActivityPolicyTrigger" type="tns:EvaluatedActivityPolicyTriggerType" />
 
     <xsd:complexType name="ActivityCounterGroupsType">
         <xsd:annotation>
@@ -9111,6 +9140,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="activityCounterGroups" type="tns:ActivityCounterGroupsType" />
 
     <xsd:complexType name="ActivityCounterGroupType">
         <xsd:annotation>
@@ -9134,6 +9164,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="activityCounterGroup" type="tns:ActivityCounterGroupType" />
 
     <xsd:complexType name="ActivityCounterType">
         <xsd:annotation>
@@ -9165,6 +9196,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="activityCounter" type="tns:ActivityCounterType" />
 
     <xsd:complexType name="TaskAutoScalingType">
         <xsd:annotation>

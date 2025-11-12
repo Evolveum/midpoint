@@ -27,7 +27,7 @@ public class ActivityPolicyConstraintsEvaluator {
 
     @Autowired private ExecutionTimeConstraintEvaluator executionTimeEvaluator;
 
-    @Autowired private ItemStateConstraintEvaluator itemStateEvaluator;
+    @Autowired private ItemProcessingResultConstraintEvaluator itemStateEvaluator;
 
     @Autowired private ExecutionAttemptsConstraintEvaluator executionAttemptsConstraintEvaluator;
 

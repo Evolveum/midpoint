@@ -40,7 +40,7 @@ public class ExecutionAttemptsConstraintEvaluator
 
     @Override
     protected LocalizableMessage createEvaluatorName() {
-        return new SingleLocalizableMessage("RestartActivityConstraintEvaluator.name");
+        return new SingleLocalizableMessage("ExecutionAttemptsConstraintEvaluator.name", new Object[0], "Execution attempts");
     }
 
     @Override

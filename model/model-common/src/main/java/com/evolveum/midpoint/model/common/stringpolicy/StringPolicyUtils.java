@@ -14,38 +14,38 @@ import org.jetbrains.annotations.Nullable;
 public class StringPolicyUtils {
 
     //useful for clarification of the special symbol, maps the special symbol and localization key with its name
-    private static final Map<Character, String> specialSymbolsMap = new HashMap<>();
+    private static final Map<Character, String> SPECIAL_SYMBOLS_MAP = new HashMap<>();
 
     static {
-        specialSymbolsMap.put('!', "ValuePolicy.character.exclamationMark");
-        specialSymbolsMap.put('$', "ValuePolicy.character.dollarSign");
-        specialSymbolsMap.put('%', "ValuePolicy.character.percent");
-        specialSymbolsMap.put('(', "ValuePolicy.character.leftParenthesis");
-        specialSymbolsMap.put(')', "ValuePolicy.character.rightParenthesis");
-        specialSymbolsMap.put('+', "ValuePolicy.character.plusSign");
-        specialSymbolsMap.put(',', "ValuePolicy.character.comma");
-        specialSymbolsMap.put('-', "ValuePolicy.character.minusSign");
-        specialSymbolsMap.put('.', "ValuePolicy.character.period");
-        specialSymbolsMap.put(':', "ValuePolicy.character.colon");
-        specialSymbolsMap.put(';', "ValuePolicy.character.semicolon");
-        specialSymbolsMap.put('<', "ValuePolicy.character.lessThanSign");
-        specialSymbolsMap.put('>', "ValuePolicy.character.greaterThanSign");
-        specialSymbolsMap.put('?', "ValuePolicy.character.questionMark");
-        specialSymbolsMap.put('@', "ValuePolicy.character.atSymbol");
-        specialSymbolsMap.put('[', "ValuePolicy.character.leftSquareBracket");
-        specialSymbolsMap.put(']', "ValuePolicy.character.rightSquareBracket");
-        specialSymbolsMap.put('^', "ValuePolicy.character.caret");
-        specialSymbolsMap.put('_', "ValuePolicy.character.underscore");
-        specialSymbolsMap.put('`', "ValuePolicy.character.backtick");
-        specialSymbolsMap.put('{', "ValuePolicy.character.leftCurlyBrace");
-        specialSymbolsMap.put('|', "ValuePolicy.character.verticalBar");
-        specialSymbolsMap.put('}', "ValuePolicy.character.rightCurlyBrace");
-        specialSymbolsMap.put('~', "ValuePolicy.character.tilde");
-        specialSymbolsMap.put('#', "ValuePolicy.character.hash");
-        specialSymbolsMap.put('&', "ValuePolicy.character.ampersand");
-        specialSymbolsMap.put('"', "ValuePolicy.character.doubleQuote");
-        specialSymbolsMap.put('*', "ValuePolicy.character.asterisk");
-        specialSymbolsMap.put('\'', "ValuePolicy.character.apostrophe");
+        SPECIAL_SYMBOLS_MAP.put('!', "ValuePolicy.character.exclamationMark");
+        SPECIAL_SYMBOLS_MAP.put('$', "ValuePolicy.character.dollarSign");
+        SPECIAL_SYMBOLS_MAP.put('%', "ValuePolicy.character.percent");
+        SPECIAL_SYMBOLS_MAP.put('(', "ValuePolicy.character.leftParenthesis");
+        SPECIAL_SYMBOLS_MAP.put(')', "ValuePolicy.character.rightParenthesis");
+        SPECIAL_SYMBOLS_MAP.put('+', "ValuePolicy.character.plusSign");
+        SPECIAL_SYMBOLS_MAP.put(',', "ValuePolicy.character.comma");
+        SPECIAL_SYMBOLS_MAP.put('-', "ValuePolicy.character.minusSign");
+        SPECIAL_SYMBOLS_MAP.put('.', "ValuePolicy.character.period");
+        SPECIAL_SYMBOLS_MAP.put(':', "ValuePolicy.character.colon");
+        SPECIAL_SYMBOLS_MAP.put(';', "ValuePolicy.character.semicolon");
+        SPECIAL_SYMBOLS_MAP.put('<', "ValuePolicy.character.lessThanSign");
+        SPECIAL_SYMBOLS_MAP.put('>', "ValuePolicy.character.greaterThanSign");
+        SPECIAL_SYMBOLS_MAP.put('?', "ValuePolicy.character.questionMark");
+        SPECIAL_SYMBOLS_MAP.put('@', "ValuePolicy.character.atSymbol");
+        SPECIAL_SYMBOLS_MAP.put('[', "ValuePolicy.character.leftSquareBracket");
+        SPECIAL_SYMBOLS_MAP.put(']', "ValuePolicy.character.rightSquareBracket");
+        SPECIAL_SYMBOLS_MAP.put('^', "ValuePolicy.character.caret");
+        SPECIAL_SYMBOLS_MAP.put('_', "ValuePolicy.character.underscore");
+        SPECIAL_SYMBOLS_MAP.put('`', "ValuePolicy.character.backtick");
+        SPECIAL_SYMBOLS_MAP.put('{', "ValuePolicy.character.leftCurlyBrace");
+        SPECIAL_SYMBOLS_MAP.put('|', "ValuePolicy.character.verticalBar");
+        SPECIAL_SYMBOLS_MAP.put('}', "ValuePolicy.character.rightCurlyBrace");
+        SPECIAL_SYMBOLS_MAP.put('~', "ValuePolicy.character.tilde");
+        SPECIAL_SYMBOLS_MAP.put('#', "ValuePolicy.character.hash");
+        SPECIAL_SYMBOLS_MAP.put('&', "ValuePolicy.character.ampersand");
+        SPECIAL_SYMBOLS_MAP.put('"', "ValuePolicy.character.doubleQuote");
+        SPECIAL_SYMBOLS_MAP.put('*', "ValuePolicy.character.asterisk");
+        SPECIAL_SYMBOLS_MAP.put('\'', "ValuePolicy.character.apostrophe");
     }
 
     static @NotNull Set<Character> stringAsCharacters(@Nullable String value) {
@@ -87,6 +87,6 @@ public class StringPolicyUtils {
     }
 
     public static @Nullable String getTranslationKeyForCharacter(Character ch) {
-        return specialSymbolsMap.get(ch);
+        return SPECIAL_SYMBOLS_MAP.get(ch);
     }
 }
