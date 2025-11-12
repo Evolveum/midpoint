@@ -44,6 +44,7 @@ Only when the activity is restarted via `restartActivity` policy action (see bel
 
 When the `exceeds` element is specified, constraint will trigger if the task execution time exceeds the specified value.
 When the `below` element is specified, constraint will trigger if the task execution time is below the specified value.
+Both elements can be specified together to define a time range when the constraint should be triggered.
 
 Execution time for composite activities (like reconciliation) is computed as sum of execution times of child activities.
 
@@ -67,6 +68,7 @@ Suspending and resuming the activity (more precisely, its task) doesn't increase
 
 When the `exceeds` element is specified, constraint will trigger if the number of attempts exceeds the specified value.
 When the `below` element is specified, constraint will trigger if the number of attempts is below the specified value.
+Both elements can be specified together to define a range when the constraint should be triggered.
 
 .Example of policy constraint that is triggered after 3 execution attempts.
 [source,xml]
@@ -223,7 +225,7 @@ image::activity-policies/activity-policies-gui.png[Activity policies in task det
 == Limitations
 
 * Activity policies are evaluated only for iterative (plain iterative or search based) activities.
-Activities are not supported in:
+Activity policies are not supported in:
 ** Non-iterative scripting
 ** Role analysis clustering
 ** Role analysis pattern detection
