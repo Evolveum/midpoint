@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construc
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardListener;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;

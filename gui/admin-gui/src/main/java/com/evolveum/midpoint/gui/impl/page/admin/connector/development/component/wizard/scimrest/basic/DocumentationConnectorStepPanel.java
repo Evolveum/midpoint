@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContaine
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormDefaultContainerablePanel;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -110,37 +112,54 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             }
         };
 
-        Task task = getPageBase().createSimpleTask(OP_LOAD_DOCS);
-        OperationResult result = task.getResult();
-        String token = getHelper().getVariable(TASK_DOCUMENTATION_KEY);
+        valuesModel = new LoadableModel<List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>>>() {
+            @Override
+            protected List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> load() {
+                Task task = getPageBase().createSimpleTask(OP_LOAD_DOCS);
+                OperationResult result = task.getResult();
 
-        StatusInfo<ConnDevDiscoverDocumentationResultType> statusInfo;
-        try {
-            statusInfo =
-                    getDetailsModel().getServiceLocator().getConnectorService().getDiscoverDocumentationStatus(token, task, result);
-        } catch (SchemaException | ObjectNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        ConnDevDiscoverDocumentationResultType documentationResultBean = statusInfo.getResult();
+                String token = null;
+                try {
+                    token = ConnectorDevelopmentWizardUtil.getTaskToken(
+                            WorkDefinitionsType.F_DISCOVER_DOCUMENTATION,
+                            getDetailsModel().getObjectWrapper().getOid(),
+                            getDetailsModel().getPageAssignmentHolder());
+                } catch (CommonException e) {
+                    LOGGER.error("Couldn't search tasks for " + WorkDefinitionsType.F_DISCOVER_DOCUMENTATION);
+                }
 
-        PrismContainer<ConnDevDocumentationSourceType> suggestionsParent = documentationResultBean.asPrismContainerValue()
-                .findContainer(ConnDevDiscoverDocumentationResultType.F_DOCUMENTATION);
+                StatusInfo<ConnDevDiscoverDocumentationResultType> statusInfo;
+                try {
+                    statusInfo =
+                            getDetailsModel().getServiceLocator().getConnectorService().getDiscoverDocumentationStatus(token, task, result);
+                } catch (SchemaException | ObjectNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+                ConnDevDiscoverDocumentationResultType documentationResultBean = statusInfo.getResult();
 
+                PrismContainer<ConnDevDocumentationSourceType> suggestionsParent = documentationResultBean.asPrismContainerValue()
+                        .findContainer(ConnDevDiscoverDocumentationResultType.F_DOCUMENTATION);
 
-        if (suggestionsParent == null) {
-            return;
-        }
+                try {
+                    PrismContainerWrapper<ConnDevDocumentationSourceType> parentWrapper =
+                            getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
 
-        try {
-            PrismContainerWrapper<ConnDevDocumentationSourceType> parentWrapper =
-                    getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+                    List<PrismContainerValueWrapper<ConnDevDocumentationSourceType>> values = new ArrayList<>();
+                    values.addAll(parentWrapper.getValues());
 
-            suggestionsParent.getValues().stream()
-                    .filter(suggestedValue ->
-                                    StringUtils.isNotEmpty(((ConnDevDocumentationSourceType)suggestedValue.getRealValue()).getName())
-                                    && parentWrapper.getValues().stream().noneMatch(value ->
-                                            StringUtils.equals(((ConnDevDocumentationSourceType)suggestedValue.getRealValue()).getName(), value.getRealValue().getName())))
-                    .map(suggestedValue -> {
+                    if (suggestionsParent == null) {
+                        return values;
+                    }
+
+                    List<PrismContainerValue<ConnDevDocumentationSourceType>> suggestedValues = new ArrayList<>();
+                    suggestedValues.addAll(suggestionsParent.getValues());
+
+                    suggestedValues.removeIf(suggestedValue ->
+                            StringUtils.isNotEmpty(((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName())
+                                    || values.stream().anyMatch(value ->
+                                    StringUtils.equals(((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName(), value.getRealValue().getName())));
+
+                    suggestedValues.stream().map(suggestedValue -> {
                         try {
                             PrismContainerValue<ConnDevDocumentationSourceType> clone = suggestedValue.clone();
                             AiUtil.markContainerValueAsAiProvided(clone);
@@ -150,21 +169,32 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
-                    })
-                    .forEach(value -> {
-                        try {
-                            //noinspection unchecked
-                            parentWrapper.getItem().add(value.getRealValue().asPrismContainerValue());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                        parentWrapper.getValues().add(value);
                     });
 
+                    values.addAll(suggestionsParent.getValues().stream()
+                            .filter(suggestedValue ->
+                                    StringUtils.isNotEmpty(((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName())
+                                            && parentWrapper.getValues().stream().noneMatch(value ->
+                                            StringUtils.equals(((ConnDevDocumentationSourceType) suggestedValue.getRealValue()).getName(), value.getRealValue().getName())))
+                            .map(suggestedValue -> {
+                                try {
+                                    PrismContainerValue<ConnDevDocumentationSourceType> clone = suggestedValue.clone();
+                                    AiUtil.markContainerValueAsAiProvided(clone);
+                                    //noinspection unchecked
+                                    return (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPageBase().createValueWrapper(
+                                            parentWrapper, clone, ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                                } catch (SchemaException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                            .toList());
 
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
+                    return values;
+                } catch (SchemaException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
     }
 
     private void initLayout() {
@@ -216,12 +246,16 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                     @Override
                     protected void onDelete(DocumentationTile modelObject, AjaxRequestTarget target) {
                         try {
-                            PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
-                            container.remove(modelObject.getValue(), getPageBase());
+                            PrismContainerValueWrapper<ConnDevDocumentationSourceType> value = modelObject.getValue();
+                            valuesModel.getObject().remove(value);
+                            if (value.getStatus() != ValueStatus.ADDED) {
+                                PrismContainerWrapper<ConnDevDocumentationSourceType> container = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+                                container.remove(modelObject.getValue(), getPageBase());
+                            }
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
-                        valuesModel.detach();
+//                        valuesModel.detach();
                         refreshAndDetach(target);
                     }
                 };
@@ -353,26 +387,26 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                                 getDetailsModel().getObjectWrapperModel(),
                                 ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
                         PrismContainerValueWrapper<ConnDevDocumentationSourceType> newItemWrapper;
-                            try {
-                                PrismContainerValue<ConnDevDocumentationSourceType> newItem = model.getObject().getItem().createNewValue();
-                                newItemWrapper = WebPrismUtil.createNewValueWrapper(
-                                        model.getObject(), newItem, getPageBase());
-                                model.getObject().getValues().add(newItemWrapper);
-                            } catch (SchemaException e) {
-                                LOGGER.error("Couldn't create new value for limitation container", e);
-                                return null;
-                            }
+                        try {
+                            PrismContainerValue<ConnDevDocumentationSourceType> newItem = model.getObject().getItem().createNewValue();
+                            newItemWrapper = WebPrismUtil.createNewValueWrapper(
+                                    model.getObject(), newItem, getPageBase());
+                            model.getObject().getValues().add(newItemWrapper);
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't create new value for limitation container", e);
+                            return null;
+                        }
                         newItemWrapper.setExpanded(true);
                         newItemWrapper.setShowEmpty(true);
                         return newItemWrapper;
                     }
                 };
 
-                return new VerticalFormPrismContainerValuePanel<>(id, model, settings){
+                return new VerticalFormPrismContainerValuePanel<>(id, model, settings) {
                     @Override
                     protected void onInitialize() {
                         super.onInitialize();
-                        ((VerticalFormDefaultContainerablePanel)getValuePanel()).getFormContainer().add(AttributeAppender.remove("class"));
+                        ((VerticalFormDefaultContainerablePanel) getValuePanel()).getFormContainer().add(AttributeAppender.remove("class"));
                         get(ID_MAIN_CONTAINER).add(AttributeAppender.remove("class"));
                     }
 
@@ -386,7 +420,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             @Override
             protected void processHide(AjaxRequestTarget target) {
                 valuesModel.detach();
-                ((MultiSelectContainerActionTileTablePanel)DocumentationConnectorStepPanel.this.get(ID_PANEL)).refreshAndDetach(target);
+                ((MultiSelectContainerActionTileTablePanel) DocumentationConnectorStepPanel.this.get(ID_PANEL)).refreshAndDetach(target);
                 super.processHide(target);
             }
         };
@@ -435,6 +469,23 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        try {
+            PrismContainerWrapper<ConnDevDocumentationSourceType> parentWrapper = getDetailsModel().getObjectWrapper().findContainer(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
+            valuesModel.getObject().stream()
+                    .filter(value -> value.getStatus() == ValueStatus.ADDED)
+                    .forEach(value -> {
+                        try {
+                            //noinspection unchecked
+                            parentWrapper.getItem().add(value.getRealValue().asPrismContainerValue());
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
+                        }
+                        parentWrapper.getValues().add(value);
+                    });
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {
@@ -443,5 +494,11 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
             target.add(getFeedback());
         }
         return false;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        return ConnectorDevelopmentWizardUtil.existContainerValue(
+                getDetailsModel().getObjectWrapper(), ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE);
     }
 }

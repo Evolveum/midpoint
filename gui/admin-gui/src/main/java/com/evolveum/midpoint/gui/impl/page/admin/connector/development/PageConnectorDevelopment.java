@@ -10,17 +10,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
-import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardWithNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.NextStepsConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.BasicInformationConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.ConnectionConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.WaitingObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
@@ -30,10 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopment
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(
         urls = {
@@ -41,11 +32,27 @@ import java.util.List;
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPLICATIONS_ALL_URL,
-                        label = "PageAdminUsers.auth.connectorGenerator.label",
-                        description = "PageAdminUsers.auth.connectorGenerator.description")
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_DEVELOPMENTS_ALL_URL,
+                        label = "PageAdminConnectorDevelopments.auth.connectorDevelopmentsAll.label",
+                        description = "PageAdminConnectorDevelopments.auth.connectorDevelopmentsAll.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_DEVELOPMENT_URL,
+                        label = "PageAdminConnectorDevelopments.auth.connectorGenerator.label",
+                        description = "PageAdminConnectorDevelopments.auth.connectorGenerator.description")
         })
 public class PageConnectorDevelopment extends PageAssignmentHolderDetails<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
+
+    public PageConnectorDevelopment() {
+        super();
+    }
+
+    public PageConnectorDevelopment(PageParameters params) {
+        super(params);
+    }
+
+    public PageConnectorDevelopment(PrismObject<ConnectorDevelopmentType> connectorDevelopment) {
+        super(connectorDevelopment);
+
+    }
 
     @Override
     protected DetailsFragment createWizardFragment() {
@@ -54,17 +61,20 @@ public class PageConnectorDevelopment extends PageAssignmentHolderDetails<Connec
 
             @Override
             protected void initFragmentLayout() {
-                WizardWithNavigationPanel wizardPanel = new WizardWithNavigationPanel(ID_WIZARD, new WizardModelWithParentSteps(createSteps())){
-                    @Override
-                    protected void onBackRedirect() {
-                        redirectBack();
-                    }
+                WizardWithNavigationPanel<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> wizardPanel =
+                        new WizardWithNavigationPanel<>(
+                                ID_WIZARD,
+                                new ConnectorDevelopmentController(createObjectWizardPanelHelper())) {
+                            @Override
+                            protected void onBackRedirect() {
+                                redirectBack();
+                            }
 
-                    @Override
-                    protected IModel<String> getTitleModel() {
-                        return createPageTitleModel();
-                    }
-                };
+                            @Override
+                            protected IModel<String> getTitleModel() {
+                                return createPageTitleModel();
+                            }
+                        };
                 wizardPanel.setOutputMarkupId(true);
                 add(wizardPanel);
             }
@@ -73,17 +83,6 @@ public class PageConnectorDevelopment extends PageAssignmentHolderDetails<Connec
         fragment.setOutputMarkupId(true);
 
         return fragment;
-    }
-
-    private @NotNull List<WizardParentStep> createSteps() {
-        WizardPanelHelper<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> helper = createObjectWizardPanelHelper();
-        return new ArrayList<>(
-                List.of(
-                        new BasicInformationConnectorStepPanel(helper),
-                        new ConnectionConnectorStepPanel(helper),
-                        new WaitingObjectClassConnectorStepPanel(helper),
-                        new ObjectClassConnectorStepPanel(helper),
-                        new NextStepsConnectorStepPanel(helper)));
     }
 
     @Override

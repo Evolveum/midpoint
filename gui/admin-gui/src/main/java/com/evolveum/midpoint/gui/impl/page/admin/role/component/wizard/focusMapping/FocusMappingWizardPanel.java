@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.focusMapping;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -39,21 +39,21 @@ public class FocusMappingWizardPanel<AR extends AbstractRoleType> extends Abstra
     protected void initLayout() {
         add(createWizardFragment(new WizardPanel(
                 getIdOfWizardPanel(),
-                new WizardModel(createFocusMappingSteps(getValueModel())))));
+                new WizardModelBasic(createFocusMappingSteps(getValueModel())))));
     }
 
     private void showFocusMappingWizard(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<AssignmentType>> valueModel,
             String stepId) {
-        WizardModel wizardModel = new WizardModel(createFocusMappingSteps(valueModel));
+        WizardModelBasic wizardModelBasic = new WizardModelBasic(createFocusMappingSteps(valueModel));
         if (StringUtils.isNotEmpty(stepId)) {
-            getPageBase().getPageParameters().set(WizardModel.PARAM_STEP, stepId);
-            wizardModel.setActiveStepById(stepId);
+            getPageBase().getPageParameters().set(WizardModelBasic.PARAM_STEP, stepId);
+            wizardModelBasic.setActiveStepById(stepId);
         }
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), wizardModel));
+                new WizardPanel(getIdOfWizardPanel(), wizardModelBasic));
     }
 
     private List<WizardStep> createFocusMappingSteps(IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
@@ -79,7 +79,7 @@ public class FocusMappingWizardPanel<AR extends AbstractRoleType> extends Abstra
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+                getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
                 super.onExitPerformed(target);
                 FocusMappingWizardPanel.this.onExitPerformed(target);
             }
@@ -103,7 +103,7 @@ public class FocusMappingWizardPanel<AR extends AbstractRoleType> extends Abstra
             IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createMappingAttributeMappingSteps(rowModel, valueModel))));
+                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createMappingAttributeMappingSteps(rowModel, valueModel))));
     }
 
     private List<WizardStep> createMappingAttributeMappingSteps(

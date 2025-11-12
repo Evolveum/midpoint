@@ -6,8 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -25,11 +35,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +46,8 @@ import java.util.Optional;
  */
 public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(WaitingConnectorStepPanel.class);
+
     private static final String CLASS_DOT = WaitingConnectorStepPanel.class.getName() + ".";
     private static final String OP_DETERMINE_STATUS = CLASS_DOT + "determineStatus";
     private static final String OP_LOAD_CONNECTOR = CLASS_DOT + "loadConnector";
@@ -47,19 +55,50 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
     private static final String ID_PANEL = "panel";
 
     private LoadableModel<SmartGeneratingDto> statusModel;
+    private LoadableModel<String> tokenModel;
 
     public WaitingConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
 
     @Override
+    public void init(WizardModel wizard) {
+        super.init(wizard);
+
+        tokenModel = new LoadableModel<>() {
+            @Override
+            protected String load() {
+                try {
+                    return ConnectorDevelopmentWizardUtil.getTaskToken(
+                            getActivityType(),
+                            getObjectClassName(),
+                            getScriptIntent(),
+                            getDetailsModel().getObjectWrapper().getOid(),
+                            getDetailsModel().getPageAssignmentHolder());
+                } catch (CommonException e) {
+                    LOGGER.error("Couldn't search tasks for " + getActivityType());
+                    return null;
+                }
+            }
+        };
+    }
+
+    protected ConnDevScriptIntentType getScriptIntent() {
+        return null;
+    }
+
+    protected String getObjectClassName() {
+        return null;
+    }
+
+    @Override
     protected void onInitialize() {
         super.onInitialize();
-        createValuesModel();
+        createStatusModel();
         initLayout();
     }
 
-    private void createValuesModel() {
+    private void createStatusModel() {
         statusModel = new LoadableModel<>() {
             @Override
             protected SmartGeneratingDto load() {
@@ -67,8 +106,10 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                 Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_DETERMINE_STATUS);
                 OperationResult result = task.getResult();
 
-                String token = getTaskToken(task, result);
-                Optional.ofNullable(getKeyForStoringToken()).ifPresent(key -> getHelper().putVariable(key, token));
+                if (StringUtils.isEmpty(tokenModel.getObject())) {
+                    tokenModel.setObject(getNewTaskToken(task, result));
+                }
+                Optional.ofNullable(getKeyForStoringToken()).ifPresent(key -> getHelper().putVariable(key, tokenModel.getObject()));
 
                 LoadableModel<StatusInfo<?>> statusInfoModel = new LoadableModel<>() {
                     @Override
@@ -77,7 +118,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                             MidPointApplication app = MidPointApplication.get();
                             Task task = app.createSimpleTask(OP_DETERMINE_STATUS);
                             OperationResult result = task.getResult();
-                            return obtainResult(token, task, result);
+                            return obtainResult(tokenModel.getObject(), task, result);
                         } catch (SchemaException|ObjectNotFoundException e) {
                             throw new RuntimeException(e);
                         }
@@ -94,7 +135,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                     };
                 }
 
-                PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, token, getDetailsModel().getPageAssignmentHolder(), task, result);
+                PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, tokenModel.getObject(), getDetailsModel().getPageAssignmentHolder(), task, result);
                 return new SmartGeneratingDto(statusInfoModel, () -> taskTypePrismObject){
                     @Override
                     protected boolean rejectEmptyProgress() {
@@ -105,13 +146,15 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         };
     }
 
+    protected abstract ItemName getActivityType();
+
     protected String getKeyForStoringToken(){
         return null;
     };
 
     protected abstract StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    protected abstract String getTaskToken(Task task, OperationResult result);
+    protected abstract String getNewTaskToken(Task task, OperationResult result);
 
     private void initLayout() {
         getTextLabel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
@@ -196,7 +239,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
     public IModel<Boolean> isStepVisible() {
         return () -> {
             if (statusModel == null || !statusModel.isLoaded()) {
-                return true;
+                return !isCompleted();
             }
             return !statusModel.getObject().isFinished();
         };
@@ -233,5 +276,26 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
     public SmartGeneratingPanel getPanel() {
         return (SmartGeneratingPanel) get(ID_PANEL);
+    }
+
+    @Override
+    public boolean isCompleted() {
+        String token = tokenModel.getObject();
+        if (StringUtils.isEmpty(token)) {
+            return false;
+        }
+
+        Task operationTask = getDetailsModel().getPageAssignmentHolder().createSimpleTask("create_task_instance");
+
+        @NotNull Task task;
+        try {
+            task = getDetailsModel().getPageAssignmentHolder().getTaskManager().getTask(
+                    token, null, operationTask.getResult());
+        } catch (CommonException e) {
+            LOGGER.error("Couldn't create Task instance");
+            return false;
+        }
+        return task.getExecutionState() == TaskExecutionStateType.CLOSED && task.getResultStatus() == OperationResultStatusType.SUCCESS;
+
     }
 }

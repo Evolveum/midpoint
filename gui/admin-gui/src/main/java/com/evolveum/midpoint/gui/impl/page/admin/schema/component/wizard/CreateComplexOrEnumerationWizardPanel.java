@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -107,12 +107,12 @@ public class CreateComplexOrEnumerationWizardPanel extends AbstractWizardPanel<S
                     case COMPLEX_TYPE -> {
                         initValueModel(TypeEnum.COMPLEX_TYPE, PrismSchemaType.F_COMPLEX_TYPE);
                         showWizardFragment(target, new WizardPanel(
-                                getIdOfWizardPanel(), new WizardModel(createComplexTypeBasicSteps())));
+                                getIdOfWizardPanel(), new WizardModelBasic(createComplexTypeBasicSteps())));
                     }
                     case ENUMERATION_TYPE -> {
                         initValueModel(TypeEnum.ENUMERATION_TYPE, PrismSchemaType.F_ENUMERATION_TYPE);
                         showWizardFragment(target, new WizardPanel(
-                                getIdOfWizardPanel(), new WizardModel(createEnumerationTypeBasicSteps())));
+                                getIdOfWizardPanel(), new WizardModelBasic(createEnumerationTypeBasicSteps())));
                     }
                 }
             }

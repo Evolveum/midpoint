@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingObjectClassScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
 
 import org.apache.wicket.model.IModel;
 
@@ -40,16 +43,14 @@ import org.jetbrains.annotations.NotNull;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingSearchAll", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class WaitingSearchAllConnectorStepPanel extends WaitingScriptConnectorStepPanel {
+public class WaitingSearchAllConnectorStepPanel extends WaitingObjectClassScriptConnectorStepPanel {
 
     private static final String PANEL_TYPE = "cdw-connector-waiting-search-all";
-    private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
 
     public WaitingSearchAllConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
-            IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
-        super(helper);
-        this.valueModel = valueModel;
+            IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel) {
+        super(helper, objectClassModel);
     }
 
     @Override
@@ -58,8 +59,8 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingScriptConnectorSt
     }
 
     @Override
-    protected String getTaskToken(Task task, OperationResult result) {
-        var realValue = valueModel.getObject().getRealValue();
+    protected String getNewTaskToken(Task task, OperationResult result) {
+        var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateSearchScript(
                 realValue.getName(), realValue.getEndpoint(), task, result);
@@ -93,5 +94,10 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingScriptConnectorSt
     @Override
     protected @NotNull Model<String> getIconModel() {
         return Model.of("fa fa-cogs");
+    }
+
+    @Override
+    protected ConnDevScriptIntentType getScriptIntent() {
+        return ConnDevScriptIntentType.ALL;
     }
 }

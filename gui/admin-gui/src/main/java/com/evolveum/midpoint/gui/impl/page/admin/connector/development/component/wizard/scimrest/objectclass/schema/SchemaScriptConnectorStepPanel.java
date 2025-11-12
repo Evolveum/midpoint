@@ -60,8 +60,13 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
     }
 
     @Override
-    protected List<String> getTokensKeys() {
-        return List.of(TASK_NATIVE_SCRIPTS_KEY, TASK_CONNID_SCRIPTS_KEY);
+    protected List<ConnDevScriptIntentType> getTaskIntents() {
+        return List.of(ConnDevScriptIntentType.NATIVE, ConnDevScriptIntentType.CONNID);
+    }
+
+    @Override
+    protected String getObjectClassName() {
+        return valueModel.getObject().getRealValue().getName();
     }
 
     @Override
@@ -71,7 +76,6 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
         } else if (object.getIntent() == ConnDevScriptIntentType.CONNID) {
             getDetailsModel().getConnectorDevelopmentOperation().saveConnIdSchemaScript(object, task, result);
         }
-
     }
 
     @Override

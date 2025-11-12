@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -53,12 +54,17 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
     }
 
     @Override
+    protected ItemName getActivityType() {
+        return WorkDefinitionsType.F_CREATE_CONNECTOR;
+    }
+
+    @Override
     protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return getDetailsModel().getServiceLocator().getConnectorService().getCreateConnectorStatus(token, task, result);
     }
 
     @Override
-    protected String getTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitCreateConnector(task, result);
     }
 

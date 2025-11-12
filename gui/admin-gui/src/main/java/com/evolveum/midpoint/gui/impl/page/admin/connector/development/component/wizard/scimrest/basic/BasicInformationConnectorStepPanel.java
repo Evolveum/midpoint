@@ -151,19 +151,6 @@ public class BasicInformationConnectorStepPanel extends AbstractFormWizardStepPa
         return itemWrapper.isMandatory();
     }
 
-//    @Override
-//    protected ItemVisibilityHandler getVisibilityHandler() {
-//        return wrapper -> {
-//            if (wrapper.getItemName().equals(ResourceType.F_CONNECTOR_REF)
-//                    || wrapper.getItemName().equals(ResourceType.F_TEMPLATE)
-//                    || wrapper.getItemName().equals(ResourceType.F_ABSTRACT)
-//                    || wrapper.getItemName().equals(ResourceType.F_SCRIPTS)){
-//                return ItemVisibility.HIDDEN;
-//            }
-//            return ItemVisibility.AUTO;
-//        };
-//    }
-
     @Override
     public String getStepId() {
         return PANEL_TYPE;

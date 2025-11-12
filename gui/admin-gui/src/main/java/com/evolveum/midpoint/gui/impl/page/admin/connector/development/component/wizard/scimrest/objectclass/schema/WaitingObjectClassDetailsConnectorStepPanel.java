@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import org.apache.wicket.model.IModel;
 
@@ -53,7 +56,7 @@ public class WaitingObjectClassDetailsConnectorStepPanel extends WaitingConnecto
     }
 
     @Override
-    protected String getTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitDiscoverObjectClassDetails(
                 valueModel.getObject().getRealValue().getName(), task, result);
     }
@@ -76,5 +79,15 @@ public class WaitingObjectClassDetailsConnectorStepPanel extends WaitingConnecto
     @Override
     protected IModel<String> getSubTextModel() {
         return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingObjectClassDetails.subText");
+    }
+
+    @Override
+    protected ItemName getActivityType() {
+        return WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_DETAILS;
+    }
+
+    @Override
+    protected String getObjectClassName() {
+        return valueModel.getObject().getRealValue().getName();
     }
 }

@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,6 +24,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import java.io.IOException;
@@ -69,27 +72,35 @@ public class RelationScriptConnectorStepPanel extends ScriptConnectorStepPanel {
     }
 
     @Override
-    protected String getTokenForTaskForObtainResult() {
-        return TASK_RELATION_SCRIPTS_KEY;
-    }
-
-    @Override
     protected void saveScript(ConnDevArtifactType object, Task task, OperationResult result) throws IOException, CommonException {
         getDetailsModel().getConnectorDevelopmentOperation().saveRelationScript(object, task, result);
     }
 
     @Override
-    protected ConnDevArtifactType getOriginalContainerValue() {
+    protected ConnDevScriptIntentType getTaskIntent() {
+        return ConnDevScriptIntentType.RELATION;
+    }
+
+    @Override
+    public boolean onNextPerformed(AjaxRequestTarget target) {
         try {
-            //TODO missing script for relation
-            PrismContainerWrapper<ConnDevArtifactType> container = getDetailsModel().getObjectWrapper().findContainer(ConnDevRelationInfoType.F_SUBJECT);
-            if (container != null) {
-                return container.getValue().getRealValue();
-            }
+            PrismPropertyWrapper<Boolean> confirmProperty = valueModel.getObject().findProperty(ConnDevRelationInfoType.F_CONFIRM);
+            PrismPropertyValueWrapper<Boolean> confirmValue = confirmProperty.getValue();
+            confirmValue.setRealValue(Boolean.TRUE);
         } catch (SchemaException e) {
-            //todo
-            return null;
+            throw new RuntimeException(e);
         }
-        return null;
+        return super.onNextPerformed(target);
+    }
+
+    @Override
+    public boolean isCompleted() {
+        try {
+            PrismPropertyWrapper<Boolean> confirmProperty = valueModel.getObject().findProperty(ConnDevRelationInfoType.F_CONFIRM);
+            PrismPropertyValueWrapper<Boolean> confirmValue = confirmProperty.getValue();
+            return Boolean.TRUE.equals(confirmValue.getRealValue());
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

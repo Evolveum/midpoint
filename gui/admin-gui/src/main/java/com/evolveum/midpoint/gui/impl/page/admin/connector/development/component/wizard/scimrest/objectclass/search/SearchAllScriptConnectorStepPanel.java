@@ -7,17 +7,14 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 
 import com.evolveum.midpoint.prism.Containerable;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -71,26 +68,17 @@ public class SearchAllScriptConnectorStepPanel extends ScriptConnectorStepPanel 
     }
 
     @Override
-    protected String getTokenForTaskForObtainResult() {
-        return TASK_SEARCH_ALL_SCRIPTS_KEY;
-    }
-
-    @Override
     protected void saveScript(ConnDevArtifactType object, Task task, OperationResult result) throws IOException, CommonException {
         getDetailsModel().getConnectorDevelopmentOperation().saveSearchAllScript(object, task, result);
     }
 
     @Override
-    protected ConnDevArtifactType getOriginalContainerValue() {
-        try {
-            PrismContainerWrapper<ConnDevArtifactType> container = valueModel.getObject().findContainer(ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION);
-            if (container != null) {
-                return container.getValue().getRealValue();
-            }
-        } catch (SchemaException e) {
-            //todo
-            return null;
-        }
-        return null;
+    protected String getObjectClassName() {
+        return valueModel.getObject().getRealValue().getName();
+    }
+
+    @Override
+    protected ConnDevScriptIntentType getTaskIntent() {
+        return ConnDevScriptIntentType.ALL;
     }
 }

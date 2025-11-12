@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -73,7 +73,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             add(createWizardFragment(
                     new WizardPanel(
                             getIdOfWizardPanel(),
-                            new WizardModel(
+                            new WizardModelBasic(
                                     createBasicStepsForModify()))));
         }
     }
@@ -173,7 +173,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
     }
 
     private WizardPanel createBasicStepsWizardPanel() {
-        return new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicStepsForCreate()));
+        return new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createBasicStepsForCreate()));
     }
 
     private void cleanParticipantContainer(PrismContainerWrapper<Containerable> container) throws SchemaException {

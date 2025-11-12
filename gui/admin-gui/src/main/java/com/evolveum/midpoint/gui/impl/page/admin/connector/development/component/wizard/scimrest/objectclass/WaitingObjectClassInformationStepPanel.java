@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -34,11 +37,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingObjectClass", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class WaitingObjectClassConnectorStepPanel extends WaitingConnectorStepPanel implements WizardParentStep {
+public class WaitingObjectClassInformationStepPanel extends WaitingConnectorStepPanel implements WizardParentStep {
 
     private static final String PANEL_TYPE = "cdw-connector-waiting-object-class";
 
-    public WaitingObjectClassConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    public WaitingObjectClassInformationStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
 
@@ -48,7 +51,7 @@ public class WaitingObjectClassConnectorStepPanel extends WaitingConnectorStepPa
     }
 
     @Override
-    protected String getTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitDiscoverObjectClasses(task, result);
     }
 
@@ -70,5 +73,10 @@ public class WaitingObjectClassConnectorStepPanel extends WaitingConnectorStepPa
     @Override
     protected IModel<String> getSubTextModel() {
         return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingObjectClass.subText");
+    }
+
+    @Override
+    protected ItemName getActivityType() {
+        return WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_INFORMATION;
     }
 }

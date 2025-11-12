@@ -79,6 +79,10 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
         super.onInitialize();
     }
 
+    public void setRelation(String relation) {
+        this.relation = relation;
+    }
+
     private void createValueModel(ModelServiceLocator modelServiceLocator) {
         valueModel = new LoadableDetachableModel<>() {
             @Override

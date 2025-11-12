@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.credentials;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -76,7 +76,7 @@ public class CredentialsWizardPanel extends AbstractWizardPanel<ResourceCredenti
             IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createInboundAttributeMappingSteps(valueModel))));
+                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createInboundAttributeMappingSteps(valueModel))));
     }
 
     private List<WizardStep> createInboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
@@ -101,7 +101,7 @@ public class CredentialsWizardPanel extends AbstractWizardPanel<ResourceCredenti
             IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createOutboundAttributeMappingSteps(valueModel))));
+                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createOutboundAttributeMappingSteps(valueModel))));
     }
 
     private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {

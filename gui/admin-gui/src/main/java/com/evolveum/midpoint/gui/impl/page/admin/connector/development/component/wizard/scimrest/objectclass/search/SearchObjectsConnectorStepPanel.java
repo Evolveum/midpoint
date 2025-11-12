@@ -7,34 +7,28 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConfirmationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
-import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.schema.component.ComplexTypeDefinitionPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -44,10 +38,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.DefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismContainerDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
 
 import javax.xml.namespace.QName;
 
@@ -60,20 +50,20 @@ import javax.xml.namespace.QName;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.showSearchResult", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
+public class SearchObjectsConnectorStepPanel extends ScriptConfirmationPanel {
 
     private static final String PANEL_TYPE = "cdw-show-search-result";
 
     private static final String ID_PANEL = "panel";
 
-    private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
-
-    private LoadableModel<String> resourceOidModel;
-
     public SearchObjectsConnectorStepPanel(WizardPanelHelper<? extends Containerable,
             ConnectorDevelopmentDetailsModel> helper, IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
-        super(helper);
-        this.valueModel = valueModel;
+        super(helper, valueModel);
+    }
+
+    @Override
+    protected List<ConnectorDevelopmentArtifacts.KnownArtifactType> getScriptClassifications() {
+        return List.of(ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION);
     }
 
     @Override
@@ -117,7 +107,7 @@ public class SearchObjectsConnectorStepPanel extends AbstractWizardStepPanel<Con
 
             @Override
             protected QName getDefaultObjectClass() {
-                return new QName(valueModel.getObject().getRealValue().getName());
+                return new QName(getValueModel().getObject().getRealValue().getName());
             }
 
             @Override

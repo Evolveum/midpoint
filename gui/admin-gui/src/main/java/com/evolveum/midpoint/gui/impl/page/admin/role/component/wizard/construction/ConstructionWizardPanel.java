@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -42,20 +42,20 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
     protected void initLayout() {
         add(createWizardFragment(new WizardPanel(
                 getIdOfWizardPanel(),
-                new WizardModel(createConstructionSteps(getValueModel())))));
+                new WizardModelBasic(createConstructionSteps(getValueModel())))));
     }
 
     private void showConstructionWizard(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<AssignmentType>> valueModel,
             String stepId) {
-        WizardModel wizardModel = new WizardModel(createConstructionSteps(valueModel));
+        WizardModelBasic wizardModelBasic = new WizardModelBasic(createConstructionSteps(valueModel));
         if (StringUtils.isNotEmpty(stepId)) {
-            wizardModel.setActiveStepById(stepId);
+            wizardModelBasic.setActiveStepById(stepId);
         }
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), wizardModel));
+                new WizardPanel(getIdOfWizardPanel(), wizardModelBasic));
     }
 
     private List<WizardStep> createConstructionSteps(IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
@@ -134,7 +134,7 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+                getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
                 super.onExitPerformed(target);
                 ConstructionWizardPanel.this.onExitPerformed(target);
             }
@@ -177,7 +177,7 @@ public class ConstructionWizardPanel<AR extends AbstractRoleType> extends Abstra
             IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createOutboundAttributeMappingSteps(rowModel, valueModel))));
+                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createOutboundAttributeMappingSteps(rowModel, valueModel))));
     }
 
     private List<WizardStep> createOutboundAttributeMappingSteps(

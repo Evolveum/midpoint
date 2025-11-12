@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -117,7 +117,7 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
 
                         showWizardFragment(
                                 target,
-                                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeOverrideSteps(value, selectedTable))));
+                                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createNewAttributeOverrideSteps(value, selectedTable))));
                     }
                 });
     }
@@ -131,7 +131,7 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createInboundAttributeMappingSteps(valueModel))));
+                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createInboundAttributeMappingSteps(valueModel))));
     }
 
     private List<WizardStep> createInboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
@@ -156,7 +156,7 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createOutboundAttributeMappingSteps(valueModel))));
+                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createOutboundAttributeMappingSteps(valueModel))));
     }
 
     private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
