@@ -45,8 +45,8 @@ podTemplate(
                 // kubectl container for controlling "side-car" Oracle pod
                 containerTemplate(
                         name: "kubectl",
-                        image: "bitnami/kubectl:1.19.4",
-                        command: 'cat',
+                        image: "alpine:3.22",
+                        command: 'sh -c "apk add --no-cache bash kubectl=~1.33 && cat"',
                         runAsUser: '0',
                         ttyEnabled: true),
                 containerTemplate(name: 'maven',
