@@ -523,7 +523,8 @@ export default class MidPointTheme {
         }
 
         sideBar.on("keydown", "li[role='menuitem']", function (e, t) {
-            if (menuItemEl !== activeEl && !menuItemEl.classList.contains('active')) {
+            var menuItemEl = $(this).get(0);
+            if (menuItemEl !== document.activeElement && !menuItemEl.classList.contains('active')) {
                 return;
             }
 
@@ -540,8 +541,14 @@ export default class MidPointTheme {
 
             if (e.key == "Arrow Right" || e.code == "ArrowRight" || e.keyCode == 39) {
                 var link = $(this).find("a");
-                if (link.length) {
+                if (link.length > 1) {
                     self.clickOnMenuItem(link, $(this), true, e);
+                } else {
+                    const focusableElement = self.findFirstFocusableElementOnMainPanel();
+                    if (focusableElement) {
+                        focusableElement.focus();
+                        focusableElement.scrollIntoView({ block: "center" });
+                    }
                 }
                 e.preventDefault()
                 return;
@@ -589,6 +596,21 @@ export default class MidPointTheme {
                 e.preventDefault()
             }
         });
+    }
+
+    findFirstFocusableElementOnMainPanel() {
+        const mainElement = document.querySelector('main[role="main"]');
+        if (!mainElement) {
+            return null;
+        }
+        const focusableElements = mainElement.querySelectorAll(
+            'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"]), details'
+        );
+        if (focusableElements.length > 0) {
+            return focusableElements[0];  // Return the first focusable element
+        } else {
+            return null;
+        }
     }
 
     clickOnMenuItem(link, menuItem, onlySubmenu, e) {
