@@ -1946,6 +1946,25 @@ th.debug-list-buttons {
   width: 160px;
 }
 
+button.tooltip-button {
+  position: relative;
+}
+
+button.tooltip-button[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  background-color: #333;
+  color: #fff;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 14px;
+  top: 50%;
+  left: 100%;
+  transform: translateX(-5px) translateY(-50%);
+  white-space: nowrap;
+  z-index: 10;
+}
+
 // used in navbar items for notification badges, replaced by standard admin-lte class .navbar-badge
 //.notification {
 //  &.nav-item > .nav-link > .badge {
