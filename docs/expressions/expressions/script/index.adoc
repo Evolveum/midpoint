@@ -212,7 +212,8 @@ The sandbox is not enforced from complexity and performance reasons, but it may 
 For the time being, please be very careful who can define expressions in midPoint.
 Do not allow any untrusted user to modify the expressions.
 
-See xref:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] for more details.
+See xref:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] and
+xref:/midpoint/reference/expressions/expressions/security/[Expression Security] for more details.
 
 == Future
 
@@ -220,6 +221,8 @@ The expressions are designed to be extensible and the expression language is not
 New expression languages may come in the future if there is a demand for them.
 
 == See Also
+
+* xref:/midpoint/reference/expressions/expressions/security/[Expression Security]
 
 * xref:/midpoint/reference/expressions/[Mappings and Expressions]
 

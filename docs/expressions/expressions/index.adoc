@@ -702,8 +702,11 @@ The sandbox is not enforced from complexity and performance reasons, but it may 
 For the time being, please be very careful who can define expressions in midPoint.
 Do not allow any untrusted user to modify the expressions.
 
-See xref:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] for more details.
+See xref:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] and
+xref:/midpoint/reference/expressions/expressions/security/[Expression Security] for more details.
 
 == See Also
 
 * xref:/midpoint/reference/expressions/variables/[Expression Variables]
+
+* xref:/midpoint/reference/expressions/expressions/security/[Expression Security]
