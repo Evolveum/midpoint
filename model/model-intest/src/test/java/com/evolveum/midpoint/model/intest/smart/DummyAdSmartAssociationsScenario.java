@@ -35,16 +35,16 @@ public class DummyAdSmartAssociationsScenario extends AbstractDummyScenario {
 
     /* defined links (reference attributes) between object classes */
 
-    // reference attributes: person - contract (subject to object)
+    // reference attributes: person - contract (first to second participant)
     public final PersonContract personContract = new PersonContract();
 
-    // reference attributes: account - groups and groups - groups (subject to object)
+    // reference attributes: account - groups and groups - groups (first to second participant)
     public final AccountGroupAndGroupGroup accountGroupAndGroupGroup = new AccountGroupAndGroupGroup();
 
     // reference attributes: org - contract (both directions)
     public final ContractOrgUnit contractOrgUnit = new ContractOrgUnit();
 
-    // reference attributes: expert - account (object to subject)
+    // reference attributes: expert - account (second to first participant)
     public final ExpertAccount expertAccount = new ExpertAccount();
 
 

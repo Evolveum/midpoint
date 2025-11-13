@@ -166,7 +166,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void testSmartAssociation_shouldHaveCorrectStructureOfSubjectToObjectAssociation() throws Exception {
+    public void testSmartAssociation_shouldSuggestCorrectAssociationStructure() throws Exception {
         var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES);
 
         var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"));
