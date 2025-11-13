@@ -88,11 +88,10 @@ public class DateTimePickerPanel extends InputPanel {
         container.add(pickerStatus);
 
         final TextField<Date> input = new TextField<>(ID_INPUT, model) {
+
             @Override
-            protected IConverter<?> createConverter(Class<?> clazz)
-            {
-                if (Date.class.isAssignableFrom(clazz))
-                {
+            protected IConverter<?> createConverter(Class<?> clazz) {
+                if (Date.class.isAssignableFrom(clazz)) {
                     return new DateConverter(dateTimePickerOptions.getDateTimeFormat());
                 }
                 return null;
