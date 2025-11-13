@@ -68,7 +68,7 @@ public class PolyStringEditorPanel extends InputPanel {
     private static final String ID_REMOVE_LANGUAGE_BUTTON = "removeLanguageButton";
     private static final String ID_INPUT = "input";
     private static final String ID_PANEL_STATUS = "panelStatus";
-    private static final String ID_LANGUAGES_LIST_LABEL = "languagesListLabel";
+    private static final String ID_LANGUAGE_LIST_LABEL = "languageListLabel";
     private static final String ID_VALUE_TO_ADD_LABEL = "valueToAddLabel";
     private static final String ID_LANGUAGE_NAME_LABEL = "languageNameLabel";
     private static final String ID_TRANSLATION_LABEL = "translationLabel";
@@ -273,7 +273,7 @@ public class PolyStringEditorPanel extends InputPanel {
             }
         });
         languageEditorContainer.add(languageChoicePanel);
-        createLabelForComponent(languageEditorContainer, ID_LANGUAGES_LIST_LABEL, languageChoicePanel.getBaseFormComponent());
+        createLabelForComponent(languageEditorContainer, ID_LANGUAGE_LIST_LABEL, languageChoicePanel.getBaseFormComponent());
 
         final TextPanel<String> newLanguageValue = new TextPanel<>(ID_VALUE_TO_ADD, Model.of());
         newLanguageValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
@@ -300,6 +300,7 @@ public class PolyStringEditorPanel extends InputPanel {
                 updateLanguageValue(languageChoicePanel.getBaseFormComponent().getModelObject(), newLanguageValue.getBaseFormComponent().getValue());
             }
         });
+        newLanguageValue.getBaseFormComponent().add(AttributeAppender.append("aria-labelledby", languageChoicePanel.getBaseFormComponent().getMarkupId()));
         newLanguageValue.setOutputMarkupId(true);
         languageEditorContainer.add(newLanguageValue);
         createLabelForComponent(languageEditorContainer, ID_VALUE_TO_ADD_LABEL, newLanguageValue.getBaseFormComponent());
@@ -353,6 +354,7 @@ public class PolyStringEditorPanel extends InputPanel {
                             }
                         });
                         listItem.add(translation);
+                        translation.getBaseFormComponent().add(AttributeAppender.append("aria-labelledby", languageName.getBaseFormComponent().getMarkupId()));
 
                         createLabelForComponent(listItem, ID_TRANSLATION_LABEL, translation.getBaseFormComponent());
 
