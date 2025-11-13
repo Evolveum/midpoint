@@ -489,31 +489,28 @@ export default class MidPointTheme {
             var clickableByEnterElements = $(".clickable-by-enter");
             self.focusByArrowKeys(clickableByEnterElements, self);
         });
+    }
 
-        jQuery(function ($) {
-            const popup = $(".search-popover.popover-body");
-            const closeButton = $(".btn.btn-sm.btn-default");
-            const focusableElements = popup.find('a, input');
-            const firstFocusableElement = focusableElements.first();
-            const lastFocusableElement = focusableElements.last();
-            // Trap focus inside popup on Tab key press
-            popup.on('keydown', function(event) {
-                if (event.key === "Tab") {
-                  if (event.shiftKey) {
-                    // Shift + Tab (move focus backward)
+    restrictMorePopoverFocusArea() {
+        const popup = $(".search-popover.popover-body");
+        const closeButton = popup.find(".btn.btn-sm.btn-default");
+        const focusableElements = popup.find('a, input');
+        const firstFocusableElement = focusableElements.first();
+        const lastFocusableElement = focusableElements.last();
+        popup.on('keydown', function(event) {
+            if (event.key === "Tab") {
+                if (event.shiftKey) {
                     if (document.activeElement === firstFocusableElement[0]) {
-                      lastFocusableElement[0].focus(); // Move focus to the last element
-                      event.preventDefault();
+                        lastFocusableElement[0].focus(); // Move focus to the last element
+                        event.preventDefault();
                     }
-                  } else {
-                    // Tab (move focus forward)
+                } else {
                     if (document.activeElement === lastFocusableElement[0]) {
-                      firstFocusableElement[0].focus(); // Move focus to the first element
-                      event.preventDefault();
+                        firstFocusableElement[0].focus(); // Move focus to the first element
+                        event.preventDefault();
                     }
-                  }
                 }
-            });
+            }
         });
     }
 
