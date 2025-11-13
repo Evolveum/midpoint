@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.web.component.data.paging;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -32,7 +34,7 @@ import java.io.Serial;
 /**
  * @author lazyman
  */
-public class NavigatorPanel extends Panel {
+public class NavigatorPanel extends BasePanel {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -69,6 +71,11 @@ public class NavigatorPanel extends Panel {
         setOutputMarkupId(true);
         add(new VisibleBehaviour(() -> NavigatorPanel.this.getPageCount() > 0));
 
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
@@ -178,9 +185,7 @@ public class NavigatorPanel extends Panel {
 
     private IModel<String> getPageLinkAriaLabelModel(long pageNumber) {
         long realPageNumber = pageNumber + 1;
-        return () -> isSelectedPage(pageNumber) ?
-                getString("NavigatorPanel.pageLink.selected.ariaLabel") + " " + realPageNumber
-                : getString("NavigatorPanel.pageLink.ariaLabel") + " " + realPageNumber;
+        return getPageBase().createStringResource("NavigatorPanel.pageLink.pageWithNumber", realPageNumber);
     }
 
     private long computePageNumber(int loopIndex) {
