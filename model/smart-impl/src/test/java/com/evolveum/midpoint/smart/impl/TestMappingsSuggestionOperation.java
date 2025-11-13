@@ -12,6 +12,7 @@ import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AttrName;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -122,6 +123,10 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         }
     }
 
+    private static MappingsSuggestionFiltersType inboundFilters() {
+        return new MappingsSuggestionFiltersType().includeInbounds(true);
+    }
+
     private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
         executeChanges(
                 deltaFor(UserType.class)
@@ -129,6 +134,11 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                         .replace(newValues)
                         .asObjectDelta(oid),
                 null, getTestTask(), getTestOperationResult());
+    }
+
+    private void modifyShadowReplace(String shadowName, AttrName attr, Object... values) throws Exception {
+        dummyScenario.account.getByNameRequired(shadowName)
+                .replaceAttributeValues(attr.local(), values);
     }
 
     private ShadowObjectClassStatisticsType computeStatistics(
@@ -173,6 +183,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                inboundFilters(),
                 task,
                 result);
 
@@ -195,9 +206,9 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "1-1-1-1-1");
-        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "2-222-2");
-        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "33-3-33");
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "1-1-1-1-1");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "2-222-2");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33-3-33");
 
         refreshShadows();
 
@@ -217,6 +228,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                inboundFilters(),
                 task,
                 result);
 
@@ -236,10 +248,9 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // Ensure data requires transformation so the microservice is queried
-        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "1-1-1-1-1");
-        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "2-222-2");
-        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "33-3-33");
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "1-1-1-1-1");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "2-222-2");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33-3-33");
 
         refreshShadows();
 
@@ -261,6 +272,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                inboundFilters(),
                 task,
                 result);
 
@@ -278,10 +290,9 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // Ensure data requires transformation so the microservice is queried
-        modifyUserReplace(USER1.oid, UserType.F_PERSONAL_NUMBER, "1-1-1-1-1");
-        modifyUserReplace(USER2.oid, UserType.F_PERSONAL_NUMBER, "2-222-2");
-        modifyUserReplace(USER3.oid, UserType.F_PERSONAL_NUMBER, "33-3-33");
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "1-1-1-1-1");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "2-222-2");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33-3-33");
 
         refreshShadows();
 
@@ -304,6 +315,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                inboundFilters(),
                 task,
                 result);
 
