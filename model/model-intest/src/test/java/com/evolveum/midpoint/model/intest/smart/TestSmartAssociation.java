@@ -28,13 +28,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ENTITLEMENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.GENERIC;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration tests for the Smart Integration Association function Service implementation.
+ * Validates that the associations suggested by the SmartIntegrationService match a predefined list of expected associations.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -51,330 +50,128 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     private static final DummyTestResource RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES = new DummyTestResource(
             TEST_DIR, "resource-dummy-smart-association-types.xml", "9efbb35d-b2e7-4097-ba5e-3c149f7f932a",
             "ad-smart-association-types",
-            c -> DummyAdSmartAssociationsScenario.on(c).initialize());
-
-    /**
-     * Represents the expected structure of a suggested association.
-     *
-     * @param name         The expected name of the association definition
-     * @param sourceKind   The kind of the source object (e.g., ACCOUNT, ENTITLEMENT)
-     * @param sourceIntent The intent of the source object
-     * @param targetKind   The kind of the target object
-     * @param targetIntent The intent of the target object
-     */
-    private record ExpectedAssociation(
-            String name,
-            String sourceKind,
-            String sourceIntent,
-            String targetKind,
-            String targetIntent
-    ){}
-
-    private record DummyAdSmartScenario (
-            Collection<ResourceObjectTypeIdentification> subjectTypeId,
-            Collection<ResourceObjectTypeIdentification> objectTypeId,
-            List<ExpectedAssociation> expectedAssociations
-    ) {}
-
-
-    private static final DummyAdSmartScenario DUMMY_AD_SMART_SCENARIO_10 = new DummyAdSmartScenario(
-            List.of(
-                    ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "default"),
-                    ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "person"),
-                    ResourceObjectTypeIdentification.of(ShadowKindType.ENTITLEMENT, "contract")
-            ),
-            List.of(
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "app-group"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "generic-group"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "org-group"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "contract"),
-                    ResourceObjectTypeIdentification.of(GENERIC, "orgUnit"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "expert")
-            ),
-            List.of(
-                    new ExpectedAssociation("AccountDefault-EntitlementAppgroup",
-                            "ACCOUNT", "default", "ENTITLEMENT", "app-group"),
-                    new ExpectedAssociation("AccountDefault-EntitlementGenericgroup",
-                            "ACCOUNT", "default", "ENTITLEMENT", "generic-group"),
-                    new ExpectedAssociation("AccountDefault-EntitlementOrggroup",
-                            "ACCOUNT", "default", "ENTITLEMENT", "org-group"),
-
-                    new ExpectedAssociation("AccountPerson-EntitlementContract",
-                            "ACCOUNT", "person", "ENTITLEMENT", "contract"),
-
-                    new ExpectedAssociation("EntitlementContract-GenericOrgUnit",
-                            "ENTITLEMENT", "contract", "GENERIC", "orgUnit")
-            )
+            c -> DummyAdSmartAssociationsScenario.on(c).initialize()
     );
 
-    private static final DummyAdSmartScenario DUMMY_AD_SMART_SCENARIO_20 = new DummyAdSmartScenario(
-            List.of(
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "app-group"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "generic-group"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "org-group"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "contract"),
-                    ResourceObjectTypeIdentification.of(GENERIC, "orgUnit"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "expert")
-            ),
+    private static final String RESOURCE_OID = RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid;
 
-            List.of(
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "app-group"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "generic-group"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "org-group"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "contract"),
-                    ResourceObjectTypeIdentification.of(GENERIC, "orgUnit"),
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "expert")
-            ),
-
-            List.of(
-                    new ExpectedAssociation("EntitlementAppgroup-EntitlementGenericgroup",
-                            "ENTITLEMENT", "app-group", "ENTITLEMENT", "generic-group"),
-                    new ExpectedAssociation("EntitlementAppgroup-EntitlementOrggroup",
-                            "ENTITLEMENT", "app-group", "ENTITLEMENT", "org-group"),
-
-                    new ExpectedAssociation("EntitlementGenericgroup-EntitlementAppgroup",
-                            "ENTITLEMENT", "generic-group", "ENTITLEMENT", "app-group"),
-                    new ExpectedAssociation("EntitlementGenericgroup-EntitlementOrggroup",
-                            "ENTITLEMENT", "generic-group", "ENTITLEMENT", "org-group"),
-
-                    new ExpectedAssociation("EntitlementOrggroup-EntitlementAppgroup",
-                            "ENTITLEMENT", "org-group", "ENTITLEMENT", "app-group"),
-                    new ExpectedAssociation("EntitlementOrggroup-EntitlementGenericgroup",
-                            "ENTITLEMENT", "org-group", "ENTITLEMENT", "generic-group"),
-
-                    new ExpectedAssociation("GenericOrgUnit-EntitlementContract",
-                            "GENERIC", "orgUnit", "ENTITLEMENT", "contract"),
-
-                    new ExpectedAssociation("EntitlementContract-GenericOrgUnit",
-                            "ENTITLEMENT", "contract", "GENERIC", "orgUnit")
-
-            )
+    private static final List<String> ALL_EXPECTED_ASSOCIATIONS = List.of(
+            makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/app-group"),
+            makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/generic-group"),
+            makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/org-group"),
+            makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"),
+            makeAssociationKey("ENTITLEMENT/app-group", "ENTITLEMENT/generic-group"),
+            makeAssociationKey("ENTITLEMENT/app-group", "ENTITLEMENT/org-group"),
+            makeAssociationKey("ENTITLEMENT/generic-group", "ENTITLEMENT/app-group"),
+            makeAssociationKey("ENTITLEMENT/generic-group", "ENTITLEMENT/org-group"),
+            makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/app-group"),
+            makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/generic-group"),
+            makeAssociationKey("ENTITLEMENT/contract", "GENERIC/orgUnit"),
+            makeAssociationKey("ENTITLEMENT/expert", "ACCOUNT/default"),
+            makeAssociationKey("GENERIC/orgUnit", "ENTITLEMENT/contract"),
+            // identity links
+            makeAssociationKey("ENTITLEMENT/generic-group", "ENTITLEMENT/generic-group"),
+            makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/org-group"),
+            makeAssociationKey("ENTITLEMENT/app-group", "ENTITLEMENT/app-group")
     );
 
-    private static final DummyAdSmartScenario DUMMY_AD_SMART_SCENARIO_30 = new DummyAdSmartScenario(
-            List.of(
-                    ResourceObjectTypeIdentification.of(ENTITLEMENT, "expert")
-            ),
-            List.of(
-                    ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "default")
-            ),
-
-            List.of(
-                    new ExpectedAssociation("EntitlementExpert-AccountDefault",
-                            "ENTITLEMENT", "expert", "ACCOUNT", "default")
-            )
+    private static final List<ResourceObjectTypeIdentification> ALL_OBJECT_TYPES = List.of(
+            makeObjectTypeId("ACCOUNT/default"),
+            makeObjectTypeId("ACCOUNT/person"),
+            makeObjectTypeId("ENTITLEMENT/contract"),
+            makeObjectTypeId("ENTITLEMENT/app-group"),
+            makeObjectTypeId("ENTITLEMENT/generic-group"),
+            makeObjectTypeId("ENTITLEMENT/org-group"),
+            makeObjectTypeId("ENTITLEMENT/expert"),
+            makeObjectTypeId("GENERIC/orgUnit")
     );
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-
-        initTestObjects(initTask, initResult,
-                CommonInitialObjects.ARCHETYPE_UTILITY_TASK);
-
+        initTestObjects(initTask, initResult, CommonInitialObjects.ARCHETYPE_UTILITY_TASK);
         initAndTestDummyResource(RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES, initTask, initResult);
     }
 
-    /**
-     * Tests the smart association suggestion feature.
-     * <p>
-     * Validates that the associations suggested by the SmartIntegrationService match
-     * a predefined list of expected associations. Each association is validated by name.
-     * </p>
-     *
-     */
     @Test
-    public void testSmartAssociationScenario10() throws Exception {
+    public void testSmartAssociation_shouldSuggestAllPossibleAssociationsFromReferenceAttributes() throws Exception {
+        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES);
 
-        var task = getTestTask();
-        var result = task.getResult();
-
-        var resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
-                null, task, result);
-        displayDumpable("Resource: ad-smart-association-types", resource);
-
-        AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(
-                RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
-                DUMMY_AD_SMART_SCENARIO_10.subjectTypeId(),
-                DUMMY_AD_SMART_SCENARIO_10.objectTypeId(),
-                task,
-                result);
-
-        displayDumpable("Suggested Associations", associationsSuggestion);
-
-        assertThat(associationsSuggestion)
-                .as("Association suggestion must not be null")
-                .isNotNull();
-
-        List<AssociationSuggestionType> definitions = associationsSuggestion.getAssociation();
-
-        assertThat(definitions)
+        assertThat(suggestions)
                 .as("Expected non-empty association suggestions")
                 .isNotEmpty();
 
-        Set<String> actualAssociationsSuggestedNames = definitions.stream()
-                .map(s -> s.getDefinition().getName().getLocalPart())
-                .collect(Collectors.toSet());
+        var actualAssociations = suggestions.stream()
+                .map(this::associationToKey)
+                .collect(Collectors.toList());
 
-        Set<String> expectedAssociationNames = DUMMY_AD_SMART_SCENARIO_10.expectedAssociations().stream()
-                .map(ExpectedAssociation::name)
-                .collect(Collectors.toSet());
-
-        assertThat(actualAssociationsSuggestedNames)
+        assertThat(actualAssociations)
                 .as("All expected smart associations should be suggested")
-                .containsExactlyInAnyOrderElementsOf(expectedAssociationNames);
-
-
-        //TODO (this is only for case when we have single object for association definition)
-        // (consider replace it when multiple object will be supported)
-        Map<String, ExpectedAssociation> expectedAssociationsMap = DUMMY_AD_SMART_SCENARIO_10.expectedAssociations().stream()
-                .collect(Collectors.toMap(ExpectedAssociation::name, ea -> ea));
-        definitions.forEach(suggestion -> {
-            String name = suggestion.getDefinition().getName().getLocalPart();
-            ExpectedAssociation expected = expectedAssociationsMap.get(name);
-            assertThat(expected).as("Unexpected association: " + name).isNotNull();
-            var subject = suggestion.getDefinition().getSubject().getObjectType().get(0);
-            var object = suggestion.getDefinition().getObject().get(0).getObjectType().get(0);
-            assertThat(subject.getKind().name()).isEqualTo(expected.sourceKind());
-            assertThat(subject.getIntent()).isEqualTo(expected.sourceIntent());
-            assertThat(object.getKind().name()).isEqualTo(expected.targetKind());
-            assertThat(object.getIntent()).isEqualTo(expected.targetIntent());
-        });
-
+                .containsExactlyInAnyOrderElementsOf(ALL_EXPECTED_ASSOCIATIONS);
     }
 
     @Test
-    public void testSmartAssociationScenario20() throws Exception {
+    public void testSmartAssociation_shouldSuggestAssociationForObjectTypeSubset() throws Exception {
+        var selectedObjectTypes = List.of(
+                makeObjectTypeId("ACCOUNT/person"),
+                makeObjectTypeId("ENTITLEMENT/contract"),
+                makeObjectTypeId("GENERIC/orgUnit")
+        );
+        var suggestions = prepareAndSuggestAssociations(selectedObjectTypes);
 
-        var task = getTestTask();
-        var result = task.getResult();
-
-        var resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
-                null, task, result);
-        displayDumpable("Resource: ad-smart-association-types", resource);
-
-        AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(
-                RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
-                DUMMY_AD_SMART_SCENARIO_20.subjectTypeId(),
-                DUMMY_AD_SMART_SCENARIO_20.objectTypeId(),
-                task,
-                result);
-
-        displayDumpable("Suggested Associations", associationsSuggestion);
-
-        assertThat(associationsSuggestion)
-                .as("Association suggestion must not be null")
-                .isNotNull();
-
-        List<AssociationSuggestionType> definitions = associationsSuggestion.getAssociation();
-
-        assertThat(definitions)
+        assertThat(suggestions)
                 .as("Expected non-empty association suggestions")
                 .isNotEmpty();
 
-        Set<String> actualAssociationsSuggestedNames = definitions.stream()
-                .map(s -> s.getDefinition().getName().getLocalPart())
-                .collect(Collectors.toSet());
+        var actualAssociations = suggestions.stream()
+                .map(this::associationToKey)
+                .collect(Collectors.toList());
 
-        Set<String> expectedAssociationNames = DUMMY_AD_SMART_SCENARIO_20.expectedAssociations().stream()
-                .map(ExpectedAssociation::name)
-                .collect(Collectors.toSet());
+        var expectedAssociations = List.of(
+                makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"),
+                makeAssociationKey("ENTITLEMENT/contract", "GENERIC/orgUnit"),
+                makeAssociationKey("GENERIC/orgUnit", "ENTITLEMENT/contract")
+        );
 
-        assertThat(actualAssociationsSuggestedNames)
+        assertThat(actualAssociations)
                 .as("All expected smart associations should be suggested")
-                .containsExactlyInAnyOrderElementsOf(expectedAssociationNames);
-
-
-        //TODO (this is only for case when we have single object for association definition)
-        // (consider replace it when multiple object will be supported)
-        Map<String, ExpectedAssociation> expectedAssociationsMap = DUMMY_AD_SMART_SCENARIO_20.expectedAssociations().stream()
-                .collect(Collectors.toMap(ExpectedAssociation::name, ea -> ea));
-        definitions.forEach(suggestion -> {
-            String name = suggestion.getDefinition().getName().getLocalPart();
-            ExpectedAssociation expected = expectedAssociationsMap.get(name);
-            assertThat(expected).as("Unexpected association: " + name).isNotNull();
-            var subject = suggestion.getDefinition().getSubject().getObjectType().get(0);
-            var object = suggestion.getDefinition().getObject().get(0).getObjectType().get(0);
-            assertThat(subject.getKind().name()).isEqualTo(expected.sourceKind());
-            assertThat(subject.getIntent()).isEqualTo(expected.sourceIntent());
-            assertThat(object.getKind().name()).isEqualTo(expected.targetKind());
-            assertThat(object.getIntent()).isEqualTo(expected.targetIntent());
-        });
-
+                .containsExactlyInAnyOrderElementsOf(expectedAssociations);
     }
 
     @Test
-    public void testSmartAssociationScenario30() throws Exception {
+    public void testSmartAssociation_shouldConstructNamesForSuggestedAssociations() throws Exception {
+        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES);
 
-        var task = getTestTask();
-        var result = task.getResult();
+        var actualAssociationsNames = suggestions.stream()
+                .map(a -> a.getDefinition().getName().getLocalPart())
+                .collect(Collectors.toList());
 
-        var resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
-                null, task, result);
-        displayDumpable("Resource: ad-smart-association-types", resource);
+        assertThat(actualAssociationsNames)
+                .as("All names should be defined")
+                .doesNotContainNull()
+                .doesNotContain("");
 
-        AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(
-                RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
-                DUMMY_AD_SMART_SCENARIO_30.subjectTypeId(),
-                DUMMY_AD_SMART_SCENARIO_30.objectTypeId(),
-                task,
-                result);
+        var suggestion1 = findSuggestion(suggestions, makeAssociationKey("ENTITLEMENT/contract", "GENERIC/orgUnit"));
+        assertThat(suggestion1.getDefinition().getName().getLocalPart())
+                .as("Suggestion name should be correctly generated")
+                .isEqualTo("EntitlementContract-GenericOrgUnit");
 
-        displayDumpable("Suggested Associations", associationsSuggestion);
-
-        assertThat(associationsSuggestion)
-                .as("Association suggestion must not be null")
-                .isNotNull();
-
-        List<AssociationSuggestionType> definitions = associationsSuggestion.getAssociation();
-
-        assertThat(definitions)
-                .as("Expected non-empty association suggestions")
-                .isNotEmpty();
-
-        Set<String> actualAssociationsSuggestedNames = definitions.stream()
-                .map(s -> s.getDefinition().getName().getLocalPart())
-                .collect(Collectors.toSet());
-
-        Set<String> expectedAssociationNames = DUMMY_AD_SMART_SCENARIO_30.expectedAssociations().stream()
-                .map(ExpectedAssociation::name)
-                .collect(Collectors.toSet());
-
-        assertThat(actualAssociationsSuggestedNames)
-                .as("All expected smart associations should be suggested")
-                .containsExactlyInAnyOrderElementsOf(expectedAssociationNames);
-
-
-        //TODO (this is only for case when we have single object for association definition)
-        // (consider replace it when multiple object will be supported)
-        Map<String, ExpectedAssociation> expectedAssociationsMap = DUMMY_AD_SMART_SCENARIO_30.expectedAssociations().stream()
-                .collect(Collectors.toMap(ExpectedAssociation::name, ea -> ea));
-        definitions.forEach(suggestion -> {
-            String name = suggestion.getDefinition().getName().getLocalPart();
-            ExpectedAssociation expected = expectedAssociationsMap.get(name);
-            assertThat(expected).as("Unexpected association: " + name).isNotNull();
-            var subject = suggestion.getDefinition().getSubject().getObjectType().get(0);
-            var object = suggestion.getDefinition().getObject().get(0).getObjectType().get(0);
-            assertThat(subject.getKind().name()).isEqualTo(expected.sourceKind());
-            assertThat(subject.getIntent()).isEqualTo(expected.sourceIntent());
-            assertThat(object.getKind().name()).isEqualTo(expected.targetKind());
-            assertThat(object.getIntent()).isEqualTo(expected.targetIntent());
-        });
-
+        var suggestion2 = findSuggestion(suggestions, makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/generic-group"));
+        assertThat(suggestion2.getDefinition().getName().getLocalPart())
+                .as("Suggestion name should be correctly generated")
+                .isEqualTo("EntitlementOrggroup-EntitlementGenericgroup");
     }
 
-    /** Tests the "suggest associations" operation (in an asynchronous way). */
     @Test
-    public void testSuggestAssociations() throws CommonException {
+    public void testSuggestAssociations_shouldRunOperationAsynchronously() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
         when("submitting 'suggest associations' operation request");
         var token = smartIntegrationService.submitSuggestAssociationsOperation(
-                RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
-                DUMMY_AD_SMART_SCENARIO_30.subjectTypeId(),
-                DUMMY_AD_SMART_SCENARIO_30.objectTypeId(),
+                RESOURCE_OID,
+                ALL_OBJECT_TYPES,
+                ALL_OBJECT_TYPES,
                 task, result);
 
         then("returned token is not null");
@@ -391,9 +188,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         assertThat(response.getAssociation()).as("suggested associations").isNotEmpty();
 
         when("listing all suggest associations operation statuses for the resource");
-        var statuses = smartIntegrationService.listSuggestAssociationsOperationStatuses(
-                RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid,
-                task, result);
+        var statuses = smartIntegrationService.listSuggestAssociationsOperationStatuses(RESOURCE_OID, task, result);
 
         then("the list should contain the submitted token");
         statuses.forEach(s -> displayDumpable("association operation status", s));
@@ -410,5 +205,67 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 .contains(token);
     }
 
+    /**
+     * Association suggestion to a string key in a format: subjectKind/subjectIntent=>objectKind/objectIntent.
+     * It supports just one object.
+     */
+    private String associationToKey(AssociationSuggestionType suggestion) {
+        var subjectKind = suggestion.getDefinition().getSubject().getObjectType().get(0).getKind();
+        var subjectIntent = suggestion.getDefinition().getSubject().getObjectType().get(0).getIntent();
+        assertThat(suggestion.getDefinition().getObject())
+                .as("Invariant: association has exactly one object") // NOTE: currently supports just one object, but will change when we implement complex associations
+                .hasSize(1);
+        var objectKind = suggestion.getDefinition().getObject().get(0).getObjectType().get(0).getKind();
+        var objectIntent = suggestion.getDefinition().getObject().get(0).getObjectType().get(0).getIntent();
+        return makeAssociationKey(subjectKind + "/" + subjectIntent, objectKind + "/" + objectIntent);
+    }
+
+    private static String makeAssociationKey(String subjectKindIntent, String objectKindIntent) {
+        return subjectKindIntent + "=>" + objectKindIntent;
+    }
+
+    private static ResourceObjectTypeIdentification makeObjectTypeId(String objectTypeKey) {
+        var kind = ShadowKindType.valueOf(objectTypeKey.split("/")[0]);
+        var intent = objectTypeKey.split("/")[1];
+        return ResourceObjectTypeIdentification.of(kind, intent);
+    }
+
+    private AssociationSuggestionType findSuggestion(List<AssociationSuggestionType> suggestions, String strId) {
+        return suggestions.stream()
+                .filter(suggestion -> {
+                    var subjectKind = suggestion.getDefinition().getSubject().getObjectType().get(0).getKind();
+                    var subjectIntent = suggestion.getDefinition().getSubject().getObjectType().get(0).getIntent();
+                    var objectKind = suggestion.getDefinition().getObject().get(0).getObjectType().get(0).getKind();
+                    var objectIntent = suggestion.getDefinition().getObject().get(0).getObjectType().get(0).getIntent();
+                    String associationKey = makeAssociationKey(subjectKind + "/" + subjectIntent, objectKind + "/" + objectIntent);
+                    return associationKey.equals(strId);
+                })
+                .findFirst()
+                .orElse(null);
+    }
+
+    private List<AssociationSuggestionType> prepareAndSuggestAssociations(List<ResourceObjectTypeIdentification> objectTypes) throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var resource = provisioningService.getObject(ResourceType.class, RESOURCE_OID, null, task, result);
+        displayValueAsXml("Resource: ad-smart-association-types", resource.getValue());
+
+        AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(
+                RESOURCE_OID,
+                objectTypes,
+                objectTypes,
+                task,
+                result
+        );
+
+        displayValueAsXml("Suggested Associations", associationsSuggestion);
+
+        assertThat(associationsSuggestion)
+                .as("Association suggestion must not be null")
+                .isNotNull();
+
+        return associationsSuggestion.getAssociation();
+    }
 
 }
