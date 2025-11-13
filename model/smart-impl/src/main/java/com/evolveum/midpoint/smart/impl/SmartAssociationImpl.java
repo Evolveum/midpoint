@@ -177,11 +177,11 @@ public class SmartAssociationImpl {
             // Currently we want to support subjectToObject associations only, but should we use refAttributeDef.getReferenceParticipantRole()?
             if (firstParticipantRole == ShadowReferenceParticipantRole.SUBJECT) {
                 subject = buildSubjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef, refAttrItemName);
-                object = buildObjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef, refAttrItemName);
+                object = buildObjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef);
             } else {
                 //NOTE this is never used in the current implementation, but it is here for completeness.
                 subject = buildSubjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef, refAttrItemName);
-                object = buildObjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef, refAttrItemName);
+                object = buildObjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef);
             }
 
             String descriptionNote = createAssociationDescription(refAttrItemName,
@@ -295,24 +295,17 @@ public class SmartAssociationImpl {
      *
      * @param objectType Type identification for the object.
      * @param objectClassDef Native object class definition for the object.
-     * @param refAttrItemName Reference attribute that defines the association.
      * @return A fully initialized {@link ShadowAssociationTypeObjectDefinitionType}.
      */
     private static @NotNull ShadowAssociationTypeObjectDefinitionType buildObjectParticipantDefinitionType(
             @NotNull ResourceObjectTypeIdentification objectType,
-            @NotNull NativeObjectClassDefinition objectClassDef,
-            @NotNull ItemName refAttrItemName) {
-
-        ShadowAssociationDefinitionType assocDef = new ShadowAssociationDefinitionType()
-                .ref(refAttrItemName.toBean())
-                .sourceAttributeRef(refAttrItemName.toBean());
+            @NotNull NativeObjectClassDefinition objectClassDef) {
 
         return new ShadowAssociationTypeObjectDefinitionType()
                 .ref(objectClassDef.getQName())
                 .objectType(new ResourceObjectTypeIdentificationType()
                         .kind(objectType.getKind())
-                        .intent(objectType.getIntent()))
-                .association(assocDef);
+                        .intent(objectType.getIntent()));
     }
 
     //TODO: Design better strategy for generating association names. Also think for combined/separated associations.

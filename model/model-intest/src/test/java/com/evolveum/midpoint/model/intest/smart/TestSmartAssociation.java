@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest.smart;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+import static org.testng.AssertJUnit.assertEquals;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
 
@@ -163,6 +166,47 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
+    public void testSmartAssociation_shouldHaveCorrectStructureOfSubjectToObjectAssociation() throws Exception {
+        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES);
+
+        var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"));
+
+        assertThat(suggestion.getDefinition().getDescription())
+                .as("association has non empty description")
+                .isNotEmpty();
+
+        // exclude attributes not important to the full assertion
+        suggestion.getDefinition().setDescription(null); // don't need to diff
+
+        var actualValue = prettySerialize(suggestion);
+        var expectedValue = dedent("""
+        <definition>
+            <name>ri:AccountPerson-EntitlementContract</name>
+            <displayName>AccountPerson-EntitlementContract</displayName>
+            <subject>
+                <ref>person</ref>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>person</intent>
+                </objectType>
+                <association>
+                    <ref>ri:contract</ref>
+                    <sourceAttributeRef>ri:contract</sourceAttributeRef>
+                </association>
+            </subject>
+            <object>
+                <ref>contract</ref>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>contract</intent>
+                </objectType>
+            </object>
+        </definition>
+        """);
+        assertEqualsMultiline("body of association should be equal", expectedValue, actualValue);
+    }
+
+    @Test
     public void testSuggestAssociations_shouldRunOperationAsynchronously() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
@@ -266,6 +310,28 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 .isNotNull();
 
         return associationsSuggestion.getAssociation();
+    }
+
+    /* Dedent whitespaces and trim. */
+    private String dedent(String value) {
+        return value.stripIndent().trim();
+    }
+
+    /* Serialize xml without root tag, pretty formatted. */
+    private String prettySerialize(Object value) throws SchemaException {
+        var raw = prismContext.xmlSerializer().serializeRealValue(value, SchemaConstants.C_VALUE);
+        raw = raw.trim();
+        raw = raw.substring(raw.indexOf('\n') + 1, raw.lastIndexOf('\n')); // strip root value container
+        raw = dedent(raw);
+        return raw;
+    }
+
+    private void assertEqualsMultiline(String message, String expected, String actual) {
+        // simple assertEquals is convenient to use because it has better idea integration
+        // if it fails idea offers to see the diff - "Click to see difference", that doesn't work with assertj
+        assertEquals(message, expected, actual);
+        // if there are spacing problems it could be asserted with relaxed indentation (but without the nice diffing feature)
+        // assertThat(actual).isEqualToNormalizingWhitespace(expected)
     }
 
 }
