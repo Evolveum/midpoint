@@ -211,6 +211,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             }
         };
         sortPropertiesButton.add(AttributeAppender.append("title", this::getSortButtonTitle));
+        sortPropertiesButton.add(AttributeAppender.append("aria-label", this::getSortButtonTitle));
         sortPropertiesButton.add(new VisibleBehaviour(this::shouldBeButtonsShown));
         sortPropertiesButton.setOutputMarkupId(true);
         sortPropertiesButton.setOutputMarkupPlaceholderTag(true);
