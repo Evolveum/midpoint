@@ -36,7 +36,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.Arrays;
+import java.io.Serial;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,7 @@ import java.util.stream.Collectors;
  */
 public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchItemWrapper> extends BasePanel<List<T>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final String ID_POPOVER = "popover";
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_ITEM_LIST = "itemList";
@@ -71,7 +72,7 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
 
     private void initLayout() {
         Popover popover = new Popover(ID_POPOVER) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public Component getPopoverReferenceComponent() {
@@ -101,7 +102,7 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
         popover.add(addText);
         addText.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -111,18 +112,15 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
         popover.add(addText);
 
         ListView<T> properties = new ListView<>(ID_ITEMS, getModel()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final ListItem<T> item) {
-                if (item.getIndex() == 0) {
-                    item.add(AttributeAppender.append("class", "mt-1"));
-                }
                 CheckBox check = new CheckBox(ID_ITEM_CHECKBOX,
                         new PropertyModel<>(item.getModel(), FilterableSearchItemWrapper.F_SELECTED));
                 check.add(new AjaxFormComponentUpdatingBehavior("change") {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
@@ -134,14 +132,14 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
 
                 AjaxLink<Void> propLink = new AjaxLink<Void>(ID_ITEM_LINK) {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (item.getModelObject() instanceof SelectableRow) {
                             ((SelectableRow) item.getModelObject()).setSelected(true);
                         }
-                        addItemsPerformed(Arrays.asList(item.getModelObject()), target);
+                        addItemsPerformed(Collections.singletonList(item.getModelObject()), target);
                     }
                 };
                 item.add(propLink);
@@ -184,7 +182,7 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
 
         AjaxButton addButton = new AjaxButton(ID_ADD_BUTTON, createStringResource("SearchPanel.add")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -197,7 +195,7 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
 
         AjaxButton close = new AjaxButton(ID_CLOSE_BUTTON, createStringResource("SearchPanel.close")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
