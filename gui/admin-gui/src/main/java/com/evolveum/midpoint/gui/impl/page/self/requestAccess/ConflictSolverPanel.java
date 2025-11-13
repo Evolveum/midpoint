@@ -170,6 +170,7 @@ public class ConflictSolverPanel extends BasePanel<RequestAccess> {
         getModelObject().solveConflict(conflict, toRemove);
 
         target.add(this);
+        getPageBase().reloadShoppingCartIcon(target);
     }
 
     protected void backToSummaryPerformed(AjaxRequestTarget target) {

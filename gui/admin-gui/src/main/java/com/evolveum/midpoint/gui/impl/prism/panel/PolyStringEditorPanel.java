@@ -14,7 +14,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -391,8 +390,11 @@ public class PolyStringEditorPanel extends InputPanel {
 
     private void createLabelForComponent(WebMarkupContainer parent, String componentId, FormComponent<?> formComponent) {
         WebMarkupContainer label = new WebMarkupContainer(componentId);
+        label.setOutputMarkupId(true);
         label.add(AttributeAppender.append("for", () -> formComponent.getMarkupId()));
         parent.add(label);
+
+        formComponent.add(AttributeAppender.append("aria-labelledby", label.getMarkupId()));
     }
 
     private String getLocalizedPolyStringValue() {

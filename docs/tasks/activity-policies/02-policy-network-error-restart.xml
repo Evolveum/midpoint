@@ -30,7 +30,7 @@
         <name>Notification about restart policy</name>
         <policyConstraints>
             <executionAttempts>
-                <below>3</below>
+                <below>4</below>
                 <exceeds>1</exceeds>
             </executionAttempts>
         </policyConstraints>

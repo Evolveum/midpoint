@@ -28,7 +28,7 @@ Therefore, midPoint contains several mechanisms that make use of expressions rea
 
 == Expression Profiles
 
-Expression profiles are definitions, what an expression can and cannot do.
+xref:/midpoint/reference/expressions/expressions/profiles/[Expression profiles] are definitions, what an expression can and cannot do.
 For example, an expression profile may dictate, that particular expression can only use `asIs` and `path` evaluators.
 In case that `script` evaluator is used, only Groovy can be used as a scripting language, the script should be type-checked and only use of particular safe classes should be allowed.
 
@@ -73,7 +73,6 @@ Following table summarizes security properties of expression evaluators.
 | `generate`
 | Yes
 |
-// TODO: check system config profile
 
 | `const`
 | Yes
@@ -86,7 +85,6 @@ Following table summarizes security properties of expression evaluators.
 | `proportional`
 | Yes
 |
-// TODO: check system config profile
 
 | `script`
 | No
@@ -131,10 +129,11 @@ Following table summarizes security properties of expression evaluators.
 |===
 
 Evaluators marked as _safe_ are generally safe to use.
-They do not have potential to execute arbitrary code or do execute operations that could impact security of the system.
+They do not have potential to execute arbitrary code or operations that could impact security of the system.
 However, even _safe_ expression operators still have potential for mis-configuration, which can impact the system indirectly.
 For example, an evaluator may provide incorrect value, which may affect correctness of configuration or policies.
 Also, an evaluator may affect performance of the system by using inefficient search filter.
+Therefore, even _safe_ expression evaluators should still be used with care.
 
 Default midPoint xref:/midpoint/reference/concepts/system-configuration-object/[system configuration] contains a definition of `safe` xref:/midpoint/reference/expressions/expressions/profiles/[expression profile], which includes only safe expression evaluators.
 
@@ -149,24 +148,140 @@ When upgrading midPoint deployments from versions earlier than 4.10, make sure t
 
 == Security of Scripting Expressions
 
-// TODO: discuss safe expression language - how surprisingly hard it is
-// TODO: Groovy sandboxing is unreliable
+Identity management platforms need to be very flexible, as they need to adapt to diverse environments and support variety of processes and use cases.
+The best method to provide flexibility is to support customizability using general-purpose scripting languages.
+MidPoint has support for Groovy, a powerful general-purpose scripting language.
+However, Groovy is perhaps too powerful, allowing execution of harmful code.
+
+The problem with Groovy security was recognized a long time ago.
+MidPoint development team tried to address the problem by using _sandboxing_ capabilities of Groovy interpreter.
+_Sandboxing_ is a mechanism to limit execution of the script code, denying execution of operations that can be harmful.
+However, there are two major problems when it comes to sandboxing.
+
+Firstly, the sandboxing that Groovy interpreter provides is a _shallow_ sandboxing.
+This means that the sandbox is applied at the Groovy language layer.
+The sandbox decides whether the script can use specific operation or Groovy language mechanism.
+Once the operation is allowed, its implementation can access any part of the system, including harmful parts.
+Therefore, _shallow_ sandboxing provides only partial protection.
+Java platform used to provide _deep_ sandboxing as well, in a form of _Security Manager_.
+Unfortunately, that mechanism is deprecated and there is no replacement.
+
+Secondly, it is almost impossible to construct a set of sandboxing rules which would provide complete protection against malicious code.
+Scripting languages such as Groovy are built for flexibility, not security.
+They are not designed to be safe, they are not designed to be sandboxed easily.
+There are too many operations that need to be allowed to maintain sufficient the flexibility for the scripting language.
+The list of allowed safe operations is very difficult to construct.
+Even worse, one can never be sure that these operations are safe.
+Also, there are surprising ways that a malicious code can use.
+For example, Groovy allows execution of operating system commands by invoking `execute` method on any string, such as `"rm -rf /".execute()`.
+It is very difficult to identify all such places.
+Moreover, the list of safe operations is likely to change in future versions of Groovy, making it very difficult to maintain.
+This means that the sandboxing approach to securing a general-purpose scripting languages is ultimately doomed to failure.
+
+The _security by design_ principle states that security should be built into the system from early stages.
+This principle should be applied to scripting languages too.
+Ideally, we would like to use a scripting language that was designed to be secure, which was meant to be used in a secure way from the very beginning.
+However, it is surprisingly difficult to find such a scripting language.
+It is even harder to find a safe language which has an interpreter available for the Java platform.
+Unfortunately, we have not been able to locate a suitable safe scripting language so far.
+
+Therefore, *scripting expressions must be used with utmost care*.
+Any scripting expression has a potential to breach security of the system.
+Therefore, only administrators that already have full access to the systems should be allowed to create and edit scripting expressions.
 
 == Authorizations
 
+xref:/midpoint/reference/security/authorization/[Authorization mechanisms] is a crucial part of any security-related feature in midPoint, including expressions.
+Authorizations are used as a primary mechanism that control ability to create and edit expressions.
+As expressions can be a major security risk, controlling access to expressions is a crucial mechanism to secure the system.
+
+When it comes to expressions, xref:/midpoint/reference/security/authorization/[authorizations] provide an orthogonal mechanism to xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles].
+Expressions profiles control ability to _execute_ an expression, regardless of how the expression originated.
+On the other hand, authorizations control the ability to _create and edit_ expressions, without regard to their eventual execution.
+Both mechanisms are necessary for setting up a secure midPoint deployment.
+
 == Semi-Safe Configuration
+
+Security is a trade-off, or rather a complex series of many intricate trade-offs.
+Scripting expressions are not completely safe, yet they are needed to make midPoint flexible.
+Therefore, use of scripting expressions need to be limited to a necessary minimum.
+This approach is achieved by combining xref:/midpoint/reference/expressions/expressions/profiles/[expression profiles] and xref:/midpoint/reference/security/authorization/[authorizations].
+
+Theoretically, expressions can be used at many places in midPoint.
+Some of these places may not be immediately obvious.
+For example, expression can be used in a condition in an xref:/midpoint/reference/roles-policies/roles/assignment/[assignment].
+This ability comes from the fact that _assignment_ and _inducement_ are represented by the same data structure, as well as a potential to implement some intricate use cases.
+However, _assignment_ are a common data structure in _user_ objects.
+Users may have ability to create their own assignments, e.g. in a form of _access request_ process, or by using RESTful API.
+In such a case, users may theoretically create an assignment which includes unsafe scripting expressions.
+
+NOTE: MidPoint user interface does not provide any ability for users to add expressions into assignments (or any other places), while using the self-service part of the user interface.
+Therefore, midPoint is safe in that respect.
+However, the administration part of midPoint user interface is not designed to have such constraints.
+Administrative part of midPoint user interface may have an ability to include expressions in some data structures, most notably as part of the _inducement_.
+Therefore, be very careful when delegating administrative access to midPoint objects and user interface.
+
+Ordinary midPoint deployment do not need extreme flexibility provided by expression in user assignments.
+Therefore, it is more than reasonable to limit use of expressions in user objects, as well as other types of objects.
+This section describes a configuration that is doing just that.
+
+The _semi-safe_ configuration described in this section is implementing a particular security trade-off:
+
+* *User* objects are not allowed to contain any expressions.
+User objects are not meant to implement any form of extreme customizations, therefore expressions are not welcomed here.
+
+* *Roles*, *orgs*, *services* and similar role-like objects can use only _safe_ expression operators.
+These forms of expressions are sufficient for setting up simple scenarios, which are usually sufficient to support delegated administration of roles and other role-like objects.
+
+* *Resources*, *object templates* and other configuration objects can use full power of scripting expressions.
+However, as scripting expressions pose a significant risk, write access to these objects is strictly limited by authorizations.
+Furthermore, these objects may be subject to change control mechanisms by using object lifecycle management.
+
+The core of the semi-safe configuration is formed by three pre-configured expression profiles:
+
+* *`permissive`* profile allows access to all expressions and expression evaluators.
+
+* *`safe`* profile allows access only to those expression evaluators that are considered _safe_.
+I.e. it allows only those evaluators that do not pose inherent threat to the security of the system.
+
+* *`prohibitive`* profile denies access to all expressions and expression evaluators.
+
+These three essential expression profiles are ready to use, pre-configured in default xref:/midpoint/reference/concepts/system-configuration-object/[system configuration].
+However, they are _not applied_ by default to any object.
+
+The semi-safe configuration recommends to apply expression profiles in the following way:
+
+[%autowidth]
+|===
+| Object types | Expression profile | Write access by
+
+| User
+| `prohibitive`
+| Identity administrators and agents (e.g. helpdesk) +
+Users (self) for self-service purposes
+
+| Role, Org, Service
+| `safe`
+| Delegated administrators, e.g. role manager, organizational structure manager
+
+| Resource, Object template, Archetype, Function library
+| `permissive`
+| Top-tier system administrators only
+
+|===
+
+// TODO: function libraries
 
 // TODO: How to use expressions in a secure way
 
 // TODO: combination of authorizations and profiles
 
-// TODO: expression profiles: safe, open, closed
-
 // TODO: place logic in meta-roles (archetypes, policies) when needed
 // TODO: use function libraries
 
-// TODO: Safety of invoked functions, e.g. input sanitization
+// TODO: Safety of invoked functions (function libraries), e.g. input sanitization
 
+// TODO: details are deployment-specific. E.g. some deployments may allow scripts in services, others may not. Mention policies (PolicyType).
 
 * xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Metaroles] can be used to group all the necessary logic, including expressions.
 Meta roles can be setup by a trusted administrator.
@@ -175,6 +290,8 @@ However, even this method is not yet fully supported in midPoint user interface.
 
 * xref:/midpoint/reference/concepts/object-lifecycle/[Object lifecycle] mechanism can be used to drive role definitions through an approval process.
 This can be used to make sure that expressions used in the roles are safe.
+
+// TODO: optional in 4.10, probably default in 4.11
 
 == Limitations
 
