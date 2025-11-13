@@ -254,34 +254,17 @@ public class SmartIntegrationStatusInfoUtils {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        if (mappingDirection == MappingDirection.OUTBOUND) {
-            //TODO replace with actual outbound call when supported
-            LOGGER.warn("Outbound mapping suggestions are not yet supported. Returning null.");
-            return null;
-        }
-
         var smart = pageBase.getSmartIntegrationService();
 
-        try {
-            var statusInfos = smart.listSuggestMappingsOperationStatuses(resourceOid, task, result);
-            if (objectTypeIdentification == null) {
-                return statusInfos;
-            }
+        var filter = new MappingsSuggestionFiltersType()
+                .includeInbounds(mappingDirection == MappingDirection.INBOUND)
+                .includeOutbounds(mappingDirection == MappingDirection.OUTBOUND);
 
-            return statusInfos.stream()
-                    .filter(s -> {
-                        BasicResourceObjectSetType request = s.getRequest();
-                        if (request != null) {
-                            return request.getKind() != null
-                                    && request.getKind().equals(objectTypeIdentification.getKind())
-                                    && request.getIntent() != null
-                                    && request.getIntent().equals(objectTypeIdentification.getIntent());
-                        }
-                        return false;
-                    }).toList();
+        try {
+            return smart.listSuggestMappingsOperationStatuses(resourceOid, objectTypeIdentification, filter, task, result);
         } catch (Throwable t) {
             result.recordException(t);
-            LoggingUtils.logException(LOGGER, "Couldn't load correlation status for {}", t, resourceOid);
+            LoggingUtils.logException(LOGGER, "Couldn't load mapping status for {}", t, resourceOid);
             return null;
         } finally {
             result.close();

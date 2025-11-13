@@ -208,12 +208,15 @@ public interface SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException;
 
     /**
-     * Submits "suggest mappings" request. Returns a token used to query the status.
-     *
-     * Interaction metadata and filters will be added later.
+     * Submits "suggest mappings" request with filters (e.g., inbound/outbound selection).
+     * Returns a token used to query the status.
      */
     String submitSuggestMappingsOperation(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            MappingsSuggestionFiltersType filters,
+            Task task,
+            OperationResult result)
             throws CommonException;
 
     /**
@@ -221,7 +224,11 @@ public interface SmartIntegrationService {
      * They are sorted by finished time, then by started time.
      */
     List<StatusInfo<MappingsSuggestionType>> listSuggestMappingsOperationStatuses(
-            String resourceOid, Task task, OperationResult result)
+            String resourceOid,
+            ResourceObjectTypeIdentification objectTypeIdentification,
+            MappingsSuggestionFiltersType filters,
+            Task task,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Checks the status of the "suggest mappings" request. */

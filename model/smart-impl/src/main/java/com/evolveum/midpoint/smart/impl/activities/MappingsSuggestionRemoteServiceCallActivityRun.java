@@ -14,6 +14,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionFiltersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
 
@@ -55,8 +56,10 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var schemaMatch = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeSchemaMatchRequired(
                 getBeans().repositoryService.getObject(GenericObjectType.class, schemaMatchOid, null, result));
 
+        MappingsSuggestionFiltersType filters = getWorkDefinition().getFilters();
+
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, typeDef, statistics, schemaMatch, null, null, state, task, result);
+                resourceOid, typeDef, statistics, schemaMatch, filters, null, state, task, result);
 
         parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
         parentState.flushPendingTaskModifications(result);
