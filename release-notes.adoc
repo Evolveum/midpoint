@@ -90,6 +90,7 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * Added languages, specifically Korean, Dutch, and Ukrainian.
 * Removed support for deprecated generic repository implementation (Oracle, SQL Server). See bug:MID-10866[].
 * Improved `safe` expression profile in default system configuration.
+* Date time picker now can use `adminGuiConfiguration/displayFormats/longDateTimeFormat`setting if available.
 
 === Other Bug Fixes
 

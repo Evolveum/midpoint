@@ -7,8 +7,12 @@
 package com.evolveum.midpoint.gui.impl.component.input;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationDisplayFormatsType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Session;
@@ -162,7 +166,7 @@ public class DateTimePickerOptions implements Serializable {
 
     private String replaceSpecificCharacters(String localizedDatePattern) {
         if (!localizedDatePattern.contains("yyyy")) {
-            localizedDatePattern = localizedDatePattern.replaceAll("yy", "yyyy");
+            localizedDatePattern = localizedDatePattern.replaceAll("y+", "yyyy");
         }
 
         //hack because of issue in js of date picker implementation
@@ -187,12 +191,29 @@ public class DateTimePickerOptions implements Serializable {
             }
         }
 
+        // remove timezones
+        if (localizedDatePattern.contains("z") || localizedDatePattern.contains("Z") || localizedDatePattern.contains("X")) {
+            localizedDatePattern = localizedDatePattern.replaceAll("z+", "");
+            localizedDatePattern = localizedDatePattern.replaceAll("Z+", "");
+            localizedDatePattern = localizedDatePattern.replaceAll("X+", "");
+        }
+
         return localizedDatePattern;
     }
 
     private String getDateTimeFormat(@NotNull Locale locale) {
-        return replaceSpecificCharacters(((SimpleDateFormat) SimpleDateFormat.getDateTimeInstance(
-                SimpleDateFormat.LONG, SimpleDateFormat.SHORT, locale)).toPattern());
+        CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile();
+        AdminGuiConfigurationDisplayFormatsType formats = profile.getDisplayFormats();
+
+        String pattern;
+        if (formats != null && StringUtils.isNotEmpty(formats.getLongDateTimeFormat())) {
+            pattern = WebComponentUtil.getLocalizedDatePattern(formats.getLongDateTimeFormat());
+        } else {
+            pattern = ((SimpleDateFormat) SimpleDateFormat.getDateTimeInstance(
+                    SimpleDateFormat.LONG, SimpleDateFormat.SHORT, locale)).toPattern();
+        }
+
+        return replaceSpecificCharacters(pattern);
     }
 
     private String getDateTimeFormatForOption(@NotNull Locale locale) {
