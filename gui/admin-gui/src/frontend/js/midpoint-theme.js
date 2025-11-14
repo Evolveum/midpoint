@@ -847,8 +847,6 @@ export default class MidPointTheme {
         picker.subscribe('show.td', () => {
             const prevButton = $('.calendar-header .previous');
             const nextButton = $('.calendar-header .next');
-            const monthLabelEl = $('div.picker-switch').get(0);
-            monthLabelEl.setAttribute("aria-live", "polite");
 
             prevButton.attr('role', 'button');
             prevButton.attr('aria-live', 'assertive');
@@ -890,7 +888,7 @@ export default class MidPointTheme {
     }
 
     updateAriaDescription(button, messageCurrent) {
-        var value = button.siblings('.picker-switch').text()
+        var value = button.siblings('.picker-switch').text();
 
         console.info("updateAriaDescription with value:", value);
 
