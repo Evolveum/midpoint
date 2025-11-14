@@ -91,6 +91,7 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * Removed support for deprecated generic repository implementation (Oracle, SQL Server). See bug:MID-10866[].
 * Improved `safe` expression profile in default system configuration.
 * Date time picker now can use `adminGuiConfiguration/displayFormats/longDateTimeFormat`setting if available.
+* Recommended xref:/midpoint/reference/expressions/expressions/security/[_semi-safe_ configuration of expression profiles] to provide reasonable level of xref:/midpoint/reference/expressions/expressions/security/[expression security] for some delegated administration scenarios.
 
 === Other Bug Fixes
 
@@ -627,6 +628,8 @@ See also bug:MID-10397[].
 ** Permission profile `script-safe` was renamed to `script-limited`, as the existing mechanism for script permission checks is not considered to provide complete safety and security.
 This profile is not considered to provide strict security, therefore the name was changed to avoid mis-interpretation.
 Corresponding description was added to the profile.
+
+** See xref:/midpoint/reference/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8
