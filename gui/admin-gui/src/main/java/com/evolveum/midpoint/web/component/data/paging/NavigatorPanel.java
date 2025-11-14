@@ -138,14 +138,17 @@ public class NavigatorPanel extends BasePanel {
                 firstPerformed(target);
             }
         };
-        var isFirstLinkEnabled = BooleanUtils.isTrue(showPageListingModel.getObject()) && isFirstEnabled();
-        firstLink.add(new EnableBehaviour(() -> isFirstLinkEnabled));
-        firstLink.add(AttributeAppender.append("aria-disabled", () -> !isFirstLinkEnabled));
+        firstLink.add(new EnableBehaviour(this::isFirstLinkEnabled));
+        firstLink.add(AttributeAppender.append("aria-disabled", () -> !isFirstLinkEnabled()));
         first.add(firstLink);
 
         Label firstLinkLabel = new Label(ID_FIRST_LINK_LABEL, getString("NavigatorPanel.firstLink"));
         firstLinkLabel.setOutputMarkupId(true);
         firstLink.add(firstLinkLabel);
+    }
+
+    private boolean isFirstLinkEnabled() {
+        return BooleanUtils.isTrue(showPageListingModel.getObject()) && isFirstEnabled();
     }
 
     private void initNavigation(WebMarkupContainer pagination) {
@@ -256,14 +259,17 @@ public class NavigatorPanel extends BasePanel {
                 lastPerformed(target);
             }
         };
-        var isLastLinkEnabled = !isCountingDisabled() && BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled();
-        lastLink.add(new EnableBehaviour(() -> isLastLinkEnabled));
-        lastLink.add(AttributeAppender.append("aria-disabled", () -> !isLastLinkEnabled));
+        lastLink.add(new EnableBehaviour(this::isLastLinkEnabled));
+        lastLink.add(AttributeAppender.append("aria-disabled", () -> !isLastLinkEnabled()));
         last.add(lastLink);
 
         Label lastLinkLabel = new Label(ID_LAST_LINK_LABEL, getString("NavigatorPanel.lastLink"));
         lastLinkLabel.setOutputMarkupId(true);
         lastLink.add(lastLinkLabel);
+    }
+
+    private boolean isLastLinkEnabled() {
+        return !isCountingDisabled() && BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled();
     }
 
     private boolean isPreviousEnabled() {
