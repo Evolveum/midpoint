@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="2a572852-c12d-11f0-83c6-9b5ebb5d1de4">
+    <name>Good Business Role With Filter In Ref</name>
+    <documentation>
+        Business role that has a filter in targetRef, no bad things.
+    </documentation>
+    <assignment>
+        <!-- Business role archetype.
+             Make sure the default business role archetype does not ruin definition of expression profile. -->
+        <targetRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <!-- Harmless role -->
+        <targetRef type="RoleType">
+            <filter>
+                <q:text>name = 'Harmless Role'</q:text>
+            </filter>
+        </targetRef>
+    </inducement>
+</role>
