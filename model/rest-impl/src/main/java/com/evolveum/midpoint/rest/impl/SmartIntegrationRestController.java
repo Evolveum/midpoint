@@ -115,7 +115,8 @@ public class SmartIntegrationRestController extends AbstractRestController {
     public ResponseEntity<?> suggestMappings(
             @RequestParam("resourceOid") String resourceOid,
             @RequestParam("kind") String kind,
-            @RequestParam("intent") String intent) {
+            @RequestParam("intent") String intent,
+            @RequestParam("filters") MappingsSuggestionFiltersType filters) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_MAPPINGS);
 
@@ -124,7 +125,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
                     ShadowKindType.fromValue(kind),
                     intent
             );
-            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid, resourceObjectTypeIdentification, task, result);
+            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid, resourceObjectTypeIdentification, filters, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);

@@ -213,9 +213,26 @@ public class AiUtil {
 
     /** Returns a user-friendly message if the filter is marked as invalid. */
     public static @Nullable String getFilterInvalidMessage(@Nullable PrismValue value){
-        boolean markedAsInvalid = isMarkedAsInvalid(value);
-        //TODO implement logic to get actual validation error message
-        return markedAsInvalid ? "This filter is invalid. Update or remove it to continue." : null;
+        if (value == null || !value.hasValueMetadata()) {
+            return null;
+        }
+
+        ValueMetadata vmc = value.getValueMetadata();
+        if (vmc.hasNoValues()) {
+            return null;
+        }
+
+        for (PrismContainerValue<Containerable> pcv : vmc.getValues()) {
+            ValueMetadataType vmType = pcv.getRealValue();
+            if (vmType != null && vmType.getValidation() != null) {
+                String msg = vmType.getValidation().getValidationError();
+                if (msg != null && !msg.isBlank()) {
+                    return msg;
+                }
+            }
+        }
+
+        return isMarkedAsInvalid(value) ? "This filter is invalid. Update or remove it to continue." : null;
     }
 
     private static boolean hasErrorValidation(@NotNull PrismValue value) {

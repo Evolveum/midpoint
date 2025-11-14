@@ -275,7 +275,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     private @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getInboundMappingColumns() {
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
-        columns.add(getMappingUsedIconColumn("tile-column-icon"));
+        if (getMappingType() == MappingDirection.INBOUND) {
+            columns.add(getMappingUsedIconColumn("tile-column-icon"));
+        }
 
         columns.add(new IconColumn<>(Model.of()) {
 

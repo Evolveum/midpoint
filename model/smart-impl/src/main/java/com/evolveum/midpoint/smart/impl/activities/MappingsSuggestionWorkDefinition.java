@@ -11,6 +11,9 @@ import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFacto
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionFiltersType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkDefinitionType;
+
 /**
  * Work definition marker for mappings suggestions.
  *
@@ -19,7 +22,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MappingsSuggestionWorkDefinition extends ObjectTypeRelatedSuggestionWorkDefinition {
 
+    private final MappingsSuggestionFiltersType filters;
+
     MappingsSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
+        var workDefinition = (MappingsSuggestionWorkDefinitionType) info.getBean();
+        this.filters = workDefinition.getFilters();
+    }
+
+    public MappingsSuggestionFiltersType getFilters() {
+        return filters;
     }
 }

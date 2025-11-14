@@ -10392,7 +10392,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectTypeRelatedSuggestionWorkDefinitionType"/>
+            <xsd:extension base="tns:ObjectTypeRelatedSuggestionWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="filters" type="tns:MappingsSuggestionFiltersType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Filters for the mappings suggestion (e.g., inbound/outbound selection).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="mappingsSuggestionWorkDefinition" type="tns:MappingsSuggestionWorkDefinitionType"/>

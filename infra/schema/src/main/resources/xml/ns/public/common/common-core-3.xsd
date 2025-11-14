@@ -9696,6 +9696,18 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="OutboundMappingType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:MappingType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="InboundMappingEvaluationPhasesType">
         <xsd:annotation>
             <xsd:documentation>
