@@ -127,6 +127,10 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         return new MappingsSuggestionFiltersType().includeInbounds(true);
     }
 
+    private static MappingsSuggestionFiltersType outboundFilters() {
+        return new MappingsSuggestionFiltersType().includeOutbounds(true);
+    }
+
     private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
         executeChanges(
                 deltaFor(UserType.class)
@@ -331,6 +335,356 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
                 .as("Expression should still be present. This should be secured with retry mechanism.")
                 .isNotNull();
+    }
+
+    @Test
+    public void test010OutboundAsIsMappingWhenDataIdentical() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)),
+                List.of(EMAIL.path())
+        );
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                outboundFilters(),
+                task,
+                result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+
+        assertThat(mapping.getExpectedQuality()).isEqualTo(1.0f);
+        assertThat(mapping.getDefinition().getOutbound().getExpression())
+                .as("Outbound asIs should have null expression")
+                .isNull();
+    }
+
+    @Test
+    public void test011OutboundTransformationWhenScriptProvided() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Ensure shadow side has plain numeric personal numbers (previous tests may have dashed)
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "11111");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "22222");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33333");
+
+        // Focus has dashed personal numbers, shadow has plain => requires transform for outbound
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "1-1-1-1-1");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "2-222-2");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33-3-33");
+
+        refreshShadows();
+
+        String script = "input.replaceAll('-', '')";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                script
+        );
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                outboundFilters(),
+                task,
+                result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getExpectedQuality()).isEqualTo(1.0f);
+        assertThat(mapping.getDefinition().getOutbound().getExpression())
+                .as("Outbound should contain a script expression returned by the service")
+                .isNotNull();
+    }
+
+    @Test
+    public void test012OutboundInvalidScriptShouldBeIgnored() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Ensure shadow side has plain numeric personal numbers
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "11111");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "22222");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33333");
+
+        // Keep dashed focus numbers to force script path
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "1-1-1-1-1");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "2-222-2");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33-3-33");
+
+        refreshShadows();
+
+        String invalidScript = "input.repalceAll('-', '')"; // misspelled
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                invalidScript,
+                invalidScript
+        );
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                outboundFilters(),
+                task,
+                result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("Invalid outbound script should result in no mapping being produced")
+                .hasSize(0);
+    }
+
+    @Test
+    public void test013OutboundInvalidScriptWithCorrectRetry() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Ensure shadow side has plain numeric personal numbers
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "11111");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "22222");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33333");
+
+        // Keep dashed focus numbers to force script path
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "1-1-1-1-1");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "2-222-2");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33-3-33");
+
+        refreshShadows();
+
+        String invalidScript = "input.repalceAll('-', '')";
+        String validScript = "input.replaceAll('-', '')";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                invalidScript,
+                validScript
+        );
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                outboundFilters(),
+                task,
+                result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getExpectedQuality()).isEqualTo(1.0f);
+        assertThat(mapping.getDefinition().getOutbound().getExpression()).isNotNull();
+    }
+
+    @Test(expectedExceptions = com.evolveum.midpoint.util.exception.ConfigurationException.class)
+    public void test020DirectionResolutionErrorBothDirections() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var filters = new MappingsSuggestionFiltersType().includeInbounds(true).includeOutbounds(true);
+        var op = MappingsSuggestionOperation.init(
+                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
+                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
+                filters, task, result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        // Should throw
+        op.suggestMappings(result, statistics, match);
+    }
+
+    @Test(expectedExceptions = com.evolveum.midpoint.util.exception.ConfigurationException.class)
+    public void test021DirectionResolutionErrorNoneSelected() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var filters = new MappingsSuggestionFiltersType(); // neither inbound nor outbound selected
+        var op = MappingsSuggestionOperation.init(
+                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
+                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
+                filters, task, result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        // Should throw
+        op.suggestMappings(result, statistics, match);
+    }
+
+    @Test
+    public void test030NoSchemaMatchReturnsEmptySuggestion() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        refreshShadows();
+
+        // Empty match response
+        var mockClient = createClient(List.of(), List.of());
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
+                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
+                inboundFilters(), task, result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        assertThat(suggestion.getAttributeMappings()).isEmpty();
+    }
+
+    @Test
+    public void test040MultipleAttributesInboundAsIs() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Ensure both sides match for personal number (previous outbound tests changed focus values)
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "11111");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "22222");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33333");
+        // And keep shadow values aligned as well
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "11111");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "22222");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33333");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER), ItemPath.create(UserType.F_EMAIL_ADDRESS)),
+                List.of(PERSONAL_NUMBER.path(), EMAIL.path()),
+                "input", "input"
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
+                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
+                inboundFilters(), task, result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        assertThat(suggestion.getAttributeMappings()).hasSize(2);
+        assertThat(suggestion.getAttributeMappings())
+                .allSatisfy(m -> assertThat(m.getDefinition().getInbound().get(0).getExpression()).isNull());
+    }
+
+    @Test
+    public void test050IdentityScriptProducesAsIs() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        refreshShadows();
+
+        String identity = "input";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                identity
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
+                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
+                inboundFilters(), task, result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
+                .as("Identity script must be treated as asIs (null expression)")
+                .isNull();
+        assertThat(mapping.getExpectedQuality()).isEqualTo(1.0f);
+    }
+
+    @Test
+    public void test060InboundAllTargetMissingAsIsWithNoSamples() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Remove focus personal numbers => target missing for inbound
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER));
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER));
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER));
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
+                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
+                inboundFilters(), task, result);
+
+        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getDefinition().getInbound().get(0).getExpression()).isNull();
+        assertThat(mapping.getExpectedQuality())
+                .as("With no comparable samples, expected quality should be 0.0")
+                .isEqualTo(0.0f);
     }
 
 }
