@@ -339,6 +339,10 @@ It is likely that this configuration of expression profiles will be applied by d
 While expression profiles are enforced at commonly-used locations, it is not guaranteed that they are enforced at all the places where expression can be present.
 When security of your deployment relies on expression profiles, make sure that expression profiles are properly applied at all the places where you are delegating access.
 
+* Expression profiles may not be completely enforced in midPoint user interface (GUI).
+Therefore, security of expressions used in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration (`adminGuiConfig`)] cannot be guaranteed.
+Make sure that only trusted top-tier system administrators have ability to modify `adminGuiConfig` configuration in any midPoint object.
+
 * Sandboxing of scripting expressions is inherently limited by many factors, especially by the complexity of the scripting language itself.
 Therefore, practical applicability of scripting permission profiles is very limited.
 We recommend to use script sandboxing and permission profiles only as an additional layer of protection.
