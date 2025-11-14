@@ -259,7 +259,7 @@ The semi-safe configuration recommends to apply expression profiles in the follo
 | Identity administrators and agents (e.g. helpdesk) +
 Users (self) for self-service purposes
 
-| Role, Org, Service
+| Role, Org, Service, Report
 | `safe`
 | Delegated administrators, e.g. role manager, organizational structure manager
 
