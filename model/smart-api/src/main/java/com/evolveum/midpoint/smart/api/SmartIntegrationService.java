@@ -245,6 +245,7 @@ public interface SmartIntegrationService {
             String resourceOid,
             Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
             Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
+            boolean isInbound,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,

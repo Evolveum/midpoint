@@ -103,9 +103,10 @@ public class AssociationsSuggestionActivityHandler
             var subjectTypes = getWorkDefinition().getSubjectTypeIdentifications();
             var objectTypes = getWorkDefinition().getObjectTypeIdentifications();
 
+            var isInbound = true; // TODO: parametrize, it would be better represented by some enumeration
             var suggestedAssociations =
                     SmartIntegrationBeans.get().smartIntegrationService.suggestAssociations(
-                            resourceOid, subjectTypes, objectTypes, task, result);
+                            resourceOid, subjectTypes, objectTypes, isInbound, task, result);
 
             var state = getActivityState();
             state.setWorkStateItemRealValues(

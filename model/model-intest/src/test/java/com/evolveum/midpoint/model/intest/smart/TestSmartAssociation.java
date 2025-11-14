@@ -166,8 +166,9 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void testSmartAssociation_shouldSuggestCorrectAssociationStructure() throws Exception {
-        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES);
+    public void testSmartAssociation_shouldSuggestCorrectInboundAssociationStructure() throws Exception {
+        var isInbound = true;
+        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES, isInbound);
 
         var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"));
 
@@ -192,6 +193,95 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 <association>
                     <ref>ri:contract</ref>
                     <sourceAttributeRef>ri:contract</sourceAttributeRef>
+                    <inbound>
+                        <name>AccountPerson-EntitlementContract-inbound</name>
+                        <expression>
+                            <associationSynchronization xsi:type="c:AssociationSynchronizationExpressionEvaluatorType">
+                                <objectRef>
+                                    <correlator/>
+                                    <mapping>
+                                        <expression>
+                                            <shadowOwnerReferenceSearch/>
+                                        </expression>
+                                        <target>
+                                            <path>targetRef</path>
+                                        </target>
+                                    </mapping>
+                                </objectRef>
+                                <synchronization>
+                                    <reaction>
+                                        <situation>unmatched</situation>
+                                        <actions>
+                                            <addFocusValue/>
+                                        </actions>
+                                    </reaction>
+                                    <reaction>
+                                        <situation>matched</situation>
+                                        <actions>
+                                            <synchronize/>
+                                        </actions>
+                                    </reaction>
+                                </synchronization>
+                            </associationSynchronization>
+                        </expression>
+                    </inbound>
+                </association>
+            </subject>
+            <object>
+                <ref>contract</ref>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>contract</intent>
+                </objectType>
+            </object>
+        </definition>
+        """);
+        assertEqualsMultiline("body of association should be equal", expectedValue, actualValue);
+    }
+
+    @Test
+    public void testSmartAssociation_shouldSuggestCorrectOutboundAssociationStructure() throws Exception {
+        var isOutbound = false;
+        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES, isOutbound);
+
+        var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"));
+
+        assertThat(suggestion.getDefinition().getDescription())
+                .as("association has non empty description")
+                .isNotEmpty();
+
+        // exclude attributes not important to the full assertion
+        suggestion.getDefinition().setDescription(null); // don't need to diff
+
+        var actualValue = prettySerialize(suggestion);
+        var expectedValue = dedent("""
+        <definition>
+            <name>ri:AccountPerson-EntitlementContract</name>
+            <displayName>AccountPerson-EntitlementContract</displayName>
+            <subject>
+                <ref>person</ref>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>person</intent>
+                </objectType>
+                <association>
+                    <ref>ri:contract</ref>
+                    <sourceAttributeRef>ri:contract</sourceAttributeRef>
+                    <outbound>
+                        <name>AccountPerson-EntitlementContract-outbound</name>
+                        <strength>strong</strength>
+                        <expression>
+                            <associationConstruction xsi:type="c:AssociationConstructionExpressionEvaluatorType">
+                                <objectRef>
+                                    <mapping>
+                                        <expression>
+                                            <associationFromLink/>
+                                        </expression>
+                                    </mapping>
+                                </objectRef>
+                            </associationConstruction>
+                        </expression>
+                    </outbound>
                 </association>
             </subject>
             <object>
@@ -289,6 +379,11 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     }
 
     private List<AssociationSuggestionType> prepareAndSuggestAssociations(List<ResourceObjectTypeIdentification> objectTypes) throws Exception {
+        var isInbound = true;
+        return prepareAndSuggestAssociations(objectTypes, isInbound);
+    }
+
+    private List<AssociationSuggestionType> prepareAndSuggestAssociations(List<ResourceObjectTypeIdentification> objectTypes, boolean isInbound) throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -299,6 +394,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 RESOURCE_OID,
                 objectTypes,
                 objectTypes,
+                isInbound,
                 task,
                 result
         );

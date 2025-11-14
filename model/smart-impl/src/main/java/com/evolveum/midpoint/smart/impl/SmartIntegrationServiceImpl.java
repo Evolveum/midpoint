@@ -960,6 +960,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid,
             Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
             Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
+            boolean isInbound,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -972,13 +973,12 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try {
             var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
             var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-            var nativeSchema = resourceSchema.getNativeSchema();
 
             LOGGER.trace("Suggesting associations for resourceOid {}, subjectTypeIdentifications {}, objectTypeIdentifications {}",
                     resourceOid, subjectTypeIdentifications, objectTypeIdentifications);
 
             return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable(),
-                    subjectTypeIdentifications, objectTypeIdentifications, false);
+                    subjectTypeIdentifications, objectTypeIdentifications, false, isInbound);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
