@@ -68,8 +68,9 @@ public class DateTimePickerPanel extends InputPanel {
                 : dateTimePickerOptions.toJsConfiguration();
         String messageOpen = getString("DateTimePickerPanel.pickerOpened");
         String messageClose = getString("DateTimePickerPanel.pickerClosed");
-        return String.format("MidPointTheme.initDateTimePicker(%s, %s, '%s', '%s', '%s');",
-                getMarkupId(), config, ID_PICKER_STATUS, messageOpen, messageClose);
+        String messageCurrent = getString("DateTimePickerPanel.messageCurrentValue");
+        return String.format("MidPointTheme.initDateTimePicker(%s, %s, '%s', '%s', '%s', '%s');",
+                getMarkupId(), config, ID_PICKER_STATUS, messageOpen, messageClose, messageCurrent);
     }
 
     private void initLayout(IModel<Date> model) {

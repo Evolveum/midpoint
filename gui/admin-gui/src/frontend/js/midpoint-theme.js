@@ -826,7 +826,7 @@ export default class MidPointTheme {
         }
     }
 
-    initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose) {
+    initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose, messageCurrent) {
         const picker = new TempusDominus(containerId, configuration);
         const pickerStatus = document.getElementById(pickerStatusId);
 
@@ -848,6 +848,31 @@ export default class MidPointTheme {
             const prevButton = $('.calendar-header .previous');
             const nextButton = $('.calendar-header .next');
 
+            prevButton.attr('role', 'button');
+            prevButton.attr('aria-live', 'assertive');
+            nextButton.attr('role', 'button');
+            nextButton.attr('aria-live', 'assertive');
+
+            const pickerSwitch = $('.calendar-header .picker-switch');
+            pickerSwitch.attr('aria-live', 'assertive');
+            const observer = new MutationObserver(function(mutations) {
+                console.info("macko usko");
+
+                window.MidPointTheme.updateAriaDescription(prevButton, messageCurrent);
+                window.MidPointTheme.updateAriaDescription(nextButton, messageCurrent);
+            });
+            observer.observe(
+                pickerSwitch[0],
+                {
+                    attributes: true,
+                    childList: true,
+                    subtree: true,
+                    characterData: true}
+            );
+
+            window.MidPointTheme.updateAriaDescription(prevButton, messageCurrent);
+            window.MidPointTheme.updateAriaDescription(nextButton, messageCurrent);
+
             prevButton.on('click', function () {
                 event.preventDefault();
                 const button = $(this);
@@ -859,8 +884,17 @@ export default class MidPointTheme {
                 const button = $(this);
                 button.focus();
             });
-
         });
+    }
+
+    updateAriaDescription(button, messageCurrent) {
+        var value = button.siblings('.picker-switch').text()
+
+        console.info("updateAriaDescription with value:", value);
+
+        const formatted = messageCurrent.replace("{0}", value);
+
+        button.attr('aria-label', formatted);
     }
 
     createCurrentDateForDatePicker(containerId, configuration) {
