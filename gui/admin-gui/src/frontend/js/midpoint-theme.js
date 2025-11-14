@@ -847,6 +847,8 @@ export default class MidPointTheme {
         picker.subscribe('show.td', () => {
             const prevButton = $('.calendar-header .previous');
             const nextButton = $('.calendar-header .next');
+            const monthLabelEl = $('div.picker-switch').get(0);
+            monthLabelEl.setAttribute("aria-live", "polite");
 
             prevButton.on('click', function () {
                 event.preventDefault();
