@@ -290,7 +290,7 @@ The recommended way to apply the profiles is to use `defaultObjectPolicyConfigur
 
 The specific configuration of expression profiles is somehow deployment-specific.
 E.g. some deployments may allow script expression in xref:/midpoint/reference/misc/services/[Service objects], others may not.
-Also, some advanced deployments may require script expressions in xref:/midpoint/reference/master/schema/policy/[Policy objects], while most deployments can be probably safer with script expression disabled in the policies.
+Also, some advanced deployments may require script expressions in xref:/midpoint/reference/schema/policy/[Policy objects], while most deployments can be probably safer with script expression disabled in the policies.
 In case that a finer-grain control over expression evaluation is needed, expression profiles can be applied at archetype level as well.
 
 Disabling script expressions in roles and similar objects does not mean that roles cannot use complex algorithms at all.
@@ -303,7 +303,7 @@ A script in a function library can be used by another expression by using the `f
 The `function` expression evaluator is considered safe, therefore it can be used in roles and similar objects as well.
 
 Similar method is utilizing xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[meta-role mechanism].
-Complex script algorithms are placed into meta-roles, such as xref:/midpoint/reference/schema/archetypes/[archetypes] and xref:/midpoint/reference/master/schema/policy/[policies] by a top-tier administrator.
+Complex script algorithms are placed into meta-roles, such as xref:/midpoint/reference/schema/archetypes/[archetypes] and xref:/midpoint/reference/schema/policy/[policies] by a top-tier administrator.
 The delegated administrators simply "use" the meta-roles by assigning them to their roles.
 
 WARNING: Scripting expressions are powerful executable code, with almost unlimited capabilities.
