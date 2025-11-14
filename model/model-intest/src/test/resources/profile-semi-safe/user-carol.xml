@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<user oid="b098abb3-dc82-4d4f-8e7b-93742a7eeb35"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:exmpl="http://example.com/xml/ns/midpoint/schema"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>carol</name>
+    <fullName>Carol Cooper</fullName>
+    <givenName>Carol</givenName>
+    <familyName>Cooper</familyName>
+    <personalNumber>003</personalNumber>
+</user>

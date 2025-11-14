@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="d75ca578-c131-11f0-8ce5-b3ed67b6be8d">
+    <name>Business Role With Malicious Filter In Ref</name>
+    <documentation>
+        Business role that has a filter in targetRef, the filter has malicious expression in it.
+    </documentation>
+    <assignment>
+        <!-- Business role archetype.
+             Make sure the default business role archetype does not ruin definition of expression profile. -->
+        <targetRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <targetRef type="RoleType">
+            <filter>
+                <q:text>name = `com.evolveum.midpoint.model.intest.TestExpressionProfiles.boom()`</q:text>
+            </filter>
+        </targetRef>
+    </inducement>
+</role>

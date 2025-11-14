@@ -13,11 +13,14 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ConnectException;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
 import com.evolveum.midpoint.util.exception.*;
@@ -81,11 +84,17 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
             TEST_DIR, "role-function-reverse.xml", "10898900-b3e1-11f0-a523-cbd9df3e4f0b");
     private static final TestObject<RoleType> ROLE_FUNCTION_MALICIOUS = TestObject.file(
             TEST_DIR, "role-function-malicious.xml", "15298904-b3e3-11f0-9bce-db0c2d0f5a5a");
+    private static final TestObject<RoleType> ROLE_BUSINESS_REF_FILTER_GOOD = TestObject.file(
+            TEST_DIR, "role-business-ref-filter-good.xml", "2a572852-c12d-11f0-83c6-9b5ebb5d1de4");
+    private static final TestObject<RoleType> ROLE_BUSINESS_REF_FILTER_MALICIOUS = TestObject.file(
+            TEST_DIR, "role-business-ref-filter-malicious.xml", "d75ca578-c131-11f0-8ce5-b3ed67b6be8d");
 
     private static final TestObject<UserType> USER_ALICE = TestObject.file(
             TEST_DIR, "user-alice.xml", "8dcc5b00-b318-11f0-a529-9f8b26779770");
     private static final TestObject<UserType> USER_BOB = TestObject.file(
             TEST_DIR, "user-bob.xml", "2c1955f8-b335-11f0-b7f1-e30fee0b1bdf");
+    private static final TestObject<UserType> USER_CAROL = TestObject.file(
+            TEST_DIR, "user-carol.xml", "b098abb3-dc82-4d4f-8e7b-93742a7eeb35");
     private static final TestObject<UserType> USER_DAVE = TestObject.file(
             TEST_DIR, "user-dave.xml", "e756da24-b3e5-11f0-bde5-6be66deb5c92");
     private static final TestObject<UserType> USER_MALLORY = TestObject.file(
@@ -114,7 +123,8 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
                 ROLE_MALICIOUS_BUSINESS_INDUCEMENT_CONDITION,
                 ROLE_FUNCTION_REVERSE,
                 ROLE_FUNCTION_MALICIOUS,
-                FUNCTION_LIBRARY_SUPPORT);
+                FUNCTION_LIBRARY_SUPPORT,
+                USER_CAROL);
     }
 
     @Override
@@ -404,6 +414,189 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
 
         BOOMED_FLAG.assertNotSet();
     }
+
+    /** Add business role with filter in ref.
+     * Everything should go smoothly. */
+    @Test
+    public void test500AddRoleBusinessRefFilterGood() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        when();
+        addObject(ROLE_BUSINESS_REF_FILTER_GOOD, task, result);
+
+        then("role is created");
+        assertSuccess(result);
+        assertRoleAfter(ROLE_BUSINESS_REF_FILTER_GOOD.oid)
+                .display();
+                // We do not have appropriate inducements asserters here, do it later
+
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /**
+     * TODO.
+     * Everything should go smoothly.
+     */
+    @Test
+    public void test502AssignCarolRoleBusinessRefFilterGood() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        when();
+        when();
+        assignRole(USER_CAROL.oid, ROLE_BUSINESS_REF_FILTER_GOOD.oid, task, result);
+
+
+        then();
+        assertSuccess(result);
+        assertUserAfter(USER_CAROL.oid)
+                .display()
+                .assertAssignments(1)
+                .assignments()
+                    .assertRole(ROLE_BUSINESS_REF_FILTER_GOOD.oid);
+
+        assertDummyAccountByUsername(RESOURCE_SCRIPTED_TARGET.name, USER_CAROL.getNameOrig())
+                .display()
+                .assertFullName(USER_CAROL.getObjectable().getFullName().getOrig())
+                .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
+                        ROLE_HARMLESS_TITLE);
+
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /**
+     * TODO.
+     * Everything should go smoothly.
+     */
+    @Test
+    public void test509UnassignCarolRoleBusinessRefFilterGood() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        when();
+        when();
+        unassignRole(USER_CAROL.oid, ROLE_BUSINESS_REF_FILTER_GOOD.oid, task, result);
+
+
+        then();
+        assertSuccess(result);
+        assertUserAfter(USER_CAROL.oid)
+                .display()
+                .assertAssignments(0);
+
+        assertNoDummyAccount(RESOURCE_SCRIPTED_TARGET.name, USER_CAROL.getNameOrig());
+
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /** Adding a role with a malicious script in filter in targetRef.
+     * For some reason, the filter is not resolved at this point, making this operation a success.
+     * However, what is important is that the script code was NOT executed (no "boom").
+     * (See #10947)
+     */
+    @Test
+    public void test510AddRoleBusinessRefFilterMalicious() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        when();
+        addObject(ROLE_BUSINESS_REF_FILTER_MALICIOUS, task, result);
+
+        then("role is created");
+        assertSuccess(result);
+        assertRoleAfter(ROLE_BUSINESS_REF_FILTER_MALICIOUS.oid)
+                .display();
+        // We do not have appropriate inducements asserters here, do it later
+
+        // This is important
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /**
+     * Assigning a role with has malicious expression in filter in targetRef.
+     * This reference was not resolved before, therefore midPoint tries to resolve it.
+     * It should fail, as groovy expressions are not allowed for roles.
+     * (See #10947)
+     */
+    @Test
+    public void test512AssignCarolRoleBusinessRefFilterMalicious() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        try {
+            when();
+            assignRole(USER_CAROL.oid, ROLE_BUSINESS_REF_FILTER_MALICIOUS.oid, task, result);
+
+        } catch (SecurityViolationException e) {
+            // Expected exception
+            then();
+            assertFailure(result);
+            assertExpectedException(e)
+                    .hasMessageContaining("Access to script expression evaluator not allowed");
+        }
+
+        then();
+        assertUserAfter(USER_CAROL.oid)
+                .display()
+                .assertAssignments(0);
+
+        assertNoDummyAccount(RESOURCE_SCRIPTED_TARGET.name, USER_CAROL.getNameOrig());
+
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /** Just a clean up.
+     * Everything should go smoothly. */
+    @Test
+    public void test519DeleteRoleBusinessRefFilterMalicious() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        when();
+        deleteObject(RoleType.class, ROLE_BUSINESS_REF_FILTER_MALICIOUS.oid, task, result);
+
+        then("role is deleted");
+        assertSuccess(result);
+        assertNoObject(RoleType.class, ROLE_BUSINESS_REF_FILTER_MALICIOUS.oid);
+
+        BOOMED_FLAG.assertNotSet();
+    }
+
+    /** Filter expressions are ignored during import.
+     * Therefore, the import should fail due to unresolvable reference.
+     * However, that is not really important.
+     * The important check is that the "boom" expression was no evaluated.
+     * (See #10947)
+     */
+    @Test
+    public void test520ImportRoleBusinessRefFilterMalicious() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        resetBoomed();
+
+        when();
+        try (InputStream stream = ROLE_BUSINESS_REF_FILTER_MALICIOUS.getInputStream()) {
+            modelService.importObjectsFromStream(
+                    stream, PrismContext.LANG_XML, MiscSchemaUtil.getDefaultImportOptions(), task, result);
+        }
+
+        then();
+        // Not really important
+        assertFailure(result);
+        assertNoObject(RoleType.class, ROLE_BUSINESS_REF_FILTER_MALICIOUS.oid);
+        // We do not have appropriate inducements asserters here, do it later
+
+        // This is *very* important check
+        BOOMED_FLAG.assertNotSet();
+    }
+
 
     private static void resetBoomed() {
         BOOMED_FLAG.reset();
