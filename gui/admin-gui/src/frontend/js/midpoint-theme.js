@@ -848,30 +848,7 @@ export default class MidPointTheme {
             const prevButton = $('.calendar-header .previous');
             const nextButton = $('.calendar-header .next');
 
-            prevButton.attr('role', 'button');
-            prevButton.attr('aria-live', 'assertive');
-            nextButton.attr('role', 'button');
-            nextButton.attr('aria-live', 'assertive');
-
-            const pickerSwitch = $('.calendar-header .picker-switch');
-            pickerSwitch.attr('aria-live', 'assertive');
-            const observer = new MutationObserver(function(mutations) {
-                console.info("macko usko");
-
-                window.MidPointTheme.updateAriaDescription(prevButton, messageCurrent);
-                window.MidPointTheme.updateAriaDescription(nextButton, messageCurrent);
-            });
-            observer.observe(
-                pickerSwitch[0],
-                {
-                    attributes: true,
-                    childList: true,
-                    subtree: true,
-                    characterData: true}
-            );
-
-            window.MidPointTheme.updateAriaDescription(prevButton, messageCurrent);
-            window.MidPointTheme.updateAriaDescription(nextButton, messageCurrent);
+            window.MidPointTheme.improveDateTimePickerAccessibility(prevButton, nextButton, messageCurrent);
 
             prevButton.on('click', function () {
                 event.preventDefault();
@@ -887,10 +864,36 @@ export default class MidPointTheme {
         });
     }
 
-    updateAriaDescription(button, messageCurrent) {
-        var value = button.siblings('.picker-switch').text();
+    /**
+     * Improve accessibility of DateTime picker by adding ARIA attributes to prev/next buttons (WCAG).
+     */
+    improveDateTimePickerAccessibility(prevButton, nextButton, messageCurrent) {
+        prevButton.attr('role', 'button');
+        prevButton.attr('aria-live', 'assertive');
+        nextButton.attr('role', 'button');
+        nextButton.attr('aria-live', 'assertive');
 
-        console.info("updateAriaDescription with value:", value);
+        const pickerSwitch = $('.calendar-header .picker-switch');
+        pickerSwitch.attr('aria-live', 'assertive');
+        const observer = new MutationObserver(function(mutations) {
+            window.MidPointTheme.updateAriaDescription(prevButton, messageCurrent);
+            window.MidPointTheme.updateAriaDescription(nextButton, messageCurrent);
+        });
+        observer.observe(
+            pickerSwitch[0],
+            {
+                attributes: true,
+                childList: true,
+                subtree: true,
+                characterData: true}
+        );
+
+        window.MidPointTheme.updateAriaDescription(prevButton, messageCurrent);
+        window.MidPointTheme.updateAriaDescription(nextButton, messageCurrent);
+    }
+
+    updateAriaDescription(button, messageCurrent) {
+        const value = button.siblings('.picker-switch').text();
 
         const formatted = messageCurrent.replace("{0}", value);
 
