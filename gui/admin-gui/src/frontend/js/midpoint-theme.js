@@ -866,6 +866,9 @@ export default class MidPointTheme {
 
     /**
      * Improve accessibility of DateTime picker by adding ARIA attributes to prev/next buttons (WCAG).
+     *
+     * @param messageCurrent is loaded from localization on server side.
+     *      It should contain "{0}" placeholder for current value (month/year).
      */
     improveDateTimePickerAccessibility(prevButton, nextButton, messageCurrent) {
         prevButton.attr('role', 'button');
@@ -875,6 +878,7 @@ export default class MidPointTheme {
 
         const pickerSwitch = $('.calendar-header .picker-switch');
         pickerSwitch.attr('aria-live', 'assertive');
+        // we'll watch for pickerSwitch div changes to update aria description on previous/next buttons
         const observer = new MutationObserver(function(mutations) {
             window.MidPointTheme.updateAriaDescription(prevButton, messageCurrent);
             window.MidPointTheme.updateAriaDescription(nextButton, messageCurrent);
@@ -888,13 +892,14 @@ export default class MidPointTheme {
                 characterData: true}
         );
 
+        // initially set value for previous/next button
         window.MidPointTheme.updateAriaDescription(prevButton, messageCurrent);
         window.MidPointTheme.updateAriaDescription(nextButton, messageCurrent);
     }
 
     updateAriaDescription(button, messageCurrent) {
+        // this should be "current value" for the picker (month/year)
         const value = button.siblings('.picker-switch').text();
-
         const formatted = messageCurrent.replace("{0}", value);
 
         button.attr('aria-label', formatted);
