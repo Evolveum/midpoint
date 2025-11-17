@@ -188,7 +188,7 @@ public class NavigatorPanel extends BasePanel {
 
     private IModel<String> getPageLinkAriaLabelModel(long pageNumber) {
         long realPageNumber = pageNumber + 1;
-        return getPageBase().createStringResource("NavigatorPanel.pageLink.pageWithNumber", realPageNumber);
+        return getParentPage().createStringResource("NavigatorPanel.pageLink.pageWithNumber", realPageNumber);
     }
 
     private long computePageNumber(int loopIndex) {

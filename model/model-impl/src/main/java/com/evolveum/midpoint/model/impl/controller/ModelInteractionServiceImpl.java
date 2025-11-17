@@ -2254,6 +2254,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<? extends Containerable> type = null;
 
+        if (collectionConfig == null) {
+            collectionConfig = new CollectionRefSpecificationType();
+        }
+
         if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
             LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
             throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
@@ -2288,7 +2292,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        Class<? extends Containerable> type = null;
+
+        Class<? extends Containerable> type;
+
+        if (collectionConfig == null) {
+            collectionConfig = new CollectionRefSpecificationType();
+        }
 
         if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
             LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
