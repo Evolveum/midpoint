@@ -2289,11 +2289,11 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ActivityPolicyActionType">
                 <xsd:sequence>
-                    <xsd:element name="delay" type="xsd:int" minOccurs="0" default="5">
+                    <xsd:element name="delay" type="xsd:duration" minOccurs="0" default="PT5S">
                         <xsd:annotation>
                             <xsd:documentation>
-                                What delay (in seconds) to introduce between attempts. Actual delay is taken as
-                                a random number between 0 and delay*(2^(n-1)), where n is the number attempts so far.
+                                What delay to introduce between attempts. Actual delay is taken as a random
+                                number between 0 and delay*(2^(n-1)), where n is the number attempts so far.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

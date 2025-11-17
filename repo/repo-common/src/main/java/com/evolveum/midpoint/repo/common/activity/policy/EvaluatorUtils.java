@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-import javax.xml.datatype.Duration;
-
 public class EvaluatorUtils {
 
     public enum ThresholdType {
