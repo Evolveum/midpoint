@@ -156,13 +156,16 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             @NotNull PrismValueWrapper<T> prismValueWrapper) {
 
         ItemPath path = propertyWrapper.getPath().namedSegmentsOnly();
+
+        ItemPath baseContextFilterPath = ItemPath.create(
+                ResourceObjectTypeDefinitionType.F_BASE_CONTEXT,
+                ResourceObjectTypeDelineationType.F_FILTER);
+
         ItemPath delineationFilterPath = ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_OBJECT_TYPE,
                 ResourceObjectTypeDefinitionType.F_DELINEATION,
                 ResourceObjectTypeDelineationType.F_FILTER);
 
-        if (!path.equals(delineationFilterPath)) {
+        if (!path.endsWith(delineationFilterPath) && !path.endsWith(baseContextFilterPath)) {
             return false;
         }
 
