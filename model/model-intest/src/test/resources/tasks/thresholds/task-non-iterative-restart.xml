@@ -47,7 +47,6 @@
                 <policyActions>
                     <restartActivity>
                         <delay>2</delay>
-                        <restartCounters>true</restartCounters>
                     </restartActivity>
                 </policyActions>
                 <order>20</order>

@@ -32,8 +32,8 @@ public class ActivityStateOverviewUtil {
         return findOrCreateEntry(current, path, true);
     }
 
-    public static @Nullable ActivityStateOverviewType findEntry(@NotNull ActivityStateOverviewType current,
-            @NotNull ActivityPath path) {
+    public static @Nullable ActivityStateOverviewType findEntry(
+            @NotNull ActivityStateOverviewType current, @NotNull ActivityPath path) {
         return findOrCreateEntry(current, path, false);
     }
 
@@ -41,8 +41,8 @@ public class ActivityStateOverviewUtil {
      * Finds or creates a state overview entry for given activity path.
      */
     @Contract("_, _, true -> !null")
-    private static @Nullable ActivityStateOverviewType findOrCreateEntry(@NotNull ActivityStateOverviewType current,
-            @NotNull ActivityPath path, boolean create) {
+    private static @Nullable ActivityStateOverviewType findOrCreateEntry(
+            @NotNull ActivityStateOverviewType current, @NotNull ActivityPath path, boolean create) {
         if (path.isEmpty()) {
             return current;
         }
@@ -54,8 +54,8 @@ public class ActivityStateOverviewUtil {
     }
 
     @Contract("_, _, true -> !null")
-    public static @Nullable ActivityStateOverviewType findOrCreateChildEntry(@NotNull ActivityStateOverviewType current,
-            String identifier, boolean create) {
+    public static @Nullable ActivityStateOverviewType findOrCreateChildEntry(
+            @NotNull ActivityStateOverviewType current, String identifier, boolean create) {
         List<ActivityStateOverviewType> matching = current.getActivity().stream()
                 .filter(a -> Objects.equals(a.getIdentifier(), identifier))
                 .collect(Collectors.toList());
@@ -74,6 +74,24 @@ public class ActivityStateOverviewUtil {
             throw new IllegalStateException("State overview entry " + current + " contains " + matching.size() + " entries " +
                     "for activity identifier '" + identifier + "': " + matching);
         }
+    }
+
+    /** Deletes an entry related to given activity path in the tree rooted at `root`. Assumes the path is not empty. */
+    public static void deleteEntry(@NotNull ActivityStateOverviewType root, @NotNull ActivityPath path) {
+        assert !path.isEmpty();
+        while (path.size() > 1) {
+            root = findOrCreateChildEntry(root, path.first(), false);
+            if (root == null) {
+                return; // nothing to delete
+            }
+            path = path.rest();
+        }
+        assert path.size() == 1;
+        deleteChildEntry(root, path.first());
+    }
+
+    private static void deleteChildEntry(@NotNull ActivityStateOverviewType current, String identifier) {
+        current.getActivity().removeIf(a -> Objects.equals(a.getIdentifier(), identifier));
     }
 
     public static @NotNull ActivityStateOverviewType getOrCreateStateOverview(@NotNull TaskType task) {

@@ -1347,14 +1347,16 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_400_SIMPLE_RESTART_ON_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_400_SIMPLE_RESTART_ON_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_400_SIMPLE_RESTART_ON_EXECUTION_TIME.rerunErrorsOk(result);
+        testTask.rerunErrorsOk(result);
+        waitIfRestarting(testTask);
 
         then("the task finished after one restart after exceeding execution time");
         // @formatter:off
-        TASK_400_SIMPLE_RESTART_ON_EXECUTION_TIME.assertAfter()
+        testTask.assertAfter()
                 .display()
                 .assertClosed()
                 .assertSuccess()
@@ -1380,14 +1382,16 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_410_CHILD_RESTART_ON_OWN_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_410_CHILD_RESTART_ON_OWN_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_410_CHILD_RESTART_ON_OWN_EXECUTION_TIME.rerunErrorsOk(result);
+        testTask.rerunErrorsOk(result);
+        waitIfRestarting(testTask);
 
         then("the task is finished and second activity was restarted once after exceeding execution time");
         // @formatter:off
-        TASK_410_CHILD_RESTART_ON_OWN_EXECUTION_TIME.assertAfter()
+        testTask.assertAfter()
                 .display()
                 .assertClosed()
                 .assertSuccess()
@@ -1428,14 +1432,16 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_420_CHILD_RESTART_ON_PARENT_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_420_CHILD_RESTART_ON_PARENT_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's stopped");
-        TASK_420_CHILD_RESTART_ON_PARENT_EXECUTION_TIME.rerunErrorsOk(result);
+        testTask.rerunErrorsOk(result);
+        waitIfRestarting(testTask);
 
         then("the task finish, second activity restarted once after exceeding execution time");
         // @formatter:off
-        TASK_420_CHILD_RESTART_ON_PARENT_EXECUTION_TIME.assertAfter()
+        testTask.assertAfter()
                 .display()
                 .assertClosed()
                 //.assertFatalError()
@@ -1481,8 +1487,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
         when("task is run until it's stopped");
         testTask.rerunTreeErrorsOk(result);
-
-        Thread.sleep(10000); // FIXME we need to give tasks a time to restart
+        waitIfRestarting(testTask);
 
         // @formatter:off
         then("the task tree is finished, second activity (subtask) restarted once after exceeding execution time");
@@ -1523,6 +1528,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
         when("task is run until it's stopped");
         testTask.rerunTreeErrorsOk(result);
+        waitIfRestarting(testTask);
 
         then("the task finishes, task (root activity) is restarted after exceeding execution time");  // todo fix
         // @formatter:off
@@ -1562,14 +1568,15 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME.init(this, task, result);
+        var testTask = TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME;
+        testTask.init(this, task, result);
 
         when("task is run until it's restarted");
-        TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME.rerunTreeErrorsOk(result);
+        testTask.rerunTreeErrorsOk(result);
 
         and("the task and ALL workers are closed"); // they should finish successfully after restart
         waitForTaskTreeCloseOrCondition(
-                TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME.oid,
+                testTask.oid,
                 result,
                 DEFAULT_TIMEOUT,
                 DEFAULT_SLEEP_TIME,
@@ -1577,7 +1584,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
         then("everything is OK");
         // @formatter:off
-        TASK_450_MULTINODE_RESTART_ON_EXECUTION_TIME.assertTreeAfter()// todo fix
+        testTask.assertTreeAfter()// todo fix
                 .assertClosed() // already checked above
                 .rootActivityState()
                     .assertExecutionAttempts(2)
@@ -1610,6 +1617,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
         when("task is run until it's stopped (some workers may continue for a little while)");
         testTask.rerunTreeErrorsOk(result);
+        waitIfRestarting(testTask);
 
         then("root task is closed");
         // @formatter:off
@@ -1652,6 +1660,7 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
         when("task is run until it's stopped (some workers may continue for a little while)");
         testTask.rerunTreeErrorsOk(result);
+        waitIfRestarting(testTask);
 
         then("root task is closed");
         // @formatter:off
@@ -1676,5 +1685,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .end();
         // @formatter:on
         // TODO more asserts
+    }
+
+    private void waitIfRestarting(TestTask testTask) throws InterruptedException, CommonException {
+        and("waiting for the task to close or suspend (if we caught the task in the middle of restart)");
+        Thread.sleep(2000);
+        waitForTaskCloseOrSuspend(testTask.oid, DEFAULT_TIMEOUT);
     }
 }

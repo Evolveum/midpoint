@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -56,17 +56,30 @@ public class ActivityTreePurger {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityTreePurger.class);
 
-    @NotNull private final ActivityBasedTaskRun taskRun;
-    @NotNull private final CommonTaskBeans beans;
+    /** Path of the activity whose state (and state of its descendants) is being purged. */
+    @NotNull private final ActivityPath rootPath;
+
+    /** Task in which we need to start the search for activities to purge. */
+    @NotNull private final RunningTask runningTask;
+
+    /**
+     * If true, then we are restarting the {@link #rootPath} activity, so we need to increment the attempt number.
+     * During one purge operation, there is only one activity being restarted. The attempt number of child activities is
+     * simply cleared (reset).
+     */
+    private final boolean restarting;
+
+    @NotNull private final CommonTaskBeans beans = CommonTaskBeans.get();
 
     /**
      * These paths contain something of interest. So states on the path to them should not be removed.
      */
     @NotNull private final Set<ActivityPath> pathsToKeep = new HashSet<>();
 
-    public ActivityTreePurger(@NotNull ActivityBasedTaskRun taskRun, @NotNull CommonTaskBeans beans) {
-        this.taskRun = taskRun;
-        this.beans = beans;
+    public ActivityTreePurger(@NotNull ActivityPath rootPath, @NotNull RunningTask runningTask, boolean restarting) {
+        this.rootPath = rootPath;
+        this.runningTask = runningTask;
+        this.restarting = restarting;
     }
 
     /**
@@ -76,11 +89,12 @@ public class ActivityTreePurger {
      * * Post: task is refreshed
      */
     public void purge(OperationResult result) throws ActivityRunException {
+        LOGGER.trace("Purging activity state for task {}, root path {}, restarting={}", runningTask, rootPath, restarting);
         try {
-            boolean canDeleteRoot = purgeInTasksRecursively(ActivityPath.empty(), taskRun.getRunningTask(), result);
-            if (canDeleteRoot) {
-                taskRun.getRunningTask().restartCollectingStatisticsFromZero();
-                taskRun.getRunningTask().updateAndStoreStatisticsIntoRepository(true, result);
+            boolean canDeleteRoot = purgeInTasksRecursively(runningTask, result);
+            if (canDeleteRoot && rootPath.isEmpty()) { // TODO implement restarting statistics for non-root activities as well
+                runningTask.restartCollectingStatisticsFromZero();
+                runningTask.updateAndStoreStatisticsIntoRepository(true, result);
             }
         } catch (CommonException e) {
             throw new ActivityRunException("Couldn't purge activity tree state", FATAL_ERROR, PERMANENT_ERROR, e);
@@ -93,15 +107,15 @@ public class ActivityTreePurger {
      * Returns true if nothing of any relevance did remain in the task nor in the subtasks, so the task itself can be deleted
      * if needed.
      */
-    private boolean purgeInTasksRecursively(ActivityPath activityPath, Task currentRootTask, OperationResult result)
+    private boolean purgeInTasksRecursively(Task currentRootTask, OperationResult result)
             throws CommonException {
         boolean noSubtasksLeft = purgeInSubtasks(currentRootTask, result);
-        boolean canDeleteThisTask = purgeInTaskLocally(activityPath, currentRootTask, result);
+        boolean canDeleteThisTask = purgeInTaskLocally(currentRootTask, result);
         return noSubtasksLeft && canDeleteThisTask;
     }
 
-    private boolean purgeInTaskLocally(ActivityPath activityPath, Task task, OperationResult result) throws CommonException {
-        return new TaskStatePurger(activityPath, task)
+    private boolean purgeInTaskLocally(Task task, OperationResult result) throws CommonException {
+        return new TaskStatePurger(task)
                 .doPurge(result);
     }
 
@@ -111,18 +125,28 @@ public class ActivityTreePurger {
      * @return true if there are no subtasks left
      */
     private boolean purgeInSubtasks(Task parent, OperationResult result) throws CommonException {
+        LOGGER.trace("Purging in subtasks of {}, root to purge: {}", parent, rootPath);
         List<? extends Task> subtasks = parent.listSubtasks(true, result);
         for (Iterator<? extends Task> iterator = subtasks.iterator(); iterator.hasNext(); ) {
             Task subtask = iterator.next();
+            LOGGER.trace("Considering subtask {}", subtask);
             TaskActivityStateType taskActivityState = subtask.getActivitiesStateOrClone();
             if (taskActivityState == null) {
                 LOGGER.error("Non-activity related subtask {} of {}. Please resolve manually.", subtask, parent);
                 continue;
             }
-            boolean canDeleteSubtask = purgeInTasksRecursively(
-                    ActivityPath.fromBean(taskActivityState.getLocalRoot()),
-                    subtask,
-                    result);
+            ActivityPath subtaskRoot = ActivityPath.fromBean(taskActivityState.getLocalRoot());
+            boolean canDeleteSubtask;
+            if (subtaskRoot.startsWith(rootPath)) {
+                LOGGER.trace("Activity path {} is inside the subtask (subtask root: {})", rootPath, subtaskRoot);
+                canDeleteSubtask = purgeInTasksRecursively(subtask, result);
+            } else if (rootPath.startsWith(subtaskRoot)) {
+                LOGGER.trace("Activity path {} encompasses the whole subtask (subtask root: {})", rootPath, subtaskRoot);
+                canDeleteSubtask = purgeInTasksRecursively(subtask, result);
+            } else {
+                LOGGER.trace("Activity path {} is not related to subtask (subtask root: {}). Skipping.", rootPath, subtaskRoot);
+                canDeleteSubtask = false;
+            }
             if (canDeleteSubtask) {
                 LOGGER.info("Deleting obsolete subtask {}", subtask);
                 beans.taskManager.deleteTask(subtask.getOid(), result);
@@ -137,16 +161,19 @@ public class ActivityTreePurger {
      */
     private class TaskStatePurger {
 
-        @NotNull private final ActivityPath localRootPath;
+        /** Task in which we are purging the state. */
         @NotNull private final Task task;
+
+        /** Cached activity state of the task. */
         final TaskActivityStateType taskActivityState;
+
+        /** Deltas to be applied to the task, gradually constructed. */
         @NotNull private final List<ItemDelta<?, ?>> deltas = new ArrayList<>();
 
         /** True if nothing of relevance remains in the task, so it can be deleted (if needed). */
         private boolean canDelete;
 
-        private TaskStatePurger(@NotNull ActivityPath activityPath, @NotNull Task task) {
-            this.localRootPath = activityPath;
+        private TaskStatePurger(@NotNull Task task) {
             this.task = task;
             this.taskActivityState = task.getActivitiesStateOrClone();
         }
@@ -161,8 +188,11 @@ public class ActivityTreePurger {
             if (taskActivityState == null || taskActivityState.getActivity() == null) {
                 return true;
             }
+            var taskRoot = ActivityPath.fromBean(taskActivityState.getLocalRoot());
             canDelete = true;
-            doPurge(Context.root(localRootPath, taskActivityState));
+            doPurge(Context.root(taskRoot, taskActivityState));
+            LOGGER.trace("Purging in {} resulted with canDelete={} and deltas:\n{}",
+                    task, canDelete, DebugUtil.debugDumpLazily(deltas, 1));
             if (!deltas.isEmpty()) {
                 beans.repositoryService.modifyObject(TaskType.class, task.getOid(), deltas, result);
                 if (task instanceof RunningTask) {
@@ -173,16 +203,27 @@ public class ActivityTreePurger {
         }
 
         private void doPurge(Context ctx) throws CommonException {
-            LOGGER.trace("doPurge called for {}, processing children", ctx);
-            for (ActivityStateType child : ctx.currentState.getActivity()) {
-                doPurge(
-                        ctx.forChild(child));
+            LOGGER.trace("doPurge called for {} (root to purge: {}), processing children", ctx, rootPath);
+            if (!ctx.currentActivityPath.isRelatedTo(rootPath)) {
+                LOGGER.trace("doPurge skipping {}, not related to root to purge ({})", ctx.currentActivityPath, rootPath);
+                canDelete = false;
+                return;
             }
-            LOGGER.trace("doPurge continuing with {}, paths to keep: {}", ctx.currentActivityPath, pathsToKeep);
-            if (isTransient(ctx.currentState) && hasNoPersistentChild(ctx.currentActivityPath)) {
+            for (ActivityStateType child : ctx.currentState.getActivity()) {
+                doPurge(ctx.forChild(child));
+            }
+            if (!ctx.currentActivityPath.startsWith(rootPath)) {
+                LOGGER.trace("doPurge skipping {}, not inside root to purge ({})", ctx.currentActivityPath, rootPath);
+                canDelete = false;
+                return;
+            }
+            var restartingThis = restarting && ctx.currentActivityPath.equals(rootPath);
+            LOGGER.trace("doPurge continuing with {}, paths to keep: {} (restarting this: {})",
+                    ctx.currentActivityPath, pathsToKeep, restartingThis);
+            if (!restartingThis && isTransient(ctx.currentState) && hasNoPersistentChild(ctx.currentActivityPath)) {
                 removeCurrentState(ctx);
             } else {
-                purgeCurrentState(ctx);
+                purgeCurrentState(ctx, restartingThis);
                 canDelete = false;
             }
         }
@@ -222,34 +263,61 @@ public class ActivityTreePurger {
                             .asItemDeltas());
         }
 
-        private void purgeCurrentState(Context ctx) throws SchemaException {
+        private void purgeCurrentState(Context ctx, boolean restartingThis) throws SchemaException {
             if (!isTransient(ctx.currentState)) {
                 pathsToKeep.add(ctx.currentActivityPath);
             }
 
-            LOGGER.trace("Purging from multi: task = {}, activity path = '{}', item path = '{}'",
-                    task, ctx.currentActivityPath, ctx.currentStateItemPath);
+            LOGGER.trace("Purging from multi: task = {}, activity path = '{}', item path = '{}' (restarting this = {})",
+                    task, ctx.currentActivityPath, ctx.currentStateItemPath, restartingThis);
+
+            Integer newExecAttempt;
+            if (restartingThis) {
+                Integer currentAttempt = ctx.currentState.getExecutionAttempt();
+                newExecAttempt = Objects.requireNonNullElse(currentAttempt, 1) + 1;
+            } else {
+                newExecAttempt = null;
+            }
 
             swallow(
                     beans.prismContext.deltaFor(TaskType.class)
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_STATE)).replace()
+                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_ABORTING_INFORMATION)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_START_TIMESTAMP)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_END_TIMESTAMP)).replace()
+                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_RUN_START_TIMESTAMP)).replace()
+                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_RUN_END_TIMESTAMP)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_SIMULATION)).replace()
+                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_POLICIES)).replace() // TODO reconsider
+                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT)).replace(newExecAttempt)
                             .asItemDeltas());
 
-            if (ctx.currentState.getPersistence() != ActivityStatePersistenceType.PERPETUAL) {
-                // E.g. "perpetual except for statistics"
+            var currentStatePersistence = ctx.currentState.getPersistence();
+            if (currentStatePersistence != ActivityStatePersistenceType.PERPETUAL) {
+                // I.e. "single realization" or "perpetual except for statistics"
                 swallow(
                         beans.prismContext.deltaFor(TaskType.class)
                                 .item(ctx.currentStateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
                                 .item(ctx.currentStateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
+                                .item(ctx.currentStateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
+                                .item(ctx.currentStateItemPath.append(ActivityStateType.F_REPORTS)).replace() // TODO reconsider
                                 .asItemDeltas());
             }
 
-            // keeping: workState + activity
+            if (currentStatePersistence == null || currentStatePersistence == ActivityStatePersistenceType.SINGLE_REALIZATION) {
+                swallow(
+                        beans.prismContext.deltaFor(TaskType.class)
+                                .item(ctx.currentStateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
+                                .asItemDeltas());
+            }
+
+            // keeping these:
+            //  - F_IDENTIFIER
+            //  - F_TASK_RUN_IDENTIFIER ???
+            //  - F_PERSISTENCE
+            //  - F_ACTIVITY (i.e., children)
         }
 
         private void swallow(Collection<ItemDelta<?, ?>> deltas) {
@@ -269,7 +337,7 @@ public class ActivityTreePurger {
      */
     private static class Context {
 
-        /** Activity path whose state is being purged. */
+        /** Activity path whose state is being purged or considered to be purged. */
         @NotNull private final ActivityPath currentActivityPath;
 
         /**
@@ -292,7 +360,7 @@ public class ActivityTreePurger {
             this.currentState = currentState;
         }
 
-        public static @NotNull Context root(ActivityPath path, @NotNull TaskActivityStateType taskActivityState) {
+        static @NotNull Context root(ActivityPath path, @NotNull TaskActivityStateType taskActivityState) {
             return new Context(
                     path,
                     ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY),
@@ -300,7 +368,7 @@ public class ActivityTreePurger {
                     taskActivityState.getActivity());
         }
 
-        public @NotNull Context forChild(ActivityStateType child) {
+        @NotNull Context forChild(ActivityStateType child) {
             return new Context(
                     currentActivityPath.append(child.getIdentifier()),
                     currentStateItemPath.append(TaskActivityStateType.F_ACTIVITY, child.getId()),

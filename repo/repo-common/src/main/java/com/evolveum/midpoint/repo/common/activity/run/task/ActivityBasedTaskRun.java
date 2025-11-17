@@ -244,7 +244,7 @@ public class ActivityBasedTaskRun implements TaskRun {
 
     private void prepareNewRealization(OperationResult result) throws ActivityRunException {
         activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PREPARATION, result);
-        activityTree.purgeState(this, result);
+        activityTree.purgeState(ActivityPath.empty(), this.getRunningTask(), false, result);
     }
 
     private void updateStateOnRootRunEnd(ActivityRunResult runResult, OperationResult result) throws ActivityRunException {

@@ -94,6 +94,10 @@ public class ActivityPath implements Serializable {
         return MiscUtil.startsWith(identifiers, otherPath.getIdentifiers());
     }
 
+    public boolean isRelatedTo(ActivityPath otherPath) {
+        return this.startsWith(otherPath) || otherPath.startsWith(this);
+    }
+
     public int size() {
         return identifiers.size();
     }

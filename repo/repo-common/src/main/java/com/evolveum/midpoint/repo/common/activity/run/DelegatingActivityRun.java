@@ -92,7 +92,7 @@ public final class DelegatingActivityRun<
         delegationAction = determineDelegationAction(result);
 
         return switch (delegationAction) {
-            case CREATE_OR_RECREATE_CHILD, RESTART_CHILD -> {
+            case RUN_CHILD -> {
                 recreateOrRestart(result);
                 yield ActivityRunResult.waiting();
             }
@@ -112,8 +112,8 @@ public final class DelegatingActivityRun<
     private @NotNull DelegationAction determineDelegationAction(OperationResult result) throws ActivityRunException {
         ActivityRealizationStateType realizationState = activityState.getRealizationState();
         if (realizationState == null) {
-            LOGGER.trace("My realization state is null => CREATE_OR_RECREATE_CHILD");
-            return DelegationAction.CREATE_OR_RECREATE_CHILD;
+            LOGGER.trace("My realization state is null => RUN_CHILD");
+            return DelegationAction.RUN_CHILD;
         } else if (realizationState == IN_PROGRESS_DELEGATED) {
             LOGGER.trace("My realization state is IN_PROGRESS_DELEGATED, so let's check the child task to see details");
             return determineDelegationActionFromChildTask(result);
@@ -132,7 +132,7 @@ public final class DelegatingActivityRun<
         } catch (ObjectNotFoundException e) {
             LOGGER.warn("Activity '{}' is marked as delegated but child task (OID {}) was not found. Will create one. In: {}",
                     getActivityPath(), childOid, getRunningTask());
-            return DelegationAction.CREATE_OR_RECREATE_CHILD;
+            return DelegationAction.RUN_CHILD;
         } catch (Exception e) {
             throw new ActivityRunException(
                     "Child task (OID %s) for activity '%s' in %s could not be retrieved".formatted(
@@ -155,9 +155,9 @@ public final class DelegatingActivityRun<
                 case ABORTED -> {
                     if (activityStateInChildTask.isBeingRestarted()) {
                         LOGGER.trace(
-                                "Child task's realization state is ABORTED but the activity is being restarted => RESTART_CHILD. "
-                                        + "The activity framework code in the child will do what's needed.");
-                        yield DelegationAction.RESTART_CHILD;
+                                "Child task's realization state is ABORTED but the activity is being restarted => RUN_CHILD. "
+                                        + "The activity framework code in the child will determine what's needed.");
+                        yield DelegationAction.RUN_CHILD;
                     } else {
                         LOGGER.trace("Child task's realization state is ABORTED and the activity is not being restarted => "
                                         + "ABORT (thus we'll propagate the abortion upwards)");
@@ -214,7 +214,7 @@ public final class DelegatingActivityRun<
         activityState.flushPendingTaskModificationsChecked(result);
 
         try {
-            childTask = recreateOrRestartTheChild(result);
+            childTask = createOrRestartTheChild(result);
 
             helper.switchExecutionToChildren(List.of(childTask), result);
 
@@ -228,37 +228,24 @@ public final class DelegatingActivityRun<
     }
 
     @NotNull
-    private Task recreateOrRestartTheChild(OperationResult result)
+    private Task createOrRestartTheChild(OperationResult result)
             throws SchemaException, ActivityRunException, ObjectNotFoundException {
         List<? extends Task> children = helper.getRelevantChildren(result);
-        if (delegationAction == DelegationAction.CREATE_OR_RECREATE_CHILD) {
-            // This is the case in which we believe that the existing state in the child is irrelevant, and we want
-            // to start from scratch.
-            LOGGER.trace("Found {} relevant children, deleting them. Parent: {}, children: {}",
-                    children.size(), getRunningTask(), children);
-            for (Task child : children) {
-                deleteChildTask(child, result);
-            }
+        if (children.isEmpty()) {
             return createSuspendedChildTask(result);
-        } else {
-            assert delegationAction == DelegationAction.RESTART_CHILD;
-            // Here we assume that the child task may contain relevant state, specifically, a restart instruction.
-            if (children.isEmpty()) {
-                return createSuspendedChildTask(result);
-            } else if (children.size() == 1) {
-                Task child = children.get(0);
-                if (child.isSuspended()) {
-                    LOGGER.debug("Found existing suspended child task {} (probably because it should be restarted)", child);
-                    return child;
-                }
-                stateCheck(child.isClosed(), "Child %s is not closed; its state is %s", child, child.getExecutionState());
-                // This is to allow the safe switch of root task to WAITING state
-                getBeans().taskManager.markClosedTaskSuspended(child.getOid(), result);
-                child.refresh(result);
+        } else if (children.size() == 1) {
+            Task child = children.get(0);
+            if (child.isSuspended()) {
+                LOGGER.debug("Found existing suspended child task {} (probably because it should be restarted)", child);
                 return child;
-            } else {
-                throw new IllegalStateException("There is more than one child: " + children);
             }
+            stateCheck(child.isClosed(), "Child %s is not closed; its state is %s", child, child.getExecutionState());
+            // This is to allow the safe switch of root task to WAITING state
+            getBeans().taskManager.markClosedTaskSuspended(child.getOid(), result);
+            child.refresh(result);
+            return child;
+        } else {
+            throw new IllegalStateException("There is more than one child: " + children);
         }
     }
 
@@ -313,11 +300,8 @@ public final class DelegatingActivityRun<
 
     private enum DelegationAction {
 
-        /** The child task will be created anew. Used when it should do its work from scratch. */
-        CREATE_OR_RECREATE_CHILD,
-
-        /** The child task will be restarted or resumed. Used e.g. when its root activity is to be restarted. */
-        RESTART_CHILD,
+        /** The child task will be created (if needed) and run. */
+        RUN_CHILD,
 
         /** Just wait for the child task to complete. */
         WAIT,
