@@ -133,27 +133,31 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
 
-    protected final <IW extends ItemWrapper> IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(IModel<IW> rowModel) {
+    protected static <IW extends ItemWrapper<?,?>> @NotNull IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(
+            IModel<IW> rowModel, PageBase pageBase) {
         return new IModel<>() {
 
+            @SuppressWarnings("unchecked")
             @Override
             public Collection<VariableBindingDefinitionType> getObject() {
 
                 return ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject())
                         .getValues().stream()
-                        .filter(value -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
+                        .filter(value
+                                -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
                         .map(PrismValueWrapperImpl::getRealValue)
                         .collect(Collectors.toList());
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public void setObject(Collection<VariableBindingDefinitionType> newValues) {
 
                 PrismPropertyWrapper<VariableBindingDefinitionType> sourceItem =
                         ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject());
-                List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> toRemoveValues
-                        = sourceItem.getValues().stream()
-                        .filter(v -> v.getRealValue() != null).collect(Collectors.toList());
+                List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> toRemoveValues = sourceItem.getValues().stream()
+                        .filter(v -> v.getRealValue() != null)
+                        .collect(Collectors.toList());
 
                 newValues.forEach(newValue -> {
                     if (newValue.getPath() == null) {
@@ -173,9 +177,9 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
                     } else {
                         try {
                             PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
-                                    = getPrismContext().itemFactory().createPropertyValue();
+                                    = pageBase.getPrismContext().itemFactory().createPropertyValue();
                             newPrismValue.setValue(newValue);
-                            sourceItem.add(newPrismValue, getPageBase());
+                            sourceItem.add(newPrismValue, pageBase);
                         } catch (SchemaException e) {
                             LOGGER.error("Couldn't initialize new value for Source item", e);
                         }
@@ -184,7 +188,7 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
                 toRemoveValues.forEach(toRemoveValue -> {
                     try {
-                        sourceItem.remove(toRemoveValue, getPageBase());
+                        sourceItem.remove(toRemoveValue, pageBase);
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't remove old value for Source item", e);
                     }
@@ -192,15 +196,15 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
                 List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> undeletedValues = sourceItem.getValues().stream()
                         .filter(value -> value.getStatus() != ValueStatus.DELETED)
-                        .collect(Collectors.toList());
-                if (undeletedValues.stream().filter(value -> value.getRealValue() != null).count() > 0) {
+                        .toList();
+                if (undeletedValues.stream().anyMatch(value -> value.getRealValue() != null)) {
                     sourceItem.getValues().removeIf(value -> value.getRealValue() == null);
                 } else if (undeletedValues.isEmpty()) {
                     try {
                         PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
-                                = getPrismContext().itemFactory().createPropertyValue();
+                                = pageBase.getPrismContext().itemFactory().createPropertyValue();
                         newPrismValue.setValue(null);
-                        sourceItem.add(newPrismValue, getPageBase());
+                        sourceItem.add(newPrismValue, pageBase);
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't initialize new null value for Source item", e);
                     }

@@ -379,17 +379,17 @@ public class SmartIntegrationStatusInfoUtils {
                     }
 
                     for (var defItemWrapper : defWrapper.getValues()) {
-                        PrismContainerWrapper<MappingType> inboundWrapper = defItemWrapper
+                        PrismContainerWrapper<MappingType> mappingWrapper = defItemWrapper
                                 .findContainer(mappingDirection.getContainerName());
-                        if (inboundWrapper == null || inboundWrapper.getValues().isEmpty()) {
-                            result.recordWarning("Suggestion without inbound mappings skipped");
+                        if (mappingWrapper == null || mappingWrapper.getValues().isEmpty()) {
+                            result.recordWarning("Suggestion without mappings skipped");
                             continue;
                         }
 
                         PrismPropertyDefinition<Object> refDef = defItemWrapper.getDefinition().findPropertyDefinition(
                                 ResourceAttributeDefinitionType.F_REF);
 
-                        for (PrismContainerValueWrapper<MappingType> mappingVw : inboundWrapper.getValues()) {
+                        for (PrismContainerValueWrapper<MappingType> mappingVw : mappingWrapper.getValues()) {
                             MappingUtils.createVirtualItemInMapping(
                                     mappingVw,
                                     defItemWrapper,

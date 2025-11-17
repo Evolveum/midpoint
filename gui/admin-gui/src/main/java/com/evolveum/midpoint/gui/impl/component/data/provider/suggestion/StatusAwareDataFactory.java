@@ -172,7 +172,7 @@ public final class StatusAwareDataFactory {
                     }
                 }
 
-                return new ArrayList<>(initialSort(suggestions, accepted)) {{
+                return new ArrayList<>(initialSort(suggestions, accepted, mappingDirection)) {{
                     addAll(normal);
                 }};
             }
@@ -203,19 +203,32 @@ public final class StatusAwareDataFactory {
              */
             private @NotNull List<PrismContainerValueWrapper<MappingType>> initialSort(
                     List<PrismContainerValueWrapper<MappingType>> suggestions,
-                    List<PrismContainerValueWrapper<MappingType>> accepted) {
+                    List<PrismContainerValueWrapper<MappingType>> accepted, @NotNull MappingDirection mappingDirection) {
 
                 List<PrismContainerValueWrapper<MappingType>> related = new ArrayList<>();
                 related.addAll(suggestions);
                 related.addAll(accepted);
 
-                Comparator<PrismContainerValueWrapper<MappingType>> byTargetName =
-                        Comparator.comparing(
-                                v -> Optional.ofNullable(getTargetValue(v)).orElse(""),
-                                String.CASE_INSENSITIVE_ORDER);
-
-                related.sort(byTargetName);
+                if(mappingDirection == MappingDirection.OUTBOUND) {
+                    Comparator<PrismContainerValueWrapper<MappingType>> byName =
+                            Comparator.comparing(
+                                    v -> Optional.of(getNameValue(v)).orElse(""),
+                                    String.CASE_INSENSITIVE_ORDER);
+                    related.sort(byName);
+                }else {
+                    Comparator<PrismContainerValueWrapper<MappingType>> byTargetName =
+                            Comparator.comparing(
+                                    v -> Optional.ofNullable(getTargetValue(v)).orElse(""),
+                                    String.CASE_INSENSITIVE_ORDER);
+                    related.sort(byTargetName);
+                }
                 return related;
+            }
+
+            private @NotNull String getNameValue(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {
+                MappingType mapping = mappingWrapper.getRealValue();
+                String name = mapping != null ? mapping.getName() : null;
+                return name != null ? name : "";
             }
 
             private String getTargetValue(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {
