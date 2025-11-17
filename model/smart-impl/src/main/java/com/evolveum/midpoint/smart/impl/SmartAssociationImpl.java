@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.*;
@@ -25,9 +24,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * Provides logic for automatically suggesting {@link ShadowAssociationTypeDefinitionType} definitions
@@ -44,21 +40,10 @@ public class SmartAssociationImpl {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartAssociationImpl.class);
 
-    /**
-     * Describes one participant (subject or object) in an association.
-     *
-     * @param participantRole The role of the participant (subject or object).
-     * @param participantObjectClassDefinition Native object class definition for the participant.
-     * @param participantObjectTypeIdentification Identification of the participant's object type (kind + intent).
-     */
-    private record ParticipantDescriptor(
-            ShadowReferenceParticipantRole participantRole,
-            NativeObjectClassDefinition participantObjectClassDefinition,
-            ResourceObjectTypeIdentification participantObjectTypeIdentification) {
-
-        public boolean isSubject() {
-            return participantRole == ShadowReferenceParticipantRole.SUBJECT;
-        }
+    private List<ResourceObjectTypeDefinition> findObjectTypesForObjectClass(ResourceSchema resourceSchema, QName objectClassName) {
+        return resourceSchema.getObjectTypeDefinitions().stream()
+                .filter(ot -> ot.getObjectClassName().equals(objectClassName))
+                .toList();
     }
 
     /**
@@ -77,49 +62,29 @@ public class SmartAssociationImpl {
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
         NativeResourceSchema nativeSchema = resourceSchema.getNativeSchema();
 
-        // Maps class names to the collection of "places" where it is used as a participant -
-        // among all subject/object types whose identifications were passed to this method.
-        Map<QName, List<ParticipantDescriptor>> objectClassParticipantsMap = new HashMap<>();
-
-        var objectTypes = resourceSchema.getObjectTypeDefinitions().stream()
-            .map(ResourceObjectTypeDefinition::getTypeIdentification)
-            .toList();
-
-
-        registerParticipantDescriptorValues(objectTypes, ShadowReferenceParticipantRole.SUBJECT,
-                resourceSchema, nativeSchema, objectClassParticipantsMap);
-        registerParticipantDescriptorValues(objectTypes, ShadowReferenceParticipantRole.OBJECT,
-                resourceSchema, nativeSchema, objectClassParticipantsMap);
-
         AssociationsSuggestionType associationsSuggestionType = new AssociationsSuggestionType();
 
-        objectClassParticipantsMap.values().stream()
-                .flatMap(List::stream)
-                .filter(ParticipantDescriptor::isSubject)
-                .forEach(participantDescriptor -> {
-                    var firstParticipantRole = participantDescriptor.participantRole();
-                    var firstParticipantDef = participantDescriptor.participantObjectClassDefinition();
-                    var firstParticipantObjectTypeIdentification = participantDescriptor.participantObjectTypeIdentification();
-
-                    debugParticipantInfo(firstParticipantDef, firstParticipantObjectTypeIdentification);
-
-                    var firstParticipantRefAttributeDefinitions = firstParticipantDef.getReferenceAttributeDefinitions();
-
-                    firstParticipantRefAttributeDefinitions.forEach(firstParticipantRefAttr -> {
-                        var associations = resolveRefBasedAssociations(
-                                nativeSchema,
-                                objectClassParticipantsMap,
-                                firstParticipantRefAttr,
-                                firstParticipantDef,
-                                firstParticipantRole,
-                                firstParticipantObjectTypeIdentification,
-                                isInbound);
-                        debugAssociationResult(associations, firstParticipantObjectTypeIdentification, firstParticipantRefAttr);
-                        associations.stream()
-                                .map(def -> new AssociationSuggestionType().definition(def))
-                                .forEach(associationsSuggestionType.getAssociation()::add);
-                    });
-                });
+        for (var subjectObjectType : resourceSchema.getObjectTypeDefinitions()) {
+            for (var refAttribute : subjectObjectType.getReferenceAttributeDefinitions()) {
+                if (!refAttribute.canRead()) {
+                    continue;
+                }
+                var isObjectToSubject = refAttribute.getParticipantRole().equals(ShadowReferenceParticipantRole.OBJECT);
+                var isComplex = refAttribute.getNativeDefinition().isComplexAttribute();
+                if (isObjectToSubject || isComplex) {
+                    // object-to-subject not supported
+                    // complex associations not supported yet
+                    continue;
+                }
+                var targetObjectClass = refAttribute.getTargetObjectClassName();
+                var objectObjectTypes = findObjectTypesForObjectClass(resourceSchema, targetObjectClass);
+                for (var objectObjectType : objectObjectTypes) {
+                    var associationDef = resolveRefBasedAssociations(nativeSchema, subjectObjectType, refAttribute, objectObjectType, isInbound);
+                    var suggestion = new AssociationSuggestionType().definition(associationDef);
+                    associationsSuggestionType.getAssociation().add(suggestion);
+                }
+            }
+        }
 
         return associationsSuggestionType;
     }
@@ -129,147 +94,50 @@ public class SmartAssociationImpl {
      * and constructing a {@link ShadowAssociationTypeDefinitionType} for each match.
      *
      * @param nativeSchema The native resource schema.
-     * @param classDefRoleMap Participant role map indexed by object class name.
-     * @param firstParticipantRefAttr The reference attribute to evaluate.
-     * @param firstParticipantDef The source participant's object class definition.
-     * @param firstParticipantRole The role (subject or object) of the source participant.
-     * @param firstParticipantObjectTypeIdentification The source participant's identification (kind, intent).
      * @param isInbound inbound/outbound flag
      * @return A list of derived association definitions.
      */
-    private @NotNull List<ShadowAssociationTypeDefinitionType> resolveRefBasedAssociations(
+    private ShadowAssociationTypeDefinitionType resolveRefBasedAssociations(
             @NotNull NativeResourceSchema nativeSchema,
-            @NotNull Map<QName, List<ParticipantDescriptor>> classDefRoleMap,
-            @NotNull NativeShadowReferenceAttributeDefinition firstParticipantRefAttr,
-            @NotNull NativeObjectClassDefinition firstParticipantDef,
-            @NotNull ShadowReferenceParticipantRole firstParticipantRole,
-            @NotNull ResourceObjectTypeIdentification firstParticipantObjectTypeIdentification,
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ShadowReferenceAttributeDefinition attributeReference,
+            @NotNull ResourceObjectTypeDefinition objectObjectType,
             boolean isInbound) {
 
-        List<ShadowAssociationTypeDefinitionType> result = new ArrayList<>();
+        ShadowAssociationTypeDefinitionType association = new ShadowAssociationTypeDefinitionType();
 
-        ItemName refAttrItemName = firstParticipantRefAttr.getItemName();
-        QName referencedAttributeObjectClassName = firstParticipantRefAttr.getReferencedObjectClassName();
+        String assocName = constructAssociationName(subjectObjectType, objectObjectType, attributeReference);
+        QName assocQName = new QName(nativeSchema.getNamespace(), assocName);
+        association.setName(assocQName);
+        association.setDisplayName(assocName); // TODO: generate better display name
 
-        // TODO: In some cases, the reference attribute may not set the referenced object class name.
-        //  Check DummyAdAssociationsScenario -> AccountGroup -> .withObjectClassNames(Account.OBJECT_CLASS_NAME.local(), Group.OBJECT_CLASS_NAME.local()) (member)
-        if (referencedAttributeObjectClassName == null) {
-            LOGGER.debug("   Attribute does not have a properly set referenced object class name. Reference attribute: {}",
-                    refAttrItemName);
-            return result;
-        }
+        var subject = buildSubjectParticipantDefinitionType(subjectObjectType, attributeReference, assocName, isInbound);
+        var object = buildObjectParticipantDefinitionType(objectObjectType);
 
-        List<ParticipantDescriptor> linkedObjects = findMatchingParticipantDefinitions(
-                referencedAttributeObjectClassName,
-                classDefRoleMap,
-                ShadowReferenceParticipantRole.OBJECT);
+        String descriptionNote = createAssociationDescription(attributeReference, subjectObjectType, objectObjectType);
 
-        //TODO: combine associations if requested (means association can have multiple objects/subjects - not separated)
-        for (var linkedObject : linkedObjects) {
-            NativeObjectClassDefinition secondParticipantDef = linkedObject.participantObjectClassDefinition();
-            ResourceObjectTypeIdentification secondParticipantTypeIdentification = linkedObject.participantObjectTypeIdentification();
-
-            ShadowAssociationTypeDefinitionType association = new ShadowAssociationTypeDefinitionType();
-
-            String assocName = constructAssociationName(
-                    firstParticipantObjectTypeIdentification, secondParticipantTypeIdentification, refAttrItemName);
-            QName assocQName = new QName(nativeSchema.getNamespace(), assocName);
-            association.setName(assocQName);
-            association.setDisplayName(assocName);
-
-            ShadowAssociationTypeSubjectDefinitionType subject;
-            ShadowAssociationTypeObjectDefinitionType object;
-
-            // Currently we want to support subjectToObject associations only, but should we use refAttributeDef.getReferenceParticipantRole()?
-            if (firstParticipantRole == ShadowReferenceParticipantRole.SUBJECT) {
-                subject = buildSubjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef, refAttrItemName, assocName, isInbound);
-                object = buildObjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef);
-            } else {
-                //NOTE this is never used in the current implementation, but it is here for completeness.
-                subject = buildSubjectParticipantDefinitionType(secondParticipantTypeIdentification, secondParticipantDef, refAttrItemName, assocName, isInbound);
-                object = buildObjectParticipantDefinitionType(firstParticipantObjectTypeIdentification, firstParticipantDef);
-            }
-
-            String descriptionNote = createAssociationDescription(refAttrItemName,
-                    firstParticipantDef, firstParticipantObjectTypeIdentification,
-                    secondParticipantDef, secondParticipantTypeIdentification);
-
-            association.setSubject(subject);
-            association.getObject().add(object);
-            association.setDescription(descriptionNote);
-            result.add(association);
-        }
-        return result;
+        association.setSubject(subject);
+        association.getObject().add(object);
+        association.setDescription(descriptionNote);
+        return association;
     }
 
     /**
      * Builds a human-readable description of the generated association for trace/debug purposes.
      *
-     * @param refAttrItemName Reference attribute that defines the association.
-     * @param firstParticipantDef Object class of the subject.
-     * @param firstParticipantObjectTypeIdentification Subject identification (kind, intent).
-     * @param secondParticipantDef Object class of the object.
-     * @param secondParticipantTypeIdentification Object identification (kind, intent).
      * @return A string describing how the association was derived.
      */
     private @NotNull String createAssociationDescription(
-            @NotNull ItemName refAttrItemName, @NotNull NativeObjectClassDefinition firstParticipantDef,
-            @NotNull ResourceObjectTypeIdentification firstParticipantObjectTypeIdentification,
-            @NotNull NativeObjectClassDefinition secondParticipantDef,
-            @NotNull ResourceObjectTypeIdentification secondParticipantTypeIdentification) {
-        return "This association is derived from reference attribute '" + refAttrItemName.getLocalPart() + "' on "
-                + "first participant (class=" + firstParticipantDef.getName()
-                + ", kind=" + firstParticipantObjectTypeIdentification.getKind()
-                + ", intent=" + firstParticipantObjectTypeIdentification.getIntent() + ") "
-                + "which refers to second participant (class=" + secondParticipantDef.getName()
-                + ", kind=" + secondParticipantTypeIdentification.getKind()
-                + ", intent=" + secondParticipantTypeIdentification.getIntent() + ").";
-    }
-
-    /**
-     * Registers all given type identifications into the class-role map as {@link ParticipantDescriptor}s.
-     *
-     * @param typeIdentifications Object types to register.
-     * @param role Whether the type is considered a subject or object.
-     * @param resourceSchema Complete resource schema.
-     * @param nativeSchema Native schema holding low-level object class definitions.
-     * @param classDefRoleMap Mutable output map where descriptors are stored.
-     */
-    private void registerParticipantDescriptorValues(
-            @NotNull Collection<ResourceObjectTypeIdentification> typeIdentifications,
-            @NotNull ShadowReferenceParticipantRole role,
-            @NotNull ResourceSchema resourceSchema,
-            @NotNull NativeResourceSchema nativeSchema,
-            @NotNull Map<QName, List<ParticipantDescriptor>> classDefRoleMap) {
-
-        for (var typeId : typeIdentifications) {
-            var def = resourceSchema.getObjectTypeDefinitionRequired(typeId);
-            var className = def.getObjectClassName();
-            var classDef = nativeSchema.findObjectClassDefinition(className);
-            if (classDef != null) {
-                classDefRoleMap
-                        .computeIfAbsent(className, __ -> new ArrayList<>())
-                        .add(new ParticipantDescriptor(role, classDef, typeId));
-            }
-        }
-    }
-
-    /**
-     * Finds all participant descriptors for a given object class name.
-     *
-     * @param objectClassName Name of the object class to search.
-     * @param classDefRoleMap Map of all known participant descriptors.
-     * @return A list of matching participants.
-     */
-    private @NotNull List<ParticipantDescriptor> findMatchingParticipantDefinitions(
-            @NotNull QName objectClassName,
-            @NotNull Map<QName, List<ParticipantDescriptor>> classDefRoleMap,
-            @NotNull ShadowReferenceParticipantRole participantRole) {
-
-        List<ParticipantDescriptor> entries = emptyIfNull(classDefRoleMap.get(objectClassName));
-        return entries.stream()
-                .filter(participantDescriptor -> participantDescriptor.participantRole() == participantRole)
-                .collect(Collectors.toList());
+            @NotNull ShadowReferenceAttributeDefinition attributeReference,
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ResourceObjectTypeDefinition objectObjectType) {
+        return "This association is derived from reference attribute '" + attributeReference.getItemName().getLocalPart() + "' on "
+                + "first participant (class=" + subjectObjectType.getObjectClassName()
+                + ", kind=" + subjectObjectType.getKind()
+                + ", intent=" + subjectObjectType.getIntent() + ") "
+                + "which refers to second participant (class=" + objectObjectType.getObjectClassName()
+                + ", kind=" + objectObjectType.getKind()
+                + ", intent=" + objectObjectType.getIntent() + ").";
     }
 
     @SuppressWarnings("unchecked")
@@ -330,24 +198,23 @@ public class SmartAssociationImpl {
     /**
      * Builds a subject-side association participant definition.
      *
-     * @param subjectType Type identification for the subject.
-     * @param subjectClassDef Native object class definition for the subject.
-     * @param refAttrItemName Reference attribute defining the association.
+     * @param subjectObjectType association subject
+     * @param attributeReference referenced attribute
      * @param associationName Root association name
      * @param isInbound inbound/outbound flag
      * @return A fully initialized {@link ShadowAssociationTypeSubjectDefinitionType}.
      */
     private @NotNull ShadowAssociationTypeSubjectDefinitionType buildSubjectParticipantDefinitionType(
-            @NotNull ResourceObjectTypeIdentification subjectType,
-            @NotNull NativeObjectClassDefinition subjectClassDef,
-            ItemName refAttrItemName,
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ShadowReferenceAttributeDefinition attributeReference,
             String associationName,
             boolean isInbound
     ) {
 
+        var ref = attributeReference.getItemName().toBean(); //TODO this is probably not correct - why?
         ShadowAssociationDefinitionType assocDef = new ShadowAssociationDefinitionType()
-                .ref(refAttrItemName.toBean()) //TODO this is probably not correct
-                .sourceAttributeRef(refAttrItemName.toBean());
+                .ref(ref)
+                .sourceAttributeRef(ref);
 
         if (isInbound) {
             assocDef.inbound(makeInboundMapping(associationName));
@@ -356,29 +223,27 @@ public class SmartAssociationImpl {
         }
 
         return new ShadowAssociationTypeSubjectDefinitionType()
-                .ref(subjectClassDef.getQName())
+                .ref(subjectObjectType.getObjectClassName())
                 .association(assocDef)
                 .objectType(new ResourceObjectTypeIdentificationType()
-                        .kind(subjectType.getKind())
-                        .intent(subjectType.getIntent()));
+                        .kind(subjectObjectType.getKind())
+                        .intent(subjectObjectType.getIntent()));
     }
 
     /**
      * Builds an object-side association participant definition.
      *
-     * @param objectType Type identification for the object.
-     * @param objectClassDef Native object class definition for the object.
+     * @param objectObjectType association object.
      * @return A fully initialized {@link ShadowAssociationTypeObjectDefinitionType}.
      */
     private @NotNull ShadowAssociationTypeObjectDefinitionType buildObjectParticipantDefinitionType(
-            @NotNull ResourceObjectTypeIdentification objectType,
-            @NotNull NativeObjectClassDefinition objectClassDef) {
+            @NotNull ResourceObjectTypeDefinition objectObjectType) {
 
         return new ShadowAssociationTypeObjectDefinitionType()
-                .ref(objectClassDef.getQName())
+                .ref(objectObjectType.getObjectClassName())
                 .objectType(new ResourceObjectTypeIdentificationType()
-                        .kind(objectType.getKind())
-                        .intent(objectType.getIntent()));
+                        .kind(objectObjectType.getKind())
+                        .intent(objectObjectType.getIntent()));
     }
 
     //TODO: Design better strategy for generating association names. Also think for combined/separated associations.
@@ -387,90 +252,25 @@ public class SmartAssociationImpl {
      * Constructs a machine-readable and unique name for an association based on subject/object kinds,
      * intents, and the reference attribute.
      *
-     * @param firstParticipantObjectTypeIdentification Identification of the source participant.
-     * @param secondParticipantTypeIdentification Identification of the target participant.
+     * @param objectObjectType association object.
+     * @param subjectObjectType association subject.
      * @param refAttr Reference attribute the association is based on.
      * @return The generated association name.
      */
     private @NotNull String constructAssociationName(
-            @NotNull ResourceObjectTypeIdentification firstParticipantObjectTypeIdentification,
-            @NotNull ResourceObjectTypeIdentification secondParticipantTypeIdentification,
-            @NotNull ItemName refAttr) {
-        String firstParticipantSubjectKind = StringUtils.capitalize(firstParticipantObjectTypeIdentification.getKind().value());
-        String secondParticipantSubjectKind = StringUtils.capitalize(secondParticipantTypeIdentification.getKind().value());
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ResourceObjectTypeDefinition objectObjectType,
+            @NotNull ShadowReferenceAttributeDefinition refAttr) {
+        String firstParticipantSubjectKind = StringUtils.capitalize(subjectObjectType.getKind().value());
+        String secondParticipantSubjectKind = StringUtils.capitalize(objectObjectType.getKind().value());
 
-        String firstParticipantSubjectIntent = StringUtils.capitalize(firstParticipantObjectTypeIdentification.getIntent()
+        String firstParticipantSubjectIntent = StringUtils.capitalize(subjectObjectType.getIntent()
                 .replaceAll("[^a-zA-Z0-9]", ""));
 
-        String secondParticipantSubjectIntent = StringUtils.capitalize(secondParticipantTypeIdentification.getIntent()
+        String secondParticipantSubjectIntent = StringUtils.capitalize(objectObjectType.getIntent()
                 .replaceAll("[^a-zA-Z0-9]", ""));
 
         return firstParticipantSubjectKind + firstParticipantSubjectIntent + "-"
                 + secondParticipantSubjectKind+secondParticipantSubjectIntent;
-    }
-
-    /**
-     * Logs the result of resolved associations for a given participant and reference attribute.
-     *
-     * @param associations The list of associations found (possibly empty).
-     * @param objectIdentification Identification of the participant.
-     * @param refAttr Reference attribute being evaluated.
-     */
-    private void debugAssociationResult(@NotNull List<ShadowAssociationTypeDefinitionType> associations,
-            ResourceObjectTypeIdentification objectIdentification,
-            NativeShadowReferenceAttributeDefinition refAttr) {
-        if (!associations.isEmpty()) {
-            for (ShadowAssociationTypeDefinitionType shadowAssociationTypeDefinitionType : associations) {
-                debugShadowAssociation(shadowAssociationTypeDefinitionType);
-            }
-        } else {
-            LOGGER.debug("   No associations found for subject type: {}, reference attribute: {}\n",
-                    objectIdentification, refAttr.getItemName());
-        }
-    }
-
-    /**
-     * Logs the details of an individual association definition.
-     *
-     * @param assoc The association to log.
-     */
-    private void debugShadowAssociation(@NotNull ShadowAssociationTypeDefinitionType assoc) {
-        String assocName = assoc.getName().getLocalPart();
-        LOGGER.debug(" Association: {}", assocName);
-
-        var subject = assoc.getSubject().getObjectType().get(0);
-        var objects = assoc.getObject();
-        var description = assoc.getDescription();
-
-        LOGGER.debug("   Subject:   {} / {}", subject.getKind(), subject.getIntent());
-
-        if (objects.size() == 1) {
-            var obj = objects.get(0).getObjectType().get(0);
-            LOGGER.debug("   Object:    {} / {}", obj.getKind(), obj.getIntent());
-        } else {
-            LOGGER.debug("   Objects:");
-            for (var objPart : objects) {
-                var obj = objPart.getObjectType().get(0);
-                LOGGER.debug("     • {} / {}", obj.getKind(), obj.getIntent());
-            }
-        }
-
-        LOGGER.debug("   Description: {}", description);
-    }
-
-    /**
-     * Logs a basic summary of a participant (class name, kind, and intent).
-     *
-     * @param def Object class definition of the participant.
-     * @param typeId Type identification (kind, intent) of the participant.
-     */
-    private void debugParticipantInfo(
-            @NotNull NativeObjectClassDefinition def,
-            @NotNull ResourceObjectTypeIdentification typeId) {
-        LOGGER.debug("-".repeat(100));
-        LOGGER.debug("PROCESSING PARTICIPANT:");
-        LOGGER.debug("  Class     : {}", def.getName());
-        LOGGER.debug("  Kind      : {}", typeId.getKind());
-        LOGGER.debug("  Intent    : {}", typeId.getIntent());
     }
 }

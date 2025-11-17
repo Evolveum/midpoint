@@ -59,6 +59,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     private static final String RESOURCE_OID = RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES.oid;
 
     private static final List<String> ALL_EXPECTED_ASSOCIATIONS = List.of(
+            // subject to object associations
             makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/app-group"),
             makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/generic-group"),
             makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/org-group"),
@@ -70,12 +71,13 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/app-group"),
             makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/generic-group"),
             makeAssociationKey("ENTITLEMENT/contract", "GENERIC/orgUnit"),
-            makeAssociationKey("ENTITLEMENT/expert", "ACCOUNT/default"),
-            makeAssociationKey("GENERIC/orgUnit", "ENTITLEMENT/contract"),
             // identity links
             makeAssociationKey("ENTITLEMENT/generic-group", "ENTITLEMENT/generic-group"),
             makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/org-group"),
             makeAssociationKey("ENTITLEMENT/app-group", "ENTITLEMENT/app-group")
+            // object to subject associations (unsupported)
+            //makeAssociationKey("ENTITLEMENT/expert", "ACCOUNT/default"),
+            //makeAssociationKey("GENERIC/orgUnit", "ENTITLEMENT/contract"),
     );
 
     @Override
@@ -146,7 +148,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             <name>ri:AccountPerson-EntitlementContract</name>
             <displayName>AccountPerson-EntitlementContract</displayName>
             <subject>
-                <ref>person</ref>
+                <ref>ri:person</ref>
                 <objectType>
                     <kind>account</kind>
                     <intent>person</intent>
@@ -189,7 +191,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 </association>
             </subject>
             <object>
-                <ref>contract</ref>
+                <ref>ri:contract</ref>
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>contract</intent>
@@ -220,7 +222,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             <name>ri:AccountPerson-EntitlementContract</name>
             <displayName>AccountPerson-EntitlementContract</displayName>
             <subject>
-                <ref>person</ref>
+                <ref>ri:person</ref>
                 <objectType>
                     <kind>account</kind>
                     <intent>person</intent>
@@ -246,7 +248,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 </association>
             </subject>
             <object>
-                <ref>contract</ref>
+                <ref>ri:contract</ref>
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>contract</intent>
