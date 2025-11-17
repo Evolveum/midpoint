@@ -2276,7 +2276,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             VariablesMap variables, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Class<? extends Containerable> type = null;
 
         if (collectionConfig == null) {
             collectionConfig = new CollectionRefSpecificationType();
@@ -2286,6 +2285,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
             throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
         }
+
+        Class<? extends Containerable> type = null;
         if (typeForFilter != null) {
             type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
         }
@@ -2315,8 +2316,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
-        Class<? extends Containerable> type;
-
         if (collectionConfig == null) {
             collectionConfig = new CollectionRefSpecificationType();
         }
@@ -2325,6 +2324,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
             throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
         }
+
+        Class<? extends Containerable> type = null;
         if (typeForFilter != null) {
             type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
         }
