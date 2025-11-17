@@ -100,13 +100,10 @@ public class AssociationsSuggestionActivityHandler
         protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
             var task = getRunningTask();
             var resourceOid = getWorkDefinition().getResourceOid();
-            var subjectTypes = getWorkDefinition().getSubjectTypeIdentifications();
-            var objectTypes = getWorkDefinition().getObjectTypeIdentifications();
 
             var isInbound = true; // TODO: parametrize, it would be better represented by some enumeration
             var suggestedAssociations =
-                    SmartIntegrationBeans.get().smartIntegrationService.suggestAssociations(
-                            resourceOid, subjectTypes, objectTypes, isInbound, task, result);
+                    SmartIntegrationBeans.get().smartIntegrationService.suggestAssociations(resourceOid, isInbound, task, result);
 
             var state = getActivityState();
             state.setWorkStateItemRealValues(

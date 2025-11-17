@@ -66,19 +66,13 @@ public class SmartAssociationImpl {
      * Associations are derived by analyzing reference attributes in native object class definitions.
      *
      * @param resource The resource in which to evaluate possible associations.
-     * @param subjectTypeIdentifications Identifiers of object types considered as "subjects".
-     * @param objectTypeIdentifications Identifiers of object types considered as "objects".
-     * @param combinedAssociation If true, associationSuggestion objects will be combined into a single association
      * @param isInbound if true suggest inbound mapping otherwise suggest outbound mapping
      * @return Suggested associations as {@link AssociationsSuggestionType}.
      */
     public AssociationsSuggestionType suggestSmartAssociation(
             @NotNull ResourceType resource,
-            @NotNull Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
-            @NotNull Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
-            boolean combinedAssociation,
-            boolean isInbound) throws SchemaException,
-            ConfigurationException {
+            boolean isInbound
+    ) throws SchemaException, ConfigurationException {
 
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
         NativeResourceSchema nativeSchema = resourceSchema.getNativeSchema();
@@ -87,9 +81,14 @@ public class SmartAssociationImpl {
         // among all subject/object types whose identifications were passed to this method.
         Map<QName, List<ParticipantDescriptor>> objectClassParticipantsMap = new HashMap<>();
 
-        registerParticipantDescriptorValues(subjectTypeIdentifications, ShadowReferenceParticipantRole.SUBJECT,
+        var objectTypes = resourceSchema.getObjectTypeDefinitions().stream()
+            .map(ResourceObjectTypeDefinition::getTypeIdentification)
+            .toList();
+
+
+        registerParticipantDescriptorValues(objectTypes, ShadowReferenceParticipantRole.SUBJECT,
                 resourceSchema, nativeSchema, objectClassParticipantsMap);
-        registerParticipantDescriptorValues(objectTypeIdentifications, ShadowReferenceParticipantRole.OBJECT,
+        registerParticipantDescriptorValues(objectTypes, ShadowReferenceParticipantRole.OBJECT,
                 resourceSchema, nativeSchema, objectClassParticipantsMap);
 
         AssociationsSuggestionType associationsSuggestionType = new AssociationsSuggestionType();
@@ -114,7 +113,6 @@ public class SmartAssociationImpl {
                                 firstParticipantDef,
                                 firstParticipantRole,
                                 firstParticipantObjectTypeIdentification,
-                                combinedAssociation,
                                 isInbound);
                         debugAssociationResult(associations, firstParticipantObjectTypeIdentification, firstParticipantRefAttr);
                         associations.stream()
@@ -136,7 +134,6 @@ public class SmartAssociationImpl {
      * @param firstParticipantDef The source participant's object class definition.
      * @param firstParticipantRole The role (subject or object) of the source participant.
      * @param firstParticipantObjectTypeIdentification The source participant's identification (kind, intent).
-     * @param combinedAssociation If true, associations will be combined into a single association
      * @param isInbound inbound/outbound flag
      * @return A list of derived association definitions.
      */
@@ -147,7 +144,6 @@ public class SmartAssociationImpl {
             @NotNull NativeObjectClassDefinition firstParticipantDef,
             @NotNull ShadowReferenceParticipantRole firstParticipantRole,
             @NotNull ResourceObjectTypeIdentification firstParticipantObjectTypeIdentification,
-            boolean combinedAssociation,
             boolean isInbound) {
 
         List<ShadowAssociationTypeDefinitionType> result = new ArrayList<>();

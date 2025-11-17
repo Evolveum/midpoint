@@ -958,8 +958,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public AssociationsSuggestionType suggestAssociations(
             String resourceOid,
-            Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
-            Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
             boolean isInbound,
             Task task,
             OperationResult parentResult)
@@ -967,18 +965,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException {
         var result = parentResult.subresult(OP_SUGGEST_ASSOCIATIONS)
                 .addParam("resourceOid", resourceOid)
-                .addArbitraryObjectCollectionAsContext("subjectTypeIdentifications", subjectTypeIdentifications)
-                .addArbitraryObjectCollectionAsContext("objectTypeIdentifications", objectTypeIdentifications)
                 .build();
         try {
             var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-            var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
 
-            LOGGER.trace("Suggesting associations for resourceOid {}, subjectTypeIdentifications {}, objectTypeIdentifications {}",
-                    resourceOid, subjectTypeIdentifications, objectTypeIdentifications);
+            LOGGER.trace("Suggesting associations for resourceOid {}", resourceOid);
 
-            return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable(),
-                    subjectTypeIdentifications, objectTypeIdentifications, false, isInbound);
+            return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable(), isInbound);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -990,28 +983,16 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public String submitSuggestAssociationsOperation(
             String resourceOid,
-            Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
-            Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
             Task task,
             OperationResult parentResult) throws CommonException {
 
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_ASSOCIATIONS_OPERATION)
                 .addParam("resourceOid", resourceOid)
-                .addArbitraryObjectCollectionAsParam("subjectTypeIdentifications", subjectTypeIdentifications)
-                .addArbitraryObjectCollectionAsParam("objectTypeIdentifications", objectTypeIdentifications)
                 .build();
 
         try {
             var workDef = new AssociationSuggestionWorkDefinitionType()
                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE);
-
-            subjectTypeIdentifications.stream()
-                    .map(ri -> ri.asBean())
-                    .forEach(workDef::subjectObjectTypes);
-
-            objectTypeIdentifications.stream()
-                    .map(ri -> ri.asBean())
-                    .forEach(workDef::objectObjectTypes);
 
             var oid = modelInteractionService.submit(
                     new ActivityDefinitionType()
@@ -1022,8 +1003,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                             .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
                     task, result);
 
-            LOGGER.debug("Submitted suggest associations operation for resourceOid {}, subjects {}, objects {}: {}",
-                    resourceOid, subjectTypeIdentifications, objectTypeIdentifications, oid);
+            LOGGER.debug("Submitted suggest associations operation for resourceOid: {}, odi: {}", resourceOid, oid);
             return oid;
         } catch (Throwable t) {
             result.recordException(t);

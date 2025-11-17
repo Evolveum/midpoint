@@ -78,17 +78,6 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             makeAssociationKey("ENTITLEMENT/app-group", "ENTITLEMENT/app-group")
     );
 
-    private static final List<ResourceObjectTypeIdentification> ALL_OBJECT_TYPES = List.of(
-            makeObjectTypeId("ACCOUNT/default"),
-            makeObjectTypeId("ACCOUNT/person"),
-            makeObjectTypeId("ENTITLEMENT/contract"),
-            makeObjectTypeId("ENTITLEMENT/app-group"),
-            makeObjectTypeId("ENTITLEMENT/generic-group"),
-            makeObjectTypeId("ENTITLEMENT/org-group"),
-            makeObjectTypeId("ENTITLEMENT/expert"),
-            makeObjectTypeId("GENERIC/orgUnit")
-    );
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -98,7 +87,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
 
     @Test
     public void testSmartAssociation_shouldSuggestAllPossibleAssociationsFromReferenceAttributes() throws Exception {
-        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES);
+        var suggestions = prepareAndSuggestAssociations();
 
         assertThat(suggestions)
                 .as("Expected non-empty association suggestions")
@@ -114,36 +103,8 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void testSmartAssociation_shouldSuggestAssociationForObjectTypeSubset() throws Exception {
-        var selectedObjectTypes = List.of(
-                makeObjectTypeId("ACCOUNT/person"),
-                makeObjectTypeId("ENTITLEMENT/contract"),
-                makeObjectTypeId("GENERIC/orgUnit")
-        );
-        var suggestions = prepareAndSuggestAssociations(selectedObjectTypes);
-
-        assertThat(suggestions)
-                .as("Expected non-empty association suggestions")
-                .isNotEmpty();
-
-        var actualAssociations = suggestions.stream()
-                .map(this::associationToKey)
-                .collect(Collectors.toList());
-
-        var expectedAssociations = List.of(
-                makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"),
-                makeAssociationKey("ENTITLEMENT/contract", "GENERIC/orgUnit"),
-                makeAssociationKey("GENERIC/orgUnit", "ENTITLEMENT/contract")
-        );
-
-        assertThat(actualAssociations)
-                .as("All expected smart associations should be suggested")
-                .containsExactlyInAnyOrderElementsOf(expectedAssociations);
-    }
-
-    @Test
     public void testSmartAssociation_shouldConstructNamesForSuggestedAssociations() throws Exception {
-        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES);
+        var suggestions = prepareAndSuggestAssociations();
 
         var actualAssociationsNames = suggestions.stream()
                 .map(a -> a.getDefinition().getName().getLocalPart())
@@ -168,7 +129,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     @Test
     public void testSmartAssociation_shouldSuggestCorrectInboundAssociationStructure() throws Exception {
         var isInbound = true;
-        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES, isInbound);
+        var suggestions = prepareAndSuggestAssociations(isInbound);
 
         var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"));
 
@@ -236,13 +197,13 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             </object>
         </definition>
         """);
-        assertEqualsMultiline("body of association should be equal", expectedValue, actualValue);
+        assertEqualsMultiline("body of association should be equal (inbound)", expectedValue, actualValue);
     }
 
     @Test
     public void testSmartAssociation_shouldSuggestCorrectOutboundAssociationStructure() throws Exception {
         var isOutbound = false;
-        var suggestions = prepareAndSuggestAssociations(ALL_OBJECT_TYPES, isOutbound);
+        var suggestions = prepareAndSuggestAssociations(isOutbound);
 
         var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"));
 
@@ -293,7 +254,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             </object>
         </definition>
         """);
-        assertEqualsMultiline("body of association should be equal", expectedValue, actualValue);
+        assertEqualsMultiline("body of association should be equal (outbound)", expectedValue, actualValue);
     }
 
     @Test
@@ -302,11 +263,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var result = task.getResult();
 
         when("submitting 'suggest associations' operation request");
-        var token = smartIntegrationService.submitSuggestAssociationsOperation(
-                RESOURCE_OID,
-                ALL_OBJECT_TYPES,
-                ALL_OBJECT_TYPES,
-                task, result);
+        var token = smartIntegrationService.submitSuggestAssociationsOperation(RESOURCE_OID, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -358,12 +315,6 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         return subjectKindIntent + "=>" + objectKindIntent;
     }
 
-    private static ResourceObjectTypeIdentification makeObjectTypeId(String objectTypeKey) {
-        var kind = ShadowKindType.valueOf(objectTypeKey.split("/")[0]);
-        var intent = objectTypeKey.split("/")[1];
-        return ResourceObjectTypeIdentification.of(kind, intent);
-    }
-
     private AssociationSuggestionType findSuggestion(List<AssociationSuggestionType> suggestions, String strId) {
         return suggestions.stream()
                 .filter(suggestion -> {
@@ -378,26 +329,19 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 .orElse(null);
     }
 
-    private List<AssociationSuggestionType> prepareAndSuggestAssociations(List<ResourceObjectTypeIdentification> objectTypes) throws Exception {
+    private List<AssociationSuggestionType> prepareAndSuggestAssociations() throws Exception {
         var isInbound = true;
-        return prepareAndSuggestAssociations(objectTypes, isInbound);
+        return prepareAndSuggestAssociations(isInbound);
     }
 
-    private List<AssociationSuggestionType> prepareAndSuggestAssociations(List<ResourceObjectTypeIdentification> objectTypes, boolean isInbound) throws Exception {
+    private List<AssociationSuggestionType> prepareAndSuggestAssociations(boolean isInbound) throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
         var resource = provisioningService.getObject(ResourceType.class, RESOURCE_OID, null, task, result);
         displayValueAsXml("Resource: ad-smart-association-types", resource.getValue());
 
-        AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(
-                RESOURCE_OID,
-                objectTypes,
-                objectTypes,
-                isInbound,
-                task,
-                result
-        );
+        AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(RESOURCE_OID, isInbound, task, result);
 
         displayValueAsXml("Suggested Associations", associationsSuggestion);
 

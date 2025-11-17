@@ -10345,20 +10345,6 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="subjectObjectTypes" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Identifies the subject object types for which associations should be suggested.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="objectObjectTypes" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Identifies the object types for which associations should be suggested.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
