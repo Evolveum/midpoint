@@ -120,7 +120,8 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         }
     }
 
-    protected <F extends FocusType> OperationResult executeTest(TestDetails testDetails, int expectedSubTaskCount)
+    // returns root case after the test
+    protected <F extends FocusType> CaseType executeTest(TestDetails testDetails, int expectedSubTaskCount)
             throws Exception {
 
         // GIVEN
@@ -280,7 +281,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         // Check audit
         displayDumpable("Audit", dummyAuditService);
         displayDumpable("Output context", modelContext);
-        return result;
+        return rootCaseAfter;
     }
 
     protected void assertWfContextAfterClockworkRun(
@@ -426,7 +427,8 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         }
     }
 
-    protected <F extends FocusType> OperationResult executeTest2(TestDetails2<F> testDetails2, int expectedSubTaskCount,
+    // returns root case after the test
+    protected <F extends FocusType> CaseType executeTest2(TestDetails2<F> testDetails2, int expectedSubTaskCount,
             boolean immediate) throws Exception {
         return executeTest(new TestDetails() {
             @Override
