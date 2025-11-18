@@ -46,6 +46,13 @@ public class SmartAssociationImpl {
                 .toList();
     }
 
+    private boolean isReferenceComplex(ShadowReferenceAttributeDefinition ref) {
+        var isComplex = ref.getNativeDefinition().isComplexAttribute();
+        var isTargetingEmbeddedClass = ref.isTargetingSingleEmbeddedObjectClass();
+        var isTargetingAuxiliaryClass = ref.getGeneralizedObjectSideObjectDefinition().getObjectClassDefinition().isAuxiliary();
+        return isComplex || isTargetingEmbeddedClass || isTargetingAuxiliaryClass;
+    }
+
     /**
      * Suggests potential associations between the provided subject and object types on the given resource.
      * Associations are derived by analyzing reference attributes in native object class definitions.
@@ -70,16 +77,18 @@ public class SmartAssociationImpl {
                     continue;
                 }
                 var isObjectToSubject = refAttribute.getParticipantRole().equals(ShadowReferenceParticipantRole.OBJECT);
-                var isComplex = refAttribute.getNativeDefinition().isComplexAttribute();
-                if (isObjectToSubject || isComplex) {
+                if (isObjectToSubject) {
                     // object-to-subject not supported
+                    continue;
+                }
+                if (isReferenceComplex(refAttribute)) {
                     // complex associations not supported yet
                     continue;
                 }
                 var targetObjectClass = refAttribute.getTargetObjectClassName();
                 var objectObjectTypes = findObjectTypesForObjectClass(resourceSchema, targetObjectClass);
                 for (var objectObjectType : objectObjectTypes) {
-                    var associationDef = resolveRefBasedAssociations(nativeSchema, subjectObjectType, refAttribute, objectObjectType, isInbound);
+                    var associationDef = resolveRefBasedAssociation(nativeSchema, subjectObjectType, refAttribute, objectObjectType, isInbound);
                     var suggestion = new AssociationSuggestionType().definition(associationDef);
                     associationsSuggestionType.getAssociation().add(suggestion);
                 }
@@ -97,7 +106,7 @@ public class SmartAssociationImpl {
      * @param isInbound inbound/outbound flag
      * @return A list of derived association definitions.
      */
-    private ShadowAssociationTypeDefinitionType resolveRefBasedAssociations(
+    private ShadowAssociationTypeDefinitionType resolveRefBasedAssociation(
             @NotNull NativeResourceSchema nativeSchema,
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
             @NotNull ShadowReferenceAttributeDefinition attributeReference,
