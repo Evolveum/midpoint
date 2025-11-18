@@ -20,10 +20,12 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition.ItemInboundProcessingDefinition;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -149,6 +151,45 @@ public class CorrelatorsDefinitionUtil {
                                         new ItemPathType(focusItemPath))
                                 .search(
                                         CloneUtil.clone(attributeCorrelatorDefBean.getSearch()))));
+    }
+
+    /**
+     * Merges two CorrelationDefinitionType instances.
+     *
+     * @param target The target correlation definition - takes precedence for thresholds
+     * @param source The source correlation definition to merge in
+     * @return Merged correlation definition, or null if both inputs are null
+     * @throws SchemaException If there's a schema error during merging
+     * @throws ConfigurationException If there's a configuration error during merging
+     */
+    public static @Nullable CorrelationDefinitionType mergeCorrelationDefinitions(
+            @Nullable CorrelationDefinitionType target, @Nullable CorrelationDefinitionType source)
+            throws SchemaException, ConfigurationException {
+
+        if (target == null) {
+            return source;
+        } else if (source == null) {
+            return target;
+        }
+
+        final CorrelationDefinitionType mergeTarget = target.clone();
+        final CompositeCorrelatorType mergeTargetCorrelators = mergeTarget.getCorrelators();
+        final CompositeCorrelatorType sourceCorrelators = source.getCorrelators();
+
+        if (mergeTargetCorrelators != null && sourceCorrelators != null) {
+            final CompositeCorrelatorType mergedCorrelators = BaseMergeOperation.merge(mergeTargetCorrelators,
+                    sourceCorrelators);
+            mergeTarget.setCorrelators(mergedCorrelators);
+        } else if (mergeTargetCorrelators == null && sourceCorrelators != null) {
+            mergeTarget.setCorrelators(sourceCorrelators.clone());
+        }
+
+        // Thresholds: prefer target if present, otherwise use source
+        if (mergeTarget.getThresholds() == null && source.getThresholds() != null) {
+            mergeTarget.setThresholds(source.getThresholds());
+        }
+
+        return mergeTarget;
     }
 
     /**
