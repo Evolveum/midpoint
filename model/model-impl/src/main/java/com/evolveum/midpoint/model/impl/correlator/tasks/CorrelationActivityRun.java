@@ -41,7 +41,7 @@ public class CorrelationActivityRun
             throw new ActivityRunException("This activity is supported only in preview execution mode",
                     OperationResultStatus.FATAL_ERROR, TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
         }
-        this.correlationDefinition = getWorkDefinition().resolveCorrelators();
+        this.correlationDefinition = getWorkDefinition().provideCorrelators(result);
         return true;
     }
 

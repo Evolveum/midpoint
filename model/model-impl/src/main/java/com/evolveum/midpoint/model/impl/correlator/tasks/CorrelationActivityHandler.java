@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -32,15 +33,19 @@ public class CorrelationActivityHandler
 
     @Autowired
     private final ActivityHandlerRegistry activityHandlerRegistry;
+    @Autowired
+    private final CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory;
 
-    public CorrelationActivityHandler(ActivityHandlerRegistry activityHandlerRegistry) {
+    public CorrelationActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
+            CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory) {
         this.activityHandlerRegistry = activityHandlerRegistry;
+        this.correlationDefinitionProviderFactory = correlationDefinitionProviderFactory;
     }
 
     @PostConstruct
     public void init() {
         this.activityHandlerRegistry.register(CorrelationWorkDefinitionType.COMPLEX_TYPE,
-                WorkDefinitionsType.F_CORRELATION, CorrelationWorkDefinition.class, CorrelationWorkDefinition::new,
+                WorkDefinitionsType.F_CORRELATION, CorrelationWorkDefinition.class, this::workDefFactory,
                 this
         );
     }
@@ -49,5 +54,9 @@ public class CorrelationActivityHandler
             @NotNull ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationActivityHandler> ctx,
             @NotNull OperationResult result) {
         return new CorrelationActivityRun(ctx);
+    }
+
+    private CorrelationWorkDefinition workDefFactory(WorkDefinitionFactory.WorkDefinitionInfo info) {
+        return new CorrelationWorkDefinition(info, this.correlationDefinitionProviderFactory);
     }
 }
