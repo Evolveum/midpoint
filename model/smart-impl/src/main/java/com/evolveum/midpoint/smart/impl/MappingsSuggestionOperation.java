@@ -106,7 +106,7 @@ class MappingsSuggestionOperation {
         return includeOutbounds ? MappingDirection.OUTBOUND : MappingDirection.INBOUND;
     }
 
-    MappingsSuggestionType suggestMappings(OperationResult result, ShadowObjectClassStatisticsType statistics, SchemaMatchResultType schemaMatch)
+    MappingsSuggestionType suggestMappings(OperationResult result, SchemaMatchResultType schemaMatch)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         ctx.checkIfCanRun();
@@ -214,7 +214,7 @@ class MappingsSuggestionOperation {
         ExpressionType expression = null;
         MappingsQualityAssessor.AssessmentResult assessment = null;
 
-        if (isScriptNeededDirectional(valuesPairs, propertyDef, shadowAttrDef, direction)) {
+        if (isScriptNeeded(valuesPairs, propertyDef, shadowAttrDef, direction)) {
             String errorLog = null;
             String retryScript = null;
 
@@ -325,70 +325,43 @@ class MappingsSuggestionOperation {
                 .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
     }
 
-    /** Returns {@code true} if a simple "asIs" mapping is sufficient. */
-    private boolean doesAsIsSuffice(Collection<ValuesPair> valuesPairs, PrismPropertyDefinition<?> propertyDef) {
-        if (propertyDef == null) {
-            LOGGER.trace("No focus property definition available; cannot verify asIs mapping.");
+    /** Returns {@code true} if a simple "asIs" mapping is sufficient for the given direction. */
+    private boolean doesAsIsSuffice(
+            Collection<ValuesPair> valuesPairs,
+            PrismPropertyDefinition<?> targetDef,
+            MappingDirection direction) {
+        if (targetDef == null) {
+            LOGGER.trace("No definition available; cannot verify asIs mapping.");
             return false;
         }
         for (var valuesPair : valuesPairs) {
-            var shadowValues = valuesPair.shadowValues() != null ? valuesPair.shadowValues() : List.of();
-            var focusValues = valuesPair.focusValues() != null ? valuesPair.focusValues() : List.of();
-            if (shadowValues.size() != focusValues.size()) {
+            var sourceValues = direction == MappingDirection.INBOUND
+                    ? (valuesPair.shadowValues() != null ? valuesPair.shadowValues() : List.of())
+                    : (valuesPair.focusValues() != null ? valuesPair.focusValues() : List.of());
+            var targetValues = direction == MappingDirection.INBOUND
+                    ? (valuesPair.focusValues() != null ? valuesPair.focusValues() : List.of())
+                    : (valuesPair.shadowValues() != null ? valuesPair.shadowValues() : List.of());
+            if (sourceValues.size() != targetValues.size()) {
                 return false;
             }
-            var expectedFocusValues = new ArrayList<>(focusValues.size());
-            for (Object shadowValue : shadowValues) {
+            var expectedTargetValues = new ArrayList<>(sourceValues.size());
+            for (Object sourceValue : sourceValues) {
                 Object converted;
                 try {
                     converted = ExpressionUtil.convertValue(
-                            propertyDef.getTypeClass(), null, shadowValue, ctx.b.protector);
+                            targetDef.getTypeClass(), null, sourceValue, ctx.b.protector);
                 } catch (Exception e) {
-                    // If the conversion is not possible e.g. because of different types, an exception is thrown
-                    // We are OK with that (from performance point of view), because this is just a sample of values.
-                    LOGGER.trace("Value conversion failed, assuming transformation is needed: {} (value: {})",
-                            e.getMessage(), shadowValue); // no need to provide full stack trace here
+                    // Conversion not possible (e.g., different types) -> transformation is needed.
+                    LOGGER.trace("Value conversion failed ({}), assuming transformation is needed: {} (value: {})",
+                            direction == MappingDirection.INBOUND ? "inbound" : "outbound",
+                            e.getMessage(), sourceValue);
                     return false;
                 }
                 if (converted != null) {
-                    expectedFocusValues.add(converted);
+                    expectedTargetValues.add(converted);
                 }
             }
-            if (!MiscUtil.unorderedCollectionEquals(focusValues, expectedFocusValues)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /** OUTBOUND counterpart of doesAsIsSuffice: checks whether focus values as-is (or converted) match shadow values. */
-    private boolean doesAsIsSufficeOutbound(Collection<ValuesPair> valuesPairs, PrismPropertyDefinition<?> shadowAttrDef) {
-        if (shadowAttrDef == null) {
-            LOGGER.trace("No shadow attribute definition available; cannot verify asIs outbound mapping.");
-            return false;
-        }
-        for (var valuesPair : valuesPairs) {
-            var shadowValues = valuesPair.shadowValues() != null ? valuesPair.shadowValues() : List.of();
-            var focusValues = valuesPair.focusValues() != null ? valuesPair.focusValues() : List.of();
-            if (shadowValues.size() != focusValues.size()) {
-                return false;
-            }
-            var expectedShadowValues = new ArrayList<>(shadowValues.size());
-            for (Object focusValue : focusValues) {
-                Object converted;
-                try {
-                    converted = ExpressionUtil.convertValue(
-                            shadowAttrDef.getTypeClass(), null, focusValue, ctx.b.protector);
-                } catch (Exception e) {
-                    LOGGER.trace("Value conversion failed (outbound), assuming transformation is needed: {} (value: {})",
-                            e.getMessage(), focusValue);
-                    return false;
-                }
-                if (converted != null) {
-                    expectedShadowValues.add(converted);
-                }
-            }
-            if (!MiscUtil.unorderedCollectionEquals(shadowValues, expectedShadowValues)) {
+            if (!MiscUtil.unorderedCollectionEquals(targetValues, expectedTargetValues)) {
                 return false;
             }
         }
@@ -396,7 +369,7 @@ class MappingsSuggestionOperation {
     }
 
     /** Returns {@code true} if a transformation script is needed, direction-aware. */
-    private boolean isScriptNeededDirectional(
+    private boolean isScriptNeeded(
             Collection<ValuesPair> valuesPairs,
             PrismPropertyDefinition<?> focusPropertyDef,
             PrismPropertyDefinition<?> shadowAttrDef,
@@ -413,20 +386,20 @@ class MappingsSuggestionOperation {
             return false;
         }
         if (direction == MappingDirection.INBOUND) {
-            if (doesAsIsSuffice(valuesPairs, focusPropertyDef)) {
+            if (doesAsIsSuffice(valuesPairs, focusPropertyDef, direction)) {
                 LOGGER.trace(" -> 'asIs' does suffice according to the data (inbound), so we'll use it (no LLM)");
                 return false;
             }
-            if (isTargetDataMissingDirectional(valuesPairs, direction)) {
+            if (isTargetDataMissing(valuesPairs, direction)) {
                 LOGGER.trace(" -> target data missing (focus); assuming 'asIs' is fine (no LLM call)");
                 return false;
             }
         } else { // OUTBOUND
-            if (doesAsIsSufficeOutbound(valuesPairs, shadowAttrDef)) {
+            if (doesAsIsSuffice(valuesPairs, shadowAttrDef, direction)) {
                 LOGGER.trace(" -> 'asIs' does suffice according to the data (outbound), so we'll use it (no LLM)");
                 return false;
             }
-            if (isTargetDataMissingDirectional(valuesPairs, direction)) {
+            if (isTargetDataMissing(valuesPairs, direction)) {
                 LOGGER.trace(" -> target data missing (shadow); assuming 'asIs' is fine (no LLM call)");
                 return false;
             }
@@ -437,7 +410,7 @@ class MappingsSuggestionOperation {
     }
 
     /** Returns {@code true} if there are no target data altogether, direction-aware. */
-    private boolean isTargetDataMissingDirectional(Collection<ValuesPair> valuesPairs, MappingDirection direction) {
+    private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs, MappingDirection direction) {
         if (direction == MappingDirection.INBOUND) {
             return valuesPairs.stream().allMatch(pair -> pair.focusValues() == null || pair.focusValues().isEmpty());
         } else {

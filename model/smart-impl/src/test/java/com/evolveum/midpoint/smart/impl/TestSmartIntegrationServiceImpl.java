@@ -1179,11 +1179,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var result = task.getResult();
 
         when("suggesting mappings");
-        // Compute kind/intent statistics with ObjectTypeRelatedStatisticsComputer and pass them to the call
-        var statistics = computeStatistics(
-                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
-                ACCOUNT_DEFAULT,
-                task, result);
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
@@ -1191,7 +1186,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var suggestedMappings = smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                statistics,
                 match,
                 new MappingsSuggestionFiltersType().includeInbounds(true),
                 null, null, task, result);
@@ -1256,10 +1250,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var result = task.getResult();
 
         when("suggesting mappings");
-        var statisticsForOrg = computeStatistics(
-                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION,
-                GENERIC_ORGANIZATIONAL_UNIT,
-                task, result);
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
@@ -1267,7 +1257,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 GENERIC_ORGANIZATIONAL_UNIT,
-                statisticsForOrg, match, null, null, null, task, result);
+                match, null, null, null, task, result);
 
         then("the number of attributes in the request is appropriate");
         var request = (SiMatchSchemaRequestType) mockClient.getLastRequest();
