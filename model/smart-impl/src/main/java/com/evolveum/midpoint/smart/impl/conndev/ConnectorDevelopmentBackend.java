@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.smart.impl.conndev;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -12,6 +14,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -126,19 +129,47 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     public void saveArtifact(ConnDevArtifactType artifact) throws IOException, CommonException {
-        var itemPath = itemPathFor(artifact);
+        var deltaBuilder = PrismContext.get().deltaFor(ConnectorDevelopmentType.class);
+        final ItemPath itemPath;
+        if (ConnDevScriptIntentType.RELATION.equals(artifact.getIntent())) {
+            var maybePath = itemPathFor(artifact, ConnDevConnectorType.F_RELATION);
+            if (maybePath != null) {
+                itemPath = maybePath;
+            } else {
+                // We should copy relation info
+                copyRelationToConnectorInfo(artifact.getObjectClass());
+                reload();
+                itemPath  = itemPathFor(artifact, ConnDevConnectorType.F_RELATION);
+            }
+        } else {
+            itemPath = itemPathFor(artifact, ConnDevConnectorType.F_OBJECT_CLASS);
+        }
+        if (itemPath == null) {
+            throw new UnsupportedOperationException("No connector class found for object class " + artifact.getObjectClass());
+        }
+
         saveConnectorFile(artifact.getFilename(), artifact.getContent());
         var modelArtifact = artifact.clone().content(null);
 
-        if (ConnDevScriptIntentType.RELATION.equals(artifact.getIntent())) {
-            return;
-        }
-        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+        var delta = deltaBuilder
                 .item(itemPath).replace(modelArtifact)
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
         recomputeConnectorManifest();
+    }
+
+    private void copyRelationToConnectorInfo(String objectClass) throws CommonException {
+        var relation = developmentObject().getApplication().getDetectedSchema().getRelation()
+                .stream().filter(r -> r.getName().equals(objectClass)).findFirst();
+        if (relation.isEmpty()) {
+            throw new ConfigurationException("Supplied relation " + objectClass + "not found");
+        }
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_RELATION)
+                .add(relation.get().cloneWithoutId())
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
     }
 
     public void recomputeConnectorManifest() throws IOException {
@@ -159,13 +190,19 @@ public abstract class ConnectorDevelopmentBackend {
         editableConnector().saveFile(filename, content);
     }
 
-    private ItemPath itemPathFor(ConnDevArtifactType artifact) {
+    @Nullable
+    private ItemPath itemPathFor(ConnDevArtifactType artifact, ItemName type) {
         ItemPath path = ConnectorDevelopmentType.F_CONNECTOR;
         if (artifact.getObjectClass() != null) {
-            path = path.append(ConnDevConnectorType.F_OBJECT_CLASS);
-            var objClass = development.getConnector().getObjectClass().stream().filter(o -> o.getName().equals(artifact.getObjectClass())).findFirst().orElse(null);
+            path = path.append(type);
+            PrismContainer<ConnDevNamedInfoType> typeContainer = development.getConnector().asPrismContainerValue().findContainer(type);
+            if (typeContainer == null) {
+                return null;
+            }
+            var objClass  = typeContainer.valuesStream()
+                    .filter(o -> o.asContainerable().getName().equals(artifact.getObjectClass())).findFirst().orElse(null);
             if (objClass == null) {
-                throw new UnsupportedOperationException("No connector class found for object class " + artifact.getObjectClass());
+                return null;
             }
             path = path.append(objClass.getId());
         }
