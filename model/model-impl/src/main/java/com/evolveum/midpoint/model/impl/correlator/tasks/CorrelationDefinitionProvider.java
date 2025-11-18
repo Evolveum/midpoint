@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.correlator.tasks;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -17,6 +18,15 @@ public interface CorrelationDefinitionProvider {
 
     CorrelationDefinitionType get(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
+
+    default CorrelationDefinitionProvider union(CorrelationDefinitionProvider provider) {
+        return result -> {
+            final CorrelationDefinitionType targetCorrelationDef = this.get(result);
+            final CorrelationDefinitionType sourceCorrelationDef = provider.get(result);
+
+            return CorrelatorsDefinitionUtil.mergeCorrelationDefinitions(targetCorrelationDef, sourceCorrelationDef);
+        };
+    }
 
     record ResourceWithObjectTypeId(String oid, ShadowKindType kind, String intent) {
         public static ResourceWithObjectTypeId from(ResourceObjectSetType resourceObjectSet) {
