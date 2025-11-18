@@ -36,7 +36,7 @@ public class DummyAdSmartAssociationsScenario extends AbstractDummyScenario {
     /* defined links (reference attributes) between object classes */
     // NOTE: first participant is "subject", second participant is "object"
 
-    // reference attributes: person - contract (subject to object)
+    // reference attributes: person - contract (subject to object, complex)
     public final PersonContract personContract = new PersonContract();
 
     // reference attributes: account - groups and groups - groups (subject to object)
@@ -45,7 +45,7 @@ public class DummyAdSmartAssociationsScenario extends AbstractDummyScenario {
     // reference attributes: org - contract (both directions)
     public final ContractOrgUnit contractOrgUnit = new ContractOrgUnit();
 
-    // reference attributes: expert - account (object to subject - not supported)
+    // reference attributes: expert - account (object to subject - not supported, complex)
     public final ExpertAccount expertAccount = new ExpertAccount();
 
 
@@ -204,7 +204,7 @@ public class DummyAdSmartAssociationsScenario extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = DummyObjectClass.embedded();
+            var oc = DummyObjectClass.embedded(); // embedded would make it a complex association
             controller.addAttrDef(oc, Contract.AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, Contract.AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, Contract.AttributeNames.NOTE.local(), String.class, false, false);

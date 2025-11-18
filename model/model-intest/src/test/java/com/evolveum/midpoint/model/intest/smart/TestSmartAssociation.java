@@ -63,7 +63,6 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/app-group"),
             makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/generic-group"),
             makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/org-group"),
-            makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"),
             makeAssociationKey("ENTITLEMENT/app-group", "ENTITLEMENT/generic-group"),
             makeAssociationKey("ENTITLEMENT/app-group", "ENTITLEMENT/org-group"),
             makeAssociationKey("ENTITLEMENT/generic-group", "ENTITLEMENT/app-group"),
@@ -71,6 +70,8 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/app-group"),
             makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/generic-group"),
             makeAssociationKey("ENTITLEMENT/contract", "GENERIC/orgUnit"),
+            // complex associations (not supported yet)
+            //makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"),
             // identity links
             makeAssociationKey("ENTITLEMENT/generic-group", "ENTITLEMENT/generic-group"),
             makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/org-group"),
@@ -133,7 +134,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var isInbound = true;
         var suggestions = prepareAndSuggestAssociations(isInbound);
 
-        var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"));
+        var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/app-group"));
 
         assertThat(suggestion.getDefinition().getDescription())
                 .as("association has non empty description")
@@ -145,19 +146,19 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var actualValue = prettySerialize(suggestion);
         var expectedValue = dedent("""
         <definition>
-            <name>ri:AccountPerson-EntitlementContract</name>
-            <displayName>AccountPerson-EntitlementContract</displayName>
+            <name>ri:AccountDefault-EntitlementAppgroup</name>
+            <displayName>AccountDefault-EntitlementAppgroup</displayName>
             <subject>
-                <ref>ri:person</ref>
+                <ref>ri:account</ref>
                 <objectType>
                     <kind>account</kind>
-                    <intent>person</intent>
+                    <intent>default</intent>
                 </objectType>
                 <association>
-                    <ref>ri:contract</ref>
-                    <sourceAttributeRef>ri:contract</sourceAttributeRef>
+                    <ref>ri:group</ref>
+                    <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <inbound>
-                        <name>AccountPerson-EntitlementContract-inbound</name>
+                        <name>AccountDefault-EntitlementAppgroup-inbound</name>
                         <expression>
                             <associationSynchronization xsi:type="c:AssociationSynchronizationExpressionEvaluatorType">
                                 <objectRef>
@@ -191,10 +192,10 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 </association>
             </subject>
             <object>
-                <ref>ri:contract</ref>
+                <ref>ri:group</ref>
                 <objectType>
                     <kind>entitlement</kind>
-                    <intent>contract</intent>
+                    <intent>app-group</intent>
                 </objectType>
             </object>
         </definition>
@@ -207,7 +208,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var isOutbound = false;
         var suggestions = prepareAndSuggestAssociations(isOutbound);
 
-        var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/person", "ENTITLEMENT/contract"));
+        var suggestion = findSuggestion(suggestions, makeAssociationKey("ACCOUNT/default", "ENTITLEMENT/app-group"));
 
         assertThat(suggestion.getDefinition().getDescription())
                 .as("association has non empty description")
@@ -219,19 +220,19 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var actualValue = prettySerialize(suggestion);
         var expectedValue = dedent("""
         <definition>
-            <name>ri:AccountPerson-EntitlementContract</name>
-            <displayName>AccountPerson-EntitlementContract</displayName>
+            <name>ri:AccountDefault-EntitlementAppgroup</name>
+            <displayName>AccountDefault-EntitlementAppgroup</displayName>
             <subject>
-                <ref>ri:person</ref>
+                <ref>ri:account</ref>
                 <objectType>
                     <kind>account</kind>
-                    <intent>person</intent>
+                    <intent>default</intent>
                 </objectType>
                 <association>
-                    <ref>ri:contract</ref>
-                    <sourceAttributeRef>ri:contract</sourceAttributeRef>
+                    <ref>ri:group</ref>
+                    <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <outbound>
-                        <name>AccountPerson-EntitlementContract-outbound</name>
+                        <name>AccountDefault-EntitlementAppgroup-outbound</name>
                         <strength>strong</strength>
                         <expression>
                             <associationConstruction xsi:type="c:AssociationConstructionExpressionEvaluatorType">
@@ -248,10 +249,10 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 </association>
             </subject>
             <object>
-                <ref>ri:contract</ref>
+                <ref>ri:group</ref>
                 <objectType>
                     <kind>entitlement</kind>
-                    <intent>contract</intent>
+                    <intent>app-group</intent>
                 </objectType>
             </object>
         </definition>
