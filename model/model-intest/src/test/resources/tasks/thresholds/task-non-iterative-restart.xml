@@ -46,7 +46,7 @@
                 </policyConstraints>
                 <policyActions>
                     <restartActivity>
-                        <delay>2</delay>
+                        <delay>PT2S</delay>
                     </restartActivity>
                 </policyActions>
                 <order>20</order>

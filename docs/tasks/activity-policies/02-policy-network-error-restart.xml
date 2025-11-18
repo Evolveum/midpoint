@@ -22,7 +22,7 @@
         <policyActions>
             <restartActivity>
                 <!-- restart in ~10 minutes -->
-                <delay>600</delay>
+                <delay>PT10M</delay>
             </restartActivity>
         </policyActions>
     </policy>

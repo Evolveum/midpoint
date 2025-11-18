@@ -171,7 +171,7 @@ This action is useful when activity processing fails due to temporary problems (
 Restart of the activity happens in two steps.
 First, the current activity realization is stopped by suspending the task.
 Then the task is resumed, which causes the activity to start from the beginning.
-Restart of the task may be delayed using `delay` parameter, which is specified in seconds.
+Restart of the task may be delayed using `delay` parameter, which is specified XML duration.
 The default delay parameter value is 5 seconds.
 Actual delay is taken as a random number between `0` and `delay * (2 ^ (n - 1))`, where `n` is number of execution attempts of the activity but `11` at most.
 If the delay is set to `0`, the task will be resumed immediately.
@@ -185,7 +185,7 @@ If the delay is set to `0`, the task will be resumed immediately.
 <policyActions>
     <restartActivity>
         <!-- 10 minutes delay -->
-        <delay>600</delay>
+        <delay>PT10M</delay>
     </restartActivity>
 </policyActions>
 ----

@@ -53,6 +53,9 @@ import org.apache.wicket.request.IRequestParameters;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.validator.EmailAddressValidator;
 
 import java.util.List;
 
@@ -196,12 +199,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
         initInputProperties(email, emailFeedback);
         staticRegistrationForm.add(email);
         staticRegistrationForm.add(emailFeedback);
-        email.getBaseFormComponent().setLabel(createStringResource("UserType.emailAddress"));
-        email.getBaseFormComponent().add(
+
+        FormComponent<String> emailText = email.getBaseFormComponent();
+        emailText.add(EmailAddressValidator.getInstance());
+        emailText.setLabel(createStringResource("UserType.emailAddress"));
+        emailText.add(
                 AttributeAppender.append("aria-label", createStringResource("UserType.emailAddress")));
-        email.getBaseFormComponent().add(
+        emailText.add(
                 AttributeAppender.replace("type", "email"));
-        email.getBaseFormComponent().add(
+        emailText.add(
                 AttributeAppender.replace("title", createStringResource("PageSelfRegistration.emailAddress.hint")));
 
         createPasswordPanel(staticRegistrationForm);
