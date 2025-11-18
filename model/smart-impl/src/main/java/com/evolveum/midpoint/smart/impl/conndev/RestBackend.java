@@ -188,7 +188,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             case NATIVE_SCHEMA_DEFINITION -> generateNativeSchema(artifactSpec);
             case CONNID_SCHEMA_DEFINITION -> generateConnIdSchema(artifactSpec);
             case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, input.getEndpoint());
-            case RELATIONSHIP_SCHEMA_DEFINITION -> genereateRelation(artifactSpec, input.getRelation());
+            case RELATIONSHIP_SCHEMA_DEFINITION -> generateRelation(artifactSpec, input.getRelation());
             default -> throw new IllegalStateException("Unexpected script type: " + classification);
         };
         content = content.replace("${objectClass}", objectClass);
@@ -196,12 +196,12 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     }
 
-    private String genereateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation) {
+    private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation) {
         var request = MultipartEntityBuilder.create();
         var documentation = selectBestDocumentation(getProcessedDocumentation());
         try {
             request.addBinaryBody("documentation", documentation.asInputStream(), ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
-            request.addTextBody("relation",  toJsonRelations(relation).toPrettyString());
+            request.addTextBody("relations",  toJsonRelations(relation).toPrettyString());
         } catch (FileNotFoundException e) {
             throw new SystemException("Couldn't open documentation file", e);
         }
