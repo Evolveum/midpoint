@@ -243,8 +243,7 @@ public interface SmartIntegrationService {
      */
     AssociationsSuggestionType suggestAssociations(
             String resourceOid,
-            Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
-            Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
+            boolean isInbound,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -255,8 +254,6 @@ public interface SmartIntegrationService {
      */
     String submitSuggestAssociationsOperation(
             String resourceOid,
-            Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
-            Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
             Task task,
             OperationResult result)
             throws CommonException;

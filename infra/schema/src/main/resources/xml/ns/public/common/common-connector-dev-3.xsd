@@ -168,7 +168,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         List of authentications supported by connector. The configuration present here triggers generation
-                        of necessary support configuration and code in connector.
+                        of necessary support configuration and codye in connector.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -243,7 +243,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ConnDevBasicObjectClassInfoType">
+    <xsd:complexType name="ConnDevNamedInfoType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
@@ -251,12 +251,26 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
-            <xsd:element name="relevant" type="xsd:boolean"/>
-            <xsd:element name="superclass" type="xsd:string"/>
-            <xsd:element name="abstract" type="xsd:boolean"/>
-            <xsd:element name="embedded" type="xsd:boolean"/>
-            <xsd:element name="description" type="xsd:string"/>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevBasicObjectClassInfoType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevNamedInfoType">
+                <xsd:sequence>
+                    <xsd:element name="relevant" type="xsd:boolean"/>
+                    <xsd:element name="superclass" type="xsd:string"/>
+                    <xsd:element name="abstract" type="xsd:boolean"/>
+                    <xsd:element name="embedded" type="xsd:boolean"/>
+                    <xsd:element name="description" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ConnDevObjectClassInfoType">
@@ -270,6 +284,9 @@
                     <xsd:element name="searchFilterOperation" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="nativeSchemaScript" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="connidSchemaScript" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="createScript" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="updateScript" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="deleteScript" type="tns:ConnDevArtifactType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -281,15 +298,19 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string"/>
-            <xsd:element name="shortDescription" type="xsd:string"/>
-            <xsd:element name="subject" type="xsd:string"/>
-            <xsd:element name="subjectAttribute" type="xsd:string"/>
-            <xsd:element name="object" type="xsd:string"/>
-            <xsd:element name="objectAttribute" type="xsd:string"/>
-            <xsd:element name="confirm" type="xsd:boolean"/>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevNamedInfoType">
+                <xsd:sequence>
+                    <xsd:element name="shortDescription" type="xsd:string"/>
+                    <xsd:element name="subject" type="xsd:string"/>
+                    <xsd:element name="subjectAttribute" type="xsd:string"/>
+                    <xsd:element name="object" type="xsd:string"/>
+                    <xsd:element name="objectAttribute" type="xsd:string"/>
+                    <xsd:element name="confirm" type="xsd:boolean"/>
+                    <xsd:element name="schemaScript" type="tns:ConnDevArtifactType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
 
@@ -420,6 +441,36 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="GET"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="create">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Create operation for particular object class
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CREATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="update">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Update operation for particular object class
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UPDATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="delete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Delete operation for particular object class
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -607,7 +658,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-
     <xsd:simpleType name="ConnDevHttpOperationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -671,6 +721,27 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SEARCH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="update">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UPDATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="create">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CREATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="delete">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

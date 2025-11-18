@@ -215,8 +215,6 @@ public class SmartIntegrationUtils {
     public static void runAssociationSuggestionAction(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
-            @NotNull Collection<ResourceObjectTypeIdentification> subjectTypes,
-            @NotNull Collection<ResourceObjectTypeIdentification> objectTypes,
             @NotNull AjaxRequestTarget target,
             @NotNull String operationName,
             @NotNull Task task) {
@@ -246,8 +244,7 @@ public class SmartIntegrationUtils {
                             .withHideInProgress(true))
                     .runVoid((activityTask, activityResult) -> {
                         var oid = pageBase.getSmartIntegrationService()
-                                .submitSuggestAssociationsOperation(resourceOid, subjectTypes, objectTypes,
-                                        activityTask, activityResult);
+                                .submitSuggestAssociationsOperation(resourceOid, activityTask, activityResult);
                         activityResult.setBackgroundTaskOid(oid);
                     });
         }

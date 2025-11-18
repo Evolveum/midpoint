@@ -15,17 +15,13 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
 import com.evolveum.midpoint.gui.impl.factory.duplicateresolver.AssociationDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPopupPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -215,52 +211,8 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             AjaxRequestTarget target) {
         ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
         ResourceType resourceType = objectDetailsModels.getObjectType();
-        CompleteResourceSchema resourceSchema;
-        try {
-            resourceSchema = getObjectDetailsModels().getRefinedSchema();
-        } catch (SchemaException | ConfigurationException e) {
-            throw new RuntimeException("Couldn't get refined schema for resource " + resourceType.getName(), e);
-        }
-
-        List<AssociationDefinitionWrapper> list = new ArrayList<>();
-
-        resourceSchema.getObjectTypeDefinitions().forEach(objectTypeDef ->
-                objectTypeDef.getReferenceAttributeDefinitions().forEach(
-                        refAttrDef -> {
-                            if (!refAttrDef.canRead()
-                                    || ShadowReferenceParticipantRole.SUBJECT != refAttrDef.getParticipantRole()
-                                    || refAttrDef.getNativeDefinition().isComplexAttribute()) {
-                                return;
-                            }
-
-                            AssociationDefinitionWrapper wrapper = new AssociationDefinitionWrapper(
-                                    objectTypeDef, refAttrDef, resourceSchema);
-                            list.add(wrapper);
-                        }));
-
-        Collection<ResourceObjectTypeIdentification> subjectTypes = new ArrayList<>();
-        Collection<ResourceObjectTypeIdentification> objectTypes = new ArrayList<>();
-        list.forEach(def -> {
-            List<AssociationDefinitionWrapper.ParticipantWrapper> objects = def.getObjects();
-            List<AssociationDefinitionWrapper.ParticipantWrapper> subjects = def.getSubjects();
-            objects.stream()
-                    .filter(object -> ShadowUtil.isClassified(object.getKind(), object.getIntent()))
-                    .map(object -> ResourceObjectTypeIdentification.of(object.getKind(), object.getIntent()))
-                    .forEach(objectTypes::add);
-            subjects.stream()
-                    .filter(subject -> ShadowUtil.isClassified(subject.getKind(), subject.getIntent()))
-                    .map(subject -> ResourceObjectTypeIdentification.of(subject.getKind(), subject.getIntent()))
-                    .forEach(subjectTypes::add);
-        });
-
-        if (subjectTypes.isEmpty() || objectTypes.isEmpty()) {
-            getPageBase().warn(getString("AssociationTypesPanel.noAssociationsDefined"));
-            target.add(getPageBase().getFeedbackPanel());
-            return;
-        }
-
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
-        runAssociationSuggestionAction(getPageBase(), resourceType.getOid(), subjectTypes, objectTypes, target, OP_DEFINE_TYPES, task);
+        runAssociationSuggestionAction(getPageBase(), resourceType.getOid(), target, OP_DEFINE_TYPES, task);
     }
 
     @Override

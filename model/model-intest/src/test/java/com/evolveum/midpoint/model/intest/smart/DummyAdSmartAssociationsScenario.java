@@ -24,28 +24,28 @@ import static com.evolveum.midpoint.test.ObjectClassName.custom;
 @SuppressWarnings("WeakerAccess") // there are a lot of constants that will be eventually used from the outside
 public class DummyAdSmartAssociationsScenario extends AbstractDummyScenario {
 
-    //subject classes
+    /* defined object classes */
     public final Account account = new Account();
     public final Person person = new Person();
-
-    //object classes
     public final Group group = new Group();
     public final Contract contract = new Contract();
     public final OrgUnit orgUnit = new OrgUnit();
-
     public final Expert expert = new Expert();
 
 
-    //link classes
-    // association person - contract
+    /* defined links (reference attributes) between object classes */
+    // NOTE: first participant is "subject", second participant is "object"
+
+    // reference attributes: person - contract (subject to object, complex)
     public final PersonContract personContract = new PersonContract();
 
-    // association account - groups (both direction)
-    public final AccountGroup accountGroup = new AccountGroup();
+    // reference attributes: account - groups and groups - groups (subject to object)
+    public final AccountGroupAndGroupGroup accountGroupAndGroupGroup = new AccountGroupAndGroupGroup();
 
-    // association org - contract
+    // reference attributes: org - contract (both directions)
     public final ContractOrgUnit contractOrgUnit = new ContractOrgUnit();
 
+    // reference attributes: expert - account (object to subject - not supported, complex)
     public final ExpertAccount expertAccount = new ExpertAccount();
 
 
@@ -58,25 +58,18 @@ public class DummyAdSmartAssociationsScenario extends AbstractDummyScenario {
     }
 
     public DummyAdSmartAssociationsScenario initialize() {
-        //subject classes
+        // init object classes
         account.initialize();
-
         person.initialize();
-
-        //object classes
         group.initialize();
-
         contract.initialize();
         orgUnit.initialize();
-
         expert.initialize();
 
-        //link classes
-        accountGroup.initialize();
-
+        // init reference attributes
+        accountGroupAndGroupGroup.initialize();
         personContract.initialize();
         contractOrgUnit.initialize();
-
         expertAccount.initialize();
         return this;
     }
@@ -122,7 +115,7 @@ public class DummyAdSmartAssociationsScenario extends AbstractDummyScenario {
 
         public static class LinkNames {
             public static final AssocName _MEMBER = AssocName.ri("_member"); // avoiding collision with legacy "member"
-            // GROUP attribute is the same as in Account
+            public static final AssocName GROUP = AssocName.ri("group");
         }
 
         void initialize() {
@@ -137,7 +130,7 @@ public class DummyAdSmartAssociationsScenario extends AbstractDummyScenario {
         }
     }
 
-    public class AccountGroup extends ScenarioLinkClass {
+    public class AccountGroupAndGroupGroup extends ScenarioLinkClass {
 
         public static final ObjectClassName NAME = custom("groupMembership");
 
@@ -211,7 +204,7 @@ public class DummyAdSmartAssociationsScenario extends AbstractDummyScenario {
         }
 
         void initialize() {
-            var oc = DummyObjectClass.embedded();
+            var oc = DummyObjectClass.embedded(); // embedded would make it a complex association
             controller.addAttrDef(oc, Contract.AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, Contract.AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, Contract.AttributeNames.NOTE.local(), String.class, false, false);
