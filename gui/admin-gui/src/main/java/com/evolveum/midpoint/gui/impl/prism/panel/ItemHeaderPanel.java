@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -218,7 +220,11 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     private void addValue(AjaxRequestTarget target) {
         IW parentWrapper = getModelObject();
         try {
-            parentWrapper.addIgnoringEquivalents(createNewValue(parentWrapper), getParentPage());
+            if (parentWrapper instanceof PrismContainerWrapper<?>) {
+                parentWrapper.add(createNewValue(parentWrapper), getParentPage());
+            } else {
+                parentWrapper.addIgnoringEquivalents(createNewValue(parentWrapper), getParentPage());
+            }
         } catch (SchemaException e) {
             getSession().error(getString("ItemHeaderPanel.value.add.failed", e.getMessage()));
             LOGGER.error("Failed to add new value for {}, reason: {}", parentWrapper, e.getMessage(), e);
