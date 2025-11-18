@@ -30,7 +30,13 @@ public class ConnectorDevelopmentArtifacts {
         TEST_CONNECTION_DEFINITION(true, ConnDevOperationType.TEST_CONNECTION, null,
                 "test.op.groovy", ConnDevConnectorType.F_TEST_OPERATION),
         RELATIONSHIP_SCHEMA_DEFINITION(true, ConnDevOperationType.SCHEMA, ConnDevScriptIntentType.RELATION,
-                "schema.groovy", ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT);
+                "schema.groovy", ConnDevRelationInfoType.F_SCHEMA_SCRIPT),
+        CREATE(true, ConnDevOperationType.CREATE, null,
+                "create.op.groovy", ConnDevObjectClassInfoType.F_CREATE_SCRIPT),
+        UPDATE(true, ConnDevOperationType.UPDATE, null,
+                "update.op.groovy", ConnDevObjectClassInfoType.F_UPDATE_SCRIPT),
+        DELETE(true, ConnDevOperationType.DELETE, null,
+                "delete.op.groovy", ConnDevObjectClassInfoType.F_DELETE_SCRIPT)
         ;
 
         public final ConnDevOperationType operation;

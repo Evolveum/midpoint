@@ -142,6 +142,38 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                             // how to write test connection part of the script.
                         }
                     """;
+            case CREATE -> """
+                    /*
+                    objectClass("${objectClass}") {
+                        create {
+                            endpoint("users") {
+                                httpOperation POST
+                            }
+                        }
+                    }
+                    */
+                    """;
+            case UPDATE -> """
+                    /*
+                    objectClass("${objectClass}") {
+                        update {
+                            endpoint(PUT, "users/{id}") {
+                                pathParameter "id", attribute("id")
+                                absolute true
+                            }
+                        }
+                    }
+                    */
+                    """;
+            case DELETE -> """
+                    /*
+                    objectClass("${objectClass}") {
+                        delete {
+                            endpoint(DELETE, "users/{id}") // Short form
+                        }
+                    }
+                    */
+                    """;
             default -> throw new IllegalStateException("Unexpected script type: " + classification);
         };
         content = content.replace("${objectClass}", objectClass);
@@ -171,14 +203,25 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                             .operation(ConnDevHttpOperationType.GET)
                             .uri("/user/{id}")
                             .suggestedUse(ConnDevHttpEndpointIntentType.GET_BY_ID)
-
                     ,
                     new ConnDevHttpEndpointType().name("Get Users")
                             .operation(ConnDevHttpOperationType.GET)
-                            .uri("/user")
+                            .uri("/user/{id}")
                             .suggestedUse(ConnDevHttpEndpointIntentType.GET_ALL)
-                            .suggestedUse(ConnDevHttpEndpointIntentType.SEARCH)
-            );
+                            .suggestedUse(ConnDevHttpEndpointIntentType.SEARCH),
+                    new ConnDevHttpEndpointType().name("Create User")
+                            .operation(ConnDevHttpOperationType.GET)
+                            .uri("/user")
+                            .suggestedUse(ConnDevHttpEndpointIntentType.CREATE),
+                    new ConnDevHttpEndpointType().name("Update User")
+                            .operation(ConnDevHttpOperationType.PUT)
+                            .uri("/user/{id}")
+                            .suggestedUse(ConnDevHttpEndpointIntentType.UPDATE),
+                    new ConnDevHttpEndpointType().name("Delete User")
+                            .operation(ConnDevHttpOperationType.DELETE)
+                            .uri("/user/{id}")
+                            .suggestedUse(ConnDevHttpEndpointIntentType.DELETE)
+                    );
             case "Group" -> List.of();
             default -> List.of();
         };
