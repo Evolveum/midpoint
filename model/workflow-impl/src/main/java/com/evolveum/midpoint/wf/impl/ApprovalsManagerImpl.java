@@ -87,6 +87,7 @@ public class ApprovalsManagerImpl implements ApprovalsManager {
         return changesSorter.getChangesByStateForRoot(rootCase, result);
     }
 
+    @Deprecated // seems to be unused, so we can remove it
     @Override
     public ChangesByState<?> getChangesByState(
             CaseType approvalCase,

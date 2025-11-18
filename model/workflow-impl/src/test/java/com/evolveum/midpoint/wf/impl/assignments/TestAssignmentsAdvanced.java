@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.wf.impl.assignments;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import static java.util.Collections.*;
@@ -20,16 +21,21 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedComp
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.PROCESS;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.TestDir;
 import com.evolveum.midpoint.util.exception.CommonException;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.wf.impl.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -219,7 +225,76 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         unassignAllRoles(USER_JACK.oid, true);
-        executeAssignRoles123ToJack(false, true, true, true, false, false);
+        var rootCase = executeAssignRoles123ToJack(
+                false, true, true, true, false, false);
+
+        assertChangesByStateWithTaskDeletion(rootCase);
+    }
+
+    private void assertChangesByStateWithTaskDeletion(CaseType rootCase) throws CommonException {
+        then("changes are correctly classified");
+        assertChangesByState(rootCase);
+
+        when("execution tasks are deleted");
+        deleteExecutionTasks(rootCase);
+
+        then("changes are still correctly classified");
+        assertChangesByState(rootCase);
+    }
+
+    /** Assert changes by state for "YYYN" style tests (21, 22 approved, 23 rejected). MID-10828. */
+    private void assertChangesByState(CaseType rootCase) throws SchemaException, ObjectNotFoundException {
+        var changesByState = approvalsManager.getChangesByState(
+                rootCase, modelInteractionService, prismContext, getTestTask(), getTestOperationResult());
+        displayDumpable("changes by state after", changesByState);
+        assertAssignmentAddApplied(changesByState, ROLE_ROLE21.oid, ROLE_ROLE22.oid);
+        assertAssignmentAddRejected(changesByState, ROLE_ROLE23.oid);
+    }
+
+    /** Asserts that applied "assignments added" deltas are concerned with rolesOids (exactly). */
+    private void assertAssignmentAddApplied(ChangesByState<?> changesByState, String... rolesOids) {
+        assertAssignRequest(changesByState.getApplied(), rolesOids);
+    }
+
+    /** Asserts that rejected "assignments added" deltas are concerned with rolesOids (exactly). */
+    private void assertAssignmentAddRejected(ChangesByState<?> changesByState, String... rolesOids) {
+        assertAssignRequest(changesByState.getRejected(), rolesOids);
+    }
+
+    /** Asserts that assignments to be added are concerned with rolesOids (exactly). */
+    private void assertAssignRequest(ObjectTreeDeltas<?> treeDeltas, String... rolesOids) {
+        var focusChange = treeDeltas != null ? treeDeltas.getFocusChange() : null;
+        var modifications = focusChange != null ? focusChange.getModifications() : List.<ItemDelta<?, ?>>of();
+        //noinspection unchecked
+        var rolesOidsToAssign = modifications.stream()
+                .filter(mod -> mod.getPath().equivalent(UserType.F_ASSIGNMENT))
+                .flatMap(mod -> mod.getValuesToAdd().stream())
+                .map(pvalue -> getOid(((PrismContainerValue<AssignmentType>) pvalue).asContainerable().getTargetRef()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        assertThat(rolesOidsToAssign)
+                .as("OID of roles to be assigned")
+                .containsExactlyInAnyOrder(rolesOids);
+    }
+
+    private void deleteExecutionTasks(CaseType rootCase) throws CommonException {
+        var allCaseOids = new HashSet<>(List.of(rootCase.getOid()));
+        assertCase(rootCase, "root case")
+                .subcases()
+                .getSubcases()
+                .forEach(subcase -> allCaseOids.add(subcase.getOid()));
+        OperationResult result = getTestOperationResult();
+        SearchResultList<PrismObject<TaskType>> allTasks =
+                repositoryService.searchObjects(
+                        TaskType.class,
+                        prismContext.queryFor(TaskType.class)
+                                .item(TaskType.F_OBJECT_REF).ref(allCaseOids.toArray(new String[0]))
+                                .build(),
+                        null,
+                        result);
+        for (var task : allTasks) {
+            taskManager.deleteTask(task.getOid(), result);
+        }
     }
 
     @Test
@@ -235,7 +310,10 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         unassignAllRoles(USER_JACK.oid, true);
-        executeAssignRoles123ToJack(true, true, true, true, false, false);
+        var rootCase = executeAssignRoles123ToJack(
+                true, true, true, true, false, false);
+
+        assertChangesByStateWithTaskDeletion(rootCase);
     }
 
     /**
@@ -1390,7 +1468,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .isEqualTo(true);
     }
 
-    private void executeAssignRoles123ToJack(boolean immediate,
+    // returns root case after the test
+    private CaseType executeAssignRoles123ToJack(boolean immediate,
             boolean approve1, boolean approve2, boolean approve3a, boolean approve3b, boolean securityDeputy) throws Exception {
         Task task = getTestTask();
         String testName = getTestNameShort();
@@ -1415,7 +1494,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .summarize(addRole1Delta, addRole2Delta, addRole3Delta, changeDescriptionDelta);
         ObjectDelta<UserType> delta0 = changeDescriptionDelta.clone();
         String originalDescription = getUser(USER_JACK.oid).asObjectable().getDescription();
-        executeTest2(new TestDetails2<UserType>() {
+        return executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
