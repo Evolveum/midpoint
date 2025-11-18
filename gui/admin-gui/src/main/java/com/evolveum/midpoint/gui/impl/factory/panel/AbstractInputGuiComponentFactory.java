@@ -52,6 +52,7 @@ import static java.util.Map.entry;
 public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponentFactory<PrismPropertyPanelContext<T>> {
 
     private final static String IS_AI_FLAG_FIELD_CLASS = "is-ai-flag";
+    private final static String IS_FAILED_TO_APPLY_CLASS = "is-failed-to-apply";
 
     @Autowired private GuiComponentRegistry componentRegistry;
 
@@ -176,7 +177,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             return false;
         }
 
-        formComponent.add(AttributeModifier.append("class", "is-invalid-filter"));
+        formComponent.add(AttributeModifier.append("class", IS_FAILED_TO_APPLY_CLASS));
 
         String filterInvalidMessage = getFilterInvalidMessage(value);
         if (filterInvalidMessage != null && !filterInvalidMessage.isBlank()) {
