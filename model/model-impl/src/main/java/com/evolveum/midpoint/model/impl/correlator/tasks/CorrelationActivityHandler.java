@@ -9,9 +9,9 @@ package com.evolveum.midpoint.model.impl.correlator.tasks;
 
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
@@ -31,15 +31,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class CorrelationActivityHandler
         implements ActivityHandler<CorrelationWorkDefinition, CorrelationActivityHandler> {
 
-    @Autowired
     private final ActivityHandlerRegistry activityHandlerRegistry;
-    @Autowired
     private final CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory;
+    private final CorrelationService correlationService;
 
     public CorrelationActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
-            CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory) {
+            CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory,
+            CorrelationService correlationService) {
         this.activityHandlerRegistry = activityHandlerRegistry;
         this.correlationDefinitionProviderFactory = correlationDefinitionProviderFactory;
+        this.correlationService = correlationService;
     }
 
     @PostConstruct
@@ -53,7 +54,7 @@ public class CorrelationActivityHandler
     public CorrelationActivityRun createActivityRun(
             @NotNull ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationActivityHandler> ctx,
             @NotNull OperationResult result) {
-        return new CorrelationActivityRun(ctx);
+        return new CorrelationActivityRun(ctx, this.correlationService);
     }
 
     private CorrelationWorkDefinition workDefFactory(WorkDefinitionFactory.WorkDefinitionInfo info) {
