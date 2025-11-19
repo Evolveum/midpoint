@@ -123,10 +123,6 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         }
     }
 
-    private static MappingsSuggestionFiltersType inboundFilters() {
-        return new MappingsSuggestionFiltersType().includeInbounds(true);
-    }
-
     private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
         executeChanges(
                 deltaFor(UserType.class)
@@ -183,7 +179,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                inboundFilters(),
+                true,
                 task,
                 result);
 
@@ -227,7 +223,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                inboundFilters(),
+                true,
                 task,
                 result);
 
@@ -270,7 +266,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                inboundFilters(),
+                true,
                 task,
                 result);
 
@@ -312,7 +308,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                inboundFilters(),
+                true,
                 task,
                 result);
 

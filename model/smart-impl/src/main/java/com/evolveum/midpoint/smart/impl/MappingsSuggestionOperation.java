@@ -62,7 +62,7 @@ class MappingsSuggestionOperation {
     private final TypeOperationContext ctx;
     private final MappingsQualityAssessor qualityAssessor;
     private final OwnedShadowsProvider ownedShadowsProvider;
-    private final MappingsSuggestionFiltersType filters;
+    private final boolean isInbound;
 
     private enum MappingDirection { INBOUND, OUTBOUND }
 
@@ -70,11 +70,11 @@ class MappingsSuggestionOperation {
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
-            MappingsSuggestionFiltersType filters) {
+            boolean isInbound) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
         this.ownedShadowsProvider = ownedShadowsProvider;
-        this.filters = filters;
+        this.isInbound = isInbound;
     }
 
     static MappingsSuggestionOperation init(
@@ -84,7 +84,7 @@ class MappingsSuggestionOperation {
             @Nullable CurrentActivityState<?> activityState,
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
-            MappingsSuggestionFiltersType filters,
+            boolean isInbound,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -93,17 +93,11 @@ class MappingsSuggestionOperation {
                 TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result),
                 qualityAssessor,
                 ownedShadowsProvider,
-                filters);
+                isInbound);
     }
 
     private MappingDirection resolveDirection() throws ConfigurationException {
-        boolean includeOutbounds = filters != null && Boolean.TRUE.equals(filters.isIncludeOutbounds());
-        boolean includeInbounds = filters != null && Boolean.TRUE.equals(filters.isIncludeInbounds());
-
-        if ((!includeOutbounds && !includeInbounds) || (includeOutbounds && includeInbounds)) {
-            throw new ConfigurationException("Cannot resolve mapping direction.");
-        }
-        return includeOutbounds ? MappingDirection.OUTBOUND : MappingDirection.INBOUND;
+        return isInbound ? MappingDirection.INBOUND : MappingDirection.OUTBOUND;
     }
 
     MappingsSuggestionType suggestMappings(OperationResult result, SchemaMatchResultType schemaMatch)

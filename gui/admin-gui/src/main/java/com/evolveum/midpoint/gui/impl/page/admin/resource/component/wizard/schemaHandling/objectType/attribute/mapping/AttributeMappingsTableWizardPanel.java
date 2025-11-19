@@ -290,10 +290,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                 .withHideSuccess(true)
                                 .withHideInProgress(true))
                         .runVoid((task, result) -> {
-                            MappingsSuggestionFiltersType filters = new MappingsSuggestionFiltersType()
-                                    .includeInbounds(true)
-                                    .includeOutbounds(false);
-                            service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, filters, task, result);
+                            service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, true, task, result);
                         });
             }
 
@@ -306,10 +303,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                 .withHideSuccess(true)
                                 .withHideInProgress(true))
                         .runVoid((task, result) -> {
-                            MappingsSuggestionFiltersType filters = new MappingsSuggestionFiltersType()
-                                    .includeInbounds(false)
-                                    .includeOutbounds(true);
-                            service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, filters, task, result);
+                            service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, false, task, result);
                         });
             }
 

@@ -51,10 +51,10 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var schemaMatch = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeSchemaMatchRequired(
                 getBeans().repositoryService.getObject(GenericObjectType.class, schemaMatchOid, null, result));
 
-        MappingsSuggestionFiltersType filters = getWorkDefinition().getFilters();
+        var isInbound = getWorkDefinition().isInbound();
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, typeDef, schemaMatch, filters, null, state, task, result);
+                resourceOid, typeDef, schemaMatch, isInbound, null, state, task, result);
 
         parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
         parentState.flushPendingTaskModifications(result);

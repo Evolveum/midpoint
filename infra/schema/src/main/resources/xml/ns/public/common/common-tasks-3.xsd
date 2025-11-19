@@ -10394,10 +10394,10 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectTypeRelatedSuggestionWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="filters" type="tns:MappingsSuggestionFiltersType">
+                    <xsd:element name="inbound" type="xsd:boolean">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Filters for the mappings suggestion (e.g., inbound/outbound selection).
+                                Determines direction of the mapping (inbound/outbound).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

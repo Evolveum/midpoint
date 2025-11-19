@@ -256,12 +256,10 @@ public class SmartIntegrationStatusInfoUtils {
 
         var smart = pageBase.getSmartIntegrationService();
 
-        var filter = new MappingsSuggestionFiltersType()
-                .includeInbounds(mappingDirection == MappingDirection.INBOUND)
-                .includeOutbounds(mappingDirection == MappingDirection.OUTBOUND);
+        var isInbound = mappingDirection == MappingDirection.INBOUND;
 
         try {
-            return smart.listSuggestMappingsOperationStatuses(resourceOid, objectTypeIdentification, filter, task, result);
+            return smart.listSuggestMappingsOperationStatuses(resourceOid, objectTypeIdentification, isInbound, task, result);
         } catch (Throwable t) {
             result.recordException(t);
             LoggingUtils.logException(LOGGER, "Couldn't load mapping status for {}", t, resourceOid);

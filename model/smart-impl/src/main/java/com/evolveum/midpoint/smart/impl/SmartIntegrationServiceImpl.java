@@ -716,7 +716,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             SchemaMatchResultType schemaMatch,
-            @Nullable MappingsSuggestionFiltersType filters,
+            Boolean isInbound,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             @Nullable CurrentActivityState<?> activityState,
             Task task,
@@ -730,7 +730,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var mappings = this.mappingSuggestionOperationFactory.create(serviceClient, resourceOid,
-                    typeIdentification, activityState, filters, task, result)
+                    typeIdentification, activityState, isInbound, task, result)
                     .suggestMappings(result, schemaMatch);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;
@@ -826,7 +826,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public String submitSuggestMappingsOperation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            MappingsSuggestionFiltersType filters,
+            Boolean isInbound,
             Task task,
             OperationResult parentResult) throws CommonException {
         var result = parentResult.subresult(OP_SUBMIT_SUGGEST_MAPPINGS_OPERATION)
@@ -840,7 +840,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                                     .mappingsSuggestion(new MappingsSuggestionWorkDefinitionType()
                                             .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                                             .objectType(typeIdentification.asBean())
-                                            .filters(filters))),
+                                            .inbound(isInbound))),
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
                             .name("Suggest mappings for " + typeIdentification + " on " + resourceOid)
                             .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
@@ -860,7 +860,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public List<StatusInfo<MappingsSuggestionType>> listSuggestMappingsOperationStatuses(
             String resourceOid,
             ResourceObjectTypeIdentification objectTypeIdentification,
-            MappingsSuggestionFiltersType filters,
+            Boolean isInbound,
             Task task, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_LIST_SUGGEST_MAPPINGS_OPERATION_STATUSES)
@@ -881,26 +881,17 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     resultingList.add(new StatusInfoImpl<>(tt, MappingsSuggestionWorkStateType.F_RESULT, MappingsSuggestionType.class));
                     continue;
                 }
-
                 var workDef = activityDef.getWork().getMappingsSuggestion();
-
                 if (objectTypeIdentification != null && workDef.getObjectType() != null) {
                     if (!Objects.equals(workDef.getObjectType().getKind(), objectTypeIdentification.getKind())
                             || !Objects.equals(workDef.getObjectType().getIntent(), objectTypeIdentification.getIntent())) {
                         continue;
                     }
                 }
-                if (filters != null && workDef.getFilters() != null) {
-                    if (filters.isIncludeInbounds() || filters.isIncludeOutbounds()) {
-                        if ((filters.isIncludeInbounds() != workDef.getFilters().isIncludeInbounds()) ||
-                                (filters.isIncludeOutbounds() != workDef.getFilters().isIncludeOutbounds())) {
-                            continue;
-                        }
-                    }
+                if (isInbound != workDef.isInbound()) {
+                    continue;
                 }
-
-                resultingList.add(new StatusInfoImpl<>(tt,
-                        MappingsSuggestionWorkStateType.F_RESULT, MappingsSuggestionType.class));
+                resultingList.add(new StatusInfoImpl<>(tt, MappingsSuggestionWorkStateType.F_RESULT, MappingsSuggestionType.class));
             }
             sortByFinishAndStartTime(resultingList);
             return resultingList;
