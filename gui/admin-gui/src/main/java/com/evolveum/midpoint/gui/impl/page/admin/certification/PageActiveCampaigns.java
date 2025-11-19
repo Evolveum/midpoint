@@ -147,16 +147,18 @@ public class PageActiveCampaigns extends PageAdminCertification {
                     .build();
         } else {
             MidPointPrincipal principal = getPrincipal();
-
+            // @formatter:off
             return getPrismContext().queryFor(AccessCertificationCampaignType.class)
-                    .item(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM,
-                            AccessCertificationWorkItemType.F_ASSIGNEE_REF)
-                    .ref(QueryUtils.getPotentialAssigneesForUser(principal, OtherPrivilegesLimitations.Type.ACCESS_CERTIFICATION))
-                    .and()
-                    .item(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM,
-                            AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
-                    .isNull()
+                    .exists(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM)
+                    .block()
+                        .item(AccessCertificationWorkItemType.F_ASSIGNEE_REF)
+                        .ref(QueryUtils.getPotentialAssigneesForUser(principal, OtherPrivilegesLimitations.Type.ACCESS_CERTIFICATION))
+                        .and()
+                        .item(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
+                        .isNull()
+                    .endBlock()
                     .build();
+            // @formatter:on
         }
     }
 
