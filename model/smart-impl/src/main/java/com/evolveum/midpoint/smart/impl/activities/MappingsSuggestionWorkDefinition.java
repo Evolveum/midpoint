@@ -22,15 +22,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWo
  */
 public class MappingsSuggestionWorkDefinition extends ObjectTypeRelatedSuggestionWorkDefinition {
 
-    private final MappingsSuggestionFiltersType filters;
+    private final boolean isInbound;
 
     MappingsSuggestionWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
         var workDefinition = (MappingsSuggestionWorkDefinitionType) info.getBean();
-        this.filters = workDefinition.getFilters();
+        this.isInbound = workDefinition.isInbound();
     }
 
-    public MappingsSuggestionFiltersType getFilters() {
-        return filters;
+    public boolean isInbound() {
+        return isInbound;
     }
 }

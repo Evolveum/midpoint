@@ -123,14 +123,6 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         }
     }
 
-    private static MappingsSuggestionFiltersType inboundFilters() {
-        return new MappingsSuggestionFiltersType().includeInbounds(true);
-    }
-
-    private static MappingsSuggestionFiltersType outboundFilters() {
-        return new MappingsSuggestionFiltersType().includeOutbounds(true);
-    }
-
     private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
         executeChanges(
                 deltaFor(UserType.class)
@@ -187,13 +179,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                inboundFilters(),
+                true,
                 task,
                 result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
 
@@ -232,13 +223,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                inboundFilters(),
+                true,
                 task,
                 result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getExpectedQuality()).as("Transformed mapping should have perfect quality").isEqualTo(1.0f);
@@ -276,13 +266,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                inboundFilters(),
+                true,
                 task,
                 result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
 
         assertThat(suggestion.getAttributeMappings())
                 .as("Invalid script should result in no mapping being produced")
@@ -319,13 +308,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                inboundFilters(),
+                true,
                 task,
                 result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
 
         assertThat(suggestion.getAttributeMappings())
                 .as("Invalid script should be corrected with retry mechanism.")
