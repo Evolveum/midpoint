@@ -346,13 +346,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                outboundFilters(),
+                false,
                 task,
                 result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
 
@@ -395,13 +394,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                outboundFilters(),
+                false,
                 task,
                 result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getExpectedQuality()).isEqualTo(1.0f);
@@ -444,13 +442,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                outboundFilters(),
+                false,
                 task,
                 result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
 
         assertThat(suggestion.getAttributeMappings())
                 .as("Invalid outbound script should result in no mapping being produced")
@@ -492,64 +489,17 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
-                outboundFilters(),
+                false,
                 task,
                 result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
 
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getExpectedQuality()).isEqualTo(1.0f);
         assertThat(mapping.getDefinition().getOutbound().getExpression()).isNotNull();
-    }
-
-    @Test(expectedExceptions = com.evolveum.midpoint.util.exception.ConfigurationException.class)
-    public void test020DirectionResolutionErrorBothDirections() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
-        );
-        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
-
-        var filters = new MappingsSuggestionFiltersType().includeInbounds(true).includeOutbounds(true);
-        var op = MappingsSuggestionOperation.init(
-                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
-                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                filters, task, result);
-
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
-        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        // Should throw
-        op.suggestMappings(result, statistics, match);
-    }
-
-    @Test(expectedExceptions = com.evolveum.midpoint.util.exception.ConfigurationException.class)
-    public void test021DirectionResolutionErrorNoneSelected() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
-        );
-        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
-
-        var filters = new MappingsSuggestionFiltersType(); // neither inbound nor outbound selected
-        var op = MappingsSuggestionOperation.init(
-                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
-                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                filters, task, result);
-
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
-        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        // Should throw
-        op.suggestMappings(result, statistics, match);
     }
 
     @Test
@@ -566,11 +516,10 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                inboundFilters(), task, result);
+                true, task, result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
         assertThat(suggestion.getAttributeMappings()).isEmpty();
     }
 
@@ -600,11 +549,10 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                inboundFilters(), task, result);
+                true, task, result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
         assertThat(suggestion.getAttributeMappings()).hasSize(2);
         assertThat(suggestion.getAttributeMappings())
                 .allSatisfy(m -> assertThat(m.getDefinition().getInbound().get(0).getExpression()).isNull());
@@ -628,11 +576,10 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                inboundFilters(), task, result);
+                true, task, result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
@@ -662,11 +609,10 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                inboundFilters(), task, result);
+                true, task, result);
 
-        var statistics = computeStatistics(RESOURCE_DUMMY, ACCOUNT_DEFAULT, task, result);
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
-        MappingsSuggestionType suggestion = op.suggestMappings(result, statistics, match);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
         assertThat(suggestion.getAttributeMappings()).hasSize(1);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression()).isNull();
