@@ -537,7 +537,7 @@ public class TestEscalation extends AbstractCertificationTest {
                         r -> "User: administrator".equals(r.get(C_CASES_OBJECT))
                                 && "Role: Superuser".equals(r.get(C_CASES_TARGET)),
                         a -> a.assertValue(C_CASES_CAMPAIGN, campaignName)
-                                .assertValue(C_CASES_REVIEWERS, "")
+                                .assertValue(C_CASES_REVIEWERS, "administrator")
                                 .assertValue(C_CASES_LAST_REVIEWED_ON, s -> s.contains(currentYearFragment()))
                                 .assertValue(C_CASES_REVIEWED_BY, "administrator")
                                 .assertValue(C_CASES_ITERATION, "1")
@@ -549,7 +549,7 @@ public class TestEscalation extends AbstractCertificationTest {
                         r -> "User: administrator".equals(r.get(C_CASES_OBJECT))
                                 && "Role: COO".equals(r.get(C_CASES_TARGET)),
                         a -> a.assertValue(C_CASES_CAMPAIGN, campaignName)
-                                .assertValue(C_CASES_REVIEWERS, "administrator")
+                                .assertValue(C_CASES_REVIEWERS, "elaine,administrator")
                                 .assertValue(C_CASES_LAST_REVIEWED_ON, "")
                                 .assertValue(C_CASES_REVIEWED_BY, "")
                                 .assertValue(C_CASES_ITERATION, "2")

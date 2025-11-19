@@ -916,7 +916,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
                         r -> "User: administrator".equals(r.get(C_CASES_OBJECT))
                                 && "Role: Superuser".equals(r.get(C_CASES_TARGET)),
                         a -> a.assertValue(C_CASES_CAMPAIGN, "Basic User Assignment Certification (ERoot only) 2")
-                                .assertValue(C_CASES_REVIEWERS, "")
+                                .assertValue(C_CASES_REVIEWERS, "administrator")
                                 .assertValue(C_CASES_LAST_REVIEWED_ON, s -> s.contains(year))
                                 .assertValue(C_CASES_REVIEWED_BY, "administrator")
                                 .assertValue(C_CASES_ITERATION, "1")
