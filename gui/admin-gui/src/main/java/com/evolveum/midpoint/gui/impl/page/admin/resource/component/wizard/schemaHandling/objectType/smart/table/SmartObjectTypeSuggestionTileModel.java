@@ -14,9 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -26,6 +24,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -157,55 +156,62 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
         return getValue().getRealValue();
     }
 
-    public List<PrismPropertyValueWrapper<Object>> getFilterPropertyValueWrapper() {
+    public PrismPropertyWrapper<SearchFilterType> getFilterPropertyValueWrapper() {
         try {
-            PrismContainerValueWrapper<Containerable> containerValue =
+            PrismContainerValueWrapper<ResourceObjectTypeDelineationType> containerValue =
                     getValue().findContainerValue(ResourceObjectTypeDefinitionType.F_DELINEATION);
             if (containerValue == null) {
                 return null;
             }
 
-            PrismPropertyWrapper<Object> property =
-                    containerValue.findItem(ResourceObjectTypeDelineationType.F_FILTER);
-            if (property == null) {
-                return null;
-            }
-
-            List<PrismPropertyValueWrapper<Object>> values = property.getValues();
-            if (values == null || values.isEmpty()) {
-                return null;
-            }
-
-            return values;
+            return containerValue.findItem(ResourceObjectTypeDelineationType.F_FILTER);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public List<PrismPropertyValueWrapper<Object>> getBaseContexFilterPropertyValueWrapper(ItemPath propertyPath) {
+    public PrismPropertyWrapper<SearchFilterType> getBaseContexFilterPropertyValueWrapper() {
         try {
-            PrismContainerValueWrapper<Containerable> containerValue =
-                    getValue().findContainerValue(ResourceObjectTypeDefinitionType.F_DELINEATION);
-            if (containerValue == null) {
+            PrismContainerWrapper<ResourceObjectReferenceType> containerWrapper = findBaseContextWrapper();
+            if (containerWrapper == null)
                 return null;
-            }
-
-            PrismContainerWrapper<ResourceObjectReferenceType> containerWrapper =
-                    containerValue.findItem(ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
-            if (containerWrapper == null) {
-                return null;
-            }
-
-            PrismPropertyWrapper<Object> property = containerWrapper.findProperty(propertyPath);
-            List<PrismPropertyValueWrapper<Object>> values = property.getValues();
-            if (values == null || values.isEmpty()) {
-                return null;
-            }
-
-            return values;
+            return containerWrapper.findProperty(ResourceObjectReferenceType.F_FILTER);
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public PrismPropertyWrapper<QName> getBaseContexObjectClassPropertyValueWrapper() {
+        try {
+            PrismContainerWrapper<ResourceObjectReferenceType> containerWrapper = findBaseContextWrapper();
+            if (containerWrapper == null)
+                return null;
+            return containerWrapper.findProperty(ResourceObjectReferenceType.F_OBJECT_CLASS);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private @Nullable PrismContainerWrapper<ResourceObjectReferenceType> findBaseContextWrapper() throws SchemaException {
+        PrismContainerValueWrapper<ResourceObjectTypeDelineationType> containerValue =
+                getValue().findContainerValue(ResourceObjectTypeDefinitionType.F_DELINEATION);
+        if (containerValue == null) {
+            return null;
+        }
+
+        PrismContainerWrapper<ResourceObjectReferenceType> containerWrapper =
+                containerValue.findItem(ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+        if (containerWrapper == null) {
+            return null;
+        }
+        return containerWrapper;
+    }
+
+    protected boolean hasFilterErrors(){
+        return getFilterPropertyValueWrapper().getValues().stream()
+                        .anyMatch(v -> AiUtil.isMarkedAsInvalid(v.getNewValue()))
+                        || getBaseContexFilterPropertyValueWrapper().getValues().stream()
+                        .anyMatch(v -> AiUtil.isMarkedAsInvalid(v.getNewValue()));
     }
 
     protected String getResourceOid() {

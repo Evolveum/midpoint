@@ -7,14 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareContainerPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,6 +29,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -102,6 +104,20 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
     }
 
     @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+        evaluateFilterErrors();
+    }
+
+    private void evaluateFilterErrors() {
+        if (getModelObject().hasFilterErrors()) {
+            this.add(AttributeModifier.append(CLASS_CSS, " border border-danger "));
+            getFeedbackPanel().error(createStringResource(
+                    "SmartObjectTypeSuggestionPanel.filterErrorMessage", getModelObject().getName()).getString());
+        }
+    }
+
+    @Override
     protected void initLayout() {
         // No additional layout initialization needed
     }
@@ -132,7 +148,7 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
         filterCtn.add(new VisibleBehaviour(() -> isShowFilter));
         add(filterCtn);
 
-        List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper = getModelObject().getFilterPropertyValueWrapper();
+        PrismPropertyWrapper<SearchFilterType> filterPropertyValueWrapper = getModelObject().getFilterPropertyValueWrapper();
 
         Label filterLabel = new Label(ID_FILTER_LABEL, createStringResource("SmartSuggestObjectTypeTilePanel.filter"));
         filterLabel.setOutputMarkupId(true);
@@ -150,8 +166,8 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
         baseContextFilterLabel.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextFilterLabel);
 
-        List<PrismPropertyValueWrapper<Object>> baseContexFilterPropertyValueWrapper = getModelObject()
-                .getBaseContexFilterPropertyValueWrapper(ResourceObjectReferenceType.F_FILTER);
+        PrismPropertyWrapper<SearchFilterType> baseContexFilterPropertyValueWrapper = getModelObject()
+                .getBaseContexFilterPropertyValueWrapper();
         RepeatingView baseContextFilterPanels = new RepeatingView(ID_ACE_BASE);
         populatePropertyPanels(baseContexFilterPropertyValueWrapper, baseContextFilterPanels);
         baseContextFilterPanels.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
@@ -163,10 +179,10 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
         baseContextObjectClassLabel.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextObjectClassLabel);
 
-        List<PrismPropertyValueWrapper<Object>> baseContexFilterObjectClassPropertyValueWrapper1 = getModelObject()
-                .getBaseContexFilterPropertyValueWrapper(ResourceObjectReferenceType.F_OBJECT_CLASS);
+        PrismPropertyWrapper<QName> baseContexFilterObjectClassPropertyValueWrapper = getModelObject()
+                .getBaseContexObjectClassPropertyValueWrapper();
         RepeatingView baseContextFilterObjectClassPanels = new RepeatingView(ID_BASE_CONTEXT_OBJECT_CLASS_VALUE);
-        populateObjectClassPropertyPanels(baseContexFilterObjectClassPropertyValueWrapper1, baseContextFilterObjectClassPanels);
+        populateObjectClassPropertyPanels(baseContexFilterObjectClassPropertyValueWrapper, baseContextFilterObjectClassPanels);
         baseContextFilterObjectClassPanels.add(new VisibleBehaviour(this::isBaseContextFilterVisible));
         filterCtn.add(baseContextFilterObjectClassPanels);
 
@@ -195,22 +211,29 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
         return togglePanel;
     }
 
-    private static void populatePropertyPanels(
-            @NotNull List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper,
+    private void populatePropertyPanels(
+            PrismPropertyWrapper<SearchFilterType> filterPropertyValueWrapper,
             @NotNull RepeatingView filterPanels) {
-        for (PrismPropertyValueWrapper<Object> valueWrapper : filterPropertyValueWrapper) {
-            VerticalFormPrismPropertyValuePanel<?> valuePanel = new VerticalFormPrismPropertyValuePanel<>(filterPanels.newChildId(),
-                    Model.of(valueWrapper), null);
-            valuePanel.setOutputMarkupId(true);
-            valuePanel.setEnabled(false);
-            filterPanels.add(valuePanel);
-        }
+        VerticalFormPrismPropertyPanel<?> valuePanel = new VerticalFormPrismPropertyPanel<>(filterPanels.newChildId(),
+                Model.of(filterPropertyValueWrapper), null) {
+            @Override
+            protected boolean getHeaderVisibility() {
+                return false;
+            }
+        };
+        valuePanel.setEnabled(false);
+        filterPanels.add(valuePanel);
     }
 
     private static void populateObjectClassPropertyPanels(
-            @NotNull List<PrismPropertyValueWrapper<Object>> filterPropertyValueWrapper,
+            @NotNull PrismPropertyWrapper<QName> filterPropertyValueWrapper,
             @NotNull RepeatingView filterPanels) {
-        for (PrismPropertyValueWrapper<Object> valueWrapper : filterPropertyValueWrapper) {
+        List<PrismPropertyValueWrapper<QName>> values = filterPropertyValueWrapper.getValues();
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+
+        for (PrismPropertyValueWrapper<QName> valueWrapper : values) {
             if (valueWrapper.getRealValue() == null) {
                 Label valuePanel = new Label(filterPanels.newChildId(), "N/A");
                 valuePanel.setOutputMarkupId(true);
@@ -218,7 +241,7 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
                 filterPanels.add(valuePanel);
                 continue;
             }
-            QName realValue = (QName) valueWrapper.getRealValue();
+            QName realValue = valueWrapper.getRealValue();
             Label valuePanel = new Label(filterPanels.newChildId(), realValue.getLocalPart());
             valuePanel.setOutputMarkupId(true);
             valuePanel.setEnabled(false);
@@ -320,7 +343,6 @@ public abstract class SmartObjectTypeSuggestionPanel<C extends PrismContainerVal
     }
 
     protected void performDeleteConfirmationAction(AjaxRequestTarget target) {
-
         List<RequestDetailsRecordDto.RequestRecord> records = List.of(
                 new RequestDetailsRecordDto.RequestRecord(
                         getString("RequestDetailsConfirmationPanel.request.details.title"),
