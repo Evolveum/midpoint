@@ -4071,9 +4071,14 @@ public final class WebComponentUtil {
 
     public static CompiledGuiProfile getCompiledGuiProfile() {
         MidPointApplication app = MidPointApplication.get();
+        Task task = app.createSimpleTask("get compiled gui profile");
+        return getCompiledGuiProfile(task);
+    }
+
+    public static CompiledGuiProfile getCompiledGuiProfile(Task task) {
+        MidPointApplication app = MidPointApplication.get();
         ModelInteractionService service = app.getModelInteractionService();
 
-        Task task = app.createSimpleTask("get compiled gui profile");
         OperationResult result = task.getResult();
         try {
             return service.getCompiledGuiProfile(task, result);

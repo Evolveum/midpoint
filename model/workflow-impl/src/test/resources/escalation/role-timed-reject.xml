@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="916e26f7-f9f0-4b54-a204-ce9f0f9a0ebb">
+    <name>role-timed-reject</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approvalSchema>
+                        <stage>
+                            <approverRef oid="6f007608-415b-49e3-b388-0217d535fc7d" type="UserType"/> <!-- bob -->
+                            <evaluationStrategy>firstDecides</evaluationStrategy>
+                            <duration>P3D</duration>
+                            <timedActions>
+                                <actions>
+                                    <complete>
+                                        <outcome>reject</outcome>
+                                    </complete>
+                                </actions>
+                            </timedActions>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

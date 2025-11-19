@@ -64,8 +64,8 @@ public class DateTimePickerPanel extends InputPanel {
 
     private String getDateTimePickerInitScript() {
         String config = hasModalParent
-                ? dateTimePickerOptions.toJsConfiguration(getPageBase().getMainPopup().getMarkupId())
-                : dateTimePickerOptions.toJsConfiguration();
+                ? dateTimePickerOptions.toJsConfiguration(getPageBase().getMainPopup().getMarkupId(), getParentPage())
+                : dateTimePickerOptions.toJsConfiguration(getParentPage());
         String messageOpen = getString("DateTimePickerPanel.pickerOpened");
         String messageClose = getString("DateTimePickerPanel.pickerClosed");
         String messageCurrent = getString("DateTimePickerPanel.messageCurrentValue");
@@ -93,12 +93,13 @@ public class DateTimePickerPanel extends InputPanel {
             @Override
             protected IConverter<?> createConverter(Class<?> clazz) {
                 if (Date.class.isAssignableFrom(clazz)) {
-                    return new DateConverter(dateTimePickerOptions.getDateTimeFormat());
+                    return new DateConverter(dateTimePickerOptions.getDateTimeFormat(getParentPage()));
                 }
                 return null;
             }
         };
-        input.add(AttributeAppender.append("placeholder", () -> dateTimePickerOptions.getDateTimeFormat().get(0)));
+        input.add(AttributeAppender.append("placeholder", ()
+                -> dateTimePickerOptions.getDateTimeFormat(getParentPage()).get(0)));
         input.setType(Date.class);
         input.setOutputMarkupId(true);
         input.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -120,7 +121,8 @@ public class DateTimePickerPanel extends InputPanel {
         input.add(AttributeAppender.append("class", () -> input.hasErrorMessage() ? INVALID_FIELD_CLASS : ""));
         input.add(AttributeAppender.replace("title", () ->
                 getParentPage().getString("DateTimePickerPanel.dateFormatHint",
-                        dateTimePickerOptions.getDateTimeFormat().stream().map(d -> "'" + d + "'").collect(Collectors.joining(", ")))));
+                        dateTimePickerOptions.getDateTimeFormat(getParentPage())
+                                .stream().map(d -> "'" + d + "'").collect(Collectors.joining(", ")))));
         container.add(input);
 
         WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);

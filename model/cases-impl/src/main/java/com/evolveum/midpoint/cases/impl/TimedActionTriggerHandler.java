@@ -123,6 +123,11 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
         }
 
         Collection<TriggerType> execute(OperationResult result) {
+            if (CaseTypeUtil.isClosed(aCase)) {
+                LOGGER.debug("Case is already closed, ignoring {} trigger(s) on {}", triggers.size(), aCase);
+                return triggers; // all triggers are "processed"
+            }
+
             LOGGER.trace("Going to process {} trigger(s) on {}", triggers.size(), aCase);
 
             List<TriggerType> processedTriggers = new ArrayList<>();

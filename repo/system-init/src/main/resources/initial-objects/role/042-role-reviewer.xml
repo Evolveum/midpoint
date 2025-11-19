@@ -108,6 +108,7 @@
         <item>name</item>
         <item>stageNumber</item>
         <item>state</item>
+        <item>stage</item>
         <item>iteration</item>
         <item>startTimestamp</item>
     </authorization>
