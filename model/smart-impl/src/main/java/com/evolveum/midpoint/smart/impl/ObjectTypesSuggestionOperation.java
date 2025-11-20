@@ -250,7 +250,10 @@ class ObjectTypesSuggestionOperation {
         LOGGER.trace("Parsing filter: {}", filterString);
         try {
             var parsedFilter = PrismContext.get().createQueryParser().parseFilter(shadowObjectDef, filterString);
-            return PrismContext.get().querySerializer().serialize(parsedFilter).toSearchFilterType();
+            var query = PrismContext.get().queryFactory().createQuery(parsedFilter);
+            var filter = PrismContext.get().getQueryConverter().createQueryType(query).getFilter();
+            filter.setText(filterString);
+            return filter;
         } catch (Exception e) {
             throw new SchemaException("Cannot process suggested filter (%s): %s".formatted(filterString, e.getMessage()), e);
         }
