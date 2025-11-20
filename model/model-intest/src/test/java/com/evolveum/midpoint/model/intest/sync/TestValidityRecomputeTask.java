@@ -1557,6 +1557,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
 
+        // There's a 5 days pre-create for this resource, so account should exist (although disabled)
         String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
@@ -1581,6 +1582,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.ENABLED);
 
+        // We are in the validity period, account should be enabled
         String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
@@ -1605,6 +1607,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.ENABLED);
 
+        // We are in the validity period, account should be enabled
         String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
@@ -1629,6 +1632,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
 
+        // There's delayed delete (after 1 month) for this resource, so account should still exist (although disabled)
         String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
@@ -1654,6 +1658,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
 
+        // There's delayed delete (after 1 month) for this resource, so account should still exist (although disabled)
         String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
@@ -1679,6 +1684,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
 
+        // There's delayed delete (after 1 month) for this resource, so account should be gone now
         assertLiveLinks(userDrakeAfter, 0);
 
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake");

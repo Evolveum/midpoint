@@ -190,6 +190,13 @@ public class CaseAsserter<RA> extends PrismObjectAsserter<CaseType,RA> {
         return assertArchetypeRef(SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
     }
 
+    public CaseAsserter<RA> assertNoOutcome() {
+        assertThat(getOutcome())
+                .as("outcome in " + desc())
+                .isNull();
+        return this;
+    }
+
     public CaseAsserter<RA> assertClosed() {
         return assertState(CASE_STATE_CLOSED_QNAME);
     }

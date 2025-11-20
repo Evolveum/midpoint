@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.test.TestObject;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -24,7 +26,6 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.cases.api.AuditingConstants;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
@@ -50,15 +51,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * 2. After 3 days, the escalation level 1 is entered, with a single assignee added to each of the two work items.
  * New deadline is 5 days.
  * 3. After those 5 days, automated rejection takes place.
+ *
+ * Other tests are described right in the test methods.
  */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestEscalation extends AbstractWfTestPolicy {
-
-    @Override
-    protected PrismObject<UserType> getDefaultActor() {
-        return userAdministrator;
-    }
 
     private static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner.xml");
     protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
@@ -71,6 +69,9 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     private static final File ROLE_E2_FILE = new File(TEST_ESCALATION_RESOURCE_DIR, "role-e2.xml");
     private static final String ROLE_E2_OID = "bb38a7fc-8610-49b0-a76d-7b01cb8a6de1";
+
+    private static final TestObject<?> ROLE_TIMED_REJECT = TestObject.file(
+            TEST_ESCALATION_RESOURCE_DIR, "role-timed-reject.xml", "916e26f7-f9f0-4b54-a204-ce9f0f9a0ebb");
 
     private static final File USER_BOB_FILE = new File(TEST_ESCALATION_RESOURCE_DIR, "user-bob.xml");
     private static final String USER_BOB_OID = "6f007608-415b-49e3-b388-0217d535fc7d";
@@ -89,6 +90,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
         repoAddObjectFromFile(METAROLE_ESCALATED_FILE, initResult).getOid();
         repoAddObjectFromFile(ROLE_E1_FILE, initResult);
         repoAddObjectFromFile(ROLE_E2_FILE, initResult);
+
+        ROLE_TIMED_REJECT.init(this, initTask, initResult);
 
         addAndRecompute(USER_BOB_FILE, initTask, initResult);
         addAndRecompute(USER_BOBEK_FILE, initTask, initResult);
@@ -454,5 +457,64 @@ public class TestEscalation extends AbstractWfTestPolicy {
         if (!notification.getBody().contains(text)) {
             fail("No '" + text + "' in " + notification);
         }
+    }
+
+    /**
+     * A case is cancelled while there is a timed rejection pending. The rejection should do nothing.
+     * (Actually, this test method is not directly related to escalation, but it quite fits here.)
+     *
+     * MID-10934
+     */
+    @Test
+    public void test300TimedRejectionForCancelledCase() throws Exception {
+        given();
+        login(userAdministrator);
+
+        var task = getTestTask();
+        var result = getTestOperationResult();
+
+        clock.resetOverride();
+        reimportRecurringWithNoSchedule(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, task, result);
+
+        when("role assignment is requested");
+        assignRole(USER_JACK.oid, ROLE_TIMED_REJECT.oid, task, result);
+
+        then("role is not assigned; approval case is created");
+        assertNotAssignedRole(USER_JACK.oid, ROLE_TIMED_REJECT.oid, result);
+
+        List<CaseWorkItemType> workItems = getWorkItems(task, result);
+        displayWorkItems("Work items", workItems);
+
+        var approvalCaseOid = CaseTypeUtil.getCaseRequired(workItems.get(0)).getOid();
+
+        // @formatter:off
+        assertCase(approvalCaseOid, "after creation")
+                .display()
+                .triggers()
+                .assertTriggers(1)
+                .end();
+        // @formatter:on
+
+        when("case is cancelled");
+        caseManager.cancelCase(approvalCaseOid, task, result);
+
+        then("case is cancelled");
+        assertCase(approvalCaseOid, "after cancellation")
+                .display()
+                .assertClosed()
+                .assertNoOutcome();
+
+        when("timed rejection trigger is processed");
+        clock.overrideDuration("P5D");
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
+
+        then("nothing bad happens");
+        assertCase(approvalCaseOid, "after trigger run")
+                .display()
+                .assertClosed()
+                .assertNoOutcome();
+        assertTask(TASK_TRIGGER_SCANNER_OID, "after trigger run")
+                .display()
+                .assertSuccess();
     }
 }

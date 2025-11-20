@@ -23,6 +23,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -494,7 +496,7 @@ public class ActivityTreeStateOverview {
                 .orElse(null);
     }
 
-    public void recordTaskRunHistoryEnd() throws ActivityRunException {
+    void recordTaskRunHistoryEnd() throws ActivityRunException {
         try {
             String taskRunIdentifier = rootTask.getPropertyRealValue(PATH_TASK_RUN_IDENTIFIER, String.class);
 
@@ -524,14 +526,29 @@ public class ActivityTreeStateOverview {
         return rootTask.getPropertyRealValueOrClone(PATH_ACTIVITY_STATE_TREE, ActivityStateOverviewType.class);
     }
 
-    void purge(OperationResult result) throws ActivityRunException {
-        updateActivityStateTree(
-                purgeStateRecursively(
-                        getActivityStateTree()
-                ),
-                result);
-
-        LOGGER.trace("State tree after purging: {}", lazy(this::getActivityStateTree));
+    /**
+     * Purges the state of an activity and its descendants.
+     *
+     * @param purgingRootPath Activity whose state (and the state of its descendants) is to be purged.
+     */
+    void purge(ActivityPath purgingRootPath, OperationResult result) throws ActivityRunException {
+        LOGGER.trace("Purging state tree overview at path {}", purgingRootPath);
+        var activityStateTree = getActivityStateTree();
+        var purgingRootState = activityStateTree != null ? findEntry(activityStateTree, purgingRootPath) : null;
+        if (purgingRootState == null) {
+            LOGGER.trace("Nothing to purge at path {}: no such entry", purgingRootPath);
+        } else {
+            var purgedState = purgeStateRecursively(purgingRootState); // returns null if the whole state is to be erased
+            if (purgedState == null) {
+                if (purgingRootPath.isEmpty()) {
+                    activityStateTree = null; // we want to delete the whole tree
+                } else {
+                    deleteEntry(activityStateTree, purgingRootPath); // we want to delete the whole "root" state
+                }
+            }
+            updateActivityStateTree(activityStateTree, result);
+            LOGGER.trace("State tree after purging: {}", lazy(this::getActivityStateTree));
+        }
     }
 
     /**

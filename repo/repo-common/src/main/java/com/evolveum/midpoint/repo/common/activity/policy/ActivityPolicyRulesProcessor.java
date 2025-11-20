@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedHaltException;
+
 import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -238,11 +240,10 @@ public class ActivityPolicyRulesProcessor {
 
             String ruleName = rule.getName();
 
-            LocalizableMessage message = new SingleLocalizableMessage(
-                    "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName });
+            String defaultMessage = "Policy violation, rule: " + ruleName;
 
-            String defaultMessage =
-                    "Policy violation, rule: " + ruleName;
+            LocalizableMessage message = new SingleLocalizableMessage(
+                    "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName }, defaultMessage);
 
             if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {
                 LOGGER.debug("Aborting activity because of policy violation, rule: {}", rule);
@@ -253,7 +254,8 @@ public class ActivityPolicyRulesProcessor {
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, ABORTED, cause);
             } else if (action instanceof SuspendTaskActivityPolicyActionType) {
                 LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
-                throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, HALTING_ERROR, null);
+                var cause = new ActivityPolicyBasedHaltException(message, defaultMessage);
+                throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, HALTING_ERROR, cause);
             } else {
                 LOGGER.debug("No action to take for policy violation, rule: {}", rule);
             }

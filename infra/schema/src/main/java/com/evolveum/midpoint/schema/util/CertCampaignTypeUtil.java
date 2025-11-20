@@ -351,8 +351,7 @@ public class CertCampaignTypeUtil {
             @NotNull AccessCertificationWorkItemType certItem, int certCaseStageNumber) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (ObjectReferenceType assigneeRef : certItem.getAssigneeRef()) {
-            if (certItem.getCloseTimestamp() == null
-                    && Objects.equals(certItem.getStageNumber(), certCaseStageNumber)) {
+            if (Objects.equals(certItem.getStageNumber(), certCaseStageNumber)) {
                 rv.add(assigneeRef);
             }
         }

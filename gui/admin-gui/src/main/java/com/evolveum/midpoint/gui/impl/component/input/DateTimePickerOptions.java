@@ -6,9 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.component.input;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
@@ -92,7 +95,7 @@ public class DateTimePickerOptions implements Serializable {
     /**
      * Produce string that represent options for date time picker which can be used for js script.
      */
-    public String toJsConfiguration() {
+    public String toJsConfiguration(PageAdminLTE parentPage) {
         StringBuilder sb = new StringBuilder("{");
 
         sb.append("display: {").append("theme: '").append(theme.name().toLowerCase()).append("'").append("}, ");
@@ -115,7 +118,7 @@ public class DateTimePickerOptions implements Serializable {
         }
 
         sb.append("format: '")
-                .append(getDateTimeFormatForOption(locale))
+                .append(getDateTimeFormatForOption(locale, parentPage))
                 .append("' ");
 
         sb.append("},");
@@ -131,13 +134,13 @@ public class DateTimePickerOptions implements Serializable {
     /**
      * Produce string that represent options for date time picker displayed in a modal dialog which can be used for js script.
      */
-    public String toJsConfiguration(String modalDialogId) {
+    public String toJsConfiguration(String modalDialogId, PageAdminLTE parentPage) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
 
         sb.append("container: document.querySelector('#").append(modalDialogId).append(" .modal-content'),");
 
-        String configuration = toJsConfiguration();
+        String configuration = toJsConfiguration(parentPage);
         configuration = configuration.substring(1, configuration.length() - 1);
         sb.append(configuration);
 
@@ -145,9 +148,9 @@ public class DateTimePickerOptions implements Serializable {
         return sb.toString();
     }
 
-    public List<String> getDateTimeFormat() {
+    public List<String> getDateTimeFormat(PageAdminLTE parentPage) {
         @NotNull Locale locale = LocalizationUtil.findLocale();
-        String localizedDatePattern = getDateTimeFormat(locale);
+        String localizedDatePattern = getDateTimeFormat(locale, parentPage);
 
         return List.of(
                 getPatternForConverter(localizedDatePattern),
@@ -201,23 +204,26 @@ public class DateTimePickerOptions implements Serializable {
         return localizedDatePattern;
     }
 
-    private String getDateTimeFormat(@NotNull Locale locale) {
-        CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile();
-        AdminGuiConfigurationDisplayFormatsType formats = profile.getDisplayFormats();
+    private String getDateTimeFormat(@NotNull Locale locale, PageAdminLTE parentPage) {
+        return parentPage.runPrivileged((Producer<String>) () -> {
+            Task task = parentPage.createAnonymousTask("getDateTimeFormats");
+            CompiledGuiProfile profile = WebComponentUtil.getCompiledGuiProfile(task);
+            AdminGuiConfigurationDisplayFormatsType formats = profile.getDisplayFormats();
 
-        String pattern;
-        if (formats != null && StringUtils.isNotEmpty(formats.getLongDateTimeFormat())) {
-            pattern = WebComponentUtil.getLocalizedDatePattern(formats.getLongDateTimeFormat());
-        } else {
-            pattern = ((SimpleDateFormat) SimpleDateFormat.getDateTimeInstance(
-                    SimpleDateFormat.LONG, SimpleDateFormat.SHORT, locale)).toPattern();
-        }
+            String pattern;
+            if (formats != null && StringUtils.isNotEmpty(formats.getLongDateTimeFormat())) {
+                pattern = WebComponentUtil.getLocalizedDatePattern(formats.getLongDateTimeFormat());
+            } else {
+                pattern = ((SimpleDateFormat) SimpleDateFormat.getDateTimeInstance(
+                        SimpleDateFormat.LONG, SimpleDateFormat.SHORT, locale)).toPattern();
+            }
 
-        return replaceSpecificCharacters(pattern);
+            return replaceSpecificCharacters(pattern);
+        });
     }
 
-    private String getDateTimeFormatForOption(@NotNull Locale locale) {
-        return formatPatterForDateTimePicker(getDateTimeFormat(locale));
+    private String getDateTimeFormatForOption(@NotNull Locale locale, PageAdminLTE parentPage) {
+        return formatPatterForDateTimePicker(getDateTimeFormat(locale, parentPage));
     }
 
     private String formatPatterForDateTimePicker(String dateTimeFormat) {

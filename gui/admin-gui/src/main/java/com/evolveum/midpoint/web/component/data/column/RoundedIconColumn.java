@@ -46,9 +46,7 @@ public class RoundedIconColumn<T, S> extends AbstractIconColumn<T, S> {
     }
 
     protected String getAlternativeTextForImage(IModel<T> model) {
-        DisplayType displayType = createDisplayType(model);
-        String help = GuiDisplayTypeUtil.getHelp(displayType);
-        return StringUtils.isNotEmpty(help) ? help : null;
+        return null;
     }
 
     protected DisplayType createDisplayType(IModel<T> model) {

@@ -215,8 +215,7 @@ public class ActivityStateUtil {
 
     public static boolean isDelegated(@NotNull ActivityStateType state) {
         return state.getRealizationState() == ActivityRealizationStateType.IN_PROGRESS_DELEGATED ||
-                state.getWorkState() instanceof DelegationWorkStateType &&
-                ((DelegationWorkStateType) state.getWorkState()).getTaskRef() != null;
+                state.getWorkState() instanceof DelegationWorkStateType delegationState && delegationState.getTaskRef() != null;
     }
 
     public static boolean isDistributed(@NotNull ActivityStateType state) {

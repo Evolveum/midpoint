@@ -233,6 +233,7 @@ public abstract class AbstractActivityRun<
                 // If this activity is being restarted, we simply clear relevant parts of its state and continue with running it.
                 logRestarted();
                 try {
+                    activity.getTree().purgeState(getActivityPath(), getRunningTask(), true, result);
                     activityState.initializeAfterRestart(result);
                 } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
                     throw new ActivityRunException("Couldn't initialize activity after restart", FATAL_ERROR, PERMANENT_ERROR, e);

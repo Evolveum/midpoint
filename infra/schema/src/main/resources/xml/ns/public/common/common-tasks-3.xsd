@@ -2289,24 +2289,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ActivityPolicyActionType">
                 <xsd:sequence>
-                    <xsd:element name="delay" type="xsd:int" minOccurs="0" default="5">
+                    <xsd:element name="delay" type="xsd:duration" minOccurs="0" default="PT5S">
                         <xsd:annotation>
                             <xsd:documentation>
-                                What delay (in seconds) to introduce between attempts. Actual delay is taken as
-                                a random number between 0 and delay*(2^(n-1)), where n is the number attempts so far.
+                                What delay to introduce between attempts. Actual delay is taken as a random
+                                number between 0 and delay*(2^(n-1)), where n is the number attempts so far.
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="restartCounters" type="xsd:boolean" minOccurs="0" default="true">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Whether to reset counters for the activity when it is restarted.
-                                If set to false, the counters are not reset and the activity is restarted
-                                with the same counters as before.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

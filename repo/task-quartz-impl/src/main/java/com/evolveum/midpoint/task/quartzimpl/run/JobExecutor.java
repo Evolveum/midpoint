@@ -366,10 +366,13 @@ public class JobExecutor implements InterruptableJob {
             if (task.getSchedulingState() == TaskSchedulingStateType.READY) {
                 // But to be sure, let us do preconditions-based modification
                 try {
-                    task.setExecutionAndSchedulingStateImmediate(TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
-                            TaskSchedulingStateType.READY, result);
+                    task.setExecutionAndSchedulingStateImmediate(
+                            TaskExecutionStateType.RUNNABLE,
+                            TaskSchedulingStateType.READY,
+                            TaskSchedulingStateType.READY,
+                            result);
                 } catch (PreconditionViolationException e) {
-                    LOGGER.trace("The scheduling state was no longer READY. Let us refresh the task.", e);
+                    LOGGER.debug("The scheduling state was no longer READY. Let us refresh the task.", e);
                     task.refresh(result);
                     resetExecutionState(result);
                 }
@@ -385,6 +388,9 @@ public class JobExecutor implements InterruptableJob {
             SchemaException {
         TaskExecutionStateType newExecutionState = getNewExecutionState();
         if (newExecutionState != null) {
+            // The execution state is probably consistent with the scheduling state, but let us be sure.
+            LOGGER.debug("Setting execution state to {} (according to scheduling state {}) - just to be sure; for {}",
+                    newExecutionState, task.getSchedulingState(), task);
             task.setExecutionState(newExecutionState);
             task.flushPendingModifications(result);
         }

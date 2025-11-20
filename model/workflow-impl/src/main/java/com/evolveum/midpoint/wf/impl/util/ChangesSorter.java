@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -68,16 +69,26 @@ public class ChangesSorter {
                 }
             } else if (!hasApprovalSchema || isApproved) {
                 TaskType executionTask;
+                CaseType caseToDetermineStateWithoutTask;
                 if (Boolean.TRUE.equals(approvalCase.getApprovalContext().isImmediateExecution())) {
                     executionTask = getExecutionTask(approvalCase, result);
+                    caseToDetermineStateWithoutTask = approvalCase;
                 } else {
                     if (!rootTaskHolder.initialized) {
                         rootTaskHolder.task = getExecutionTask(rootCase, result);
                         rootTaskHolder.initialized = true;
                     }
                     executionTask = rootTaskHolder.task;
+                    caseToDetermineStateWithoutTask = rootCase;
                 }
-                if (executionTask == null || executionTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
+                if (executionTask == null) {
+                    // We have no task to determine the state. So we must resort to case state.
+                    if (CaseTypeUtil.isClosed(caseToDetermineStateWithoutTask)) {
+                        recordResultingChanges(rv.getApplied(), actx);
+                    } else {
+                        recordResultingChanges(rv.getWaitingToBeApplied(), actx);
+                    }
+                } else if (executionTask.getSchedulingState() == TaskSchedulingStateType.WAITING) {
                     recordResultingChanges(rv.getWaitingToBeApplied(), actx);
                 } else if (executionTask.getSchedulingState() == TaskSchedulingStateType.READY) {
                     recordResultingChanges(rv.getBeingApplied(), actx);

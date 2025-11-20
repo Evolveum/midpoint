@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RestartActivityPolicyActionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +38,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
 
+import javax.xml.datatype.Duration;
+
 /**
  * This class groups everything related to an execution (a run) of a task related somehow to an activity.
  *
@@ -48,9 +51,9 @@ public class ActivityBasedTaskRun implements TaskRun {
     private static final Trace LOGGER = TraceManager.getTrace(ActivityBasedTaskRun.class);
 
     /**
-     * Default delay (in seconds) before restarting an activity when no delay is specified in the restart policy action.
+     * Default delay (in millis) before restarting an activity when no delay is specified in the restart policy action.
      */
-    private static final int DEFAULT_RESTART_DELAY = 5;
+    private static final int DEFAULT_RESTART_DELAY = 5000;
 
     /** After how many attempts should we stop increasing the delay exponentially? */
     private static final int EXPONENTIAL_BACKOFF_LIMIT = 10;
@@ -195,17 +198,25 @@ public class ActivityBasedTaskRun implements TaskRun {
             executionAttempt = activityState.getExecutionAttempt();
         }
 
-        long baseDelay = Objects.requireNonNullElse(action.getDelay(), DEFAULT_RESTART_DELAY);
+        long baseDelay = getDelayInMillis(action.getDelay());
         long computedDelay;
         if (baseDelay <= 0) {
             computedDelay = 0;
             LOGGER.trace("No delay for activity restart as per policy action configuration");
         } else {
-            computedDelay = baseDelay * (1L << Math.min(executionAttempt - 1, EXPONENTIAL_BACKOFF_LIMIT)) * 1000L;
+            computedDelay = baseDelay * (1L << Math.min(executionAttempt - 1, EXPONENTIAL_BACKOFF_LIMIT));
             LOGGER.trace("Base delay = {} ms, execution attempt = {}, computed delay = {} ms",
                     baseDelay, executionAttempt, computedDelay);
         }
         return computedDelay;
+    }
+
+    private long getDelayInMillis(Duration delay) {
+        if (delay == null) {
+            return DEFAULT_RESTART_DELAY;
+        }
+
+        return XmlTypeConverter.toMillis(delay);
     }
 
     private void setupTaskArchetypeIfNeeded(OperationResult result) throws ActivityRunException {
@@ -244,7 +255,7 @@ public class ActivityBasedTaskRun implements TaskRun {
 
     private void prepareNewRealization(OperationResult result) throws ActivityRunException {
         activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PREPARATION, result);
-        activityTree.purgeState(this, result);
+        activityTree.purgeState(ActivityPath.empty(), this.getRunningTask(), false, result);
     }
 
     private void updateStateOnRootRunEnd(ActivityRunResult runResult, OperationResult result) throws ActivityRunException {

@@ -261,7 +261,8 @@ public class WebPrismUtil {
         return typeClass != null
                 && (AbstractSynchronizationActionType.class.isAssignableFrom(typeClass)
                 || AssociationSynchronizationExpressionEvaluatorType.class.isAssignableFrom(typeClass)
-                || AssociationConstructionExpressionEvaluatorType.class.isAssignableFrom(typeClass));
+                || AssociationConstructionExpressionEvaluatorType.class.isAssignableFrom(typeClass)
+                || PolicyActionType.class.isAssignableFrom(typeClass));
     }
 
     public static <C extends Containerable> PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {

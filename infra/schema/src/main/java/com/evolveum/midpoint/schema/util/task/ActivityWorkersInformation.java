@@ -97,9 +97,12 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
     private void updateWorkersHealthMessages(@NotNull List<ActivityTaskStateOverviewType> states) {
         for (ActivityTaskStateOverviewType state: states) {
             if (state.getUserFriendlyMessage() != null) {
-                userFriendlyHealthMessages.add(LocalizationUtil.toLocalizableMessage(state.getUserFriendlyMessage()));
+                LocalizableMessage msg = LocalizationUtil.toLocalizableMessage(state.getUserFriendlyMessage());
+                if (!userFriendlyHealthMessages.contains(msg)) {
+                    userFriendlyHealthMessages.add(msg);
+                }
             }
-            if (state.getMessage() != null) {
+            if (state.getMessage() != null && !healthMessages.contains(state.getMessage())) {
                 healthMessages.add(state.getMessage());
             }
         }

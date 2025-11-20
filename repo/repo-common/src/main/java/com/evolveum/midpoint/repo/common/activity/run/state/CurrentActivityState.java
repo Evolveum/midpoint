@@ -15,15 +15,11 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.COMPLETE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.ABORTED;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -143,65 +139,11 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         liveStatistics.initialize(reset);
     }
 
-    // todo make it cleaner, move to custom operation class together with preparation/store
-    //  of new execution attempt (history) for state+overview/tree
+    /** After purging of activity state on restart in {@link ActivityTreePurger}, there are some additional steps to do. */
     public void initializeAfterRestart(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-
-        getTask().modify(getInitializationDeltas());
-        getTask().flushPendingModifications(result);
-
-        createWorkStateIfNeeded(result);
-        initializeLiveObjects(true);
-    }
-
-    private @NotNull Collection<ItemDelta<?, ?>> getInitializationDeltas() throws SchemaException {
-
-        // TODO see also ActivityTreePurger -- maybe unify the logic?
-
-        // keeping these:
-        //  - F_IDENTIFIER
-        //  - F_TASK_RUN_IDENTIFIER ???
-        //  - F_PERSISTENCE - it should be already correct
-        //  - F_EXECUTION_ATTEMPT - incremented below
-        //  - F_COUNTERS - depending on policy action below
-
-        List<ItemDelta<?, ?>> deltas = new ArrayList<>(
-                PrismContext.get().deltaFor(TaskType.class)
-                        .item(stateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_REALIZATION_STATE)).replace() // to remove ABORTED flag
-                        .item(stateItemPath.append(ActivityStateType.F_ABORTING_INFORMATION)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_REALIZATION_START_TIMESTAMP)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_REALIZATION_END_TIMESTAMP)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_RUN_START_TIMESTAMP)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_RUN_END_TIMESTAMP)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_POLICIES)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_SIMULATION)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_REPORTS)).replace()
-                        .item(stateItemPath.append(ActivityStateType.F_ACTIVITY)).replace() // children should go away
-                        .asItemDeltas());
-
-        // The casting should succeed, as it was checked before calling this method
-        var restartAction = (RestartActivityPolicyActionType) getAbortingInformation().getPolicyAction();
-        if (BooleanUtils.isNotFalse(restartAction.isRestartCounters())) {
-            deltas.add(PrismContext.get().deltaFor(TaskType.class)
-                    .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
-                    .asItemDelta());
-        }
-
-        // Note we're incrementing the attempt counter only when restarting activity.
-        // Suspending and then resuming the containing task doesn't mean its activities were restarted.
-        int newExecutionAttempt = getExecutionAttempt() + 1;
-        LOGGER.debug("Incrementing execution attempt to {} for activity '{}'", newExecutionAttempt, getActivityPath());
-        deltas.add(PrismContext.get().deltaFor(TaskType.class)
-                .item(stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT)).replace(newExecutionAttempt)
-                .asItemDelta());
-
-        return deltas;
+        createWorkStateIfNeeded(result); // work state might have been purged, so let's recreate if it needed
+        initializeLiveObjects(true); // previous live objects (progress, stats) are in memory, so we need to re-initialize them
     }
 
     /**
