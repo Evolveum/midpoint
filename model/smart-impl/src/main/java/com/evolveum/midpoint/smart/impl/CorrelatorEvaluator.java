@@ -255,7 +255,7 @@ class CorrelatorEvaluator {
         Map<String, Set<String>> shadowToFocusLinks = collectShadowToFocusLinks(suggestion);
         double linkCoverage = computeLinkCoverage(shadowToFocusLinks);
 
-        return linkCoverage;
+        return Math.round(linkCoverage * 100.0) / 100.0;
     }
 
     /**
