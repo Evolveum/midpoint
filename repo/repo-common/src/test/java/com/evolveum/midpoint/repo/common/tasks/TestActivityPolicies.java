@@ -358,6 +358,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .end()
                     .child("third")
                         .assertNotStarted();
+
+        TaskType t = getTask(TASK_120_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time");
     }
 
     /**
@@ -417,6 +422,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .policy("Execution time")
                             .assertTriggerCount(1);
         // @formatter:on
+
+        TaskType t = getTask(TASK_130_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -456,6 +466,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                             .policy("Execution time")
                                 .assertTriggerCount(1);
         // @formatter:on
+
+        TaskType t = getTask(TASK_140_CHILD_SUSPEND_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -506,6 +521,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .assertSuspended()
                     .assertFatalError();
         // @formatter:on
+
+        TaskType t = getTask(TASK_150_MULTINODE_SUSPEND_ON_EXECUTION_TIME.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time");
     }
 
     /**
@@ -602,6 +622,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .assertNoCounters()
                         .assertNoPolicies();
         // @formatter:on
+
+        TaskType t = getTask(TASK_160_MULTINODE_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -695,6 +720,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .assertNoCounters()
                         .assertNoPolicies();
         // @formatter:on
+
+        TaskType t = getTask(TASK_170_MULTINODE_CHILD_SUSPEND_ON_ROOT_EXECUTION_TIME_WITH_SUBTASKS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -733,6 +763,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .policy("Stop after")
                             .assertTriggerCount(1);
         // @formatter:on
+
+        TaskType t = getTask(TASK_200_SIMPLE_SUSPEND_ON_ITEM_ERRORS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Stop after 5 errors");
     }
 
     /**
@@ -784,6 +819,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .itemProcessingStatistics()
                         .assertFailureCount(5);
         // @formatter:on
+
+        TaskType t = getTask(TASK_210_CHILD_SUSPEND_ON_OWN_ITEM_ERRORS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Stop after 5 errors");
     }
 
     /**
@@ -837,6 +877,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .itemProcessingStatistics()
                         .assertFailureCount(4);
         // @formatter:on
+
+        TaskType t = getTask(TASK_220_CHILD_SUSPEND_ON_PARENT_ITEM_ERRORS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Stop after 5 errors");
     }
 
     /**
@@ -895,6 +940,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                             .policy("Stop after")
                                 .assertTriggerCount(1);
         // @formatter:on
+
+        TaskType t = getTask(TASK_230_CHILD_SUSPEND_ON_OWN_ITEM_ERRORS_WITH_SUBTASKS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Stop after 5 errors");
     }
 
     /**
@@ -946,6 +996,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                             .policy("Stop after")
                                 .assertTriggerCount(1);
         // @formatter:on
+
+        TaskType t = getTask(TASK_240_CHILD_SUSPEND_ON_PARENT_ITEM_ERRORS_WITH_SUBTASKS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Stop after 5 errors");
     }
 
     /**
@@ -982,6 +1037,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .end();
         // @formatter:on
         // TODO more asserts
+
+        TaskType t = getTask(TASK_250_MULTINODE_SUSPEND_ON_ITEM_ERRORS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Stop after 5 errors");
     }
 
     /**
@@ -1020,6 +1080,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .end();
         // @formatter:on
         // TODO more asserts
+
+        TaskType t = getTask(TASK_255_MULTINODE_SUSPEND_ON_ITEM_ERRORS_UNBALANCED.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Stop after 5 errors");
     }
 
     /**
@@ -1054,6 +1119,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .end();
         // @formatter:on
         // TODO more asserts
+
+        TaskType t = getTask(TASK_300_SIMPLE_SKIP_ON_EXECUTION_TIME.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -1107,6 +1177,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .end()
                 .end();
         // @formatter:on
+
+        TaskType t = getTask(TASK_310_CHILD_SKIP_ON_OWN_EXECUTION_TIME.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -1158,6 +1233,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .end()
                 .end();
         // @formatter:on
+
+        TaskType t = getTask(TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -1197,6 +1277,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .end();
         // @formatter:on
         // TODO more asserts
+
+        TaskType t = getTask(TASK_320_CHILD_SKIP_ON_PARENT_EXECUTION_TIME.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -1231,6 +1316,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .end();
         // @formatter:on
         // TODO more asserts
+
+        TaskType t = getTask(TASK_340_CHILD_SKIP_ON_PARENT_EXECUTION_TIME_WITH_SUBTASKS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -1267,6 +1357,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .end();
         // @formatter:on
         // TODO more asserts
+
+        TaskType t = getTask(TASK_350_MULTINODE_SKIP_ON_EXECUTION_TIME.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -1310,6 +1405,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .end();
         // @formatter:on
         // TODO more asserts
+
+        TaskType t = getTask(TASK_360_MULTINODE_CHILD_SKIP_ON_OWN_EXECUTION_TIME_WITH_SUBTASKS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -1350,6 +1450,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 // there is no third subtask, because the parent activity was aborted when second one was executing
         // @formatter:on
         // TODO more asserts
+
+        TaskType t = getTask(TASK_370_MULTINODE_CHILD_SKIP_ON_ROOT_EXECUTION_TIME_WITH_SUBTASKS.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
