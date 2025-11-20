@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -43,12 +44,25 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
 
     @Override
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
-        return parent.getDefinitions().stream().filter(def -> filterDefinitions(value, def)).collect(Collectors.toList());
+        return parent.getDefinitions().stream().filter(def ->
+                filterDefinitions(value, def, parent.getStatus())).collect(Collectors.toList());
     }
 
-    protected boolean filterDefinitions(PrismContainerValue<C> value, ItemDefinition<?> def) {
+    protected boolean filterDefinitions(PrismContainerValue<C> value, ItemDefinition<?> def, ItemStatus status) {
         Item<?, ?> child = value.findItem(def.getItemName());
-        return (child != null && !child.isEmpty()) || !(def instanceof PrismContainerDefinition);
+        return (child != null && (!child.isEmpty() || shouldFilterDefinitionForEmptyContainer(value, def, status)))
+                || !(def instanceof PrismContainerDefinition);
+    }
+
+    /**
+     * Policy action empty containers should be displayed in GUI (see #10928)
+     * @param value
+     * @param def
+     * @param status
+     * @return
+     */
+    private boolean shouldFilterDefinitionForEmptyContainer(PrismContainerValue<C> value, ItemDefinition<?> def, ItemStatus status) {
+        return ItemStatus.NOT_CHANGED.equals(status) && PolicyActionType.class.isAssignableFrom(def.getTypeClass());
     }
 
     /**

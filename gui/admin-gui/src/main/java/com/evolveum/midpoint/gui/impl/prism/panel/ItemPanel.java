@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -94,7 +95,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
         ListView<VW> values = new ListView<VW>(ID_VALUES, createValuesModel()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<VW> item) {

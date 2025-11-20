@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +14,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -42,7 +42,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         extends ItemWrapperImpl<PrismContainer<C>, PrismContainerValueWrapper<C>>
         implements PrismContainerWrapper<C>, Serializable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperImpl.class);
 
