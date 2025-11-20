@@ -164,7 +164,11 @@ public class SmartAssociationImpl {
 
         var constructionEvaluator = new AssociationConstructionExpressionEvaluatorType()
                 .objectRef(new AttributeOutboundMappingsDefinitionType()
-                        .mapping(new MappingType().expression(fromLinkExpression)));
+                        .mapping(new MappingType()
+                                .name("associationFromLink")
+                                .expression(fromLinkExpression)
+                        )
+                );
         var constructionExpression = makeExpressionType(SchemaConstantsGenerated.C_ASSOCIATION_CONSTRUCTION, constructionEvaluator);
         var outboundMappingName = associationName + "-outbound";
         return new MappingType()
@@ -175,17 +179,20 @@ public class SmartAssociationImpl {
 
     private InboundMappingType makeInboundMapping(String associationName) {
         var mapping = new InboundMappingType()
+                .name("shadowOwner-into-targetRef")
                 .target(new VariableBindingDefinitionType().path(new ItemPathType(ItemPath.fromString("targetRef"))))
                 .expression(makeExpressionType(SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH, new ShadowOwnerReferenceSearchExpressionEvaluatorType()));
         var synchronizationEvaluator = new AssociationSynchronizationExpressionEvaluatorType()
                 .synchronization(new ItemSynchronizationReactionsType()
                         .reaction(new ItemSynchronizationReactionType()
+                                .name("unmatched-add")
                                 .situation(ItemSynchronizationSituationType.UNMATCHED)
                                 .actions(new ItemSynchronizationActionsType()
                                         .addFocusValue(new AddFocusValueItemSynchronizationActionType())
                                 )
                         )
                         .reaction(new ItemSynchronizationReactionType()
+                                .name("matched-synchronize")
                                 .situation(ItemSynchronizationSituationType.MATCHED)
                                 .actions(new ItemSynchronizationActionsType()
                                         .synchronize(new SynchronizeItemSynchronizationActionType())

@@ -164,6 +164,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                                 <objectRef>
                                     <correlator/>
                                     <mapping>
+                                        <name>shadowOwner-into-targetRef</name>
                                         <expression>
                                             <shadowOwnerReferenceSearch/>
                                         </expression>
@@ -174,12 +175,14 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                                 </objectRef>
                                 <synchronization>
                                     <reaction>
+                                        <name>unmatched-add</name>
                                         <situation>unmatched</situation>
                                         <actions>
                                             <addFocusValue/>
                                         </actions>
                                     </reaction>
                                     <reaction>
+                                        <name>matched-synchronize</name>
                                         <situation>matched</situation>
                                         <actions>
                                             <synchronize/>
@@ -242,6 +245,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                             <associationConstruction xsi:type="c:AssociationConstructionExpressionEvaluatorType">
                                 <objectRef>
                                     <mapping>
+                                        <name>associationFromLink</name>
                                         <expression>
                                             <associationFromLink/>
                                         </expression>
