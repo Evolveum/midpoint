@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
+import com.evolveum.midpoint.smart.api.DirectionScenario;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -160,6 +161,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         } finally {
             result.close();
         }
+    }
+
+    @Override
+    public SynchronizationReactionsType getPredefinedSynchronizationReactions(
+            DirectionScenario scenario, boolean includeCorrelationCaseAction) {
+        return SynchronizationActionsBuilder.getPredefinedSynchronizationReactions(
+                scenario, includeCorrelationCaseAction);
     }
 
     private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
