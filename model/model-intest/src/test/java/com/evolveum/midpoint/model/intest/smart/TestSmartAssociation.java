@@ -155,7 +155,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                     <intent>default</intent>
                 </objectType>
                 <association>
-                    <ref>group</ref>
+                    <ref>group-app-group</ref>
                     <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <inbound>
                         <name>AccountDefault-EntitlementAppgroup-inbound</name>
@@ -229,7 +229,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                     <intent>default</intent>
                 </objectType>
                 <association>
-                    <ref>group</ref>
+                    <ref>group-app-group</ref>
                     <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <outbound>
                         <name>AccountDefault-EntitlementAppgroup-outbound</name>
