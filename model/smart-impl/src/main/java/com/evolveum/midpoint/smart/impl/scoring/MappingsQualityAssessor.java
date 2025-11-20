@@ -43,15 +43,16 @@ public class MappingsQualityAssessor {
     }
 
     /**
-     * Assesses mapping quality by comparing shadow values to focus values.
-     *
-     * The quality is computed as the fraction of sampled shadow values that equal the (optionally
-     * transformed) focus value. Only pairs where both sides are single-valued are considered; multi-valued
-     * pairs are skipped.
+     * Assesses mapping quality by comparing the source side to the target side.
+     * Direction semantics:
+     * - Inbound (inboundMapping = true): source = shadow, target = focus (shadow -> focus)
+     * - Outbound (inboundMapping = false): source = focus, target = shadow (focus -> shadow)
+     * The quality is computed as the fraction of sampled single-valued pairs where the (optionally transformed)
+     * source equals the target. Multi-valued pairs are skipped.
      *
      * @param valuePairs Sampled value pairs (shadow vs focus) used to estimate the mapping quality.
-     * @param suggestedExpression Optional expression (i.e. Groovy script) to transform the focus value
-     *                            before comparison. If {@code null}, raw focus values are used.
+     * @param suggestedExpression Optional expression (e.g. Groovy) applied to the source value before comparison.
+     * @param inboundMapping {@code true} for inbound (shadow -> focus), {@code false} for outbound (focus -> shadow)
      *
      * @return an {@link AssessmentResult} containing:
      *         - quality in the range {@code [0.0, 1.0]} (rounded to two decimals) with status {@link AssessmentStatus#OK}, or
@@ -59,15 +60,16 @@ public class MappingsQualityAssessor {
      *
      * @throws ExpressionEvaluationException if the expression evaluation fails
      * @throws SecurityViolationException if the evaluation is not permitted by the configured expression profile
-     * @throws MappingEvaluationException if transforming the focus value fails due to schema/configuration/communication issues
+     * @throws MappingEvaluationException if transforming the value fails due to schema/configuration/communication issues
      */
     public AssessmentResult assessMappingsQuality(
             Collection<ValuesPair> valuePairs,
             @Nullable ExpressionType suggestedExpression,
+            boolean inboundMapping,
             Task task,
             OperationResult parentResult) throws ExpressionEvaluationException, SecurityViolationException {
-        int totalShadowValues = 0;
-        int matchedShadowValues = 0;
+        int totalSamples = 0;
+        int matchedSamples = 0;
 
         for (final ValuesPair valuePair : valuePairs) {
             final Collection<?> shadowValues = valuePair.shadowValues();
@@ -79,27 +81,30 @@ public class MappingsQualityAssessor {
                 continue;
             }
 
-            final String shadowValue = shadowValues.iterator().next().toString();
-            String focusValue = focusValues.iterator().next().toString();
+            final String rawShadow = shadowValues.iterator().next().toString();
+            final String rawFocus = focusValues.iterator().next().toString();
+
+            String source = inboundMapping ? rawShadow : rawFocus;
+            final String target = inboundMapping ? rawFocus : rawShadow;
 
             if (suggestedExpression != null) {
                 try {
-                    focusValue = applyExpression(suggestedExpression, focusValue, task, parentResult);
+                    source = applyExpression(suggestedExpression, source, task, parentResult);
                 } catch (SchemaException | CommunicationException | ConfigurationException | ObjectNotFoundException e) {
                     throw new MappingEvaluationException("Failed to evaluate suggested expression.", e);
                 }
             }
 
-            totalShadowValues++;
-            if (shadowValue.equals(focusValue)) {
-                matchedShadowValues++;
+            totalSamples++;
+            if (target.equals(source)) {
+                matchedSamples++;
             }
         }
 
-        if (totalShadowValues == 0) {
+        if (totalSamples == 0) {
             return AssessmentResult.noSamples();
         }
-        final float quality = Math.round(((float) matchedShadowValues / totalShadowValues) * 100.0f) / 100.0f;
+        final float quality = Math.round(((float) matchedSamples / totalSamples) * 100.0f) / 100.0f;
         return AssessmentResult.ok(quality);
     }
 
@@ -108,7 +113,7 @@ public class MappingsQualityAssessor {
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        final String description = "Inbound mapping expression";
+        final String description = "Mapping expression";
         final VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_INPUT, input, String.class);
         final ExpressionProfile profile = restrictedProfile();
@@ -162,11 +167,7 @@ public class MappingsQualityAssessor {
     public enum AssessmentStatus { OK, NO_SAMPLES }
 
     public static class MappingEvaluationException extends RuntimeException {
-        public MappingEvaluationException(String message) {
-            super(message);
-        }
-
-        public MappingEvaluationException(String message, Throwable cause) {
+        public MappingEvaluationException(String message, Exception cause) {
             super(message, cause);
         }
     }

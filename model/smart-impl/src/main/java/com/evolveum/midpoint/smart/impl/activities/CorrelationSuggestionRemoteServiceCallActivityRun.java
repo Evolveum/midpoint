@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -42,17 +43,14 @@ public class CorrelationSuggestionRemoteServiceCallActivityRun extends LocalActi
         var statisticsOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
                         CorrelationSuggestionWorkStateType.F_STATISTICS_REF)),
                 "Statistics object reference is not set in the work state in %s", task);
-        var schemaMatchOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
-                        CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH_REF)),
-                "Schema match object reference is not set in the work state in %s", task);
 
         LOGGER.debug("Going to suggest correlation for resource {}, kind {} and intent {}; statistics in: {}; schema match in: {}",
-                resourceOid, kind, intent, statisticsOid, schemaMatchOid);
+                resourceOid, kind, intent, statisticsOid);
 
         var statistics = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(
                 getBeans().repositoryService.getObject(GenericObjectType.class, statisticsOid, null, result));
-        var schemaMatch = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeSchemaMatchRequired(
-                getBeans().repositoryService.getObject(GenericObjectType.class, schemaMatchOid, null, result));
+        var schemaMatch = parentState.getWorkStateItemRealValueClone(
+                CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH, SchemaMatchResultType.class);
 
         var suggestedCorrelation = SmartIntegrationBeans.get().smartIntegrationService.suggestCorrelation(
                 resourceOid, typeDef, statistics, schemaMatch, null, task, result);

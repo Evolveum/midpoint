@@ -122,8 +122,8 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
             @Override
             protected void onClickTabPerformed(int index, @NotNull Optional<AjaxRequestTarget> target) {
+                isInboundTabSelected = index == 0;
                 reloadSwitchModel(resourceOid);
-                isInboundTabSelected = !isInboundTabSelected;
                 if (getTable().isValidFormComponents()) {
                     super.onClickTabPerformed(index, target);
                 }
@@ -289,15 +289,22 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                         .withOpResultOptions(OpResult.Options.create()
                                 .withHideSuccess(true)
                                 .withHideInProgress(true))
-                        .runVoid((task, result) -> service
-                                .submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, task, result));
+                        .runVoid((task, result) -> {
+                            service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, true, task, result);
+                        });
             }
 
             private void performOutboundMappingSuggestion(
                     @NotNull SmartIntegrationService service,
                     @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
                     @NotNull AjaxRequestTarget target) {
-                //TODO implement outbound suggestion
+                getPageBase().taskAwareExecutor(target, OP_SUGGEST_MAPPING)
+                        .withOpResultOptions(OpResult.Options.create()
+                                .withHideSuccess(true)
+                                .withHideInProgress(true))
+                        .runVoid((task, result) -> {
+                            service.submitSuggestMappingsOperation(resourceOid, objectTypeIdentification, false, task, result);
+                        });
             }
 
             @Override

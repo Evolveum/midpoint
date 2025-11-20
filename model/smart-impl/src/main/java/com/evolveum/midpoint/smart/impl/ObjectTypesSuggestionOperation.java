@@ -115,9 +115,9 @@ class ObjectTypesSuggestionOperation {
                         .objectClass(baseCtx.classQName())
                         .filter(baseCtx.filter()));
                 AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
-                if (objectTypeWithFilters.baseCtxError() != null) {
-                    AiUtil.markAsInvalid(delineation, objectTypeWithFilters.baseCtxError(), ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
-                }
+            }
+            if (objectTypeWithFilters.baseCtxError() != null) {
+                AiUtil.markAsInvalid(delineation, objectTypeWithFilters.baseCtxError(), ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
             }
 
             var typeId = ResourceObjectTypeIdentification.of(

@@ -342,7 +342,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest mappings' operation request");
         var token = smartIntegrationService.submitSuggestMappingsOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();
@@ -385,7 +385,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("submitting 'suggest mappings' operation request");
         var token = smartIntegrationService.submitSuggestMappingsOperation(
-                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, true, task, result);
 
         then("returned token is not null");
         assertThat(token).isNotNull();

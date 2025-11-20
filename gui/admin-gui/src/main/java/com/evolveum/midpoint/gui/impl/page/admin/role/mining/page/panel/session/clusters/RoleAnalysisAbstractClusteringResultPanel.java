@@ -45,13 +45,12 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
-import com.evolveum.midpoint.web.component.data.mining.CollapsableContainerPanel;
+import com.evolveum.midpoint.web.component.data.table.CollapsableDataTable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -84,7 +83,7 @@ import java.util.Set;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider.*;
-import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
+import static com.evolveum.midpoint.web.component.data.table.CollapsableDataTable.CollapsableRowItem.COLLAPSIBLE_CONTENT_ID;
 
 public abstract class RoleAnalysisAbstractClusteringResultPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
@@ -134,25 +133,27 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
 
     protected List<ITab> createTabs() {
         List<ITab> tabs = new ArrayList<>();
-        tabs.add(new PanelTab(getPageBase().createStringResource("Clusters"), new VisibleEnableBehaviour()) {
+        tabs.add(new PanelTab(getPageBase().createStringResource("Clusters")) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                MainObjectListPanel<RoleAnalysisClusterType> components = clusterTable(panelId, RoleAnalysisClusterCategory.INLIERS);
+                MainObjectListPanel<RoleAnalysisClusterType> components;
+                components = clusterTable(panelId, RoleAnalysisClusterCategory.INLIERS, true);
                 components.setOutputMarkupId(true);
                 return components;
             }
         });
 
-        tabs.add(new PanelTab(getPageBase().createStringResource("Noise"), new VisibleEnableBehaviour()) {
+        tabs.add(new PanelTab(getPageBase().createStringResource("Noise")) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                MainObjectListPanel<RoleAnalysisClusterType> components = clusterTable(panelId, RoleAnalysisClusterCategory.OUTLIERS);
+                MainObjectListPanel<RoleAnalysisClusterType> components;
+                components = clusterTable(panelId, RoleAnalysisClusterCategory.OUTLIERS, false);
                 components.setOutputMarkupId(true);
                 return components;
             }
@@ -161,12 +162,20 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
     }
 
     //TODO - structure
-    protected MainObjectListPanel<RoleAnalysisClusterType> clusterTable(String panelId, RoleAnalysisClusterCategory category) {
+    protected MainObjectListPanel<RoleAnalysisClusterType> clusterTable(
+            String panelId,
+            RoleAnalysisClusterCategory category,
+            boolean isCollapsable) {
         MainObjectListPanel<RoleAnalysisClusterType> basicTable = new MainObjectListPanel<>(panelId, RoleAnalysisClusterType.class) {
 
             @Override
             protected boolean isCollapsableTable() {
-                return true;
+                return isCollapsable;
+            }
+
+            @Override
+            protected boolean isCollapseToggleColumnVisible() {
+                return false;
             }
 
             @Contract(pure = true)
@@ -533,7 +542,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                 return columns;
             }
 
-            private void initSpecificColumn(RoleAnalysisOptionType analysisOption, List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> columns) {
+            private void initSpecificColumn(@NotNull RoleAnalysisOptionType analysisOption, List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> columns) {
                 IColumn<SelectableBean<RoleAnalysisClusterType>, String> column;
                 if (!RoleAnalysisProcedureType.OUTLIER_DETECTION.equals(analysisOption.getAnalysisProcedureType())) {
                     RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
@@ -747,14 +756,17 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
 
     private void onAttributeAnalysisClickPerform(
             @NotNull AjaxRequestTarget target,
-            @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+            Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
             @NotNull IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-        CollapsableContainerPanel collapseContainerUser = (CollapsableContainerPanel) cellItem
-                .findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
-        CollapsableContainerPanel collapseContainerRole = (CollapsableContainerPanel) cellItem
-                .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
 
-        if (!collapseContainerUser.isExpanded()) {
+        CollapsableDataTable<?, ?>.CollapsableRowItem rowItem = cellItem.findParent(CollapsableDataTable.CollapsableRowItem.class);
+
+        if (rowItem != null) {
+            if (rowItem.isExpanded()) {
+                rowItem.toggle(target);
+                return;
+            }
+
             RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = null;
             RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = null;
             if (model.getObject() != null) {
@@ -766,46 +778,36 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                 }
             }
 
-            CollapsableContainerPanel webMarkupContainerUser = new CollapsableContainerPanel(
-                    ID_FIRST_COLLAPSABLE_CONTAINER);
-            webMarkupContainerUser.setOutputMarkupId(true);
-            webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
-            webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
-            webMarkupContainerUser.setExpanded(true);
-
             if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
-
-                LoadableModel<RoleAnalysisAttributesDto> attributesModel = new LoadableModel<>(false) {
-                    @Override
-                    protected RoleAnalysisAttributesDto load() {
-                        return RoleAnalysisAttributesDto.loadFromCluster(
-                                createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis").getString(),
-                                model.getObject().getValue());
-                    }
-                };
-
-                RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_COLLAPSABLE_CONTENT,
-                        attributesModel) {
-
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull String getCssClassForCardContainer() {
-                        return "m-3 elevation-1 card";
-                    }
-                };
-                roleAnalysisAttributePanel.setOutputMarkupId(true);
-                webMarkupContainerUser.add(roleAnalysisAttributePanel);
-                webMarkupContainerUser.add(AttributeModifier.append(CLASS_CSS, "bg-light"));
-            } else {
-                Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
-                label.setOutputMarkupId(true);
-                webMarkupContainerUser.add(label);
+                RoleAnalysisAttributePanel roleAnalysisAttributePanel = buildAttributePanel(model);
+                rowItem.toggleAndReplace(target, roleAnalysisAttributePanel);
+                rowItem.getCollapsibleContainer().add(AttributeModifier.append(CLASS_CSS, "bg-light"));
+                target.add(rowItem.getCollapsibleContainer());
             }
-
-            collapseContainerUser.replaceWith(webMarkupContainerUser);
-            target.add(webMarkupContainerUser);
         }
-        target.appendJavaScript(getCollapseScript(collapseContainerUser, collapseContainerRole));
+    }
+
+    private @NotNull RoleAnalysisAttributePanel buildAttributePanel(@NotNull IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+        LoadableModel<RoleAnalysisAttributesDto> attributesModel = new LoadableModel<>(false) {
+            @Override
+            protected @NotNull RoleAnalysisAttributesDto load() {
+                return RoleAnalysisAttributesDto.loadFromCluster(
+                        createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis").getString(),
+                        model.getObject().getValue());
+            }
+        };
+
+        RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(COLLAPSIBLE_CONTENT_ID,
+                attributesModel) {
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getCssClassForCardContainer() {
+                return "m-3 elevation-1 card";
+            }
+        };
+        roleAnalysisAttributePanel.setOutputMarkupId(true);
+        return roleAnalysisAttributePanel;
     }
 
     private InlineMenuItem createDeleteInlineMenu(String tableId) {
@@ -989,7 +991,8 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
         }
     }
 
-    private static @NotNull IModel<?> extractMembershipDensity(@NotNull IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+    private static @NotNull IModel<?> extractMembershipDensity
+            (@NotNull IModel<SelectableBean<RoleAnalysisClusterType>> model) {
         RoleAnalysisClusterType value = model.getObject().getValue();
         if (value != null
                 && value.getClusterStatistics() != null

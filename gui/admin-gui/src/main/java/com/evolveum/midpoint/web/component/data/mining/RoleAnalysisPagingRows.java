@@ -10,7 +10,6 @@ package com.evolveum.midpoint.web.component.data.mining;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
@@ -23,7 +22,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -33,7 +31,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +40,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
 
-public class RoleAnalysisPaginRows extends Fragment {
+public class RoleAnalysisPagingRows extends Fragment {
 
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_FORM = "form";
@@ -52,9 +49,9 @@ public class RoleAnalysisPaginRows extends Fragment {
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
     private static final String ID_PAGE_SIZE = "pageSize";
 
-    private IModel<DisplayValueOption> displayValueOptionModel;
+    private final IModel<DisplayValueOption> displayValueOptionModel;
 
-    public RoleAnalysisPaginRows(
+    public RoleAnalysisPagingRows(
             String id,
             String markupId,
             RoleAnalysisTable markupProvider,

@@ -254,34 +254,15 @@ public class SmartIntegrationStatusInfoUtils {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        if (mappingDirection == MappingDirection.OUTBOUND) {
-            //TODO replace with actual outbound call when supported
-            LOGGER.warn("Outbound mapping suggestions are not yet supported. Returning null.");
-            return null;
-        }
-
         var smart = pageBase.getSmartIntegrationService();
 
-        try {
-            var statusInfos = smart.listSuggestMappingsOperationStatuses(resourceOid, task, result);
-            if (objectTypeIdentification == null) {
-                return statusInfos;
-            }
+        var isInbound = mappingDirection == MappingDirection.INBOUND;
 
-            return statusInfos.stream()
-                    .filter(s -> {
-                        BasicResourceObjectSetType request = s.getRequest();
-                        if (request != null) {
-                            return request.getKind() != null
-                                    && request.getKind().equals(objectTypeIdentification.getKind())
-                                    && request.getIntent() != null
-                                    && request.getIntent().equals(objectTypeIdentification.getIntent());
-                        }
-                        return false;
-                    }).toList();
+        try {
+            return smart.listSuggestMappingsOperationStatuses(resourceOid, objectTypeIdentification, isInbound, task, result);
         } catch (Throwable t) {
             result.recordException(t);
-            LoggingUtils.logException(LOGGER, "Couldn't load correlation status for {}", t, resourceOid);
+            LoggingUtils.logException(LOGGER, "Couldn't load mapping status for {}", t, resourceOid);
             return null;
         } finally {
             result.close();
@@ -396,17 +377,17 @@ public class SmartIntegrationStatusInfoUtils {
                     }
 
                     for (var defItemWrapper : defWrapper.getValues()) {
-                        PrismContainerWrapper<MappingType> inboundWrapper = defItemWrapper
+                        PrismContainerWrapper<MappingType> mappingWrapper = defItemWrapper
                                 .findContainer(mappingDirection.getContainerName());
-                        if (inboundWrapper == null || inboundWrapper.getValues().isEmpty()) {
-                            result.recordWarning("Suggestion without inbound mappings skipped");
+                        if (mappingWrapper == null || mappingWrapper.getValues().isEmpty()) {
+                            result.recordWarning("Suggestion without mappings skipped");
                             continue;
                         }
 
                         PrismPropertyDefinition<Object> refDef = defItemWrapper.getDefinition().findPropertyDefinition(
                                 ResourceAttributeDefinitionType.F_REF);
 
-                        for (PrismContainerValueWrapper<MappingType> mappingVw : inboundWrapper.getValues()) {
+                        for (PrismContainerValueWrapper<MappingType> mappingVw : mappingWrapper.getValues()) {
                             MappingUtils.createVirtualItemInMapping(
                                     mappingVw,
                                     defItemWrapper,

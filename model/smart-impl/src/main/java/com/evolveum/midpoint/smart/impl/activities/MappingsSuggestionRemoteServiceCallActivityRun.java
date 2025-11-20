@@ -14,8 +14,10 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionFiltersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,23 +42,16 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var intent = getWorkDefinition().getIntent();
         var typeDef = getWorkDefinition().getTypeIdentification();
         var state = getActivityState();
-        var statisticsOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
-                MappingsSuggestionWorkStateType.F_STATISTICS_REF)),
-                "Statistics object reference is not set in the work state in %s", task);
-        var schemaMatchOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
-                        MappingsSuggestionWorkStateType.F_SCHEMA_MATCH_REF)),
-                "Schema match object reference is not set in the work state in %s", task);
 
-        LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}; statistics in: {}; schema match in: {}",
-                resourceOid, kind, intent, statisticsOid, schemaMatchOid);
+        LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}",
+                resourceOid, kind, intent);
 
-        var statistics = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(
-                getBeans().repositoryService.getObject(GenericObjectType.class, statisticsOid, null, result));
-        var schemaMatch = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeSchemaMatchRequired(
-                getBeans().repositoryService.getObject(GenericObjectType.class, schemaMatchOid, null, result));
+        var schemaMatch = parentState.getWorkStateItemRealValueClone(
+                MappingsSuggestionWorkStateType.F_SCHEMA_MATCH, SchemaMatchResultType.class);
+        var isInbound = getWorkDefinition().isInbound();
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, typeDef, statistics, schemaMatch, null, null, state, task, result);
+                resourceOid, typeDef, schemaMatch, isInbound, null, state, task, result);
 
         parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
         parentState.flushPendingTaskModifications(result);

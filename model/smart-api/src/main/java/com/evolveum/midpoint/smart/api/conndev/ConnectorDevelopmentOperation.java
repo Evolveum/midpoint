@@ -57,8 +57,9 @@ public interface ConnectorDevelopmentOperation {
         return submitGenerateArtifact(AUTHENTICATION_CUSTOMIZATION.create(), task, result);
     }
 
-    default String submitGenerateSearchScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
-        return submitGenerateArtifact(SEARCH_ALL_DEFINITION.create(objectClass),
+
+    default String submitGenerateEndpointBasedScript(ConnectorDevelopmentArtifacts.KnownArtifactType artifactDef, String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
+        return submitGenerateArtifact(artifactDef.create(objectClass),
                 definition -> {
                     if (endpoints != null && !endpoints.isEmpty()) {
                         for (var endpoint : endpoints) {
@@ -73,11 +74,35 @@ public interface ConnectorDevelopmentOperation {
                         }
                     }
                 }, task, result);
+
     }
 
+    default String submitGenerateSearchScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(SEARCH_ALL_DEFINITION, objectClass, endpoints, task, result);
+    }
+
+
     default String submitGenerateRelationScript(ConnDevRelationInfoType relation, Task task, OperationResult result) {
+        var safeClone = new ConnDevRelationInfoType()
+                .name(relation.getName())
+                .subject(relation.getSubject())
+                .subjectAttribute(relation.getSubjectAttribute())
+                .object(relation.getObject())
+                .objectAttribute(relation.getObjectAttribute());
         return submitGenerateArtifact(RELATIONSHIP_SCHEMA_DEFINITION.create(relation.getName()),
-                definition -> definition.relation(relation.clone()), task, result);
+                definition -> definition.relation(safeClone), task, result);
+    }
+
+    default String submitGenerateCreateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(CREATE, objectClass, endpoints, task, result);
+    }
+
+    default String submitGenerateUpdateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(UPDATE, objectClass, endpoints, task, result);
+    }
+
+    default String submitGenerateDeleteScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(DELETE, objectClass, endpoints, task, result);
     }
 
     String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, Task task, OperationResult result);

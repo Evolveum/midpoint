@@ -28,11 +28,11 @@ public class MappingSuggestionOperationFactory {
     }
 
     public MappingsSuggestionOperation create(ServiceClient client, String resourceOid,
-            ResourceObjectTypeIdentification typeIdentification, CurrentActivityState<?> activityState, Task task,
-            OperationResult parentResult)
+            ResourceObjectTypeIdentification typeIdentification, CurrentActivityState<?> activityState,
+            boolean isInbound, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return MappingsSuggestionOperation.init(client, resourceOid, typeIdentification, activityState,
-                this.mappingsQualityAssessor, this.ownedShadowsProvider, task, parentResult);
+                this.mappingsQualityAssessor, this.ownedShadowsProvider, isInbound, task, parentResult);
     }
 }

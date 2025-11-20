@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
@@ -31,6 +32,8 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
+import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
+import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SimpleCustomSearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.column.ColumnTileTable;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
@@ -128,7 +131,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         ID_TABLE,
                         Model.of(ViewToggle.TILE),
                         TABLE_SMART_INBOUND_MAPPINGS,
-                        this::getInboundMappingColumns) {
+                        this::getColumns) {
 
                     @Override
                     protected Component createHeader(String id) {
@@ -272,10 +275,12 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         return columnTileTable;
     }
 
-    private @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getInboundMappingColumns() {
+    private @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getColumns() {
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
-        columns.add(getMappingUsedIconColumn("tile-column-icon"));
+        if (getMappingType() == MappingDirection.INBOUND) {
+            columns.add(getMappingUsedIconColumn("tile-column-icon"));
+        }
 
         columns.add(new IconColumn<>(Model.of()) {
 
@@ -317,11 +322,6 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 getPageBase()) {
             @Override
-            public Component getHeader(String componentId) {
-                return super.getHeader(componentId);
-            }
-
-            @Override
             protected Component createHeader(String componentId, IModel mainModel) {
                 return new PrismPropertyHeaderPanel<ItemPathType>(
                         componentId,
@@ -362,21 +362,49 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
             }
         });
 
-        columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
-                getMappingTypeDefinition(),
-                MappingType.F_TARGET,
-                AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()) {
-            @Override
-            public String getCssClass() {
-                return "col-2 header-border-right";
-            }
+        if (getMappingType() == MappingDirection.OUTBOUND) {
+            columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
+                    getMappingTypeDefinition(),
+                    MappingType.F_SOURCE,
+                    AbstractItemWrapperColumn.ColumnType.VALUE,
+                    getPageBase()) {
 
-            @Override
-            protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
-                return super.createHeader(componentId, mainModel);
-            }
-        });
+                @SuppressWarnings({ "unchecked", "rawtypes" })
+                @Override
+                protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                    if(rowModel.getObject().isReadOnly()){
+                        return super.createColumnPanel(componentId, rowModel);
+                    }
+
+                    IModel<Collection<VariableBindingDefinitionType>> multiselectModel = createSourceMultiselectModel(rowModel,
+                            SmartMappingTable.this.getPageBase());
+                    var provider = new FocusDefinitionsMappingProvider(
+                            (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
+                    return new Select2MultiChoiceColumnPanel<>(componentId, multiselectModel, provider);
+                }
+
+                @Override
+                public String getCssClass() {
+                    return "col-2 header-border-right";
+                }
+            });
+        } else {
+            columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
+                    getMappingTypeDefinition(),
+                    MappingType.F_TARGET,
+                    AbstractItemWrapperColumn.ColumnType.VALUE,
+                    getPageBase()) {
+                @Override
+                public String getCssClass() {
+                    return "col-2 header-border-right";
+                }
+
+                @Override
+                protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<MappingType>> mainModel) {
+                    return super.createHeader(componentId, mainModel);
+                }
+            });
+        }
 
         columns.add(new LifecycleStateColumn<>(getMappingTypeDefinition(), getPageBase()) {
             @Override

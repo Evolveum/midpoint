@@ -97,6 +97,8 @@ public class MappingUtils {
                     attrVw.findContainer(getPathBaseOnMappingType(mappingDirection));
 
             PrismContainerValue<MappingType> mappingPcv;
+            PrismContainerValueWrapper<MappingType> mappingVw;
+
             if (mappingsCw.getValues().isEmpty()) {
                 if (value == null) {
                     mappingPcv = mappingsCw.getItem().createNewValue();
@@ -109,28 +111,9 @@ public class MappingUtils {
                         mappingsCw.getItem().add(mappingPcv);
                     }
                 }
-                PrismContainerValueWrapper<MappingType> mappingVw =
-                        WebPrismUtil.createNewValueWrapper(mappingsCw, mappingPcv, pageBase, target);
-
-                PrismContainerValueWrapper<P> root = valueModel.getObject();
-
-                PrismPropertyDefinition<Object> refDef = root.getDefinition()
-                        .findPropertyDefinition(ItemPath.create(itemNameOfContainerWithMappings, itemNameOfRefAttribute));
-
-                // value parent can hold ref definition too (e.g. in case of suggested mapping)
-                if (value != null
-                        && value.getParentContainerValue() != null
-                        && value.getParentContainerValue().getRealValue() instanceof ResourceAttributeDefinitionType def) {
-                    ItemPathType ref = def.getRef();
-                    createDirectRefVirtualItemInMapping(mappingVw, ref, refDef, pageBase, itemNameOfRefAttribute, mappingDirection);
-                } else {
-                    createVirtualItemInMapping(mappingVw, null, refDef, pageBase, itemNameOfRefAttribute, mappingDirection);
-                }
-
-                return mappingVw;
+                mappingVw = WebPrismUtil.createNewValueWrapper(mappingsCw, mappingPcv, pageBase, target);
 
             } else {
-                PrismContainerValueWrapper<MappingType> mappingVw;
                 if (value == null) {
                     mappingVw = mappingsCw.getValue();
                 } else {
@@ -139,24 +122,55 @@ public class MappingUtils {
                     mappingPcv.setId(null);
                     mappingPcv.setParent(mappingsCw.getItem());
                     WebPrismUtil.cleanupEmptyContainerValue(mappingPcv);
-                    mappingsCw.getItem().add(mappingPcv);
+                    if (mappingsCw.getItem().isSingleValue()) {
+                        mappingsCw.getItem().setValue(mappingPcv);
+                    } else {
+                        mappingsCw.getItem().add(mappingPcv);
+                    }
                     mappingVw = WebPrismUtil.createNewValueWrapper(mappingsCw, mappingPcv, pageBase, target);
                 }
-
-                mappingVw.findProperty(MappingType.F_STRENGTH)
-                        .getValue().setRealValue(MappingStrengthType.STRONG);
-
-                PrismContainerValueWrapper<P> root = valueModel.getObject();
-                PrismPropertyDefinition<Object> refDef = root.getDefinition()
-                        .findPropertyDefinition(ItemPath.create(itemNameOfContainerWithMappings, itemNameOfRefAttribute));
-                createVirtualItemInMapping(mappingVw, null, refDef, pageBase, itemNameOfRefAttribute, mappingDirection);
-
-                return mappingVw;
             }
+
+            mappingVw.findProperty(MappingType.F_STRENGTH)
+                    .getValue().setRealValue(MappingStrengthType.STRONG);
+
+            initializeVirtualRef(value, valueModel, mappingDirection,
+                    itemNameOfContainerWithMappings, itemNameOfRefAttribute,
+                    pageBase, mappingVw);
+
+            return mappingVw;
 
         } catch (SchemaException e) {
             LOGGER.error("Couldn't create new attribute mapping", e);
             return null;
+        }
+    }
+
+    private static <P extends Containerable> void initializeVirtualRef(
+            @Nullable PrismContainerValue<MappingType> value,
+            @NotNull IModel<PrismContainerValueWrapper<P>> valueModel,
+            @NotNull MappingDirection mappingDirection,
+            @NotNull ItemName itemNameOfContainerWithMappings,
+            @NotNull ItemName itemNameOfRefAttribute,
+            @NotNull PageBase pageBase,
+            PrismContainerValueWrapper<MappingType> mappingVw) {
+        PrismContainerValueWrapper<P> root = valueModel.getObject();
+        PrismPropertyDefinition<Object> refDef = root.getDefinition()
+                .findPropertyDefinition(ItemPath.create(itemNameOfContainerWithMappings, itemNameOfRefAttribute));
+
+        boolean isDirect =
+                value != null
+                        && value.getParentContainerValue() != null
+                        && value.getParentContainerValue().getRealValue() instanceof ResourceAttributeDefinitionType;
+
+        if (isDirect) {
+            ItemPathType ref = ((ResourceAttributeDefinitionType)
+                    value.getParentContainerValue().getRealValue()).getRef();
+            createDirectRefVirtualItemInMapping(
+                    mappingVw, ref, refDef, pageBase, itemNameOfRefAttribute, mappingDirection);
+        } else {
+            createVirtualItemInMapping(
+                    mappingVw, null, refDef, pageBase, itemNameOfRefAttribute, mappingDirection);
         }
     }
 
@@ -398,7 +412,6 @@ public class MappingUtils {
      * @param candidateAttributes attributes to be added (may-be {@code null} or empty)
      * @param assignmentHolderDetailsModel context used when creating wrappers
      */
-    @SuppressWarnings("unchecked")
     public static void createMappingsValueIfRequired(
             @NotNull PageBase pageBase,
             @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
@@ -408,10 +421,6 @@ public class MappingUtils {
             return;
         }
         try {
-            PrismContainerWrapper<ResourceAttributeDefinitionType> container =
-                    resourceObjectTypeDefinition.getObject()
-                            .findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
-
             for (ResourceAttributeDefinitionType newAttr : candidateAttributes) {
                 addNewMappingValue(pageBase, resourceObjectTypeDefinition, assignmentHolderDetailsModel, newAttr);
             }

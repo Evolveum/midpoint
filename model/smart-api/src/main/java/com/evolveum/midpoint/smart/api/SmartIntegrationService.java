@@ -197,9 +197,8 @@ public interface SmartIntegrationService {
     MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            ShadowObjectClassStatisticsType statistics,
             SchemaMatchResultType schemaMatch,
-            @Nullable MappingsSuggestionFiltersType filters,
+            Boolean isInbound,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             @Nullable CurrentActivityState<?> activityState,
             Task task,
@@ -208,12 +207,15 @@ public interface SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException;
 
     /**
-     * Submits "suggest mappings" request. Returns a token used to query the status.
-     *
-     * Interaction metadata and filters will be added later.
+     * Submits "suggest mappings" request.
+     * Returns a token used to query the status.
      */
     String submitSuggestMappingsOperation(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            Boolean isInbound,
+            Task task,
+            OperationResult result)
             throws CommonException;
 
     /**
@@ -221,7 +223,11 @@ public interface SmartIntegrationService {
      * They are sorted by finished time, then by started time.
      */
     List<StatusInfo<MappingsSuggestionType>> listSuggestMappingsOperationStatuses(
-            String resourceOid, Task task, OperationResult result)
+            String resourceOid,
+            ResourceObjectTypeIdentification objectTypeIdentification,
+            Boolean isInbound,
+            Task task,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Checks the status of the "suggest mappings" request. */
@@ -236,8 +242,7 @@ public interface SmartIntegrationService {
      */
     AssociationsSuggestionType suggestAssociations(
             String resourceOid,
-            Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
-            Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
+            boolean isInbound,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -248,8 +253,6 @@ public interface SmartIntegrationService {
      */
     String submitSuggestAssociationsOperation(
             String resourceOid,
-            Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
-            Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
             Task task,
             OperationResult result)
             throws CommonException;

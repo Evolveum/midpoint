@@ -22,7 +22,6 @@ import java.util.ArrayList;
 public class MappingsSuggestionActivityHandler
         extends ModelActivityHandler<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> {
 
-    private static final String ID_MAPPING_STATISTICS_COMPUTATION = "mappingStatisticsComputation";
     private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
     private static final String ID_SCHEMA_MATCHING = "schemaMatching";
 
@@ -58,13 +57,6 @@ public class MappingsSuggestionActivityHandler
     public ArrayList<Activity<?, ?>> createChildActivities(
             Activity<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> parentActivity) {
         var children = new ArrayList<Activity<?, ?>>();
-        children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
-                (context, result) -> new MappingsStatisticsComputationActivityRun(context, "Statistics computation"),
-                null,
-                (i) -> ID_MAPPING_STATISTICS_COMPUTATION,
-                ActivityStateDefinition.normal(),
-                parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
                 (context, result) -> new MappingsSchemaMatchingActivityRun(context),
