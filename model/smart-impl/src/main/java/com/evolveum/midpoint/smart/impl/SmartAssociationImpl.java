@@ -116,7 +116,7 @@ public class SmartAssociationImpl {
         ShadowAssociationTypeDefinitionType association = new ShadowAssociationTypeDefinitionType();
 
         String assocName = constructAssociationName(subjectObjectType, objectObjectType, attributeReference);
-        QName assocQName = new QName(nativeSchema.getNamespace(), assocName);
+        QName assocQName = new QName(assocName);
         association.setName(assocQName);
         association.setDisplayName(assocName); // TODO: generate better display name
 
@@ -220,10 +220,14 @@ public class SmartAssociationImpl {
             boolean isInbound
     ) {
 
-        var ref = attributeReference.getItemName().toBean(); //TODO this is probably not correct - why?
+        var sourceRef = attributeReference.getItemName().toBean();
+        // NOTE: ref is a custom attribute without a namespace that identifies the reference. on GUI it can either
+        // distinguish (if different) or merge (if same) objects with the same subject coming from different association types
+        var ref = attributeReference.getItemName().withoutNamespace().toBean();
+
         ShadowAssociationDefinitionType assocDef = new ShadowAssociationDefinitionType()
                 .ref(ref)
-                .sourceAttributeRef(ref);
+                .sourceAttributeRef(sourceRef);
 
         if (isInbound) {
             assocDef.inbound(makeInboundMapping(associationName));

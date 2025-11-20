@@ -146,7 +146,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var actualValue = prettySerialize(suggestion);
         var expectedValue = dedent("""
         <definition>
-            <name>ri:AccountDefault-EntitlementAppgroup</name>
+            <name>AccountDefault-EntitlementAppgroup</name>
             <displayName>AccountDefault-EntitlementAppgroup</displayName>
             <subject>
                 <ref>ri:account</ref>
@@ -155,7 +155,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                     <intent>default</intent>
                 </objectType>
                 <association>
-                    <ref>ri:group</ref>
+                    <ref>group</ref>
                     <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <inbound>
                         <name>AccountDefault-EntitlementAppgroup-inbound</name>
@@ -220,7 +220,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var actualValue = prettySerialize(suggestion);
         var expectedValue = dedent("""
         <definition>
-            <name>ri:AccountDefault-EntitlementAppgroup</name>
+            <name>AccountDefault-EntitlementAppgroup</name>
             <displayName>AccountDefault-EntitlementAppgroup</displayName>
             <subject>
                 <ref>ri:account</ref>
@@ -229,7 +229,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                     <intent>default</intent>
                 </objectType>
                 <association>
-                    <ref>ri:group</ref>
+                    <ref>group</ref>
                     <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <outbound>
                         <name>AccountDefault-EntitlementAppgroup-outbound</name>
@@ -342,7 +342,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var result = task.getResult();
 
         var resource = provisioningService.getObject(ResourceType.class, RESOURCE_OID, null, task, result);
-        displayValueAsXml("Resource: ad-smart-association-types", resource.getValue());
+        //displayValueAsXml("Resource: ad-smart-association-types", resource.getValue());
 
         AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(RESOURCE_OID, isInbound, task, result);
 
