@@ -524,7 +524,7 @@ public class RequestAccess implements Serializable {
         }
 
         result.computeStatusIfUnknown();
-        if (!WebComponentUtil.isSuccessOrHandledError(result) && allConflicts.isEmpty()) {
+        if (!WebComponentUtil.isSuccessOrHandledError(result) && !result.isWarning() && allConflicts.isEmpty()) {
             conflictsDirty = false;
             page.error(OpResult.getOpResult(page, result));
             throw new RestartResponseException(page);
@@ -575,7 +575,7 @@ public class RequestAccess implements Serializable {
                 processEvaluatedAssignments(userRef, conflicts, evaluatedTriple.getMinusSet());
             } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
                 String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
-                page.warn(msg);
+                LOGGER.debug(msg);
             }
             return new ArrayList<>(conflicts.values());
         } catch (Exception ex) {
