@@ -185,6 +185,10 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                                             <synchronize/>
                                         </actions>
                                     </reaction>
+                                    <reaction>
+                                        <name>indirectly-matched-ignore</name>
+                                        <situation>matchedIndirectly</situation>
+                                    </reaction>
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
