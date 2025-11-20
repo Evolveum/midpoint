@@ -70,18 +70,18 @@ For example, if the rule is defined as a xref:/midpoint/reference/roles-policies
 
 Policy rules are used to implement a wide variety of mechanisms, some of which may be required for ISO27001 compliance:
 
-* xref:/midpoint/reference/cases/approval/[Assignment approvals]: policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
+* xref:/midpoint/reference/cases/approval/[Assignment approvals]: Policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
 
-* xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
+* xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role lifecycle management]: Policy rules may be used to enforce approvals of new roles before they are used in production.
 They may be used to approve changed role definitions, etc.
 
 * xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of duties]: You can define exclusion constraints that ensure that conflicting roles (such as "Developer" and "Deployer") are not assigned to the same user.
 Violations can trigger logging, corrective actions, etc.
 
-* Compliance reporting: policy rules may be used to set feature:object-mark[marks] in the affected objects.
+* Compliance reporting: Policy rules may be used to set feature:object-mark[marks] in the affected objects.
 Marks may be used in reports to identify objects that violate compliance rules, to report the percentage of compliant vs non-compliant objects and so on.
 
-* Access control based on user clearance: combined with _classifications_ and _clearances_, policy rules can restrict access to sensitive systems or applications unless a specific training, screening, or NDA conditions are met.
+* Access control based on user clearance: Combined with _classifications_ and _clearances_, policy rules can restrict access to sensitive systems or applications unless a specific training, screening, or NDA conditions are met.
 This is especially useful in regulated environments (e.g. healthcare, finance, government).
 
 * Temporal conditions: Rules can enforce time-sensitive conditions, such as allowing assignments only during specific periods, or delaying notifications until after a grace period.
