@@ -214,16 +214,6 @@ public class SmartAssociationImpl {
     }
 
     /**
-     * Association ref is a custom attribute without namespace that identifies the reference
-     * - on GUI it can either distinguish (if different) or merge (if same) objects with the same subject coming from different association types
-     * - in the association suggestion is this ref constructed in a way it distinguishes between these objects (suffixing with an object intent)
-     */
-    private ItemPathType buildAssociationRef(ResourceObjectTypeDefinition objectObjectType, ShadowReferenceAttributeDefinition attributeReference) {
-        var refName = attributeReference.getItemName().withoutNamespace() + "-" + objectObjectType.getIntent();
-        return new ItemPathType(ItemPath.fromString(refName));
-    }
-
-    /**
      * Builds a subject-side association participant definition.
      *
      * @param subjectObjectType association subject
@@ -241,7 +231,9 @@ public class SmartAssociationImpl {
     ) {
 
         var sourceRef = attributeReference.getItemName().toBean();
-        var ref = buildAssociationRef(objectObjectType, attributeReference);
+        // this is a convention to name reference, uniqueness of this attribute is enforced by GUI
+        var refName = attributeReference.getItemName().withoutNamespace() + "-" + objectObjectType.getIntent();
+        var ref = new ItemPathType(ItemPath.fromString(refName));
         ShadowAssociationDefinitionType assocDef = new ShadowAssociationDefinitionType()
                 .ref(ref)
                 .sourceAttributeRef(sourceRef);
