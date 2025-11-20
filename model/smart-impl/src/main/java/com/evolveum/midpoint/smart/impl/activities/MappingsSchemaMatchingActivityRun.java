@@ -70,35 +70,12 @@ public class MappingsSchemaMatchingActivityRun extends LocalActivityRun<
         var resourceOid = workDef.getResourceOid();
         var typeIdentification = workDef.getTypeIdentification();
 
-        var parentState = Util.getParentState(this, result);
-
-        var presetOid = workDef.getSchemaMatchObjectOid();
-        if (presetOid != null) {
-            LOGGER.debug("Schema match object OID is pre-set to {}, will skip the execution", presetOid);
-            setSchemaMatchObjectOidInWorkState(presetOid, result);
-            return ActivityRunResult.success();
-        }
-
-        var foundOid = findLatestSchemaMatchObjectOid(result);
-        if (foundOid != null) {
-            LOGGER.debug("Found existing schema match object with OID {}, will skip the execution", foundOid);
-            setSchemaMatchObjectOidInWorkState(foundOid, result);
-            return ActivityRunResult.success();
-        }
-
         SchemaMatchResultType match = SmartIntegrationBeans.get().smartIntegrationService
                 .computeSchemaMatch(resourceOid, typeIdentification, getRunningTask(), result);
 
-        var schemaMatchObject = ShadowObjectTypeStatisticsTypeUtil.createObjectTypeSchemaMatchObject(
-                resourceOid,
-                getWorkDefinition().getKind(),
-                getWorkDefinition().getIntent(),
-                match);
-
-        var schemaMatchObjectOid =
-                getBeans().repositoryService.addObject(schemaMatchObject.asPrismObject(), null, result);
-
-        setSchemaMatchObjectOidInWorkState(schemaMatchObjectOid, result);
+        var parentState = Util.getParentState(this, result);
+        parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_SCHEMA_MATCH, match);
+        parentState.flushPendingTaskModificationsChecked(result);
 
         return ActivityRunResult.success();
     }

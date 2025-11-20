@@ -10565,6 +10565,16 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="schemaMatch" type="tns:SchemaMatchResultType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The schema match object from workstate to be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MappingsSuggestionWorkDefinitionType.schemaMatch</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="result" type="tns:MappingsSuggestionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

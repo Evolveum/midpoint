@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionFiltersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -41,16 +42,12 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var intent = getWorkDefinition().getIntent();
         var typeDef = getWorkDefinition().getTypeIdentification();
         var state = getActivityState();
-        var schemaMatchOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
-                        MappingsSuggestionWorkStateType.F_SCHEMA_MATCH_REF)),
-                "Schema match object reference is not set in the work state in %s", task);
 
-        LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}; schema match in: {}",
-                resourceOid, kind, intent, schemaMatchOid);
+        LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}",
+                resourceOid, kind, intent);
 
-        var schemaMatch = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeSchemaMatchRequired(
-                getBeans().repositoryService.getObject(GenericObjectType.class, schemaMatchOid, null, result));
-
+        var schemaMatch = parentState.getWorkStateItemRealValueClone(
+                MappingsSuggestionWorkStateType.F_SCHEMA_MATCH, SchemaMatchResultType.class);
         var isInbound = getWorkDefinition().isInbound();
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
