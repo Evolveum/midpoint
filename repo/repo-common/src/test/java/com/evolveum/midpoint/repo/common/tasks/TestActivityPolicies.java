@@ -18,8 +18,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestTask;
+import com.evolveum.midpoint.test.asserter.TaskInformationAsserter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * This is to comprehensively test activity policies at the low level.
@@ -257,6 +259,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                         .assertRunTimeBetween(2000L, 5000L) // limit is 2 seconds, 10 seconds planned
                     .end();
         // @formatter:on
+
+        TaskType t = getTask(TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     /**
@@ -293,6 +300,12 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                     .itemProcessingStatistics()
                         .assertRunTimeBetween(8000L, 10000L); // limit is 8 seconds here, 20 seconds planned
         // @formatter:on
+
+        TaskType t = getTask(TASK_110_CHILD_SUSPEND_ON_OWN_EXECUTION_TIME.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: null");
+
     }
 
     /**

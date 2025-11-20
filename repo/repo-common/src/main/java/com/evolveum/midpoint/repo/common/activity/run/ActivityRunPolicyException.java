@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedAbortException;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyViolationException;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
@@ -21,7 +21,7 @@ public class ActivityRunPolicyException extends ActivityRunException {
             String message,
             OperationResultStatus operationResultStatus,
             ActivityRunResultStatus activityRunResultStatus,
-            ActivityPolicyBasedAbortException cause) {
+            ActivityPolicyViolationException cause) {
         super(message, operationResultStatus, activityRunResultStatus, cause);
     }
 }
