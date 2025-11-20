@@ -46,7 +46,7 @@ import java.util.List;
         containerPath = "empty")
 public class ConnectionConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardParentStep {
 
-    private static final String PANEL_TYPE = "cdw-connection";
+    public static final String PANEL_TYPE = "cdw-connection";
 
     public ConnectionConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);

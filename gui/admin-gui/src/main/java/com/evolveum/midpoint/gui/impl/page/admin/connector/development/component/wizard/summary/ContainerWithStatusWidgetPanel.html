@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card p-2 px-3 d-flex flex-column mb-0 h-100">
+        <div class="d-flex flex-row">
+            <div class="pr-2">
+                <i wicket:id="headerIcon"/>
+            </div>
+            <div wicket:id="headerLabel"/>
+            <a class="ml-auto btn btn-link py-0 pr-0 d-flex" wicket:id="configureButton">
+                    <span>
+                        <i class="fa fa-pen-to-square pr-1"></i>
+                    </span>
+                <wicket:message key="ContainerWithStatusWidgetPanel.configure"/>
+            </a>
+        </div>
+        <div class="w-100 d-flex flex-row justify-content-center rounded p-2 h6 mt-3 mb-0 font-weight-bold" wicket:id="statusContainer">
+            <div class="pr-1">
+                <i wicket:id="statusIcon"/>
+            </div>
+            <div class="clamp-1-lines" wicket:id="statusLabel"/>
+        </div>
+        <div wicket:id="details"/>
+    </div>
+</wicket:panel>
+</html>

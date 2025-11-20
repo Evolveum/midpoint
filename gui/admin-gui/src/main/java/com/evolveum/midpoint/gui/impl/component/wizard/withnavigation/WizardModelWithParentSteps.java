@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultCollapsedItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Page;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -26,15 +28,19 @@ public abstract class WizardModelWithParentSteps extends WizardModel {
 
     private final OperationResultCollapsedItem operationResultCollapsedItem = new OperationResultCollapsedItem();
 
-    public void init(Page page) {
-        fireActiveStepChanged(getActiveStep());
-    }
+    public abstract void init(Page page);
 
     public abstract List<WizardParentStep> getAllParentSteps();
 
     public abstract int getActiveParentStepIndex();
 
+    public abstract int getInProgressParentStepIndex();
+
+    public abstract int getInProgressStepIndex();
+
     public abstract List<WizardStep> getActiveChildrenSteps();
+
+    public abstract List<WizardStep> getInProgressChildrenSteps();
 
     public abstract WizardParentStep getActiveParentStep();
 
@@ -73,6 +79,18 @@ public abstract class WizardModelWithParentSteps extends WizardModel {
     public void removeOperationResult(String panelId) {
         operationResultCollapsedItem.removeOperationResult(panelId);
     }
+
+    public boolean isStepWithError(String stepId) {
+        if (StringUtils.isEmpty(stepId)) {
+            return false;
+        }
+        return operationResultCollapsedItem.getResults().stream()
+                .anyMatch(operationResultWrapper -> Strings.CS.equals(stepId, operationResultWrapper.getFixPanelId()));
+    }
+
+    public abstract boolean isShowedSummary();
+
+    public abstract void showSummaryPanel();
 
 //    public AbstractWizardController getWizardController() {
 //        return wizardController;

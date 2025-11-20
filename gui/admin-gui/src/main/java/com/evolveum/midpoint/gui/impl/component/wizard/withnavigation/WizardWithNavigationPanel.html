@@ -12,11 +12,16 @@
         <div class="d-flex flex-column">
             <div wicket:id="header"></div>
             <div class="d-flex flex-row card w-100 h-100" style="min-height: 78vh;">
-                <div class="wizard-navigation-menu p-3" wicket:id="navigation">
-                    <div class="pb-2">
-                        <wicket:message key="WizardWithNavigationPanel.navigation.title"/>
+                <div class="wizard-navigation-menu py-3" wicket:id="navigation">
+                    <div class="border-bottom mb-2">
+                        <a class="btn py-2 px-4 mx-3 mb-2 d-flex flex-row " wicket:id="summary">
+                            <span>
+                                <i class="fa fa-list-check pr-1"></i>
+                            </span>
+                            <wicket:message key="WizardWithNavigationPanel.summary"/>
+                        </a>
                     </div>
-                    <div class="d-flex flex-column">
+                    <div class="d-flex flex-column px-3">
                         <div wicket:id="card" class="d-flex flex-column card p-2">
                             <div class="pb-2" wicket:id="stepLabel"></div>
                             <div>
@@ -24,7 +29,7 @@
                             </div>
                         </div>
                     </div>
-                    <div wicket:id="stepInProgress" class="d-flex flex-column">
+                    <div wicket:id="stepInProgress" class="d-flex flex-column px-3">
                         <div class="d-flex flex-row">
                             <div>
                         <span class="rounded-circle bg-info text-center mr-1 d-block" style="width: 24px;">

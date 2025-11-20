@@ -10,11 +10,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -32,20 +30,20 @@ import java.io.IOException;
 /**
  * @author lskublik
  */
-@PanelType(name = "cdw-relation-script")
-@PanelInstance(identifier = "cdw-relation-script",
+@PanelType(name = "cdw-relationship-script")
+@PanelInstance(identifier = "cdw-relationship-script",
         applicableForType = ConnectorDevelopmentType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.relationScript", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.relationshipScript", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class RelationScriptConnectorStepPanel extends ScriptConnectorStepPanel {
+public class RelationshipScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-relation-script";
+    private static final String PANEL_TYPE = "cdw-relationship-script";
 
-    static final String TASK_RELATION_SCRIPTS_KEY = "taskRelationScriptKey";
+    static final String TASK_RELATIONSHIP_SCRIPTS_KEY = "taskRelationshipScriptKey";
     private final IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel;
 
-    public RelationScriptConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
+    public RelationshipScriptConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel) {
         super(helper);
         this.valueModel = valueModel;
@@ -53,17 +51,17 @@ public class RelationScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.relationScript");
+        return createStringResource("PageConnectorDevelopment.wizard.step.relationshipScript");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.relationScript.text");
+        return createStringResource("PageConnectorDevelopment.wizard.step.relationshipScript.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.relationScript.subText");
+        return createStringResource("PageConnectorDevelopment.wizard.step.relationshipScript.subText");
     }
 
     @Override

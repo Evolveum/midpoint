@@ -85,7 +85,7 @@ public class InitObjectClassConnectorDevPartItem extends AbstractWizardPartItem<
         ObjectClassConnectorStepPanel objectClassStepsParent = new ObjectClassConnectorStepPanel(getHelper());
         String objectClassName = getParameter();
         if (objectClassName == null) {
-            objectClassName = ConnectorDevelopmentWizardUtil.getNameOfNewObjectClass((ConnectorDevelopmentDetailsModel) getObjectDetailsModel());
+            objectClassName = ConnectorDevelopmentWizardUtil.getNameOfNewObjectClass(getObjectDetailsModel());
         }
         objectClassStepsParent.setObjectClass(objectClassName);
         return List.of(objectClassStepsParent);

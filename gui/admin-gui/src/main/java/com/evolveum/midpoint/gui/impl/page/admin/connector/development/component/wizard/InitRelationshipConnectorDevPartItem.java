@@ -16,8 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWi
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController.ConnectorDevelopmentStatusType;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationshipConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,11 +27,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.Strings;
 
-public class InitRelationConnectorDevPartItem extends AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
+public class InitRelationshipConnectorDevPartItem extends AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(InitRelationConnectorDevPartItem.class);
+    private static final Trace LOGGER = TraceManager.getTrace(InitRelationshipConnectorDevPartItem.class);
 
-    protected InitRelationConnectorDevPartItem(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    protected InitRelationshipConnectorDevPartItem(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
 
@@ -43,22 +42,22 @@ public class InitRelationConnectorDevPartItem extends AbstractWizardPartItem<Con
         }
 
         try {
-            PrismContainerWrapper<ConnDevRelationInfoType> relationContainer = getObjectWrapper().findContainer(
+            PrismContainerWrapper<ConnDevRelationInfoType> relationshipContainer = getObjectWrapper().findContainer(
                     ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR,
                             ConnDevConnectorType.F_RELATION));
-            if (relationContainer == null || relationContainer.getValues().isEmpty()) {
+            if (relationshipContainer == null || relationshipContainer.getValues().isEmpty()) {
                 return false;
             }
 
 
-            PrismContainerValueWrapper<ConnDevRelationInfoType> relationValue = relationContainer.getValues().stream()
+            PrismContainerValueWrapper<ConnDevRelationInfoType> relationshipValue = relationshipContainer.getValues().stream()
                     .filter(value -> Strings.CS.equals(getParameter(), value.getRealValue().getName()))
                     .findFirst()
                     .orElse(null);
-            if (relationValue == null) {
+            if (relationshipValue == null) {
                 return false;
             }
-            PrismPropertyWrapper<Boolean> confirm = relationValue.findProperty(ConnDevRelationInfoType.F_CONFIRM);
+            PrismPropertyWrapper<Boolean> confirm = relationshipValue.findProperty(ConnDevRelationInfoType.F_CONFIRM);
             return confirm != null && confirm.getValue() != null && Boolean.TRUE.equals(confirm.getValue().getRealValue());
 
         } catch (SchemaException e) {
@@ -71,13 +70,13 @@ public class InitRelationConnectorDevPartItem extends AbstractWizardPartItem<Con
 
     @Override
     protected List<WizardParentStep> createWizardSteps() {
-        RelationConnectorStepPanel relationStepsParent = new RelationConnectorStepPanel(getHelper());
-        relationStepsParent.setRelation(getRelationName());
+        RelationshipConnectorStepPanel relationshipStepsParent = new RelationshipConnectorStepPanel(getHelper());
+        relationshipStepsParent.setRelationship(getRelationshipName());
 
-        return List.of(relationStepsParent);
+        return List.of(relationshipStepsParent);
     }
 
-    private String getRelationName() {
+    private String getRelationshipName() {
         if (getParameter() != null) {
             return getParameter();
         }
@@ -109,6 +108,6 @@ public class InitRelationConnectorDevPartItem extends AbstractWizardPartItem<Con
 
     @Override
     public Enum<?> getIdentifierForWizardStatus() {
-        return ConnectorDevelopmentStatusType.INIT_RELATION;
+        return ConnectorDevelopmentStatusType.INIT_RELATIONSHIP;
     }
 }

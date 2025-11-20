@@ -77,7 +77,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     private static final Trace LOGGER = TraceManager.getTrace(DocumentationConnectorStepPanel.class);
 
-    private static final String PANEL_TYPE = "cdw-documentation";
+    public static final String PANEL_TYPE = "cdw-documentation";
     static final String TASK_DOCUMENTATION_KEY = "taskDocumentationKey";
 
     private static final String CLASS_DOT = DocumentationConnectorStepPanel.class.getName() + ".";

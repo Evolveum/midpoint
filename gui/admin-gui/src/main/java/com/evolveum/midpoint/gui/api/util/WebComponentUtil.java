@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -4005,7 +4006,7 @@ public final class WebComponentUtil {
         Optional<ContainerPanelConfigurationType> config = pageConfig
                 .getPanel()
                 .stream()
-                .filter(containerConfig -> panelType.equals(containerConfig.getIdentifier()))
+                .filter(containerConfig -> panelType != null &&  Strings.CS.equals(panelType, containerConfig.getIdentifier()))
                 .findFirst();
         return config.orElse(null);
     }

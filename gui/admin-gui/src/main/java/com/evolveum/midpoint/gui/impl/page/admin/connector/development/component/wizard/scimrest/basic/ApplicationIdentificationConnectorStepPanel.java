@@ -187,11 +187,14 @@ public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWiz
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         try {
-            PrismPropertyWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_NAME)
-                    .getObject().getValue().setRealValue(
-                            PrismPropertyWrapperModel.fromContainerWrapper((IModel<PrismContainerWrapper<ConnDevApplicationInfoType>>) getContainerFormModel(), ConnDevApplicationInfoType.F_APPLICATION_NAME)
-                                    .getObject().getValue().getRealValue()
-                    );
+            PrismPropertyValueWrapper<Object> value = PrismPropertyWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_NAME)
+                    .getObject().getValue();
+            if (value.getRealValue() == null) {
+                value.setRealValue(
+                        PrismPropertyWrapperModel.fromContainerWrapper((IModel<PrismContainerWrapper<ConnDevApplicationInfoType>>) getContainerFormModel(), ConnDevApplicationInfoType.F_APPLICATION_NAME)
+                                .getObject().getValue().getRealValue()
+                );
+            }
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }

@@ -156,14 +156,6 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
 
     @Override
     public boolean isCompleted() {
-
-        try {
-            ObjectDetailsModels<ResourceType> resourceModel = ConnectorDevelopmentWizardUtil.getTestingResourceModel(
-                    getDetailsModel(), PANEL_TYPE);
-            OperationalStateType stateBean = resourceModel.getObjectType().getOperationalState();
-            return stateBean != null && stateBean.getLastAvailabilityStatus() != null && stateBean.getLastAvailabilityStatus() == AvailabilityStatusType.UP;
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
+        return ConnectorDevelopmentWizardUtil.isConnectionComplete(getDetailsModel(), PANEL_TYPE);
     }
 }

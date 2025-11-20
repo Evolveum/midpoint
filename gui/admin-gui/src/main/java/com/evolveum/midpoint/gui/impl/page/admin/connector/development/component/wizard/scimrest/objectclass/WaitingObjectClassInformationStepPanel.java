@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
 
@@ -25,8 +27,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 /**
  * @author lskublik
@@ -78,5 +78,18 @@ public class WaitingObjectClassInformationStepPanel extends WaitingConnectorStep
     @Override
     protected ItemName getActivityType() {
         return WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_INFORMATION;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        if (ConnectorDevelopmentWizardUtil.existPropertyValue(
+                getDetailsModel().getObjectWrapper(),
+                ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
+                        ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
+                        ConnDevSchemaType.F_OBJECT_CLASS))) {
+            return true;
+        }
+
+        return super.isCompleted();
     }
 }

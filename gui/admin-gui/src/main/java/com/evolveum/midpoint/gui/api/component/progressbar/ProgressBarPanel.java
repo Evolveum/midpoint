@@ -35,6 +35,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 public class ProgressBarPanel extends BasePanel<List<ProgressBar>> {
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final String ID_BARS_CONTAINER = "barsContainer";
     private static final String ID_BARS = "bars";
     private static final String ID_BAR = "bar";
     private static final String ID_FOOTER = "footer";
@@ -63,17 +64,26 @@ public class ProgressBarPanel extends BasePanel<List<ProgressBar>> {
     }
 
     private void initLayout() {
+        WebMarkupContainer barsContainer = new WebMarkupContainer(ID_BARS_CONTAINER);
+        barsContainer.add(AttributeAppender.append("class", getProgressBarContainerCssClass()));
+        barsContainer.setOutputMarkupId(true);
+        add(barsContainer);
+
         ListView<ProgressBar> bars = new ListView<>(ID_BARS, getModelObject()) {
             @Override
             protected void populateItem(ListItem<ProgressBar> item) {
                 item.add(createBar(ID_BAR, item.getModel()));
             }
         };
-        add(bars);
+        barsContainer.add(bars);
 
         Component legend = createLegendPanel(ID_FOOTER);
         legend.setOutputMarkupId(true);
         add(legend);
+    }
+
+    private String getProgressBarContainerCssClass() {
+        return "progress rounded mb-0";
     }
 
     private Component createBar(String id, IModel<ProgressBar> model) {

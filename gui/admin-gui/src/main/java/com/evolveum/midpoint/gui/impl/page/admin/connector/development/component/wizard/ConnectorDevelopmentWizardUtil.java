@@ -7,10 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
@@ -37,9 +34,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 public class ConnectorDevelopmentWizardUtil {
 
@@ -185,6 +185,46 @@ public class ConnectorDevelopmentWizardUtil {
         }
     }
 
+    private static <C extends PrismContainerWrapper<?>> Object getPropertyValue(C container, ItemPath path) {
+        if (container == null) {
+            return false;
+        }
+
+        try {
+            PrismPropertyWrapper<?> propertyWrapper = container.findProperty(path);
+            if (propertyWrapper == null || propertyWrapper.getValues().isEmpty()) {
+                return false;
+            }
+            if (propertyWrapper.getValues().get(0).getNewValue() != null) {
+                    return propertyWrapper.getValues().get(0).getNewValue().getRealValue();
+            }
+
+            return null;
+
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <C extends PrismContainerWrapper<?>> boolean existReferenceValue(C container, ItemPath path) {
+        if (container == null) {
+            return false;
+        }
+
+        try {
+            PrismReferenceWrapper<Referencable> referenceWrapper = container.findReference(path);
+            if (referenceWrapper == null || referenceWrapper.getValues().isEmpty()) {
+                return false;
+            }
+            return referenceWrapper.getValues().get(0).getNewValue() != null
+                    && referenceWrapper.getValues().get(0).getNewValue().getRealValue() != null
+                    && StringUtils.isNotEmpty(referenceWrapper.getValues().get(0).getNewValue().getRealValue().getOid());
+
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static <C extends PrismContainerWrapper<?>> boolean existTestingResourcePropertyValue(
             ConnectorDevelopmentDetailsModel detailsModel, String panelType, ItemName propertyName) {
         try {
@@ -192,6 +232,23 @@ public class ConnectorDevelopmentWizardUtil {
                     ConnectorDevelopmentWizardUtil.getTestingResourceModel(detailsModel, panelType);
 
             return ConnectorDevelopmentWizardUtil.existPropertyValue(
+                    objectDetailsModel.getObjectWrapper(),
+                    ItemPath.create(
+                            "connectorConfiguration",
+                            SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME,
+                            ItemName.from("", propertyName.getLocalPart())));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <C extends PrismContainerWrapper<?>> Object getTestingResourcePropertyValue(
+            ConnectorDevelopmentDetailsModel detailsModel, String panelType, ItemName propertyName) {
+        try {
+            ObjectDetailsModels<ResourceType> objectDetailsModel =
+                    ConnectorDevelopmentWizardUtil.getTestingResourceModel(detailsModel, panelType);
+
+            return ConnectorDevelopmentWizardUtil.getPropertyValue(
                     objectDetailsModel.getObjectWrapper(),
                     ItemPath.create(
                             "connectorConfiguration",
@@ -304,4 +361,88 @@ public class ConnectorDevelopmentWizardUtil {
         return null;
     }
 
+    public static PrismContainerValueWrapper<ConnDevObjectClassInfoType> getObjectClassValueWrapper(ConnectorDevelopmentDetailsModel detailsModel, String objectClassName) {
+        try {
+            PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassesWrapper = detailsModel.getObjectWrapper().findContainer(
+                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
+            if (objectClassesWrapper != null && !objectClassesWrapper.getValues().isEmpty()) {
+                Optional<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassValue = objectClassesWrapper.getValues().stream()
+                        .filter(value ->
+                                Strings.CS.equals(value.getRealValue().getName(), objectClassName))
+                        .findFirst();
+
+                return objectClassValue.orElse(null);
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get object class value.", e);
+            String message = detailsModel.getPageAssignmentHolder().getString("ConnectorDevelopmentWizardUtil.couldntGetObjectClassValue");
+            detailsModel.getPageAssignmentHolder().error(message);
+        }
+
+        return null;
+    }
+
+    public static boolean isBasicSettingsComplete(PrismObjectWrapper<ConnectorDevelopmentType> objectWrapper) {
+        return ConnectorDevelopmentWizardUtil.existReferenceValue(
+                objectWrapper,
+                ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_CONNECTOR_REF));
+    }
+
+    public static boolean isConnectionComplete(ConnectorDevelopmentDetailsModel detailsModel, String panelType) {
+        try {
+            ObjectDetailsModels<ResourceType> resourceModel = ConnectorDevelopmentWizardUtil.getTestingResourceModel(
+                    detailsModel, panelType);
+            OperationalStateType stateBean = resourceModel.getObjectType().getOperationalState();
+            return stateBean != null && stateBean.getLastAvailabilityStatus() != null && stateBean.getLastAvailabilityStatus() == AvailabilityStatusType.UP;
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get testing resource.", e);
+            String message = detailsModel.getPageAssignmentHolder().getString("ConnectorDevelopmentWizardUtil.couldntGetTestingResource");
+            detailsModel.getPageAssignmentHolder().error(message);
+        }
+        return false;
+    }
+
+    public static boolean isInitObjectClassSchemaOperationComplete(ConnectorDevelopmentDetailsModel detailsModel) {
+        return isInitObjectClassOperationComplete(detailsModel, ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT);
+    }
+
+    public static boolean isInitObjectClassSearchAllOperationComplete(ConnectorDevelopmentDetailsModel detailsModel) {
+        return isInitObjectClassOperationComplete(detailsModel, ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION);
+    }
+
+    private static boolean isInitObjectClassOperationComplete(ConnectorDevelopmentDetailsModel detailsModel, ItemName path) {
+        try {
+            PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassContainer = detailsModel.getObjectWrapper().findContainer(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR,
+                            ConnDevConnectorType.F_OBJECT_CLASS));
+            if (objectClassContainer == null || objectClassContainer.getValues().isEmpty()) {
+                return false;
+            }
+
+            if (objectClassContainer.getValues().size() >= 2) {
+                return true;
+            }
+
+            PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue = objectClassContainer.getValues().get(0);
+            PrismContainerWrapper<ConnDevArtifactType> scriptContainer = objectClassValue.findContainer(path);
+            if (scriptContainer == null) {
+                return false;
+            }
+
+            PrismContainerValueWrapper<ConnDevArtifactType> searchAllValue = scriptContainer.getValue();
+            PrismPropertyWrapper<String> filename = searchAllValue.findProperty(ConnDevArtifactType.F_FILENAME);
+            if (filename == null || filename.getValue() == null || filename.getValue().getRealValue() == null) {
+                return false;
+            }
+
+            PrismPropertyWrapper<Boolean> confirm = searchAllValue.findProperty(ConnDevArtifactType.F_CONFIRM);
+            return confirm != null && confirm.getValue() != null && Boolean.TRUE.equals(confirm.getValue().getRealValue());
+
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't determine whether the schema operation is complete.", e);
+            String message = detailsModel.getPageAssignmentHolder().getString("ConnectorDevelopmentWizardUtil.couldntDetermineOpComplete");
+            detailsModel.getPageAssignmentHolder().error(message);
+        }
+        return false;
+    }
 }

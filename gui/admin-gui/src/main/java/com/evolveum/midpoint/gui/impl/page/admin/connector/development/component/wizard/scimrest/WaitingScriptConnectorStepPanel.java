@@ -7,12 +7,15 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lskublik
@@ -35,5 +38,17 @@ public abstract class WaitingScriptConnectorStepPanel extends WaitingConnectorSt
     }
 
     @Override
-    protected abstract ConnDevScriptIntentType getScriptIntent();
+    protected abstract ConnectorDevelopmentArtifacts.KnownArtifactType getScripType();
+
+    @Override
+    public boolean isCompleted() {
+        PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue =
+                ConnectorDevelopmentWizardUtil.getObjectClassValueWrapper(getDetailsModel(), getObjectClassName());
+        if (ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, ConnDevObjectClassInfoType.F_ATTRIBUTE)
+                && ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, getScripType().itemName)) {
+            return true;
+        }
+
+        return super.isCompleted();
+    }
 }

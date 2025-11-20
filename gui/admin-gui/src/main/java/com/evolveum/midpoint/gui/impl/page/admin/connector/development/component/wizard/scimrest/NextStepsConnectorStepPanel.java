@@ -14,13 +14,10 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation.RelationConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -128,60 +125,10 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
         objectClassPanel.setOutputMarkupId(true);
         add(objectClassPanel);
 
-        EnumTileChoicePanel<ConnectorAction> connectorActionPanel = new EnumTileChoicePanel<>(ID_CONNECTOR_ACTION, ConnectorAction.class) {
-            @Override
-            protected String getDescriptionForTile(ConnectorAction type) {
-                return getString(type.getDescription());
-            }
-
-            @Override
-            protected void onTemplateChosePerformed(ConnectorAction action, AjaxRequestTarget target) {
-                switch (action) {
-                    case NEW_OBJECT_CLASS -> createNewObjectClass(target);
-                    case ADD_RELATION -> createNewRelation(target);
-                    case CREATE_RESOURCE -> {
-                        ResourceCreationPopup popup = new ResourceCreationPopup(getPageBase().getMainPopupBodyId()) {
-                            @Override
-                            protected void createNewResource(boolean useConfiguration) {
-                                try {
-                                    PrismReferenceWrapper<Referencable> resourceRef = getDetailsModel().getObjectWrapper().findReference(
-                                            ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE));
-                                    @Nullable PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(resourceRef.getValue().getRealValue(), getPageBase());
-                                    if (resource != null) {
-                                        PrismObject<ResourceType> newResource = DuplicationProcessHelper.duplicateObjectDefault(resource);
-                                        newResource.findOrCreateProperty(ResourceType.F_NAME).setRealValue(null);
-                                        newResource.findOrCreateContainer(ResourceType.F_SCHEMA).clear();
-                                        newResource.findOrCreateProperty(ResourceType.F_LIFECYCLE_STATE).setRealValue(SchemaConstants.LIFECYCLE_PROPOSED);
-                                        if (!useConfiguration) {
-                                            ItemPath path = ItemPath.create("connectorConfiguration");
-                                            newResource.findOrCreateContainer(path).clear();
-                                        }
-                                        DetailsPageUtil.dispatchToObjectDetailsPage(newResource, true, true, getPageBase());
-                                    }
-                                } catch (SchemaException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        };
-                        getPageBase().showMainPopup(popup, target);
-                    }
-                }
-            }
-        };
+        NextStepsActionsPanel connectorActionPanel = new NextStepsActionsPanel(
+                ID_CONNECTOR_ACTION, getDetailsModel(), (ConnectorDevelopmentController) getWizard());
         connectorActionPanel.setOutputMarkupId(true);
         add(connectorActionPanel);
-    }
-
-    private void createNewRelation(AjaxRequestTarget target) {
-        ConnectorDevelopmentController controller = (ConnectorDevelopmentController) getWizard();
-        controller.initNewRelation();
-        target.add(getWizard().getPanel());
-    }
-
-    private void createNewObjectClass(AjaxRequestTarget target) {
-        ConnectorDevelopmentController controller = (ConnectorDevelopmentController) getWizard();
-        controller.initNewObjectClass();
-        target.add(getWizard().getPanel());
     }
 
     @Override
@@ -259,35 +206,5 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
     @Override
     public boolean isStatusStep() {
         return true;
-    }
-
-    public enum ConnectorAction implements TileEnum {
-
-        CREATE_RESOURCE("fa fa-plus bg-teal-100 text-success",
-                "ConnectorAction.CREATE_RESOURCE.description"),
-        UPLOAD("fa-solid fa-gears bg-cyan-100 text-info",
-                "ConnectorAction.UPLOAD.description"),
-        NEW_OBJECT_CLASS("fa-solid fa-shapes bg-orange-100 text-warning",
-                "ConnectorAction.NEW_OBJECT_CLASS.description"),
-        ADD_RELATION("fa fa-code-compare bg-pink-100 text-pink",
-                "ConnectorAction.ADD_RELATION.description");
-
-        private final String icon;
-        private final String descriptionKey;
-
-        ConnectorAction(String icon, String descriptionKey) {
-            this.icon = icon;
-            this.descriptionKey = descriptionKey;
-        }
-
-        @Override
-        public String getIcon() {
-            return icon;
-        }
-
-        @Override
-        public String getDescription() {
-            return descriptionKey;
-        }
     }
 }

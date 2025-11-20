@@ -265,6 +265,6 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
 
     @Override
     public boolean isCompleted() {
-        return ConnectorDevelopmentWizardUtil.existContainerValue(objectClassModel.getObject(), ConnDevObjectClassInfoType.F_ENDPOINT);
+        return ConnectorDevelopmentWizardUtil.existContainerValue(objectClassModel.getObject(), ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION);
     }
 }

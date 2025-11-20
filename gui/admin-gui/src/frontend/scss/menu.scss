@@ -248,4 +248,13 @@ ul.details-menu {
 .wizard-navigation-menu {
   max-width: 350px;
   width: 100%;
+
+  .menu-item:hover {
+      cursor: pointer;
+    }
+
+  .menu-item:hover {
+    color: $sidebar-light-hover-color;
+    background-color: $sidebar-light-hover-bg;
+  }
 }

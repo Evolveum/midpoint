@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingObjectClassScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
 
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
 
 import org.apache.wicket.model.IModel;
@@ -95,7 +96,7 @@ public class WaitingConnIdSchemaConnectorStepPanel extends WaitingObjectClassScr
     }
 
     @Override
-    protected ConnDevScriptIntentType getScriptIntent() {
-        return ConnDevScriptIntentType.CONNID;
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
+        return ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION;
     }
 }

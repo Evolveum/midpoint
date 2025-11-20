@@ -169,6 +169,11 @@
   word-break: break-word;
 }
 
+.clamp-1-lines {
+  @extend .clamp-lines;
+  -webkit-line-clamp: 1;
+}
+
 .clamp-2-lines {
   @extend .clamp-lines;
   -webkit-line-clamp: 2;

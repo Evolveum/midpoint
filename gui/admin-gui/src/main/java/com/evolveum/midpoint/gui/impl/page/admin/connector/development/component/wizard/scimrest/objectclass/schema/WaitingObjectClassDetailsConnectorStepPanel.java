@@ -7,11 +7,15 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
-
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -26,8 +30,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+
+import java.util.Optional;
 
 /**
  * @author lskublik
@@ -89,5 +93,17 @@ public class WaitingObjectClassDetailsConnectorStepPanel extends WaitingConnecto
     @Override
     protected String getObjectClassName() {
         return valueModel.getObject().getRealValue().getName();
+    }
+
+    @Override
+    public boolean isCompleted() {
+
+        PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue =
+                ConnectorDevelopmentWizardUtil.getObjectClassValueWrapper(getDetailsModel(), getObjectClassName());
+        if (ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, ConnDevObjectClassInfoType.F_ATTRIBUTE)) {
+            return true;
+        }
+
+        return super.isCompleted();
     }
 }

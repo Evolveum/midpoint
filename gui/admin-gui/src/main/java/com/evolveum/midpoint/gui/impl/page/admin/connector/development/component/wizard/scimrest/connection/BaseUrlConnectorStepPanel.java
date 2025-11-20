@@ -51,7 +51,7 @@ import org.apache.wicket.model.IModel;
 public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
     private static final String PANEL_TYPE = "cdw-base-url";
-    private static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "baseAddress");
+    public static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "baseAddress");
 
     private static final String ID_AI_ALERT = "aiAlert";
 

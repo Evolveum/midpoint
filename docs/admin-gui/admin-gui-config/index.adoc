@@ -125,7 +125,7 @@ include::./default-list-view-panel-configuration.adoc[]
 
 === Panel configuration
 
-`Panel` configuration contains information about two things:
+`ContainerWithStatusWidgetPanel` configuration contains information about two things:
 
 * How to generate the menu on the details page, such as label, icon, hierarchy.
 

@@ -41,17 +41,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author lskublik
  */
-@PanelType(name = "cdw-select-relation")
-@PanelInstance(identifier = "cdw-select-relation",
+@PanelType(name = "cdw-select-relationship")
+@PanelInstance(identifier = "cdw-select-relationship",
         applicableForType = ConnectorDevelopmentType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.selectRelation", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.selectRelationship", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
+public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
-    private static final String PANEL_TYPE = "cdw-select-relation";
+    private static final String PANEL_TYPE = "cdw-select-relationship";
 
-    public static final String RELATION_NAME = "cdw-select-relation";
+    public static final String RELATIONSHIP_NAME = "cdw-select-relationship";
 
     private static final String ID_RADIO_GROUP = "radioGroup";
     private static final String ID_PANEL = "panel";
@@ -66,7 +66,7 @@ public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<Co
     private final IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel;
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevRelationInfoType>>> valuesModel;
 
-    public RelationSelectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
+    public RelationshipSelectConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel) {
         super(helper);
         this.valueModel = valueModel;
@@ -184,17 +184,17 @@ public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<Co
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.selectRelation");
+        return createStringResource("PageConnectorDevelopment.wizard.step.selectRelationship");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.selectRelation.text");
+        return createStringResource("PageConnectorDevelopment.wizard.step.selectRelationship.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.selectRelation.subText");
+        return createStringResource("PageConnectorDevelopment.wizard.step.selectRelationship.subText");
     }
 
     @Override
@@ -219,7 +219,7 @@ public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<Co
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget object) {
-        AtomicReference<String> relationName = new AtomicReference<>();
+        AtomicReference<String> relationshipName = new AtomicReference<>();
 
         try {
             PrismContainerWrapper<ConnDevRelationInfoType> parentWrapper =
@@ -239,7 +239,7 @@ public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<Co
                     })
                     .findFirst()
                     .ifPresent(valueWrapper -> {
-                        relationName.set(valueWrapper.getRealValue().getName());
+                        relationshipName.set(valueWrapper.getRealValue().getName());
                         try {
                             //noinspection unchecked
                             parentWrapper.getItem().add(valueWrapper.getRealValue().asPrismContainerValue());
@@ -253,8 +253,8 @@ public class RelationSelectConnectorStepPanel extends AbstractWizardStepPanel<Co
             throw new RuntimeException(e);
         }
 
-        if (relationName.get() != null) {
-            getHelper().putVariable(RELATION_NAME, relationName.get());
+        if (relationshipName.get() != null) {
+            getHelper().putVariable(RELATIONSHIP_NAME, relationshipName.get());
             valueModel.detach();
         }
         OperationResult result = getHelper().onSaveObjectPerformed(object);

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
@@ -100,5 +101,15 @@ public class WaitingForDocumentationConnectorStepPanel extends WaitingConnectorS
     @Override
     protected ItemName getActivityType() {
         return WorkDefinitionsType.F_DISCOVER_DOCUMENTATION;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        if (ConnectorDevelopmentWizardUtil.existContainerValue(
+                getDetailsModel().getObjectWrapper(), ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE)) {
+            return true;
+        }
+
+        return super.isCompleted();
     }
 }

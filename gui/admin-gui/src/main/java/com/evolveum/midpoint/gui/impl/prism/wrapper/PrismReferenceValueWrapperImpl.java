@@ -197,7 +197,10 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
         return new ObjectDetailsModels<>(prismObjectModel, serviceLocator) {
             @Override
             public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
-                return Collections.singletonList(config);
+                if (config != null) {
+                    return Collections.singletonList(config);
+                }
+                return Collections.emptyList();
             }
 
             @Override

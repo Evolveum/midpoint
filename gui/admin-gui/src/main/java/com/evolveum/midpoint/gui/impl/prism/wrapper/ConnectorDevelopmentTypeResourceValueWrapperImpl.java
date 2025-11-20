@@ -44,7 +44,10 @@ public class ConnectorDevelopmentTypeResourceValueWrapperImpl<T extends Referenc
         ObjectDetailsModels objectDetailsModels = new ResourceDetailsModel((LoadableDetachableModel) prismObjectModel, serviceLocator) {
             @Override
             public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
-                return Collections.singletonList(config);
+                if (config != null) {
+                    return Collections.singletonList(config);
+                }
+                return Collections.emptyList();
             }
 
             @Override

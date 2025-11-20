@@ -6,11 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRelationInfoType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
-
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -18,8 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllScriptConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -29,24 +31,26 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+
+import java.util.Optional;
 
 /**
  * @author lskublik
  */
-@PanelType(name = "cdw-connector-waiting-relation")
-@PanelInstance(identifier = "cdw-connector-waiting-relation",
+@PanelType(name = "cdw-connector-waiting-relationship")
+@PanelInstance(identifier = "cdw-connector-waiting-relationship",
         applicableForType = ConnectorDevelopmentType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingRelationScript", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingRelationshipScript", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class WaitingRelationScriptConnectorStepPanel extends WaitingScriptConnectorStepPanel {
+public class WaitingRelationshipScriptConnectorStepPanel extends WaitingScriptConnectorStepPanel {
+
+    private static final Trace LOGGER = TraceManager.getTrace(WaitingRelationshipScriptConnectorStepPanel.class);
 
     private static final String PANEL_TYPE = "cdw-connector-waiting-relation";
     private final IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel;
 
-    public WaitingRelationScriptConnectorStepPanel(
+    public WaitingRelationshipScriptConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
             IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel) {
         super(helper);
@@ -66,7 +70,7 @@ public class WaitingRelationScriptConnectorStepPanel extends WaitingScriptConnec
 
     @Override
     protected String getKeyForStoringToken() {
-        return RelationScriptConnectorStepPanel.TASK_RELATION_SCRIPTS_KEY;
+        return RelationshipScriptConnectorStepPanel.TASK_RELATIONSHIP_SCRIPTS_KEY;
     }
 
     @Override
@@ -76,17 +80,17 @@ public class WaitingRelationScriptConnectorStepPanel extends WaitingScriptConnec
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingRelationScript");
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingRelationshipScript");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingRelationScript.text");
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingRelationshipScript.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingRelationScript.subText");
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingRelationshipScript.subText");
     }
 
     @Override
@@ -95,7 +99,32 @@ public class WaitingRelationScriptConnectorStepPanel extends WaitingScriptConnec
     }
 
     @Override
-    protected ConnDevScriptIntentType getScriptIntent() {
-        return ConnDevScriptIntentType.RELATION;
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
+        return ConnectorDevelopmentArtifacts.KnownArtifactType.RELATIONSHIP_SCHEMA_DEFINITION;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        try {
+            PrismContainerWrapper<ConnDevRelationInfoType> relationshipWrapper = getDetailsModel().getObjectWrapper().findContainer(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_RELATION));
+            if (relationshipWrapper != null && !relationshipWrapper.getValues().isEmpty()) {
+                Optional<PrismContainerValueWrapper<ConnDevRelationInfoType>> relationshipValue = relationshipWrapper.getValues().stream()
+                        .filter(value ->
+                                Strings.CS.equals(value.getRealValue().getName(), valueModel.getObject().getRealValue().getName()))
+                        .findFirst();
+
+                if (relationshipValue.isPresent()) {
+                    return true;
+                }
+
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get relationship value.", e);
+            String message = getDetailsModel().getPageAssignmentHolder().getString("WaitingRelationshipScriptConnectorStepPanel.couldntGetRelationshipValue");
+            getDetailsModel().getPageAssignmentHolder().error(message);
+        }
+
+        return super.isCompleted();
     }
 }

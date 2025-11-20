@@ -47,22 +47,22 @@ import org.apache.wicket.model.LoadableDetachableModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "cdw-relation")
-@PanelInstance(identifier = "cdw-relation",
+@PanelType(name = "cdw-relationship")
+@PanelInstance(identifier = "cdw-relationship",
         applicableForType = ConnectorDevelopmentType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.relation", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.relationship", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardParentStep {
+public class RelationshipConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardParentStep {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RelationConnectorStepPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RelationshipConnectorStepPanel.class);
 
-    private static final String PANEL_TYPE = "cdw-relation";
+    private static final String PANEL_TYPE = "cdw-relationship";
 
-    private String relation;
+    private String relationship;
     private IModel<PrismContainerValueWrapper<ConnDevRelationInfoType>> valueModel;
 
-    public RelationConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    public RelationshipConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
         createValueModel(helper.getDetailsModel().getServiceLocator());
     }
@@ -79,17 +79,17 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
         super.onInitialize();
     }
 
-    public void setRelation(String relation) {
-        this.relation = relation;
+    public void setRelationship(String relationship) {
+        this.relationship = relationship;
     }
 
     private void createValueModel(ModelServiceLocator modelServiceLocator) {
         valueModel = new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerValueWrapper<ConnDevRelationInfoType> load() {
-                if (relation == null) {
-                    relation = getHelper().getVariable(RelationSelectConnectorStepPanel.RELATION_NAME);
-                    getHelper().removeVariable(RelationSelectConnectorStepPanel.RELATION_NAME);
+                if (relationship == null) {
+                    relationship = getHelper().getVariable(RelationshipSelectConnectorStepPanel.RELATIONSHIP_NAME);
+                    getHelper().removeVariable(RelationshipSelectConnectorStepPanel.RELATIONSHIP_NAME);
                 }
 
                 PrismContainerWrapperModel<ConnectorDevelopmentType, ConnDevRelationInfoType> model
@@ -98,7 +98,7 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
                         ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_RELATION));
 
                 if (model.getObject().getValues().isEmpty()
-                        || (relation == null && model.getObject().getValues().stream().noneMatch(
+                        || (relationship == null && model.getObject().getValues().stream().noneMatch(
                         value -> value.getStatus() ==  ValueStatus.ADDED && StringUtils.isEmpty(value.getRealValue().getName())))) {
                     try {
                         PrismContainerValue<ConnDevRelationInfoType> newItem = model.getObject().getItem().createNewValue();
@@ -116,9 +116,9 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
 
                 PrismContainerValueWrapper<ConnDevRelationInfoType> newItemWrapper = model.getObject().getValues().stream()
                         .filter(value ->
-                                (!StringUtils.isEmpty(relation)
-                                        && StringUtils.equals(relation, value.getRealValue().getName()))
-                                        || (relation == null && value.getStatus() == ValueStatus.ADDED && StringUtils.isEmpty(value.getRealValue().getName())))
+                                (!StringUtils.isEmpty(relationship)
+                                        && StringUtils.equals(relationship, value.getRealValue().getName()))
+                                        || (relationship == null && value.getStatus() == ValueStatus.ADDED && StringUtils.isEmpty(value.getRealValue().getName())))
                         .findFirst()
                         .orElse(model.getObject().getValues().get(0));
                 newItemWrapper.setExpanded(true);
@@ -150,7 +150,7 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
         VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override
             protected String getIcon() {
-                return RelationConnectorStepPanel.this.getIcon();
+                return RelationshipConnectorStepPanel.this.getIcon();
             }
 
             @Override
@@ -195,7 +195,7 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
     @Override
     public IModel<String> getTitle() {
         return () -> {
-            String title = createStringResource("PageConnectorDevelopment.wizard.step.relation").getString();
+            String title = createStringResource("PageConnectorDevelopment.wizard.step.relationship").getString();
             if (StringUtils.isNotEmpty(valueModel.getObject().getRealValue().getName())) {
                 title += ": " + valueModel.getObject().getRealValue().getName();
             }
@@ -204,12 +204,12 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
     }
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.relation.text");
+        return createStringResource("PageConnectorDevelopment.wizard.step.relationship.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.relation.subText");
+        return createStringResource("PageConnectorDevelopment.wizard.step.relationship.subText");
     }
 
 //    protected boolean checkMandatory(ItemWrapper itemWrapper) {
@@ -268,8 +268,8 @@ public class RelationConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
     @Override
     public List<WizardStep> createChildrenSteps() {
         return List.of(
-                new RelationSelectConnectorStepPanel(getHelper(), valueModel),
-                new WaitingRelationScriptConnectorStepPanel(getHelper(), valueModel),
-                new RelationScriptConnectorStepPanel(getHelper(), valueModel));
+                new RelationshipSelectConnectorStepPanel(getHelper(), valueModel),
+                new WaitingRelationshipScriptConnectorStepPanel(getHelper(), valueModel),
+                new RelationshipScriptConnectorStepPanel(getHelper(), valueModel));
     }
 }

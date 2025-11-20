@@ -18,7 +18,7 @@ import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerTileTab
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -35,7 +35,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.Containerable;
 
 public abstract class MultiSelectContainerTileWizardStepPanel<E extends Serializable, C extends Containerable, AHDM extends AssignmentHolderDetailsModel>

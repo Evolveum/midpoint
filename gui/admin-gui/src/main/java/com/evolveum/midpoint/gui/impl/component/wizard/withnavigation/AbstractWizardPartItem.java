@@ -35,8 +35,11 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
     private int activeParentStepIndex;
     private int activeStepIndex;
 
-    private int lastActiveParentStepIndex;
-    private int lastActiveStepIndex;
+    private int inProgressParentStepIndex = -1;
+    private int inProgressStepIndex = -1;
+
+    private int lastActiveParentStepIndex = -1;
+    private int lastActiveStepIndex = -1;
 
     private AbstractWizardController<AH, ADM> controller;
 
@@ -50,7 +53,7 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
         return helper;
     }
 
-    protected final AssignmentHolderDetailsModel<AH> getObjectDetailsModel() {
+    protected final ADM getObjectDetailsModel() {
         return helper.getDetailsModel();
     }
 
@@ -71,6 +74,7 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
 
     public void init(Page page, AbstractWizardController<AH, ADM> controller) {
         this.controller = controller;
+        childrenSteps.clear();
         this.parentSteps = createWizardSteps();
         getParentSteps().forEach(parentStep -> {
             parentStep.init(this.controller);
@@ -153,9 +157,9 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
         return childrenSteps.get(parentStep.getStepId());
     }
 
-    public void setActiveStepById(String id) {
+    public boolean setActiveStepById(String id) {
         if (id == null) {
-            return;
+            return false;
         }
 
         for (int i = 0; i < getParentSteps().size(); i++) {
@@ -164,8 +168,13 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
             if (Objects.equals(id, parentStep.getStepId()) && BooleanUtils.isTrue(parentStep.isStepVisible().getObject())) {
 
                 setActiveParentStepIndex(i);
-                setActiveStepIndex(0);
-                break;
+                List<WizardStep> childrenSteps = getChildrenSteps(parentStep);
+                if (childrenSteps.isEmpty()) {
+                    setActiveStepIndex(-1);
+                } else {
+                    setActiveStepIndex(0);
+                }
+                return true;
             }
             boolean find = false;
             for (int in = 0; in < getChildrenSteps(parentStep).size(); in++) {
@@ -180,9 +189,10 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
                 }
             }
             if (find) {
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     public int getActiveStepIndex() {
@@ -191,6 +201,14 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
 
     public int getActiveParentStepIndex() {
         return activeParentStepIndex;
+    }
+
+    public int getInProgressStepIndex() {
+        return inProgressStepIndex;
+    }
+
+    public int getInProgressParentStepIndex() {
+        return inProgressParentStepIndex;
     }
 
     public boolean hasNext() {
@@ -209,7 +227,7 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
             }
         }
 
-        if (activeParentStepIndex == getParentSteps().size()) {
+        if (activeParentStepIndex == getParentSteps().size() - 1) {
             return null;
         }
         for (int pi = activeParentStepIndex + 1; pi < getParentSteps().size(); pi++) {
@@ -218,16 +236,16 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
                 List<WizardStep> childrenSteps = getChildrenSteps(parentStep);
                 if (childrenSteps.isEmpty()) {
                     if (storeResult) {
-                        setActiveStepIndex(-1);
                         setActiveParentStepIndex(pi);
+                        setActiveStepIndex(-1);
                     }
                     return parentStep;
                 }
                 for (WizardStep step : childrenSteps) {
                     if (BooleanUtils.isTrue(step.isStepVisible().getObject())) {
                         if (storeResult) {
-                            setActiveStepIndex(childrenSteps.indexOf(step));
                             setActiveParentStepIndex(pi);
+                            setActiveStepIndex(childrenSteps.indexOf(step));
                         }
                         return step;
                     }
@@ -278,16 +296,16 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
                 List<WizardStep> childrenSteps = getChildrenSteps(parentStep);
                 if (childrenSteps.isEmpty()) {
                     if (storeResult) {
-                        setActiveStepIndex(-1);
                         setActiveParentStepIndex(pi);
+                        setActiveStepIndex(-1);
                     }
                     return parentStep;
                 }
                 for (int pchi = childrenSteps.size() - 1; pchi >= 0; pchi--) {
                     if (BooleanUtils.isTrue(childrenSteps.get(pchi).isStepVisible().getObject())) {
                         if (storeResult) {
-                            setActiveStepIndex(pchi);
                             setActiveParentStepIndex(pi);
+                            setActiveStepIndex(pchi);
                         }
                         return childrenSteps.get(pchi);
                     }
@@ -318,6 +336,10 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
             lastActiveParentStepIndex = activeParentStepIndex;
         }
         this.activeParentStepIndex = activeParentStepIndex;
+        if (this.activeParentStepIndex > inProgressParentStepIndex) {
+            inProgressParentStepIndex = this.activeParentStepIndex;
+            inProgressStepIndex = -1;
+        }
     }
 
     private void setActiveStepIndex(int activeStepIndex) {
@@ -325,6 +347,9 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
             lastActiveStepIndex = activeStepIndex;
         }
         this.activeStepIndex = activeStepIndex;
+        if (this.activeStepIndex > inProgressStepIndex) {
+            inProgressStepIndex = this.activeStepIndex;
+        }
     }
 
     public WizardStep getActiveStep() {

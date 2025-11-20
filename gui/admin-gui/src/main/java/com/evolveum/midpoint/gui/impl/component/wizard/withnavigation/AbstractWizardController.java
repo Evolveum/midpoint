@@ -27,7 +27,11 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
 
     private List<AbstractWizardPartItem<AH, ADM>> partItems;
 
-    private int indexOfActivePart;
+    private int indexOfActivePart = -1;
+    private int indexOfInProgressPart = -1;
+
+    private WizardStep summaryPanel;
+    private boolean showSummaryPanel = false;
 
     protected AbstractWizardController(WizardPanelHelper<? extends Containerable, ADM> helper) {
         this.helper = helper;
@@ -36,25 +40,34 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     @Override
     public void init(Page page) {
         partItems = createWizardPartItems();
+        refresh();
+    }
+
+    protected final void refresh() {
+        indexOfActivePart = -1;
+        indexOfInProgressPart = -1;
 
         partItems.forEach(partItem -> partItem.init(getHelper().getDetailsModel().getPageAssignmentHolder(), this));
 
+        showSummaryPanel = true;
         for (int i = 0; i < partItems.size(); i++) {
             AbstractWizardPartItem<AH, ADM> partItem = partItems.get(i);
             if (!partItem.isComplete()) {
+                indexOfInProgressPart = i;
                 indexOfActivePart = i;
+                showSummaryPanel = false;
                 break;
-            }
-            if (i == partItems.size() - 1) {
-                partItem.useLast();
-                indexOfActivePart = i;
             }
         }
 
-        super.init(page);
+        fireActiveStepChanged(getActiveStep());
     }
 
-    protected final AssignmentHolderDetailsModel<AH> getObjectDetailsModel() {
+    protected final void setPartItems(List<AbstractWizardPartItem<AH, ADM>> partItems) {
+        this.partItems = partItems;
+    }
+
+    protected final ADM getObjectDetailsModel() {
         return helper.getDetailsModel();
     }
 
@@ -66,25 +79,75 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     protected abstract List<AbstractWizardPartItem<AH, ADM>> createWizardPartItems();
 
     private AbstractWizardPartItem<AH, ADM> getActivePartItem() {
+        if (indexOfActivePart == -1) {
+            return null;
+        }
         return partItems.get(indexOfActivePart);
     }
 
+    private AbstractWizardPartItem<AH, ADM> getInProgressPartItem() {
+        if (indexOfInProgressPart == -1) {
+            return null;
+        }
+        return partItems.get(indexOfInProgressPart);
+    }
+
+    private WizardStep getSummaryPanel() {
+        if (summaryPanel == null) {
+            summaryPanel = createSummaryPanel();
+            summaryPanel.init(this);
+        }
+        return summaryPanel;
+    }
+
+    protected abstract WizardStep createSummaryPanel();
+
     public WizardStep getActiveStep() {
+        if (showSummaryPanel) {
+            return getSummaryPanel();
+        }
+
         return getActivePartItem().getActiveStep();
     }
 
     public void setActiveStepById(String id) {
-        getActivePartItem().setActiveStepById(id);
+        for (int i = 0; i < partItems.size(); i++) {
+            AbstractWizardPartItem<AH, ADM> partItem = partItems.get(i);
+            if (partItem.setActiveStepById(id)) {
+                setActiveWizardPartIndex(i);
+                return;
+            }
+        }
     }
 
     public int getActiveStepIndex() {
+        if (indexOfActivePart == -1) {
+            return -1;
+        }
         return getActivePartItem().getActiveStepIndex();
     }
 
     public int getActiveParentStepIndex() {
+        AbstractWizardPartItem<AH, ADM> activePartItem = getActivePartItem();
+        return getParentStepIndex(indexOfActivePart, activePartItem == null ? 0 : activePartItem.getActiveParentStepIndex());
+    }
+
+    public int getInProgressStepIndex() {
+        if (indexOfInProgressPart == -1) {
+            return -1;
+        }
+        return getInProgressPartItem().getInProgressStepIndex();
+    }
+
+    public int getInProgressParentStepIndex() {
+        AbstractWizardPartItem<AH, ADM> inProgressPartItem = getInProgressPartItem();
+        return getParentStepIndex(indexOfInProgressPart, inProgressPartItem == null ? 0 : inProgressPartItem.getInProgressParentStepIndex());
+    }
+
+    private int getParentStepIndex(int indexOfPart, int indexOfParenStep) {
         int index = 0;
         for (int i = 0; i < partItems.size(); i++) {
-            if (i == indexOfActivePart) {
+            if (i == indexOfPart) {
                 break;
             }
             AbstractWizardPartItem<AH, ADM> partItem = partItems.get(i);
@@ -93,7 +156,9 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
                     .toList()
                     .size();
         }
-        index += getActivePartItem().getActiveParentStepIndex();
+        if (indexOfPart != -1) {
+            index += indexOfParenStep;
+        }
         return index;
     }
 
@@ -102,6 +167,10 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     }
 
     public void next() {
+        if (showSummaryPanel) {
+            return;
+        }
+
         if (!getActivePartItem().hasNext()) {
             resolveFinishPart(getActivePartItem());
             String oldPanelId = getActiveStep().getStepId();
@@ -112,56 +181,95 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
         }
     }
 
-    protected abstract void resolveFinishPart(AbstractWizardPartItem<AH, ADM> activeStatus);
+    protected void resolveFinishPart(AbstractWizardPartItem<AH, ADM> activeStatus) {
+        if (indexOfActivePart == indexOfInProgressPart) {
+            clearInProgressPart();
+        }
+        indexOfActivePart = -1;
+        showSummaryPanel();
+    }
+
+    protected void clearInProgressPart() {
+        indexOfInProgressPart = -1;
+    }
+
+    protected void clearActivePart() {
+        indexOfActivePart = -1;
+    }
 
     public boolean hasPrevious() {
+        if (showSummaryPanel) {
+            return false;
+        }
+
         return getActivePartItem().hasPrevious();
     }
 
     public void previous() {
+        if (showSummaryPanel) {
+            return;
+        }
+
         getActivePartItem().previous();
     }
 
     public WizardStep getNextPanel() {
+        if (showSummaryPanel) {
+            return null;
+        }
+
         return getActivePartItem().getNextPanel();
     }
 
     public List<WizardStep> getActiveChildrenSteps() {
+        if (indexOfActivePart == -1) {
+            return List.of();
+        }
+
         return getActivePartItem().getActiveChildrenSteps();
     }
 
+    public List<WizardStep> getInProgressChildrenSteps() {
+        if (indexOfInProgressPart == -1) {
+            return List.of();
+        }
+
+        return getInProgressPartItem().getActiveChildrenSteps();
+    }
+
     public WizardParentStep getActiveParentStep() {
+        if (indexOfActivePart == -1) {
+            return null;
+        }
+
         return getActivePartItem().getActiveParentStep();
     }
 
-    public void setActiveParentStepById(String id) {
-        getActivePartItem().setActiveParentStepById(id);
-    }
-
     public List<WizardParentStep> getParentSteps() {
+        if (indexOfActivePart == -1) {
+            return List.of();
+        }
+
         return getActivePartItem().getParentSteps();
     }
 
-    public void addStepAfter(WizardStep newStep, Class<?> objectClassConnectorStepPanelClass) {
-        getActivePartItem().addStepAfter(newStep, objectClassConnectorStepPanelClass);
-    }
-
-//    protected final void addWizardPartOnEnd(AbstractWizardPartItem<AH, ADM> newConnectorDevPartItem) {
-//        statusItems.add(newConnectorDevPartItem);
-//        setActiveWizardPartIndex(statusItems.size() - 1);
-//    }
-
     protected void setActiveWizardPartIndex(int index) {
+        showSummaryPanel = false;
         this.indexOfActivePart = index;
-        getActivePartItem().init(getHelper().getDetailsModel().getPageAssignmentHolder(), this);
+        if (indexOfActivePart != indexOfInProgressPart || getActivePartItem().isInitialized()) {
+            getActivePartItem().init(getHelper().getDetailsModel().getPageAssignmentHolder(), this);
+        }
+        if (!getActivePartItem().isComplete() && indexOfInProgressPart < indexOfActivePart) {
+            indexOfInProgressPart = indexOfActivePart;
+        }
     }
 
     protected final List<AbstractWizardPartItem<AH, ADM>> getPartItems() {
         return partItems;
     }
 
-    protected final void showSummaryPanel() {
-        setActiveWizardPartIndex(partItems.size() - 1);
+    public final void showSummaryPanel() {
+        showSummaryPanel = true;
     }
 
     protected final int addWizardPartAfter(AbstractWizardPartItem<AH, ADM> newPartItem, Enum<?> identifier) {
@@ -180,6 +288,11 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
             newPartItems.add(newPartItem);
         }
         partItems = newPartItems;
+        return partItems.indexOf(newPartItem);
+    }
+
+    protected final int addWizardPartOnEnd(AbstractWizardPartItem<AH, ADM> newPartItem) {
+        partItems.add(newPartItem);
         return partItems.indexOf(newPartItem);
     }
 
@@ -205,6 +318,19 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
 
     @Override
     public WizardStep findPreviousStep() {
+        if (showSummaryPanel) {
+            return null;
+        }
+
         return getActivePartItem().findPreviousStep(false);
+    }
+
+    @Override
+    public boolean isShowedSummary() {
+        return showSummaryPanel;
+    }
+
+    protected final void removeActivePartItem() {
+        partItems.remove(getActivePartItem());
     }
 }

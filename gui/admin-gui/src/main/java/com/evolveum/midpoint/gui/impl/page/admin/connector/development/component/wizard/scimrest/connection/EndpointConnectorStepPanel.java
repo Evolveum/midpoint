@@ -61,7 +61,7 @@ public class EndpointConnectorStepPanel extends AbstractFormWizardStepPanel<Conn
 
     private static final String PANEL_TYPE = "cdw-endpoint-path";
 
-    private static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "restTestEndpoint");
+    public static final ItemName PROPERTY_ITEM_NAME = ItemName.from("", "restTestEndpoint");
 
     public EndpointConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);

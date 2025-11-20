@@ -8,9 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -19,6 +21,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
@@ -76,5 +79,16 @@ public class WaitingBasicInfoConnectorStepPanel extends WaitingConnectorStepPane
     @Override
     protected ItemName getActivityType() {
         return WorkDefinitionsType.F_DISCOVER_GLOBAL_INFORMATION;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        if (ConnectorDevelopmentWizardUtil.existPropertyValue(
+                getDetailsModel().getObjectWrapper(),
+                ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_BASE_API_ENDPOINT))) {
+            return true;
+        }
+
+        return super.isCompleted();
     }
 }

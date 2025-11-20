@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,7 +72,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                     return ConnectorDevelopmentWizardUtil.getTaskToken(
                             getActivityType(),
                             getObjectClassName(),
-                            getScriptIntent(),
+                            getScripType() != null ? getScripType().scriptIntent : null,
                             getDetailsModel().getObjectWrapper().getOid(),
                             getDetailsModel().getPageAssignmentHolder());
                 } catch (CommonException e) {
@@ -83,7 +83,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         };
     }
 
-    protected ConnDevScriptIntentType getScriptIntent() {
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
         return null;
     }
 

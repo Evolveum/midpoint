@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -121,5 +122,14 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
     @Override
     protected @NotNull Model<String> getIconModel() {
         return Model.of("fa fa-cogs");
+    }
+
+    @Override
+    public boolean isCompleted() {
+        if (ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(getDetailsModel().getObjectWrapper())) {
+            return true;
+        }
+
+        return super.isCompleted();
     }
 }

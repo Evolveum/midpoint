@@ -16,7 +16,9 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -42,6 +44,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
     private static final String ID_HEADER = "header";
     private static final String ID_SAVE_FRAGMENT = "saveFragment";
     private static final String ID_NAVIGATION = "navigation";
+    private static final String ID_SUMMARY = "summary";
     private static final String ID_CARD = "card";
     private static final String ID_STEP_LABEL = "stepLabel";
     private static final String ID_STEP_BADGE = "stepBadge";
@@ -114,6 +117,18 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         navigation.setOutputMarkupId(true);
         form.add(navigation);
 
+        AjaxLink<?> summaryButton = new AjaxLink<>(ID_SUMMARY) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getController().showSummaryPanel();
+                getController().fireActiveStepChanged(getController().getActiveStep());
+                target.add(getController().getPanel());
+            }
+        };
+        summaryButton.setOutputMarkupId(true);
+        summaryButton.add(AttributeAppender.append("class", () -> getController().isShowedSummary() ? "btn-primary" : "btn-default"));
+        navigation.add(summaryButton);
+
         IModel<List<WizardParentStep>> modelParentsView = () -> {
             List list = new ArrayList<>(getController().getAllParentSteps());
             return list;
@@ -123,27 +138,40 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
             protected void populateItem(ListItem<WizardParentStep> listItem) {
                 populateCard(
                         listItem,
+                        getController().getInProgressParentStepIndex(),
                         getController().getActiveParentStepIndex(),
-                        getController().getActiveChildrenSteps().isEmpty());
+                        getController().getInProgressChildrenSteps().isEmpty(),
+                        !getController().isShowedSummary());
             }
         };
         navigation.add(parentsView);
 
         WebMarkupContainer stepInProgress = new WebMarkupContainer(ID_STEP_IN_PROGRESS);
         stepInProgress.setOutputMarkupId(true);
-        stepInProgress.add(new VisibleBehaviour(() -> !getController().getActiveChildrenSteps().isEmpty()));
+        stepInProgress.add(new VisibleBehaviour(() -> !getController().getInProgressChildrenSteps().isEmpty()));
         navigation.add(stepInProgress);
 
-        stepInProgress.add(new Label(ID_PARENT_STEP_LABEL, () -> getController().getActiveParentStep().getTitle().getObject()));
+        stepInProgress.add(new Label(
+                ID_PARENT_STEP_LABEL,
+                () -> getController().getActiveParentStep() != null ? getController().getActiveParentStep().getTitle().getObject() : ""));
 
-        IModel<List<WizardStep>> modelStepsView = () -> new ArrayList<>(getController().getActiveChildrenSteps());
+        IModel<List<WizardStep>> modelStepsView = () -> new ArrayList<>(getController().getInProgressChildrenSteps());
         ListView<WizardStep> stepsView = new ListView<>(ID_CARD, modelStepsView) {
             @Override
             protected void populateItem(ListItem<WizardStep> listItem) {
-                populateCard(listItem, getController().getActiveStepIndex(), true);
+                populateCard(
+                        listItem,
+                        getController().getInProgressStepIndex(),
+                        getController().getActiveStepIndex(),
+                        true,
+                        !getController().isShowedSummary()
+                                && getController().getActiveParentStepIndex() != -1
+                                && getController().getInProgressParentStepIndex() == getController().getActiveParentStepIndex());
+
             }
         };
         stepInProgress.add(stepsView);
+
         form.add(new WebMarkupContainer(ID_CONTENT_BODY));
 
         CollapsedInfoPanel collapsedInfoPanel = new CollapsedInfoPanel(ID_COLLAPSED_INFO_PANEL, getController());
@@ -159,10 +187,28 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         getPageBase().redirectBack();
     }
 
-    private void populateCard(ListItem<? extends WizardStep> listItem, int lastShowedIndex, boolean acceptEquals) {
-        if (!Boolean.TRUE.equals(listItem.getModelObject().isStepVisible().getObject())
+    private void populateCard(
+            ListItem<? extends WizardStep> listItem,
+            int lastShowedIndex,
+            int activeIndex,
+            boolean acceptEquals,
+            boolean setSelectedItem) {
+        listItem.add(AttributeAppender.append("class", "menu-item"));
+
+        listItem.add(new AjaxEventBehavior("click") {
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                if (!Strings.CS.equals(listItem.getModelObject().getStepId(), getController().getActiveStep().getStepId())) {
+                    getController().setActiveStepById(listItem.getModelObject().getStepId());
+                    getController().fireActiveStepChanged(getController().getActiveStep());
+                    target.add(getController().getPanel());
+                }
+            }
+        });
+
+        if (lastShowedIndex != -1 && (!Boolean.TRUE.equals(listItem.getModelObject().isStepVisible().getObject())
                 || (!acceptEquals && listItem.getIndex() >= lastShowedIndex)
-                || (acceptEquals && listItem.getIndex() > lastShowedIndex)) {
+                || (acceptEquals && listItem.getIndex() > lastShowedIndex))) {
             listItem.add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
         }
 
@@ -172,8 +218,17 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         String badgeClass = "badge-success";
         if (listItem.getIndex() == lastShowedIndex) {
             keySuffix = "inProgress";
-            listItem.add(AttributeAppender.append("class", "border border-info"));
             badgeClass = "badge-info";
+        } else if (setSelectedItem && listItem.getIndex() == activeIndex) {
+            keySuffix = "edited";
+            badgeClass = "badge-primary";
+        } else if (getController().isStepWithError(listItem.getModelObject().getStepId())) {
+            keySuffix = "fixing";
+            badgeClass = "badge-danger";
+        }
+
+        if (setSelectedItem && listItem.getIndex() == activeIndex) {
+            listItem.add(AttributeAppender.append("class", "border border-info"));
         }
 
         Label badge = new Label(ID_STEP_BADGE, createStringResource("WizardWithNavigationPanel.navigation.step.status." + keySuffix));
