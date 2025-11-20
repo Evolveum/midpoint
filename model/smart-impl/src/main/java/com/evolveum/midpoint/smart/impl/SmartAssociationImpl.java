@@ -67,7 +67,6 @@ public class SmartAssociationImpl {
     ) throws SchemaException, ConfigurationException {
 
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-        NativeResourceSchema nativeSchema = resourceSchema.getNativeSchema();
 
         AssociationsSuggestionType associationsSuggestionType = new AssociationsSuggestionType();
 
@@ -88,7 +87,7 @@ public class SmartAssociationImpl {
                 var targetObjectClass = refAttribute.getTargetObjectClassName();
                 var objectObjectTypes = findObjectTypesForObjectClass(resourceSchema, targetObjectClass);
                 for (var objectObjectType : objectObjectTypes) {
-                    var associationDef = resolveRefBasedAssociation(nativeSchema, subjectObjectType, refAttribute, objectObjectType, isInbound);
+                    var associationDef = resolveRefBasedAssociation(subjectObjectType, refAttribute, objectObjectType, isInbound);
                     var suggestion = new AssociationSuggestionType().definition(associationDef);
                     associationsSuggestionType.getAssociation().add(suggestion);
                 }
@@ -102,12 +101,10 @@ public class SmartAssociationImpl {
      * Resolves candidate associations for a given reference attribute by identifying matching participants
      * and constructing a {@link ShadowAssociationTypeDefinitionType} for each match.
      *
-     * @param nativeSchema The native resource schema.
      * @param isInbound inbound/outbound flag
      * @return A list of derived association definitions.
      */
     private ShadowAssociationTypeDefinitionType resolveRefBasedAssociation(
-            @NotNull NativeResourceSchema nativeSchema,
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
             @NotNull ShadowReferenceAttributeDefinition attributeReference,
             @NotNull ResourceObjectTypeDefinition objectObjectType,
@@ -115,10 +112,11 @@ public class SmartAssociationImpl {
 
         ShadowAssociationTypeDefinitionType association = new ShadowAssociationTypeDefinitionType();
 
-        String assocName = constructAssociationName(subjectObjectType, objectObjectType, attributeReference);
+        String assocName = constructAssociationName(subjectObjectType, objectObjectType);
         QName assocQName = new QName(assocName);
         association.setName(assocQName);
-        association.setDisplayName(assocName); // TODO: generate better display name
+        var displayName = constructAssociationDisplayName(subjectObjectType, objectObjectType);
+        association.setDisplayName(displayName);
 
         var subject = buildSubjectParticipantDefinitionType(subjectObjectType, objectObjectType, attributeReference, assocName, isInbound);
         var object = buildObjectParticipantDefinitionType(objectObjectType);
@@ -278,31 +276,34 @@ public class SmartAssociationImpl {
                         .intent(objectObjectType.getIntent()));
     }
 
-    //TODO: Design better strategy for generating association names. Also think for combined/separated associations.
+    private String constructObjectTypeIdentifierName(ResourceObjectTypeDefinition objectType) {
+        return objectType.getKind() + "/" + objectType.getIntent();
+    }
+
+    private String constructObjectTypeIdentifierDisplayName(ResourceObjectTypeDefinition objectType) {
+        if (StringUtils.isEmpty(objectType.getDisplayName())) {
+            return constructObjectTypeIdentifierName(objectType);
+        }
+        return objectType.getDisplayName();
+    }
+
 
     /**
-     * Constructs a machine-readable and unique name for an association based on subject/object kinds,
-     * intents, and the reference attribute.
-     *
-     * @param objectObjectType association object.
-     * @param subjectObjectType association subject.
-     * @param refAttr Reference attribute the association is based on.
-     * @return The generated association name.
+     * Constructs a machine-readable and unique name for an association based on subject/object kinds.
      */
     private @NotNull String constructAssociationName(
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
-            @NotNull ResourceObjectTypeDefinition objectObjectType,
-            @NotNull ShadowReferenceAttributeDefinition refAttr) {
-        String firstParticipantSubjectKind = StringUtils.capitalize(subjectObjectType.getKind().value());
-        String secondParticipantSubjectKind = StringUtils.capitalize(objectObjectType.getKind().value());
+            @NotNull ResourceObjectTypeDefinition objectObjectType) {
+        return constructObjectTypeIdentifierName(subjectObjectType) + "-ref-" + constructObjectTypeIdentifierName(objectObjectType);
+    }
 
-        String firstParticipantSubjectIntent = StringUtils.capitalize(subjectObjectType.getIntent()
-                .replaceAll("[^a-zA-Z0-9]", ""));
-
-        String secondParticipantSubjectIntent = StringUtils.capitalize(objectObjectType.getIntent()
-                .replaceAll("[^a-zA-Z0-9]", ""));
-
-        return firstParticipantSubjectKind + firstParticipantSubjectIntent + "-"
-                + secondParticipantSubjectKind+secondParticipantSubjectIntent;
+    /**
+     * Constructs a human-readable for an association based on subject/object kinds.
+     * Uses object type's display names if available, kind/intent identifier otherwise.
+     */
+    private String constructAssociationDisplayName(
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ResourceObjectTypeDefinition objectObjectType) {
+        return constructObjectTypeIdentifierDisplayName(subjectObjectType) + " reference to " + constructObjectTypeIdentifierDisplayName(objectObjectType);
     }
 }
