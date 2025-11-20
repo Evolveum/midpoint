@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.*;
@@ -65,6 +66,7 @@ public class SmartAssociationImpl {
             @NotNull ResourceType resource,
             boolean isInbound
     ) throws SchemaException, ConfigurationException {
+        LOGGER.info("Start generating association suggestions, resource: {}, isInbound: {}", resource.getOid(), isInbound);
 
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
 
@@ -72,37 +74,50 @@ public class SmartAssociationImpl {
 
         for (var subjectObjectType : resourceSchema.getObjectTypeDefinitions()) {
             for (var refAttribute : subjectObjectType.getReferenceAttributeDefinitions()) {
+                LOGGER.trace("Processing subject reference, {}, {}", subjectObjectType.getTypeIdentification(), refAttribute.getItemName());
+
                 if (!refAttribute.canRead()) {
+                    LOGGER.trace("Skipping: cannot read attribute");
                     continue;
                 }
                 var isObjectToSubject = refAttribute.getParticipantRole().equals(ShadowReferenceParticipantRole.OBJECT);
                 if (isObjectToSubject) {
-                    // object-to-subject not supported
+                    LOGGER.trace("Skipping: unsupported object to subject references");
                     continue;
                 }
                 if (isReferenceComplex(refAttribute)) {
-                    // complex associations not supported yet
+                    LOGGER.trace("Skipping:unsupported complex reference");
                     continue;
                 }
                 var targetObjectClass = refAttribute.getTargetObjectClassName();
                 var objectObjectTypes = findObjectTypesForObjectClass(resourceSchema, targetObjectClass);
                 for (var objectObjectType : objectObjectTypes) {
+                    LOGGER.debug(
+                            "generating association suggestion, subject: {}, ref: {}, object: {}",
+                            subjectObjectType.getTypeIdentification(),
+                            refAttribute.getItemName(),
+                            objectObjectType.getTypeIdentification()
+                    );
                     var associationDef = resolveRefBasedAssociation(subjectObjectType, refAttribute, objectObjectType, isInbound);
                     var suggestion = new AssociationSuggestionType().definition(associationDef);
                     associationsSuggestionType.getAssociation().add(suggestion);
+                    traceAssociationSuggestion(suggestion);
                 }
             }
         }
+
+        LOGGER.info("Association suggestions generated, num: {}", associationsSuggestionType.getAssociation().size());
 
         return associationsSuggestionType;
     }
 
     /**
-     * Resolves candidate associations for a given reference attribute by identifying matching participants
-     * and constructing a {@link ShadowAssociationTypeDefinitionType} for each match.
+     * Constructs association type from subject to object using a reference attribute.
      *
+     * @param subjectObjectType association subject
+     * @param attributeReference referenced attribute
+     * @param objectObjectType association object
      * @param isInbound inbound/outbound flag
-     * @return A list of derived association definitions.
      */
     private ShadowAssociationTypeDefinitionType resolveRefBasedAssociation(
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
@@ -215,12 +230,6 @@ public class SmartAssociationImpl {
 
     /**
      * Builds a subject-side association participant definition.
-     *
-     * @param subjectObjectType association subject
-     * @param attributeReference referenced attribute
-     * @param associationName Root association name
-     * @param isInbound inbound/outbound flag
-     * @return A fully initialized {@link ShadowAssociationTypeSubjectDefinitionType}.
      */
     private @NotNull ShadowAssociationTypeSubjectDefinitionType buildSubjectParticipantDefinitionType(
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
@@ -254,9 +263,6 @@ public class SmartAssociationImpl {
 
     /**
      * Builds an object-side association participant definition.
-     *
-     * @param objectObjectType association object.
-     * @return A fully initialized {@link ShadowAssociationTypeObjectDefinitionType}.
      */
     private @NotNull ShadowAssociationTypeObjectDefinitionType buildObjectParticipantDefinitionType(
             @NotNull ResourceObjectTypeDefinition objectObjectType) {
@@ -268,17 +274,12 @@ public class SmartAssociationImpl {
                         .intent(objectObjectType.getIntent()));
     }
 
-    private String constructObjectTypeIdentifierName(ResourceObjectTypeDefinition objectType) {
-        return objectType.getKind() + "/" + objectType.getIntent();
-    }
-
     private String constructObjectTypeIdentifierDisplayName(ResourceObjectTypeDefinition objectType) {
         if (StringUtils.isEmpty(objectType.getDisplayName())) {
-            return constructObjectTypeIdentifierName(objectType);
+            return objectType.getTypeIdentification().toString();
         }
         return objectType.getDisplayName();
     }
-
 
     /**
      * Constructs a machine-readable and unique name for an association based on subject/object kinds.
@@ -286,7 +287,7 @@ public class SmartAssociationImpl {
     private @NotNull String constructAssociationName(
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
             @NotNull ResourceObjectTypeDefinition objectObjectType) {
-        return constructObjectTypeIdentifierName(subjectObjectType) + "-ref-" + constructObjectTypeIdentifierName(objectObjectType);
+        return subjectObjectType.getTypeIdentification() + "-ref-" + objectObjectType.getTypeIdentification();
     }
 
     /**
@@ -297,5 +298,16 @@ public class SmartAssociationImpl {
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
             @NotNull ResourceObjectTypeDefinition objectObjectType) {
         return constructObjectTypeIdentifierDisplayName(subjectObjectType) + " reference to " + constructObjectTypeIdentifierDisplayName(objectObjectType);
+    }
+
+    private void traceAssociationSuggestion(Object obj) {
+        try {
+            if (LOGGER.isTraceEnabled()) {
+                var serialized = PrismContext.get().xmlSerializer().serializeRealValue(obj);
+                LOGGER.trace("suggested association: {}", serialized);
+            }
+        } catch (SchemaException e) {
+            LOGGER.trace("Cannot serialize object: {}", e.getMessage());
+        }
     }
 }
