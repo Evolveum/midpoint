@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="col-12" wicket:id="containerAlert">
+        <div class="alert purple-light-alert d-flex align-items-center justify-content-between p-3 rounded text-purple-dark">
+            <div class="d-flex align-items-start">
+                <div wicket:id="iconAlert" class="mx-1 mt-1"></div>
+                <div class="d-flex flex-column">
+                    <h6 wicket:id="titleAlert" class="fw-bold m-0"></h6>
+                    <p wicket:id="descriptionAlert" class="mb-0 small">
+                    </p>
+                    <div class="d-inline-flex align-items-center mt-1">
+                        <span wicket:id="badgeAlert"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-row g-3 align-items-start">
+        <div class="col-12 col-lg-3">
+
+            <div class="card p-0 h-100">
+                <div class="card-header">
+                        <span>
+                            <i class="fa-solid fa-gear"></i>
+                            <span class="pl-1">
+                                <wicket:message key="CorrelationItemRefsTableWizardPanel.ruleSettings"/>
+                            </span>
+                        </span>
+                </div>
+                <div wicket:id="panel" class="h-100"></div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-9">
+            <div class="card p-0 h-100">
+                <div class="card-header">
+                        <span>
+                            <i class="fa fa-bars-progress"></i>
+                            <span class="pl-1">
+                                <wicket:message key="CorrelationItemRefsTableWizardPanel.headerLabel"/>
+                            </span>
+                        </span>
+                </div>
+                <div class="card-body p-0" wicket:id="table"></div>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</body>
+</html>

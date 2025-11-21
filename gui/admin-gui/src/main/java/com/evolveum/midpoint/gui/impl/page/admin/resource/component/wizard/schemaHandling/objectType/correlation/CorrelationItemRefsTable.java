@@ -328,7 +328,7 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
                     PrismPropertyWrapperColumnPanel<MappingType> panel = createColumnPanel(id, relatedInboundMapping);
                     item.add(panel);
                 } else {
-                    item.add(new Label(id, getPageBase().getString("-")));
+                    item.add(new Label(id, "-"));
                 }
             }
 

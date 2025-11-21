@@ -6,29 +6,21 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
-import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormCorrelationItemPanel;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -37,10 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-
-import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 
 /**
  * @author lskublik
@@ -56,13 +44,6 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
     private static final String PANEL_TYPE = "rw-correlators";
 
     private static final String ID_PANEL = "panel";
-    private static final String ID_TABLE = "table";
-
-    private static final String ID_ALERT_CONTAINER = "containerAlert";
-    private static final String ID_ALERT_ICON = "iconAlert";
-    private static final String ID_ALERT_TITLE = "titleAlert";
-    private static final String ID_ALERT_DESCRIPTION = "descriptionAlert";
-    private static final String ID_ALERT_BADGE = "badgeAlert";
 
     IModel<StatusInfo<CorrelationSuggestionsType>> statusInfoModel;
     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition;
@@ -80,94 +61,26 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        CorrelationItemRulePanel panel =
+                new CorrelationItemRulePanel(ID_PANEL, getValueModel(), statusInfoModel,
+                        resourceObjectTypeDefinition) {
+                    @Override
+                    protected boolean isShowEmptyField() {
+                        return CorrelationItemRuleWizardPanel.this.isShowEmptyField();
+                    }
 
-        initAlertInfoPanel();
-        initLayout();
-    }
-
-    private void initAlertInfoPanel() {
-        WebMarkupContainer infoPanel = new WebMarkupContainer(ID_ALERT_CONTAINER);
-        infoPanel.setOutputMarkupId(true);
-        infoPanel.add(new VisibleBehaviour(this::isSuggestionApplied));
-
-        WebMarkupContainer icon = new WebMarkupContainer(ID_ALERT_ICON);
-        icon.add(AttributeAppender.append("class", "fa fa-solid fa-wand-magic-sparkles text-purple"));
-        infoPanel.add(icon);
-        infoPanel.add(new Label(ID_ALERT_TITLE,
-                createStringResource("CorrelationItemRefsTableWizardPanel.unconfirmed.suggestion")));
-        infoPanel.add(new Label(ID_ALERT_DESCRIPTION,
-                createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.description")));
-
-        String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(getValueModel().getObject());
-
-        BadgePanel badge = new BadgePanel(ID_ALERT_BADGE,
-                getAiEfficiencyBadgeModel(
-                        createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.efficiency",
-                                efficiency).getString()));
-        badge.setOutputMarkupId(true);
-        infoPanel.add(badge);
-        add(infoPanel);
+                    @Override
+                    protected ContainerPanelConfigurationType getConfiguration() {
+                        return CorrelationItemRuleWizardPanel.this.getConfiguration();
+                    }
+                };
+        panel.setOutputMarkupId(true);
+        add(panel);
     }
 
     @Override
     public boolean isEnabledInHierarchy() {
         return super.isEnabledInHierarchy();
-    }
-
-    private void initLayout() {
-        IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel = getValueModel();
-
-        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
-                .visibilityHandler((wrapper) -> {
-                    ItemName itemName = wrapper.getPath().lastName();
-                    return itemName.equivalent(ItemsSubCorrelatorType.F_DESCRIPTION)
-//                            || itemName.equivalent(ItemsSubCorrelatorType.F_DISPLAY_NAME)
-                            || itemName.equivalent(ItemsSubCorrelatorType.F_NAME)
-                            || itemName.equivalent(ItemsSubCorrelatorType.F_ENABLED)
-                            || itemName.equivalent(ItemsSubCorrelatorType.F_COMPOSITION)
-                            || itemName.equivalent(CorrelatorCompositionDefinitionType.F_IGNORE_IF_MATCHED_BY)
-                            || itemName.equivalent(CorrelatorCompositionDefinitionType.F_TIER)
-                            || itemName.equivalent(CorrelatorCompositionDefinitionType.F_WEIGHT)
-                            ? ItemVisibility.AUTO
-                            : ItemVisibility.HIDDEN;
-                })
-                .isRemoveButtonVisible(false)
-                .build();
-
-        if (isSuggestionApplied()) {
-            setReadOnlyRecursively(valueModel.getObject());
-        }
-
-        valueModel.getObject().setShowEmpty(isShowEmptyField());
-        VerticalFormCorrelationItemPanel panel =
-                new VerticalFormCorrelationItemPanel(ID_PANEL, valueModel, settings) {
-                    @Override
-                    protected boolean isShowEmptyButtonVisible() {
-                        return !isSuggestionApplied();
-                    }
-                };
-        panel.setOutputMarkupId(true);
-        add(panel);
-        valueModel.getObject().getRealValue().asPrismContainerValue();
-
-        CorrelationItemRefsTable table = buildCorrelationitemRefsTable();
-        add(table);
-    }
-
-    private @NotNull CorrelationItemRefsTable buildCorrelationitemRefsTable() {
-        CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getValueModel(), getConfiguration()) {
-            @Override
-            boolean isReadOnlyTable() {
-                return isSuggestionApplied();
-            }
-
-            @Override
-            public @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefModel() {
-                return CorrelationItemRuleWizardPanel.this.getResourceObjectTypeDefinitionModel();
-            }
-        };
-        table.setOutputMarkupId(true);
-        return table;
     }
 
     @Override
@@ -213,15 +126,6 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
     @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.subText");
-    }
-
-    protected CorrelationItemRefsTable getTable() {
-        return (CorrelationItemRefsTable) get(ID_TABLE);
-    }
-
-    @Override
-    protected boolean isValid(AjaxRequestTarget target) {
-        return getTable().isValidFormComponents(target);
     }
 
     @Override
@@ -273,10 +177,6 @@ public class CorrelationItemRuleWizardPanel extends AbstractResourceWizardBasicP
             @NotNull AjaxRequestTarget target,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel,
             @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo) {
-    }
-
-    protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefinitionModel() {
-        return resourceObjectTypeDefinition;
     }
 
 }
