@@ -209,7 +209,7 @@ public class OperationResultRecorder {
             return null;
         }
 
-        if (!opState.hasCurrentPendingOperation() && opState.isCompleted()) {
+        if (!opState.hasCurrentPendingOperation() && !opState.hasPropagatedPendingOperations() && opState.isCompleted()) {
             if (repoShadow.getPendingOperation().isEmpty() && opState.isSuccess()) {
                 LOGGER.trace("Deleting repository {}: {}", repoShadow, opState);
                 shadowUpdater.executeRepoShadowDeletion(repoShadow, ctx.getTask(), result);

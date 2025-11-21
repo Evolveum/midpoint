@@ -208,6 +208,10 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         return propagatedPendingOperations;
     }
 
+    public boolean hasPropagatedPendingOperations() {
+        return propagatedPendingOperations != null && !propagatedPendingOperations.isEmpty();
+    }
+
     void setPropagatedPendingOperations(List<PendingOperationType> propagatedPendingOperations) {
         this.propagatedPendingOperations = propagatedPendingOperations;
     }

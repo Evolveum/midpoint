@@ -114,7 +114,11 @@ public abstract class TestAsyncProvisioningArtemis extends TestAsyncProvisioning
         provisioningService.addObject(jim, null, null, task, result);
 
         then();
-        assertSuccessOrInProgress(result);
+        if (!hasPropagationConfigured()) {
+            assertSuccessOrInProgress(result);
+        } else {
+            runPropagation();
+        }
 
         dumpRequests();
         String req = getRequest();
