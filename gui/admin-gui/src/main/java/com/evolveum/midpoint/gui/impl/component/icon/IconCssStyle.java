@@ -25,6 +25,7 @@ public interface IconCssStyle {
     TopRightIconCssStyle TOP_RIGHT_STYLE = new TopRightIconCssStyle();
     TopRightIconCssStyle TOP_RIGHT_MAX_ICON_STYLE = new TopRightMaxIconCssStyle();
     TopRightForColumnIconCssStyle TOP_RIGHT_FOR_COLUMN_STYLE = new TopRightForColumnIconCssStyle();
+    CenterIconMetricCssStyle CENTER_METRIC_STYLE = new CenterIconMetricCssStyle();
 
     String getBasicCssClass();
 

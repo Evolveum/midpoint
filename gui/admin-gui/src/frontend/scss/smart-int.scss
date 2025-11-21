@@ -41,6 +41,20 @@
   background-color: #{$success-light};
 }
 
+.info-badge.warning-light {
+  --label-color: #{$warning};
+  border-color: var(--label-color);
+  color: var(--label-color);
+  background-color: #{$warning-light};
+}
+
+.info-badge.secondary-light {
+  --label-color: #{$midpoint-secondary};
+  border-color: var(--label-color);
+  color: var(--label-color);
+  background-color: #{$secondary-light};
+}
+
 .badge.badge-light-purple {
   --label-color: #{$purple-light};
   background-color: var(--label-color);
@@ -53,6 +67,15 @@
   color: white;
 }
 
+.border-purple {
+  border-color: #{$purple} !important;
+}
+
+
+.border-3 {
+  border-width: 3px !important;
+}
+
 .bg-success-light {
   background-color: #{$success-light} !important;
 }
@@ -61,12 +84,16 @@
   background-color: #{$danger-light} !important;
 }
 
-.border-purple {
-  border-color: #{$purple} !important;
+.bg-warning-light {
+  background-color: #{$warning-light} !important;
 }
 
-.border-3 {
-  border-width: 3px !important;
+.bg-info-light {
+  background-color: #{$info-light} !important;
+}
+
+.bg-secondary-light {
+  background-color: #{$secondary-light} !important;
 }
 
 .alert.purple-light-alert {
@@ -77,4 +104,57 @@
 
 .text-purple-dark {
   color: #{$purple-dark} !important;
+}
+
+.up-10 {
+  transform: translateY(-10px);
+}
+
+.up-20 {
+  transform: translateY(-20px);
+}
+
+.up-30 {
+  transform: translateY(-30px);
+}
+
+.icon-20 {
+  font-size: 20px !important;
+}
+
+.metric-icon {
+  width: 36px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background-color: var(--metric-bg);
+  border: 0;
+  color: var(--metric-color);
+}
+
+.metric-icon.warning {
+  --metric-color: #{$warning};
+  --metric-bg: #{$warning-light};
+}
+
+.metric-icon.success {
+  --metric-color: #{$success};
+  --metric-bg: #{$success-light};
+}
+
+.metric-icon.danger {
+  --metric-color: #{$danger};
+  --metric-bg: #{$danger-light};
+}
+
+.metric-icon.info {
+  --metric-color: #{$info};
+  --metric-bg: #{$info-light};
+}
+
+.metric-icon.secondary {
+  --metric-color: #{$midpoint-secondary};
+  --metric-bg: #{$secondary-light};
 }
