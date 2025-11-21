@@ -6,14 +6,28 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.helpers;
 
+import static java.util.Collections.singleton;
+
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+
 import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.ConstructorUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
-
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -40,33 +54,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.ActionType;
+import com.evolveum.midpoint.web.component.data.column.CampaignSummary;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.wicket.chartjs.ChartData;
 import com.evolveum.wicket.chartjs.ChartDataset;
 import com.evolveum.wicket.chartjs.DoughnutChartConfiguration;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.evolveum.midpoint.gui.api.page.PageBase;
-
-import org.apache.commons.lang3.reflect.ConstructorUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.util.MiscUtil.or0;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-
-import static java.util.Collections.singleton;
 
 public class CertMiscUtil {
 
@@ -264,6 +261,31 @@ public class CertMiscUtil {
         } else {
             return null;
         }
+    }
+
+    public static DoughnutChartConfiguration createDoughnutChartConfigForCampaigns(List<CampaignSummary> campaignSummaries) {
+        DoughnutChartConfiguration config = new DoughnutChartConfiguration();
+
+        ChartDataset dataset = new ChartDataset();
+
+        dataset.setFill(true);
+
+        long notDecidedCertItemsCount = campaignSummaries.stream()
+                .map(s -> s.openNotDecidedCount()).reduce(0L, Long::sum);
+        long decidedCertItemsCount = campaignSummaries.stream()
+                .map(s -> s.decidedCount()).reduce(0L, Long::sum);
+
+        dataset.addData(decidedCertItemsCount);
+        dataset.addBackgroudColor("blue");
+
+        dataset.addData(notDecidedCertItemsCount);
+        dataset.addBackgroudColor("grey");
+
+        ChartData chartData = new ChartData();
+        chartData.addDataset(dataset);
+        config.setData(chartData);
+
+        return config;
     }
 
     public static DoughnutChartConfiguration createDoughnutChartConfigForCampaigns(List<String> campaignOids, MidPointPrincipal principal,
@@ -464,9 +486,9 @@ public class CertMiscUtil {
             (List<AccessCertificationResponseType> availableResponses, List<GuiActionType> actions, PageBase pageBase) {
         List<AbstractGuiAction<AccessCertificationWorkItemType>> availableActions =
                 availableResponses.stream()
-                .map(response -> createAction(response, pageBase))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                        .map(response -> createAction(response, pageBase))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(actions)) {
             return availableActions;
         }
@@ -591,7 +613,7 @@ public class CertMiscUtil {
             }
 
             @Override
-            public boolean isHeaderMenuItem(){
+            public boolean isHeaderMenuItem() {
                 return action.isBulkAction();
             }
         };
@@ -880,6 +902,4 @@ public class CertMiscUtil {
         AccessCertificationDefinitionType definition = definitionObj.asObjectable();
         return definition.getView();
     }
-
-
 }

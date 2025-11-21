@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.*;
 import com.evolveum.midpoint.gui.impl.component.data.column.*;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertCampaign;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.PageMyCertItems;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
@@ -1052,7 +1051,7 @@ public class ColumnUtils {
     }
 
     public static List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> getPreviewCampaignColumns(
-            PageBase pageBase) {
+            @NotNull PageBase pageBase, IModel<List<CampaignSummary>> summaryModel) {
         List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns = new ArrayList<>();
 
         IColumn<SelectableBean<AccessCertificationCampaignType>, String> column;
@@ -1079,15 +1078,29 @@ public class ColumnUtils {
                 AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
 
                 try {
-                    ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid());
-                    Task task = pageBase.createSimpleTask("countWorkItems");
-                    int openNotDecidedItems = pageBase.getCertificationService().countOpenWorkItems(query, true,
-                            false, null, task, task.getResult());
+                    CampaignSummary summary = getCampaignSummary(summaryModel, campaign.getOid());
 
-                    int allOpenItems = pageBase.getCertificationService().countOpenWorkItems(query, false,
-                            false, null, task, task.getResult());
-                    int decidedItems = allOpenItems - openNotDecidedItems;
-                    int decidedPercent = allOpenItems != 0 ? (decidedItems * 100) / allOpenItems : 0;
+                    long openNotDecidedItems;
+                    long decidedItems;
+                    long decidedPercent;
+                    if (summary != null) {
+                        openNotDecidedItems = summary.openNotDecidedCount();
+                        decidedItems = summary.decidedCount();
+
+                        long all = openNotDecidedItems + decidedItems;
+
+                        decidedPercent = all != 0 ? (decidedItems * 100) / all : 0;
+                    } else {
+                        ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid());
+                        Task task = pageBase.createSimpleTask("countWorkItems");
+                        openNotDecidedItems = pageBase.getCertificationService().countOpenWorkItems(query, true,
+                                false, null, task, task.getResult());
+
+                        int allOpenItems = pageBase.getCertificationService().countOpenWorkItems(query, false,
+                                false, null, task, task.getResult());
+                        decidedItems = allOpenItems - openNotDecidedItems;
+                        decidedPercent = allOpenItems != 0 ? (decidedItems * 100) / allOpenItems : 0;
+                    }
 
                     progressBars.add(new ProgressBar(decidedItems,
                             ProgressBar.State.PRIMARY));
@@ -1100,11 +1113,21 @@ public class ColumnUtils {
                 return Model.ofList(progressBars);
             }
 
+            private CampaignSummary getCampaignSummary(IModel<List<CampaignSummary>> summaryModel, String campaignOid) {
+                if (summaryModel == null || summaryModel.getObject() == null) {
+                    return null;
+                }
+
+                return summaryModel.getObject().stream()
+                        .filter(s -> Objects.equals(s.campaign().getOid(), campaignOid))
+                        .findFirst()
+                        .orElse(null);
+            }
+
             @Override
             protected boolean isPercentageBar() {
                 return false;
             }
-
 
             protected @NotNull IModel<String> createTextModel(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel,
                     IModel<List<ProgressBar>> model) {
