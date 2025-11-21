@@ -1132,6 +1132,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="resourceObjectTypeDefinition" type="tns:ResourceObjectTypeDefinitionType"/>
 
     <xsd:complexType name="ShadowMarkingConfigurationType">
         <xsd:annotation>
