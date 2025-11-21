@@ -86,7 +86,7 @@ public class CertItemEditableCommentColumn extends AbstractCertificationItemColu
         if (!result.isSuccess()) {
             pageBase.showResult(result);
         }
-        target.add(pageBase);
+//        target.add(pageBase);
     }
 
     @Override
