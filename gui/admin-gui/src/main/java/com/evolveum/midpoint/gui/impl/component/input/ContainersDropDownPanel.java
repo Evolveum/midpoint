@@ -37,7 +37,6 @@ import org.apache.wicket.util.convert.IConverter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author lskublik
@@ -69,8 +68,17 @@ public class ContainersDropDownPanel<C extends Containerable> extends BasePanel<
                 try {
                     List<PrismContainerWrapper<? extends Containerable>> containers = parentItem.getValue().getContainers()
                             .stream()
-                            .filter(container -> !ValueStatus.DELETED.equals(container.getValues().iterator().next().getStatus()))
-                            .collect(Collectors.toList());
+                            .filter(container -> {
+                                var values = container.getValues();
+                                if (values == null || values.isEmpty()) {
+                                    return false;
+                                }
+
+                                return values.stream()
+                                        .anyMatch(v -> v.getStatus() != ValueStatus.DELETED);
+                            })
+                            .toList();
+
                     if (containers.size() == 1) {
                         PrismContainerWrapper<? extends Containerable> container = containers.iterator().next();
                         if (validateChildContainer(container.getItem().getDefinition())) {
