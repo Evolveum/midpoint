@@ -14,7 +14,7 @@ This document describes the built-in Person archetype in midPoint.
 The built-in `Person` archetype can be used for users imported from an authoritative source of data, such as HR.
 We have created this archetype as a part of xref:/midpoint/methodology/first-steps/[First Steps Methodology].
 
-This archetype includes also a reference to *Person Object Template*, which is also a midPoint initial object.
+This archetype includes a reference to *Person Object Template*, which is also a midPoint initial object.
 
 *System configuration* includes an xref:/midpoint/reference/admin-gui/collections-views/[object collection view] for users with this archetype.
 
@@ -32,13 +32,15 @@ The Person archetype references the <<personObjectTemplate,Person Object Templat
 
 The template contains two mappings:
 
-* `generate-name-jsmith-8-2`: Mapping to generate the midPoint username from user's `givenName` and `familyName` properties using a naming convention `jsmith`. At most 8 characters are used. To achieve username uniqueness, an iteration token is appended (2-99).
+* `generate-name-jsmith-8-2`: Mapping to generate the midPoint username from user's `givenName` and `familyName` properties using the `jsmith` naming convention.
+At most 8 characters are used.
+To achieve username uniqueness, an iteration token is appended (2-99).
     ** This mapping's strength is *weak*; it will only be used to create usernames.
     Usernames will never be automatically changed if user's `givenName` or `familyName` changes, however, it can be overridden manually by an administrator.
-    ** This mapping has the lifecycle state set to `draft` by default; it is effectively disabled by default.
+    ** This mapping has the lifecycle state set to `draft` by default, i.e., it is effectively disabled by default.
     Change the lifecycle state to `proposed` to use the mapping in xref:/midpoint/reference/simulation/[simulations], or to `active` to use the mapping.
 
-* `generate-fullname`: Mapping to generate the midPoint `fullName` property from user's `givenName` and `familyName` using a naming convention `John Smith`
+* `generate-fullname`: Mapping to generate the midPoint `fullName` property from user's `givenName` and `familyName` using the `John Smith` naming convention.
     ** this mapping's strength is *strong*; it will always enforce the `fullName`.
 
 Feel free to add any additional mappings or change the existing ones; just remember that the object template is a midPoint built-in object that may be updated in future midPoint releases.
@@ -47,7 +49,7 @@ Feel free to add any additional mappings or change the existing ones; just remem
 
 In the following configuration example, you can see how we:
 
-* display users with the `Person` archetype assigned as a menu item, 
+* display users with the `Person` archetype assigned using a menu item, 
 * add a custom search configuration.
 
 .Default Person-related configuration in the system configuration (`objectCollectionView`)
