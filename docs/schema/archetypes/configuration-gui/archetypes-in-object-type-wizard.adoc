@@ -12,7 +12,7 @@ This guide explains how to work with archetypes in the object type resource wiza
 
 When xref:/midpoint/reference/admin-gui/resource-wizard/object-type/[setting up an object type], you can work with archetypes directly from the wizard.
 
-On the screen *Specify the midPoint data* of the object type setup wizard, you can select an existing archetype for the object type or create a new archetype, such as _Person_.
+On the *Specify the midPoint data* screen of the object type setup wizard, you can select an existing archetype for the object type, or create a new archetype.
 
 .Selecting an archetype for an object type
 image::../object-type-midpoint-data-archetype-selection.webp[Selecting an archetype for an object type, 100%]
@@ -26,10 +26,10 @@ image::../object-type-midpoint-data-archetype-selection.webp[Selecting an archet
 [NOTE]
 ====
 The list of archetypes you see here is considerably shorter than the list of all available archetypes you see in the xref:../#list-all-available-archetypes[the list of all available archetypes].
-That is because the list here is filtered so that you see only archetypes that can be used for the currently edited object type.
+That is because the list here is filtered so that you only see archetypes that can be used for the currently edited object type.
 ====
 
-== Create a New Archetype
+== Create a new archetype
 
 Creating a new archetype in the object type wizard creates only a skeleton of an archetype.
 When you finish, you may need to tweak its settings using the xref:../#create-an-archetype[full archetype editor].
@@ -46,7 +46,7 @@ When you finish, you may need to tweak its settings using the xref:../#create-an
 	** You can choose *icons* from the link:https://fontawesome.com/search?ic=free[free set of Font Awesome icons].
 		Use the names without the `fa-` prefix.
 	** *Color* lets you define the archetype color for the icon using CSS color names.
-. Click the [.nowrap]#icon:check[] btn:[Save settings]# to save your new archetype, changes in the object type, and close the wizard.
+. Click [.nowrap]#icon:check[] btn:[Save settings]# to save your new archetype and changes in the object type, and to close the wizard.
 
 // TODO: I'm missing a place to link for further explanation of (archetype) provisioning
 

@@ -9,7 +9,7 @@ This guide helps you work with archetypes in the web administrative user interfa
 
 == Introduction
 
-Archetype is a well-defined object subtype.
+Archetypes are well-defined object subtypes.
 _Employee_, _Contractor_, _Project_, _Workgroup_, or _Application_ can be archetypes for various classes of objects based on their character.
 
 See xref:/midpoint/reference/schema/archetypes/[] for a more in-depth introduction to the archetype concept.
@@ -31,7 +31,7 @@ Click the name of an archetype to open it for editing and to inspect its setting
 . In [.nowrap]#+++<i class="fe fe-archetype_smooth"></i>+++ *Archetypes*#, click [.nowrap]#icon:plus-circle[] *New archetype*#.
 . Fill in the archetype *Name*, *Display name*, and other properties.
 	** Refer to xref:../configuration[] for explanation of the attributes.
-	** Select a *Super archetype* if you wish the new archetype to inherit some settings of an existing archetype.
+	** Select a *Super archetype* if you wish the new archetype to inherit settings from an existing archetype.
 . Click [.nowrap]#icon:save[] btn:[Save]# at the top of the screen.
 
 .Creating a new archetype

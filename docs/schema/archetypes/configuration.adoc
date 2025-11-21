@@ -34,11 +34,12 @@ Refer to xref:./configuration-gui[] for the midPoint graphical user interface gu
 
 == Archetype definition
 
-Archetype definition is a special midPoint object (`ArchetypeType`):
+Archetype definitions are special midPoint objects (`ArchetypeType`).
 
 Archetypes define the character and behavior of "archetyped" objects in the `archetypePolicy` section.
-The archetype definition example below specifies what icons, color and labels to use, which templates to apply and so on.
+The archetype definition example below specifies what icons, color and labels to use, which templates to apply, and so on.
 
+.Example of an archetype definition
 [source,xml]
 ----
 <archetype oid="7135e68c-ee53-11e8-8025-170b77da3fd6">
@@ -52,9 +53,14 @@ The archetype definition example below specifies what icons, color and labels to
 ----
 
 Archetypes work like xref:/midpoint/architecture/concepts/abstract-role/[abstract roles], therefore all objects that need to be "archetyped" can be assigned to an archetype.
-Being a midPoint object, archetype has a natural persistent identifier: xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. OID of the archetype definition is also an archetype identifier.
-Each object of that archetype will contain the archetype definition OID in the `archetypeRef` reference:
 
+Being midPoint objects, archetypes have natural persistent identifiers: xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. The OID of the an archetype definition is also an archetype identifier.
+Each object of that archetype will contain an archetype definition OID in the `archetypeRef` reference. +
+For example, every employee will contain an OID of an _employee archetype definition_ object.
+This OID is used internally by midPoint to process archetypes.
+But it can also be used for searching objects of particular archetypes by a custom code or midPoint API clients.
+
+.Example of a user object with an archetype assignment
 [source,xml]
 ----
 <user>
@@ -77,10 +83,12 @@ The `archetypeRef` reference can also be used to search for all objects of a giv
 
 Archetype definitions are xref:/midpoint/architecture/concepts/abstract-role/[abstract roles] which means they essentially work as roles.
 To apply an archetype to an object, assign the archetype to that object as you would normally assign a role.
-From that point on, the archetype applies to that object.
+Once assigned, the archetype applies to that object.
 Being abstract roles, archetypes are really powerful.
-That means archetypes may work as ordinary roles or xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles]:
 
+Archetypes may work as ordinary roles or xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles]:
+
+.Example of an archetype used as a metarole
 [source,xml]
 ----
 <archetype oid="7135e68c-ee53-11e8-8025-170b77da3fd6">
@@ -104,6 +112,7 @@ The example below sets a custom icon for the `employee` archetype.
 It also specifies that whenever an employee icon can be used in color, then the blue color should be used.
 There is also a label that should be used to display objects of that particular archetype; and also a plural form of the label used when objects of that archetype are listed.
 
+.Example of setting a custom icon, color and labels for an archetype
 [source,xml]
 ----
 <archetype oid="7135e68c-ee53-11e8-8025-170b77da3fd6">
@@ -132,8 +141,9 @@ But otherwise, archetype definitions and object lists are not displayed in the u
 This behavior has several reasons: there may be archetype definitions that are just being prepared, definitions that should not be publicly visible, or there may be just too many definitions to be displayed in the menu.
 Therefore, by default, there will be no additional menu items or "shortcut" buttons for archetypes.
 
-Archetypes can be added to menus and other places of midPoint interface by using xref:/midpoint/reference/admin-gui/collections-views/[object views]. All that is needed is simple definition of a view in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration structure]:
+Archetypes can be added to menus and other places of midPoint interface by using xref:/midpoint/reference/admin-gui/collections-views/[object views]. All that is needed is a simple definition of a view in the xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration structure] similar to the following:
 
+.Example of defining an object collection view for an archetype
 [source,xml]
 ----
 ...
@@ -152,14 +162,13 @@ Archetypes can be added to menus and other places of midPoint interface by using
 ----
 
 This can be defined in the global system configuration or in a role.
-Such view should create "Employees" link in the menu in the "Users" section.
+Such view should create an "Employees" link in the "Users" section of the main menu.
 
 The view specifies a means of displaying a collection of objects.
 Creating an appropriate menu item is just one of the aspects.
 The view may also define what the actual list of objects looks like.
 The view specifies the columns, defaults search settings, and so on.
-However, when the view is bound to an archetype, it can do even a bit more.
-Such a view can automatically render buttons to create new objects.
+However, when the view is bound to an archetype, it can do even more - it can automatically render buttons to create new objects.
 
 
 == Assignment relation
@@ -171,12 +180,13 @@ Archetypes can define possible object types and relations that can be used in as
 * Business roles have members, owners and approvers.
 Owners and approvers must be employees.
 
-* Departments are organizational units that may contain other organizational units (but only if they are of Section archetype), users and business roles.
+* Departments are organizational units that may contain other organizational units (but only if they are of the Section archetype), users, and business roles.
 
 There is an _assignment relation_ mechanism that can be used for that purpose.
 The assignment relation specification can be used to limit possible assignment holder object types and assignment relations.
 This is perhaps best illustrated using an example of a business role:
 
+.Example of assignment relations for a business role archetype
 [source,xml]
 ----
 <archetype oid="018e7340-199a-11e9-ad93-2b136d1c7ecf">
@@ -207,9 +217,10 @@ Only an employee can be the owner or approver of the business role.
 Note that in this case, `assignmentRelation` specifications are placed in an *inducement* of the archetype, not assignment.
 We want to apply `assignmentRelation` to "archetyped" objects.
 And that is exactly what inducements do.
-But archetype definitions are first-class midPoint objects - and they are also xref:/midpoint/architecture/concepts/abstract-role/[abstract roles].
-Therefore an archetype definition can have assignments pointing to it, such as an owner of an archetype definition.
-Therefore the `assignmentRelation` statements in the assignment also make sense if we want to control what objects can be assigned to the archetype definition.
+
+But archetype definitions are first-class midPoint objects, and they are also xref:/midpoint/architecture/concepts/abstract-role/[abstract roles].
+An archetype definition can have assignments pointing to it, such as an owner of an archetype definition.
+The `assignmentRelation` statements in the assignment would also make sense if we wanted to control what objects can be assigned to the archetype definition.
 However, `assignmentRelation` is typically placed in an inducement.
 
 [[openClosedRelations]]
@@ -236,6 +247,7 @@ The open/closed approach can be specified in an archetype policy.
 In the configuration below, whenever an employee is edited in the midPoint user interface, the "generic" assignment button is *not* rendered.
 Only the buttons given by an explicit `assignmentRelations` definition are rendered.
 
+.Example of setting closed assignment relation approach for an archetype
 [source,xml]
 ----
 <archetype oid="7135e68c-ee53-11e8-8025-170b77da3fd6">
@@ -259,7 +271,7 @@ This setting only controls the uni-directional behavior of GUI.
 It does not constraint the entire assignment model.
 That would be too complex to implement (at least for now).
 
-The assignmentHolderRelationApproach controls the "holder" side of the relation.
+The `assignmentHolderRelationApproach` controls the "holder" side of the relation.
 A similar property that can limit the "target" side of the relation (e.g. buttons in the "Members" tab) is planned for the future.
 
 [TIP]
@@ -267,7 +279,7 @@ A similar property that can limit the "target" side of the relation (e.g. button
 Currently, this can be configured only on per-archetype basis.
 There is no global setting that can set open/close as the default for the entire system.
 The plan is to implement this later together with "inheritance" of object policy configurations in system configuration objects.
-E.g., an object policy for `UserType` inheriting from object policy for `ObjectType` - and user archetypes inheriting from the `UserType` policy.
+E.g., an object policy for `UserType` inheriting from an object policy for `ObjectType` - and user archetypes inheriting from the `UserType` policy.
 ====
 
 
@@ -275,26 +287,22 @@ E.g., an object policy for `UserType` inheriting from object policy for `ObjectT
 
 Assignment relation applies only to assignments by default.
 Therefore, it controls when an assignment can be made.
-It does not apply to inducements - yet.
-In later midPoint versions, there will be an element that can specify "order constraints".
-In that case assignment relation could specify properties of inducements, including high-order inducements.
+It does not apply to inducements (yet).
+In later midPoint versions, there will be an element that can specify "order constraints" that will enable assignment relations to specify properties of inducements, including high-order inducements.
 However, the current implementation is limited to assignments.
 
 
 == Default definition
 
-Archetype definitions can specify the details of behavior for "archetyped" objects.
-But there are also objects that do not have any archetype.
-We may want to specify behavior for those objects as well.
-And in fact, this has been possible in midPoint for a long time, even though it was not explicitly denoted as having anything to do with archetypes.
+While archetype definitions can specify behavior details for "archetyped" objects, there are also objects that do not have any archetype.
+And you may want to control the behavior of those objects as well.
+In fact, this has been possible in midPoint for a long time, even though it was not explicitly denoted as having anything to do with archetypes.
 
-There is the `defaultObjectPolicyConfiguration` container in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]. +
-Its data structure of is almost identical to the structure of `archetypePolicy` in the archetype definition.
-And it also works in almost the same way. +
+There is the `defaultObjectPolicyConfiguration` container in the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object]. +
+Its data structure is almost identical to the structure of `archetypePolicy` in the archetype definition, and it works in almost the same way. +
 This is the definition that is applied to non-archetyped objects of that particular type.
-And parts of that definition may also apply to archetyped objects, as this definition is merged with `archetypePolicy`.
-Of course, `archetypePolicy` will override any aspects of the default specification.
-But the aspects that are not defined in `archetypePolicy` are taken from the default global policy.
+Parts of that definition may also apply to archetyped objects, as this definition is merged with `archetypePolicy`. +
+Even though `archetypePolicy` will override any aspects of the default specification, the aspects that are not defined in `archetypePolicy` are taken from the default global policy.
 
 .An example default object policy configuration
 [source,xml]
@@ -314,7 +322,7 @@ But the aspects that are not defined in `archetypePolicy` are taken from the def
 MidPoint is designed to fit in many environments and those environments may differ significantly.
 However, there are still a few aspects that most of the environments have in common.
 There are types of objects that are used in almost any midPoint deployment.
-Therefore, midPoint has a few default archetypes that can be used as a starting point for further midPoint configurations
+Therefore, midPoint has several default archetypes that can be used as a starting point for further midPoint configurations
 
 .Pre-defined archetypes in midPoint
 [%autowidth]
@@ -370,9 +378,9 @@ Business roles are usually composed from smaller roles.
 
 Some of the archetypes are provided as a starting point for the system configuration.
 This is namely the _Business Role_ archetype.
-Feel free to modify those archetypes.
-They are provided in the initial objects mostly to keep the terminology of midPoint deployments aligned.
-This makes communication in the midPoint community smoother.
+
+You can modify the pre-defined archetypes.
+They are provided in the initial objects mostly to keep the terminology of midPoint deployments aligned, and to make communication in the midPoint community smoother.
 
 There are also archetypes that are essential for midPoint functionality, e.g., the archetypes for cases.
 While you can still modify those, you should have a good understanding of how midPoint works and what effects can those changes may have.
@@ -380,7 +388,7 @@ While you can still modify those, you should have a good understanding of how mi
 
 == Authorizations
 
-Archetype can be used as a criterion in xref:/midpoint/reference/security/authorization/configuration/[authorizations]:
+Archetypes can be used as criterions in xref:/midpoint/reference/security/authorization/configuration/[authorizations]:
 
 .Archetype used as a criterion in an authorization
 [source,xml]
@@ -400,16 +408,16 @@ MidPoint archetypes are strongly inspired by how LDAP `objectClasses` can be def
 Therefore, midPoint is designed to support the following kinds of archetypes:
 
 * Structural
-** This represents the main class/type of an object (e.g., Person, Service account, Application) and define its properties (including visuals), behavior, birthrights, and so on.
-** It is expected to be practically static during the lifetime of the object.
-Typically, the object is created with the archetype and keeps it forever.
-** Only one such archetype can be assigned to the object directly.
-** It can be extended, and it can extend other structural or abstract archetypes.
+** These represent the main class/type of an object (e.g., Person, Service account, Application) and define its properties (including visuals), behavior, birthrights, and so on.
+** They are expected to be practically static during the lifetime of an object.
+Typically, the object is created with a structural archetype and keeps it forever.
+** Only one structural archetype can be assigned to an object directly.
+** They can be extended, and they can extend other structural or abstract archetypes.
 
 * Auxiliary
-** Can be assigned to an object with a structural archetype assigned.
+** An auxiliary archetype can be assigned to an object with a structural archetype assigned.
 Objects can have more than one auxiliary archetypes assigned.
-** Allows you model more dynamic situations and complement the main (structural) archetype.
+** Enables you to model multiple dynamic situations and complement the main (structural) archetype.
    For example, if the structural archetype is Person, auxiliary archetypes can be Employee, Customer, Student, Volunteer, and so on.
 
 * Abstract _(not yet supported)_
@@ -461,7 +469,7 @@ There is quite a complex algorithm for merging archetype policies across hierarc
 The following examples show you how the merging works.
 
 The first example below shows an archetype for a basic task.
-It contains an archetype policy defining what the icon should look like, and two xref:/midpoint/reference/admin-gui/sections-object-details/[GUI virtual containers (sections)] used on task details page: *Advanced options* and *Operational attributes* (state).
+It contains an archetype policy defining what the icon should look like, and two xref:/midpoint/reference/admin-gui/sections-object-details/[GUI virtual containers (sections)] used on the task details page: *Advanced options* and *Operational attributes* (state).
 
 .Basic task
 [source,json]
@@ -748,7 +756,7 @@ The archetype functionality has the following limitations:
 
 * Archetype assignments must be *direct* and non-conditional. +
 Indirect archetype assignments, such as inducements in roles, are not supported.
-Conditions, validity constraints and any other assignment parameters and settings are *not* supported for archetype assignments. +
+Conditions, validity constraints, and any other assignment parameters and settings are *not* supported for archetype assignments. +
 Archetypes form the backbone of the object type system.
 We will need to determine the exact types, schema, and policies applying to a particular object to correctly evaluate the conditions and any other complex mechanisms.
 Allowing conditional archetype assignments may lead to all kinds of chicken-and-egg problems.
@@ -757,10 +765,10 @@ Therefore, we are explicitly disallowing indirect and conditional archetype assi
 * Archetypes cannot be applied to archetypes. +
 In theory, archetypes may be applied to other archetypes, thus creating meta-archetypes.
 While some of that extra functionality may work, it has not been tested properly.
-Therefore, use it at your own risk.
+Therefore, use this at your own risk.
 
 * An archetype can only be applied to one type. +
-For example, you can apply an `Employee` archetype to users, and a `Project` archetype to orgs, however, you cannot apply one archetype to both to users and orgs.
+For example, you can apply an `Employee` archetype to users, and a `Project` archetype to orgs, however, you cannot apply one archetype to both users and orgs.
 
 * Archetypes are typically set once, ideally at the beginning of the lifecycle (object created from GUI with an archetype, archetype set by inbound mapping, etc.). +
 Nevertheless, archetypes can be changed in a controlled way.
@@ -775,12 +783,12 @@ For example, you may need to remove items that are not allowed, or add items tha
 * Performance limitation. +
 Do not create too many archetypes.
 They all need to be cached in RAM.
-Tens, or even hundreds, are perfectly fine.
-Thousands or more may be a problem.
+Tens, or even hundreds or archetypes are perfectly fine.
+Thousands or more archetypes may cause issues.
 
 * `assignmentRelation` only works for archetypes. +
 While theoretically, `assignmentRelation` can be placed in any assignment/inducement, this is not yet supported, as `assignmentRelation` has to be a first-order inducement (the inducement order must be 1).
-`assignmentRelation` is not supported in metaroles or other mechanisms that require higher-order inducement or inducement chaining.
+`assignmentRelation` is not supported in metaroles or other mechanisms that require higher-order inducements or inducement chaining.
 
 * Assignments/inducements that contain `assignmentRelation` must always be active (non-conditional, no activation).
 
@@ -793,13 +801,13 @@ Full support for wildcard `assignmentRelation` is planned for later midPoint ver
 * `assignmentRelation` only applies to limit the assignments between objects. +
 It does not support limitations of inducements yet.
 I.e., there is no support for _order constraints_ in the assignment relation specification.
-That is planned for later midPoint versions.
+This feature is planned for later midPoint versions.
 
 * `assignmentRelation` does not limit the assignments that can be created (yet). +
 The default behavior of assignments is <<openClosedRelations,_open_>>.
 
 * Archetype colors are not applied in the user interface consistently. +
-E.g., the color of the "summary panel" on user details page will be red, regardless of the archetype, as red is currently the color associated with users.
+E.g., the color of the "summary panel" on the user details page will be red, regardless of the archetype, as red is currently the color associated with users.
 This is planned to be improved later.
 
 
