@@ -362,7 +362,7 @@ public class CertMiscUtil {
         OperationResult result = new OperationResult(OPERATION_LOAD_CAMPAIGNS_OIDS);
         ObjectQuery campaignsQuery;
         if (onlyForLoggedInUser) {
-             campaignsQuery = getPrincipalActiveCampaignsQuery(pageBase);
+            campaignsQuery = getPrincipalActiveCampaignsQuery(pageBase);
         } else {
             campaignsQuery = getAllActiveCampaignsQuery(pageBase);
         }
@@ -373,16 +373,18 @@ public class CertMiscUtil {
 
     public static ObjectQuery getPrincipalActiveCampaignsQuery(PageBase pageBase) {
         FocusType principal = pageBase.getPrincipalFocus();
-
+        // @formatter:off
         return pageBase.getPrismContext().queryFor(AccessCertificationCampaignType.class)
-                .item(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM,
-                        AccessCertificationWorkItemType.F_ASSIGNEE_REF)
-                .ref(principal.getOid())
-                .and()
-                .item(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM,
-                        AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
-                .isNull()
+                .exists(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM)
+                .block()
+                    .item(AccessCertificationWorkItemType.F_ASSIGNEE_REF)
+                    .ref(principal.getOid()) // note this does not take delegations into account
+                    .and()
+                    .item(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
+                    .isNull()
+                .endBlock()
                 .build();
+        // @formatter:on
     }
 
     public static ObjectQuery getAllActiveCampaignsQuery(PageBase pageBase) {
