@@ -149,8 +149,14 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         }
 
         return list.stream()
-                .map(object -> createDataObjectWrapper(object))
+                .filter(this::additionalMatching)
+                .map(this::createDataObjectWrapper)
                 .collect(Collectors.toList());
+    }
+
+
+    protected boolean additionalMatching(T object) {
+        return true;
     }
 
     private Iterator<SelectableBean<T>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
