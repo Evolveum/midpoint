@@ -4,45 +4,55 @@
 :page-toc: top
 :page-since: "4.8"
 :experimental:
+:page-keywords: archetype,person archetype,user archetype,person object template
+:page-description: This document describes the built-in Person archetype in midPoint.
+
+This document describes the built-in Person archetype in midPoint.
 
 == Introduction
 
-`Person` built-in archetype can be used for users imported from an authoritative source of data, e.g. HR.
+The built-in `Person` archetype can be used for users imported from an authoritative source of data, such as HR.
 We have created this archetype as a part of xref:/midpoint/methodology/first-steps/[First Steps Methodology].
 
-This archetype includes also a reference to *Person Object Template*, which is also a midPoint initial object.
+This archetype includes a reference to *Person Object Template*, which is also a midPoint initial object.
 
 *System configuration* includes an xref:/midpoint/reference/admin-gui/collections-views/[object collection view] for users with this archetype.
 
-.Example screenshot when using Person archetype (click for full size)
-image::person-example.png[Person archetype screenshot,width="800"]
+.Example of using the Person archetype
+image::person-example.png[Example of using the Person archetype]
 
 == Configuration
 
 === Person archetype
 
-References *Person Object Template* (see below).
+The Person archetype references the <<personObjectTemplate,Person Object Template>>, and it can be assigned to users.
 
-The archetype can be assigned to users.
-
-=== Person Object Template
+[[personObjectTemplate]]
+=== Person object template
 
 The template contains two mappings:
 
-* `generate-name-jsmith-8-2`: mapping to generate midPoint username from user's `givenName` and `familyName` properties using a naming convention `jsmith`. At most 8 characters are used. To achieve username uniqueness, iteration token is appended (2-99)
-** this mapping's strength is *weak*; it will be used only for username creation. Username will never be automatically changed if user's `givenName` or `familyName` changes. It can be still overridden manually by administrator.
-** this mapping has lifecycle state `draft` by default; it is effectively disabled by default. Change the lifecycle state to `proposed` to use in xref:/midpoint/reference/simulation/[simulations] or to `active` to use it
+* `generate-name-jsmith-8-2`: Mapping to generate the midPoint username from user's `givenName` and `familyName` properties using the `jsmith` naming convention.
+At most 8 characters are used.
+To achieve username uniqueness, an iteration token is appended (2-99).
+    ** This mapping's strength is *weak*; it will only be used to create usernames.
+    Usernames will never be automatically changed if user's `givenName` or `familyName` changes, however, it can be overridden manually by an administrator.
+    ** This mapping has the lifecycle state set to `draft` by default, i.e., it is effectively disabled by default.
+    Change the lifecycle state to `proposed` to use the mapping in xref:/midpoint/reference/simulation/[simulations], or to `active` to use the mapping.
 
-* `generate-fullname`: mapping to generate midPoint `fullName` property from user's `givenName` and `familyName` using a naming convention `John Smith`
-** this mapping's strength is *strong*; it will enforce the `fullName` all the time
+* `generate-fullname`: Mapping to generate the midPoint `fullName` property from user's `givenName` and `familyName` using the `John Smith` naming convention.
+    ** this mapping's strength is *strong*; it will always enforce the `fullName`.
 
-Feel free to add any additional mappings or change the existing ones; just remember that the object template is midPoint built-in object that may be updated in future midPoint releases.
+Feel free to add any additional mappings or change the existing ones; just remember that the object template is a midPoint built-in object that may be updated in future midPoint releases.
 
-=== System Configuration
+=== System configuration example
 
-The following fragment is used to display users with `Person` archetypes assigned as a menu item and to add a different search configuration.
+In the following configuration example, you can see how we:
 
-.Default Person-related configuration in System Configuration (objectCollectionView)
+* display users with the `Person` archetype assigned using a menu item, 
+* add a custom search configuration.
+
+.Default Person-related configuration in the system configuration (`objectCollectionView`)
 [source,xml]
 ----
 <objectCollectionView id="80">
