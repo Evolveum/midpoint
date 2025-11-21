@@ -7635,6 +7635,9 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.4</a:since>
+                <a:schemaContext>
+                    <a:algorithm>ResourceObjectSetContextResolver</a:algorithm>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
