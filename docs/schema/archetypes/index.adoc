@@ -9,78 +9,138 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2017-08-10T11:04:15.590+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-05-06T08:28:05.280+02:00
-:page-since: "4.0"
-:page-since-improved: [ "4.1", "4.2" ]
+// :page-since: "4.0"
+// :page-since-improved: [ "4.1", "4.2" ]
 :page-upkeep-status: yellow
+:page-toc: top
+:page-description: This page describes archetypes, a midPoint feature that lets you define meaningful subtypes of objects, adding business-specific structure and behavior without custom coding.
+:page-keywords: archetype, archetypes, birthright, subtype, object type, object classification
 
-== Motivation
+This page describes archetypes, a midPoint feature that lets you define meaningful subtypes of existing object types, such as different kinds of users, roles, or organizational units.
+Archetypes enable you to add business-specific structure, behavior, and presentation without custom coding.
 
-There are several basic concepts in identity management that are used and re-used all the time: user, role, organizational unit, service, assignment.
-MidPoint has excellent out-of-box support for these concepts.
-And as midPoint is based on extensible schema from the day one, those concepts can be easily customized and extended with custom properties.
-However, there are many types of users: employees, contractors, partners, customers.
-And there are many types of orgs: company, section, division, project, workgroup and so on.
-MidPoint archetypes can be used to sort object to such subtypes.
-Each archetype can have distinct look and feel, but it can also define specific behavior and policies.
+== Introduction
+
+Archetypes in midPoint are a way to define types _within_ types.
+They serve as a kind of subclassification of objects like users, roles, or organizational units.
+You can think of archetypes as semantic labels that describe what a specific object represents in your organizational context.
+
+There are several basic concepts in identity management that are used extensively: user, role, organizational unit, service, assignment.
+While midPoint has excellent out-of-box support and customization options for these concepts, they break further down into more specific subtypes that have distinct meanings and behaviors.
+For example, there are many subtypes of users (employees, contractors, partners, customers) and orgs (company, section, division, project, workgroup).
+
+This is where archetypes come in.
+They are are designed to sort objects to such subtypes.
+Each archetype can have a distinct look and feel, but it can also define specific behavior and policies.
+Archetypes do not replace midPoint object types like _users_ or _roles_, instead, they extend them to express their business meaning.
+In other words, archetypes give structure and semantics to midPoint objects.
+
 Archetypes make midPoint much more flexible without the need for complex customization or coding.
 
 == Archetypes
 
-Simply speaking _archetype_ is a well-defined object subtype.
-Employee, contractor, project, workgroup, application, ... each of them is an archetype.
-The idea is that archetype builds on top of existing midPoint types such as User, Org or Role.
-A _project_ is just a special case of xref:/midpoint/reference/org/organizational-structure/[organizational unit]. As is _division_, _section_, _company_, _workgroup_ or any other concept that groups identities.
-An _application_ is a special case of xref:/midpoint/reference/misc/services/[service]. As is _mobile device_, _printer_, _cloud service_, _web API endpoint_ and so on.
+_Archetypes_ are well-defined object subtypes.
+They build on top of existing midPoint object types, such as User, Org, or Role to provide more specific classifications.
+
+For example, _employee_, _contractor_, _project_, _workgroup_, and _application_ are all examples of archetypes.
+A _project_ is only a special case of an xref:/midpoint/reference/org/organizational-structure/[organizational unit], much like _division_, _section_, _company_, _workgroup_, or any other concept that groups identities.
+An _application_ is a special case of a xref:/midpoint/reference/misc/services/[service], same as _mobile device_, _printer_, _cloud service_, _web API endpoint_, and so on.
 All those concepts are just specializations of the object types that midPoint already has.
-And there is actually enormous advantage to reuse existing midPoint concepts.
-If projects are modeled as organizational units then they "inherit" all the functionality of an organizational unit out-of-the-box.
-Therefore projects can have managers, they may be used for delegated administration, they can grant privileges to members and managers and so on.
-All of this is already implemented for organizational units and all of this can be instantly reused for projects.
-In a similar fashion _application_ can inherit existing functionality of _service_ (e.g. ability to grant privileges).
-This kind of reuse is very convenient and it is also extremely powerful mechanism.
-Following table lists commonly-used archetypes and their mapping to primary midPoint object types:
+
+There is an enormous advantage to reusing the existing midPoint concepts.
+If _projects_ from our example were modeled as organizational units, they would "inherit" all the functionality from an organizational unit out-of-the-box.
+This means that _projects_ can have managers, they may be used for delegated administration, they can grant privileges to members and managers, and so on.
+Whatever is already implemented for organizational units, can instantly be reused for _projects_.
+
+In a similar fashion, an _application_ can inherit an existing functionality from a _service_ (e.g., the ability to grant privileges).
+This kind of reuse is very convenient and extremely powerful.
+
+The following table lists commonly used archetypes and their mapping to primary midPoint object types:
 
 [%autowidth]
 |===
 | Primary Object Type | Archetype
 
-| UserType
+a| `UserType`
 | Employee, Contractor, Partner, Supplier, Student, Teacher
 
 
-| OrgType
+a| `OrgType`
 | Company, Division, Department, Section, Project, Team, Workgroup, Task force, Committee, Class, Research team
 
 
-| RoleType
+a| `RoleType`
 | Business role, Application role, Metarole, Teaching engagement, Protection scope, Consent target
 
 
-| ServiceType
+a| `ServiceType`
 | Application, Device, Printer, Provider, Network, Web API endpoint, Robot
 
 
 |===
 
-== Birthrights
+For example, `UserType` can be further classified using archetypes as follows:
 
-Archetypes are the primary tool to define a glossref:birthright[birthright provisioning].
-Archetypes behave as xref:/midpoint/reference/roles-policies/roles/rbac/[roles].
-Therefore, any privileges specified in archetype xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducements] are automatically applied to all the objects that have the archetype.
-This approach can be used to apply _birthright_ to the objects, e.g. it can specify baseline privileges for all employees or students.
+++++
+<div class="mermaid">
+graph TD
+    %% Object type at the top
+    A[UserType] --> B['Employee']
+    A --> C['Contractor']
+    A --> D['Service Account']
 
-Moreover, archetypes may work as xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles], specifying common behavior for object types.
-For example, `Project` archetypes may specify common behavior for all projects, including baseline authorization for project members and managers.
-Overall, archetypes provide very flexible and powerful mechanism to specify _birthrights_.
+    %% Group archetypes visually
+    subgraph Archetypes
+        B
+        C
+        D
+    end
 
-== Archetype Definition
+    %% Users under each archetype
+    B --> E[User: Alice]
+    B --> F[User: Charlie]
+    C --> G[User: Bob]
+    C --> H[User: Dana]
+    D --> I[User: SystemBot]
 
-Archetype definition is a special midPoint object (ArchetypeType).
-Being a midPoint object, archetype has a natural persistent identifier: xref:/midpoint/devel/prism/concepts/object-identifier/[OID]. OID of the archetype definition is also identifier of archetype itself.
-Each object of that archetype will contain archetype definition OID.
-E.g. every employee will contain OID of _employee archetype definition_ object.
-This OID is used internally by midPoint to process archetypes.
-But it can also be used for searching objects of a particular archetypes by the custom code or midPoint API clients.
+    %% Styles
+    style B fill:#e5f5ff,stroke:#007acc
+    style C fill:#e5f5ff,stroke:#007acc
+    style D fill:#e5f5ff,stroke:#007acc
+
+    style E fill:#e8ffe8,stroke:#228b22
+    style F fill:#e8ffe8,stroke:#228b22
+    style G fill:#e8ffe8,stroke:#228b22
+    style H fill:#e8ffe8,stroke:#228b22
+    style I fill:#e8ffe8,stroke:#228b22
+
+</div>
+++++
+
+
+Archetypes may work as xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles].
+
+To apply an archetype to an object, assign the archetype to that object as you would normally assign a role.
+Once assigned, the archetype applies to that object.
+
+This mechanism can also be reversed, and archetypes may be assigned from ordinary roles or orgs.
+
+An archetype definition is a first-class midPoint object.
+Therefore, it has all the usual advantages: it can be organized, delegated administration can be applied, it can be owned, it can have a managed lifecycle, it can be localized within a tenant, and so on.
+
+[TIP]
+.Archetypes and subtype
+====
+MidPoint 3.x used the xref:/midpoint/reference/schema/subtype/[subtype] mechanism to implement parts of the functionality provided by archetypes.
+Archetypes should provide a replacement for the subtype functionality (with some limitations).
+Subtype still works in midPoint 4.x, but it is no longer a recommended mechanism - except for the assignment subtype, which is still useful.
+Subtypes will be most likely deprecated sometime during the lifetime of midPoint 4.x, and the plan is to remove them completely in midPoint 5.0.
+
+Historical note: the original idea was to implement archetypes as an extension of the subtype functionality.
+But during a detailed design phase of the archetype functionality, it was discovered that we can implement the functionality better.
+The current form of the archetype functionality xref:/midpoint/features/synergy/[fits perfectly] with the existing midPoint features, and it is much more powerful than originally planned.
+Therefore, the idea of subtype-based archetypes was dismissed.
+====
 
 [TIP]
 .Synergy
@@ -88,71 +148,58 @@ But it can also be used for searching objects of a particular archetypes by the 
 Archetype functionality is a xref:/midpoint/features/synergy/[synergistic feature]. It is designed to fit together with existing midPoint features, such as xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure].
 ====
 
-Archetype definition are xref:/midpoint/architecture/concepts/abstract-role/[abstract roles], which means they essentially work as a role.
-To apply an archetype to an object simply assign archetype to that object as you would normally assign a role.
-From that point on archetype applies to that object.
-Archetypes being abstract roles makes them really powerful.
-That means archetypes may work as xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles]. Or it may the other way around: archetypes may be assigned from ordinary roles or orgs.
+== Birthrights
 
-Archetype definition is a first-class midPoint object, therefore it has all the usual advantages: it can be organized, delegated administration can be applied, it can be owned, it can have managed lifecycle, it can be localized withing a tenant and so on.
+Archetypes are the primary tool to define glossref:birthright[birthright provisioning]. +
+Archetypes behave as xref:/midpoint/reference/roles-policies/roles/rbac/[roles].
+Therefore, any privileges specified in archetype xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducements] are automatically applied to all the objects that have the archetype.
+This approach can be used to apply _birthrights_ to objects.
+For example, archetypes can specify baseline privileges for all employees or students.
 
-[TIP]
-.Archetypes and subtype
-====
-MidPoint 3.x used mechanism of xref:/midpoint/reference/schema/subtype/[subtype] to implement parts of the functionality provided by archetypes.
-Archetypes should provide replacement for subtype functionality (with some limitations).
-Subtype will still work in midPoint 4.x, but it is no longer a recommended mechanism - except for assignment subtype, which is still useful.
-Subtypes will be most likely deprecated sometime during midPoint 4.x lifetime and the plan is to remove it completely in midPoint 5.0.
+Moreover, archetypes may work as xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles], specifying common behavior for object types.
+For example, `Project` archetypes may specify common behavior for all projects, including baseline authorization for project members and managers.
+Overall, archetypes provide a very flexible and powerful mechanism to specify _birthrights_.
 
-Historical note: the original idea was to implement archetypes as an extension of the subtype functionality.
-But it was discovered during the detailed design of archetype functionality that we can do it much better.
-Current form of archetype functionality xref:/midpoint/features/synergy/[fits perfectly] with existing midPoint features and it is much more powerful than originally planned.
-Therefore the idea of subtype-based archetypes was dropped.
-====
 
-== User Interface Support
+== User interface support
 
 Support for custom archetype presentation is an inherent part of archetype functionality.
-Each archetype can specify details of object presentation, such as custom object icon and color.
+Each archetype can specify details of an object presentation, such as custom object icon and color.
 MidPoint user interface will display archetyped objects with that icon and color.
-This makes it easy to distinguish employees from contractors and business roles from metaroles.
+This makes it easy to distinguish, for example, employees from contractors, and business roles from metaroles.
 
-Archetypes are integrated with xref:/midpoint/reference/admin-gui/collections-views/[views]. Archetypes can be used as an implicit collection.
-Therefore it is easy to set up a view that will display all employees, business roles and so on.
-List of all archetyped objects can be available right from midPoint menu.
-Archetypes can also be used with xref:/midpoint/reference/admin-gui/collections-views/[collections]. MidPoint support some kind of inheritance of collections.
-Therefore it is easy to set up collections such as "active employees" that combines archetypes with additional search filter.
+Archetypes are integrated with xref:/midpoint/reference/admin-gui/collections-views/[views], and they can be used as implicit collections.
+Therefore, it is easy to set up a view that will display all employees, business roles, and so on.
+The list of all archetyped objects can be available directly from the midPoint menu.
+
+Archetypes can also be used with xref:/midpoint/reference/admin-gui/collections-views/[collections].
+MidPoint supports a form of inheritance for collections which enables you to set up collections such as "active employees" that combine archetypes with additional search filters.
 
 [TIP]
-.Synergy: Archetypes and Object lists/views
+.Synergy: archetypes and object lists/views
 ====
-Archetype functionality is a xref:/midpoint/features/synergy/[synergistic feature].
-It is designed as a natural extension of another midPoint feature:
-xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views].
-It is expected that the capabilities of object views will improve in time.
-There are expected user experience improvements, better customization support and so on.
-Each time collections&views are improved then also archetypes will get the same improvements.
+Archetype functionality is a xref:/midpoint/features/synergy/[synergistic feature] and it is designed as a natural extension of another midPoint feature: xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]. +
+It is expected that the capabilities of object views will improve in time, specifically with respect to user experience, customization support, and so on.
+Each time collections and views are improved, the same improvements will also be reflected in archetypes.
 ====
 
 Archetypes allow specifying _assignment relations_.
-This means that archetype can limit the scope of objects and xref:/midpoint/reference/concepts/relation/[relations] that are used in assignments to the archetyped object.
-For example, business role may specify that it can be assigned to any user, but only employees may be owners and approvers of the role.
-Except for that no other assignments are allowed.
+This means that archetypes can limit the scope of objects and xref:/midpoint/reference/concepts/relation/[relations] that are used in assignments to the archetyped object.
+For example, a business role may specify that it can be assigned to any user, but only employees may be owners and approvers of the role.
+Except for that, no other assignments are allowed.
 This is also supported in the user interface.
 The user interface will render appropriate buttons for the archetype and limit assignment selection dialogs.
 
 
 == Configuration
 
-See xref:configuration.adoc[] page for configuration details.
+See xref:configuration.adoc[] for configuration details.
 
-== Future of Archetypes
+== Future of archetypes
 
-MidPoint 4.0 provides quite a rich archetype functionality.
-However, this can still be improved.
-See xref:/midpoint/features/planned/archetypes/[Archetype Improvements (Planned Feature)] page for the details.
+See xref:/midpoint/features/planned/archetypes/[Archetype Improvements (Planned Feature)] for the details.
 
-== See Also
+== See also
 
 * xref:configuration.adoc[]
 

@@ -269,7 +269,11 @@ Create metadata were added to campaign object while its creation. See bug:MID-10
 * Current reviewers now displayed even for closed case items. See bug:MID-10935[].
 * Unable to display report preview fixed. See bug:MID-10929[].
 * Fixed shopping cart icon number does not decrease when resolving conflicts. See bug:MID-10925[].]
-
+* Fixed first and last links enable behavior on paging panel. See bug:MID-10945[].]
+* Fixed creating a duplicated container value while adding new value. See bug:MID-10926[].]
+* Fixed saving and displaying of the policy actions empty containers. See bug:MID-10928[].]
+* Fixed displaying of the certification campaign deadline value for Reviewer role. See bug:MID-10931[].]
+* Fixed displaying of the warning messages on the Shopping cart page. See bug:MID-10924[].]
 
 === Releases Of Other Components
 
@@ -552,13 +556,62 @@ The complete new set of initial objects is in the `config/initial-objects` direc
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
 For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
 
+* 000-system-configuration.xml: improved `safe` expression profile, added `permissive` and `prohobitive` profiles, renamed `script-safe` to `script-limited` permission profile, added possibility for configuration of volatility of attribute in resource wizard, added task execution constraints to advanced options tab, updated default paging options, made operation execution recording a regular feature, extended with compliance dashboard, improving `help` attribute values.
+* 010-value-policy.xml: improved localization for name attributes, removed max password length constraint, added `ignoreWhenGenerating` value policy feature.
+* 020-archetype-system-user.xml: fixed the color of the icon.
+* 021-archetype-system-role.xml: fixed the color of the icon.
+* 023-archetype-manual-provisioning-case.xml: added the color for the icon.
+* 024-archetype-operation-request.xml: fixed the icon for case object.
+* 025-archetype-approval-case.xml: added the color for the icon.
+* 028-archetype-application-role.xml: fixed the plural label.
+* 029-archetype-application.xml: fixed the displaying of the application classifications and governance panels.
+* 040-role-enduser.xml: extended assignment panels configuration.
+* 041-role-approver.xml: added manualProvisioningContext item to read authorization of the CaseType object in order to correctly display case details page; fixed authorizations.
+* 042-role-reviewer.xml: extended certification campaign read authorization.
+* 062-archetype-classification.xml: extended with documentation attribute.
+* 063-archetype-clearance.xml: extended with documentation attribute.
+* 090-report-audit.xml: queries are updated to use MidPoint Query language.
+* 100-report-reconciliation.xml: queries are updated to use MidPoint Query language.
+* 110-report-user-list.xml: queries are updated to use MidPoint Query language.
+* 140-report-certification-campaigns.xml: queries are updated to use MidPoint Query language.
+* 150-archetype-location.xml: a new one.
+* 150-archetype-organization.xml: a new one.
+* 150-archetype-organizational-unit.xml: a new one.
+* 150-archetype-project.xml: a new one.
+* 150-archetype-team.xml: a new one.
+* 150-report-certification-cases.xml: fixed campaign name column value, queries are updated to use MidPoint Query language.
+* 160-report-certification-work-items.xml: queries are updated to use MidPoint Query language.
+* 200-lookup-languages.xml: extended with new languages.
+* 210-lookup-locales.xml: extended with new locales.
+* 200-report-indirect-assignments.xml: queries are updated to use MidPoint Query language.
+* 250-mark-no-classification.xml: a new one.
+* 250-mark-privileged-access.xml: a new one.
+* 250-mark-unowned.xml: a new one.
+* 253-object-collection-application-active.xml: a new one.
+* 300-classification-privileged-access.xml: extended with documentation, assignment and inducement.
+* 300-policy-require-classification.xml: a new one.
+* 300-policy-require-owner.xml: a new one.
+* 350-object-collection-application-suspicious.xml: a new one.
+* 350-object-collection-application-unowned.xml: a new one.
+* 350-object-collection-application-without-classification.xml: a new one.
+* 350-object-collection-privileged-users.xml: a new one.
+* 350-object-collection-role-active.xml: a new one.
+* 350-object-collection-role-all.xml: a new one.
+* 350-object-collection-role-unowned.xml: a new one.
+* 350-object-collection-user-active.xml: a new one.
+* 353-users-with-sod-violations.xml: added documentation attribute, added configuration of the default view.
+* 354-roles-privileged.xml: added documentation attribute, added configuration of the default view.
+* 357-suspicious-roles.xml: added documentation attribute, added configuration of the default view.
+* 358-suspicious-users.xml: added documentation attribute, added configuration of the default view.
+* 390-org-projects.xml: a new one.
+* 390-org-teams.xml: a new one.
+* 390-org-world.xml: a new one.
 * 536-archetype-task-certification-start-campaign.xml: task activity panel was fixed to display the data from the certificationStartCampaign container.
 * 538-archetype-task-certification-reiterate-campaign.xml: task activity panel was fixed to display the data from the certificationReiterateCampaign container.
-* 029-archetype-application.xml: fixed the displaying of the application classifications.
-* 028-archetype-application-role.xml: fixed the plural label.
-* 041-role-approver.xml: added manualProvisioningContext item to read authorization of the CaseType object in order to correctly display case details page.
-* 010-value-policy.xml: improved localization
-* 000-system-configuration.xml: improved `safe` expression profile, added `permissive` and `prohobitive` profiles, renamed `script-safe` to `script-limited` permission profile.
+* 811-exclusion-violation.xml: extended with documentation attribute.
+* 830-suspicious.xml: extended with documentation attribute.
+* 899-dashboard-compliance.xml: a new one.
+* 910-task-recompute-all-users.xml: a new one.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
