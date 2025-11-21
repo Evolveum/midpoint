@@ -36,6 +36,7 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
+            <displayName>Default Accounts</displayName>
             <delineation>
                 <objectClass>ri:account</objectClass>
             </delineation>

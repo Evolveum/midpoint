@@ -121,12 +121,12 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var suggestion1 = findSuggestion(suggestions, makeAssociationKey("ENTITLEMENT/contract", "GENERIC/orgUnit"));
         assertThat(suggestion1.getDefinition().getName().getLocalPart())
                 .as("Suggestion name should be correctly generated")
-                .isEqualTo("EntitlementContract-GenericOrgUnit");
+                .isEqualTo("ENTITLEMENT/contract-ref-GENERIC/orgUnit");
 
         var suggestion2 = findSuggestion(suggestions, makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/generic-group"));
         assertThat(suggestion2.getDefinition().getName().getLocalPart())
                 .as("Suggestion name should be correctly generated")
-                .isEqualTo("EntitlementOrggroup-EntitlementGenericgroup");
+                .isEqualTo("ENTITLEMENT/org-group-ref-ENTITLEMENT/generic-group");
     }
 
     @Test
@@ -146,8 +146,8 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var actualValue = prettySerialize(suggestion);
         var expectedValue = dedent("""
         <definition>
-            <name>ri:AccountDefault-EntitlementAppgroup</name>
-            <displayName>AccountDefault-EntitlementAppgroup</displayName>
+            <name>ACCOUNT/default-ref-ENTITLEMENT/app-group</name>
+            <displayName>Default Accounts reference to ENTITLEMENT/app-group</displayName>
             <subject>
                 <ref>ri:account</ref>
                 <objectType>
@@ -155,15 +155,16 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                     <intent>default</intent>
                 </objectType>
                 <association>
-                    <ref>ri:group</ref>
+                    <ref>group-app-group</ref>
                     <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <inbound>
-                        <name>AccountDefault-EntitlementAppgroup-inbound</name>
+                        <name>ACCOUNT/default-ref-ENTITLEMENT/app-group-inbound</name>
                         <expression>
                             <associationSynchronization xsi:type="c:AssociationSynchronizationExpressionEvaluatorType">
                                 <objectRef>
                                     <correlator/>
                                     <mapping>
+                                        <name>shadowOwner-into-targetRef</name>
                                         <expression>
                                             <shadowOwnerReferenceSearch/>
                                         </expression>
@@ -174,16 +175,22 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                                 </objectRef>
                                 <synchronization>
                                     <reaction>
+                                        <name>unmatched-add</name>
                                         <situation>unmatched</situation>
                                         <actions>
                                             <addFocusValue/>
                                         </actions>
                                     </reaction>
                                     <reaction>
+                                        <name>matched-synchronize</name>
                                         <situation>matched</situation>
                                         <actions>
                                             <synchronize/>
                                         </actions>
+                                    </reaction>
+                                    <reaction>
+                                        <name>indirectly-matched-ignore</name>
+                                        <situation>matchedIndirectly</situation>
                                     </reaction>
                                 </synchronization>
                             </associationSynchronization>
@@ -220,8 +227,8 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var actualValue = prettySerialize(suggestion);
         var expectedValue = dedent("""
         <definition>
-            <name>ri:AccountDefault-EntitlementAppgroup</name>
-            <displayName>AccountDefault-EntitlementAppgroup</displayName>
+            <name>ACCOUNT/default-ref-ENTITLEMENT/app-group</name>
+            <displayName>Default Accounts reference to ENTITLEMENT/app-group</displayName>
             <subject>
                 <ref>ri:account</ref>
                 <objectType>
@@ -229,15 +236,16 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                     <intent>default</intent>
                 </objectType>
                 <association>
-                    <ref>ri:group</ref>
+                    <ref>group-app-group</ref>
                     <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <outbound>
-                        <name>AccountDefault-EntitlementAppgroup-outbound</name>
+                        <name>ACCOUNT/default-ref-ENTITLEMENT/app-group-outbound</name>
                         <strength>strong</strength>
                         <expression>
                             <associationConstruction xsi:type="c:AssociationConstructionExpressionEvaluatorType">
                                 <objectRef>
                                     <mapping>
+                                        <name>associationFromLink</name>
                                         <expression>
                                             <associationFromLink/>
                                         </expression>
@@ -342,7 +350,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var result = task.getResult();
 
         var resource = provisioningService.getObject(ResourceType.class, RESOURCE_OID, null, task, result);
-        displayValueAsXml("Resource: ad-smart-association-types", resource.getValue());
+        //displayValueAsXml("Resource: ad-smart-association-types", resource.getValue());
 
         AssociationsSuggestionType associationsSuggestion= smartIntegrationService.suggestAssociations(RESOURCE_OID, isInbound, task, result);
 
