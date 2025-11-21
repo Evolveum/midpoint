@@ -158,7 +158,7 @@ public class SmartIntegrationWrapperUtils {
         return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
     }
 
-    public static  @Nullable PrismContainerValueWrapper<MappingType> findRelatedInboundMapping(
+    public static @Nullable PrismContainerValueWrapper<MappingType> findRelatedInboundMapping(
             @NotNull PageBase pageBase,
             @NotNull PrismContainerValueWrapper<CorrelationItemType> correlationItemWrapper,
             @NotNull PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceDefWrapper) {
@@ -173,13 +173,14 @@ public class SmartIntegrationWrapperUtils {
             if (suggestionWrapper != null) {
                 container = suggestionWrapper.findContainer(CorrelationSuggestionType.F_ATTRIBUTES);
             } else {
-                container = correlationItemWrapper
-                        .getParentContainerValue(ResourceObjectTypeDefinitionType.class)
-                        .findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+                var parentContainerValue = correlationItemWrapper.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+                container = parentContainerValue != null
+                        ? parentContainerValue.findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE)
+                        : null;
             }
 
             //If container is null or empty, that indicate existing mapping has been used.
-            if(container == null || WebPrismUtil.isEmptyContainer(container.getItem())) {
+            if (container == null || WebPrismUtil.isEmptyContainer(container.getItem())) {
                 container = resourceDefWrapper.findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
             }
 
