@@ -292,6 +292,6 @@ public interface SmartIntegrationService {
      * SOURCE scenarios do not include DISPUTED.
      */
     SynchronizationReactionsType getPredefinedSynchronizationReactions(
-            DirectionScenario scenario,
+            SynchronizationConfigurationScenario scenario,
             boolean includeCorrelationCaseAction);
 }

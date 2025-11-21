@@ -12,7 +12,7 @@ package com.evolveum.midpoint.smart.api;
  * Direction classification for a resource or object type, used to drive
  * predefined synchronization configurations.
  */
-public enum DirectionScenario {
+public enum SynchronizationConfigurationScenario {
     SOURCE,
     SOURCE_WITH_FEEDBACK,
     TARGET,
