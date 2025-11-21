@@ -13,11 +13,13 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.WARNING;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isInMaintenance;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.REPLACE;
+
+import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,9 +60,9 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
  *   - {@link ResourceSearchSpecification} that contains precise query intended to obtain resource objects
  *     (plus search options). This spec is later fine-tuned by activity run to cover its specific needs
  *     (like selecting only shadows that were not updated for given time - see {@link
- *     SearchBasedActivityRunSpecifics#customizeQuery(ObjectQuery, OperationResult)}), to cater for bucketing, handling errored
- *     objects, and so on. This search specification is used only for search-based activities, e.g. not for live sync
- *     or async update.
+ *     SearchBasedActivityRunSpecifics#customizeQuery(SearchSpecification, OperationResult)}), to cater for bucketing,
+ *     handling errored objects, and so on. This search specification is used only for search-based activities, e.g.
+ *     not for live sync or async update.
  *
  *   - {@link PostSearchFilter} that filters any object returned by the item source (e.g. search operation
  *     in search-based activities).
@@ -110,7 +112,8 @@ public class SyncTaskHelper {
                 createProcessingScope(set, false, task, opResult);
 
         @NotNull ObjectQuery bareQuery = processingScope.createBareQuery();
-        @NotNull ObjectQuery resultingQuery = applyConfiguredQuery(bareQuery, set.getQuery(), set.getQueryApplication());
+        @NotNull ObjectQuery resultingQuery = applyConfiguredQuery(
+                bareQuery, set.getQuery(), set.getQueryApplication(), processingScope.getResourceObjectDefinition());
 
         return new ResourceSearchSpecification(
                 resultingQuery,
@@ -119,26 +122,34 @@ public class SyncTaskHelper {
 
     /**
      * Applies configured query to the bare query.
+     *
+     * @param resourceObjectDefinition Definition of the resource object being queried: the query should be parsed against it.
+     * May be missing. In that case, the query should contain all the necessary information in itself.
      */
     private @NotNull ObjectQuery applyConfiguredQuery(
             @NotNull ObjectQuery bareQuery,
             QueryType configuredQueryBean,
-            ResourceObjectSetQueryApplicationModeType queryApplicationMode)
-            throws SchemaException, ActivityRunException {
+            ResourceObjectSetQueryApplicationModeType queryApplicationMode,
+            @Nullable ResourceObjectDefinition resourceObjectDefinition)
+            throws SchemaException {
         if (configuredQueryBean == null) {
             return bareQuery;
         }
 
-        ObjectQuery configuredQuery = prismContext.getQueryConverter()
-                .createObjectQuery(ShadowType.class, configuredQueryBean);
-        if (queryApplicationMode == REPLACE) {
-            return configuredQuery;
-        } else if (queryApplicationMode == APPEND) {
-            return ObjectQueryUtil.addConjunctions(configuredQuery, bareQuery.getFilter());
+        // Parse configuredQueryBean to configuredQuery
+        ObjectQuery configuredQuery;
+        var converter = prismContext.getQueryConverter();
+        if (resourceObjectDefinition != null) {
+            var shadowComplexTypeDef = resourceObjectDefinition.getPrismObjectDefinition().getComplexTypeDefinition();
+            configuredQuery = converter.createObjectQuery(shadowComplexTypeDef, configuredQueryBean);
         } else {
-            throw new ActivityRunException("Unsupported query application mode: " + queryApplicationMode,
-                    FATAL_ERROR, PERMANENT_ERROR);
+            configuredQuery = converter.createObjectQuery(ShadowType.class, configuredQueryBean);
         }
+
+        return switch (queryApplicationMode) {
+            case REPLACE -> configuredQuery;
+            case APPEND -> ObjectQueryUtil.addConjunctions(configuredQuery, bareQuery.getFilter());
+        };
     }
 
     @NotNull

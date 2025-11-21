@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,13 @@ public class ResourceSchemaRegistry implements SchemaLookup.Based {
         return resourceSchema.findDefinitionForConstruction(construct);
     }
 
-    public @Nullable ResourceObjectDefinition getDefinitionForKindIntent(String resourceOid, ShadowKindType kind, String intent) throws SchemaException {
+    public @Nullable ResourceObjectDefinition getDefinitionForKindIntent(String resourceOid, ShadowKindType kind, String intent)
+            throws SchemaException {
+        return getDefinitionForKindIntent(resourceOid, kind, intent, null);
+    }
+
+    public @Nullable ResourceObjectDefinition getDefinitionForKindIntent(
+            String resourceOid, ShadowKindType kind, String intent, QName objectClassName) throws SchemaException {
         if (resourceOid == null) {
             return null;
         }
@@ -83,7 +90,7 @@ public class ResourceSchemaRegistry implements SchemaLookup.Based {
             kind = ShadowKindType.ACCOUNT;
         }
         try {
-            return ResourceSchemaUtil.findObjectDefinitionPrecisely(resourceSchema, kind, intent, null, resourceOid);
+            return ResourceSchemaUtil.findObjectDefinitionPrecisely(resourceSchema, kind, intent, objectClassName, resourceOid);
         } catch (ConfigurationException e) {
             return null;
         }
