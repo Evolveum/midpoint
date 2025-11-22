@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
@@ -133,7 +135,12 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
             @Override
             protected void initialize(TaskType objectWrapper) {
-                setIconCssClass("fa fa-exclamation-triangle text-warning");
+                OperationResultStatusType status = getTaskHealthStatus();
+                if (status != null) {
+                    String icon = OperationResultStatusPresentationProperties.parseOperationalResultStatus(status).getIcon();
+                    setIconCssClass("fa " + icon);
+                }
+
                 setLabel(createTaskHealthMessage());
             }
         };
@@ -245,7 +252,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
             String taskHealth = createTaskHealthMessage();
             if (StringUtils.isNotEmpty(taskHealth)) {
-                rv += " " + taskHealth;
+                rv += "; " + taskHealth;
             }
 
             return rv;
@@ -300,8 +307,17 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return getIconForExecutionState(status);
     }
 
+    private OperationResultStatusType getTaskHealthStatus() {
+        TaskInformation info = taskInformationModel.getObject();
+        return info.getTaskHealthStatus();
+    }
+
     private String createTaskHealthMessage() {
         TaskInformation info = taskInformationModel.getObject();
+        if (info.getTaskHealthStatus() == OperationResultStatusType.SUCCESS) {
+            return null;
+        }
+
         TaskExecutionProgress progress = TaskExecutionProgress.fromTaskInformation(info, getPageBase());
 
         return progress.createSingleTaskHealthMessage();
