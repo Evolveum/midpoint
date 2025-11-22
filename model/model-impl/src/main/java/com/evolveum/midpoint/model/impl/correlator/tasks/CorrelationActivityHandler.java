@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
@@ -54,7 +55,7 @@ public class CorrelationActivityHandler
     public CorrelationActivityRun createActivityRun(
             @NotNull ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationActivityHandler> ctx,
             @NotNull OperationResult result) {
-        return new CorrelationActivityRun(ctx, this.correlationService);
+        return new CorrelationActivityRun(ctx, this.correlationService, PrismContext.get());
     }
 
     private CorrelationWorkDefinition workDefFactory(WorkDefinitionFactory.WorkDefinitionInfo info) {

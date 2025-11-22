@@ -71,6 +71,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getCorrelationSuggestion());
         addTypedParameters(values, definitions.getMappingsSuggestion());
         addTypedParameters(values, definitions.getAssociationsSuggestion());
+        addTypedParameters(values, definitions.getCorrelation());
 
         addTypedParameters(values, definitions.getCreateConnector());
         addTypedParameters(values, definitions.getInstallConnector());
