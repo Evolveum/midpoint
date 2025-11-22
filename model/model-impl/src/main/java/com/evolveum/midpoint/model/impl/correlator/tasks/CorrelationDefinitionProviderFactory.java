@@ -17,10 +17,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Component
 public final class CorrelationDefinitionProviderFactory {
 
-    @Qualifier("cacheRepositoryService")
     private final RepositoryService repository;
 
-    public CorrelationDefinitionProviderFactory(RepositoryService repository) {
+    public CorrelationDefinitionProviderFactory(@Qualifier("cacheRepositoryService") RepositoryService repository) {
         this.repository = repository;
     }
 
