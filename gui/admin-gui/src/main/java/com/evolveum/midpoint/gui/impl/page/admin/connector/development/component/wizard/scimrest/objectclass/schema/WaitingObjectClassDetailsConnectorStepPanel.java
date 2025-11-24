@@ -66,6 +66,11 @@ public class WaitingObjectClassDetailsConnectorStepPanel extends WaitingConnecto
     }
 
     @Override
+    protected boolean objectClassRequired() {
+        return true;
+    }
+
+    @Override
     public String getStepId() {
         return PANEL_TYPE;
     }

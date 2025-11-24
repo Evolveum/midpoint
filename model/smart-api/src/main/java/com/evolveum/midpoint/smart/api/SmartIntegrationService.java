@@ -284,4 +284,14 @@ public interface SmartIntegrationService {
     boolean cancelRequest(String token, long timeToWait, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
             SecurityViolationException, CommunicationException;
+
+    /**
+     * Returns predefined synchronization reactions for the given direction scenario.
+     * For TARGET scenarios, a DISPUTED reaction with a default "create correlation case" action is included
+     * only when {@code includeCorrelationCaseAction} is true.
+     * SOURCE scenarios do not include DISPUTED.
+     */
+    SynchronizationReactionsType getPredefinedSynchronizationReactions(
+            SynchronizationConfigurationScenario scenario,
+            boolean includeCorrelationCaseAction);
 }

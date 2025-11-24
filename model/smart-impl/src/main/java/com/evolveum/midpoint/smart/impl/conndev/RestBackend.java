@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
@@ -40,8 +41,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public ConnDevApplicationInfoType discoverBasicInformation() {
-        var documentation = selectBestDocumentation(getProcessedDocumentation());
-        try(var job = client().postDocumentationJob("digester/getInfoMetadata", documentation.asInputStream() , null)) {
+        try(var job = client().postJob("digester/{sessionId}/metadata")) {
             return job.waitAndProcess(SLEEP_TIME, o -> {
                 var ret = new ConnDevApplicationInfoType();
 
@@ -81,13 +81,10 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevAuthInfoType> discoverAuthorizationInformation() {
-        var documentation = selectBestDocumentation(getProcessedDocumentation());
-
-        try(var job = client().postDocumentationJob("digester/getAuth", documentation.asInputStream() , null)) {
+        try(var job = client().postJob("digester/{sessionId}/auth")) {
             return job.waitAndProcess(SLEEP_TIME, json -> {
                 var ret = new ArrayList<ConnDevAuthInfoType>();
                 for (var jsonAuth : json.get("auth")) {
-
                     var auth = SupportedAuthorization.fromAiType(jsonAuth.get("type").asText());
                     if (auth != null) {
                         auth.setName(jsonAuth.get("name").asText());
@@ -106,10 +103,12 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     public List<ConnDevDocumentationSourceType> discoverDocumentation() {
 
         ObjectNode request = JSON_FACTORY.objectNode();
-        request.set("applicationName", JSON_FACTORY.textNode(developmentObject().getApplication().getApplicationName().getOrig()));
-        request.set("applicationVersion", JSON_FACTORY.textNode(developmentObject().getApplication().getVersion()));
-
-        try(var jobSpec = client().postJob("discovery/getCandidateLinks", request)) {
+        request.set("applicationName", JSON_FACTORY.textNode(
+                developmentObject().getApplication().getApplicationName().getOrig()));
+        request.set("applicationVersion", JSON_FACTORY.textNode(
+                Objects.requireNonNullElse(developmentObject().getApplication().getVersion(), "latest")));
+        request.set("llmGeneratedSearchQuery", JSON_FACTORY.booleanNode(false));
+        try(var jobSpec = client().postJob("discovery/{sessionId}/discovery", request)) {
             return jobSpec.waitAndProcess(SLEEP_TIME, result -> {
                 var results = jobSpec.getResult().get("candidateLinksEnriched");
 
@@ -197,15 +196,8 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation) {
-        var request = MultipartEntityBuilder.create();
-        var documentation = selectBestDocumentation(getProcessedDocumentation());
-        try {
-            request.addBinaryBody("documentation", documentation.asInputStream(), ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
-            request.addTextBody("relations",  toJsonRelations(relation).toPrettyString());
-        } catch (FileNotFoundException e) {
-            throw new SystemException("Couldn't open documentation file", e);
-        }
-        try(var job = client().postEntityJob("codegen/getRelation" , request.build())) {
+        // FIXME: Upload new relations to server
+        try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass())) {
             return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
         } catch (Exception e) {
             throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
@@ -216,45 +208,36 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
 
     private String generateSearchAll(ConnDevArtifactType artifactSpec, List<ConnDevHttpEndpointType> endpoints) {
-        var attributes = connectorObjectClass(artifactSpec.getObjectClass()).getAttribute();
-        var request = MultipartEntityBuilder.create();
-        var documentation = selectBestDocumentation(getProcessedDocumentation());
-        try {
-            request.addBinaryBody("documentation", documentation.asInputStream(), ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
-            request.addTextBody("attributes", toJsonAttributes(attributes).toPrettyString());
-            request.addTextBody("endpoints",  toJsonEndpoints(endpoints).toPrettyString());
-        } catch (FileNotFoundException e) {
-            throw new SystemException("Couldn't open documentation file", e);
-        }
-        try(var job = client().postEntityJob("codegen/getSearch", artifactSpec.getObjectClass(), request.build())) {
+        try (var job = client().postJob("codegen/{sessionId}/classes/" + artifactSpec.getObjectClass() + "/search/" + toServiceIntent(artifactSpec.getIntent()))) {
             return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
         } catch (Exception e) {
             throw new SystemException("Couldn't generate native schema for objectClass " + artifactSpec.getObjectClass(), e);
         }
+    }
+
+    private String toServiceIntent(ConnDevScriptIntentType intent) {
+        // FIXME: Unify intents with service
+        return intent.value();
     }
 
     private String generateConnIdSchema(ConnDevArtifactType artifactSpec) {
-        var attributes = connectorObjectClass(artifactSpec.getObjectClass()).getAttribute();
-        var attributesPair = new BasicNameValuePair("attributes", toJsonAttributes(attributes).toPrettyString());
-        var request = new UrlEncodedFormEntity(List.of(attributesPair));
-
-        try(var job = client().postEntityJob("codegen/getConnID", artifactSpec.getObjectClass(), request)) {
+        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/connid")) {
             return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
         } catch (Exception e) {
             throw new SystemException("Couldn't generate native schema for objectClass " + artifactSpec.getObjectClass(), e);
         }
     }
 
+    private String sessionId() {
+        return developmentObject().getOid();
+    }
+
     private ServiceClient client() {
-        return beans.client(result);
+        return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
     }
 
     private String generateNativeSchema(ConnDevArtifactType artifactSpec) {
-        var attributes = connectorObjectClass(artifactSpec.getObjectClass()).getAttribute();
-        var attributesPair = new BasicNameValuePair("attributes", toJsonAttributes(attributes).toPrettyString());
-        var request = new UrlEncodedFormEntity(List.of(attributesPair));
-
-        try(var job = client().postEntityJob("codegen/getNativeSchema", artifactSpec.getObjectClass(), request)) {
+        try(var job = client().postJob("codegen/{sessionId}/classes/" + artifactSpec.getObjectClass() + "/native-schema")) {
             return job.waitAndProcess(SLEEP_TIME, json -> {
                 return json.get("code").asText();
             });
@@ -265,9 +248,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated) {
-        var documentation = selectBestDocumentation(getProcessedDocumentation());
-
-        try(var job = client().postDocumentationJob("digester/getObjectClass", documentation.asInputStream() , null)) {
+        try(var job = client().postJob("digester/{sessionId}/classes")) {
             return job.waitAndProcess(SLEEP_TIME, o -> {
                 var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
                 var jsonClasses = o.get("objectClasses");
@@ -302,8 +283,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass) {
-        var documentation = selectBestDocumentation(getProcessedDocumentation());
-        try(var job = client().postDocumentationObjectClassJob("digester/getEndpoints", objectClass , documentation.asInputStream() , null)) {
+        try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/endpoints")) {
             return job.waitAndProcess(SLEEP_TIME, o -> {
                 var ret = new ArrayList<ConnDevHttpEndpointType>();
                 var jsonClasses = o.get("endpoints");
@@ -362,8 +342,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass) {
-        var documentation = selectBestDocumentation(getProcessedDocumentation());
-        try(var job = client().postDocumentationObjectClassJob("digester/getObjectClassSchema", objectClass, documentation.asInputStream() , null)) {
+        try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes")) {
             return job.waitAndProcess(SLEEP_TIME, o -> {
                 var ret = new ArrayList<ConnDevAttributeInfoType>();
                 var jsonAttributes = (ObjectNode) o.get("attributes");
@@ -583,14 +562,8 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) {
-
-        var request = MultipartEntityBuilder.create();
-        var documentation = selectBestDocumentation(getProcessedDocumentation());
         try {
-            request.addBinaryBody("documentation", documentation.asInputStream(), ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
-            request.addTextBody("relevantObjectClasses", toJsonObjectClasses(discovered).toPrettyString());
-
-            try(var job = client().postEntityJob("digester/getRelations",request.build())) {
+            try(var job = client().postJob("digester/{sessionId}/relations")) {
                 return job.waitAndProcess(SLEEP_TIME, json -> {
                     var ret = new ArrayList<ConnDevRelationInfoType>();
                     var jsonRelations = json.get("relations");
@@ -653,6 +626,52 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         return discovered.stream().map(ConnDevBasicObjectClassInfoType::getName)
                 .filter(llmName::equalsIgnoreCase).findFirst().orElse(null);
 
+    }
+
+    private void restoreSession(ServiceClient.RestorationClient client) throws IOException {
+        // FIXME: Implement full session restoration here
+        ensureDocumentationIsUploaded(client);
+
+    }
+
+    private void synchronizeSession(ServiceClient.RestorationClient client) throws IOException {
+        // FIXME: Implement session synchronization here
+        ensureDocumentationIsUploaded(client);
+    }
+
+
+
+    public void ensureDocumentationIsUploaded(ServiceClient.RestorationClient client) {
+        for (var documentation : getProcessedDocumentation()) {
+            try {
+                client.putIfMissing("session/{sessionId}/documentation/" + documentation.uuid(), () -> {
+                    final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+                    builder.setMode(HttpMultipartMode.EXTENDED);
+                    try {
+                        builder.addBinaryBody("documentation", documentation.asInputStream(),
+                                ContentType.create(documentation.contentType(), StandardCharsets.UTF_8),
+                                filenameFrom(documentation));
+                    } catch (FileNotFoundException e) {
+                        throw new SystemException("Couldn't open documentation", e);
+                    }
+                    return builder.build();
+                });
+            } catch (Exception e) {
+                throw new SystemException("Couldn't upload documentation", e);
+            }
+        }
+
+    }
+
+    private String filenameFrom(ProcessedDocumentation documentation) {
+        /*
+        var suffix = switch (documentation.contentType()) {
+            case "application/yaml" -> "yml";
+            case "application/json" -> "json";
+            default -> "txt";
+        };
+        */
+        return documentation.uri();
     }
 
 }

@@ -77,6 +77,11 @@ public class WaitingBasicInfoConnectorStepPanel extends WaitingConnectorStepPane
     }
 
     @Override
+    protected boolean objectClassRequired() {
+        return false;
+    }
+
+    @Override
     protected ItemName getActivityType() {
         return WorkDefinitionsType.F_DISCOVER_GLOBAL_INFORMATION;
     }

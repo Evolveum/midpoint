@@ -112,4 +112,9 @@ public class WaitingForDocumentationConnectorStepPanel extends WaitingConnectorS
 
         return super.isCompleted();
     }
+
+    @Override
+    protected boolean objectClassRequired() {
+        return false;
+    }
 }

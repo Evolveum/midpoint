@@ -69,9 +69,15 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             @Override
             protected String load() {
                 try {
+                    var objectClass = getObjectClassName();
+                    if (objectClassRequired() && objectClass == null) {
+                        // Sometimes panels are checked earlier than object class exists.
+                        return null;
+                    }
+
                     return ConnectorDevelopmentWizardUtil.getTaskToken(
                             getActivityType(),
-                            getObjectClassName(),
+                            objectClass,
                             getScripType() != null ? getScripType().scriptIntent : null,
                             getDetailsModel().getObjectWrapper().getOid(),
                             getDetailsModel().getPageAssignmentHolder());
@@ -82,6 +88,13 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             }
         };
     }
+
+    /**
+     * Returns if the panel is object class specific.
+     *
+     * @return true if panel is object class specific, false if it is otherwise
+     */
+    protected abstract boolean objectClassRequired();
 
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
         return null;
