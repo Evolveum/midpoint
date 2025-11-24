@@ -418,8 +418,7 @@ export default class MidPointTheme {
                     const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
                     const isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
 
-                    const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused && !isEnterPressedOnTooltipIcon;
-
+                    const shouldHide = !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused && !isEnterPressedOnTooltipIcon;
                     if (shouldHide) {
                         $el.tooltip('hide');
                     }
