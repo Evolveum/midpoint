@@ -92,4 +92,9 @@ public class WaitingObjectClassInformationStepPanel extends WaitingConnectorStep
 
         return super.isCompleted();
     }
+
+    @Override
+    protected boolean objectClassRequired() {
+        return false;
+    }
 }

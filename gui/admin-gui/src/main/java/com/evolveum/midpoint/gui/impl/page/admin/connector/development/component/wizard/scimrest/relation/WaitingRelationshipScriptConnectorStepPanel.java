@@ -127,4 +127,9 @@ public class WaitingRelationshipScriptConnectorStepPanel extends WaitingScriptCo
 
         return super.isCompleted();
     }
+
+    @Override
+    protected boolean objectClassRequired() {
+        return true;
+    }
 }

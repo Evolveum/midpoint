@@ -99,4 +99,9 @@ public class WaitingConnIdSchemaConnectorStepPanel extends WaitingObjectClassScr
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION;
     }
+
+    @Override
+    protected boolean objectClassRequired() {
+        return true;
+    }
 }
