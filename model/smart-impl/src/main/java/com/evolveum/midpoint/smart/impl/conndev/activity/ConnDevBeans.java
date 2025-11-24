@@ -26,7 +26,6 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -107,12 +106,12 @@ public class ConnDevBeans {
         return null;
     }
 
-    public ServiceClient client(OperationResult result) {
+    public ServiceClient client(String sessionId, ServiceClient.SessionRestoration restoration, ServiceClient.SessionRestoration synchronization, OperationResult result) {
         var apiBase = getServiceUrl(result);
         if (apiBase == null) {
             throw new SystemException("Connector Generation Service  not configured.");
         }
-        return new ServiceClient(apiBase, client);
+        return new ServiceClient(apiBase, sessionId, restoration, synchronization, client);
     }
 
     public boolean isOffline() {

@@ -53,6 +53,14 @@ public class ProcessedDocumentation {
         }
     }
 
+    public String uri() {
+        return uri;
+    }
+
+    public String uuid() {
+        return uuid;
+    }
+
     String contentType() {
         if (mimeType == null) {
             if (uri.endsWith(".json")) {
