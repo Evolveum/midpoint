@@ -17470,6 +17470,27 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="ca29f4d4-305b-4e72-9f1c-30a34619bd41">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_OWNER_FOUND"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="e5246605-73ee-4682-9efb-73a915427d18">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ed7018b7-5cc4-4675-9e1e-a6a158c2f31a">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000738">
                 <xsd:annotation>
                     <xsd:appinfo>
