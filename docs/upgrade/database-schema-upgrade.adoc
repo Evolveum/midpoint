@@ -23,34 +23,6 @@ The scripts are designed to be non-desctructive, therefore they can safely be ex
 
 IMPORTANT: Database schema upgrade usually introduces new columns which needs to be populated from full object. It is highly recommended to run Reindex Repository Task (GUI -> About -> Reindex Repository Objects) after database schema upgrades.
 
-=== The right process for the right repository
-
-Since version 4.4, midPoint features two SQL repository implementations and these have different upgrade procedures.
-It is absolutely critical to use the right upgrade script for the right repository.
-While the upgrade uses upgrade scripts in both cases, there are small differences for each repository.
-To make it simpler, there are separate sections for each repository implementation below.
-
-.How do I know what repository I'm using?
-[TIP]
-====
-One should know what repo is used.
-But just in case, there is a couple of ways to find out:
-
-* In GUI go to *About* page and check *Repository* panel.
-If *Implementation name* says *Native*, you are using the new xref:/midpoint/reference/repository/native-postgresql/[Native repository] recommended from version 4.4 on.
-Old Generic repo says *SQL* instead.
-
-* If in your `config.xml` the content of `repository/type` element is `native` (or `sqale`, or `scale`, casing does not matter), you are using the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
-If there is `generic` (or `sql`) instead, or there is no `type` element under `repository`, but `repositoryServiceFactoryClass`
-is used instead, you are using the old repository.
-
-* If you are connected to the database, there are some differences in tables.
-Try `select * from m_uri limit 1` - if it works without any error (even if it does not return anything),
-you are using the new xref:/midpoint/reference/repository/native-postgresql/[Native repository].
-If it doesn't work - and `select * from m_object_text_info limit 1` on the other hand does - then
-you are using the old repository.
-====
-
 == Upgrading Native PostgreSQL Repository
 
 This section describes how to upgrade the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
