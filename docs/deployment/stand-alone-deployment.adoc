@@ -147,7 +147,7 @@ This information can be used to set up proper file system permission, e.g. in ca
 
 == MidPoint Repository (Database)
 
-MidPoint comes with two implementations for repository native PostgreSQL and deprecated generic that supports multiple databases (Oracle, SQL Server, PostgreSQL).
+MidPoint comes with native PostgreSQL repository implementation.
 Repository configuration is done in `${midpoint.home}/config.xml` directory or via `-D` JVM options.
 The xref:/midpoint/reference/repository/configuration/[Repository Configuration] page provides the instructions.
 

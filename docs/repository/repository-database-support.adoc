@@ -13,12 +13,6 @@ doc-type: intro
 :page-display-order: 20
 :page-toc: top
 
-[TIP]
-.TL;DR
-====
-You should choose *PostgreSQL* database, using xref:native-postgresql/[native PostgreSQL repository implementation].
-====
-
 MidPoint has to store its own data in a database, which we call _repository_.
 MidPoint stores all the data there: users, roles, xref:/midpoint/reference/resources/shadow/[shadow objects] representing accounts, configuration, everything.
 MidPoint needs PostgreSQL database engine to do that.
@@ -87,14 +81,7 @@ Given our plans for the future, it is not worth considering any other options.
 
 == Existing Deployments: Migration to Native PostgreSQL Repository
 
-Firstly and most importantly, there is no need for panic or any other quick action right now.
-PostgreSQL is the recommended database, but other databases are still supported (except for MariaDB/MySQL, which were deprecated some time ago).
-The other databases will be supported for some time, to give all users proper chance to migrate to PostgreSQL.
-It would be nice of you migrate your existing deployment right now, however doing it a bit later is still OK.
-If you have exiting deployment in production, migration may require some planning and careful execution.
-Take your time preparing for the migration.
-However, do not delay for too long.
-Create migration *plan* right now.
+// todo rewrite migration part
 
 Migration of existing deployments should be done is several steps:
 

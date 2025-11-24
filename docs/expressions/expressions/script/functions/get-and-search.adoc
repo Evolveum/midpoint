@@ -11,20 +11,20 @@ The provided get and search related functions are:
 * Get Object Functions - Allow to get object using `type` and `oid` of the object.
 * Search Object Functions - Allows to search objects using `type` and `query`
 
-These capabilities are useful, and sometimes necessary, but their overuse may affect performance.  
+These capabilities are useful, and sometimes necessary, but their overuse may affect performance.
 
 
 == Performance Optimizations
 
-Since midPoint 4.9 xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Native Repository splitted most full objects] into components, which allows only to exclude paths, which are not needed for script logic. 
+Since midPoint 4.9 xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Native Repository splitted most full objects] into components, which allows only to exclude paths, which are not needed for script logic.
 
-For backwards compatibility these items are returned by default, but if it is necessary it is possible to exclude them from results. 
+For backwards compatibility these items are returned by default, but if it is necessary it is possible to exclude them from results.
 
 The `getObject`, `searchObjects`, and `searchObjectsIterative` can be called with additional argument `options`, which provides more specific options, how to fetch data.
 
-IMPORTANT: Partially readed objects (objects with exclusion) should not be used as base for new objects (added to repository), they are mostly intended for read-only use cases. 
+IMPORTANT: Partially readed objects (objects with exclusion) should not be used as base for new objects (added to repository), they are mostly intended for read-only use cases.
 
-NOTE: Returned objects may contain excluded data, if the underlying object was not yet stored splitted (in case of Native Repository) or these options are used for Generic Repository. 
+NOTE: Returned objects may contain excluded data, if the underlying object was not yet stored splitted.
 
 === Fetching only base properties
 

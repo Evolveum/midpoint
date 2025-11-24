@@ -74,8 +74,6 @@ For details see related section in https://docs.evolveum.com/midpoint/reference/
 Setting it to `false` creates dedicated connection pool for the scheduler which always uses
 10 additional connections for every node.
 
-*Do not set this with the old Generic repository* - the option is not supported for the old repository
-and in some cases causes problems because of transaction isolation levels.
 | `true` for new Native repository if `jdbcUrl` is not specified, `false` otherwise
 
 |===
