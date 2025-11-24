@@ -48,12 +48,16 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     private Consumer<Task> taskConsumer;
 
-    public SelectableBeanObjectDataProvider(Component component, IModel<Search<O>> search, Set<O> selected) {
-        super(component, search, selected, true);
+    public SelectableBeanObjectDataProvider(Component component, Set<O> selected) {
+        this(component, Model.of(), selected);
     }
 
-    public SelectableBeanObjectDataProvider(Component component, Set<O> selected) {
-        super(component, Model.of(), selected, true);
+    public SelectableBeanObjectDataProvider(Component component, IModel<Search<O>> search, Set<O> selected) {
+        this(component, search, false, selected);
+    }
+
+    public SelectableBeanObjectDataProvider(Component component, IModel<Search<O>> search, boolean useCache, Set<O> selected) {
+        super(component, search, useCache, selected, true);
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {

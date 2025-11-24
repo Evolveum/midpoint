@@ -75,7 +75,11 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     }
 
     public SelectableBeanDataProvider(Component component, @NotNull IModel<Search<T>> search, Set<T> selected, boolean useDefaultSortingField) {
-        super(component, search, false, useDefaultSortingField);
+        this(component, search, false, selected, useDefaultSortingField);
+    }
+
+    public SelectableBeanDataProvider(Component component, @NotNull IModel<Search<T>> search, boolean useCache, Set<T> selected, boolean useDefaultSortingField) {
+        super(component, search, useCache, useDefaultSortingField);
 
         if (selected != null) {
             this.selected = selected;

@@ -200,7 +200,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
     private SelectableBeanObjectDataProvider<AccessCertificationCampaignType> createProvider() {
         SelectableBeanObjectDataProvider<AccessCertificationCampaignType> provider = new SelectableBeanObjectDataProvider<>(
-                getPageBase(), searchModel, null) {
+                getPageBase(), searchModel, true, null) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
