@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -104,9 +104,9 @@ class ObjectTypesSuggestionOperation {
             var delineation = new ResourceObjectTypeDelineationType()
                     .objectClass(typeName);
             objectTypeWithFilters.filters().forEach(delineation::filter);
-            AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_FILTER);
+            SmartMetadataUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_FILTER);
             if (objectTypeWithFilters.filterError() != null) {
-                AiUtil.markAsInvalid(delineation, objectTypeWithFilters.filterError(), ResourceObjectTypeDelineationType.F_FILTER);
+                SmartMetadataUtil.markAsInvalid(delineation, objectTypeWithFilters.filterError(), ResourceObjectTypeDelineationType.F_FILTER);
             }
 
             var baseCtx = objectTypeWithFilters.baseCtx();
@@ -114,10 +114,10 @@ class ObjectTypesSuggestionOperation {
                 delineation.baseContext(new ResourceObjectReferenceType()
                         .objectClass(baseCtx.classQName())
                         .filter(baseCtx.filter()));
-                AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+                SmartMetadataUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
             }
             if (objectTypeWithFilters.baseCtxError() != null) {
-                AiUtil.markAsInvalid(delineation, objectTypeWithFilters.baseCtxError(), ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+                SmartMetadataUtil.markAsInvalid(delineation, objectTypeWithFilters.baseCtxError(), ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
             }
 
             var typeId = ResourceObjectTypeIdentification.of(
@@ -138,7 +138,7 @@ class ObjectTypesSuggestionOperation {
                     .displayName(displayName)
                     .description(description)
                     .delineation(delineation);
-            AiUtil.markAsAiProvided(
+            SmartMetadataUtil.markAsAiProvided(
                     objectType,
                     ResourceObjectTypeDefinitionType.F_KIND,
                     ResourceObjectTypeDefinitionType.F_INTENT,

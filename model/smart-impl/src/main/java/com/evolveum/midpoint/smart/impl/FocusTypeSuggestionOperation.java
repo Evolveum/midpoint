@@ -13,7 +13,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDelineation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ShadowQueryConversionUtil;
-import com.evolveum.midpoint.schema.util.AiUtil;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -75,7 +75,7 @@ class FocusTypeSuggestionOperation {
                 .invoke(SUGGEST_FOCUS_TYPE, request, SiSuggestFocusTypeResponseType.class)
                 .getFocusTypeName();
         var suggestion = new FocusTypeSuggestionType().focusType(focusTypeName);
-        return AiUtil.markAsAiProvided(suggestion, FocusTypeSuggestionType.F_FOCUS_TYPE);
+        return SmartMetadataUtil.markAsAiProvided(suggestion, FocusTypeSuggestionType.F_FOCUS_TYPE);
     }
 
     private static void setBaseContextFilter(

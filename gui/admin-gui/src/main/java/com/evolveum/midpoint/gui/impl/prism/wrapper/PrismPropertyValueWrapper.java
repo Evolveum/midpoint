@@ -11,7 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.util.AiUtil;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -84,7 +84,7 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
 
         getNewValue().setValue(newRealValue);
 
-        AiUtil.syncAiProvenanceWithChangeIfApplied(getNewValue(),getOldValue());
+        SmartMetadataUtil.syncAiProvenanceWithChangeIfApplied(getNewValue(),getOldValue());
 
         setStatus(ValueStatus.MODIFIED);
     }

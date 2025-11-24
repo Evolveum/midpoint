@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.AiUtil;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.web.component.behavior.CaretPreservingOnChangeBehavior;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 
@@ -40,7 +40,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
-import static com.evolveum.midpoint.schema.util.AiUtil.getFilterInvalidMessage;
+import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.getFilterInvalidMessage;
 
 import static java.util.Map.entry;
 
@@ -171,7 +171,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
         }
 
         PrismValue value = prismValueWrapper.getNewValue();
-        boolean markedAsInvalid = AiUtil.isMarkedAsInvalid(value);
+        boolean markedAsInvalid = SmartMetadataUtil.isMarkedAsInvalid(value);
 
         if (!markedAsInvalid) {
             return false;
@@ -190,7 +190,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
     private static <T> boolean hasAiMark(
             PrismValueWrapper<T> prismValueWrapper,
             boolean newValue) {
-        return prismValueWrapper != null && AiUtil.isMarkedAsAiProvided(
+        return prismValueWrapper != null && SmartMetadataUtil.isMarkedAsAiProvided(
                 newValue ? prismValueWrapper.getNewValue() : prismValueWrapper.getOldValue());
     }
 

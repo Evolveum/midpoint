@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -108,6 +109,9 @@ public class SmartAssociationImpl {
 
         LOGGER.info("Association suggestions generated, num: {}", associationsSuggestionType.getAssociation().size());
 
+        SmartMetadataUtil.markContainerProvenance(
+                associationsSuggestionType.asPrismContainerValue(),
+                SmartMetadataUtil.ProvenanceKind.SYSTEM);
         return associationsSuggestionType;
     }
 

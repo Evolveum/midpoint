@@ -19,7 +19,7 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.AiUtil;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -99,7 +99,7 @@ class CorrelationSuggestionOperation {
                                     )
                                     .item(new CorrelationItemType()
                                             .ref(suggestion.focusItemPath().toBean()))));
-            AiUtil.markAsAiProvided(correlationDefinition);
+            SmartMetadataUtil.markAsAiProvided(correlationDefinition);
             suggestionBean.setCorrelation(correlationDefinition);
             suggestionBean.setQuality(score);
             suggestionsBean.getSuggestion().add(suggestionBean);
@@ -135,8 +135,8 @@ class CorrelationSuggestionOperation {
                         var attrDefBean = new ResourceAttributeDefinitionType()
                                 .ref(resourceAttrName.toBean())
                                 .inbound(inbound);
-                        AiUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
-                        AiUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
+                        SmartMetadataUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
+                        SmartMetadataUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
                         // Use is not provided by AI, it is set to CORRELATION by default.
                         response.add(
                                 new CorrelatorSuggestion(focusItemPath, shadowItemPath, attrDefBean));

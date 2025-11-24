@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.serializeFilter;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedProvenanceProvided;
 import static com.evolveum.midpoint.test.IntegrationTestTools.LOGGER;
 
 import static java.util.Collections.singleton;
@@ -30,6 +31,7 @@ import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE;
+import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.ProvenanceKind;
 
 import java.io.File;
 import java.io.IOException;
@@ -4845,48 +4847,66 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected static void assertAiProvidedMarkPresent(Containerable c, ItemPath... paths) {
-        assertAiProvidedMarkValue(c, true, false, paths);
+        assertProvenanceMarkValue(ProvenanceKind.AI, c, true, false, paths);
     }
 
     protected static void assertAiProvidedMarkPresentRequired(Containerable c, ItemPath... paths) {
-        assertAiProvidedMarkValue(c, true, true, paths);
+        assertProvenanceMarkValue(ProvenanceKind.AI, c, true, true, paths);
     }
 
     protected static void assertAiProvidedMarkAbsent(Containerable c, ItemPath... paths) {
-        assertAiProvidedMarkValue(c, false, false, paths);
+        assertProvenanceMarkValue(ProvenanceKind.AI, c, false, false, paths);
     }
 
     protected static void assertAiProvidedMarkAbsentRequired(Containerable c, ItemPath... paths) {
-        assertAiProvidedMarkValue(c, false, true, paths);
+        assertProvenanceMarkValue(ProvenanceKind.AI, c, false, true, paths);
     }
 
-    protected static void assertAiProvidedMarkValue(Containerable c, boolean expected, boolean required, ItemPath... paths) {
+    protected static void assertProvenanceMarkValue(
+            ProvenanceKind kind,
+            Containerable c,
+            boolean expected,
+            boolean required,
+            ItemPath @NotNull ... paths) {
+
         if (paths.length == 0) {
-            assertAiProvidedMarkValue(c.asPrismContainerValue(), expected);
-        } else {
-            for (ItemPath path : paths) {
-                Item<?, ?> item = c.asPrismContainerValue().findItem(path);
-                if (required) {
-                    assertThat(item).as("'%s' item", path).isNotNull();
-                    assertThat(item.getValues()).as("'%s' values", path).isNotEmpty();
-                }
-                if (item != null) {
-                    for (var value : item.getValues()) {
-                        assertThat(AiUtil.isMarkedAsAiProvided(value))
-                                .withFailMessage(
-                                        "Expected 'provided by AI' flag to be %s, but it was not; on '%s' in: %s",
-                                        expected, path, c)
-                                .isEqualTo(expected);
-                    }
+            assertProvenanceMarkValue(kind, c.asPrismContainerValue(), expected);
+            return;
+        }
+
+        for (ItemPath path : paths) {
+            Item<?, ?> item = c.asPrismContainerValue().findItem(path);
+
+            if (required) {
+                assertThat(item)
+                        .as("'%s' item", path)
+                        .isNotNull();
+                assertThat(item.getValues())
+                        .as("'%s' values", path)
+                        .isNotEmpty();
+            }
+
+            if (item != null) {
+                for (var value : item.getValues()) {
+                    assertThat(isMarkedProvenanceProvided(kind, value))
+                            .withFailMessage(
+                                    "Expected '%s' provenance flag to be %s, but it was not; on '%s' in: %s",
+                                    kind, expected, path, c)
+                            .isEqualTo(expected);
                 }
             }
         }
     }
 
-    protected static void assertAiProvidedMarkValue(@NotNull PrismValue value, boolean expected) {
-        assertThat(AiUtil.isMarkedAsAiProvided(value))
+    protected static void assertProvenanceMarkValue(
+            SmartMetadataUtil.ProvenanceKind kind,
+            @NotNull PrismValue value,
+            boolean expected) {
+
+        assertThat(isMarkedProvenanceProvided(kind, value))
                 .withFailMessage(
-                        "Expected 'provided by AI' flag to be %s, but it was not; on: %s", expected, value)
+                        "Expected '%s' provenance flag to be %s, but it was not; on: %s",
+                        kind, expected, value)
                 .isEqualTo(expected);
     }
 }

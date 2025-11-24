@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
-import com.evolveum.midpoint.schema.util.AiUtil;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevDocumentationSourceType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +48,6 @@ public class DocumentationTile extends TemplateTile<PrismContainerValueWrapper<C
     }
 
     public boolean isAIMarked() {
-        return AiUtil.isMarkedAsAiProvided(getValue().getOldValue());
+        return SmartMetadataUtil.isMarkedAsAiProvided(getValue().getOldValue());
     }
 }
