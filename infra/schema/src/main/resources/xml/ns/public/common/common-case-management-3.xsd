@@ -177,9 +177,6 @@
                     </xsd:element>
                     <xsd:element name="workItem" type="tns:CaseWorkItemType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>CaseType.workItem</a:displayName>
                             </xsd:appinfo>
