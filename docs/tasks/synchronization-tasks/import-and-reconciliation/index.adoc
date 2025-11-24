@@ -30,6 +30,8 @@ xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[her
 
 NOTE: These examples use the new form of task/activity configuration that is available since version 4.4.
 
+=== Import all objects of a class
+
 This task imports all objects of `inetOrgPerson` class on resource `ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2`.
 Note that here we specify the object class directly by its name.
 
@@ -52,6 +54,8 @@ Note that here we specify the object class directly by its name.
     </activity>
 </task>
 ----
+
+=== Reconcile all default accounts
 
 The following task reconciles all default accounts on resource `ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2`.
 Here the object class is defined indirectly, by specifying `kind` = `account` and `intent` = `default`.
@@ -82,7 +86,8 @@ Here we can see using a custom query, limiting the number of returned objects to
 (This can be useful e.g. to test the import task on a small set of accounts.)
 
 Because `queryApplication` is set to `append`, midPoint takes a query derived from specified `resourceRef`, `kind`, and
-`intent`, and _appends_ the given query (containing only `paging` element here) to it. The resulting query is then used
+`intent`, and _appends_ the given query (containing only `paging` element here) to it.
+The resulting query is then used
 to provide resource objects that are to be imported.
 
 .Importing first 10 accounts from the resource
@@ -111,6 +116,8 @@ to provide resource objects that are to be imported.
     </activity>
 </task>
 ----
+
+=== Import all accounts starting with "b"
 
 The following task imports all accounts starting with "b" from given resource.
 
@@ -142,6 +149,11 @@ specifying that only objects with `ident` starting with `b` should be imported.
     </activity>
 </task>
 ----
+
+=== Reload and import unlinked shadows
+
+This example reloads and imports unlinked shadows.
+See a https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/reload_import-new.xml[separate example page].
 
 == Reconciliation Internals
 
