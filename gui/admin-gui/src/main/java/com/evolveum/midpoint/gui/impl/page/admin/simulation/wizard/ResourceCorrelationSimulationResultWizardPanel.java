@@ -7,38 +7,35 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardNavigationBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRefsTable;
-
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion.SimulationCorrelationPanel;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.Nullable;
 
-@PanelType(name = "rw-simulation-result")
-@PanelInstance(identifier = "rw-simulation-result",
+@PanelType(name = "rw-correlation-simulation-result")
+@PanelInstance(identifier = "rw-correlation-simulation-result",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "ResourceSimulationResultWizardPanel.headerLabel", icon = "fa fa-bars-progress"))
-public abstract class ResourceSimulationResultWizardPanel extends AbstractWizardNavigationBasicPanel<ResourceDetailsModel> {
+public abstract class ResourceCorrelationSimulationResultWizardPanel extends AbstractWizardNavigationBasicPanel<ResourceDetailsModel> {
 
     private static final String PANEL_TYPE = "rw-simulation-result";
     private static final String ID_PANEL = "panel";
 
     IModel<SimulationResultType> simulationResultModel;
 
-    public ResourceSimulationResultWizardPanel(
+    public ResourceCorrelationSimulationResultWizardPanel(
             @NotNull String id,
             @NotNull ResourceDetailsModel detailsModel,
             @NotNull IModel<SimulationResultType> simulationResultModel) {
@@ -53,28 +50,20 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
     }
 
     private void initLayout() {
-        SimulationResultPanel resultPanel = new SimulationResultPanel(ID_PANEL, simulationResultModel) {
+
+        SimulationCorrelationPanel resultPanel = new SimulationCorrelationPanel(ID_PANEL, simulationResultModel) {
             @Override
-            protected void navigateToSimulationResultObjects(
-                    @NotNull String resultOid,
-                    @Nullable ObjectReferenceType ref,
-                    @Nullable ObjectProcessingStateType state,
+            protected void navigateToSimulationResultObject(
+                    @NotNull String simulationResultOid,
+                    @Nullable String markOid,
+                    @NotNull SimulationResultProcessedObjectType object,
                     @NotNull AjaxRequestTarget target) {
-                ResourceSimulationResultWizardPanel.this.navigateToSimulationTasksWizard(resultOid, ref, state, target);
+                ResourceCorrelationSimulationResultWizardPanel.this.navigateToSimulationResultObject(
+                        simulationResultOid, markOid, object, target);
             }
         };
         resultPanel.setOutputMarkupId(true);
         add(resultPanel);
-    }
-
-    protected abstract void navigateToSimulationTasksWizard(
-            @NotNull String resultOid,
-            @Nullable ObjectReferenceType ref,
-            @Nullable ObjectProcessingStateType state,
-            @NotNull AjaxRequestTarget target);
-
-    protected boolean isBackButtonVisible() {
-        return true;
     }
 
     @Override
@@ -96,9 +85,25 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
         buttons.add(button);
     }
 
+    protected abstract void navigateToSimulationTasksWizard(
+            @NotNull String resultOid,
+            @Nullable ObjectReferenceType ref,
+            @Nullable ObjectProcessingStateType state,
+            @NotNull AjaxRequestTarget target);
+
+    protected abstract void navigateToSimulationResultObject(
+            @NotNull String simulationResultOid,
+            @Nullable String markOid,
+            @NotNull SimulationResultProcessedObjectType object,
+            @NotNull AjaxRequestTarget target);
+
+    protected boolean isBackButtonVisible() {
+        return true;
+    }
+
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
-        return createStringResource("ResourceSimulationResultWizardPanel.breadcrumb");
+        return createStringResource("ResourceCorrelationSimulationResultWizardPanel.breadcrumb");
     }
 
     @Override
@@ -108,12 +113,12 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
 
     @Override
     protected IModel<String> getTextModel() {
-        return createStringResource("ResourceSimulationResultWizardPanel.text");
+        return createStringResource("ResourceCorrelationSimulationResultWizardPanel.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return isSubTextVisible() ? createStringResource("ResourceSimulationResultWizardPanel.subText")
+        return isSubTextVisible() ? createStringResource("ResourceCorrelationSimulationResultWizardPanel.subText")
                 : null;
     }
 

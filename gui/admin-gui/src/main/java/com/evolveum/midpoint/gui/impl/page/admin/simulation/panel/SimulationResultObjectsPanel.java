@@ -17,7 +17,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.ProcessedObjectsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObject;
-import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 
@@ -30,11 +29,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.error.PageError404;
@@ -43,6 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStat
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.SimulationWebUtil.loadAvailableMarksModel;
 
 public abstract class SimulationResultObjectsPanel extends BasePanel<SimulationResultType> {
 
@@ -65,30 +62,7 @@ public abstract class SimulationResultObjectsPanel extends BasePanel<SimulationR
     }
 
     private void initModels() {
-        availableMarksModel = new LoadableDetachableModel<>() {
-
-            @Override
-            protected List<MarkType> load() {
-                String[] markOids = getModelObject().getMetric().stream()
-                        .map(m -> m.getRef() != null ? m.getRef().getEventMarkRef() : null)
-                        .filter(Objects::nonNull)
-                        .map(AbstractReferencable::getOid)
-                        .filter(Utils::isPrismObjectOidValid)
-                        .distinct().toArray(String[]::new);
-
-                ObjectQuery query = getPrismContext()
-                        .queryFor(MarkType.class)
-                        .id(markOids).build();
-
-                Task pageTask = getPageBase().getPageTask();
-                List<PrismObject<MarkType>> marks = WebModelServiceUtils.searchObjects(
-                        MarkType.class, query, pageTask.getResult(), getPageBase());
-
-                return marks.stream()
-                        .map(o -> o.asObjectable())
-                        .toList();
-            }
-        };
+        availableMarksModel = loadAvailableMarksModel(getPageBase(), getModelObject());
     }
 
     private void initLayout() {

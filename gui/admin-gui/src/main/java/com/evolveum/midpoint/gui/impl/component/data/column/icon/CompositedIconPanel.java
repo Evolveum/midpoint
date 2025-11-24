@@ -52,6 +52,7 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
             return null;
         }));
+        layeredIcon.add(AttributeAppender.append("class", getAdditionalLayerIconCssClass()));
         add(layeredIcon);
 
         WebComponent basicIcon = new WebComponent(ID_BASIC_ICON);
@@ -110,5 +111,9 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
         };
         layeredIcon.add(validationItems);
+    }
+
+    public String getAdditionalLayerIconCssClass() {
+        return null;
     }
 }

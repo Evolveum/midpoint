@@ -13,6 +13,7 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.prism.Containerable;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -127,8 +128,51 @@ public abstract class SimulationWizardPanel<C extends Containerable> extends Abs
      * @param model model of the simulation result
      * @return the result wizard panel
      */
-    private @NotNull ResourceSimulationResultWizardPanel buildSimulationResultPanel(
+    private @NotNull Component buildSimulationResultPanel(
             @NotNull String idOfChoicePanel, IModel<SimulationResultType> model) {
+
+        //TODO
+        boolean isCorrelationSimulation = false;
+        if(isCorrelationSimulation){
+            return new ResourceCorrelationSimulationResultWizardPanel(idOfChoicePanel, getAssignmentHolderModel(), model) {
+
+                @Override
+                protected void navigateToSimulationTasksWizard(@NotNull String resultOid,
+                        @Nullable ObjectReferenceType ref,
+                        @Nullable ObjectProcessingStateType state,
+                        @NotNull AjaxRequestTarget target) {
+                    removeLastBreadcrumb();
+                    showChoiceFragment(target, buildSimulationObjectsResultPanel(idOfChoicePanel, model, state));
+                }
+
+                @Override
+                protected void navigateToSimulationResultObject(@NotNull String simulationResultOid,
+                        @Nullable String markOid,
+                        @NotNull SimulationResultProcessedObjectType object,
+                        @NotNull AjaxRequestTarget target) {
+                    removeLastBreadcrumb();
+                    showChoiceFragment(target, buildSimulationObjectResultPanel(idOfChoicePanel,
+                            model, object.getId(), markOid, null));
+                }
+
+                @Override
+                protected void onBackPerformed(AjaxRequestTarget target) {
+                    removeLastBreadcrumb();
+                    showChoiceFragment(target, buildSimulationTasksPanel(idOfChoicePanel));
+                }
+
+                @Override
+                protected boolean isExitButtonVisible() {
+                    return false;
+                }
+
+                @Override
+                protected IModel<String> getBackLabel() {
+                    return createStringResource("SimulationTaskWizardPanel.correlationWizardPanel.back");
+                }
+            };
+        }
+
         return new ResourceSimulationResultWizardPanel(idOfChoicePanel, getAssignmentHolderModel(), model) {
             @Override
             protected void navigateToSimulationTasksWizard(

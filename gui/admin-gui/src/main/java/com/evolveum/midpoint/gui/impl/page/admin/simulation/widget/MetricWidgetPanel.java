@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.widget;
 
+import java.io.Serial;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObjects;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -33,6 +35,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
@@ -60,12 +63,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(MetricWidgetPanel.class);
 
@@ -76,6 +81,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     private static final String ID_VALUE_DESCRIPTION = "valueDescription";
     private static final String ID_ICON = "icon";
     private static final String ID_CHART_CONTAINER = "chartContainer";
+    private static final String ID_DISPLAY_CONTAINER = "displayContainer";
 
     /**
      * Model with reference used as data for "more" link, if available
@@ -88,6 +94,11 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
     public MetricWidgetPanel(String id, IModel<DashboardWidgetType> model) {
         super(id, model);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
 
         initModels();
         initLayout();
@@ -104,7 +115,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        Component comp = get(ID_CHART_CONTAINER);
+        Component comp = get(createComponentPath(ID_DISPLAY_CONTAINER, ID_CHART_CONTAINER));
         if (comp == null || !comp.isVisibleInHierarchy()) {
             return;
         }
@@ -289,7 +300,17 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
             return d != null ? LocalizationUtil.translatePolyString(d.getLabel()) : null;
         };
 
-        Label title = new Label(ID_TITLE, titleModel);
+        LabelWithHelpPanel title = new LabelWithHelpPanel(ID_TITLE, titleModel) {
+            @Contract(pure = true)
+            @Override
+            protected @NotNull IModel<String> getHelpModel() {
+                return () -> {
+                    DisplayType displayObject = display.getObject();
+                    PolyStringType help = displayObject != null ? displayObject.getHelp() : null;
+                    return help != null ? LocalizationUtil.translatePolyString(help) : null;
+                };
+            }
+        };
         title.add(AttributeAppender.append("title", titleModel));
         add(title);
 
@@ -319,16 +340,26 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         Label valueDescription = new Label(ID_VALUE_DESCRIPTION, descriptionModel);
         add(valueDescription);
 
+        WebMarkupContainer displayContainer = new WebMarkupContainer(ID_DISPLAY_CONTAINER);
+        displayContainer.setOutputMarkupId(true);
+        displayContainer.add(AttributeModifier.append("class", getDisplayContainerAdditionalCssClass()));
+        add(displayContainer);
+
         IModel<CompositedIcon> iconModel = this::createIcon;
 
-        CompositedIconPanel icon = new CompositedIconPanel(ID_ICON, iconModel);
+        CompositedIconPanel icon = new CompositedIconPanel(ID_ICON, iconModel){
+            @Override
+            public String getAdditionalLayerIconCssClass() {
+                return MetricWidgetPanel.this.getAdditionalLayerIconCssClass();
+            }
+        };
         icon.add(new VisibleBehaviour(() -> isIconVisible(iconModel)));
-        add(icon);
+        displayContainer.add(icon);
 
         WebMarkupContainer chartContainer = new WebMarkupContainer(ID_CHART_CONTAINER);
         chartContainer.add(new VisibleBehaviour(() -> !isIconVisible(iconModel)));
         chartContainer.setOutputMarkupId(true);
-        add(chartContainer);
+        displayContainer.add(chartContainer);
 
         AjaxLink<Void> moreInfo = new AjaxLink<>(ID_MORE_INFO) {
             @Override
@@ -336,7 +367,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
                 onMoreInfoPerformed(target);
             }
         };
-        moreInfo.add(new EnableBehaviour(() -> isMoreInfoVisible()));
+        moreInfo.add(new EnableBehaviour(this::isMoreInfoVisible));
         moreInfo.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "invisible" : "text-primary"));
         add(moreInfo);
     }
@@ -411,16 +442,28 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         getPageBase().navigateToNext(PageSimulationResult.class, params);
     }
 
-    private CompositedIcon createIcon() {
+    private @Nullable CompositedIcon createIcon() {
         DisplayType d = display.getObject();
         if (d == null) {
             return null;
         }
 
+        CompositedIconBuilder builder = createCompositeIcon(d);
+        return builder.build();
+    }
+
+    protected @NotNull CompositedIconBuilder createCompositeIcon(DisplayType d) {
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(d), IconCssStyle.CENTER_STYLE)
                 .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(d));
+        return builder;
+    }
 
-        return builder.build();
+    protected String getDisplayContainerAdditionalCssClass() {
+        return "align-items-end";
+    }
+
+    protected String getAdditionalLayerIconCssClass() {
+        return null;
     }
 }

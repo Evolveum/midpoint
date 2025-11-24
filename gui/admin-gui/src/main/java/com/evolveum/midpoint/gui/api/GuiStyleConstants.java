@@ -339,4 +339,5 @@ public class GuiStyleConstants {
     public static final String CLASS_MAGIC_WAND = "fa fa-wand-magic-sparkles";
     public static final String CLASS_SPINNER = "fa fa-spinner fa-spin";
     public static final String CLASS_TASK_SUSPENDED_ICON = "fa fa-pause-circle";
+    public static final String CLASS_WARNING_ICON = "fa fa-warning";
 }
