@@ -423,9 +423,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         if (sourceVal != null) {
             var containerName = sourceVal.getTypeName();
             var containerClass = WebComponentUtil.qnameToClass(containerName);
-            if (ObjectType.class.isAssignableFrom(containerClass)) {
-                return false;
-            }
+            return containerClass == null || !ObjectType.class.isAssignableFrom(containerClass);
         }
         return true;
     }
