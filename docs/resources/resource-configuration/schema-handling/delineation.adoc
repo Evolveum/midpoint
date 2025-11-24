@@ -23,7 +23,10 @@ image::delineation1.webp[Sample separating user accounts from service accounts u
 
 [TIP]
 ====
-If you decide to use delineation in more dynamic scenarios, you should reflect that in your system recovery planning.
+The system does not automatically reclassify objects when they move between delineated partitions.
+Only new objects and objects without any classification are automatically classified when they are handled by the system.
+
+Therefore, if you decide to use delineation in more dynamic scenarios, you should reflect that in your system recovery planning.
 In the event of a system recovery, shifting objects between delineations could potentially lead to inconsistencies or broken links. +
 To workaround this, either only recover your configuration, or ensure that both configuration and data (repository) are recovered to the same point in time. +
 Also, note that after an object moves from one delineated partition to another, you need to trigger xref:/midpoint/reference/tasks/shadow-reclassification-task[reclassification] to ensure the object is correctly associated with its new delineation.
