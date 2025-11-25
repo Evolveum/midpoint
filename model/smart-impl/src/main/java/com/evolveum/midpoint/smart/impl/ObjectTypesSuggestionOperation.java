@@ -113,20 +113,21 @@ class ObjectTypesSuggestionOperation {
                         List<? extends PrismValue> values = filterItem.getValues();
                         if (!values.isEmpty()) {
                             PrismValue lastValue = values.get(values.size() - 1);
-                            AiUtil.markAsInvalid(lastValue, filterWithError.error());
+                            SmartMetadataUtil.markAsInvalid(lastValue, filterWithError.error());
                         }
                     }
                 }
             }
+            SmartMetadataUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_FILTER);
 
             var baseCtx = objectTypeWithFilters.baseCtx();
             if (baseCtx != null) {
                 delineation.baseContext(new ResourceObjectReferenceType()
                         .objectClass(baseCtx.classQName())
                         .filter(baseCtx.filter()));
-                AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+                SmartMetadataUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
                 if (objectTypeWithFilters.baseCtxError() != null) {
-                    AiUtil.markAsInvalid(delineation, objectTypeWithFilters.baseCtxError(), ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+                    SmartMetadataUtil.markAsInvalid(delineation, objectTypeWithFilters.baseCtxError(), ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
                 }
             }
 
