@@ -94,7 +94,7 @@ public class WaitingAuthScriptsConnectorStepPanel extends WaitingScriptConnector
     }
 
     @Override
-    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION;
     }
 

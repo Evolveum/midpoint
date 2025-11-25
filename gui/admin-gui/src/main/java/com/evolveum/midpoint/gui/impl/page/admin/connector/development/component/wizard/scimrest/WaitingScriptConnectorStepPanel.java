@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.Connector
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -38,14 +37,14 @@ public abstract class WaitingScriptConnectorStepPanel extends WaitingConnectorSt
     }
 
     @Override
-    protected abstract ConnectorDevelopmentArtifacts.KnownArtifactType getScripType();
+    protected abstract ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType();
 
     @Override
     public boolean isCompleted() {
         PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue =
                 ConnectorDevelopmentWizardUtil.getObjectClassValueWrapper(getDetailsModel(), getObjectClassName());
         if (ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, ConnDevObjectClassInfoType.F_ATTRIBUTE)
-                && ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, getScripType().itemName)) {
+                && ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, getScriptType().itemName)) {
             return true;
         }
 

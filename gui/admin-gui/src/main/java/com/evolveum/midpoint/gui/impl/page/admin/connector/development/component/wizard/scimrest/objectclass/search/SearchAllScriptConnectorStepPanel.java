@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.Connector
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -80,5 +81,10 @@ public class SearchAllScriptConnectorStepPanel extends ScriptConnectorStepPanel 
     @Override
     protected ConnDevScriptIntentType getTaskIntent() {
         return ConnDevScriptIntentType.ALL;
+    }
+
+    @Override
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
+        return ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION;
     }
 }

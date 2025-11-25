@@ -48,7 +48,7 @@ public class ConnectorDevelopmentWizardUtil {
     public static PrismObject<TaskType> getTask(
             ItemName activityType,
             String objectClassName,
-            ConnDevScriptIntentType scriptIntent,
+            ConnectorDevelopmentArtifacts.KnownArtifactType scriptType,
             String connectorDevelopmentOid,
             PageAdminLTE page) throws CommonException {
         ObjectQuery query = PrismContext.get()
@@ -90,13 +90,14 @@ public class ConnectorDevelopmentWizardUtil {
             );
         }
 
-        if (scriptIntent != null) {
+        if (scriptType != null) {
             tasks.removeIf(task ->
                     task.asObjectable().getActivity() == null
                             || task.asObjectable().getActivity().getWork() == null
                             || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact() == null
                             || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact() == null
-                            || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact().getIntent() != scriptIntent
+                            || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact().getOperation() != scriptType.operation
+                            || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact().getIntent() != scriptType.scriptIntent
             );
         }
 
@@ -117,10 +118,10 @@ public class ConnectorDevelopmentWizardUtil {
     public static String getTaskToken(
             ItemName activityType,
             String objectClassName,
-            ConnDevScriptIntentType scriptIntent,
+            ConnectorDevelopmentArtifacts.KnownArtifactType scriptType,
             String connectorDevelopmentOid,
             PageAdminLTE page) throws CommonException {
-        PrismObject<TaskType> taskBean = getTask(activityType, objectClassName, scriptIntent, connectorDevelopmentOid, page);
+        PrismObject<TaskType> taskBean = getTask(activityType, objectClassName, scriptType, connectorDevelopmentOid, page);
 
         if (taskBean == null) {
             return null;

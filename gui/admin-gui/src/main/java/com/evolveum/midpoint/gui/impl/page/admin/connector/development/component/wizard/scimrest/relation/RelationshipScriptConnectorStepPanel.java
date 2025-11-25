@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -77,6 +78,11 @@ public class RelationshipScriptConnectorStepPanel extends ScriptConnectorStepPan
     @Override
     protected ConnDevScriptIntentType getTaskIntent() {
         return ConnDevScriptIntentType.RELATION;
+    }
+
+    @Override
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
+        return ConnectorDevelopmentArtifacts.KnownArtifactType.RELATIONSHIP_SCHEMA_DEFINITION;
     }
 
     @Override

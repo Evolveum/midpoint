@@ -78,7 +78,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                     return ConnectorDevelopmentWizardUtil.getTaskToken(
                             getActivityType(),
                             objectClass,
-                            getScripType() != null ? getScripType().scriptIntent : null,
+                            getScriptType(),
                             getDetailsModel().getObjectWrapper().getOid(),
                             getDetailsModel().getPageAssignmentHolder());
                 } catch (CommonException e) {
@@ -96,7 +96,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
      */
     protected abstract boolean objectClassRequired();
 
-    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return null;
     }
 

@@ -98,7 +98,7 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingObjectClassScript
     }
 
     @Override
-    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION;
     }
 
