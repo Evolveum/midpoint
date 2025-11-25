@@ -271,15 +271,17 @@ Create metadata were added to campaign object while its creation. See bug:MID-10
 * Fixed pie chart style on the Certification items page. See bug:MID-10916[].
 * Current reviewers now displayed even for closed case items. See bug:MID-10935[].
 * Unable to display report preview fixed. See bug:MID-10929[].
-* Fixed shopping cart icon number does not decrease when resolving conflicts. See bug:MID-10925[].]
-* Fixed first and last links enable behavior on paging panel. See bug:MID-10945[].]
-* Fixed creating a duplicated container value while adding new value. See bug:MID-10926[].]
-* Fixed saving and displaying of the policy actions empty containers. See bug:MID-10928[].]
-* Fixed displaying of the certification campaign deadline value for Reviewer role. See bug:MID-10931[].]
-* Fixed displaying of the warning messages on the Shopping cart page. See bug:MID-10924[].]
-* Fixed for Comment column in the Certification items table. See bug:MID-10912[].]
-* Improved loading time for Certification items and Campaigns tables. See bug:MID-10887[].]
-* Fixed "all tasks running" message. See bug:MID-10958[].]
+* Fixed shopping cart icon number does not decrease when resolving conflicts. See bug:MID-10925[].
+* Fixed first and last links enable behavior on paging panel. See bug:MID-10945[].
+* Fixed creating a duplicated container value while adding new value. See bug:MID-10926[].
+* Fixed saving and displaying of the policy actions empty containers. See bug:MID-10928[].
+* Fixed displaying of the certification campaign deadline value for Reviewer role. See bug:MID-10931[].
+* Fixed displaying of the warning messages on the Shopping cart page. See bug:MID-10924[].
+* Fixed behavior of Comment column in the Certification items table. See bug:MID-10912[].
+* Improved loading time for Certification items and Campaigns tables. See bug:MID-10887[].
+* Fixed "all tasks running" message. See bug:MID-10958[].
+* Fixed displaying some approved and executed changes as "Waiting to be applied". See bug:MID-10828[].
+* No longer evaluating timed actions on cancelled cases. See bug:MID-10934[].
 
 === Releases Of Other Components
 
