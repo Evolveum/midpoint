@@ -491,7 +491,7 @@ The defaults above can be turned back to standard default values (the second col
 
 == Limitations
 
-=== For Both Native And Generic (Oracle, SQL Server) Repository
+=== For Native Repository
 
 . Attributes whose values are provided by the resource should be either:
 
@@ -506,14 +506,6 @@ You can do that by providing an explicit mapping for, e.g., `uid` attribute alon
 
 . Localized attributes (see bug:MID-5210[]) are not cached yet.
 See bug:MID-10102[].
-
-=== For Generic Repository (Oracle, SQL Server) Only
-
-. values cannot be larger than 255 characters;
-. values cannot be empty (on Oracle);
-. illegal XML characters (like those with codes under 32) cannot be present in string values.
-
-If you have attributes that do not conform to these restrictions, please either turn off their caching (using `cached` property with the value of `false`), or use the experimental `storageStrategy` of `notIndexed`.
 
 === "Use Cached" setting
 

@@ -42,26 +42,13 @@ to a file, not its content, is the actual value.
             <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
             <jdbcUsername>midpoint</jdbcUsername>
             <jdbcPassword>password</jdbcPassword>
-
-            <!--
-            Uncomment this section to use the old generic repository (and comment previous parts).
-            Database should be sqlserver or oracle.
-            Don't forget to switch Sql/Sqale audit service factory accordingly (lower in this config).
-            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
-            <database></database>
-            <jdbcUsername></jdbcUsername>
-            <jdbcPassword></jdbcPassword>
-            <jdbcUrl></jdbcUrl>
-            -->
         </repository>
         <audit>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
             <auditService>
-                <!-- Use SqlAuditServiceFactory for old generic repository and SqaleAuditServiceFactory for new Native one. -->
                 <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
-                <!--<auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>-->
             </auditService>
         </audit>
         <icf>

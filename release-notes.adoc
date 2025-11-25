@@ -38,24 +38,29 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 === New Features and Major Improvements
 
-* bug:MID-10147[] Added support for new capability `lastLoginTimestamp`.
-* bug:MID-10270[] Summary panel for roles now uses display name and identifier (same as for organizations and services).
-* bug:MID-10218[] Task execution constraints added to advanced options tab.
-* bug:MID-10216[] Support exclusion of metadata in `get`/`search` rest APIs.
-* bug:MID-10305[] Remove max password length constraint from default password policy.
-* bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
-* bug:MID-10410[] Better indication for failed tasks and their subtasks.
-* bug:MID-10412[] Implemented configurable thresholds for task activities.
-* bug:MID-10414[] Page size global configuration for object collection views.
-* bug:MID-10411[] Improved task run history errors search.
-* bug:MID-10413[] Improved ways to report audit delta in GUI and reports using changed item paths.
-Improved indexing of audit records with add object deltas.
-* xrefv:/midpoint/reference/master/admin-gui/dashboards/compliance-dashboard/[Compliance dashboard]
-* bug:MID-10060[] xrefv:/midpoint/reference/master/expressions/expressions/filter/[Filter Expression Evaluator]
+* Self-service user interface is now very close to WCAG 2.2 AA compliance.
+* Implemented multiple improvements related to background tasks:
+** Better indication for failed tasks and their subtasks. See bug:MID-10410[].
+** Configurable xrefv:/midpoint/reference/master/tasks/activity-policies/[policies] for executing activities. See bug:MID-10412[].
+** Better xrefv:/midpoint/reference/master/tasks/task-errors/[search for errors] in task run history. See bug:MID-10411[].
+* Added xrefv:/midpoint/reference/master/admin-gui/dashboards/compliance-dashboard/[Compliance dashboard].
+* Improved expression security:
+** Added xrefv:/midpoint/reference/master/expressions/expressions/filter/[Filter expression evaluator]. See bug:MID-10060[].
+** Improved `safe` expression profile in default system configuration.
+** Recommended xref:/midpoint/reference/expressions/expressions/security/[_semi-safe_ configuration of expression profiles] to provide reasonable level of xref:/midpoint/reference/expressions/expressions/security/[expression security] for some delegated administration scenarios.
+* Improved ways to report audit delta in GUI and reports using xrefv:/midpoint/reference/master/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[changed item paths].
+Improved indexing of audit records with "add object" deltas.
+See bug:MID-10413[].
+* Added `lastLoginTimestamp` xref:/midpoint/reference/resource-configuration/capabilities#_behavior[capability]. See bug:MID-10147[].
 
 === Other Improvements
 
-* StartupConfiguration incorporates 'midpoint.' properties from Spring environment sources.
+* Added page size global configuration for object collection views. See bug:MID-10414[].
+* Summary panel for roles now uses display name and identifier (same as for organizations and services). See bug:MID-10270[].
+* Task execution constraints added to "advanced options" tab. See bug:MID-10218[].
+* Removed max password length constraint from default password policy. See bug:MID-10305[].
+* Added support for exclusion of metadata in `get`/`search` rest APIs. See bug:MID-10216[].
+* StartupConfiguration incorporates `midpoint.` properties from Spring environment sources.
 * Implemented xrefv:/midpoint/reference/support-4.9/resources/attribute-caching/#_caching_passwords[shadow password caching], with the possibility of storing them in reversible encrypted form.
 * Improved handling of xrefv:/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/volatility/[volatile shadow attributes].
 * Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
@@ -79,9 +84,8 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * Add OAuth 2 credential flow to mail servers notification configuration
 * Added languages, specifically Korean, Dutch, and Ukrainian.
 * Removed support for deprecated generic repository implementation (Oracle, SQL Server). See bug:MID-10866[].
-* Improved `safe` expression profile in default system configuration.
 * Date time picker now can use `adminGuiConfiguration/displayFormats/longDateTimeFormat`setting if available.
-* Recommended xref:/midpoint/reference/expressions/expressions/security/[_semi-safe_ configuration of expression profiles] to provide reasonable level of xref:/midpoint/reference/expressions/expressions/security/[expression security] for some delegated administration scenarios.
+* Using private schema in PostgresSQL instead of the public schema. See bug:MID-9300[].
 
 === Major Bugfixes
 
@@ -448,7 +452,7 @@ We reserve the right not to support customized web browsers.
 | Web container
 
 | ConnId
-| 1.6.0.0-RC1
+| 1.6.0.0
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]

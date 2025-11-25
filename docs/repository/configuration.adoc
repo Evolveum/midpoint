@@ -14,28 +14,12 @@ also known as `midpoint.home`.
 
 This directory will be created upon the very first start of midPoint.
 
-To enable new Native repository, the following steps are necessary:
+the following steps are necessary:
 
 . Prepare PostgreSQL database as described in xref:../native-postgresql/usage/[Using Native PostgreSQL Repository].
-. Change the `config.xml` to use the Native repository.
+. Change the `config.xml` to point to prepared PostgreSQL database
 
 And that's it - now you can run midPoint with the Native repository!
-
-[TIP]
-See the file `doc/config/config-native.xml` provided in the distribution archive for an example of simple Native repository configuration.
-You can also see it online https://github.com/Evolveum/midpoint/blob/master/config/config-native.xml[here].
-If you use this example, don't forget to rename it to `config.xml` after dropping it to `midpoint.home`.
-
-But let's elaborate a bit about the `config.xml` changes:
-
-* You can start with the generated `config.xml`.
-Open it, remove the configuration for generic repository implementation and uncomment the `repository` and `audit` configuration
-prepared in the comments.
-
-* Don't forget to change the audit factory class, again, the proper value is provided in the comments.
-See xref:native-audit.adoc[]
-
-* Customize connection to the database using `jdbcUrl` and other basic configuration options show below.
 
 Configuring large-scale setup with multiple midPoint nodes requires more effort:
 

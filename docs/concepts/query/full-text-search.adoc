@@ -99,11 +99,7 @@ This can be done by _About -> Reindex repository objects_ action.
 
 image::reindex.PNG[]
 
-The `m_object_text_info` table content (Generic repo) will then look like this:
-
-image::IMG_24022017_180501_0.png[]
-
-The same result (only with different colum names) can be achived by running the following SQL in the Native repository:
+Full text data can be queried by running following SQL:
 
 [source,sql]
 ----

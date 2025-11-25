@@ -81,7 +81,7 @@ Ninja can be used as a standalone jar file without ninja shell/bat scripts.
 Following example shows how to use custom JDBC driver using `-Dloader.path`.
 `-m` option is also needed to specify midPoint home directory.
 
-.Generic example displaying different parts of command and it's parameters
+.Example displaying different parts of command and it's parameters
 [source,bash]
 ----
 java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [general/connection options] [command] [specific command options]

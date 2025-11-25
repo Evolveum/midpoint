@@ -373,7 +373,6 @@ For multiple filter values: Accepts if one of the left-hand property values is t
 *For the resource query, the filter accepts if the attribute contains _all_ the filter values.*
 
 Combinations with multiple filter values have *limited support* with the new Native repository.
-There is no official support for this when using the old Generic repository.
 See the section after this table.
 
 Resource and in-memory queries *do not support items on the right side* of an operator.
@@ -836,11 +835,6 @@ While `exists` works as expected with complex combination of conditions for the 
 (like assignment in the example above), `not` with `exists` behavior works properly only with the new Native repository.
 Native repository translates `exists` filter to SQL `EXISTS` and `NOT`
 is applied to the SQL `EXISTS` resulting in `NOT EXISTS` query, which works as expected.
-
-`exists` for the old Generic repo was implemented using `LEFT JOIN` which works fine for positive
-conditions, but does not work with `NOT` as usual in SQL.
-In the Generic repo, `not` with `exists` is interpreted as "any of the entries does not match the condition inside".
-See bug:MID-7203[].
 ====
 
 // TODO example with nesting exists, show the need for .block() in fluent API (see sqale search test)
@@ -904,10 +898,6 @@ But the same filter would not work predictably for the multi-value references.
 Although the `and` filter is used, it would be enough if one of the references was for `UserType`
 and another reference value pointed to an object (possibly of different type) that matches the `exists` filter.
 That is definitely not, what the user expects.
-
-[WARNING]
-*Multi-value refs are not supported for the old generic repository!*
-While the query seemingly works, it uses two different ``JOIN``s for the value conditions and target filter which may lead to surprising and incorrect results.
 
 ===== Ref filter with one value and target filter
 
@@ -1554,7 +1544,7 @@ Note that "ok" means "fully supported".
 |===
 
 Additionally, there are two parameters driving the behavior of Reference filters with null oid and targetType: `oidNullAsAny` and `targetTypeNullAsAny`.
-These are currently honored by memory and Native repository interpreters, not by Generic repository and connectors.
+These are currently honored by memory and Native repository interpreters, not by connectors.
 These parameters are considered *experimental* and should be avoided as their meaning and/or existence is still debated.
 
 General constraint for provisioning queries: It is not possible to mix both on-resource and repository items in one query, e.g. to query for both `c:attributes/ri:something` and `c:intent`.
@@ -2132,7 +2122,6 @@ The use of `@` to traverse to reference target ("dereference") is safe and well-
 Using `..` and `#` is *experimental*, was introduced for internal reasons and the support is limited.
 
 // TODO, start with @
-// TODO mention limitations for multi-value ref with @ in generic repo
 
 An example: *Find all active certification cases for a given reviewer.*
 

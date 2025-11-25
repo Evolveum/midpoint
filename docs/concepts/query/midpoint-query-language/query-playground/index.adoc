@@ -27,12 +27,7 @@ Container value queries are not supported in Query playground.
 
 [IMPORTANT]
 ====
-The *distinct* option is often essential to get the correct count of objects when searching in the Generic repository.
-This is caused by the SQL `LEFT JOIN` clause which is used when traversing to multi-value containers.
-For example, using a filter on `assignment/targetRef` causes each object with multiple assignments to be returned multiple times.
-Using the Exists filter does not fix this in the Generic repository as that repository also uses `LEFT JOIN` internally.
-
-Contrary to the Generic repository, the newer xref:/midpoint/reference/repository/native-postgresql/[Native repository] does not have these problems as it always uses the SQL `EXISTS` clause both in the Exists filter, and when traversing to multi-value containers.
+xref:/midpoint/reference/repository/native-postgresql/[Native repository] always uses the SQL `EXISTS` clause both in the Exists filter, and when traversing to multi-value containers.
 The Native repository ignores the *distinct* option if there is no `JOIN` in the final query, as the returned raws must be distinct.
 Native repository uses `LEFT JOIN` only to traverse across single-valued containers and references and their targets.
 That is why using the *distinct* option with the Native repository can potentially lead to lower SQL performance.
