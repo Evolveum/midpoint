@@ -277,6 +277,9 @@ Create metadata were added to campaign object while its creation. See bug:MID-10
 * Fixed saving and displaying of the policy actions empty containers. See bug:MID-10928[].]
 * Fixed displaying of the certification campaign deadline value for Reviewer role. See bug:MID-10931[].]
 * Fixed displaying of the warning messages on the Shopping cart page. See bug:MID-10924[].]
+* Fixed for Comment column in the Certification items table. See bug:MID-10912[].]
+* Improved loading time for Certification items and Campaigns tables. See bug:MID-10887[].]
+* Fixed "all tasks running" message. See bug:MID-10958[].]
 
 === Releases Of Other Components
 
