@@ -55,11 +55,6 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingObjectClassScript
     }
 
     @Override
-    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
-    }
-
-    @Override
     protected String getNewTaskToken(Task task, OperationResult result) {
         var realValue = getObjectClassModel().getObject().getRealValue();
 
@@ -100,10 +95,5 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingObjectClassScript
     @Override
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_ALL_DEFINITION;
-    }
-
-    @Override
-    protected boolean objectClassRequired() {
-        return true;
     }
 }

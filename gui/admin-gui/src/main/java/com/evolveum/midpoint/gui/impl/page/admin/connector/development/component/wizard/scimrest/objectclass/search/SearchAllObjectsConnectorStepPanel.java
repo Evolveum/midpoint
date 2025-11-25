@@ -50,13 +50,13 @@ import javax.xml.namespace.QName;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.showSearchResult", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class SearchObjectsConnectorStepPanel extends ScriptConfirmationPanel {
+public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel {
 
     private static final String PANEL_TYPE = "cdw-show-search-result";
 
     private static final String ID_PANEL = "panel";
 
-    public SearchObjectsConnectorStepPanel(WizardPanelHelper<? extends Containerable,
+    public SearchAllObjectsConnectorStepPanel(WizardPanelHelper<? extends Containerable,
             ConnectorDevelopmentDetailsModel> helper, IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
         super(helper, valueModel);
     }

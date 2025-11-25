@@ -10,7 +10,6 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -115,6 +114,19 @@ public class ConnectorDevelopmentWizardUtil {
         return getTaskToken(activityType, null, null, connectorDevelopmentOid, page);
     }
 
+    public static boolean existTask(
+            ItemName activityType,
+            String objectClassName,
+            ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType,
+            String connectorDevelopmentOid,
+            PageAdminLTE page) {
+        try {
+            return getTask(activityType, objectClassName, knownArtifactType, connectorDevelopmentOid, page) != null;
+        } catch (CommonException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static String getTaskToken(
             ItemName activityType,
             String objectClassName,
@@ -197,7 +209,7 @@ public class ConnectorDevelopmentWizardUtil {
                 return false;
             }
             if (propertyWrapper.getValues().get(0).getNewValue() != null) {
-                    return propertyWrapper.getValues().get(0).getNewValue().getRealValue();
+                return propertyWrapper.getValues().get(0).getNewValue().getRealValue();
             }
 
             return null;
@@ -273,13 +285,28 @@ public class ConnectorDevelopmentWizardUtil {
     }
 
     public static boolean existScript(ConnectorDevelopmentDetailsModel detailsModel, ConnDevArtifactType artifact) {
+        if (artifact == null) {
+            return false;
+        }
+
+        ConnectorDevelopmentArtifacts.KnownArtifactType classification = ConnectorDevelopmentArtifacts.classify(artifact);
+        if (classification == null) {
+            return false;
+        }
+
+        return existScript(detailsModel, classification, artifact.getObjectClass());
+    }
+
+    public static boolean existScript(
+            ConnectorDevelopmentDetailsModel detailsModel,
+            ConnectorDevelopmentArtifacts.KnownArtifactType classification,
+            String objectClass) {
         try {
-            var classification = ConnectorDevelopmentArtifacts.classify(artifact);
             if (classification == null) {
                 return false;
             }
 
-            if (artifact.getObjectClass() != null) {
+            if (objectClass != null) {
                 PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassWrapper = detailsModel.getObjectWrapper().findContainer(
                         ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
                 if (objectClassWrapper == null || objectClassWrapper.getValues().isEmpty()) {
@@ -287,7 +314,7 @@ public class ConnectorDevelopmentWizardUtil {
                 }
 
                 PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue = objectClassWrapper.getValues().stream()
-                        .filter(value -> value.getRealValue().getName().equals(artifact.getObjectClass()))
+                        .filter(value -> value.getRealValue().getName().equals(objectClass))
                         .findFirst()
                         .orElse(null);
                 if (objectClassValue == null) {
@@ -365,7 +392,7 @@ public class ConnectorDevelopmentWizardUtil {
     public static PrismContainerValueWrapper<ConnDevObjectClassInfoType> getObjectClassValueWrapper(ConnectorDevelopmentDetailsModel detailsModel, String objectClassName) {
         try {
             PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassesWrapper = detailsModel.getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
             if (objectClassesWrapper != null && !objectClassesWrapper.getValues().isEmpty()) {
                 Optional<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassValue = objectClassesWrapper.getValues().stream()
                         .filter(value ->
@@ -387,6 +414,10 @@ public class ConnectorDevelopmentWizardUtil {
         return ConnectorDevelopmentWizardUtil.existReferenceValue(
                 objectWrapper,
                 ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_CONNECTOR_REF));
+    }
+
+    public static boolean isConnectionComplete(ConnectorDevelopmentDetailsModel detailsModel) {
+        return isConnectionComplete(detailsModel, null);
     }
 
     public static boolean isConnectionComplete(ConnectorDevelopmentDetailsModel detailsModel, String panelType) {
@@ -445,5 +476,20 @@ public class ConnectorDevelopmentWizardUtil {
             detailsModel.getPageAssignmentHolder().error(message);
         }
         return false;
+    }
+
+    public static boolean isOperationStarted(
+            ConnectorDevelopmentDetailsModel detailsModel,
+            ConnectorDevelopmentArtifacts.KnownArtifactType classification,
+            String objectClassName) {
+
+        return existTask(
+                WorkDefinitionsType.F_GENERATE_CONNECTOR_ARTIFACT,
+                objectClassName,
+                classification,
+                detailsModel.getConnectorDevelopmentOperation().getObject().getOid(),
+                detailsModel.getPageAssignmentHolder())
+                || existScript(detailsModel, classification, objectClassName);
+
     }
 }

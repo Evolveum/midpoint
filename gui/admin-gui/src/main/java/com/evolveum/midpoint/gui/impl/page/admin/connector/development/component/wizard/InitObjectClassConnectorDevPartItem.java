@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWi
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController.ConnectorDevelopmentStatusType;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.ObjectClassConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.InitObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -82,7 +82,7 @@ public class InitObjectClassConnectorDevPartItem extends AbstractWizardPartItem<
 
     @Override
     protected List<WizardParentStep> createWizardSteps() {
-        ObjectClassConnectorStepPanel objectClassStepsParent = new ObjectClassConnectorStepPanel(getHelper());
+        InitObjectClassConnectorStepPanel objectClassStepsParent = new InitObjectClassConnectorStepPanel(getHelper());
         String objectClassName = getParameter();
         if (objectClassName == null) {
             objectClassName = ConnectorDevelopmentWizardUtil.getNameOfNewObjectClass(getObjectDetailsModel());

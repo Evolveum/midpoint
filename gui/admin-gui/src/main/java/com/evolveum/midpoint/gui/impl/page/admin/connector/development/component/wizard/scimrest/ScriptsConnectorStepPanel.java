@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
@@ -27,11 +28,7 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtifactResultType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -225,7 +222,9 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
         for (ConnDevArtifactType scriptArtifact : valueModel.getObject()) {
             Task task = getPageBase().createSimpleTask(OP_SAVE_SCRIPT);
             try {
-                saveScript(scriptArtifact, task, task.getResult());
+                ConnDevArtifactType script = scriptArtifact.clone();
+                WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
+                saveScript(script, task, task.getResult());
                 if (task.getResult() == null || task.getResult().isError()) {
                     target.add(getFeedback());
                     return false;

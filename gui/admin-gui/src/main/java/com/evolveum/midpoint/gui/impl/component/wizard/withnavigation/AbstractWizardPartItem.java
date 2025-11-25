@@ -417,4 +417,8 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
     public void useLast() {
         setActiveParentStepById(getParentSteps().get(getParentSteps().size() - 1).getStepId());
     }
+
+    public boolean isStarted() {
+        return false;
+    }
 }

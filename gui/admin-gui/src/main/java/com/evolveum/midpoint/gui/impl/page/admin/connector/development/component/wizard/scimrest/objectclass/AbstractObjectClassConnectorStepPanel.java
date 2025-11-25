@@ -1,78 +1,55 @@
 /*
  * Copyright (C) 2010-2025 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
+ * Licensed under the EUPL-1.2 or later.
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.*;
-
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.EndpointsConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllScriptConnectorStepPanel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchObjectsConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchAllConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-
-import org.apache.wicket.model.LoadableDetachableModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lskublik
  */
-@PanelType(name = "cdw-object-class")
-@PanelInstance(identifier = "cdw-object-class",
-        applicableForType = ConnectorDevelopmentType.class,
-        applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.objectClass", icon = "fa fa-wrench"),
-        containerPath = "empty")
-public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardParentStep {
+public abstract class AbstractObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardParentStep {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectClassConnectorStepPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectClassConnectorStepPanel.class);
 
-    public static final String PANEL_TYPE = "cdw-object-class";
     private String objectClass;
     private IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
 
-    public ObjectClassConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    public AbstractObjectClassConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
 
@@ -184,7 +161,7 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
         VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override
             protected String getIcon() {
-                return ObjectClassConnectorStepPanel.this.getIcon();
+                return AbstractObjectClassConnectorStepPanel.this.getIcon();
             }
 
             @Override
@@ -217,10 +194,6 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
         add(panel);
     }
 
-    protected String getPanelType() {
-        return PANEL_TYPE;
-    }
-
     @Override
     protected String getIcon() {
         return "fa fa-wrench";
@@ -229,7 +202,7 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
     @Override
     public IModel<String> getTitle() {
         return () -> {
-            String title = createStringResource("PageConnectorDevelopment.wizard.step.objectClass").getString();
+            String title = createStringResource(getTitleKey()).getString();
             if (StringUtils.isNotEmpty(valueModel.getObject().getRealValue().getName())) {
                 title += ": " + valueModel.getObject().getRealValue().getName();
             }
@@ -237,15 +210,7 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
         };
     }
 
-    @Override
-    protected IModel<?> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.objectClass.text");
-    }
-
-    @Override
-    protected IModel<?> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.objectClass.subText");
-    }
+    protected abstract String getTitleKey();
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
         if (itemWrapper.getItemName().equals(ConnDevApplicationInfoType.F_APPLICATION_NAME)) {
@@ -283,21 +248,6 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
     }
 
     @Override
-    public List<WizardStep> createChildrenSteps() {
-        return List.of(
-                new ObjectClassSelectConnectorStepPanel(getHelper(), valueModel),
-                new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), valueModel),
-                new WaitingNativeSchemaConnectorStepPanel(getHelper(), valueModel),
-                new WaitingConnIdSchemaConnectorStepPanel(getHelper(), valueModel),
-                new SchemaScriptConnectorStepPanel(getHelper(), valueModel),
-                new ShowSchemaConnectorStepPanel(getHelper(), valueModel),
-                new EndpointsConnectorStepPanel(getHelper(), valueModel),
-                new WaitingSearchAllConnectorStepPanel(getHelper(), valueModel),
-                new SearchAllScriptConnectorStepPanel(getHelper(), valueModel),
-                new SearchObjectsConnectorStepPanel(getHelper(), valueModel));
-    }
-
-    @Override
     protected boolean isSubmitVisible() {
         return true;
     }
@@ -310,5 +260,9 @@ public class ObjectClassConnectorStepPanel extends AbstractFormWizardStepPanel<C
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    protected final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> getObjectClassModel() {
+        return valueModel;
     }
 }

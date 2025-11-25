@@ -33,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopment
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +48,9 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         INIT_OBJECT_CLASS,
         OBJECT_CLASS_SCHEMA,
         OBJECT_CLASS_SEARCH_ALL,
+        OBJECT_CLASS_CREATE,
+        OBJECT_CLASS_UPDATE,
+        OBJECT_CLASS_DELETE,
         RELATIONSHIPS,
         INIT_RELATIONSHIP,
         RELATIONSHIP,
@@ -60,48 +62,74 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
     }
 
     public void initNewObjectClass(AjaxRequestTarget target) {
-        int index = addWizardPartOnEnd(new InitObjectClassConnectorDevPartItem(getHelper()));
-        clearInProgressPart();
-        setActiveWizardPartIndex(index);
-        fireActiveStepChanged();
-        target.add(getPanel());
+        setPartItem(new InitObjectClassConnectorDevPartItem(getHelper()), target);
     }
 
     public void initNewRelationship(AjaxRequestTarget target) {
-        int index = addWizardPartOnEnd(new InitRelationshipConnectorDevPartItem(getHelper()));
-        clearInProgressPart();
-        setActiveWizardPartIndex(index);
-        fireActiveStepChanged();
-        target.add(getPanel());
+        setPartItem(new InitRelationshipConnectorDevPartItem(getHelper()), target);
     }
 
     public void editBasicInformation(AjaxRequestTarget target) {
-        setActiveStepById(BasicInformationConnectorStepPanel.PANEL_TYPE);
-        fireActiveStepChanged(getActiveStep());
-        target.add(getPanel());
+        setActiveStepById(BasicInformationConnectorStepPanel.PANEL_TYPE, target);
     }
 
     public void editConnection(AjaxRequestTarget target) {
-        setActiveStepById(ConnectionConnectorStepPanel.PANEL_TYPE);
-        fireActiveStepChanged(getActiveStep());
-        target.add(getPanel());
+        setActiveStepById(ConnectionConnectorStepPanel.PANEL_TYPE, target);
     }
 
     public void editDocumentation(AjaxRequestTarget target) {
-        setActiveStepById(DocumentationConnectorStepPanel.PANEL_TYPE);
-        fireActiveStepChanged(getActiveStep());
-        target.add(getPanel());
+        setActiveStepById(DocumentationConnectorStepPanel.PANEL_TYPE, target);
+    }
+
+    public void editSchema(String objectClassName, AjaxRequestTarget target) {
+        setPartItem(new SchemaConnectorDevPartItem(getHelper()), objectClassName, target);
+    }
+
+    public void editSearchAll(String objectClassName, AjaxRequestTarget target) {
+        setPartItem(new SearchAllConnectorDevPartItem(getHelper()), objectClassName, target);
+    }
+
+    public void editCreateOp(String objectClassName, AjaxRequestTarget target) {
+        setPartItem(new CreateConnectorDevPartItem(getHelper()), objectClassName, target);
+    }
+
+    public void editUpdateOp(String objectClassName, AjaxRequestTarget target) {
+        setPartItem(new UpdateConnectorDevPartItem(getHelper()), objectClassName, target);
+    }
+
+    public void editDeleteOp(String objectClassName, AjaxRequestTarget target) {
+        setPartItem(new DeleteConnectorDevPartItem(getHelper()), objectClassName, target);
     }
 
     public void showObjectClassesPanel(AjaxRequestTarget target) {
-        setActiveStepById(ObjectClassesConnectorStepPanel.PANEL_TYPE);
+        setActiveStepById(ObjectClassesConnectorStepPanel.PANEL_TYPE, target);
+    }
+
+    public void showRelationshipsPanel(AjaxRequestTarget target) {
+        setActiveStepById(RelationshipsConnectorStepPanel.PANEL_TYPE, target);
+    }
+
+    private void setActiveStepById(String stepId, AjaxRequestTarget target) {
+        setActiveStepById(stepId);
         fireActiveStepChanged(getActiveStep());
         target.add(getPanel());
     }
 
-    public void showRelationshipsPanel(AjaxRequestTarget target) {
-        setActiveStepById(RelationshipsConnectorStepPanel.PANEL_TYPE);
-        fireActiveStepChanged(getActiveStep());
+    private void setPartItem(
+            AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> partItem,
+            AjaxRequestTarget target) {
+        setPartItem(partItem, null, target);
+    }
+
+    private void setPartItem(
+            AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> partItem,
+            String objectClassName,
+            AjaxRequestTarget target) {
+        partItem.setParameter(objectClassName);
+        int index = addWizardPartOnEnd(partItem);
+        clearInProgressPart();
+        setActiveWizardPartIndex(index);
+        fireActiveStepChanged();
         target.add(getPanel());
     }
 
@@ -129,7 +157,6 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
             list.add(new RelationshipsConnectorDevPartItem(getHelper()));
         }
 
-        InitObjectClassConnectorDevPartItem objectClassPartItem = null;
         try {
             PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassContainer = getObjectWrapper().findContainer(
                     ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR,
@@ -139,11 +166,22 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
                     if (objectClassValue.getStatus() == ValueStatus.DELETED) {
                         continue;
                     }
+
+                    String objectClassName = objectClassValue.getRealValue().getName();
+
                     InitObjectClassConnectorDevPartItem partItem = new InitObjectClassConnectorDevPartItem(getHelper());
-                    partItem.setParameter(objectClassValue.getRealValue().getName());
+                    partItem.setParameter(objectClassName);
                     if (!partItem.isComplete()) {
-                        objectClassPartItem = partItem;
-                        break;
+                        list.add(partItem);
+                        return list;
+                    }
+
+                    if (isPartInProgress(new SchemaConnectorDevPartItem(getHelper()), list, objectClassName)
+                            || isPartInProgress(new SearchAllConnectorDevPartItem(getHelper()), list, objectClassName)
+                            || isPartInProgress(new CreateConnectorDevPartItem(getHelper()), list, objectClassName)
+                            || isPartInProgress(new UpdateConnectorDevPartItem(getHelper()), list, objectClassName)
+                            || isPartInProgress(new DeleteConnectorDevPartItem(getHelper()), list, objectClassName)) {
+                        return list;
                     }
                 }
             }
@@ -151,11 +189,6 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
             LOGGER.error("Couldn't determine wizard parts for object classes.", e);
             String message = getObjectDetailsModel().getPageAssignmentHolder().getString("ConnectorDevelopmentController.couldntDetermineObjectClasses");
             getObjectDetailsModel().getPageAssignmentHolder().error(message);
-        }
-
-        if (objectClassPartItem != null) {
-            list.add(objectClassPartItem);
-            return list;
         }
 
         try {
@@ -182,6 +215,18 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         return list;
     }
 
+    private boolean isPartInProgress(
+            AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> partItem,
+            List<AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel>> list,
+            String objectClassName) {
+        partItem.setParameter(objectClassName);
+        if (partItem.isStarted() && !partItem.isComplete()) {
+            list.add(partItem);
+            return true;
+        }
+        return false;
+    }
+
     @Override
     protected WizardStep createSummaryPanel() {
         return new ConnectorDevelopmentWizardSummaryPanel(getObjectDetailsModel());
@@ -195,7 +240,14 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
             return;
         }
 
-        if (oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.INIT_OBJECT_CLASS) {
+        if (oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.INIT_OBJECT_CLASS
+                || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SCHEMA
+                || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_ALL
+                || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_CREATE
+                || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_UPDATE
+                || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_DELETE) {
+            setPartItems(createBasicPartItems());
+            refresh();
             int index = addWizardPartOnEnd(new NextConnectorDevPartItem(getHelper()));
             clearInProgressPart();
             setActiveWizardPartIndex(index);

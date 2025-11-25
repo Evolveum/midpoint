@@ -87,10 +87,6 @@ public class AuthScriptsConnectorStepPanel extends ScriptConnectorStepPanel {
     }
 
     @Override
-    protected ConnDevScriptIntentType getTaskIntent() {
-        return ConnDevScriptIntentType.AUTH;
-    }
-
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType(){
         return ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION;
     }

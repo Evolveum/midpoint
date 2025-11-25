@@ -55,11 +55,6 @@ public class WaitingConnIdSchemaConnectorStepPanel extends WaitingObjectClassScr
     }
 
     @Override
-    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
-    }
-
-    @Override
     protected String getNewTaskToken(Task task, OperationResult result) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateConnIdSchema(
                 getObjectClassModel().getObject().getRealValue().getName(), task, result);
@@ -98,10 +93,5 @@ public class WaitingConnIdSchemaConnectorStepPanel extends WaitingObjectClassScr
     @Override
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION;
-    }
-
-    @Override
-    protected boolean objectClassRequired() {
-        return true;
     }
 }

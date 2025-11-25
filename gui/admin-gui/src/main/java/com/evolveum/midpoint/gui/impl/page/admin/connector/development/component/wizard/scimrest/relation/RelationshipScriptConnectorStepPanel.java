@@ -76,11 +76,6 @@ public class RelationshipScriptConnectorStepPanel extends ScriptConnectorStepPan
     }
 
     @Override
-    protected ConnDevScriptIntentType getTaskIntent() {
-        return ConnDevScriptIntentType.RELATION;
-    }
-
-    @Override
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.RELATIONSHIP_SCHEMA_DEFINITION;
     }

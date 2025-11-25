@@ -77,7 +77,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
                     return ConnectorDevelopmentWizardUtil.getTaskToken(
                             getActivityType(),
-                            objectClass,
+                            getObjectClassName(),
                             getScriptType(),
                             getDetailsModel().getObjectWrapper().getOid(),
                             getDetailsModel().getPageAssignmentHolder());
