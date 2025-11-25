@@ -145,12 +145,18 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     @Override
     public Collection<ExecutedDeltaPostProcessor> getPreconditionDeltas(
             ModelServiceLocator serviceLocator, OperationResult result) throws CommonException {
-        if (!isNewObjectModelCreated()) {
+        if (!isNewObjectModelCreated() || isObjectEmpty()) {
             return super.getPreconditionDeltas(serviceLocator, result);
         }
         processBeforeCreatingPreconditionDelta(newObjectModel, serviceLocator);
         return Collections.singletonList(new ReferenceExecutedDeltaProcessor(
                 newObjectModel.collectDeltas(result), PrismReferenceValueWrapperImpl.this));
+    }
+
+    private boolean isObjectEmpty() {
+        PrismObject<? extends ObjectType> clone = newObjectModel.getObjectWrapper().getObject().copy();
+        WebPrismUtil.cleanupEmptyContainers(clone);
+        return clone.isEmpty();
     }
 
     /**

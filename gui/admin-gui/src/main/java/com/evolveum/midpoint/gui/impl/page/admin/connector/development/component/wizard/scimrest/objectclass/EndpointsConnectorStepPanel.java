@@ -9,6 +9,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.CloneStrategy;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -191,21 +196,40 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                     .stream().filter(PrismContainerValueWrapper::isSelected)
                     .map(value -> {
                         try {
-                            //noinspection unchecked
-                            return (PrismContainerValueWrapper<ConnDevHttpEndpointType>) getPageBase().createValueWrapper(
-                                    container, value.getRealValue().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                            PrismContainerValue<ConnDevHttpEndpointType> clone =
+                                    value.getRealValue().asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
+                            clone.removeItem(ConnDevHttpEndpointType.F_SUGGESTED_USE);
+                            clone.asContainerable().suggestedUse(getOperation());
+
+                            return (PrismContainerValueWrapper<ConnDevHttpEndpointType>) WebPrismUtil.createNewValueWrapper(
+                                    container,
+                                    clone,
+                                    getPageBase(),
+                                    getDetailsModel().createWrapperContext());
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
-                    }).toList();
+                    })
+                    .toList();
+
+            container.getValues().stream()
+                    .filter(value -> value.getRealValue().getSuggestedUse().contains(getOperation()))
+                    .forEach(
+                    value -> {
+                        try {
+                            container.remove(value, getDetailsModel().getPageAssignmentHolder());
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
 
             valuesToAdd.forEach(value -> {
-                try {
-                    container.getItem().add(value.getRealValue().asPrismContainerValue());
+//                try {
+//                    container.getItem().add(value.getRealValue().asPrismContainerValue());
                     container.getValues().add(value);
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e);
-                }
+//                } catch (SchemaException e) {
+//                    throw new RuntimeException(e);
+//                }
             });
 
         } catch (SchemaException e) {
@@ -224,8 +248,8 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
 
     @Override
     public boolean isCompleted() {
-        if (!ConnectorDevelopmentWizardUtil.existContainerValue(objectClassModel.getObject(), ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION)) {
-            return false;
+        if (ConnectorDevelopmentWizardUtil.existContainerValue(objectClassModel.getObject(), getScriptItemName())) {
+            return true;
         }
 
         try {
@@ -240,4 +264,6 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
             throw new RuntimeException(e);
         }
     }
+
+    protected abstract ItemPath getScriptItemName();
 }

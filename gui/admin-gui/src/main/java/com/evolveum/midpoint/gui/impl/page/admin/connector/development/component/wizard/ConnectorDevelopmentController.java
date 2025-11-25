@@ -125,6 +125,8 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
             AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> partItem,
             String objectClassName,
             AjaxRequestTarget target) {
+        setPartItems(createBasicPartItems());
+        refresh();
         partItem.setParameter(objectClassName);
         int index = addWizardPartOnEnd(partItem);
         clearInProgressPart();

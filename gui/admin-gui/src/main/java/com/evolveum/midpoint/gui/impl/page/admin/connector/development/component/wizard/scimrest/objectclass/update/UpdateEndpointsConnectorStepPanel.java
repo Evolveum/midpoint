@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.update;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -67,5 +69,10 @@ public class UpdateEndpointsConnectorStepPanel extends EndpointsConnectorStepPan
     @Override
     public String getStepId() {
         return PANEL_TYPE;
+    }
+
+    @Override
+    protected ItemPath getScriptItemName() {
+        return ConnDevObjectClassInfoType.F_UPDATE_SCRIPT;
     }
 }

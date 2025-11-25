@@ -225,6 +225,7 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
                 ConnDevArtifactType script = scriptArtifact.clone();
                 WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
                 saveScript(script, task, task.getResult());
+                getDetailsModel().reloadPrismObjectByOid();
                 if (task.getResult() == null || task.getResult().isError()) {
                     target.add(getFeedback());
                     return false;
