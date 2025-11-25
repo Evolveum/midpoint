@@ -392,43 +392,24 @@ Use of open source OpenJDK builds with public support is recommended instead of 
 
 === Databases
 
-Since midPoint 4.4, midPoint comes with two repository implementations: _native_ and _generic_.
-Native PostgreSQL repository implementation is strongly recommended for all production deployments.
+*PostgreSQL is the only supported database* for midPoint deployments since 4.10.
 
-See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] for more details.
+Although in previous versions of midPoint other databases were supported using object-relational mapping abstraction (Hibernate), it is no longer the case now.
+xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
+It is currently the only option.
 
-Since midPoint 4.0, *PostgreSQL is the recommended database* for midPoint deployments.
 Our strategy is to officially support the latest stable version of PostgreSQL database (to the practically possible extent).
-PostgreSQL database is the only database with clear long-term support plan in midPoint.
 We make no commitments for future support of any other database engines.
 See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] page for the details.
+
 Only a direct connection from midPoint to the database engine is supported.
 Database and/or SQL proxies, database load balancers or any other devices (e.g. firewalls) that alter the communication are not supported.
 
-==== Native Database Support
-
-xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[Native PostgreSQL repository implementation] is developed and tuned
-specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
-
-This is now the *primary and recommended repository* for midPoint deployments.
 Following database engines are supported:
 
-* PostgreSQL 16, 15, 14
+* PostgreSQL 17, 16, 15, 14
 
-PostgreSQL 16 is recommended.
-
-==== Generic Database Support (deprecated)
-
-xrefv:/midpoint/reference/support-4.9/repository/generic/[Generic repository implementation] is based on object-relational
-mapping abstraction (Hibernate), supporting several database engines with the same code.
-Following database engines are supported with this implementation:
-
-* Oracle 21c, 23ai
-* Microsoft SQL Server 2019
-
-Support for xrefv:/midpoint/reference/support-4.9/repository/generic/[generic repository implementation] together with all the database engines supported by this implementation is *deprecated*.
-It is *strongly recommended* to migrate to xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[native PostgreSQL repository implementation] as soon as possible.
-See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] for more details.
+PostgreSQL 17 is recommended.
 
 === Supported Browsers
 
@@ -454,7 +435,7 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.28
+| 10.1.48
 | Web container
 
 | ConnId
@@ -462,15 +443,15 @@ We reserve the right not to support customized web browsers.
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.9.1
+| 3.9.2
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 2.8
+| 2.9
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
-| 1.5.2.0
+| 1.5.3.0
 | Connector for simple database tables
 
 |===
@@ -498,13 +479,13 @@ Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
-=== Upgrade From MidPoint 4.8
+=== Upgrade From MidPoint 4.9
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
 Please follow our xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
-Be sure to be on the latest maintenance version for 4.8, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
+Be sure to be on the latest maintenance version for 4.9, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
@@ -515,38 +496,17 @@ Note that:
 
  * See also the _Actions required_ information below.
 
-// It is strongly recommended migrating to the xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[new native PostgreSQL repository implementation]
-// for all deployments that have not migrated yet.
-// However, it is *not* recommended upgrading the system and migrating the repositories in one step.
-// It is recommended doing it in two separate steps.
-// Please see xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/migration/[] for the details.
-
 === Upgrade From Other MidPoint Versions
 
-Upgrade from midPoint versions other than 4.8.x to midPoint {release-version} is not supported directly.
-Please upgrade to 4.8.5 first.
+Upgrade from midPoint versions other than 4.9.x to midPoint {release-version} is not supported directly.
+Please upgrade to 4.9.5 first.
 
-=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.8
+=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.9
 
 NOTE: This section is relevant to the majority of midPoint deployments.
 It refers to the most significant functionality removals and changes in this version.
 
-// * The `mailNonce` and `securityQuestionsForm` authentication modules were re-worked.
-// Since 4.8, we won't support authentication sequences with only `mailNonce` or only `securityQuestionsForm` module defined for password reset flow.
-// These modules have to be used together with `focusIdentification` module.
-// So, once the `mailNonce` or `securityQuestionsForm` module is executed, we already have information about the user who's trying to perform action (either password reset or login or anything else using flexible authentication sequence except registration/invitation flows).
-// These modules cannot be first in the sequence and cannot be alone.
-// Also added support to automatically remove nonce after successful authentication.
-//
-// * Another change concerns reset password functionality.
-// Since 4.8, the user should be granted with `http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resetPassword` authorization to be able to use Reset password feature.
-//
-// * The support for XML filters was removed from the GUI.
-// Since 4.8 we recommend to use midPoint (axiom) query language instead.
-// Query converter was improved to provide the possibility to convert XML filters to midPoint query language.
-//
-// * Ninja command line options were consolidated, some options were renamed.
-// More info xrefv:/midpoint/reference/support-4.9/deployment/ninja[here] and in bug:MID-7483[].
+The support for databases other than PostgreSQL was dropped.
 
 === Changes In Initial Objects Since 4.9
 
@@ -570,7 +530,7 @@ For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/
 * 020-archetype-system-user.xml: fixed the color of the icon.
 * 021-archetype-system-role.xml: fixed the color of the icon.
 * 023-archetype-manual-provisioning-case.xml: added the color for the icon.
-* 024-archetype-operation-request.xml: fixed the icon for case object.
+* 024-archetype-operation-request.xml: added the color for the icon.
 * 025-archetype-approval-case.xml: added the color for the icon.
 * 028-archetype-application-role.xml: fixed the plural label.
 * 029-archetype-application.xml: fixed the displaying of the application classifications and governance panels.
@@ -699,136 +659,6 @@ This profile is not considered to provide strict security, therefore the name wa
 Corresponding description was added to the profile.
 
 ** See xref:/midpoint/reference/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
-
-[#_behavior_changes_since_4_8]
-=== Behavior Changes Since 4.8
-
-[NOTE]
-====
-This section describes changes in the behavior that existed before this release.
-New behavior is not mentioned here.
-Plain bugfixes (correcting incorrect behavior) are skipped too.
-Only things that cannot be described as simple "fixing" something are described here.
-
-The changes since 4.8 are of interest probably for "advanced" midPoint deployments only.
-You should at least scan through them, though.
-====
-
-* Checking for conflicts for single-valued items was fixed (strengthened).
-In 4.8.3 and before, there were situations that two strong mappings produced different values for a given single-valued item, yet no error was produced.
-(If the item contained the same value that was produced by one of these mappings.)
-Such configurations are in principle unstable, so this kind of errors should be identified and fixed.
-Please see bug:MID-9621[] and https://github.com/Evolveum/midpoint/commit/22e2d8429e269e4c54b19c3e2df153b9fbfd1437[this commit].
-
-* The default configuration for caching was changed.
-Currently, only the attributes defined in `schemaHandling` are cached by default.
-(Except for the situation when the caching is enabled by `cachingOnly` property in the read capability.)
-
-* When processing live sync changes that contain only the object identifiers, a more aggressive approach to fetching actual objects was adopted:
-We now always fetch the actual object, if possible.
-The reason is that the cached version may be incomplete or outdated.
-
-* The behavior of `disableTimestamp` and `disableReason` in the shadow activation container was changed.
-Before 4.9/4.8.1, these properties were updated only if there was an actual change in the administrative status from something to `DISABLED`.
-Since 4.9/4.8.1, both of these properties are updated even if the administrative status is already `DISABLED`:
-the `disableReason` is determined anew, and the `disableTimestamp` is updated if the status and/or the reason are modified.
-See bug:MID-9220[].
-
-* Automatic caching of association binding attributes (the "value" side, i.e. `valueAttribute` in the association definition) is no longer provided.
-It is recommended to mark them as secondary identifiers.
-
-* The filtering of associations was changed slightly.
-In particular, even if the required auxiliary object class is not present for the subject, the association values are still shown - if they exist on the resource.
-(They were hidden before.)
-
-* To address bug:MID-9638[] and bug:MID-9670[] (leaking data via searching objects by filters), the handling of items allowed for search operations was changed.
-
-It is now evaluated not only for the type we are searching for (like `RoleType`), but for all types whose items are to be used for the search (like `UserType` for a filter like "give me `RoleType` `referencedBy` `UserType` via `assignment/targetRef`").
-
-The checks are "yes/no" style only, based on the presence or absence of authorizations against specified type and item(s), with appropriate action URIs (read, search, and the new searchBy).
-No detailed checking for the values is done. E.g. if the search for `UserType:name` is allowed even for potentially a single user object (via an authorization clause that can provide any number of matching objects, even zero), then the `name` item can be used for any search concerning `UserType` or even `FocusType` objects.
-
-Effects on existing deployments:
-
-. Some queries allowed previously may now fail because of missing item-searching authorizations.
-As a quick fix, new (experimental, temporary) `searchBy` authorization is available to give search access to these items without providing any additional access to data values.
-
-. Some queries denied previously may now be allowed.
-This should be quite rare, but possible.
-It can happen if the original authorization was not applied because of some specific limitations (like `roleRelation` with no explicit role information), and hence the `item`/`exceptItem` part of it was skipped.
-This is no longer the case.
-
-See link:https://github.com/Evolveum/midpoint/commit/60928672b8e51946edf01fcbe0d253e4ae65c4cf[commit 609286].
-
-* The `effectiveMarkRef` item now has value metadata to determine the values' origin. See link:https://github.com/Evolveum/midpoint/commit/351d7e4718bef9ac90dffde8920bc7d536f42e84[commit 351d7e].
-
-* The mapping specification in provenance metadata now contains also object type name, association type name, and the shadow tag.
-See xrefv:/midpoint/reference/support-4.9/expressions/mappings/#_mapping_maintenance_tasks[Mapping Maintenance Tasks], link:https://github.com/Evolveum/midpoint/commit/0dd1c011d9bc99fae037a4e27cb583cbd43da5bb[commit 0dd1c0], and link:https://github.com/Evolveum/midpoint/commit/8557f5945222ac2a7c535f0d0458af725442b61b[commit 8557f5].
-
-* "<a:indexed/>" and "<a:indexOnly/>" annotations - when present but without any value - was interpreted as "false".
-This was now changed to a more intuitive interpretation (similar to a:object, a:container, etc), where annotation present but without value means "true".
-Also, "a:container" and other markers were interpreted as "true", even if the value was actually "false".
-This is now fixed as well.
-
-* Years-old ref-style schema annotations like <r:identifier ref="icfs:uid"/> are no longer supported.
-They are not used since midPoint 2.0.
-If you happen to use them in your manually configured resource XSD schemas, please replace them with the supported <r:identifier>icfs:uid</r:identifier> style.
-
-* Support for getting/setting objects embedded in references marked as `a:objectReference` directly, like `LensElementContext.getObjectOld()`.
-This feature was used only internally by midPoint.
-
-* The `<xsd:documentation>` element in resource schemas is now ignored.
-It was never used by ConnId connectors, but, in theory, it might be used for manually entered schemas.
-
-* Default target set for mappings emitting multivalue properties is based on provenance metadata, mapping can only remove values, it added.
-** If value has multiple provenances (user entry, or multiple mappings), the mapping removes only its provenance section, value still remains.
-
-NOTE: The addition of the value metadata at various places of objects means that the objects are larger than in previous versions of midPoint.
-In a similar way, the shadow caching feature - enabled by default for new installations - will probably increase the size of shadow objects further.
-All this will probably have an impact on the database size as well as on the runtime performance.
-(The exact proportions depend on specifics of the deployment.)
-All these features can be configured - or even turned off in the extreme case - so you can do your own tradeoff between functionality and performance.
-Moreover, we plan to improve the performance in the forthcoming releases.
-
-=== Java and REST API Changes Since 4.8
-
-NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.
-(MidPoint does not have explicitly defined Java API, yet.
-But these two objects are something that can be unofficially considered to be the API of midPoint, usable e.g. from scripts.)
-
-// * Some of `javax` namespaces were migrated to `jakarta` namespaces, due to upgrade of Spring and Groovy 4. This may affect your scripts / overlays if you were using them. Most notable is `javax.xml.bind`, which was migrated to `jakarta.xml.bind`.
-// ** Most notable rename for Groovy scripts is `javax.xml.bind.JAXBElement` to `jakarta.xml.bind.JAXBElement`.
-//
-// * Groovy was updated to version 4, which changed some of exposed java package names. See https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 Release Notes] for more details.
-//
-// * The following methods were not checking authorizations of currently logged-in user, and were fixed to do so:
-// `midpoint.countAccounts`, `midpoint.getObjectsInConflictOnPropertyValue`, `midpoint.isUniquePropertyValue`.
-// See bug:MID-6241[] and commit https://github.com/Evolveum/midpoint/commit/1471bba52e363f81feabbec6f997507d8a7655fb[1471bb].
-
-=== Internal Changes Since 4.8
-
-NOTE: These changes should not influence people that use midPoint "as is".
-They should also not influence the XML/JSON/YAML-based customizations or scripting expressions that rely just on the provided library classes.
-These changes will influence midPoint forks and deployments that are heavily customized using the Java components.
-
-* Internal APIs were massively changed with regard to passing `prismContext` object between methods.
-This object has been statically available for quite a long time.
-Now it was definitely removed from methods' signatures.
-+
-*The official APIs (like `midpoint` and `basic` objects) were not touched by this change.
-However, if you use some of the unofficial or undocumented APIs, please make sure you migrate your code appropriately.*
-+
-The change itself is very simple: basically, the `PrismContext` parameter was removed from methods' signatures.
-
-* Likewise, the internals of prism definitions were changed in https://github.com/Evolveum/prism/commit/12808dc91f4ea358dda3666cd0b01eba7d08300c[12808d].
-You should not be affected by this; however, if you use some of the unofficial/undocumented APIs, please check your code.
-
-// * The post-processing of retrieved objects in the IDM Model subsystem (sometimes called "apply schemas and security") was xref:/midpoint/devel/design/apply-schemas-and-security-4.8/summary.adoc[simplified].
-//
-// * Internal `SearchBasedActivityRunSpecifics` interface was changed.
-// This may affect those deployments that provide their own activity handlers.
-// See https://github.com/Evolveum/midpoint/commit/12f6f66d[12f6f66d].
-
 
 ++++
 {% include release-issues.html %}

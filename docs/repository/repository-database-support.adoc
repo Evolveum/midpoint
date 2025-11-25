@@ -49,6 +49,8 @@ That is also the reason that we have decided to focus on PostgreSQL, and Postgre
 Since midPoint 4.4, there is a _native_ repository implementation, an implementation that takes full advantage of underlying database, an implementation that avoids the complications and overhead of generic database data mapping.
 It was developed in xref:/midpoint/projects/midscale/[midScale project], an implementation which brings a native, efficient, high-performance, scalable repository implementation for PostgreSQL database.
 
+Finally, the generic database support was removed from midPoint in 4.10.
+
 == The Future Of Database Engine Support
 
 Few important facts for the future of database engine support in midPoint:
@@ -75,9 +77,7 @@ The community agrees, PostgreSQL it is.
 
 == New Deployments
 
-Choose xref:native-postgresql/[native PostgreSQL repository implementation].
-Just do it.
-Given our plans for the future, it is not worth considering any other options.
+Using xref:native-postgresql/[native PostgreSQL repository implementation] is currently the only option.
 
 == Existing Deployments: Migration to Native PostgreSQL Repository
 
@@ -165,9 +165,6 @@ Small midPoint deployment that are not performance-sensitive can probably operat
 Larger midPoint deployments will surely benefit from a dedicated PostgreSQL support.
 Such support contract can surely be consolidated with other applications in your organizations that are using PostgreSQL, and it is also a great way how to support PostgreSQL project.
 Therefore, we always recommend purchasing a support for PostgreSQL database if you can afford it.
-
-As for commercial and semi-commercial database (Oracle, MS SQL) we always strongly recommend purchasing a support contract for database engine if you insist on using such database.
-However, perhaps the best strategy would be to migrate to PostgreSQL as soon as possible.
 
 
 == Clusters and Cloud
