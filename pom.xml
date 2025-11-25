@@ -954,7 +954,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-databasetable</artifactId>
-                <version>1.5.3.0-M1</version>
+                <version>1.5.3.0</version>
                 <exclusions>
                     <!-- Connectors may have dependencies on various versions of connector-common,
                          as they can be built against various versions of polygon.
@@ -972,7 +972,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
-                <version>2.9-M1</version>
+                <version>2.9</version>
                 <exclusions>
                     <!-- Connectors may have dependencies on various versions of connector-common,
                          as they can be built against various versions of polygon.
