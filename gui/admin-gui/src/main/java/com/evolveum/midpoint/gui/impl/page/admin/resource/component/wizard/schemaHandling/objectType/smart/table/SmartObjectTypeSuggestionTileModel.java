@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
-import com.evolveum.midpoint.schema.util.AiUtil;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -209,9 +209,9 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
 
     protected boolean hasFilterErrors(){
         return getFilterPropertyValueWrapper().getValues().stream()
-                        .anyMatch(v -> AiUtil.isMarkedAsInvalid(v.getNewValue()))
+                        .anyMatch(v -> SmartMetadataUtil.isMarkedAsInvalid(v.getNewValue()))
                         || getBaseContexFilterPropertyValueWrapper().getValues().stream()
-                        .anyMatch(v -> AiUtil.isMarkedAsInvalid(v.getNewValue()));
+                        .anyMatch(v -> SmartMetadataUtil.isMarkedAsInvalid(v.getNewValue()));
     }
 
     protected String getResourceOid() {

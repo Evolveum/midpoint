@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -148,7 +148,7 @@ class ObjectTypesSuggestionOperation {
                     .displayName(displayName)
                     .description(description)
                     .delineation(delineation);
-            AiUtil.markAsAiProvided(
+            SmartMetadataUtil.markAsAiProvided(
                     objectType,
                     ResourceObjectTypeDefinitionType.F_KIND,
                     ResourceObjectTypeDefinitionType.F_INTENT,

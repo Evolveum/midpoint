@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -60,8 +61,8 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
     }
 
     @Override
-    protected List<ConnDevScriptIntentType> getTaskIntents() {
-        return List.of(ConnDevScriptIntentType.NATIVE, ConnDevScriptIntentType.CONNID);
+    protected List<ConnectorDevelopmentArtifacts.KnownArtifactType> getScriptTypes() {
+        return List.of(ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION, ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION);
     }
 
     @Override

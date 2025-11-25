@@ -25,7 +25,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPris
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.AiUtil;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -162,7 +162,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                     suggestedValues.stream().map(suggestedValue -> {
                         try {
                             PrismContainerValue<ConnDevDocumentationSourceType> clone = suggestedValue.clone();
-                            AiUtil.markContainerValueAsAiProvided(clone);
+                            SmartMetadataUtil.markContainerValueAsAiProvided(clone);
                             //noinspection unchecked
                             return (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPageBase().createValueWrapper(
                                     parentWrapper, clone, ValueStatus.ADDED, getDetailsModel().createWrapperContext());
@@ -179,7 +179,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                             .map(suggestedValue -> {
                                 try {
                                     PrismContainerValue<ConnDevDocumentationSourceType> clone = suggestedValue.clone();
-                                    AiUtil.markContainerValueAsAiProvided(clone);
+                                    SmartMetadataUtil.markContainerValueAsAiProvided(clone);
                                     //noinspection unchecked
                                     return (PrismContainerValueWrapper<ConnDevDocumentationSourceType>) getPageBase().createValueWrapper(
                                             parentWrapper, clone, ValueStatus.ADDED, getDetailsModel().createWrapperContext());
@@ -364,7 +364,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     private boolean isAiAlertVisible() {
         return valuesModel.getObject().stream()
-                .anyMatch(value -> AiUtil.isMarkedAsAiProvided(value.getOldValue()));
+                .anyMatch(value -> SmartMetadataUtil.isMarkedAsAiProvided(value.getOldValue()));
     }
 
     private void onAddUrlPerformed(AjaxRequestTarget target) {

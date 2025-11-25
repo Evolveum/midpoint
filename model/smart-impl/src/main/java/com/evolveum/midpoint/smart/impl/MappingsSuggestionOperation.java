@@ -17,6 +17,7 @@ import java.util.Objects;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -237,7 +237,7 @@ class MappingsSuggestionOperation {
 
         AttributeMappingsSuggestionType suggestion = buildAttributeMappingSuggestion(
                 shadowAttrPath, focusPropPath, assessment.quality(), expression, direction);
-        AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
+        SmartMetadataUtil.markAsAiProvided(suggestion); // everything is AI-provided now
         return suggestion;
     }
 

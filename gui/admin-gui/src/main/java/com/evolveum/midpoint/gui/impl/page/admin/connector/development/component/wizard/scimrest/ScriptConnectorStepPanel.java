@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.Connector
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -115,7 +116,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             return ConnectorDevelopmentWizardUtil.getTaskToken(
                     WorkDefinitionsType.F_GENERATE_CONNECTOR_ARTIFACT,
                     getObjectClassName(),
-                    getTaskIntent(),
+                    getScriptType(),
                     getDetailsModel().getObjectWrapper().getOid(),
                     getDetailsModel().getPageAssignmentHolder());
         } catch (CommonException e) {
@@ -126,6 +127,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     protected ConnDevScriptIntentType getTaskIntent() {
         return null;
     }
+
+    abstract protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType();
 
     protected String getObjectClassName() {
         return null;

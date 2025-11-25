@@ -311,6 +311,12 @@ public interface CommonInitialObjects {
             "602-origin-artificial-intelligence.xml",
             SystemObjectsType.ORIGIN_ARTIFICIAL_INTELLIGENCE.value());
 
+    TestObject<ServiceType> SERVICE_ORIGIN_SYSTEM_INTELLIGENCE = TestObject.classPath(
+            SERVICES,
+            "603-origin-system-intelligence.xml",
+            SystemObjectsType.ORIGIN_SYSTEM_INTELLIGENCE.value());
+
+
     static void addCertificationTasks(AbstractModelIntegrationTest test, Task task, OperationResult result) throws CommonException, IOException{
         try {
             test.initTestObjects(

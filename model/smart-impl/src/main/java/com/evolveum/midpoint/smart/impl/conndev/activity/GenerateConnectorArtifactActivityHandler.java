@@ -7,7 +7,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.AiUtil;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -81,7 +81,7 @@ public class GenerateConnectorArtifactActivityHandler
             if (script != null) {
                 if (script.getContent() != null) {
                     // Mark as AI
-                    AiUtil.markAsAiProvided(script.asPrismContainerValue().findItem(ConnDevArtifactType.F_CONTENT).getValue());
+                    SmartMetadataUtil.markAsAiProvided(script.asPrismContainerValue().findItem(ConnDevArtifactType.F_CONTENT).getValue());
                 }
                 resultObj.artifact(script);
             }

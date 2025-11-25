@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
 import com.evolveum.midpoint.task.api.Task;
@@ -84,6 +85,9 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        initTestObjects(initTask, initResult, CommonInitialObjects.SERVICE_ORIGIN_SYSTEM_INTELLIGENCE);
+        // use assertProvenanceMarkValue. NOTE it will probably affect asserts. Definition will need to be updated.
         initTestObjects(initTask, initResult, CommonInitialObjects.ARCHETYPE_UTILITY_TASK);
         initAndTestDummyResource(RESOURCE_DUMMY_AD_SMART_ASSOCIATION_TYPES, initTask, initResult);
     }
@@ -359,6 +363,11 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         assertThat(associationsSuggestion)
                 .as("Association suggestion must not be null")
                 .isNotNull();
+
+        assertProvenanceMarkValue(
+                SmartMetadataUtil.ProvenanceKind.SYSTEM,
+                associationsSuggestion,
+                true, true);
 
         return associationsSuggestion.getAssociation();
     }

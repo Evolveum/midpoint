@@ -14,11 +14,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.message.BasicNameValuePair;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -184,9 +182,14 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         var objectClass = artifactSpec.getObjectClass();
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
         var content = switch (classification) {
-            case NATIVE_SCHEMA_DEFINITION -> generateNativeSchema(artifactSpec);
-            case CONNID_SCHEMA_DEFINITION -> generateConnIdSchema(artifactSpec);
+            case NATIVE_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "native-schema", "native schema script");
+            case CONNID_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "connid", "ConnID mapping script");
             case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, input.getEndpoint());
+            case CREATE -> generateObjectClassScript(artifactSpec, "create", "Create script");
+            case UPDATE ->  generateObjectClassScript(artifactSpec, "update", "Update script");
+            case DELETE -> generateObjectClassScript(artifactSpec, "delete", "Delete script");
             case RELATIONSHIP_SCHEMA_DEFINITION -> generateRelation(artifactSpec, input.getRelation());
             default -> throw new IllegalStateException("Unexpected script type: " + classification);
         };
@@ -208,23 +211,19 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
 
     private String generateSearchAll(ConnDevArtifactType artifactSpec, List<ConnDevHttpEndpointType> endpoints) {
-        try (var job = client().postJob("codegen/{sessionId}/classes/" + artifactSpec.getObjectClass() + "/search/" + toServiceIntent(artifactSpec.getIntent()))) {
-            return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
-        } catch (Exception e) {
-            throw new SystemException("Couldn't generate native schema for objectClass " + artifactSpec.getObjectClass(), e);
-        }
+        // TODO: In future when endpoints are editable ensure synchronization of endpoints
+        return generateObjectClassScript(artifactSpec, "search/" + toServiceIntent(artifactSpec.getIntent()), "search script");
     }
 
     private String toServiceIntent(ConnDevScriptIntentType intent) {
         // FIXME: Unify intents with service
         return intent.value();
     }
-
-    private String generateConnIdSchema(ConnDevArtifactType artifactSpec) {
-        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/connid")) {
+    private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription) {
+        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix)) {
             return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
         } catch (Exception e) {
-            throw new SystemException("Couldn't generate native schema for objectClass " + artifactSpec.getObjectClass(), e);
+            throw new SystemException("Couldn't generate " + scriptDescription + " for objectClass " + artifactSpec.getObjectClass(), e);
         }
     }
 
@@ -236,15 +235,6 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
     }
 
-    private String generateNativeSchema(ConnDevArtifactType artifactSpec) {
-        try(var job = client().postJob("codegen/{sessionId}/classes/" + artifactSpec.getObjectClass() + "/native-schema")) {
-            return job.waitAndProcess(SLEEP_TIME, json -> {
-                return json.get("code").asText();
-            });
-        } catch (Exception e) {
-            throw new SystemException("Couldn't generate native schema for objectClass " + artifactSpec.getObjectClass(), e);
-        }
-    }
 
     @Override
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated) {
@@ -336,6 +326,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             case "POST" -> ConnDevHttpOperationType.POST;
             case "PUT" -> ConnDevHttpOperationType.PUT;
             case "DELETE" -> ConnDevHttpOperationType.DELETE;
+            //case "PATCH" -> ConnDevHttpOperationType.PATCH;
             default -> null;
         };
     }

@@ -95,7 +95,7 @@ public class WaitingNativeSchemaConnectorStepPanel extends WaitingObjectClassScr
     }
 
     @Override
-    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION;
     }
 

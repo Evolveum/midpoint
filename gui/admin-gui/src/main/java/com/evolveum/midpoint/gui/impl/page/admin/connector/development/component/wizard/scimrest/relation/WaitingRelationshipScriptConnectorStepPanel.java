@@ -99,8 +99,13 @@ public class WaitingRelationshipScriptConnectorStepPanel extends WaitingScriptCo
     }
 
     @Override
-    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScripType() {
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.RELATIONSHIP_SCHEMA_DEFINITION;
+    }
+
+    @Override
+    protected String getObjectClassName() {
+        return valueModel.getObject().getRealValue().getName();
     }
 
     @Override
@@ -115,7 +120,11 @@ public class WaitingRelationshipScriptConnectorStepPanel extends WaitingScriptCo
                         .findFirst();
 
                 if (relationshipValue.isPresent()) {
-                    return true;
+                    // Check if script is non-empty. Check just for relation does not work, since it is saved by wizard.
+                    var scriptContainer = relationshipValue.get().findContainer(ConnDevRelationInfoType.F_SCHEMA_SCRIPT);
+                    // Probably should handle GUI special cases with empty values.
+                    var realValue = relationshipValue.get().getRealValue();
+                    return realValue.getSchemaScript() != null && realValue.getSchemaScript().getFilename() != null;
                 }
 
             }
