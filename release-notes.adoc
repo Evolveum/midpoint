@@ -35,6 +35,10 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.9.5
+
+* Fixed displaying some approved and executed changes as "Waiting to be applied". See bug:MID-10828[].
+
 == Changes with Respect To Version 4.9.4
 
 * Updated dependencies, mainly spring Boot (3.5.6).
