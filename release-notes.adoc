@@ -19,13 +19,13 @@ The {release-version} release brings accessibility improvements, compliance feat
 <p>
 <a href="https://en.wikipedia.org/wiki/Louis_Braille">Louis Braille</a> (1809-1852) was a French educator.
 He invented a reading and writing system named after him, intended for use by visually impaired people.
-Braille invented the system at an early age, and dedicated most of his life to improve his system.
+Braille invented the system at an early age, and dedicated most of his life to improving his system.
 The system invented by Braille opened up the world of knowledge and learning to the visually impaired people.
 </p>
 <p>
-Similarly to Braille's system, midPoint 4.10 brings major improvements in accessibility.
-Self-service part of midPoint user interface was meticulously reviewed and improved to correctly support tools used by the visually impaired people.
-Moreover, midPoint 4.10 brings many incremental improvements and new features in various areas, reminiscent of Braille's relentless improvements of his system through his life.
+Similar to Braille's system, midPoint 4.10 brings major improvements in accessibility.
+The self-service part of the midPoint user interface was meticulously reviewed and improved to correctly support tools used by the visually impaired people.
+Moreover, midPoint 4.10 brings many incremental improvements and new features in various areas, reminiscent of Braille's relentless improvements of his system throughout his life.
 Overall, midPoint 4.10 opens up the world of identity management and governance to everybody.
 </p>
 {% endcapture %}
@@ -36,66 +36,66 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 === New Features and Major Improvements
 
-* Self-service user interface is now very close to WCAG 2.2 AA compliance.
-* Implemented multiple improvements related to background tasks:
+* The self-service user interface is now very close to link:https://www.w3.org/TR/WCAG22/[WCAG 2.2] AA compliance. See bug:MID-9847[].
+* The experience around background tasks has been improved in various aspects:
 ** Better indication for failed tasks and their subtasks. See bug:MID-10410[].
-** Configurable xrefv:/midpoint/reference/master/tasks/activity-policies/[policies] for executing activities. See bug:MID-10412[].
-** Better xrefv:/midpoint/reference/master/tasks/task-errors/[search for errors] in task run history. See bug:MID-10411[].
-* Added xrefv:/midpoint/reference/master/admin-gui/dashboards/compliance-dashboard/[Compliance dashboard].
-* Improved expression security:
-** Added xrefv:/midpoint/reference/master/expressions/expressions/filter/[Filter expression evaluator]. See bug:MID-10060[].
-** Improved `safe` expression profile in default system configuration.
-** Recommended xref:/midpoint/reference/expressions/expressions/security/[_semi-safe_ configuration of expression profiles] to provide reasonable level of xref:/midpoint/reference/expressions/expressions/security/[expression security] for some delegated administration scenarios.
-* Improved ways to report audit delta in GUI and reports using xrefv:/midpoint/reference/master/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[changed item paths].
+** Configurable xrefv:/midpoint/reference/support-4.10/tasks/activity-policies/[policies] for executing activities. See bug:MID-10412[].
+** Better xrefv:/midpoint/reference/support-4.10/tasks/task-errors/[search for errors] in the history of task runs. See bug:MID-10411[].
+* Added xrefv:/midpoint/reference/support-4.10/admin-gui/dashboards/compliance-dashboard/[compliance dashboard].
+* You can now tighten security guardrails around xrefv:/midpoint/reference/support-4.10/expressions/expressions/[expressions]:
+** New xrefv:/midpoint/reference/support-4.10/expressions/expressions/filter/[filter expression evaluator]. See bug:MID-10060[].
+** Improved `safe` expression profile in the default system configuration.
+** Recommended xrefv:/midpoint/reference/support-4.10/expressions/expressions/security/#semi-safe-configuration[_semi-safe_ configuration of expression profiles] provides a reasonable level of xrefv:/midpoint/reference/support-4.10/expressions/expressions/security/[expression security] for some delegated administration scenarios.
+* Improved xrefv:/midpoint/reference/support-4.10/security/audit/#delta-column-changed-items[displaying changes (deltas)] in both the audit GUI and reports.
+* Improved xrefv:/midpoint/reference/support-4.10/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[indexing] these deltas, especially when objects are added. See bug:MID-10413[]
 Improved indexing of audit records with "add object" deltas.
 See bug:MID-10413[].
-* Added `lastLoginTimestamp` xref:/midpoint/reference/resource-configuration/capabilities#_behavior[capability]. See bug:MID-10147[].
-* Implemented xrefv:/midpoint/reference/master/admin-gui/admin-gui-config/#_default_gui_object_list_panel_configuration/[Default List View Panel Configuration] which brings a possibility to set the common paging options for list panels. See bug:MID-10414[].
+* Added xrefv:/midpoint/reference/support-4.10/resources/resource-configuration/capabilities/#last-login-timestamp-capability[`lastLoginTimestamp` capability]. See bug:MID-10147[].
+* Implemented xrefv:/midpoint/reference/support-4.10/admin-gui/admin-gui-config/#_default_gui_object_list_panel_configuration[default list view panel configuration] which brings a possibility to set the common pagination options for list panels. See bug:MID-10414[].
 
 === Other Improvements
 
 * Summary panel for roles now uses display name and identifier (same as for organizations and services). See bug:MID-10270[].
-* Task execution constraints added to "advanced options" tab. See bug:MID-10218[].
-* Removed max password length constraint from default password policy. See bug:MID-10305[].
-* Added support for exclusion of metadata in `get`/`search` rest APIs. See bug:MID-10216[].
-* StartupConfiguration incorporates `midpoint.` properties from Spring environment sources.
-* Implemented xrefv:/midpoint/reference/support-4.9/resources/attribute-caching/#_caching_passwords[shadow password caching], with the possibility of storing them in reversible encrypted form.
-* Improved handling of xrefv:/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/volatility/[volatile shadow attributes].
-* Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
-* Adding support for PKCE (Proof Key for Code Exchange) as additional security for OIDC authentication module. See bug:MID-10155[].
-* Adding new configuration attribute for OIDC authentication module, that is used for ID Token signing algorithm. See xref:/midpoint/reference/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
-* Apply the Web Content Accessibility Guidelines (WCAG) to all login pages and self-service pages. See bug:MID-9847[].
-** Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
-* Improved the documentation on the resource configuration. See bug:MID-10176[].
-* Allow volatility configuration per mapping through the Resource Wizard. See bug:MID-10170[].
-* Change the CSS style of sub-containers in the vertical form panel to create a new object for reference. See bug:MID-10030[].
-* Documentation of xref:/midpoint/reference/resources/shadow/purpose/[shadow purpose] was added. See bug:MID-10419[].
+* Task execution constraints added to the "advanced options" tab. See bug:MID-10218[].
+* Removed maximum password length constraint from the default password policy. See bug:MID-10305[].
+* Added support for metadata exclusion in `get`/`search` rest API operations. See bug:MID-10216[].
+* Implemented xrefv:/midpoint/reference/support-4.10/resources/attribute-caching/#_caching_passwords[shadow password caching], with the possibility of storing them in reversible encrypted form.
+* Improved handling of xrefv:/midpoint/reference/support-4.10/resources/resource-configuration/schema-handling/volatility/[volatile shadow attributes].
+* Update GUI views after changing the archetype used in the particular view. See bug:MID-9776[].
+* Added support for PKCE (Proof Key for Code Exchange) as an additional security measure for the OIDC authentication module. See bug:MID-10155[].
+* Added a new configuration attribute for OIDC authentication module that is used for the ID Token signing algorithm. See xrefv:/midpoint/reference/support-4.10/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
+* Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
+* Improved the documentation of resource configuration. See bug:MID-10176[].
+* Allowed volatility configuration per mapping through the Resource Wizard. See bug:MID-10170[].
+* Changed the CSS style of sub-containers in the vertical form panel to create a new object for reference. See bug:MID-10030[].
+* Documented xrefv:/midpoint/reference/support-4.10/resources/shadow/purpose/[shadow purpose]. See bug:MID-10419[].
 * Some policy rule constraints allow to the `targetArchetypeRef` to specify objects by archetype. See bug:MID-10647[].
-* Assignment modification constraint of policy rules allows specification of scope.
+* `StartupConfiguration` incorporates `midpoint.` properties from Spring environment sources.
+* Assignment modification constraint of policy rules allows scope specification.
 This can be used for approval of indirect role assignments and similar cases. See bug:MID-10663[].
 * There are two new functions in midPoint function library for access to "governance" users (approvers/owners): `getRoleMemberUsers`, `getServiceMemberUsers`.
-* Use delta's "visualizer" used by GUI also in notifications and other improvements in notifications. See bug:MID-6112[], bug:MID-10633[], bug:MID-10632[], bug:MID-10635[], bug:MID-10372[], bug:MID-10634[], bug:MID-10636[].
+* Improved notifications in various aspects, such as by enabling you to use the GUI delta visualizer in notification. See bug:MID-6112[], bug:MID-10633[], bug:MID-10632[], bug:MID-10635[], bug:MID-10372[], bug:MID-10634[], bug:MID-10636[].
 * Built-in archetypes for organizational structures and locations.
-* xrefv:/midpoint/reference/master/roles-policies/policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
-* xrefv:/midpoint/reference/master/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
-* Updated various libraries, mainly: Spring Boot, Tomcat, PostgresSQL JDBC driver.
-* Add OAuth 2 credential flow to mail servers notification configuration
+* xrefv:/midpoint/reference/support-4.10/roles-policies/policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
+* xrefv:/midpoint/reference/support-4.10/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
+* Updated various libraries, such as Spring Boot, Tomcat, PostgresSQL JDBC driver.
+* Added OAuth 2 credential flow to mail server notification configuration
 * Added languages, specifically Korean, Dutch, and Ukrainian.
 * Removed support for deprecated generic repository implementation (Oracle, SQL Server). See bug:MID-10866[].
-* Date time picker now can use `adminGuiConfiguration/displayFormats/longDateTimeFormat`setting if available.
+* The date & time picker now can use `adminGuiConfiguration/displayFormats/longDateTimeFormat` setting if available.
 * Using private schema in PostgresSQL instead of the public schema. See bug:MID-9300[].
 
 === Major Bugfixes
 
-* bug:MID-10213[] Fix synchronization of large number of tasks (>10 000).
-* bug:MID-10204[] Fix error during preview of changes.
-* bug:MID-10319[] Fixed incorrect error message displayed when performing "Unlock" action on user list page.
+* bug:MID-10213[] Fixed synchronization of large number of tasks (>10 000).
+* bug:MID-10204[] Fixed error during preview of changes.
+* bug:MID-10319[] Fixed incorrect error message displayed when performing "Unlock" action on the user list page.
 * bug:MID-10317[] Fixed missing message when user disable fails.
 * bug:MID-10320[] Fixed ninja zip option used during export/import.
-* bug:MID-10048[] Fix ClassCastException when creating duplicates of object types with new archetype
-* bug:MID-10278[] Fix non-clickable part of a button in Edit Schema popup panel.
-* bug:MID-10513[] Fixed css issues with popup modal background in Safari.
-* bug:MID-10496[] Fixed issue of task not starting at next scheduled time.
+* bug:MID-10048[] Fixed `ClassCastException` when creating duplicates of object types with new archetype
+* bug:MID-10278[] Fixed non-clickable part of a button in the Edit Schema popup modal.
+* bug:MID-10513[] Fixed CSS issues with popup modal background in Safari.
+* bug:MID-10496[] Fixed issue of tasks not starting at next scheduled time.
 
 === Other Bug Fixes
 
@@ -116,7 +116,7 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * Stopped generating passwords with "problematic" characters, like comma, apostrophe, ampersand, and so on.
 Now it's possible to define characters that are accepted in the password, but not used when generating a new password value.
 The default password policy was updated in this regard.
-See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
+See bug:MID-9541[] and the xrefv:/midpoint/reference/support-4.10/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results.
 See bug:MID-9737[] and bug:MID-9986[].
 * Midpoint Query Language Fixed inconsistent whitespace behavior when using `not` filter, modified grammar of query language. See bug:MID-9351[].
@@ -331,7 +331,7 @@ Even though midPoint may work well on mobile devices, the support for small scre
 Partial support for small screens (e.g. only for self-service purposes) may be provided, but it has to be explicitly negotiated in a subscription contract.
 
 * There are several add-ons and extensions for midPoint that are not explicitly distributed with midPoint.
-This includes xrefv:/midpoint/reference/support-4.9/interfaces/midpoint-client-java/[Java client library],
+This includes xrefv:/midpoint/reference/support-4.10/interfaces/midpoint-client-java/[Java client library],
 various https://github.com/Evolveum/midpoint-samples[samples], scripts, connectors and other non-bundled items.
 Support for these non-bundled items is limited.
 Generally speaking, those non-bundled items are supported only for platform subscribers and those that explicitly negotiated the support in their contract.
@@ -391,12 +391,12 @@ Use of open source OpenJDK builds with public support is recommended instead of 
 *PostgreSQL is the only supported database* for midPoint deployments since 4.10.
 
 Although in previous versions of midPoint other databases were supported using object-relational mapping abstraction (Hibernate), it is no longer the case now.
-xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
+xrefv:/midpoint/reference/support-4.10/repository/native-postgresql/[Native PostgreSQL repository implementation] was developed and tuned specially for PostgreSQL database, taking advantage of native database features, providing improved performance and scalability.
 It is currently the only option.
 
 Our strategy is to officially support the latest stable version of PostgreSQL database (to the practically possible extent).
 We make no commitments for future support of any other database engines.
-See xrefv:/midpoint/reference/support-4.9/repository/repository-database-support/[] page for the details.
+See xrefv:/midpoint/reference/support-4.10/repository/repository-database-support/[] page for the details.
 
 Only a direct connection from midPoint to the database engine is supported.
 Database and/or SQL proxies, database load balancers or any other devices (e.g. firewalls) that alter the communication are not supported.
@@ -471,21 +471,21 @@ Although we try to our best, it is not possible to foresee all possible uses of 
 Therefore, the information provided in this section are for information purposes only without any guarantees of completeness.
 In case of any doubts about upgrade or behavior changes please use services associated with xref:/support/subscription-sponsoring/[midPoint subscription programs].
 
-Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
+Please refer to the xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-guide/[] for general instructions and description of the upgrade process.
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
 === Upgrade From MidPoint 4.9
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
 Be sure to be on the latest maintenance version for 4.9, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
- * There are database schema changes (see xrefv:/midpoint/reference/support-4.9/upgrade/database-schema-upgrade/[Database schema upgrade]).
+ * There are database schema changes (see xrefv:/midpoint/reference/support-4.10/upgrade/database-schema-upgrade/[Database schema upgrade]).
 
  * Version numbers of some bundled connectors have changed.
  Connector references from the resource definitions that are using the bundled connectors need to be updated.
@@ -519,7 +519,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
+For more information see xrefv:/midpoint/reference/support-4.10/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
 
 * 000-system-configuration.xml: improved `safe` expression profile, added `permissive` and `prohobitive` profiles, renamed `script-safe` to `script-limited` permission profile, added possibility for configuration of volatility of attribute in resource wizard, added task execution constraints to advanced options tab, updated default paging options, made operation execution recording a regular feature, extended with compliance dashboard, improving `help` attribute values.
 * 010-value-policy.xml: improved localization for name attributes, removed max password length constraint, added `ignoreWhenGenerating` value policy feature.
@@ -618,7 +618,7 @@ You should at least scan through it - or use the `ninja` tool to check the depre
 | Use `<synchronize/>` action instead.
 |===
 
-The `synchronize/membership` container was added to the object operation policy object, present in xrefv:/midpoint/reference/support-4.9/concepts/mark/[object marks] (like the `Protected` one).
+The `synchronize/membership` container was added to the object operation policy object, present in xrefv:/midpoint/reference/support-4.10/concepts/mark/[object marks] (like the `Protected` one).
 It controls the handling of the membership of entitlements possessing given object mark.
 
 _Actions required:_
@@ -654,7 +654,7 @@ See also bug:MID-10397[].
 This profile is not considered to provide strict security, therefore the name was changed to avoid mis-interpretation.
 Corresponding description was added to the profile.
 
-** See xref:/midpoint/reference/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
+** See xrefv:/midpoint/reference/support-4.10/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
 
 ++++
 {% include release-issues.html %}
