@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import java.io.Serializable;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -16,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @param <T> The optional configuration parameter, instance of which can be used to customize the work definition.
  */
-public interface ResourceTaskFlavor<T> {
+public interface ResourceTaskFlavor<T> extends Serializable {
 
     /**
      * Create particular work definition which relies on defined set of resource objects.

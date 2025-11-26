@@ -402,8 +402,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SynchronizationTaskFlavor.IMPORT, true);
-                    }
+                        newTaskPerformed(target, ResourceTaskFlavors.IMPORT, true);}
                 };
             }
         };
@@ -419,8 +418,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SynchronizationTaskFlavor.RECONCILIATION, true);
-                    }
+                        newTaskPerformed(target, ResourceTaskFlavors.RECONCILIATION, true);}
                 };
             }
         };
@@ -436,8 +434,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SynchronizationTaskFlavor.LIVE_SYNC, true);
-                    }
+                        newTaskPerformed(target, ResourceTaskFlavors.LIVE_SYNC, true);}
                 };
             }
         };
