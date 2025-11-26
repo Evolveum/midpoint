@@ -272,6 +272,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     @Override
     public boolean isCompleted() {
-        return ConnectorDevelopmentWizardUtil.existScript(getDetailsModel(), valueModel.getObject());
+        return ConnectorDevelopmentWizardUtil.existScript(getDetailsModel(), getScriptType(), getObjectClassName());
     }
 }

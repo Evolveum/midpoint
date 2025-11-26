@@ -212,9 +212,10 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                     })
                     .toList();
 
-            container.getValues().stream()
+            List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> valuesToRemove = container.getValues().stream()
                     .filter(value -> value.getRealValue().getSuggestedUse().contains(getOperation()))
-                    .forEach(
+                    .toList();
+            valuesToRemove.forEach(
                     value -> {
                         try {
                             container.remove(value, getDetailsModel().getPageAssignmentHolder());

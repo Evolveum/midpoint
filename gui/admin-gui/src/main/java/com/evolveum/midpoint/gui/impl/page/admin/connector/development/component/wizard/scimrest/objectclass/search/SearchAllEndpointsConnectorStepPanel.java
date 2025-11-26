@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(identifier = "cdw-search-endpoints",
         applicableForType = ConnectorDevelopmentType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.searchEndpoints", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.searchAllEndpoints", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class SearchAllEndpointsConnectorStepPanel extends EndpointsConnectorStepPanel {
 
@@ -51,17 +51,17 @@ public class SearchAllEndpointsConnectorStepPanel extends EndpointsConnectorStep
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.searchEndpoints");
+        return createStringResource("PageConnectorDevelopment.wizard.step.searchAllEndpoints");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.searchEndpoints.text");
+        return createStringResource("PageConnectorDevelopment.wizard.step.searchAllEndpoints.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.searchEndpoints.subText");
+        return createStringResource("PageConnectorDevelopment.wizard.step.searchAllEndpoints.subText");
     }
 
     @Override
