@@ -1,4 +1,4 @@
-MidPoint 4.10
+MidPoint 4.10 Support Branch
 -------------------------------
 
 General information:
