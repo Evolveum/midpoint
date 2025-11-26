@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="ca29f4d4-305b-4e72-9f1c-30a34619bd41">
+    <name>Shadow owner found</name>
+    <description>Correlation of a shadow found its owner</description>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
+    </assignment>
+    <displayOrder>520</displayOrder>
+    <!-- No policy rule. This is set explicitly by the correlation simulation. -->
+</mark>

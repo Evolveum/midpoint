@@ -1,0 +1,64 @@
+/*
+ * Copyright (C) 2025 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ *
+ */
+
+package com.evolveum.midpoint.model.impl.correlator.tasks;
+
+import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+/**
+ * Activity handler for correlation simulation activity.
+ *
+ * Correlation simulation activity is used, as name suggest, to simulate correlation with provided correlator on given
+ * set of shadows.
+ *
+ * **Supports only simulation (preview) mode.**
+ */
+@Component
+public class CorrelationActivityHandler
+        implements ActivityHandler<CorrelationWorkDefinition, CorrelationActivityHandler> {
+
+    private final ActivityHandlerRegistry activityHandlerRegistry;
+    private final CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory;
+    private final CorrelationService correlationService;
+
+    public CorrelationActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
+            CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory,
+            CorrelationService correlationService) {
+        this.activityHandlerRegistry = activityHandlerRegistry;
+        this.correlationDefinitionProviderFactory = correlationDefinitionProviderFactory;
+        this.correlationService = correlationService;
+    }
+
+    @PostConstruct
+    public void init() {
+        this.activityHandlerRegistry.register(CorrelationWorkDefinitionType.COMPLEX_TYPE,
+                WorkDefinitionsType.F_CORRELATION, CorrelationWorkDefinition.class, this::workDefFactory,
+                this
+        );
+    }
+
+    public CorrelationActivityRun createActivityRun(
+            @NotNull ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationActivityHandler> ctx,
+            @NotNull OperationResult result) {
+        return new CorrelationActivityRun(ctx, this.correlationService, PrismContext.get());
+    }
+
+    private CorrelationWorkDefinition workDefFactory(WorkDefinitionFactory.WorkDefinitionInfo info) {
+        return new CorrelationWorkDefinition(info, this.correlationDefinitionProviderFactory);
+    }
+}

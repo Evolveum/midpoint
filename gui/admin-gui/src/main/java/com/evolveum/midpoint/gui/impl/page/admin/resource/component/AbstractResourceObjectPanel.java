@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItemWithCoun
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -120,20 +121,19 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
 
     protected abstract TaskCreationPopup<?> createNewTaskPopup();
 
-    protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean isSimulation, AjaxRequestTarget target) {
+    protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean isSimulation, AjaxRequestTarget target) {
         var newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
                 .hideSuccessfulStatus()
                 .run((task, result) -> {
 
                     ResourceType resource = getObjectDetailsModels().getObjectType();
-                    ResourceTaskCreator creator =
-                            ResourceTaskCreator.forResource(resource, getPageBase())
-                                    .ofFlavor(flavor)
-                                    .ownedByCurrentUser()
-                                    .withCoordinates(
-                                            getKind(), // FIXME not static
-                                            getIntent(), // FIXME not static
-                                            getObjectClass()); // FIXME not static
+                    ResourceTaskCreator<?> creator = ResourceTaskCreator.of(flavor, getPageBase())
+                            .forResource(resource)
+                            .ownedByCurrentUser()
+                            .withCoordinates(
+                                    getKind(), // FIXME not static
+                                    getIntent(), // FIXME not static
+                                    getObjectClass()); // FIXME not static
 
                     if (isSimulation) {
                         creator = creator

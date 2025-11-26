@@ -846,7 +846,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .build();
         List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
         if (connectors.size() != 1) {
-            throw new IllegalStateException("Cannot find connector type " + connectorType + ", got " + connectors);
+            throw new IllegalStateException("More than one connector of type %s was found: %s"
+                    .formatted(connectorType, connectors));
         }
         return connectors.get(0);
     }

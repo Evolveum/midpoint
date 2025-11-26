@@ -2553,6 +2553,19 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+
+                <xsd:element name="correlation" type="tns:CorrelationWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Correlates Shadows with Focuses using configured correlators. The 'shadows' container must specify a query to select shadows to process.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.12</a:since>
+                            <a:displayName>WorkDefinitionsType.shadowCorrelation</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="mappingsSuggestion" type="tns:MappingsSuggestionWorkDefinitionType"
                         minOccurs="0">
                     <xsd:annotation>
@@ -7635,6 +7648,9 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.4</a:since>
+                <a:schemaContext>
+                    <a:algorithm>ResourceObjectSetContextResolver</a:algorithm>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10366,6 +10382,70 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="correlationSuggestionWorkDefinition" type="tns:CorrelationSuggestionWorkDefinitionType"/>
+
+    <!-- Shadow correlation: correlate Shadows with Focuses using correlators.
+         The 'shadows' ObjectSet MUST include a 'query' to define selection. -->
+    <xsd:complexType name="CorrelationWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for shadow-focus correlation activity. Selects shadows to be correlated and
+                specifies source of correlators (resource reference or/and inline correlators). Please note,
+                that activity implementing this work definition only supports PREVIEW execution mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ResourceWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="correlators" type="tns:CorrelatorsDefinitionType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specify what correlators should be used for the correlation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="correlationWorkDefinition" type="tns:CorrelationWorkDefinitionType"/>
+
+    <xsd:complexType name="CorrelatorsDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specify what correlators to use for correlation. Note that if the `includeExistingCorrelators` is set
+                to false (default), then at least one of `inlineCorrelators` or `correlatorsRef` has to be specified.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="includeExistingCorrelators" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Use correlators derived from the resource of given shadows.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <!-- If the value of `includeExistingCorrelators` is "false" then bellow element has to be present. -->
+
+            <xsd:element name="inlineCorrelators" type="c:CorrelationDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Inline definition of correlators. Intended to be a dedicated CorrelatorsType;
+                        ExtensionType is used as a placeholder in this schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="correlatorsDefinition" type="tns:CorrelatorsDefinitionType"/>
 
     <xsd:complexType name="MappingsSuggestionWorkDefinitionType">
         <xsd:annotation>

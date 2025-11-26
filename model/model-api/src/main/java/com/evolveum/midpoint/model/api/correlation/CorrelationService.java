@@ -19,8 +19,7 @@ import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Contains correlation-related methods that should be accessible from the outside of `model` module.
@@ -37,6 +36,14 @@ public interface CorrelationService {
             @Nullable String archetypeOid,
             @NotNull Set<String> candidateOids,
             @NotNull CorrelatorDiscriminator discriminator,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException;
+
+    @NotNull CompleteCorrelationResult correlate(
+            @NotNull ShadowType shadowedResourceObject,
+            @NotNull CorrelationDefinitionType correlationDefinition,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
