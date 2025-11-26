@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
@@ -103,11 +104,21 @@ class ObjectTypesSuggestionOperation {
             var siObjectType = objectTypeWithFilters.suggestedObjectType();
             var delineation = new ResourceObjectTypeDelineationType()
                     .objectClass(typeName);
-            objectTypeWithFilters.filters().forEach(delineation::filter);
-            SmartMetadataUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_FILTER);
-            if (objectTypeWithFilters.filterError() != null) {
-                SmartMetadataUtil.markAsInvalid(delineation, objectTypeWithFilters.filterError(), ResourceObjectTypeDelineationType.F_FILTER);
+            for (var filterWithError : objectTypeWithFilters.filterClausesWithErrors()) {
+                var filterClause = filterWithError.filter();
+                delineation.filter(filterClause);
+                if (filterWithError.error() != null) {
+                    var filterItem = delineation.asPrismContainerValue().findItem(ResourceObjectTypeDelineationType.F_FILTER);
+                    if (filterItem != null) {
+                        List<? extends PrismValue> values = filterItem.getValues();
+                        if (!values.isEmpty()) {
+                            PrismValue lastValue = values.get(values.size() - 1);
+                            SmartMetadataUtil.markAsInvalid(lastValue, filterWithError.error());
+                        }
+                    }
+                }
             }
+            SmartMetadataUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_FILTER);
 
             var baseCtx = objectTypeWithFilters.baseCtx();
             if (baseCtx != null) {
@@ -115,9 +126,9 @@ class ObjectTypesSuggestionOperation {
                         .objectClass(baseCtx.classQName())
                         .filter(baseCtx.filter()));
                 SmartMetadataUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
-            }
-            if (objectTypeWithFilters.baseCtxError() != null) {
-                SmartMetadataUtil.markAsInvalid(delineation, objectTypeWithFilters.baseCtxError(), ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+                if (objectTypeWithFilters.baseCtxError() != null) {
+                    SmartMetadataUtil.markAsInvalid(delineation, objectTypeWithFilters.baseCtxError(), ResourceObjectTypeDelineationType.F_BASE_CONTEXT);
+                }
             }
 
             var typeId = ResourceObjectTypeIdentification.of(
@@ -159,20 +170,27 @@ class ObjectTypesSuggestionOperation {
         boolean hasAnyErrors = false;
 
         for (final SiSuggestedObjectTypeType objectType : objectTypes) {
-            List<SearchFilterType> filters = new ArrayList<>();
+            List<FilterClauseWithError> parsedFilterWithError = new ArrayList<>();
             ParsedBaseContext baseCtx = null;
-            String filterError = null;
             String baseCtxError = null;
 
             if (objectType.getFilter() != null && !objectType.getFilter().isEmpty()) {
-                try {
-                    filters = parseObjectTypeFilters(objectType, ctx.objectClassDefinition.getPrismObjectDefinition());
-                    filtersValidator.testObjectTypeFilter(ctx.resource.getOid(), typeName, filters, ctx.task, parentResult);
-                } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException e) {
-                    LOGGER.warn("Failed validating suggested object type (kind={}, intent={}, displayName={}) for object class {}. Filters: {}",
-                            objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(), typeName, objectType.getFilter(), e);
-                    filterError = e.getMessage();
-                    hasAnyErrors = true;
+                for (String filterString : objectType.getFilter()) {
+                    SearchFilterType clause = null;
+                    try {
+                        clause = parseAndSerializeFilter(filterString, ctx.objectClassDefinition.getPrismObjectDefinition());
+                        filtersValidator.testObjectTypeFilter(ctx.resource.getOid(), typeName, clause, ctx.task, parentResult);
+                        parsedFilterWithError.add(new FilterClauseWithError(clause, null));
+                    } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException e) {
+                        LOGGER.warn("Failed validating filter clause for suggested object type (kind={}, intent={}, displayName={}) for object class {}. Clause: {}",
+                                objectType.getKind(), objectType.getIntent(), objectType.getDisplayName(), typeName, filterString, e);
+                        if (clause == null) {
+                            clause = new SearchFilterType();
+                            clause.setText(filterString);
+                        }
+                        parsedFilterWithError.add(new FilterClauseWithError(clause, e.getMessage()));
+                        hasAnyErrors = true;
+                    }
                 }
             }
             if (objectType.getBaseContextObjectClassName() != null || objectType.getBaseContextFilter() != null) {
@@ -188,23 +206,13 @@ class ObjectTypesSuggestionOperation {
                 }
             }
 
-            objectTypesWithFilters.add(new ObjectTypeWithFilters(objectType, filters, baseCtx, filterError, baseCtxError));
+            objectTypesWithFilters.add(new ObjectTypeWithFilters(objectType, parsedFilterWithError, baseCtx, baseCtxError));
         }
 
         if (hasAnyErrors) {
             throw new SuggestObjectTypesValidationException(objectTypesWithFilters);
         }
         return objectTypesWithFilters;
-    }
-
-    private List<SearchFilterType> parseObjectTypeFilters(
-            SiSuggestedObjectTypeType objectType,
-            PrismObjectDefinition<ShadowType> shadowObjectDef) throws SchemaException {
-        final List<SearchFilterType> filters = new ArrayList<>();
-        for (String filterString : objectType.getFilter()) {
-            filters.add(parseAndSerializeFilter(filterString, shadowObjectDef));
-        }
-        return filters;
     }
 
     private ParsedBaseContext parseBaseContext(
@@ -229,7 +237,6 @@ class ObjectTypesSuggestionOperation {
         if (validationFeedback != null && !validationFeedback.isEmpty()) {
             siRequest.getValidationErrorFeedback().addAll(validationFeedback);
         }
-
         var siResponse = ctx.serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class);
         stripBlankStrings(siResponse);
         return siResponse;
@@ -261,10 +268,11 @@ class ObjectTypesSuggestionOperation {
 
     private record ObjectTypeWithFilters(
             SiSuggestedObjectTypeType suggestedObjectType,
-            Collection<SearchFilterType> filters,
+            Collection<FilterClauseWithError> filterClausesWithErrors,
             ParsedBaseContext baseCtx,
-            @Nullable String filterError,
             @Nullable String baseCtxError) {}
+
+    private record FilterClauseWithError(@Nullable SearchFilterType filter, @Nullable String error) {}
 
     private record ParsedBaseContext(QName classQName, SearchFilterType filter) {}
 
@@ -291,8 +299,10 @@ class ObjectTypesSuggestionOperation {
             for (ObjectTypeWithFilters objectTypeWithFilter : objectTypesWithFiltersAndErrors) {
                 var entry = new SiValidationErrorFeedbackEntryType()
                         .objectType(objectTypeWithFilter.suggestedObjectType());
-                if (objectTypeWithFilter.filterError() != null) {
-                    entry.filterErrors(objectTypeWithFilter.filterError());
+                for (FilterClauseWithError clause : objectTypeWithFilter.filterClausesWithErrors()) {
+                    if (clause.error() != null) {
+                        entry.filterErrors(clause.error());
+                    }
                 }
                 if (objectTypeWithFilter.baseCtxError() != null) {
                     entry.filterErrors(objectTypeWithFilter.baseCtxError());

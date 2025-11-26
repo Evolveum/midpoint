@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.relation;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.WaitingScriptConnectorStepPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
@@ -121,10 +122,7 @@ public class WaitingRelationshipScriptConnectorStepPanel extends WaitingScriptCo
 
                 if (relationshipValue.isPresent()) {
                     // Check if script is non-empty. Check just for relation does not work, since it is saved by wizard.
-                    var scriptContainer = relationshipValue.get().findContainer(ConnDevRelationInfoType.F_SCHEMA_SCRIPT);
-                    // Probably should handle GUI special cases with empty values.
-                    var realValue = relationshipValue.get().getRealValue();
-                    return realValue.getSchemaScript() != null && realValue.getSchemaScript().getFilename() != null;
+                    return ConnectorDevelopmentWizardUtil.existContainerValue(relationshipValue.get(), ConnDevRelationInfoType.F_SCHEMA_SCRIPT);
                 }
 
             }

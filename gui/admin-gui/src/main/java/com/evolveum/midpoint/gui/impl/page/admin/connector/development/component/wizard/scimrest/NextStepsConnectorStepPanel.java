@@ -10,19 +10,12 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
-import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,8 +36,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -103,7 +94,8 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
         ListView<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassPanel = new ListView<>(ID_OBJECT_CLASS, valuesModel) {
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> listItem) {
-                Label name = new Label(ID_OBJECT_CLASS_NAME, () -> listItem.getModelObject().getRealValue().getName());
+                IModel<String> objectClassNameModel = () -> listItem.getModelObject().getRealValue().getName();
+                Label name = new Label(ID_OBJECT_CLASS_NAME, objectClassNameModel);
                 name.setOutputMarkupId(true);
                 listItem.add(name);
 
@@ -114,8 +106,14 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
                     }
 
                     @Override
-                    protected void onTemplateChosePerformed(ObjectClassOperation view, AjaxRequestTarget target) {
-
+                    protected void onTemplateChosePerformed(ObjectClassOperation action, AjaxRequestTarget target) {
+                        switch (action) {
+                            case SCHEMA -> getController().editSchema(objectClassNameModel.getObject(), target);
+                            case SEARCH_ALL -> getController().editSearchAll(objectClassNameModel.getObject(), target);
+                            case CREATE -> getController().editCreateOp(objectClassNameModel.getObject(), target);
+                            case UPDATE -> getController().editUpdateOp(objectClassNameModel.getObject(), target);
+                            case DELETE -> getController().editDeleteOp(objectClassNameModel.getObject(), target);
+                        }
                     }
                 };
                 objectClassPanel.setOutputMarkupId(true);
@@ -129,6 +127,10 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
                 ID_CONNECTOR_ACTION, getDetailsModel(), (ConnectorDevelopmentController) getWizard());
         connectorActionPanel.setOutputMarkupId(true);
         add(connectorActionPanel);
+    }
+
+    private ConnectorDevelopmentController getController() {
+        return (ConnectorDevelopmentController) getWizard();
     }
 
     @Override
@@ -175,12 +177,16 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
 
         SCHEMA(GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA + " text-secondary bg-gray-100",
                 "ObjectClassOperations.SCHEMA.description"),
-        SEARCH("fa fa-search text-secondary bg-gray-100",
-                "ObjectClassOperations.SEARCH.description"),
+        SEARCH_ALL("fa fa-search text-secondary bg-gray-100",
+                "ObjectClassOperations.SEARCH_ALL.description"),
+//        GET_ONE("fa fa-search text-secondary bg-gray-100",
+//                "ObjectClassOperations.GET_ONE.description"),
+//        SEARCH_FILTERS("fa fa-search text-secondary bg-gray-100",
+//                "ObjectClassOperations.SEARCH_FILTERS.description"),
         CREATE("fa fa-circle-plus text-secondary bg-gray-100",
                 "ObjectClassOperations.CREATE.description"),
-        MODIFY("fa fa-pen-to-square text-secondary bg-gray-100",
-                "ObjectClassOperations.MODIFY.description"),
+        UPDATE("fa fa-pen-to-square text-secondary bg-gray-100",
+                "ObjectClassOperations.UPDATE.description"),
         DELETE("fa fa-trash-can text-secondary bg-gray-100",
                 "ObjectClassOperations.DELETE.description");
 

@@ -138,7 +138,7 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        editSchemaPerformed(target);
+                        editSchemaPerformed(getObjectClassName(), target);
                     }
                 };
             }
@@ -153,13 +153,45 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        editSearchPerformed(target);
+                        editSearchAllPerformed(getObjectClassName(), target);
                     }
                 };
             }
         });
-
-        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.get")) {
+//
+//        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.get")) {
+//            @Serial private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public InlineMenuItemAction initAction() {
+//                return new ColumnMenuAction<>() {
+//                    @Serial private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public void onClick(AjaxRequestTarget target) {
+//                        editGetPerformed(target);
+//                    }
+//                };
+//            }
+//        });
+//
+//        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.searchFilter")) {
+//            @Serial private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public InlineMenuItemAction initAction() {
+//                return new ColumnMenuAction<>() {
+//                    @Serial private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public void onClick(AjaxRequestTarget target) {
+//                        editSearchFilterPerformed(target);
+//                    }
+//                };
+//            }
+//        });
+//
+        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.create")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -169,13 +201,13 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        editGetPerformed(target);
+                        editCreatePerformed(getObjectClassName(), target);
                     }
                 };
             }
         });
 
-        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.searchFilter")) {
+        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.update")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -185,59 +217,27 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        editSearchFilterPerformed(target);
+                        editUpdatePerformed(getObjectClassName(), target);
                     }
                 };
             }
         });
 
-//        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.create")) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public InlineMenuItemAction initAction() {
-//                return new ColumnMenuAction<>() {
-//                    @Serial private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public void onClick(AjaxRequestTarget target) {
-//                        editCreatePerformed(target);
-//                    }
-//                };
-//            }
-//        });
-//
-//        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.update")) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public InlineMenuItemAction initAction() {
-//                return new ColumnMenuAction<>() {
-//                    @Serial private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public void onClick(AjaxRequestTarget target) {
-//                        editUpdatePerformed(target);
-//                    }
-//                };
-//            }
-//        });
-//
-//        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.delete")) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public InlineMenuItemAction initAction() {
-//                return new ColumnMenuAction<>() {
-//                    @Serial private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public void onClick(AjaxRequestTarget target) {
-//                        editDeletePerformed(target);
-//                    }
-//                };
-//            }
-//        });
+        actions.add(new InlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.delete")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        editDeletePerformed(getObjectClassName(), target);
+                    }
+                };
+            }
+        });
 
         actions.add(new ButtonInlineMenuItem(createStringResource("ConnectorObjectClassTilePanel.actions.deleteCapabilities")) {
             @Override
@@ -267,21 +267,25 @@ public abstract class ConnectorObjectClassTilePanel extends BasePanel<TemplateTi
         return actions;
     }
 
+    private String getObjectClassName() {
+        return getModelObject().getValue().getRealValue().getName();
+    }
+
     private void deleteCapabilitiesPerformed(AjaxRequestTarget target) {
 
     }
 
-    protected abstract void editSearchFilterPerformed(AjaxRequestTarget target);
-
-    protected abstract void editGetPerformed(AjaxRequestTarget target);
-
-    protected abstract void editSearchPerformed(AjaxRequestTarget target);
-
-    protected abstract void editSchemaPerformed(AjaxRequestTarget target);
-
-//    protected abstract void editCreatePerformed(AjaxRequestTarget target);
+//    protected abstract void editSearchFilterPerformed(AjaxRequestTarget target);
 //
-//    protected abstract void editUpdatePerformed(AjaxRequestTarget target);
-//
-//    protected abstract void editDeletePerformed(AjaxRequestTarget target);
+//    protected abstract void editGetPerformed(AjaxRequestTarget target);
+
+    protected abstract void editSearchAllPerformed(String objectClassName, AjaxRequestTarget target);
+
+    protected abstract void editSchemaPerformed(String objectClassName, AjaxRequestTarget target);
+
+    protected abstract void editCreatePerformed(String objectClassName, AjaxRequestTarget target);
+
+    protected abstract void editUpdatePerformed(String objectClassName, AjaxRequestTarget target);
+
+    protected abstract void editDeletePerformed(String objectClassName, AjaxRequestTarget target);
 }

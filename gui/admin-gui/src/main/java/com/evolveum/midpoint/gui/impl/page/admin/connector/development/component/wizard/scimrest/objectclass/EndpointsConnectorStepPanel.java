@@ -4,14 +4,15 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search;
+package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.CloneStrategy;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,42 +26,27 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lskublik
  */
-@PanelType(name = "cdw-search-endpoints")
-@PanelInstance(identifier = "cdw-search-endpoints",
-        applicableForType = ConnectorDevelopmentType.class,
-        applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.searchEndpoints", icon = "fa fa-wrench"),
-        containerPath = "empty")
-public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
-
-    private static final String PANEL_TYPE = "cdw-search-endpoints";
+public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
     private static final String ID_RADIO_GROUP = "radioGroup";
     private static final String ID_PANEL = "panel";
@@ -102,7 +88,7 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
                             PrismContainerWrapper<ConnDevHttpEndpointType> endpointsContainer = objectClassContainer
                                     .get().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
                             return endpointsContainer.getValues().stream()
-                                    .filter(value -> value.getRealValue().getSuggestedUse().contains(ConnDevHttpEndpointIntentType.GET_ALL))
+                                    .filter(value -> value.getRealValue().getSuggestedUse().contains(getOperation()))
                                     .toList();
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
@@ -115,6 +101,8 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
             }
         };
     }
+
+    protected abstract ConnDevHttpEndpointIntentType getOperation();
 
     private void initLayout() {
         getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
@@ -183,30 +171,6 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
         });
     }
 
-    protected String getPanelType() {
-        return PANEL_TYPE;
-    }
-
-    @Override
-    public IModel<String> getTitle() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.searchEndpoints");
-    }
-
-    @Override
-    protected IModel<?> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.searchEndpoints.text");
-    }
-
-    @Override
-    protected IModel<?> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.searchEndpoints.subText");
-    }
-
-    @Override
-    public String getStepId() {
-        return PANEL_TYPE;
-    }
-
     @Override
     public String appendCssToWizard() {
         return "col-10";
@@ -232,21 +196,40 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
                     .stream().filter(PrismContainerValueWrapper::isSelected)
                     .map(value -> {
                         try {
-                            //noinspection unchecked
-                            return (PrismContainerValueWrapper<ConnDevHttpEndpointType>) getPageBase().createValueWrapper(
-                                    container, value.getRealValue().asPrismContainerValue().clone(), ValueStatus.ADDED, getDetailsModel().createWrapperContext());
+                            PrismContainerValue<ConnDevHttpEndpointType> clone =
+                                    value.getRealValue().asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
+                            clone.removeItem(ConnDevHttpEndpointType.F_SUGGESTED_USE);
+                            clone.asContainerable().suggestedUse(getOperation());
+
+                            return (PrismContainerValueWrapper<ConnDevHttpEndpointType>) WebPrismUtil.createNewValueWrapper(
+                                    container,
+                                    clone,
+                                    getPageBase(),
+                                    getDetailsModel().createWrapperContext());
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
-                    }).toList();
+                    })
+                    .toList();
+
+            container.getValues().stream()
+                    .filter(value -> value.getRealValue().getSuggestedUse().contains(getOperation()))
+                    .forEach(
+                    value -> {
+                        try {
+                            container.remove(value, getDetailsModel().getPageAssignmentHolder());
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
 
             valuesToAdd.forEach(value -> {
-                try {
-                    container.getItem().add(value.getRealValue().asPrismContainerValue());
+//                try {
+//                    container.getItem().add(value.getRealValue().asPrismContainerValue());
                     container.getValues().add(value);
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e);
-                }
+//                } catch (SchemaException e) {
+//                    throw new RuntimeException(e);
+//                }
             });
 
         } catch (SchemaException e) {
@@ -265,6 +248,22 @@ public class EndpointsConnectorStepPanel extends AbstractWizardStepPanel<Connect
 
     @Override
     public boolean isCompleted() {
-        return ConnectorDevelopmentWizardUtil.existContainerValue(objectClassModel.getObject(), ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION);
+        if (ConnectorDevelopmentWizardUtil.existContainerValue(objectClassModel.getObject(), getScriptItemName())) {
+            return true;
+        }
+
+        try {
+            PrismContainerWrapper<ConnDevHttpEndpointType> container =
+                    objectClassModel.getObject().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
+
+            return container.getValues().stream()
+                    .anyMatch(value -> value.getRealValue() != null
+                            && value.getRealValue().getSuggestedUse().contains(getOperation()));
+
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    protected abstract ItemPath getScriptItemName();
 }

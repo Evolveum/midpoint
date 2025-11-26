@@ -177,9 +177,9 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
             list.add(new ContainerWithStatusWidgetDto(
                     "fa fa-shield-halved",
                     createStringResource("ConnectorDevelopmentWizardSummaryPanel.connection"),
-                    () -> ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel, null) ?
+                    () -> ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel) ?
                             "bg-green-100 text-success" : "bg-red-100 text-danger",
-                    () -> ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel, null) ?
+                    () -> ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel) ?
                             createStringResource("ConnectorDevelopmentWizardSummaryPanel.connected").getString() :
                             createStringResource("ConnectorDevelopmentWizardSummaryPanel.unconnected").getString(),
                     createMapForConnectionWidgetModel()) {
@@ -191,9 +191,9 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
 
                 @Override
                 public boolean isEditButtonVisible() {
-                    return ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel, null);
+                    return ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel);
                 }
-            }.setStatusCssIcon(() -> ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel, null) ?
+            }.setStatusCssIcon(() -> ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel) ?
                     "fa fa-circle-check" : "fa fa-circle-xmark"));
 
             list.add(new ContainerWithStatusWidgetDto(
@@ -307,7 +307,7 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                 return createProgressBar(0, "ConnectorDevelopmentWizardSummaryPanel.4toReadOnly");
             }
 
-            if (!ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel, null)) {
+            if (!ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel)) {
                 return createProgressBar(25, "ConnectorDevelopmentWizardSummaryPanel.3toReadOnly");
             }
 

@@ -18,6 +18,8 @@ import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
@@ -32,7 +34,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
@@ -105,8 +106,7 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
         AjaxLink<?> addObjectClassButton = new AjaxLink<>(ID_ADD_BUTTON) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ConnectorDevelopmentController controller = (ConnectorDevelopmentController) getWizard();
-                controller.initNewObjectClass(target);
+                getController().initNewObjectClass(target);
             }
         };
         addObjectClassButton.setOutputMarkupId(true);
@@ -142,27 +142,44 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                 return new ConnectorObjectClassTilePanel(id, model) {
                     @Override
                     protected void deleteObjectClassPerformed(AjaxRequestTarget target) {
+                        PrismContainerValueWrapper<ConnDevObjectClassInfoType> value = model.getObject().getValue();
+                        try {
+                            value.getParent().remove(value, getDetailsModel().getPageAssignmentHolder());
+                        } catch (SchemaException e) {
+                            throw new RuntimeException(e);
+                        }
 
+                        OperationResult result = getHelper().onSaveObjectPerformed(target);
+                        getDetailsModel().getConnectorDevelopmentOperation();
+                        if (result == null || result.isError()) {
+                            target.add(getFeedback());
+                        }
+                        target.add(ObjectClassesConnectorStepPanel.this);
                     }
 
                     @Override
-                    protected void editSearchFilterPerformed(AjaxRequestTarget target) {
-
+                    protected void editSearchAllPerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editSearchAll(objectClassName, target);
                     }
 
                     @Override
-                    protected void editGetPerformed(AjaxRequestTarget target) {
-
+                    protected void editSchemaPerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editSchema(objectClassName, target);
                     }
 
                     @Override
-                    protected void editSearchPerformed(AjaxRequestTarget target) {
-
+                    protected void editCreatePerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editCreateOp(objectClassName, target);
                     }
 
                     @Override
-                    protected void editSchemaPerformed(AjaxRequestTarget target) {
+                    protected void editUpdatePerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editUpdateOp(objectClassName, target);
+                    }
 
+                    @Override
+                    protected void editDeletePerformed(String objectClassName, AjaxRequestTarget target) {
+                        getController().editDeleteOp(objectClassName, target);
                     }
                 };
             }
@@ -181,6 +198,10 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
         add(table);
     }
 
+    private ConnectorDevelopmentController getController() {
+        return (ConnectorDevelopmentController) getWizard();
+    }
+
     private List<DisplayType> createTags(PrismContainerValueWrapper<ConnDevObjectClassInfoType> value) {
         Map<String, List<ItemName>> itemNames = new HashedMap<>();
         itemNames.put("ObjectClassesConnectorStepPanel.schema",
@@ -191,7 +212,7 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                         ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION,
                         ConnDevObjectClassInfoType.F_GET_OPERATION,
                         ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION));
-//        itemNames.put("ObjectClassesConnectorStepPanel.create", List.of(ConnDevObjectClassInfoType.F_SEARCH_CREATE_OPERATION));
+        itemNames.put("ObjectClassesConnectorStepPanel.create", List.of(ConnDevObjectClassInfoType.F_CREATE_SCRIPT));
 //        itemNames.put("ObjectClassesConnectorStepPanel.update", List.of(ConnDevObjectClassInfoType.F_SEARCH_UPDATE_OPERATION));
 //        itemNames.put("ObjectClassesConnectorStepPanel.delete", List.of(ConnDevObjectClassInfoType.F_SEARCH_DELETE_OPERATION));
         return itemNames.entrySet().stream()

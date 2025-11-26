@@ -8,9 +8,6 @@
 
 package com.evolveum.midpoint.smart.impl.scoring;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -23,7 +20,6 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -60,7 +56,7 @@ public class ObjectTypeFiltersValidator {
     public void testObjectTypeFilter(
             String resourceOid,
             QName objectClassName,
-            List<SearchFilterType> filterBeans,
+            SearchFilterType filterBean,
             Task task,
             OperationResult parentResult) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ObjectNotFoundException {
@@ -73,22 +69,17 @@ public class ObjectTypeFiltersValidator {
             var resource = Resource.of(resourceObj);
             ResourceObjectDefinition objectDef = resource.getCompleteSchemaRequired().findObjectClassDefinitionRequired(objectClassName);
 
-            if (filterBeans == null || filterBeans.isEmpty()) {
-                throw new SchemaException("No suggested filters.");
+            if (filterBean == null) {
+                throw new SchemaException("No suggested filter.");
             }
 
-            List<ObjectFilter> parts = new ArrayList<>();
-            for (SearchFilterType f : filterBeans) {
-                ObjectFilter parsed = ShadowQueryConversionUtil.parseFilter(f, objectDef);
-                if (parsed == null) {
-                    throw new SchemaException("Cannot process suggested filter: " + f);
-                }
-                parts.add(parsed);
+            ObjectFilter parsed = ShadowQueryConversionUtil.parseFilter(filterBean, objectDef);
+            if (parsed == null) {
+                throw new SchemaException("Cannot process suggested filter: " + filterBean);
             }
 
             ObjectQuery query = resource.queryFor(objectClassName).maxSize(1).build();
-            query.addFilter(PrismContext.get().queryFactory().createAndOptimized(parts));
-
+            query.addFilter(parsed);
             provisioningService.searchShadows(query, null, task, result);
         } finally {
             result.close();

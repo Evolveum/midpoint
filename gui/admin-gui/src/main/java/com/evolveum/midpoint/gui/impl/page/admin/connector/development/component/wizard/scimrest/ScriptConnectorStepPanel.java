@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
@@ -26,11 +27,7 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtifactResultType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -124,10 +121,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         }
     }
 
-    protected ConnDevScriptIntentType getTaskIntent() {
-        return null;
-    }
-
     abstract protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType();
 
     protected String getObjectClassName() {
@@ -198,7 +191,10 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     public boolean onNextPerformed(AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OP_SAVE_SCRIPT);
         try {
-            saveScript(valueModel.getObject(), task, task.getResult());
+            ConnDevArtifactType script = valueModel.getObject().clone();
+            WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
+            saveScript(script, task, task.getResult());
+            getDetailsModel().reloadPrismObjectByOid();
             if (task.getResult() == null || task.getResult().isError()) {
                 target.add(getFeedback());
                 return false;

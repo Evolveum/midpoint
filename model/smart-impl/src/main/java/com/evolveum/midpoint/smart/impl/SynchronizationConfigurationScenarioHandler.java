@@ -1,6 +1,14 @@
+/*
+ * Copyright (c) 2025 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ *
+ *
+ */
+
 package com.evolveum.midpoint.smart.impl;
 
-import com.evolveum.midpoint.smart.api.SynchronizationConfigurationScenario;
+import com.evolveum.midpoint.smart.api.synchronization.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class SynchronizationConfigurationScenarioHandler {
@@ -14,7 +22,6 @@ public class SynchronizationConfigurationScenarioHandler {
 
         switch (scenario) {
             case SOURCE:
-            case SOURCE_WITH_FEEDBACK:
                 // UNMATCHED: default addFocus
                 reactions.getReaction().add(
                         reaction(SynchronizationSituationType.UNMATCHED,
@@ -47,7 +54,6 @@ public class SynchronizationConfigurationScenarioHandler {
                 break;
 
             case TARGET:
-            case TARGET_WITH_FEEDBACK:
                 // UNMATCHED: inactivate/delete resource object
                 reactions.getReaction().add(
                         reaction(SynchronizationSituationType.UNMATCHED,
@@ -91,6 +97,140 @@ public class SynchronizationConfigurationScenarioHandler {
                 // No predefined reactions; return empty container
                 break;
         }
+
+        return reactions;
+    }
+
+    /** Builds reactions from SOURCE scenario answers. */
+    public static SynchronizationReactionsType getSynchronizationReactionsFromSource(
+            SourceSynchronizationAnswers answers) {
+        var reactions = new SynchronizationReactionsType();
+
+        if (answers != null) {
+            UnmatchedSourceChoice unmatched = answers.getUnmatched();
+            if (unmatched != null) {
+                SynchronizationActionsType actions;
+                switch (unmatched) {
+                    case ADD_FOCUS:
+                        actions = new SynchronizationActionsBuilder()
+                                .addFocus()
+                                .build();
+                        break;
+                    case DO_NOTHING:
+                    default:
+                        actions = new SynchronizationActionsType();
+                        break;
+                }
+                reactions.getReaction().add(
+                        reaction(SynchronizationSituationType.UNMATCHED, actions));
+            }
+            DeletedSourceChoice deleted = answers.getDeleted();
+            if (deleted != null) {
+                SynchronizationActionsType actions;
+                switch (deleted) {
+                    case DELETE_FOCUS:
+                        actions = new SynchronizationActionsBuilder()
+                                .deleteFocus()
+                                .build();
+                        break;
+                    case DISABLE_FOCUS:
+                        actions = new SynchronizationActionsBuilder()
+                                .inactivateFocus()
+                                .build();
+                        break;
+                    case REMOVE_BROKEN_LINK:
+                        actions = new SynchronizationActionsBuilder()
+                                .synchronize()
+                                .build();
+                        break;
+                    case DO_NOTHING:
+                    default:
+                        actions = new SynchronizationActionsType();
+                        break;
+                }
+                reactions.getReaction().add(
+                        reaction(SynchronizationSituationType.DELETED, actions));
+            }
+        }
+        reactions.getReaction().add(
+                reaction(SynchronizationSituationType.UNLINKED,
+                        new SynchronizationActionsBuilder().link().build()));
+        reactions.getReaction().add(
+                reaction(SynchronizationSituationType.LINKED,
+                        new SynchronizationActionsBuilder().synchronize().build()));
+
+        return reactions;
+    }
+
+    /** Builds reactions from TARGET scenario answers. */
+    public static SynchronizationReactionsType getSynchronizationReactionsFromTarget(
+            TargetSynchronizationAnswers answers) {
+        var reactions = new SynchronizationReactionsType();
+
+        if (answers != null) {
+            UnmatchedTargetChoice unmatched = answers.getUnmatched();
+            if (unmatched != null) {
+                SynchronizationActionsType actions;
+                switch (unmatched) {
+                    case DELETE_RESOURCE_OBJECT:
+                        actions = new SynchronizationActionsBuilder()
+                                .deleteResourceObject()
+                                .build();
+                        break;
+                    case DISABLE_RESOURCE_OBJECT:
+                        actions = new SynchronizationActionsBuilder()
+                                .inactivateResourceObject()
+                                .build();
+                        break;
+                    case DO_NOTHING:
+                    default:
+                        actions = new SynchronizationActionsType();
+                        break;
+                }
+                reactions.getReaction().add(
+                        reaction(SynchronizationSituationType.UNMATCHED, actions));
+            }
+            DeletedTargetChoice deleted = answers.getDeleted();
+            if (deleted != null) {
+                SynchronizationActionsType actions;
+                switch (deleted) {
+                    case REMOVE_BROKEN_LINK:
+                        actions = new SynchronizationActionsBuilder()
+                                .synchronize()
+                                .build();
+                        break;
+                    case DO_NOTHING:
+                    default:
+                        actions = new SynchronizationActionsType();
+                        break;
+                }
+                reactions.getReaction().add(
+                        reaction(SynchronizationSituationType.DELETED, actions));
+            }
+            DisputedTargetChoice disputed = answers.getDisputed();
+            if (disputed != null) {
+                SynchronizationActionsType actions;
+                switch (disputed) {
+                    case CREATE_CORRELATION_CASE:
+                        actions = new SynchronizationActionsBuilder()
+                                .createCorrelationCase()
+                                .build();
+                        break;
+                    case DO_NOTHING:
+                    default:
+                        actions = new SynchronizationActionsType();
+                        break;
+                }
+                reactions.getReaction().add(
+                        reaction(SynchronizationSituationType.DISPUTED, actions));
+            }
+        }
+        reactions.getReaction().add(
+                reaction(SynchronizationSituationType.UNLINKED,
+                        new SynchronizationActionsBuilder().link().build()));
+        reactions.getReaction().add(
+                reaction(SynchronizationSituationType.LINKED,
+                        new SynchronizationActionsBuilder().synchronize().build()));
 
         return reactions;
     }

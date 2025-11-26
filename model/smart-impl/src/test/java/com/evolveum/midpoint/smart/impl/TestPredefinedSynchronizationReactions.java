@@ -16,7 +16,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.smart.api.SynchronizationConfigurationScenario;
+import com.evolveum.midpoint.smart.api.synchronization.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-smart-integration-test-main.xml" })
@@ -94,12 +94,86 @@ public class TestPredefinedSynchronizationReactions extends AbstractSmartIntegra
     @Test
     public void test520PredefinedReactionsForTargetWithoutCorrelationCase() {
         var reactions = smartIntegrationService.getPredefinedSynchronizationReactions(
-                SynchronizationConfigurationScenario.TARGET_WITH_FEEDBACK, false);
+                SynchronizationConfigurationScenario.TARGET, false);
 
         // Expect UNMATCHED, DELETED, UNLINKED, LINKED (no DISPUTED)
         assertThat(reactions.getReaction()).hasSize(4);
         assertThat(reactions.getReaction().stream()
                 .noneMatch(r -> r.getSituation() != null && r.getSituation().contains(SynchronizationSituationType.DISPUTED))).isTrue();
+    }
+
+    @Test
+    public void test530ReactionsFromAnswersForSource() {
+        var answers = SourceSynchronizationAnswers.of(
+                UnmatchedSourceChoice.ADD_FOCUS,
+                DeletedSourceChoice.DISABLE_FOCUS);
+
+        var reactions = smartIntegrationService.buildSourceSynchronizationReactionsFromAnswers(answers);
+
+        // Expect UNMATCHED, DELETED, UNLINKED, LINKED
+        assertThat(reactions.getReaction()).hasSize(4);
+
+        var unmatched = findReaction(reactions, SynchronizationSituationType.UNMATCHED);
+        assertThat(unmatched.getActions().getAddFocus()).hasSize(1);
+        assertThat(unmatched.getActions().getAddFocus().get(0).getOrder()).isEqualTo(1);
+        assertNoOtherActions(unmatched.getActions(), Set.of("addFocus"));
+
+        var deleted = findReaction(reactions, SynchronizationSituationType.DELETED);
+        assertThat(deleted.getActions().getInactivateFocus()).hasSize(1);
+        assertThat(deleted.getActions().getInactivateFocus().get(0).getOrder()).isEqualTo(1);
+        assertNoOtherActions(deleted.getActions(), Set.of("inactivateFocus"));
+
+        var unlinked = findReaction(reactions, SynchronizationSituationType.UNLINKED);
+        assertThat(unlinked.getActions().getLink()).hasSize(1);
+        assertThat(unlinked.getActions().getLink().get(0).getOrder()).isEqualTo(1);
+        assertNoOtherActions(unlinked.getActions(), Set.of("link"));
+
+        var linked = findReaction(reactions, SynchronizationSituationType.LINKED);
+        assertThat(linked.getActions().getSynchronize()).hasSize(1);
+        assertThat(linked.getActions().getSynchronize().get(0).getOrder()).isEqualTo(1);
+        assertNoOtherActions(linked.getActions(), Set.of("synchronize"));
+
+        // No DISPUTED for SOURCE
+        assertThat(reactions.getReaction().stream()
+                .noneMatch(r -> r.getSituation() != null && r.getSituation().contains(SynchronizationSituationType.DISPUTED))).isTrue();
+    }
+
+    @Test
+    public void test540ReactionsFromAnswersForTarget() {
+        var answers = TargetSynchronizationAnswers.of(
+                UnmatchedTargetChoice.DISABLE_RESOURCE_OBJECT,
+                DeletedTargetChoice.REMOVE_BROKEN_LINK,
+                DisputedTargetChoice.CREATE_CORRELATION_CASE);
+
+        var reactions = smartIntegrationService.buildTargetSynchronizationReactionsFromAnswers(answers);
+
+        // Expect UNMATCHED, DELETED, UNLINKED, LINKED, DISPUTED
+        assertThat(reactions.getReaction()).hasSize(5);
+
+        var unmatched = findReaction(reactions, SynchronizationSituationType.UNMATCHED);
+        assertThat(unmatched.getActions().getInactivateResourceObject()).hasSize(1);
+        assertThat(unmatched.getActions().getInactivateResourceObject().get(0).getOrder()).isEqualTo(1);
+        assertNoOtherActions(unmatched.getActions(), Set.of("inactivateResourceObject"));
+
+        var deleted = findReaction(reactions, SynchronizationSituationType.DELETED);
+        assertThat(deleted.getActions().getSynchronize()).hasSize(1);
+        assertThat(deleted.getActions().getSynchronize().get(0).getOrder()).isEqualTo(1);
+        assertNoOtherActions(deleted.getActions(), Set.of("synchronize"));
+
+        var disputed = findReaction(reactions, SynchronizationSituationType.DISPUTED);
+        assertThat(disputed.getActions().getCreateCorrelationCase()).hasSize(1);
+        assertThat(disputed.getActions().getCreateCorrelationCase().get(0).getOrder()).isEqualTo(1);
+        assertNoOtherActions(disputed.getActions(), Set.of("createCorrelationCase"));
+
+        var unlinked = findReaction(reactions, SynchronizationSituationType.UNLINKED);
+        assertThat(unlinked.getActions().getLink()).hasSize(1);
+        assertThat(unlinked.getActions().getLink().get(0).getOrder()).isEqualTo(1);
+        assertNoOtherActions(unlinked.getActions(), Set.of("link"));
+
+        var linked = findReaction(reactions, SynchronizationSituationType.LINKED);
+        assertThat(linked.getActions().getSynchronize()).hasSize(1);
+        assertThat(linked.getActions().getSynchronize().get(0).getOrder()).isEqualTo(1);
+        assertNoOtherActions(linked.getActions(), Set.of("synchronize"));
     }
 
     private SynchronizationReactionType findReaction(
