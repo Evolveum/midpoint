@@ -16,11 +16,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
-import com.evolveum.midpoint.smart.api.synchronization.SynchronizationAnswers;
-import com.evolveum.midpoint.smart.api.synchronization.UnmatchedChoice;
-import com.evolveum.midpoint.smart.api.synchronization.DeletedChoice;
-import com.evolveum.midpoint.smart.api.synchronization.DisputedChoice;
+import com.evolveum.midpoint.smart.api.synchronization.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-smart-integration-test-main.xml" })
@@ -108,13 +104,11 @@ public class TestPredefinedSynchronizationReactions extends AbstractSmartIntegra
 
     @Test
     public void test530ReactionsFromAnswersForSource() {
-        var answers = SynchronizationAnswers.of(
-                UnmatchedChoice.IMPORT_TO_MIDPOINT,
-                DeletedChoice.DISABLE_FOCUS,
-                DisputedChoice.DO_NOTHING);
+        var answers = SourceSynchronizationAnswers.of(
+                UnmatchedSourceChoice.ADD_FOCUS,
+                DeletedSourceChoice.DISABLE_FOCUS);
 
-        var reactions = smartIntegrationService.buildSynchronizationReactionsFromAnswers(
-                SynchronizationConfigurationScenario.SOURCE, answers);
+        var reactions = smartIntegrationService.buildSourceSynchronizationReactionsFromAnswers(answers);
 
         // Expect UNMATCHED, DELETED, UNLINKED, LINKED
         assertThat(reactions.getReaction()).hasSize(4);
@@ -146,13 +140,12 @@ public class TestPredefinedSynchronizationReactions extends AbstractSmartIntegra
 
     @Test
     public void test540ReactionsFromAnswersForTarget() {
-        var answers = SynchronizationAnswers.of(
-                UnmatchedChoice.DISABLE_RESOURCE_OBJECT,
-                DeletedChoice.REMOVE_BROKEN_LINK,
-                DisputedChoice.CREATE_CORRELATION_CASE);
+        var answers = TargetSynchronizationAnswers.of(
+                UnmatchedTargetChoice.DISABLE_RESOURCE_OBJECT,
+                DeletedTargetChoice.REMOVE_BROKEN_LINK,
+                DisputedTargetChoice.CREATE_CORRELATION_CASE);
 
-        var reactions = smartIntegrationService.buildSynchronizationReactionsFromAnswers(
-                SynchronizationConfigurationScenario.TARGET, answers);
+        var reactions = smartIntegrationService.buildTargetSynchronizationReactionsFromAnswers(answers);
 
         // Expect UNMATCHED, DELETED, UNLINKED, LINKED, DISPUTED
         assertThat(reactions.getReaction()).hasSize(5);

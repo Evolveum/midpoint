@@ -101,26 +101,17 @@ public class SynchronizationConfigurationScenarioHandler {
         return reactions;
     }
 
-    public static SynchronizationReactionsType getSynchronizationReactionsFromAnswers(
-            SynchronizationConfigurationScenario scenario, SynchronizationAnswers answers) {
-        switch (scenario) {
-            case SOURCE:
-                return getSynchronizationReactionsFromSource(answers);
-            case TARGET:
-                return getSynchronizationReactionsFromTarget(answers);
-        }
-        return null;
-    }
-
-    private static SynchronizationReactionsType getSynchronizationReactionsFromSource(SynchronizationAnswers answers) {
+    /** Builds reactions from SOURCE scenario answers. */
+    public static SynchronizationReactionsType getSynchronizationReactionsFromSource(
+            SourceSynchronizationAnswers answers) {
         var reactions = new SynchronizationReactionsType();
 
         if (answers != null) {
-            UnmatchedChoice unmatched = answers.getUnmatched();
+            UnmatchedSourceChoice unmatched = answers.getUnmatched();
             if (unmatched != null) {
                 SynchronizationActionsType actions;
                 switch (unmatched) {
-                    case IMPORT_TO_MIDPOINT:
+                    case ADD_FOCUS:
                         actions = new SynchronizationActionsBuilder()
                                 .addFocus()
                                 .build();
@@ -133,7 +124,7 @@ public class SynchronizationConfigurationScenarioHandler {
                 reactions.getReaction().add(
                         reaction(SynchronizationSituationType.UNMATCHED, actions));
             }
-            DeletedChoice deleted = answers.getDeleted();
+            DeletedSourceChoice deleted = answers.getDeleted();
             if (deleted != null) {
                 SynchronizationActionsType actions;
                 switch (deleted) {
@@ -171,11 +162,13 @@ public class SynchronizationConfigurationScenarioHandler {
         return reactions;
     }
 
-    private static SynchronizationReactionsType getSynchronizationReactionsFromTarget(SynchronizationAnswers answers) {
+    /** Builds reactions from TARGET scenario answers. */
+    public static SynchronizationReactionsType getSynchronizationReactionsFromTarget(
+            TargetSynchronizationAnswers answers) {
         var reactions = new SynchronizationReactionsType();
 
         if (answers != null) {
-            UnmatchedChoice unmatched = answers.getUnmatched();
+            UnmatchedTargetChoice unmatched = answers.getUnmatched();
             if (unmatched != null) {
                 SynchronizationActionsType actions;
                 switch (unmatched) {
@@ -189,6 +182,7 @@ public class SynchronizationConfigurationScenarioHandler {
                                 .inactivateResourceObject()
                                 .build();
                         break;
+                    case DO_NOTHING:
                     default:
                         actions = new SynchronizationActionsType();
                         break;
@@ -196,7 +190,7 @@ public class SynchronizationConfigurationScenarioHandler {
                 reactions.getReaction().add(
                         reaction(SynchronizationSituationType.UNMATCHED, actions));
             }
-            DeletedChoice deleted = answers.getDeleted();
+            DeletedTargetChoice deleted = answers.getDeleted();
             if (deleted != null) {
                 SynchronizationActionsType actions;
                 switch (deleted) {
@@ -213,7 +207,7 @@ public class SynchronizationConfigurationScenarioHandler {
                 reactions.getReaction().add(
                         reaction(SynchronizationSituationType.DELETED, actions));
             }
-            DisputedChoice disputed = answers.getDisputed();
+            DisputedTargetChoice disputed = answers.getDisputed();
             if (disputed != null) {
                 SynchronizationActionsType actions;
                 switch (disputed) {
