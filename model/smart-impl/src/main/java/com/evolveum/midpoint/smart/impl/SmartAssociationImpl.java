@@ -158,10 +158,10 @@ public class SmartAssociationImpl {
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
             @NotNull ResourceObjectTypeDefinition objectObjectType) {
         return "This association is derived from reference attribute '" + attributeReference.getItemName().getLocalPart() + "' on "
-                + "first participant (class=" + subjectObjectType.getObjectClassName()
+                + "first participant (class=" + subjectObjectType.getObjectClassLocalName()
                 + ", kind=" + subjectObjectType.getKind()
                 + ", intent=" + subjectObjectType.getIntent() + ") "
-                + "which refers to second participant (class=" + objectObjectType.getObjectClassName()
+                + "which refers to second participant (class=" + objectObjectType.getObjectClassLocalName()
                 + ", kind=" + objectObjectType.getKind()
                 + ", intent=" + objectObjectType.getIntent() + ").";
     }
