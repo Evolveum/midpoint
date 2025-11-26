@@ -43,10 +43,10 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 ** Configurable xrefv:/midpoint/reference/support-4.10/tasks/activity-policies/[policies] for executing activities. See bug:MID-10412[].
 ** Better xrefv:/midpoint/reference/support-4.10/tasks/task-errors/[search for errors] in the history of task runs. See bug:MID-10411[].
 * Added xrefv:/midpoint/reference/support-4.10/admin-gui/dashboards/compliance-dashboard/[compliance dashboard].
-* You can now tighten security guardrails around xref:/midpoint/reference/expressions/expressions/[expressions]:
+* You can now tighten security guardrails around xrefv:/midpoint/reference/support-4.10/expressions/expressions/[expressions]:
 ** New xrefv:/midpoint/reference/support-4.10/expressions/expressions/filter/[filter expression evaluator]. See bug:MID-10060[].
 ** Improved `safe` expression profile in the default system configuration.
-** Recommended xrefv:/midpoint/reference/support-4.10/expressions/expressions/security/#semi-safe-configuration[_semi-safe_ configuration of expression profiles] provides a reasonable level of xref:/midpoint/reference/expressions/expressions/security/[expression security] for some delegated administration scenarios.
+** Recommended xrefv:/midpoint/reference/support-4.10/expressions/expressions/security/#semi-safe-configuration[_semi-safe_ configuration of expression profiles] provides a reasonable level of xrefv:/midpoint/reference/support-4.10/expressions/expressions/security/[expression security] for some delegated administration scenarios.
 * Improved xrefv:/midpoint/reference/support-4.10/security/audit/#delta-column-changed-items[displaying changes (deltas)] in both the audit GUI and reports.
 * Improved xrefv:/midpoint/reference/support-4.10/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[indexing] these deltas, especially when objects are added. See bug:MID-10413[]
 Improved indexing of audit records with "add object" deltas.
@@ -64,12 +64,12 @@ See bug:MID-10413[].
 * Improved handling of xrefv:/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/volatility/[volatile shadow attributes].
 * Update GUI views after changing the archetype used in the particular view. See bug:MID-9776[].
 * Added support for PKCE (Proof Key for Code Exchange) as an additional security measure for the OIDC authentication module. See bug:MID-10155[].
-* Added a new configuration attribute for OIDC authentication module that is used for the ID Token signing algorithm. See xref:/midpoint/reference/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
+* Added a new configuration attribute for OIDC authentication module that is used for the ID Token signing algorithm. See xrefv:/midpoint/reference/support-4.10/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
 * Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
 * Improved the documentation of resource configuration. See bug:MID-10176[].
 * Allowed volatility configuration per mapping through the Resource Wizard. See bug:MID-10170[].
 * Changed the CSS style of sub-containers in the vertical form panel to create a new object for reference. See bug:MID-10030[].
-* Documented xref:/midpoint/reference/resources/shadow/purpose/[shadow purpose]. See bug:MID-10419[].
+* Documented xrefv:/midpoint/reference/support-4.10/resources/shadow/purpose/[shadow purpose]. See bug:MID-10419[].
 * Some policy rule constraints allow to the `targetArchetypeRef` to specify objects by archetype. See bug:MID-10647[].
 * `StartupConfiguration` incorporates `midpoint.` properties from Spring environment sources.
 * Assignment modification constraint of policy rules allows scope specification.
@@ -117,7 +117,7 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * Stopped generating passwords with "problematic" characters, like comma, apostrophe, ampersand, and so on.
 Now it's possible to define characters that are accepted in the password, but not used when generating a new password value.
 The default password policy was updated in this regard.
-See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
+See bug:MID-9541[] and the xrefv:/midpoint/reference/support-4.10/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results.
 See bug:MID-9737[] and bug:MID-9986[].
 * Midpoint Query Language Fixed inconsistent whitespace behavior when using `not` filter, modified grammar of query language. See bug:MID-9351[].
@@ -655,7 +655,7 @@ See also bug:MID-10397[].
 This profile is not considered to provide strict security, therefore the name was changed to avoid mis-interpretation.
 Corresponding description was added to the profile.
 
-** See xref:/midpoint/reference/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
+** See xrefv:/midpoint/reference/support-4.10/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
 
 ++++
 {% include release-issues.html %}
