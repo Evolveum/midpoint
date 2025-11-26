@@ -36,7 +36,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 === New Features and Major Improvements
 
-* The self-service user interface is now very close to link:https://www.w3.org/TR/WCAG22/[WCAG 2.2] AA compliance. See bug:MID-9847[].
+* The self-service user interface is now very close to link:https://www.w3.org/TR/WCAG22/[WCAG 2.2] AA compliance.
 * The experience around background tasks has been improved in various aspects:
 ** Better indication for failed tasks and their subtasks. See bug:MID-10410[].
 ** Configurable xrefv:/midpoint/reference/support-4.10/tasks/activity-policies/[policies] for executing activities. See bug:MID-10412[].
