@@ -40,19 +40,19 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 // TODO: add link to WCAG 2.2 AA
 * The experience around background tasks has been improved in various aspects:
 ** Better indication for failed tasks and their subtasks. See bug:MID-10410[].
-** Configurable xrefv:/midpoint/reference/master/tasks/activity-policies/[policies] for executing activities. See bug:MID-10412[].
-** Better xrefv:/midpoint/reference/master/tasks/task-errors/[search for errors] in the history of task runs. See bug:MID-10411[].
-* Added xrefv:/midpoint/reference/master/admin-gui/dashboards/compliance-dashboard/[compliance dashboard].
+** Configurable xrefv:/midpoint/reference/support-4.10/tasks/activity-policies/[policies] for executing activities. See bug:MID-10412[].
+** Better xrefv:/midpoint/reference/support-4.10/tasks/task-errors/[search for errors] in the history of task runs. See bug:MID-10411[].
+* Added xrefv:/midpoint/reference/support-4.10/admin-gui/dashboards/compliance-dashboard/[compliance dashboard].
 * You can now tighten security guardrails around xref:/midpoint/reference/expressions/expressions/[expressions]:
-** New xrefv:/midpoint/reference/master/expressions/expressions/filter/[filter expression evaluator]. See bug:MID-10060[].
+** New xrefv:/midpoint/reference/support-4.10/expressions/expressions/filter/[filter expression evaluator]. See bug:MID-10060[].
 ** Improved `safe` expression profile in the default system configuration.
-** Recommended xref:/midpoint/reference/expressions/expressions/security/#semi-safe-configuration[_semi-safe_ configuration of expression profiles] provides a reasonable level of xref:/midpoint/reference/expressions/expressions/security/[expression security] for some delegated administration scenarios.
-* Improved xrefv:/midpoint/reference/master/security/audit/#delta-column-changed-items[displaying changes (deltas)] in both the audit GUI and reports.
-* Improved xrefv:/midpoint/reference/master/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[indexing] these deltas, especially when objects are added. See bug:MID-10413[]
+** Recommended xrefv:/midpoint/reference/support-4.10/expressions/expressions/security/#semi-safe-configuration[_semi-safe_ configuration of expression profiles] provides a reasonable level of xref:/midpoint/reference/expressions/expressions/security/[expression security] for some delegated administration scenarios.
+* Improved xrefv:/midpoint/reference/support-4.10/security/audit/#delta-column-changed-items[displaying changes (deltas)] in both the audit GUI and reports.
+* Improved xrefv:/midpoint/reference/support-4.10/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[indexing] these deltas, especially when objects are added. See bug:MID-10413[]
 Improved indexing of audit records with "add object" deltas.
 See bug:MID-10413[].
-* Added xref:/midpoint/reference/resources/resource-configuration/capabilities/#last-login-timestamp-capability[`lastLoginTimestamp` capability]. See bug:MID-10147[].
-* Implemented xrefv:/midpoint/reference/master/admin-gui/admin-gui-config/#_default_gui_object_list_panel_configuration[default list view panel configuration] which brings a possibility to set the common pagination options for list panels. See bug:MID-10414[].
+* Added xrefv:/midpoint/reference/support-4.10/resources/resource-configuration/capabilities/#last-login-timestamp-capability[`lastLoginTimestamp` capability]. See bug:MID-10147[].
+* Implemented xrefv:/midpoint/reference/support-4.10/admin-gui/admin-gui-config/#_default_gui_object_list_panel_configuration[default list view panel configuration] which brings a possibility to set the common pagination options for list panels. See bug:MID-10414[].
 
 === Other Improvements
 
@@ -77,8 +77,8 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * There are two new functions in midPoint function library for access to "governance" users (approvers/owners): `getRoleMemberUsers`, `getServiceMemberUsers`.
 * Improved notifications in various aspects, such as by enabling you to use the GUI delta visualizer in notification. See bug:MID-6112[], bug:MID-10633[], bug:MID-10632[], bug:MID-10635[], bug:MID-10372[], bug:MID-10634[], bug:MID-10636[].
 * Built-in archetypes for organizational structures and locations.
-* xrefv:/midpoint/reference/master/roles-policies/policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
-* xrefv:/midpoint/reference/master/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
+* xrefv:/midpoint/reference/support-4.10/roles-policies/policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
+* xrefv:/midpoint/reference/support-4.10/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
 * Updated various libraries, such as Spring Boot, Tomcat, PostgresSQL JDBC driver.
 * Added OAuth 2 credential flow to mail server notification configuration
 * Added languages, specifically Korean, Dutch, and Ukrainian.
