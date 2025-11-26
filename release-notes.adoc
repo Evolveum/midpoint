@@ -1,15 +1,13 @@
 ---
 layout: release
 release-version: '4.10'
-visibility: hidden
 ---
 = MidPoint 4.10
 :release-version: 4.10
-:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a sixtieth midPoint release, code-named _Braille_.
+Release {release-version} is a seventy-second midPoint release, code-named _Braille_.
 The {release-version} release brings accessibility improvements, compliance features as well as many incremental improvements and bugfixes.
 
 ++++

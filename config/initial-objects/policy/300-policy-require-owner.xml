@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (c) 2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<policy oid="6451bca8-4035-4fb3-8ab1-5de14da59e18"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Require owner</name>
+    <description>Policy requiring affected objects to have an owner.</description>
+    <documentation>
+        When this policy is applied, the affected objects are required to have an owner.
+        Objects with no owner are marked with "Unowned" mark.
+        (ISO27001/A.5.1,ISO27001/A.5.2,ISO27001/A.5.9,ISO27001/A.5.36)
+    </documentation>
+    <inducement>
+        <identifier>policy-require-owner</identifier>
+        <documentation>(ISO27001/A.5.1,ISO27001/A.5.2,ISO27001/A.5.9,ISO27001/A.5.36)</documentation>
+        <policyRule>
+            <name>rule-require-owner</name>
+            <policyConstraints>
+                <minAssignees>
+                    <name>constraint-require-owner</name>
+                    <multiplicity>1</multiplicity>
+                    <relation>org:owner</relation>
+                </minAssignees>
+            </policyConstraints>
+            <markRef oid="5508aca4-2aef-47a6-ad50-892389823c91"/>
+            <policyActions>
+                <record>
+                    <description>Record the mark for use in dashboards and reports.</description>
+                </record>
+            </policyActions>
+            <evaluationTarget>object</evaluationTarget>
+        </policyRule>
+    </inducement>
+</policy>

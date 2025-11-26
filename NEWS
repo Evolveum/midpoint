@@ -1,12 +1,12 @@
-MidPoint 4.9 "Verne"
+MidPoint 4.10 "Braille"
 ----------------------
 
-Release 4.9 is a sixtieth midPoint release code-named Verne.
-The 4.9 release brings improvements in role engineering, certification, approvals, stability and miscellaneous improvements.
+Release 4.10 is a seventy-second midPoint release code-named Braille.
+The 4.10 release brings accessibility improvements, compliance features as well as many incremental improvements and bugfixes.
 
-Release date: 18th October 2024
+Release date: 26th November 2025
 Release type: Feature release
-End of support: 17th October 2026
+End of support: 25th November 2027
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.9/
+https://docs.evolveum.com/midpoint/release/4.10/
