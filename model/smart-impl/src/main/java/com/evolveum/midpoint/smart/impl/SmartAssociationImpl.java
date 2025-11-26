@@ -258,7 +258,6 @@ public class SmartAssociationImpl {
         }
 
         return new ShadowAssociationTypeSubjectDefinitionType()
-                .ref(subjectObjectType.getObjectClassName())
                 .association(assocDef)
                 .objectType(new ResourceObjectTypeIdentificationType()
                         .kind(subjectObjectType.getKind())
@@ -272,7 +271,6 @@ public class SmartAssociationImpl {
             @NotNull ResourceObjectTypeDefinition objectObjectType) {
 
         return new ShadowAssociationTypeObjectDefinitionType()
-                .ref(objectObjectType.getObjectClassName())
                 .objectType(new ResourceObjectTypeIdentificationType()
                         .kind(objectObjectType.getKind())
                         .intent(objectObjectType.getIntent()));

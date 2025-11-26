@@ -153,7 +153,6 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             <name>ACCOUNT-default-ref-ENTITLEMENT-app-group</name>
             <displayName>Default Accounts reference to ENTITLEMENT-app-group</displayName>
             <subject>
-                <ref>ri:account</ref>
                 <objectType>
                     <kind>account</kind>
                     <intent>default</intent>
@@ -203,7 +202,6 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 </association>
             </subject>
             <object>
-                <ref>ri:group</ref>
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>app-group</intent>
@@ -234,7 +232,6 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
             <name>ACCOUNT-default-ref-ENTITLEMENT-app-group</name>
             <displayName>Default Accounts reference to ENTITLEMENT-app-group</displayName>
             <subject>
-                <ref>ri:account</ref>
                 <objectType>
                     <kind>account</kind>
                     <intent>default</intent>
@@ -261,7 +258,6 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                 </association>
             </subject>
             <object>
-                <ref>ri:group</ref>
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>app-group</intent>
