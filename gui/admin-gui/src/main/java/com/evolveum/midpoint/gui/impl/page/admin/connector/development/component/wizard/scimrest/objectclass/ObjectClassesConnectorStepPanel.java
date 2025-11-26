@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.collections4.map.HashedMap;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -97,6 +97,8 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     private void initLayout() {
+        setOutputMarkupId(true);
+
         add(AttributeAppender.replace("class", "col-12"));
         getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
         getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
@@ -203,7 +205,7 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
     }
 
     private List<DisplayType> createTags(PrismContainerValueWrapper<ConnDevObjectClassInfoType> value) {
-        Map<String, List<ItemName>> itemNames = new HashedMap<>();
+        Map<String, List<ItemName>> itemNames = new LinkedHashMap<>();
         itemNames.put("ObjectClassesConnectorStepPanel.schema",
                 List.of(
                         ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT, ConnDevObjectClassInfoType.F_CONNID_SCHEMA_SCRIPT));
@@ -213,8 +215,8 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
                         ConnDevObjectClassInfoType.F_GET_OPERATION,
                         ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION));
         itemNames.put("ObjectClassesConnectorStepPanel.create", List.of(ConnDevObjectClassInfoType.F_CREATE_SCRIPT));
-//        itemNames.put("ObjectClassesConnectorStepPanel.update", List.of(ConnDevObjectClassInfoType.F_SEARCH_UPDATE_OPERATION));
-//        itemNames.put("ObjectClassesConnectorStepPanel.delete", List.of(ConnDevObjectClassInfoType.F_SEARCH_DELETE_OPERATION));
+        itemNames.put("ObjectClassesConnectorStepPanel.update", List.of(ConnDevObjectClassInfoType.F_UPDATE_SCRIPT));
+        itemNames.put("ObjectClassesConnectorStepPanel.delete", List.of(ConnDevObjectClassInfoType.F_DELETE_SCRIPT));
         return itemNames.entrySet().stream()
                 .filter(itemNameEntry -> itemNameEntry.getValue().stream().anyMatch(
                         itemName -> ConnectorDevelopmentWizardUtil.existContainerValue(value, itemName)))
