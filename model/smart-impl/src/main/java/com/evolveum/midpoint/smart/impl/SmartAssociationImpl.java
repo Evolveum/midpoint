@@ -280,9 +280,20 @@ public class SmartAssociationImpl {
 
     private String constructObjectTypeIdentifierDisplayName(ResourceObjectTypeDefinition objectType) {
         if (StringUtils.isEmpty(objectType.getDisplayName())) {
-            return objectType.getTypeIdentification().toString();
+            return makeSafeObjectTypeIdentification(objectType);
         }
         return objectType.getDisplayName();
+    }
+
+    /**
+     * Using objectType.getTypeIdentification() (kind/intent format) in association name causes an issue:
+     * - when resource is re-saved from GUI (edit raw), for some reason it re-generates the association name
+     * - the generated name is malformed and causes an error
+     * - error: Namespace mismatch in {ACCOUNT/default-ref-ENTITLEMENT}default, expected http://midpoint.evolveum.com/xml/ns/public/resource/instance-3
+     * - it is likely due to '/' character, therefore generating safer name delimited with '-' character
+     */
+    private String makeSafeObjectTypeIdentification(@NotNull ResourceObjectTypeDefinition objectType) {
+        return objectType.getKind() + "-" + objectType.getIntent();
     }
 
     /**
@@ -291,7 +302,9 @@ public class SmartAssociationImpl {
     private @NotNull String constructAssociationName(
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
             @NotNull ResourceObjectTypeDefinition objectObjectType) {
-        return subjectObjectType.getTypeIdentification() + "-ref-" + objectObjectType.getTypeIdentification();
+        var subjectPart = makeSafeObjectTypeIdentification(subjectObjectType);
+        var objectPart = makeSafeObjectTypeIdentification(objectObjectType);
+        return subjectPart + "-ref-" + objectPart;
     }
 
     /**

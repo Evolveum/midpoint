@@ -125,12 +125,12 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var suggestion1 = findSuggestion(suggestions, makeAssociationKey("ENTITLEMENT/contract", "GENERIC/orgUnit"));
         assertThat(suggestion1.getDefinition().getName().getLocalPart())
                 .as("Suggestion name should be correctly generated")
-                .isEqualTo("ENTITLEMENT/contract-ref-GENERIC/orgUnit");
+                .isEqualTo("ENTITLEMENT-contract-ref-GENERIC-orgUnit");
 
         var suggestion2 = findSuggestion(suggestions, makeAssociationKey("ENTITLEMENT/org-group", "ENTITLEMENT/generic-group"));
         assertThat(suggestion2.getDefinition().getName().getLocalPart())
                 .as("Suggestion name should be correctly generated")
-                .isEqualTo("ENTITLEMENT/org-group-ref-ENTITLEMENT/generic-group");
+                .isEqualTo("ENTITLEMENT-org-group-ref-ENTITLEMENT-generic-group");
     }
 
     @Test
@@ -150,8 +150,8 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var actualValue = prettySerialize(suggestion);
         var expectedValue = dedent("""
         <definition>
-            <name>ACCOUNT/default-ref-ENTITLEMENT/app-group</name>
-            <displayName>Default Accounts reference to ENTITLEMENT/app-group</displayName>
+            <name>ACCOUNT-default-ref-ENTITLEMENT-app-group</name>
+            <displayName>Default Accounts reference to ENTITLEMENT-app-group</displayName>
             <subject>
                 <ref>ri:account</ref>
                 <objectType>
@@ -162,7 +162,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                     <ref>group-app-group</ref>
                     <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <inbound>
-                        <name>ACCOUNT/default-ref-ENTITLEMENT/app-group-inbound</name>
+                        <name>ACCOUNT-default-ref-ENTITLEMENT-app-group-inbound</name>
                         <expression>
                             <associationSynchronization xsi:type="c:AssociationSynchronizationExpressionEvaluatorType">
                                 <objectRef>
@@ -231,8 +231,8 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
         var actualValue = prettySerialize(suggestion);
         var expectedValue = dedent("""
         <definition>
-            <name>ACCOUNT/default-ref-ENTITLEMENT/app-group</name>
-            <displayName>Default Accounts reference to ENTITLEMENT/app-group</displayName>
+            <name>ACCOUNT-default-ref-ENTITLEMENT-app-group</name>
+            <displayName>Default Accounts reference to ENTITLEMENT-app-group</displayName>
             <subject>
                 <ref>ri:account</ref>
                 <objectType>
@@ -243,7 +243,7 @@ public class TestSmartAssociation extends AbstractEmptyModelIntegrationTest {
                     <ref>group-app-group</ref>
                     <sourceAttributeRef>ri:group</sourceAttributeRef>
                     <outbound>
-                        <name>ACCOUNT/default-ref-ENTITLEMENT/app-group-outbound</name>
+                        <name>ACCOUNT-default-ref-ENTITLEMENT-app-group-outbound</name>
                         <strength>strong</strength>
                         <expression>
                             <associationConstruction xsi:type="c:AssociationConstructionExpressionEvaluatorType">
