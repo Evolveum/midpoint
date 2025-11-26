@@ -6,7 +6,7 @@
  *
  */
 
-package com.evolveum.midpoint.smart.api;
+package com.evolveum.midpoint.smart.api.synchronization;
 
 /**
  * Direction classification for a resource or object type, used to drive
@@ -14,7 +14,5 @@ package com.evolveum.midpoint.smart.api;
  */
 public enum SynchronizationConfigurationScenario {
     SOURCE,
-    SOURCE_WITH_FEEDBACK,
     TARGET,
-    TARGET_WITH_FEEDBACK
 }
