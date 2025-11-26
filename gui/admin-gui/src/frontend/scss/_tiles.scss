@@ -233,6 +233,15 @@
   z-index: 1;
 }
 
+
+.border-ai {
+  border-color: #6610f2 !important;
+}
+
+.border-system {
+  border-color: #0d6efd !important;
+}
+
 .border-danger.border-large-left::before {
   background-color: $danger;
 }
@@ -261,6 +270,14 @@
   background-color: $purple;
 }
 
+.border-system.border-large-left::before {
+  background-color: #0d6efd;
+}
+
+.border-ai.border-large-left::before {
+  background-color: #570ece;
+}
+
 .border-success.selected-base{
   background-color: $success-light !important;
 }
@@ -271,5 +288,13 @@
 
 .border-purple.selected-base{
   background-color: $purple-light !important;
+}
+
+.border-system.selected-base{
+  background-color: #cfe2ff !important;
+}
+
+.border-ai.selected-base {
+  background-color: #e0cffc !important;
 }
 

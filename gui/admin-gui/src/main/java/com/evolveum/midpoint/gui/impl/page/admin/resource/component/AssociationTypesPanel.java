@@ -6,22 +6,25 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.factory.duplicateresolver.AssociationDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPopupPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -31,30 +34,29 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
-import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.createNewItemContainerValueWrapper;
 
 @PanelType(name = "associationTypes")
 @PanelInstance(identifier = "associationTypes", applicableForType = ResourceType.class,
@@ -90,45 +92,7 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>, String>> createColumns() {
-        List<IColumn<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>, String>> columns = new ArrayList<>();
-        LoadableDetachableModel<PrismContainerDefinition<ShadowAssociationTypeDefinitionType>> defModel = new LoadableDetachableModel<>() {
-            @Override
-            protected PrismContainerDefinition<ShadowAssociationTypeDefinitionType> load() {
-                ComplexTypeDefinition resourceDef =
-                        PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ResourceType.class);
-                return resourceDef.findContainerDefinition(
-                        ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE));
-            }
-        };
-        columns.add(new PrismPropertyWrapperColumn<>(
-                defModel,
-                ShadowAssociationTypeDefinitionType.F_DISPLAY_NAME,
-                AbstractItemWrapperColumn.ColumnType.STRING,
-                getPageBase()));
-
-        columns.add(new IconColumn<>(createStringResource("AssociationTypesPanel.column.description")) {
-            @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> rowModel) {
-                return new DisplayType().beginIcon().cssClass(GuiStyleConstants.CLASS_INFO_CIRCLE + " text-info").end();
-            }
-
-            @Override
-            public void populateItem(
-                    Item<ICellPopulator<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>>> cellItem,
-                    String componentId,
-                    IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> rowModel) {
-                ShadowAssociationTypeDefinitionType realValue = rowModel.getObject().getRealValue();
-                String description = realValue.getDescription();
-
-                ImagePanel panel = new ImagePanel(componentId, () -> getIconDisplayType(rowModel));
-                panel.setIconRole(ImagePanel.IconRole.IMAGE);
-                panel.add(AttributeModifier.replace("title", description != null ? description : ""));
-                panel.add(new TooltipBehavior());
-                cellItem.add(panel);
-            }
-        });
-
-        return columns;
+        return List.of();
     }
 
     protected ItemPath getPathForDisplayName() {
@@ -138,6 +102,73 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
     @Override
     protected Class<ShadowAssociationTypeDefinitionType> getSchemaHandlingObjectsType() {
         return ShadowAssociationTypeDefinitionType.class;
+    }
+
+    @Override
+    protected @NotNull Component createMultiValueListPanel(String id) {
+        return new AssociationTablePanel(
+                id,
+                UserProfileStorage.TableId.PANEL_ASSOCIATION_SCHEMA_HANDLING,
+                Model.of(ViewToggle.TILE),
+                getSwitchSuggestionModel()) {
+
+            @Override
+            protected void onCreateNewObjectPerform(AjaxRequestTarget target) {
+                newItemPerformed(null, target, null, false, null);
+            }
+
+            @Override
+            public void refreshAndDetach(AjaxRequestTarget target) {
+                super.refreshAndDetach(target);
+                target.add(AssociationTypesPanel.this);
+            }
+
+            @Override
+            public void newItemPerformedAction(
+                    PrismContainerValue<ShadowAssociationTypeDefinitionType> value,
+                    AjaxRequestTarget target,
+                    AssignmentObjectRelation relationSpec,
+                    boolean isDuplicate,
+                    StatusInfo<?> statusInfo) {
+                onNewValue(value, createContainerModel(), target, isDuplicate, null);
+            }
+
+            @Override
+            public void performAcceptOperationAction(
+                    @NotNull AjaxRequestTarget target,
+                    PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value) {
+                StatusInfo<?> statusInfo = getStatusInfoObject(value);
+                onAcceptValue(() -> value, target);
+                performOnDeleteSuggestion(getPageBase(), target, value, statusInfo);
+                refreshAndDetach(target);
+            }
+
+            @Override
+            public void performEditOperationAction(
+                    @NotNull AjaxRequestTarget target,
+                    PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value) {
+                onEditValue(() -> value, target);
+            }
+
+            @Override
+            protected void onReviewValue(
+                    @NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel,
+                    AjaxRequestTarget target,
+                    StatusInfo<?> statusInfo,
+                    SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
+                AssociationTypesPanel.this.onReviewValue(valueModel, target, statusInfo, postSaveHandler);
+            }
+
+            @Override
+            protected StatusAwareDataFactory.SuggestionsModelDto<ShadowAssociationTypeDefinitionType> getSuggestionsModelDto() {
+                return AssociationTypesPanel.this.getSuggestionsModelDto();
+            }
+
+            @Override
+            protected ResourceType getResourceType() {
+                return getObjectDetailsModels().getObjectType();
+            }
+        };
     }
 
     @Override
@@ -230,7 +261,7 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
 
         return StatusAwareDataFactory.createAssociationModel(
-                this,
+                getPageBase(),
                 getSwitchSuggestionModel(),
                 resourceDefWrapper,
                 getObjectWrapperObject().getOid());
@@ -243,6 +274,28 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             StatusInfo<?> statusInfo,
             @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
         IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel = createContainerModel();
+        PrismContainerValue<ShadowAssociationTypeDefinitionType> newValue = prepareNewPrismContainerValue(valueModel, containerModel);
+        getObjectDetailsModels().getPageResource()
+                .showAssociationTypeWizardForDuplicate(
+                        newValue,
+                        target,
+                        containerModel.getObject().getPath(), postSaveHandler);
+    }
+
+    protected void onAcceptValue(
+            @NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel,
+            AjaxRequestTarget target) {
+        IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel = createContainerModel();
+       PrismContainerValue<ShadowAssociationTypeDefinitionType> prismContainerValue =
+                prepareNewPrismContainerValue(valueModel, containerModel);
+
+        prismContainerValue.setParent(containerModel.getObject().getItem());
+        createNewItemContainerValueWrapper(getPageBase(), prismContainerValue, containerModel.getObject(), target);
+    }
+
+    protected PrismContainerValue<ShadowAssociationTypeDefinitionType> prepareNewPrismContainerValue(
+            @NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel,
+            @NotNull IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel) {
         PrismContainerWrapper<ShadowAssociationTypeDefinitionType> containerWrapper = containerModel.getObject();
         PrismContainer<ShadowAssociationTypeDefinitionType> container = containerWrapper.getItem();
 
@@ -261,12 +314,62 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
                                         CloneStrategy.REUSE,
                                         Collections.singletonList(duplicatedBean.asPrismContainerValue()))
                                 .iterator().next();
-
         WebPrismUtil.cleanupEmptyContainerValue(prismContainerValue);
-        getObjectDetailsModels().getPageResource()
-                .showAssociationTypeWizardForDuplicate(
-                        prismContainerValue,
-                        target,
-                        containerModel.getObject().getPath(), postSaveHandler);
+        return prismContainerValue;
+    }
+
+    @Override
+    protected @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(
+            @NotNull String id,
+            @NotNull IModel<Boolean> switchToggleModel) {
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(id,
+                () -> new SmartGeneratingAlertDto(loadSuggestion(getResourceOid()), switchToggleModel, getPageBase())) {
+            @Override
+            protected void performSuggestOperation(AjaxRequestTarget target) {
+                onSuggestValue(createContainerModel(), target);
+            }
+
+            @Override
+            protected void onFinishActionPerform(AjaxRequestTarget target) {
+                getTableComponent().refreshAndDetach(target);
+            }
+
+            @Override
+            protected @NotNull IModel<RequestDetailsRecordDto> getPermissionRecordDtoIModel() {
+                return () -> new RequestDetailsRecordDto(null,
+                        RequestDetailsRecordDto.initDummyObjectTypePermissionData());
+            }
+
+            @Override
+            protected void refreshAssociatedComponents(@NotNull AjaxRequestTarget target) {
+                AssociationTablePanel smartMappingTable = getTableComponent();
+                smartMappingTable.refreshAndDetach(target);
+            }
+        };
+
+        aiPanel.setOutputMarkupId(true);
+        aiPanel.setOutputMarkupPlaceholderTag(true);
+        aiPanel.add(new VisibleBehaviour(() -> switchToggleModel.getObject().equals(Boolean.TRUE)));
+        return aiPanel;
+    }
+
+    public AssociationTablePanel getTableComponent() {
+        return (AssociationTablePanel) getTablePanelComponent();
+    }
+
+    protected LoadableModel<StatusInfo<?>> loadSuggestion(String resourceOid) {
+        Task task = getPageBase().createSimpleTask("loadAssociationTypeSuggestion");
+        OperationResult result = task.getResult();
+        return new LoadableModel<>() {
+            @Override
+            protected StatusInfo<AssociationsSuggestionType> load() {
+                return loadAssociationTypeSuggestion(
+                        getPageBase(), resourceOid, task, result);
+            }
+        };
+    }
+
+    protected String getResourceOid() {
+        return getObjectDetailsModels().getObjectType().getOid();
     }
 }

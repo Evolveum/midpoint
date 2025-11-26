@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -29,6 +30,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -120,10 +122,16 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
         buttonsList.add(createTableActionToolbar(idButton));
-        buttonsList.add(createNewObjectPerformButton(idButton, getModelObject()));
         buttonsList.add(createSuggestObjectButton(idButton));
         buttonsList.add(createToggleSuggestionButton(idButton, switchToggleModel));
         return buttonsList;
+    }
+
+    @Override
+    protected WebMarkupContainer createHeaderContainer() {
+        WebMarkupContainer headerContainer = super.createHeaderContainer();
+        headerContainer.add(createNewObjectPerformButton("newObjectButton", getModelObject()));
+        return headerContainer;
     }
 
     protected RepeatingView createTableActionToolbar(String id) {
@@ -184,8 +192,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             boolean isTile) {
         if (isTile) {
             switch (value.getStatus()) {
-                case DELETED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger"));
-                case ADDED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success"));
+                case DELETED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger border-large-left"));
+                case ADDED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success border-large-left"));
                 default -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0"));
             }
             return;
@@ -231,7 +239,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     protected AjaxIconButton createNewObjectPerformButton(String idButton, PrismContainerValueWrapper<C> modelObject) {
         AjaxIconButton newObjectButton = new AjaxIconButton(idButton,
                 Model.of(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
-                createStringResource("SmartCorrelationTable.button.addNewCorrelationItem")) {
+                getNewObjectButtonLabel()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -243,8 +251,12 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
 
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary rounded mr-2"));
+        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary rounded ml-auto text-nowrap mr-2"));
         return newObjectButton;
+    }
+
+    protected IModel<String> getNewObjectButtonLabel() {
+        return createStringResource("SmartCorrelationTable.button.addNewCorrelationItem");
     }
 
     protected void onCreateNewObjectPerform(AjaxRequestTarget target) {
@@ -370,16 +382,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         return selectedCount == 0
                 ? createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title.empty", getMultiTableModel().size())
                 : createStringResource("MultiSelectContainerActionTileTablePanel.deleteConfirmation.title", selectedCount);
-    }
-
-    protected StringResourceModel acceptConfirmationTitle(int selectedCount) {
-        if (selectedCount == 0 && getMultiTableModel().isEmpty()) {
-            return createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.noItems");
-        }
-
-        return selectedCount == 0
-                ? createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title.empty")
-                : createStringResource("MultiSelectContainerActionTileTablePanel.acceptConfirmation.title", selectedCount);
     }
 
     public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete, boolean refresh) {
@@ -554,10 +556,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     @NotNull
     protected ToggleCheckBoxPanel createToggleSuggestionButton(String idButton, IModel<Boolean> switchToggleModel) {
-        ToggleCheckBoxPanel togglePanel = createToggleSuggestionVisibilityButton(getPageBase(), idButton, switchToggleModel,
+        return createToggleSuggestionVisibilityButton(getPageBase(), idButton, switchToggleModel,
                 this::refreshAndDetach, null);
-        togglePanel.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
-        return togglePanel;
     }
 
     protected AjaxIconButton createDiscardButton(String id, IModel<PrismContainerValueWrapper<C>> rowModel) {
@@ -619,6 +619,28 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     protected IModel<Boolean> getSwitchToggleModel() {
         return switchToggleModel;
+    }
+
+    protected @Nullable String getStatusInfoToken(
+            PrismContainerValueWrapper<C> value) {
+        if (getProvider() instanceof StatusAwareDataProvider<C> provider) {
+            StatusInfo<?> suggestionInfo = provider.getSuggestionInfo(value);
+            if (suggestionInfo != null) {
+                return suggestionInfo.getToken();
+            }
+        }
+        return null;
+    }
+
+    protected @Nullable StatusInfo<?> getStatusInfoObject(
+            PrismContainerValueWrapper<C> value) {
+        if (getProvider() instanceof StatusAwareDataProvider<C> provider) {
+            StatusInfo<?> suggestionInfo = provider.getSuggestionInfo(value);
+            if (suggestionInfo != null) {
+                return suggestionInfo;
+            }
+        }
+        return null;
     }
 
     public void refreshAndDetach(AjaxRequestTarget target) {

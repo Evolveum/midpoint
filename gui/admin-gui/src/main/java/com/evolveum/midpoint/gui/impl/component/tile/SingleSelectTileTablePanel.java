@@ -148,7 +148,7 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
     }
 
     @Override
-    protected BoxedTablePanel createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
+    protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
         BoxedTablePanel<O> table = new BoxedTablePanel<>(idTable, provider, createColumns(), tableId) {
 
             @Override

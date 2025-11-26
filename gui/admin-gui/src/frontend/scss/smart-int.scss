@@ -102,6 +102,20 @@
   border-color: #{$purple};
 }
 
+/* AI Suggestion badge */
+.info-badge.ai {
+  --label-color: #{$purple};
+  background-color: #{$purple-light};
+  color: var(--label-color);
+}
+
+/* System Suggestion badge */
+.info-badge-system {
+  --label-color: #{$info}; // or your exact blue token
+  background-color: #{$info-light};
+  color: var(--label-color);
+}
+
 .text-purple-dark {
   color: #{$purple-dark} !important;
 }
@@ -157,4 +171,37 @@
 .metric-icon.secondary {
   --metric-color: #{$midpoint-secondary};
   --metric-bg: #{$secondary-light};
+}
+
+.system-badge,
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  gap: .35rem;
+  border-radius: .375rem;
+}
+
+.ai-badge {
+  --label-color: #570ece;
+  color: var(--label-color);
+  background-color: #e0cffc;
+}
+
+/* System badge (blue/info) */
+.system-badge {
+  --label-color: #0d6efd;
+  color: var(--label-color);
+  background-color: #cfe2ff;
+}
+
+.table-system {
+  background-color: #f3f8ff !important;
+}
+
+.table-ai {
+  background-color: #eae6f1 !important;
 }

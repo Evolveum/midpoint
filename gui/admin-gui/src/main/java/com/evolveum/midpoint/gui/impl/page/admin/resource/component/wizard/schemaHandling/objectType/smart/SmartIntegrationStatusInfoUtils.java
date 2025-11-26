@@ -312,6 +312,29 @@ public class SmartIntegrationStatusInfoUtils {
         }
     }
 
+    public static @Nullable StatusInfo<AssociationsSuggestionType> loadAssociationTypeSuggestion(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        var smart = pageBase.getSmartIntegrationService();
+
+        try {
+            List<StatusInfo<AssociationsSuggestionType>> statusInfos = smart.listSuggestAssociationsOperationStatuses(
+                    resourceOid, task, result);
+            if (statusInfos == null || statusInfos.isEmpty()) {
+                return null;
+            }
+            return statusInfos.get(0);
+        } catch (Throwable t) {
+            result.recordException(t);
+            LoggingUtils.logException(LOGGER, "Couldn't load Association status for {}", t, resourceOid);
+            return null;
+        } finally {
+            result.close();
+        }
+    }
+
     public static @Nullable StatusInfo<CorrelationSuggestionsType> loadCorrelationTypeSuggestion(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
@@ -672,7 +695,7 @@ public class SmartIntegrationStatusInfoUtils {
 
         final @Nullable List<StatusInfo<AssociationsSuggestionType>> suggestions = loadAssociationSuggestions(
                 pageBase, resourceOid, task, result);
-        if (suggestions == null || suggestions.isEmpty()) {
+        if (suggestions == null || suggestions.isEmpty() || suggestions.get(0).getResult() == null) {
             return new SuggestionProviderResult<>(Collections.emptyList(), suggestionByWrapper);
         }
 
