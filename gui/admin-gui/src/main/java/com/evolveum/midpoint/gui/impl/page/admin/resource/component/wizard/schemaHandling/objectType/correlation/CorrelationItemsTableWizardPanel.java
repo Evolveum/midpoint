@@ -401,15 +401,16 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        SimulationActionTaskButton simulationActionTaskButton = createSimulationMenuButton(buttons);
+        SimulationActionTaskButton<?> simulationActionTaskButton = createSimulationMenuButton(buttons);
         buttons.add(simulationActionTaskButton);
     }
 
-    private @NotNull SimulationActionTaskButton createSimulationMenuButton(@NotNull RepeatingView buttons) {
-        SimulationActionTaskButton simulationActionTaskButton = new SimulationActionTaskButton(
-                buttons.newChildId(),
-                this::getResourceObjectDefinition,
-                () -> getAssignmentHolderDetailsModel().getObjectType()) {
+    private @NotNull SimulationActionTaskButton<CorrelatorsDefinitionType> createSimulationMenuButton(
+            @NotNull RepeatingView buttons) {
+
+        SimulationActionTaskButton<CorrelatorsDefinitionType> simulationActionTaskButton =
+                new SimulationActionTaskButton<>(buttons.newChildId(), this::getResourceObjectDefinition,
+                        () -> getAssignmentHolderDetailsModel().getObjectType()) {
 
             @Override
             public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
