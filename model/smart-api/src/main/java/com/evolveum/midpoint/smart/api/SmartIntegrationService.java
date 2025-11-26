@@ -14,6 +14,8 @@ import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.smart.api.synchronization.SynchronizationAnswers;
+import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -22,7 +24,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -294,4 +295,8 @@ public interface SmartIntegrationService {
     SynchronizationReactionsType getPredefinedSynchronizationReactions(
             SynchronizationConfigurationScenario scenario,
             boolean includeCorrelationCaseAction);
+
+    SynchronizationReactionsType buildSynchronizationReactionsFromAnswers(
+            SynchronizationConfigurationScenario scenario,
+            SynchronizationAnswers answers);
 }
