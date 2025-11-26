@@ -36,7 +36,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 === New Features and Major Improvements
 
-* The self-service user interface is now very close to WCAG 2.2 AA compliance.
+* The self-service user interface is now very close to WCAG 2.2 AA compliance. See bug:MID-9847[].
 // TODO: add link to WCAG 2.2 AA
 * The experience around background tasks has been improved in various aspects:
 ** Better indication for failed tasks and their subtasks. See bug:MID-10410[].
@@ -64,8 +64,7 @@ See bug:MID-10413[].
 * Update GUI views after changing the archetype used in the particular view. See bug:MID-9776[].
 * Added support for PKCE (Proof Key for Code Exchange) as an additional security measure for the OIDC authentication module. See bug:MID-10155[].
 * Added a new configuration attribute for OIDC authentication module that is used for the ID Token signing algorithm. See xref:/midpoint/reference/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
-* Applied the Web Content Accessibility Guidelines (WCAG) to all login pages and self-service pages. See bug:MID-9847[].
-** Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
+* Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
 * Improved the documentation of resource configuration. See bug:MID-10176[].
 * Allowed volatility configuration per mapping through the Resource Wizard. See bug:MID-10170[].
 * Changed the CSS style of sub-containers in the vertical form panel to create a new object for reference. See bug:MID-10030[].
