@@ -59,7 +59,7 @@ import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObje
  *
  * Subclasses must implement {@link #redirectToSimulationTasksWizard(AjaxRequestTarget)}.
  */
-public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjectTypeDefinitionType> {
+public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceObjectTypeDefinitionType> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -80,6 +80,13 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
         super(id, model);
         this.resourceOidModel = resourceOid;
     }
+
+    /**
+     * Redirects to the simulation tasks wizard (to be implemented by subclasses).
+     */
+    public abstract void redirectToSimulationTasksWizard(AjaxRequestTarget target);
+
+    protected abstract @NotNull ResourceTaskFlavor<T> getTaskFlavor();
 
     @Override
     protected void onInitialize() {
@@ -196,7 +203,7 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
                         return null;
                     }
                     ResourceType resource = getResourceObject();
-                    final ResourceTaskFlavor<?> taskFlavor = getTaskFlavor();
+                    final ResourceTaskFlavor<T> taskFlavor = getTaskFlavor();
                     return ResourceTaskCreator.of(taskFlavor, getPageBase())
                             .forResource(resource)
                             .withConfiguration(getWorkDefinitionConfiguration())
@@ -219,15 +226,11 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
         saveAndPerformSimulation(target, newTask);
     }
 
-    protected @NotNull ResourceTaskFlavor<?> getTaskFlavor() {
-        return ResourceTaskFlavors.IMPORT;
-    }
-
     protected ExecutionModeType getExecutionMode() {
         return ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
     }
 
-    protected <T> T getWorkDefinitionConfiguration() {
+    protected T getWorkDefinitionConfiguration() {
         return null;
     }
 
@@ -314,11 +317,6 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
 
         };
     }
-
-    /**
-     * Redirects to the simulation tasks wizard (to be implemented by subclasses).
-     */
-    public abstract void redirectToSimulationTasksWizard(AjaxRequestTarget target);
 
     private @Nullable ResourceObjectTypeDefinitionType getResourceObjectDefinition() {
         return getModelObject();

@@ -39,6 +39,8 @@ import com.evolveum.midpoint.web.component.TabSeparatedTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -363,14 +365,19 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         return showOverrides;
     }
 
-    private @NotNull SimulationActionTaskButton createSimulationMenuButton(
+    private @NotNull SimulationActionTaskButton<Void> createSimulationMenuButton(
             @NotNull RepeatingView buttons,
             @NotNull IModel<ResourceObjectTypeDefinitionType> objectTypeDefModel) {
 
-        SimulationActionTaskButton simulationActionTaskButton = new SimulationActionTaskButton(
+        SimulationActionTaskButton<Void> simulationActionTaskButton = new SimulationActionTaskButton<>(
                 buttons.newChildId(),
                 objectTypeDefModel,
                 () -> getAssignmentHolderDetailsModel().getObjectType()) {
+
+            @Override
+            protected @NotNull ResourceTaskFlavor<Void> getTaskFlavor() {
+                return ResourceTaskFlavors.IMPORT;
+            }
 
             @Override
             protected ExecutionModeType getExecutionMode() {
