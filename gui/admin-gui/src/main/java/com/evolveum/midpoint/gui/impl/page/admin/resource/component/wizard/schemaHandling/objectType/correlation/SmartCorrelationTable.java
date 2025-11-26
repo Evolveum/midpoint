@@ -521,6 +521,11 @@ public class SmartCorrelationTable
     public void acceptSuggestionItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
             StatusInfo<CorrelationSuggestionsType> statusInfo) {
     }
+
+    protected boolean isHeaderPanelHeaderVisible() {
+        return false;
+    }
+
 }
 
 
