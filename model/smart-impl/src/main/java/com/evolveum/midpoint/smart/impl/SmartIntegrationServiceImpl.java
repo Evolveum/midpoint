@@ -19,7 +19,9 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
-import com.evolveum.midpoint.smart.api.SynchronizationConfigurationScenario;
+import com.evolveum.midpoint.smart.api.synchronization.SourceSynchronizationAnswers;
+import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
+import com.evolveum.midpoint.smart.api.synchronization.TargetSynchronizationAnswers;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -168,6 +170,18 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             SynchronizationConfigurationScenario scenario, boolean includeCorrelationCaseAction) {
         return SynchronizationConfigurationScenarioHandler.getPredefinedSynchronizationReactions(
                 scenario, includeCorrelationCaseAction);
+    }
+
+    @Override
+    public SynchronizationReactionsType buildSourceSynchronizationReactionsFromAnswers(
+            SourceSynchronizationAnswers answers) {
+        return SynchronizationConfigurationScenarioHandler.getSynchronizationReactionsFromSource(answers);
+    }
+
+    @Override
+    public SynchronizationReactionsType buildTargetSynchronizationReactionsFromAnswers(
+            TargetSynchronizationAnswers answers) {
+        return SynchronizationConfigurationScenarioHandler.getSynchronizationReactionsFromTarget(answers);
     }
 
     private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
