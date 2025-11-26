@@ -56,7 +56,6 @@ See bug:MID-10413[].
 
 === Other Improvements
 
-* Added page size global configuration for object collection views. See bug:MID-10414[].
 * Summary panel for roles now uses display name and identifier (same as for organizations and services). See bug:MID-10270[].
 * Task execution constraints added to "advanced options" tab. See bug:MID-10218[].
 * Removed max password length constraint from default password policy. See bug:MID-10305[].
@@ -267,7 +266,6 @@ See bug:MID-10889[].
 * Fixed startTimestamp filter on campaign list page. See bug:MID-10900[].
 * Fixed campaigns filtering by created timestamp.
 Create metadata were added to campaign object while its creation. See bug:MID-10901[].
-* Restricted configurable page size by the value of 1000. See bug:MID-10414[].
 * Fixed datetime filter clear function in search box. See bug:MID-10899[].
 * Fixed pie chart style on the Certification items page. See bug:MID-10916[].
 * Current reviewers now displayed even for closed case items. See bug:MID-10935[].
