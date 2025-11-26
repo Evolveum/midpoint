@@ -47,7 +47,8 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 ** New xrefv:/midpoint/reference/master/expressions/expressions/filter/[filter expression evaluator]. See bug:MID-10060[].
 ** Improved `safe` expression profile in the default system configuration.
 ** Recommended xref:/midpoint/reference/expressions/expressions/security/#semi-safe-configuration[_semi-safe_ configuration of expression profiles] provides a reasonable level of xref:/midpoint/reference/expressions/expressions/security/[expression security] for some delegated administration scenarios.
-* Improved ways of reporting reports and audit deltas in GUI using xrefv:/midpoint/reference/master/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[changed item paths].
+* Improved xrefv:/midpoint/reference/master/security/audit/#delta-column-changed-items[displaying changes (deltas)] in both the audit GUI and reports.
+* Improved xrefv:/midpoint/reference/master/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[indexing] these deltas, especially when objects are added. See bug:MID-10413[]
 Improved indexing of audit records with "add object" deltas.
 See bug:MID-10413[].
 * Added xref:/midpoint/reference/resources/resource-configuration/capabilities/#last-login-timestamp-capability[`lastLoginTimestamp` capability]. See bug:MID-10147[].
