@@ -49,7 +49,7 @@ import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.gui.api.AdminLTESkin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -378,7 +378,7 @@ public abstract class PageBase extends PageAdminLTE {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 PageParameters params = new PageParameters();
-                params.set(WizardModel.PARAM_STEP, ShoppingCartPanel.STEP_ID);
+                params.set(WizardModelBasic.PARAM_STEP, ShoppingCartPanel.STEP_ID);
 
                 setResponsePage(new PageRequestAccess(params));
             }

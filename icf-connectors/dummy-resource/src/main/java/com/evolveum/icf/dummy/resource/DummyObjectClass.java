@@ -84,6 +84,11 @@ public class DummyObjectClass {
         add(new DummyAttributeDefinition(attributeName, attributeType, isRequired, isMulti));
     }
 
+    public void addAttributeDefinition(
+            String attributeName, Class<?> attributeType, boolean isRequired, boolean isMulti, String description) {
+        add(new DummyAttributeDefinition(attributeName, attributeType, isRequired, isMulti, description));
+    }
+
     public Collection<LinkDefinition> getLinkDefinitions() {
         return Collections.unmodifiableCollection(
                 linkDefinitionsMap.values());

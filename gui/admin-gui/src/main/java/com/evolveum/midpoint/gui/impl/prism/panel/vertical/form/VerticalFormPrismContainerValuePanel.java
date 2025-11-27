@@ -118,6 +118,12 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
                 onHeaderClick(target);
             }
         });
+
+        WebMarkupContainer statusMessage = new WebMarkupContainer(ID_DELETE_STATUS);
+        statusMessage.setOutputMarkupId(true);
+        statusMessage.add(AttributeAppender.append("data-component-id", statusMessage::getPageRelativePath));
+        header.add(statusMessage);
+
         header.add(new VisibleBehaviour(() -> {
             if (getSettings() != null && !getSettings().isHeaderVisible()) {
                 return false;
@@ -132,7 +138,7 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
         icon.add(AttributeAppender.append("class", () -> getIcon()));
         header.add(icon);
 
-        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
+        IModel<String> headerLabelModel = getLabelModel();
         Label labelComponent = new Label(ID_LABEL, headerLabelModel);
         labelComponent.setOutputMarkupId(true);
         labelComponent.setOutputMarkupPlaceholderTag(true);

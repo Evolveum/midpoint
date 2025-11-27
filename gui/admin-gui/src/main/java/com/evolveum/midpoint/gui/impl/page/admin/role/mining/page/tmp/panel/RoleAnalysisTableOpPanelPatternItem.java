@@ -31,7 +31,7 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconTextPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconTextPanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;

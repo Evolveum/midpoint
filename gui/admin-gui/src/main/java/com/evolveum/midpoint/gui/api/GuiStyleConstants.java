@@ -95,6 +95,9 @@ public class GuiStyleConstants {
 
     public static final String CLASS_REPORT_ICON = "fa fa-chart-pie";
 
+    public static final String CLASS_OBJECT_APPLICATION_ICON = "fa fa-desktop";
+    public static final String CLASS_OBJECT_APPLICATION_ICON_COLORED = CLASS_OBJECT_APPLICATION_ICON + " object-application-color";
+
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
     public static final String CLASS_ICON_STYLE_NORMAL = "icon-style-normal";
     public static final String CLASS_ICON_STYLE_DISABLED = "icon-style-disabled";
@@ -332,4 +335,9 @@ public class GuiStyleConstants {
 
     public static final String CLASS_ICON_RECYCLE = "fa fa-recycle";
     public static final String CLASS_MIGRATION_ICON = "fa fa-wrench";
+
+    public static final String CLASS_MAGIC_WAND = "fa fa-wand-magic-sparkles";
+    public static final String CLASS_SPINNER = "fa fa-spinner fa-spin";
+    public static final String CLASS_TASK_SUSPENDED_ICON = "fa fa-pause-circle";
+    public static final String CLASS_WARNING_ICON = "fa fa-warning";
 }

@@ -50,7 +50,11 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
             WizardPanelHelper<C, AHD> helper) {
         super(id);
         this.helper = helper;
-        startWithChoiceTemplate = nameOfObjectIsNotNull();
+        startWithChoiceTemplate = initStartWithChoiceTemplate();
+    }
+
+    protected boolean initStartWithChoiceTemplate() {
+        return nameOfObjectIsNotNull();
     }
 
     @Override
@@ -162,4 +166,16 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
             }
         }
     }
+
+    protected void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        if (!result.isError()) {
+            exitToPreview(target);
+        }
+    }
+
+    protected void exitToPreview(AjaxRequestTarget target) {
+        getHelper().onExitPerformed(target);
+    }
+
 }

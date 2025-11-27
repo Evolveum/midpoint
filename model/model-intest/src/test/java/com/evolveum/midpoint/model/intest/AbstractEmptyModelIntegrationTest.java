@@ -12,7 +12,10 @@ import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNE
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
+import com.evolveum.axiom.concepts.CheckedSupplier;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -20,7 +23,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.Checker;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -132,5 +138,49 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
 
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 path, task, result, enable);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected <T> T waitForFinish(
+            CheckedSupplier<StatusInfo<T>, CommonException> statusInformationSupplier,
+            long timeout) throws CommonException {
+        return waitForFinish(
+                statusInformationSupplier,
+                new WaitForFinishOptions(
+                        List.of(OperationResultStatusType.SUCCESS),
+                        timeout));
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected <T> T waitForFinish(
+            CheckedSupplier<StatusInfo<T>, CommonException> statusInformationSupplier,
+            WaitForFinishOptions options) throws CommonException {
+
+        var checker = new Checker() {
+
+            StatusInfo<T> lastStatusInformation;
+
+            @Override
+            public boolean check() throws CommonException {
+                lastStatusInformation = statusInformationSupplier.get();
+                displayDumpable("status information", lastStatusInformation);
+                return lastStatusInformation.wasStarted() && !lastStatusInformation.isExecuting();
+            }
+
+            @Override
+            public void timeout() {
+                fail("Timeout while waiting for the operation to finish. Last status: " + lastStatusInformation);
+            }
+        };
+
+        IntegrationTestTools.waitFor("Waiting for the operation to finish", checker, options.timeout, 500);
+        if (!options.expectedStatuses.contains(checker.lastStatusInformation.getStatus())) {
+            fail("Operation did not finish as expected. Last status: %s, expected: %s".formatted(
+                    checker.lastStatusInformation, options.expectedStatuses));
+        }
+        return checker.lastStatusInformation.getResult();
+    }
+
+    protected record WaitForFinishOptions(Collection<OperationResultStatusType> expectedStatuses, long timeout) {
     }
 }

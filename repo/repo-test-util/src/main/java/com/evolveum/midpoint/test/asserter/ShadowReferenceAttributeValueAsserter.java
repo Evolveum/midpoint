@@ -47,6 +47,10 @@ public class ShadowReferenceAttributeValueAsserter<R> extends AbstractAsserter<R
         return this;
     }
 
+    public ShadowAsserter<ShadowReferenceAttributeValueAsserter<R>> shadow() {
+        return new ShadowAsserter<>(value.getShadowRequired(), this, desc());
+    }
+
     private MatchingRule<?> getMatchingRule(Item<?, ?> item) throws SchemaException {
         var name = Objects.requireNonNullElse(
                 getMatchingRuleName(item),

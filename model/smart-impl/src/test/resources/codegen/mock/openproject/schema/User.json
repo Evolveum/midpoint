@@ -1,0 +1,169 @@
+{
+  "attributes": {
+    "id": {
+      "type": "integer",
+      "format": "int64",
+      "description": "User's id",
+      "mandatory": false,
+      "updatable": false,
+      "creatable": false,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "name": {
+      "type": "string",
+      "format": "",
+      "description": "The name of the user",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "login": {
+      "type": "string",
+      "format": "",
+      "description": "User's login name",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "admin": {
+      "type": "boolean",
+      "format": "boolean",
+      "description": "Whether the user is an admin",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "firstName": {
+      "type": "string",
+      "format": "",
+      "description": "User's first name",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "lastName": {
+      "type": "string",
+      "format": "",
+      "description": "User's last name",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "User's email address",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "avatar": {
+      "type": "string",
+      "format": "uri",
+      "description": "User's avatar URL",
+      "mandatory": false,
+      "updatable": false,
+      "creatable": false,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "status": {
+      "type": "string",
+      "format": "",
+      "description": "User's status",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "language": {
+      "type": "string",
+      "format": "",
+      "description": "User's preferred language",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of creation",
+      "mandatory": false,
+      "updatable": false,
+      "creatable": false,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of the most recent change to the user",
+      "mandatory": false,
+      "updatable": false,
+      "creatable": false,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "identityUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    },
+    "password": {
+      "type": "string",
+      "format": "",
+      "description": "User's password for the default password authentication",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": false,
+      "multivalue": false,
+      "returnedByDefault": false
+    },
+    "identity_url": {
+      "type": "string",
+      "format": "",
+      "description": "User's identity_url for OmniAuth authentication",
+      "mandatory": false,
+      "updatable": true,
+      "creatable": true,
+      "readable": true,
+      "multivalue": false,
+      "returnedByDefault": true
+    }
+  }
+}

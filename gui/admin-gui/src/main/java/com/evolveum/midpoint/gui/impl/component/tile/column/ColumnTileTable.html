@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="noValuePanel"></div>
+    <div class="d-flex flex-column flex-grow-1" wicket:id="tileView">
+        <div wicket:id="header"></div>
+        <div class="d-flex flex-wrap justify-content-left pt-2" wicket:id="tilesContainer"></div>
+        <div class="d-flex" wicket:id="footerContainer">
+            <div class="d-flex">
+                <div wicket:id="buttonToolbar"></div>
+            </div>
+            <div class="ml-auto align-self-end" wicket:id="tilesPaging"></div>
+        </div>
+    </div>
+
+    <div wicket:id="table"></div>
+
+    <wicket:fragment wicket:id="headerFragment">
+        <div class="col-12 p-2 bg-white d-flex gap-3" wicket:id="panelToolbar">
+            <div wicket:id="panelToolbarButtons"></div>
+        </div>
+
+        <div class="d-flex d-flex bg-white p-2" wicket:id="headerContainer">
+            <wicket:enclosure child="viewToggle">
+                <div class="mr-auto pr-4">
+                    <div wicket:id="viewToggle"></div>
+                </div>
+            </wicket:enclosure>
+            <div class="mr-2 gap-2" wicket:id="toolbarButtons"></div>
+            <div class="ml-auto flex-grow-1" wicket:id="panelHeader"></div>
+        </div>
+        <div class="col-12 card-footer shadow p-0 bg-light" wicket:id="columnHeader"></div>
+    </wicket:fragment>
+    <wicket:fragment wicket:id="tilesFragment">
+        <div wicket:id="tiles">
+            <div wicket:id="tile"></div>
+        </div>
+    </wicket:fragment>
+    <wicket:fragment wicket:id="buttonBar">
+        <div class="btn-group" wicket:id="buttonsRepeater">
+            <a wicket:id="button"></a>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

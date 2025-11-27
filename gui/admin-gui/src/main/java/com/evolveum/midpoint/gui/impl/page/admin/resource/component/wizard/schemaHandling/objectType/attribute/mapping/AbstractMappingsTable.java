@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -15,7 +16,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
@@ -30,7 +30,10 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -42,7 +45,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -77,10 +82,10 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
                 getMappingTypeDefinition();
 
         IColumn<PrismContainerValueWrapper<MappingType>, String> iconColumns = createUsedIconColumn();
-        Optional.ofNullable(iconColumns).ifPresent(column -> columns.add(column));
+        Optional.ofNullable(iconColumns).ifPresent(columns::add);
 
         IColumn<PrismContainerValueWrapper<MappingType>, String> strengthColumns = createStrengthIconColumn();
-        Optional.ofNullable(strengthColumns).ifPresent(column -> columns.add(column));
+        Optional.ofNullable(strengthColumns).ifPresent(columns::add);
 
         columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
                 mappingTypeDef,
@@ -112,7 +117,7 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
             @Override
             protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                return GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(rowModel);
+                return GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(rowModel, null);
             }
 
             @Override
@@ -128,27 +133,31 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
 
-    protected final <IW extends ItemWrapper> IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(IModel<IW> rowModel) {
+    protected static <IW extends ItemWrapper<?,?>> @NotNull IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(
+            IModel<IW> rowModel, PageBase pageBase) {
         return new IModel<>() {
 
+            @SuppressWarnings("unchecked")
             @Override
             public Collection<VariableBindingDefinitionType> getObject() {
 
                 return ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject())
                         .getValues().stream()
-                        .filter(value -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
+                        .filter(value
+                                -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
                         .map(PrismValueWrapperImpl::getRealValue)
                         .collect(Collectors.toList());
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public void setObject(Collection<VariableBindingDefinitionType> newValues) {
 
                 PrismPropertyWrapper<VariableBindingDefinitionType> sourceItem =
                         ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject());
-                List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> toRemoveValues
-                        = sourceItem.getValues().stream()
-                        .filter(v -> v.getRealValue() != null).collect(Collectors.toList());
+                List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> toRemoveValues = sourceItem.getValues().stream()
+                        .filter(v -> v.getRealValue() != null)
+                        .collect(Collectors.toList());
 
                 newValues.forEach(newValue -> {
                     if (newValue.getPath() == null) {
@@ -168,9 +177,9 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
                     } else {
                         try {
                             PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
-                                    = getPrismContext().itemFactory().createPropertyValue();
+                                    = pageBase.getPrismContext().itemFactory().createPropertyValue();
                             newPrismValue.setValue(newValue);
-                            sourceItem.add(newPrismValue, getPageBase());
+                            sourceItem.add(newPrismValue, pageBase);
                         } catch (SchemaException e) {
                             LOGGER.error("Couldn't initialize new value for Source item", e);
                         }
@@ -179,7 +188,7 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
                 toRemoveValues.forEach(toRemoveValue -> {
                     try {
-                        sourceItem.remove(toRemoveValue, getPageBase());
+                        sourceItem.remove(toRemoveValue, pageBase);
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't remove old value for Source item", e);
                     }
@@ -187,15 +196,15 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
                 List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> undeletedValues = sourceItem.getValues().stream()
                         .filter(value -> value.getStatus() != ValueStatus.DELETED)
-                        .collect(Collectors.toList());
-                if (undeletedValues.stream().filter(value -> value.getRealValue() != null).count() > 0) {
+                        .toList();
+                if (undeletedValues.stream().anyMatch(value -> value.getRealValue() != null)) {
                     sourceItem.getValues().removeIf(value -> value.getRealValue() == null);
                 } else if (undeletedValues.isEmpty()) {
                     try {
                         PrismPropertyValue<VariableBindingDefinitionType> newPrismValue
-                                = getPrismContext().itemFactory().createPropertyValue();
+                                = pageBase.getPrismContext().itemFactory().createPropertyValue();
                         newPrismValue.setValue(null);
-                        sourceItem.add(newPrismValue, getPageBase());
+                        sourceItem.add(newPrismValue, pageBase);
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't initialize new null value for Source item", e);
                     }
@@ -217,7 +226,7 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
                 new Model<>("fa fa-circle-plus"),
                 createStringResource(getKeyOfTitleForNewObjectButton())) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -236,111 +245,100 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
     protected List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
 
-        ButtonInlineMenuItem changeLifecycle = new ButtonInlineMenuItem(
-                createStringResource("AttributeMappingsTable.button.changeLifecycle")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa fa-heart-pulse");
-            }
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> isHeader;
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createChangeLifecycleColumnAction();
-            }
-        };
+        ButtonInlineMenuItem changeLifecycle = createChangeLifecycleButtonInlineMenu();
         items.add(changeLifecycle);
 
         items.addAll(super.createInlineMenu());
 
-        InlineMenuItem changeMappingName = new InlineMenuItem(
-                createStringResource("AttributeMappingsTable.button.changeMappingName")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public VisibilityChecker getVisibilityChecker() {
-                return (rowModel, isHeader) -> {
-                    if (isHeader) {
-                        return false;
-                    }
-
-                    if(rowModel == null || rowModel.getObject() == null) {
-                        return false;
-                    }
-
-                    try {
-                        PrismPropertyWrapper<String> property =
-                                ((PrismContainerValueWrapper<MappingType>) rowModel.getObject()).findProperty(MappingType.F_NAME);
-                        return property.isReadOnly();
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't find name property in " + rowModel.getObject());
-                    }
-
-                    return false;
-                };
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createChangeNameColumnAction();
-            }
-        };
+        InlineMenuItem changeMappingName = createChangeMappingNameInlineMenu();
         items.add(changeMappingName);
         return items;
     }
 
-    private InlineMenuItemAction createChangeLifecycleColumnAction() {
-        return new InlineMenuItemAction() {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                IModel<List<PrismContainerValueWrapper<MappingType>>> selected = () -> getSelectedItems();
-                if (selected.getObject().isEmpty()) {
-                    warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
-                    target.add(getFeedbackPanel());
-                    return;
-                }
-                ChangeLifecycleSelectedMappingsPopup changePopup = new ChangeLifecycleSelectedMappingsPopup(
-                        getPageBase().getMainPopupBodyId(),
-                        selected) {
-                    @Override
-                    protected void applyChanges(AjaxRequestTarget target) {
-                        super.applyChanges(target);
-                        refreshTable(target);
-                    }
-                };
+    private @NotNull InlineMenuItem createChangeMappingNameInlineMenu() {
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("AttributeMappingsTable.button.changeMappingName"))
+                .action(createChangeNameColumnAction(getPageBase(), this::refreshTable))
+                .headerMenuItem(false)
+                .visibilityChecker(changeNameVisibilityChecker())
+                .buildInlineMenu();
+    }
 
-                getPageBase().showMainPopup(changePopup, target);
+    private static InlineMenuItem.@NotNull VisibilityChecker changeNameVisibilityChecker() {
+        return (rowModel, isHeader) -> {
+            try {
+                @SuppressWarnings("unchecked") PrismPropertyWrapper<String> property =
+                        ((PrismContainerValueWrapper<MappingType>) rowModel.getObject()).findProperty(MappingType.F_NAME);
+                return property.isReadOnly();
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find name property in {}", rowModel.getObject());
+                return false;
             }
         };
     }
 
-    private InlineMenuItemAction createChangeNameColumnAction() {
-        return new ColumnMenuAction() {
+    private @NotNull ButtonInlineMenuItem createChangeLifecycleButtonInlineMenu() {
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("AttributeMappingsTable.button.changeLifecycle"))
+                .icon("fa fa-heart-pulse")
+                .action(createChangeLifecycleColumnAction(getPageBase(), this::refreshTable, this::getSelectedItems))
+                .visibilityChecker((rowModel, isHeader) -> isHeader)
+                .buildButtonMenu();
+    }
+
+    public static @NotNull InlineMenuItemAction createChangeLifecycleColumnAction(
+            PageBase pageBase,
+            SerializableConsumer<AjaxRequestTarget> refreshFn,
+            SerializableSupplier<List<PrismContainerValueWrapper<MappingType>>> selectionSupplier) {
+        return new InlineMenuItemAction() {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                IModel<PrismContainerValueWrapper<MappingType>> selected = getRowModel();
-                if (getRowModel().getObject() == null) {
-                    warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
-                    target.add(getFeedbackPanel());
+                IModel<List<PrismContainerValueWrapper<MappingType>>> selected = selectionSupplier::get;
+                if (selected.getObject().isEmpty()) {
+                    pageBase.warn(pageBase
+                            .createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
+                    target.add(pageBase.getFeedbackPanel());
                     return;
                 }
-                ChangeMappingNamePopup changePopup = new ChangeMappingNamePopup(
-                        getPageBase().getMainPopupBodyId(),
+                ChangeLifecycleSelectedMappingsPopup changePopup = new ChangeLifecycleSelectedMappingsPopup(
+                        pageBase.getMainPopupBodyId(),
                         selected) {
                     @Override
                     protected void applyChanges(AjaxRequestTarget target) {
                         super.applyChanges(target);
-                        refreshTable(target);
+                        refreshFn.accept(target);
                     }
                 };
 
-                getPageBase().showMainPopup(changePopup, target);
+                pageBase.showMainPopup(changePopup, target);
+            }
+        };
+    }
+
+    public static @NotNull InlineMenuItemAction createChangeNameColumnAction(
+            PageBase pageBase,
+            SerializableConsumer<AjaxRequestTarget> refreshFn) {
+        return new ColumnMenuAction<PrismContainerValueWrapper<MappingType>>() {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<MappingType>> selected = getRowModel();
+                if (getRowModel().getObject() == null) {
+                    pageBase.warn(pageBase
+                            .createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
+                    target.add(pageBase.getFeedbackPanel());
+                    return;
+                }
+                ChangeMappingNamePopup changePopup = new ChangeMappingNamePopup(
+                        pageBase.getMainPopupBodyId(),
+                        selected) {
+                    @Override
+                    protected void applyChanges(AjaxRequestTarget target) {
+                        super.applyChanges(target);
+                        refreshFn.accept(target);
+                    }
+                };
+
+                pageBase.showMainPopup(changePopup, target);
             }
         };
     }

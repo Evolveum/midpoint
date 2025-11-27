@@ -53,6 +53,7 @@ import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandle
         "classpath:ctx-init.xml",
         "classpath:ctx-authentication.xml",
         "classpath:ctx-report.xml",
+        "classpath:ctx-smart-integration.xml",
         "classpath*:ctx-cases.xml",
         "classpath*:ctx-workflow.xml",
         "classpath*:ctx-notifications.xml",

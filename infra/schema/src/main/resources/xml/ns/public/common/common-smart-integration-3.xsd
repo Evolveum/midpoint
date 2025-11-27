@@ -1,0 +1,1451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+            elementFormDefault="qualified"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="3.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Parts related to the smart integration (midPilot).
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+
+    <xsd:complexType name="SmartIntegrationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration related to smart integration feature.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="serviceUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A URL of the smart integration [micro]service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="connectorGenerationUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A URL of the code generation [micro]service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="connectorFrameworkUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A URL of the connector framework (for demo purposes only, should be integration catalog in future).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="smartIntegrationConfiguration" type="tns:SmartIntegrationConfigurationType"/>
+
+    <!-- ================================================================================================================== -->
+    <!--                              Complex types for the API of SmartIntegrationService                                  -->
+    <!-- ================================================================================================================== -->
+
+    <!-- estimateObjectClassSize -->
+
+    <xsd:complexType name="ObjectClassSizeEstimationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How many objects of given object class are on the resource?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The estimated value. If missing, we cannot tell nothing.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="precision" type="tns:ObjectClassSizeEstimationPrecisionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to interpret the value, regarding the precision/style of the estimation?
+                        No value means "no information", and should be used only if the "value" is missing as well.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="objectClassSizeEstimation" type="tns:ObjectClassSizeEstimationType"/>
+
+    <xsd:simpleType name="ObjectClassSizeEstimationPrecisionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Precision or style of the size estimation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="exactly">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>We know the value for sure, e.g. because we counted the objects.</xsd:documentation>
+                        <jaxb:typesafeEnumMember name="EXACTLY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="approximately">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>The real value can be greater or lesser than the estimate.</xsd:documentation>
+                        <jaxb:typesafeEnumMember name="APPROXIMATELY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="atLeast">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>
+                            The real value is at least the provided estimate. Usually this means that we were able to retrieve
+                            at least the specified number of objects. This means that the real value can be much larger than
+                            the provided estimate.
+                        </xsd:documentation>
+                        <jaxb:typesafeEnumMember name="AT_LEAST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- suggestObjectTypes method -->
+
+    <xsd:complexType name="ObjectTypesSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of object types and their delineation: the output of "suggestObjectTypes" smart integration
+                service API method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Collection of suggested object type definitions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="objectTypesSuggestion" type="tns:ObjectTypesSuggestionType"/>
+
+    <xsd:complexType name="ShadowObjectClassStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statistical data about a particular object class needed for suggesting object types delineations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attribute" type="tns:ShadowAttributeStatisticsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Statistical data about a particular attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attributeTuple" type="tns:ShadowAttributeTupleStatisticsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Statistical data about a particular attribute pairs (maybe tuples - later).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="size" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many shadows were considered.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="coverage" type="xsd:float">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An estimation of the coverage - how many of all the resource objects are covered by this statistics: a number between 0 and 1.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timestamp" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this information collected?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShadowAttributeStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statistical data for particular attribute needed for suggesting delineations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute path, like "c:attributes/ri:login" or "c:activation/c:administrativeStatus".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="uniqueValueCount" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many unique (non-null) values are there for this attribute?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="missingValueCount" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many objects have no value for this attribute?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="valueCount" type="tns:ShadowAttributeValueCountType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about the number of occurrences of a particular value in this attribute.
+                        Present only for low cardinality attributes; so after reaching a given threshold (e.g. 30 unique values or 1% of all objects) this data are removed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="valuePatternCount" type="tns:ShadowAttributeValuePatternCountType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about the number of occurrences of a particular value pattern in this attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShadowAttributeValueCountType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Number of occurrences of a particular value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specific value for which the occurrence count is being tracked.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The frequency of the associated 'value' within the relevant dataset or collection.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ShadowValuePatternType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the type of value pattern count.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="prefix">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - content starts with one of these values: "prod", "priv", "adm", "usr", "user", "ops", "svc", "int", "ext"
+                        - no delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PREFIX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="suffix">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - content ends with one of these values: "prod", "priv", "adm", "admin", "administrator", "usr", "user", "ops", "svc", "int", "ext"
+                        - no delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUFFIX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="firstToken">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - content is split into tokens on non-alphanumeric characters and the first token is counted
+                        - taken into account only if cardinality is lower than 0.05 * total number of samples
+                        - delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FIRST_TOKEN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="lastToken">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - content is split into tokens on non-alphanumeric characters and the last token is counted
+                        - taken into account only if cardinality is lower than 0.05 * total number of samples
+                        - delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LAST_TOKEN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="DNsuffix">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        - custom LDAP's DN attribute handling - suffix starting from first 'ou' is counted as value pattern count
+                        - 'ou' delimiter needed
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DN_SUFFIX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ShadowAttributeValuePatternCountType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Number of occurrences of a particular value pattern.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specific value pattern for which the occurrence count is being tracked.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="tns:ShadowValuePatternType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently supported pattern types: 'prefix', 'suffix', 'firstToken', 'lastToken', 'DNsuffix'.
+                        1. 'prefix': content starts with one of these values: "prod", "priv", "adm", "usr", "user", "ops", "svc", "int", "ext"
+                            - no delimiter needed
+                        2. 'suffix': content ends with one of these values: "prod", "priv", "adm", "admin", "administrator", "usr", "user", "ops", "svc", "int", "ext"
+                            - no delimiter needed
+                        3. 'firstToken': content is split into tokens on non-alphanumeric characters and the first token is counted
+                            - taken into account only if cardinality is lower than 0.05 * total number of samples
+                            - delimiter needed
+                        4. 'lastToken': content is split into tokens on non-alphanumeric characters and the last token is counted
+                            - taken into account only if cardinality is lower than 0.05 * total number of samples
+                            - delimiter needed
+                        5. 'DNsuffix': custom LDAP's DN attribute handling - suffix starting from first 'ou' is counted as value pattern count
+                            - 'ou' delimiter needed
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The frequency of the associated 'value' within the relevant dataset or collection.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShadowAttributeTupleStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statistical data for particular attribute tuple needed for suggesting delineations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType" minOccurs="2" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute paths, like "c:attributes/ri:login" or "c:activation/c:administrativeStatus".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tupleCount" type="tns:ShadowAttributeTupleCountType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about the number of occurrences of a particular tuple [values] in this attribute.
+                        Present only for tuples where the number of these counts is reasonably low.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShadowAttributeTupleCountType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Number of occurrences of a particular value or value pattern.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string" minOccurs="2" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Values - in the order corresponding to the order of attributes in the containing structure.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of occurrences.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- suggestFocusType method -->
+
+    <xsd:complexType name="FocusTypeSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestion of a focus type: the output of "suggestFocusType" smart integration service API method.
+                It's a container mainly to be able to flag it as provided by AI.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="focusType" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Focus type name (required).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="focusTypeSuggestion" type="tns:FocusTypeSuggestionType"/>
+
+    <!-- suggestCorrelation method -->
+
+    <xsd:complexType name="CorrelationSuggestionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of correlation rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="suggestion" type="tns:CorrelationSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        One or more suggestions for correlation rules.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="correlationSuggestions" type="tns:CorrelationSuggestionsType"/>
+
+    <xsd:complexType name="CorrelationSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of correlation rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlation" type="tns:CorrelationDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested correlation definition. It includes the current state of the correlation definition, i.e., it
+                        is intended to replace it.
+                    </xsd:documentation>
+                    <!-- TODO reconsider this "absolute state" idea - what about race conditions? If someone changes
+                          the correlation definition while the smart integration service is running? -->
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attributes" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested attribute(s) definition. Each of them must contain at least "ref", pointing to the attribute
+                        name. It should contain one inbound mapping definition. Other items should be left empty.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="quality" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Estimated quality of this suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="correlationSuggestion" type="tns:CorrelationSuggestionType"/>
+
+    <!-- suggestMappings method -->
+
+    <xsd:complexType name="MappingsSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of inbound/outbound mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attributeMappings" type="tns:AttributeMappingsSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggestions of attribute mappings. There may be multiple suggestions for a given attribute.
+                        If they are there, we provide multiple values of this item (pointing to the same attribute),
+                        one for each suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="extensionItem" type="tns:ExtensionItemSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggestions of new extension items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestion" type="tns:MappingsSuggestionType"/>
+
+    <xsd:complexType name="MappingsSuggestionFiltersType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Filters for the "suggestMappings" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="focusItem" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Focus item(s) to include.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="shadowItem" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadow item(s) to include.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="includeInbounds" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should inbound mappings be included?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="includeOutbounds" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should outbound mappings be included?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestionFilters" type="tns:MappingsSuggestionFiltersType"/>
+
+    <xsd:complexType name="MappingsSuggestionInteractionMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Interaction metadata related to suggestions of inbound/outbound mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="rejectedAttributeMappingsSuggestion" type="tns:AttributeMappingsSuggestionType"
+                    minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Rejected suggestions of attribute mappings. The content should be equal to the content of suggestions
+                        that were provided earlier.
+                    </xsd:documentation>
+                    <!-- Reason for requiring full information on rejected suggestions: we assume that the smart integration
+                         service is stateless, so it does not keep earlier suggestion (so they cannot be referenced). -->
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="rejectedExtensionItemSuggestion" type="tns:ExtensionItemSuggestionType"
+                    minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Rejected suggestions of new extension items. The content should be equal to the content of suggestions
+                        that were provided earlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestionInteractionMetadata" type="tns:MappingsSuggestionInteractionMetadataType"/>
+
+    <xsd:complexType name="AttributeMappingsSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of inbound/outbound mappings for a given attribute.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="definition" type="tns:ResourceAttributeDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested attribute definition. Must contain at least "ref" (pointing to the attribute name).
+                        May contain "inbound" and "outbound" items holding the mappings.
+                        Other items should be left empty.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- We may later factor the following information (order + expectedQuality) into something like "metadata" -->
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If there are multiple suggestions per attribute, this is the relative order of given suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expectedQuality" type="xsd:float" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expected quality of provided information.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="attributeMappingsSuggestion" type="tns:AttributeMappingsSuggestionType"/>
+
+    <xsd:complexType name="ExtensionItemSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestion of a new extension item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested extension item name. Must be consistent with "definition".
+                        The reason why it's here is to make life easier for clients - they don't need to parse the whole
+                        definition just to learn the item name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested extension item definition. Optional.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If there are multiple suggestions per extension item, this is the relative order of given suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expectedQuality" type="xsd:float" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expected quality of provided information.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="extensionItemSuggestion" type="tns:ExtensionItemSuggestionType"/>
+
+    <!-- suggestAssociations method -->
+
+    <xsd:complexType name="AssociationsSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of associations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="association" type="tns:AssociationSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggestions of association type definitions. There should not be any duplicates/alternatives.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="associationsSuggestion" type="tns:AssociationsSuggestionType"/>
+
+    <xsd:complexType name="AssociationSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestion of an association type definitions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="definition" type="tns:ShadowAssociationTypeDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested association type definition.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="associationSuggestion" type="tns:AssociationSuggestionType"/>
+
+    <!-- interaction metadata and suggestion quality are to be defined later -->
+
+    <!-- ================================================================================================================== -->
+    <!--                                            API of Python Microservice                                              -->
+    <!-- ================================================================================================================== -->
+    <!-- TODO shouldn't this be in a separate namespace? Or, should we use "Si" (= Smart integration) prefix? -->
+
+    <!-- suggestObjectTypes method -->
+
+    <xsd:complexType name="SiSuggestObjectTypesRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "suggestObjectTypes" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="schema" type="tns:SiObjectSchemaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Schema of the object class for which we want to suggest object types.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="statistics" type="tns:ShadowObjectClassStatisticsType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Statistical data about objects having a particular object class needed
+                        for suggesting object types delineations.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="validationErrorFeedback" type="tns:SiValidationErrorFeedbackEntryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional feedback from validating previously suggested object types. Each entry identifies
+                        suggestion that failed validation and explains why (e.g., MQL filter parse/compile/runtime
+                        errors). The microservice can use this context to refine subsequent suggestions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SiValidationErrorFeedbackEntryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Feedback entry describing issues detected when applying or validating one object type.
+                It carries the problematic suggestion and a list of human-readable error messages related
+                to their filters. Provide this entry back to the service to guide the next iteration of suggestions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectType" type="tns:SiSuggestedObjectTypeType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested object type that failed validation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="filterErrors" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable error messages encountered while parsing, compiling, or evaluating the
+                        delineation filter for the associated suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SiSuggestObjectTypesResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Response for "suggestObjectTypes" method - suggested object types.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectType" type="tns:SiSuggestedObjectTypeType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested object types.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SiSuggestedObjectTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Single suggested object type.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="kind" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested kind. Should be one of "account", "entitlement", "generic".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested intent. May be arbitrary non-blank string.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable name for the object. Intended for display in user interfaces.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable description providing additional details about the element.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="baseContextObjectClassName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Local part of the name (i.e., without XML namespace prefix) of the object class of the base context, i.e.,
+                        the root object for this object type. Typically, an organizationalUnit for LDAP. Must be present
+                        in the schema.
+
+                        Present if and only if "baseContextFilter" is present.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        MQL filter pointing to the base context, i.e., the root object for this object type.
+
+                        Present if and only if "baseContextObjectClassName" is present.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="filter" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        MQL filter(s) delineating the object type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiObjectSchemaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Description of a schema for given type of objects (resource object class or midPoint object type).
+            </xsd:documentation>
+            <!-- TODO what about complex items, like "activation", "credentials", or custom ones? -->
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the type, e.g., "ri:inetOrgPerson" or "c:UserType".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable description of the type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definitions of individual attributes for this type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiAttributeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of a particular resource object attribute or midPoint object property.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path to the attribute (item).
+
+                        It resembles the midPoint notation, however, with some specialties related to multivalued complex items.
+
+                        Examples:
+
+                        - c:givenName
+                        - c:attributes/icfs:name
+                        - c:attributes/ri:login
+                        - c:activation/c:validFrom
+                        - c:extension/ext1:shoeSize
+                        - c:email[*]/c:value
+
+                        The last example means that "c:email" is a multivalued container and this definition refers to its
+                        "c:value" property.
+
+                        See DescriptiveItemPath class.
+
+                        Individual segments may include an XML namespace prefix, typically "ri:", "icfs:", or "c:".
+                        These prefixes are either well-known, or their exact value is not important ("ext1:", "ext2:", and so on).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the attribute type. Includes a XML namespace prefix, typically "xsd:", like "xsd:string".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable description of the attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minOccurs" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimal number of value occurrences. Usually 0 or 1. Zero means that the value is optional.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxOccurs" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximal number of value occurrences. Usually 1 or -1.
+                        Minus one means that the number of values is unlimited.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- suggestFocusType method -->
+
+    <xsd:complexType name="SiSuggestFocusTypeRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "suggestFocusType" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="kind" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Kind" part of the object type identification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Intent" part of the object type identification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="schema" type="tns:SiObjectSchemaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of the schema of particular object type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO consider extracting the following 3 items to a common type (deduplication) -->
+            <xsd:element name="baseContextObjectClassName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Local part of the name (i.e., without XML namespace prefix) of the object class of the base context, i.e.,
+                        the root object for this object type. Typically, an organizationalUnit for LDAP. Must be present
+                        in the schema.
+
+                        Present if and only if "baseContextFilter" is present.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        MQL filter pointing to the base context, i.e., the root object for this object type.
+
+                        Present if and only if "baseContextObjectClassName" is present.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="filter" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        MQL filter(s) delineating the object type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiSuggestFocusTypeResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Response for "suggestFocusType" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="focusTypeName" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the focus type, e.g., c:UserType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- matchSchema method -->
+
+    <xsd:complexType name="SiMatchSchemaRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "matchSchema" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="applicationSchema" type="tns:SiObjectSchemaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of the schema of particular resource object type (actually, the object class, like "inetOrgPerson").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPointSchema" type="tns:SiObjectSchemaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of the schema of particular midPoint object type, like "UserType".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiMatchSchemaResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "matchSchema" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attributeMatch" type="tns:SiAttributeMatchSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested pairs of matching attributes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiAttributeMatchSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "matchSchema" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="applicationAttribute" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path the of application-side attribute, like "c:attributes/ri:login".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPointAttribute" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path the of midPoint-side attribute, like "c:name" or "c:email[*]/c:type".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO inbound/outbound signalization -->
+            <!-- TODO outbound attributes with multiple sources? -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- New type describing an attribute match pair to be used for storing schema match -->
+    <xsd:complexType name="SchemaMatchResultType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "matchSchema" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="schemaMatchResult" type="tns:SchemaMatchOneResultType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        One schema metch attribute pair.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timestamp" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this information collected?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SchemaMatchOneResultType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A matched pair of attributes between a resource object (shadow) and a midPoint focus property
+                that can be considered for mapping suggestions. This mirrors the in-memory DTO used by the
+                smart integration implementation, exposing only serializable information.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="shadowAttributePath" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Full path of the resource-side attribute, e.g. "c:attributes/ri:login".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focusPropertyPath" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Full path of the midPoint focus property, e.g. "c:name".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Optional definitions if needed by clients; kept generic to remain serializable -->
+            <xsd:element name="shadowAttribute" type="tns:SiAttributeDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of the resource-side attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focusProperty" type="tns:SiAttributeDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of the midPoint focus property.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SiSuggestMappingRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "suggestMapping" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="applicationAttribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of the attribute(s) at the application side.
+                        There must be exactly one for outbound mappings.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPointAttribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of the attribute(s) at the midPoint side.
+                        There must be exactly one for inbound mappings.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inbound" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the mapping to be produced an inbound one?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="example" type="tns:SiSuggestMappingExampleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A handful of (applicationValue → midpointValue) examples.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="errorLog" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional error context from midPoint explaining why the previous suggestion could not be applied
+                        (e.g., expression evaluation failure). Provided to help the service refine the next suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="previousScript" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Previously suggested transformation script (if any). Sending it back allows the service to
+                        iteratively improve or fix the script when the last attempt failed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiSuggestMappingExampleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Example of input/output values pair for mapping suggestion.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="application" type="tns:SiAttributeExampleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute name and values at the application's side.
+                        For outbound mappings, there should be exactly one object (name + values) here.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPoint" type="tns:SiAttributeExampleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute name and values at the midPoint side.
+                        For inbound mappings, there should be exactly one object (name + values) here.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiAttributeExampleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Example of values (input or output) for a given attribute.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute path, like "c:attributes/ri:login" or "c:activation/c:administrativeStatus".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value or values.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SiSuggestMappingResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Response for "suggestMapping" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="transformationScript" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested transformation script.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form description related to the suggested transformation or mapping.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -66,6 +67,8 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
 
     private boolean export;
 
+    private OperationResult result;
+
     public Set<T> getSelected() {
         return selected;
     }
@@ -89,6 +92,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     @Override
     public Iterator<SelectableBean<T>> internalIterator(long offset, long pageSize) {
         LOGGER.trace("begin::iterator() offset {} pageSize {}.", offset, pageSize);
+        result = null;
 
         preprocessSelectedData();
 
@@ -148,8 +152,14 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         }
 
         return list.stream()
-                .map(object -> createDataObjectWrapper(object))
+                .filter(this::additionalMatching)
+                .map(this::createDataObjectWrapper)
                 .collect(Collectors.toList());
+    }
+
+
+    protected boolean additionalMatching(T object) {
+        return true;
     }
 
     private Iterator<SelectableBean<T>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
@@ -161,6 +171,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         SelectableBean<T> bean = createDataObjectWrapperForError();
         bean.setResult(result);
         errorList.add(bean);
+        this.result = result;
         return errorList.iterator();
     }
 
@@ -306,4 +317,14 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         this.export = export;
     }
 
+    @Nullable
+    public OperationResult getErrorResult() {
+        return result;
+    }
+
+    @Override
+    public void detach() {
+        super.detach();
+        result = null;
+    }
 }

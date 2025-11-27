@@ -11,7 +11,7 @@ $green: #198754 !default;
 $cyan: #008099 !default; //bootstrap value - #0dcaf0
 $yellow: #ffc107 !default;
 $red: #dc3545 !default;
-$purple: #605CA8 !default;
+$purple: #605CA8 !default; //figma #6f42c1; previous value #605ca8
 $blue: #0069d9 !default;
 
 $white: #fff !default;
@@ -29,3 +29,13 @@ $body-color: $gray-700;
 
 // override (remove after bs5)
 $sidebar-light-submenu-color: #717171 !default;
+
+//custom colors
+$purple-light: #f0e7fe;
+$purple-dark: #290661;
+$success-light: #d1e7dd;
+$danger-light: #f8d7da;
+$warning-light: #fff6da;
+$info-light: #cff4fc;
+$secondary-light: #e9eaec;
+$primary-light: #cfe2ff;

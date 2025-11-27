@@ -37,7 +37,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
@@ -49,7 +48,7 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -86,7 +85,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
@@ -156,9 +155,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     protected void onBeforeRender() {
         if (getModelObject().getRelation() == null) {
             PageParameters params = new PageParameters();
-            params.set(WizardModel.PARAM_STEP, RelationPanel.STEP_ID);
+            params.set(WizardModelBasic.PARAM_STEP, RelationPanel.STEP_ID);
 
-            throw new RestartResponseException(new PageRequestAccess(params, getWizard()));
+            throw new RestartResponseException(new PageRequestAccess(params, (WizardModelBasic) getWizard()));
         }
 
         ListGroupMenu<RoleCatalogQueryItem> menu = menuModel.getObject();
@@ -1347,7 +1346,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         requestAccess.addAssignments(newAssignments);
 
         getPageBase().reloadShoppingCartIcon(target);
-        target.add(getWizard().getHeader());
+        target.add(((WizardModelBasic)getWizard()).getHeader());
         target.add(get(ID_TILES));
 
         String msg;

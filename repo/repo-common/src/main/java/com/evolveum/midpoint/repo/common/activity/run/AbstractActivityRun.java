@@ -574,7 +574,7 @@ public abstract class AbstractActivityRun<
         return getActivityExecutionMode() == ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
     }
 
-    private boolean isAnyPreview() {
+    public boolean isAnyPreview() {
         return isPreview() || isShadowManagementPreview();
     }
 

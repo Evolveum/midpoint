@@ -33,6 +33,10 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -182,6 +186,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @SpringBean(name = "modelInteractionService")
     private ModelInteractionService modelInteractionService;
 
+    @SpringBean(name = "smartIntegrationService")
+    private SmartIntegrationService smartIntegrationService;
+
     @SpringBean(name = "dashboardService")
     private DashboardService dashboardService;
 
@@ -274,6 +281,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean
     private MarkManager markManager;
+
+    @SpringBean
+    private ConnectorDevelopmentService connectorService;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -562,6 +572,11 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+
+    @Override
+    public SmartIntegrationService getSmartIntegrationService() {
+        return smartIntegrationService;
     }
 
     @Override
@@ -1126,5 +1141,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
             String customSystemName = WebComponentUtil.getMidpointCustomSystemName(PageAdminLTE.this, DEFAULT_SYSTEM_NAME);
             return StringUtils.isNotEmpty(customSystemName) ? customSystemName : DEFAULT_SYSTEM_NAME;
         };
+    }
+
+    @Override
+    public ConnectorDevelopmentService getConnectorService() {
+        return connectorService;
     }
 }

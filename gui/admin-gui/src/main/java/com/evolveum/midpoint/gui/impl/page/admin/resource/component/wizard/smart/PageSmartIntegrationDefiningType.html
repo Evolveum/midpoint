@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form wicket:id="mainForm" class="form-horizontal">
+        <div class="d-flex flex-column">
+            <div class="d-flex gap-3 justify-content-start mr-auto align-items-center">
+                <a class="btn btn-outline-primary align-self-start" style="min-width: 400px;" wicket:id="previous">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <wicket:message key="PageSmartIntegrationDefiningType.button.previous"/>
+                </a>
+                <a class="btn btn-outline-primary align-self-start" style="min-width: 400px;" wicket:id="suggestCorrelationRules">
+                    <wicket:message key="PageSmartIntegrationDefiningType.button.suggestCorrelationRules"/>
+                </a>
+                <a class="btn btn-outline-primary align-self-start" style="min-width: 400px;" wicket:id="suggestMappings">
+                    <wicket:message key="PageSmartIntegrationDefiningType.button.suggestMappings"/>
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <h3>Current type definition:</h3>
+            <textarea wicket:id="definitionXml"></textarea>
+        </div>
+        <div class="d-flex flex-column">
+            <div class="d-flex gap-3 justify-content-start mr-auto align-items-center">
+                <a class="btn btn-outline-primary align-self-start" style="min-width: 400px;" wicket:id="acceptSuggestion">
+                    <wicket:message key="PageSmartIntegrationDefiningTypes.button.acceptSuggestion"/>
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <h3>Suggestions of correlation or mappings:</h3>
+            <textarea wicket:id="suggestionXml"></textarea>
+        </div>
+    </form>
+</wicket:extend>
+</body>
+</html>

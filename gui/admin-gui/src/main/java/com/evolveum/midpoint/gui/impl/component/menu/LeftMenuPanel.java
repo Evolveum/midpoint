@@ -14,11 +14,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining.PageRoleSuggestions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResults;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,8 +50,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
@@ -307,6 +308,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.mainNavigation", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createHomeItems());
         menu.addMainMenuItem(createUsersItems());
+        menu.addMainMenuItem(createApplicationsItems());
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());
@@ -381,6 +383,22 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem userMenu = createMainMenuItem("PageAdmin.menu.top.users", GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(userMenu, PageTypes.USER);
         return userMenu;
+    }
+
+    private MainMenuItem createApplicationsItems() {
+        MainMenuItem applicationMenu = createMainMenuItem("PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
+        createBasicAssignmentHolderMenuItems(applicationMenu, PageTypes.APPLICATION);
+
+        applicationMenu.addMenuItem(createObjectListPageMenuItem(PageTypes.CONNECTOR_DEVELOPMENT));
+
+        boolean connectorGeneratorActive = classMatches(PageConnectorDevelopment.class);
+//        if (connectorGeneratorActive) {
+            MenuItem connectorGenerator = new MenuItem("PageAdmin.menu.top.application.connector.generator",
+                    GuiStyleConstants.CLASS_MAGIC_WAND, PageConnectorDevelopment.class);
+            applicationMenu.addMenuItem(connectorGenerator);
+//        }
+
+        return applicationMenu;
     }
 
     //TODO AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL
@@ -764,6 +782,13 @@ public class LeftMenuPanel extends BasePanel<Void> {
             repositoryObjectsMenu.addMenuItem(editMenuItem);
         }
         return repositoryObjectsMenu;
+    }
+
+    private MenuItem createObjectListPageMenuItem(PageTypes pageDesc) {
+        String label = "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list";
+        String icon = pageDesc.getIcon();
+        Class<? extends PageBase> page = pageDesc.getListClass();
+        return createObjectListPageMenuItem(label, icon, page);
     }
 
     private MenuItem createObjectListPageMenuItem(String key, String iconClass, Class<? extends PageBase> menuItemPage) {

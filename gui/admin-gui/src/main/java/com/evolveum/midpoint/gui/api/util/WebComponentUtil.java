@@ -27,6 +27,7 @@ import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.*;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -135,10 +137,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -337,7 +335,8 @@ public final class WebComponentUtil {
         }
         PrismObject<ObjectType> prismObject = ref.asReferenceValue().getObject();
         if (prismObject == null) {
-            prismObject = WebModelServiceUtils.loadObject(ref, pageBase);
+            @NotNull Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder().noFetch().build();
+            prismObject = WebModelServiceUtils.loadObject(ref, options, pageBase);
         }
         if (prismObject == null) {
             return getReferencedObjectDisplayNamesAndNames(ref, false, true);
@@ -511,6 +510,8 @@ public final class WebComponentUtil {
             return AuthorizationConstants.AUTZ_UI_SERVICE_URL;
         } else if (ResourceType.class.equals(targetClass)) {
             return AuthorizationConstants.AUTZ_UI_RESOURCE_URL;
+        } else if (ApplicationType.class.equals(targetClass)) {
+            return AuthorizationConstants.AUTZ_UI_APPLICATION_URL;
         } else {
             return null;
         }
@@ -1736,39 +1737,14 @@ public final class WebComponentUtil {
         return ((MidPointApplication) component.getApplication()).getPrismContext();
     }
 
-    public static List<String> getChannelList() {
-        List<String> channels = new ArrayList<>();
-
-        for (GuiChannel channel : GuiChannel.values()) {
-            channels.add(channel.getUri());
-        }
-
-        return channels;
-    }
-
-    public static List<QName> getMatchingRuleList() {
-        List<QName> list = new ArrayList<>();
-
-        list.add(PrismConstants.DEFAULT_MATCHING_RULE_NAME);
-        list.add(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
-        list.add(PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME);
-        list.add(PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME);
-        list.add(PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME);
-        list.add(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME);
-        list.add(PrismConstants.EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME);
-        list.add(PrismConstants.UUID_MATCHING_RULE_NAME);
-        list.add(PrismConstants.XML_MATCHING_RULE_NAME);
-
-        return list;
-    }
-
     public static List<QName> getAttributeApplicableMatchingRuleList() {
         List<QName> list = new ArrayList<>();
 
         list.add(PrismConstants.DEFAULT_MATCHING_RULE_NAME);
         list.add(PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
-         list.add(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME);
+        list.add(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME);
         list.add(PrismConstants.EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME);
+        list.add(PrismConstants.VARIABLE_BINDING_DEF_MATCHING_RULE_NAME);
         list.add(PrismConstants.UUID_MATCHING_RULE_NAME);
         list.add(PrismConstants.XML_MATCHING_RULE_NAME);
 
@@ -1862,6 +1838,12 @@ public final class WebComponentUtil {
             panelIdentifier = panelIdentifierParam.toString();
         }
         return panelIdentifier;
+    }
+
+    @NotNull
+    public static TabbedPanel<ITab> createTabPanel(
+            String id, final PageBase parentPage, final List<ITab> tabs) {
+        return createTabPanel(id, parentPage, tabs, null, null);
     }
 
     @NotNull
@@ -4024,7 +4006,7 @@ public final class WebComponentUtil {
         Optional<ContainerPanelConfigurationType> config = pageConfig
                 .getPanel()
                 .stream()
-                .filter(containerConfig -> panelType.equals(containerConfig.getIdentifier()))
+                .filter(containerConfig -> panelType != null &&  Strings.CS.equals(panelType, containerConfig.getIdentifier()))
                 .findFirst();
         return config.orElse(null);
     }

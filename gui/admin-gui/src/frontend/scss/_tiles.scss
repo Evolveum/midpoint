@@ -141,8 +141,155 @@
     word-break: break-word;
   }
 
+.tile-three-line-description {
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
 @include dark-mode() {
   .catalog-tile-panel.selectable {
     @include tile-dark-mode();
   }
 }
+
+.clamp-lines {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.clamp-1-lines {
+  @extend .clamp-lines;
+  -webkit-line-clamp: 1;
+}
+
+.clamp-2-lines {
+  @extend .clamp-lines;
+  -webkit-line-clamp: 2;
+}
+
+.clamp-3-lines {
+  @extend .clamp-lines;
+  -webkit-line-clamp: 3;
+}
+
+.clamp-5-lines {
+  @extend .clamp-lines;
+  -webkit-line-clamp: 5;
+}
+
+.column-tile-header{
+  background-color: #F8F9FA
+}
+
+.tile-column-header{
+  padding: 0.5rem;
+}
+
+.tile-column-header.header-border-right::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 5%;
+  height: 90%;
+  width: 1px;
+  background-color: #ADB5BD;
+}
+
+.tile-column-icon {
+  min-width:24px;
+}
+
+.border-large-left2 {
+  border-left-width: 10px !important; /* make left border thicker */
+}
+
+.border-large-left {
+  position: relative;
+  background-color: inherit; /* inherits the border-color if it's applied inline */
+}
+
+.border-large-left::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 9px;
+  border-top-left-radius: inherit;
+  border-bottom-left-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+
+
+.border-ai {
+  border-color: #6610f2 !important;
+}
+
+.border-system {
+  border-color: #0d6efd !important;
+}
+
+.border-danger.border-large-left::before {
+  background-color: $danger;
+}
+
+.border-success.border-large-left::before {
+  background-color: $success;
+}
+
+.border-warning.border-large-left::before {
+  background-color: $warning;
+}
+
+.border-info.border-large-left::before {
+  background-color: $info;
+}
+
+.border-primary.border-large-left::before {
+  background-color: $primary;
+}
+
+.border-secondary.border-large-left::before {
+  background-color: $secondary;
+}
+
+.border-purple.border-large-left::before {
+  background-color: $purple;
+}
+
+.border-system.border-large-left::before {
+  background-color: #0d6efd;
+}
+
+.border-ai.border-large-left::before {
+  background-color: #570ece;
+}
+
+.border-success.selected-base{
+  background-color: $success-light !important;
+}
+
+.border-danger.selected-base{
+  background-color: $danger-light !important;
+}
+
+.border-purple.selected-base{
+  background-color: $purple-light !important;
+}
+
+.border-system.selected-base{
+  background-color: #cfe2ff !important;
+}
+
+.border-ai.selected-base {
+  background-color: #e0cffc !important;
+}
+

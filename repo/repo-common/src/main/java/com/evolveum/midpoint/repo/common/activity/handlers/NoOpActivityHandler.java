@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.activity.handlers;
 
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import com.google.common.base.MoreObjects;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -79,10 +81,14 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         }
 
         @Override
-        public void beforeRun(OperationResult result) {
+        public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+            if (!super.beforeRun(result)) {
+                return false;
+            }
             MyWorkDefinition def = getWorkDefinition();
             LOGGER.info("Run starting; steps to be executed = {}, delay for one step = {}, step interruptibility = {}"
                             + " in task {}", def.steps, def.delay, def.stepInterruptibility, getRunningTask());
+            return true;
         }
 
         @Override

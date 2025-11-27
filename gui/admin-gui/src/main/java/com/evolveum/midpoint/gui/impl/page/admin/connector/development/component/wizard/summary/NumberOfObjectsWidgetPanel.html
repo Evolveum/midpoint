@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card px-0 py-2 d-flex flex-column mb-0">
+        <div class="px-3 d-flex flex-row pb-2">
+            <div class="pr-2">
+                <i wicket:id="headerIcon"/>
+            </div>
+            <div wicket:id="headerLabel"/>
+        </div>
+        <div class="w-100 px-3 py-2 font-weight-bold h2" wicket:id="number"/>
+        <div class="w-100 px-3 border-top justify-content-center d-flex flex-row pt-2">
+            <a class="m-auto btn btn-link py-0 d-flex" wicket:id="listOfObjectsButton">
+                <div wicket:id="listOfObjectsLabel"/>
+            </a>
+        </div>
+    </div>
+</wicket:panel>
+</html>

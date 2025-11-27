@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="d-flex justify-content-center">
+        <h4 wicket:id="text"></h4>
+    </div>
+    <div class="d-flex justify-content-center">
+        <p class="text-muted mb-2 tile-three-line-description" style="min-height: 60px" wicket:id="subText"></p>
+    </div>
+
+
+    <div class="card" wicket:id="table"></div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <a class="mr-auto btn btn-link" wicket:id="cancel">
+                <wicket:message key="Button.cancel"/>
+            </a>
+            <button wicket:id="addSelectedMappings" class="ml-auto btn btn-primary"></button>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

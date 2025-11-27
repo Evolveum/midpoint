@@ -10,11 +10,12 @@ import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecu
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
@@ -103,8 +104,12 @@ public class RecomputationActivityHandler
         }
 
         @Override
-        public void beforeRun(OperationResult result) {
+        public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+            if (!super.beforeRun(result)) {
+                return false;
+            }
             ensureNoDryRun();
+            return true;
         }
 
         @Override

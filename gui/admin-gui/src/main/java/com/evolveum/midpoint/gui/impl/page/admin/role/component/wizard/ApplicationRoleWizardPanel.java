@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
@@ -36,7 +36,7 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
 
     protected void initLayout() {
         getPageBase().getFeedbackPanel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
-        add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps()))));
+        add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createBasicSteps()))));
     }
 
     private List<WizardStep> createBasicSteps() {
@@ -66,15 +66,15 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
         return steps;
     }
 
-    private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
+    protected void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSavePerformed(target);
         if (!result.isError()) {
             exitToPreview(target);
         }
     }
 
-    private void exitToPreview(AjaxRequestTarget target) {
-        getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+    protected void exitToPreview(AjaxRequestTarget target) {
+        getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
         showChoiceFragment(
                 target,
                 new RoleWizardChoicePanel<>(getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class) {

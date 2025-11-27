@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -40,6 +42,10 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_OUTPUT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAffectedObjectsType.F_EXECUTION_MODE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAffectedObjectsType.F_RESOURCE_OBJECTS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskAffectedObjectsType.F_ACTIVITY;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_AFFECTED_OBJECTS;
 
 /**
  * TODO move to more appropriate place (common for both wf and certifications)
@@ -226,5 +232,38 @@ public class QueryUtils {
             filter = reviewerAndEnabledFilter;
         }
         return addFilter(baseWorkItemsQuery, filter);
+    }
+
+    public static ObjectQuery createQueryForObjectTypeSimulationTasks(
+            @Nullable ResourceObjectTypeDefinitionType resourceObjectTypeDef,
+            @NotNull String resourceOid) {
+        if (resourceObjectTypeDef == null) {
+            return null;
+        }
+
+        S_FilterExit filter = PrismContext.get()
+                .queryFor(TaskType.class)
+                .item(createResourceObjectPath(BasicResourceObjectSetType.F_RESOURCE_REF))
+                .ref(resourceOid)
+                .and()
+                .item(createResourceObjectPath(BasicResourceObjectSetType.F_KIND))
+                .eq(resourceObjectTypeDef.getKind())
+                .and()
+                .item(createResourceObjectPath(BasicResourceObjectSetType.F_INTENT))
+                .eq(resourceObjectTypeDef.getIntent());
+
+        filter = addSimulationRule(filter.and().block(), ExecutionModeType.PREVIEW);
+        filter = addSimulationRule(filter.or(), ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW);
+        filter = filter.endBlock();
+        return filter.build();
+    }
+
+    protected static S_FilterExit addSimulationRule(@NotNull S_FilterEntry filter, Object value) {
+        return filter.item(ItemPath.create(F_AFFECTED_OBJECTS, F_ACTIVITY, F_EXECUTION_MODE))
+                .eq(value);
+    }
+
+    private static @NotNull ItemPath createResourceObjectPath(ItemName subPath) {
+        return ItemPath.create(F_AFFECTED_OBJECTS, F_ACTIVITY, F_RESOURCE_OBJECTS, subPath);
     }
 }

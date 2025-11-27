@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -18,10 +19,11 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  * @author skublik
  */
 
-public class LabelWithHelpPanel extends BasePanel<String>{
+public class LabelWithHelpPanel extends BasePanel<String> {
 
     private static final String ID_NAME = "name";
     private static final String ID_HELP = "help";
+    private static final String ID_BUTTON_CONTAINER = "btnContainer";
 
     public LabelWithHelpPanel(String id, IModel<String> model) {
         super(id, model);
@@ -38,6 +40,11 @@ public class LabelWithHelpPanel extends BasePanel<String>{
         name.setOutputMarkupId(true);
         add(name);
 
+        WebMarkupContainer btnContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
+        btnContainer.setOutputMarkupId(true);
+        btnContainer.add(AttributeModifier.append("class", getButtonContainerAdditionalCssClass()));
+        add(btnContainer);
+
         Label help = new Label(ID_HELP);
         IModel<String> helpModel = getHelpModel();
         help.add(AttributeModifier.replace("data-original-title",
@@ -46,11 +53,24 @@ public class LabelWithHelpPanel extends BasePanel<String>{
         help.add(AttributeModifier.replace("aria-label",
                 createStringResource("LabelWithHelpPanel.tooltipFor", getModelObject())));
         help.setOutputMarkupId(true);
-        add(help);
+
+        if (getCustomIconClass() != null) {
+            help.add(AttributeModifier.replace("class", getCustomIconClass()));
+        }
+
+        btnContainer.add(help);
     }
 
     protected IModel<String> getHelpModel() {
         return Model.of("");
+    }
+
+    protected String getCustomIconClass() {
+        return null;
+    }
+
+    protected String getButtonContainerAdditionalCssClass() {
+        return null;
     }
 
 }

@@ -86,13 +86,18 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         StringBuilder sb = new StringBuilder();
 
         CompositedIcon icon = this.icon;
-        if (icon == null) {
+        if (icon == null && buttonModel != null && buttonModel.getObject() != null) {
             icon = buttonModel.getObject().getCompositedIcon();
         }
+
+        if (icon == null) {
+            return;
+        }
+
         if (icon.hasBasicIcon()) {
             String margin = titleAsLabel ? "mr-1" : "";
             margin = isHorizontalLayout() ? margin + " mt-1" : margin;
-            sb.append("<i class=\"" + margin + " ").append(escapeMarkup(icon.getBasicIcon())).append("\"");
+            sb.append("<i class=\"").append(margin).append(" ").append(escapeMarkup(icon.getBasicIcon())).append("\"");
             if (icon.hasBasicIconHtmlColor()) {
                 sb.append(" style=\"color: " + escapeMarkup(icon.getBasicIconHtmlColor()) + ";\"");
             }

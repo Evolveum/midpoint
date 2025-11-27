@@ -21,6 +21,8 @@ import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
@@ -57,6 +59,11 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 
             @Override
             public ModelInteractionService getModelInteractionService() {
+                return null;
+            }
+
+            @Override
+            public SmartIntegrationService getSmartIntegrationService() {
                 return null;
             }
 
@@ -158,6 +165,11 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 
             @Override
             public TriggerHandlerRegistry getTriggerHandlerRegistry() {
+                return null;
+            }
+
+            @Override
+            public ConnectorDevelopmentService getConnectorService() {
                 return null;
             }
         };

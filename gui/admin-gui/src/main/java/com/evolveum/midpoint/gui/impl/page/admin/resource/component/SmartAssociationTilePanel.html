@@ -1,0 +1,67 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div wicket:id="tileContent" class="p-3 d-flex h-100 align-items-center">
+
+        <input type="checkbox" wicket:id="selectCheckbox" style="transform: scale(1.2);"/>
+
+        <div class="d-flex align-items-center p-3 col-3">
+            <div class="text-left">
+                <h5 wicket:id="name" class="text-nowrap m-0"></h5>
+                <div wicket:id="tag"></div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center w-100">
+
+            <!-- SUBJECT block -->
+            <div class="text-left p-3">
+                <div class="text-uppercase small text-muted fw-bold">Subject</div>
+                <div wicket:id="subjectName" class="fw-semibold"></div>
+                <div wicket:id="subjectObjectClass" class="border rounded text-muted border px-2 text-center"></div>
+            </div>
+
+            <!-- Flow arrow -->
+            <div class="flex-grow-1 p-3 d-flex align-items-center justify-content-center">
+                <div class="flow-arrow-container">
+                    <div class="flow-arrow"></div>
+                    <div class="arrow-text" wicket:id="arrowTextLine">
+                        <span wicket:id="arrowTextLineLabel"></span><br/>
+                        <span wicket:id="arrowTextLineValue" class="fw-bold"></span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- OBJECT block -->
+            <div class="text-right p-3">
+                <div class="text-uppercase small text-muted fw-bold">Object</div>
+                <div wicket:id="objectName" class="fw-semibold"></div>
+                <div wicket:id="objectObjectClass" class="border rounded text-muted border px-2 text-center"></div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-flex align-items-center justify-content-center col-3 p-3">
+                <div wicket:id="accept" class="btn btn-outline-primary me-2 gap-2"></div>
+                <div wicket:id="dismiss" class="btn btn-link text-danger me-2 gap-2"></div>
+                <div wicket:id="lifecycleState" class="text-nowrap"></div>
+                <div wicket:id="edit" class="btn btn-sm btn-outline-primary me-2 gap-2 text-nowrap"></div>
+            </div>
+
+            <div wicket:id="details" class="btn btn-link d-flex flex-row-reverse align-items-center gap-2"></div>
+
+        </div>
+    </div>
+
+    <div wicket:id="detailsPanel" class="w-100 p-5 border-top bg-light"></div>
+
+
+</wicket:panel>
+</html>

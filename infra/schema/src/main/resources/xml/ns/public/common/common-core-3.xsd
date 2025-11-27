@@ -41,6 +41,7 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-correlation-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-simulations-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-mining-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-smart-integration-3" />
 
     <!-- ################################## -->
     <!-- ##      Common Schema Layer     ## -->
@@ -1953,6 +1954,23 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="email" type="tns:EmailAddressType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    E-Mail addresses of the user, org. unit, etc.
+
+                                    TODO how to distinguish these addresses from the primary "emailAddress"?
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>FocusType.email</a:displayName>
+                                <a:displayOrder>305</a:displayOrder>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="telephoneNumber" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1963,6 +1981,36 @@
                             <xsd:appinfo>
                                 <a:displayName>FocusType.telephoneNumber</a:displayName>
                                 <a:displayOrder>310</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="phoneNumber" type="tns:PhoneNumberType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    The phone numbers of the user, org. unit, etc.
+
+                                    TODO how to distinguish these numbers from the primary "telephoneNumber"?
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>FocusType.telephoneNumber</a:displayName>
+                                <a:displayOrder>310</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="physicalAddress" type="tns:PhysicalMailingAddressType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Physical mailing addresses of the user, org. unit, etc.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>FocusType.physicalAddress</a:displayName>
+                                <a:since>4.11</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3962,6 +4010,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="application">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Application, which is a new object in midPoint,
+                        representing an integrated/used application in the environment
+                        with configured business attributes such as application owner,
+                        level of approval, etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="APPLICATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="policyThreshold">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5497,6 +5558,12 @@
                             <xsd:appinfo>
                                 <a:displayName>MappingType.expression</a:displayName>
                             </xsd:appinfo>
+                            <xsd:documentation>
+                                <p>
+                                    The expression is optional. If omitted, the mapping may simply copy
+                                    the source value(s) to the target ("as is"), depending on configuration.
+                                </p>
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0">
@@ -5504,6 +5571,10 @@
                             <xsd:appinfo>
                                 <a:displayName>MappingType.target</a:displayName>
                             </xsd:appinfo>
+                            <xsd:documentation>
+                                The target element effectively defines where the result
+                                of the mapping will be stored or applied.
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
@@ -9023,6 +9094,29 @@
     </xsd:complexType>
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
 
+    <xsd:complexType name="ApplicationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Application, which is a new object in midPoint,
+                    representing an integrated/used application in the environment
+                    with configured business attributes such as application owner,
+                    level of approval, etc.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractRoleType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="application" type="tns:ApplicationType" substitutionGroup="tns:object"/>
+
     <xsd:complexType name="PolicyType">
         <xsd:annotation>
             <xsd:documentation>
@@ -9624,6 +9718,18 @@
                     </xsd:choice>
                 </xsd:sequence>
             </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OutboundMappingType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:MappingType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -11901,6 +12007,17 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="secretsProviders" type="tns:SecretsProvidersType" minOccurs="0"/>
+                    <xsd:element minOccurs="0" name="smartIntegration" type="tns:SmartIntegrationConfigurationType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Global settings related to smart integration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SystemConfigurationType.smartIntegration</a:displayName>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -17313,6 +17430,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000602">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ORIGIN_ARTIFICIAL_INTELLIGENCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="77ab5de4-bdb3-4eb2-9fc3-200739d1128a">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ORIGIN_SYSTEM_INTELLIGENCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000700">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -17436,6 +17567,27 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_STATE_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ca29f4d4-305b-4e72-9f1c-30a34619bd41">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_OWNER_FOUND"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="e5246605-73ee-4682-9efb-73a915427d18">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ed7018b7-5cc4-4675-9e1e-a6a158c2f31a">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -22202,4 +22354,164 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="EmailAddressType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about a particular email address.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+                <a:naturalKey>tns:type</a:naturalKey>
+                <a:naturalKey>tns:value</a:naturalKey>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="type" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the email address, like personal, work, etc.
+                        TODO lookup table here
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="primary" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this the primary email address (in a given context, e.g., for a user)?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The address itself.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="emailAddress" type="tns:EmailAddressType"/>
+
+    <xsd:complexType name="PhoneNumberType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about a phone number.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+                <a:naturalKey>tns:type</a:naturalKey>
+                <a:naturalKey>tns:value</a:naturalKey>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="type" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the phone number, like personal, work, etc.
+                        TODO lookup table here
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="primary" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this the primary phone number (in a given context, e.g., for a user)?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number itself.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="phoneNumber" type="tns:PhoneNumberType"/>
+
+    <xsd:complexType name="PhysicalMailingAddressType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about a particular physical mailing address.
+                It is modeled after RFC 7643 (System for Cross-domain Identity Management: Core Schema).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+                <a:naturalKey>tns:type</a:naturalKey>
+                <a:naturalKey>tns:formatted</a:naturalKey>
+                <a:naturalKey>tns:streetAddress</a:naturalKey>
+                <a:naturalKey>tns:locality</a:naturalKey>
+                <a:naturalKey>tns:region</a:naturalKey>
+                <a:naturalKey>tns:postalCode</a:naturalKey>
+                <a:naturalKey>tns:country</a:naturalKey>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="type" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the address, like work, home, etc.
+                        TODO lookup table here
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="primary" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this the primary address (in a given context, e.g., for a user)?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="formatted" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The full mailing address, formatted for display or use with a mailing label. It may contain newlines.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="streetAddress" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The full street address component, which may include house number, street name, P.O. box, and multi-line
+                        extended street address information. It may contain newlines.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="locality" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The city or locality component.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="region" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The state or region component.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="postalCode" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The zip code or postal code component.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="country" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The country name component.  When specified, the value MUST be in ISO 3166-1 "alpha-2" code format; e.g.,
+                        the United States and Sweden are "US" and "SE", respectively.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="physicalMailingAddress" type="tns:PhysicalMailingAddressType"/>
 </xsd:schema>

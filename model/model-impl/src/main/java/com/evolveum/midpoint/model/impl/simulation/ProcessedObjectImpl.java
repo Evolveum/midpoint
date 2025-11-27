@@ -337,7 +337,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ParsedMetricValues.fromEventMarks(
                         marks,
                         List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value(),
-                                SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value())),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN.value())),
                 false,
                 null,
                 shadowBefore,
@@ -360,6 +363,13 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         }
         if (isCorrelationStateChanged(before, after)) {
             marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
+            if (after.getCorrelation().getSituation() == CorrelationSituationType.EXISTING_OWNER) {
+                marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value());
+            } else if (after.getCorrelation().getSituation() == CorrelationSituationType.NO_OWNER) {
+                marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value());
+            } else if (after.getCorrelation().getSituation() == CorrelationSituationType.UNCERTAIN) {
+                marks.add(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN.value());
+            }
         }
         return marks;
     }

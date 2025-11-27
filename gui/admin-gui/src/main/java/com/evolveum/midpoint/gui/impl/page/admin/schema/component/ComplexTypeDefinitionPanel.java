@@ -220,7 +220,7 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
         return null;
     }
 
-    private List<PrismContainerValueWrapper<? extends DefinitionType>> createListOfItem(IModel<String> searchItemModel) {
+    protected List<PrismContainerValueWrapper<? extends DefinitionType>> createListOfItem(IModel<String> searchItemModel) {
         try {
             List<PrismContainerValueWrapper<? extends DefinitionType>> values = new ArrayList<>();
 

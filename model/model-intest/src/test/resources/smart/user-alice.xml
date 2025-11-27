@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="79df4c1f-6480-4eb8-9db7-863e25d5b5fa">
+    <name>alice</name>
+    <fullName>Alice Wonderland</fullName>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    <description>contractor</description>
+    <telephoneNumber>+421900111222</telephoneNumber>
+</user>

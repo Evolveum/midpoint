@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationConstruct
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -60,7 +60,7 @@ public class AssociationOutboundMappingWizardPanel extends AbstractWizardPanel<A
             IModel<PrismContainerValueWrapper<MappingType>> valueModel, MappingDirection initialTab) {
         showWizardFragment(
                 target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createInboundAttributeMappingSteps(valueModel, initialTab))));
+                new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createInboundAttributeMappingSteps(valueModel, initialTab))));
     }
 
     private List<WizardStep> createInboundAttributeMappingSteps(

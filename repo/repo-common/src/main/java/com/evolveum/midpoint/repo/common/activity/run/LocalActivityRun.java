@@ -9,10 +9,10 @@ package com.evolveum.midpoint.repo.common.activity.run;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -113,6 +113,9 @@ public abstract class LocalActivityRun<
             runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
             runningTask.setExecutionMode(getTaskExecutionMode());
             runResult = runLocally(localResult);
+        } catch (ActivityInterruptedException e) {
+            localResult.recordException(e); // TODO reconsider if it's ok to write WARNING as status?
+            runResult = ActivityRunResult.interrupted();
         } catch (Exception e) {
             runResult = ActivityRunResult.handleException(e, localResult, this); // sets the local result status
         } finally {
@@ -196,7 +199,7 @@ public abstract class LocalActivityRun<
     }
 
     protected abstract @NotNull ActivityRunResult runLocally(OperationResult result)
-            throws ActivityRunException, CommonException;
+            throws ActivityRunException, CommonException, ActivityInterruptedException;
 
     /**
      * Fails if running within a worker task. (Currently this mode is not supported e.g. for composite activities.)

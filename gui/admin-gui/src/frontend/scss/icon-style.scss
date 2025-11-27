@@ -74,6 +74,14 @@ i.icon-basic-layer {
   right: 0;
 }
 
+i.icon-metric-layer {
+  font-size: 100% !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
 i.icon-basic-layer-for-column {
   font-size: 157% !important;
   position: absolute;
@@ -211,3 +219,137 @@ i.flip-icon-margin {
   margin-left: -7px;
   margin-right: 7px;
 }
+
+/** Keyframes for grow animation (scales element in/out with opacity). */
+@keyframes spinner-grow {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+}
+
+/** Spinner grow animation speeds. */
+.spinner-grow-slow {
+  animation: spinner-grow 5s ease-in-out infinite;
+}
+
+.spinner-grow-medium {
+  animation: spinner-grow 2.5s ease-in-out infinite;
+}
+
+.spinner-grow-fast {
+  animation: spinner-grow 1.2s ease-in-out infinite;
+}
+
+/** Keyframes for blur animation (blurs and sharpens with opacity changes). */
+@keyframes spinner-blur {
+  0% {
+    filter: blur(4px);
+    opacity: 0.5;
+  }
+  50% {
+    filter: blur(0);
+    opacity: 1;
+  }
+  100% {
+    filter: blur(4px);
+    opacity: 0.5;
+  }
+}
+
+/** Spinner blur animation speeds. */
+.spinner-blur-slow {
+  animation: spinner-blur 5s ease-in-out infinite;
+}
+
+.spinner-blur-medium {
+  animation: spinner-blur 2.5s ease-in-out infinite;
+}
+
+.spinner-blur-fast {
+  animation: spinner-blur 1.2s ease-in-out infinite;
+}
+
+/** Keyframes for fade animation (fades element in/out). */
+@keyframes spinner-fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/** Spinner fade animation speeds. */
+.spinner-fade-slow {
+  animation: spinner-fade 5s ease-in-out infinite;
+}
+
+.spinner-fade-medium {
+  animation: spinner-fade 2.5s ease-in-out infinite;
+}
+
+.spinner-fade-fast {
+  animation: spinner-fade 1.2s ease-in-out infinite;
+}
+
+.flow-arrow-container {
+  position: relative;
+  width: 100%;
+  height: 40px;
+}
+
+.flow-arrow {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  border-top: 2px dashed #d9d9d9;
+}
+
+.flow-arrow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  background: #d9d9d9;
+  border-radius: 50%;
+}
+
+.flow-arrow::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: -6px;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid #d9d9d9;
+}
+
+.arrow-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  white-space: nowrap;
+  background: white;
+  padding: 0 6px;
+  color: #6b6f75;
+  font-size: 14px;
+}
+

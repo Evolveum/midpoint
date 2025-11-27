@@ -59,7 +59,7 @@ public abstract class EnumChoicePanel<T extends TileEnum> extends AbstractTempla
     }
 
     @Override
-    protected WebMarkupContainer createIconPanel(IModel<Tile<T>> tileModel, String idIcon) {
+    protected WebMarkupContainer createTemplateIconPanel(IModel<Tile<T>> tileModel, String idIcon) {
         WebMarkupContainer icon = new WebMarkupContainer(idIcon);
         icon.add(AttributeAppender.append("class", () -> tileModel.getObject().getIcon()));
         return icon;
