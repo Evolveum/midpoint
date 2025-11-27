@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoValuePanelDto;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -484,13 +485,16 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         target.add(get(ID_NO_VALUE_PANEL));
 
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
-            target.add(getBoxedTablePanelComponent());
+            target.add(get(ID_TABLE));
         } else {
             target.add(get(ID_TILE_VIEW));
         }
     }
 
     public BoxedTablePanel<?> getBoxedTablePanelComponent() {
+        if(get(ID_TABLE) instanceof ContainerableListPanel<?,?>){
+            return ((ContainerableListPanel<?,?>) get(ID_TABLE)).getTable();
+        }
         return (BoxedTablePanel<?>) get(ID_TABLE);
     }
 
@@ -510,11 +514,11 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         Fragment fragment = new Fragment(id, ID_HEADER_FRAGMENT, TileTablePanel.this);
         fragment.setOutputMarkupId(true);
 
-        WebMarkupContainer headerContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
-        headerContainer.add(AttributeModifier.append("class", this::getAdditionalHeaderContainerCssClasses));
+        WebMarkupContainer headerContainer = createHeaderContainer();
 
         Component header = createHeader(ID_PANEL_HEADER);
         header.add(AttributeAppender.append("class", getTilesHeaderCssClasses()));
+        header.add(new VisibleBehaviour(this::isHeaderPanelHeaderVisible));
 
         headerContainer.add(header);
         headerContainer.add(createTogglePanel(ID_VIEW_TOGGLE));
@@ -523,6 +527,16 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         fragment.add(headerContainer);
 
         return fragment;
+    }
+
+    protected WebMarkupContainer createHeaderContainer() {
+        WebMarkupContainer headerContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
+        headerContainer.add(AttributeModifier.append("class", this::getAdditionalHeaderContainerCssClasses));
+        return headerContainer;
+    }
+
+    protected boolean isHeaderPanelHeaderVisible() {
+        return true;
     }
 
     protected Component createToolbarButtons(String id) {

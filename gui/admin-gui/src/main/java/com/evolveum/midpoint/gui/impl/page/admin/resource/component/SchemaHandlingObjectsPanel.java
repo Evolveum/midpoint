@@ -37,7 +37,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -71,16 +70,21 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         form.setOutputMarkupId(true);
         add(form);
 
-        SmartAlertGeneratingPanel smartAlertGeneratingPanel = createSmartAlertGeneratingPanel();
+        SmartAlertGeneratingPanel smartAlertGeneratingPanel = createSmartAlertGeneratingPanel(ID_AI_PANEL, switchSuggestion);
         form.add(smartAlertGeneratingPanel);
 
-        WebMarkupContainer objectTypesPanel = createMultiValueListPanel();
-        objectTypesPanel.setOutputMarkupId(true);
-        form.add(objectTypesPanel);
+        Component panel = createMultiValueListPanel(ID_TABLE);
+        panel.setOutputMarkupId(true);
+        form.add(panel);
     }
 
-    private @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel() {
-        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(ID_AI_PANEL,
+    protected Component getTablePanelComponent() {
+        return get(ID_FORM).get(ID_TABLE);
+    }
+
+    protected @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(String idAiPanel,
+            IModel<Boolean> switchSuggestion) {
+        SmartAlertGeneratingPanel aiPanel = new SmartAlertGeneratingPanel(idAiPanel,
                 () -> new SmartGeneratingAlertDto(null, Model.of(), getPageBase())) {
             @Override
             protected void performSuggestOperation(AjaxRequestTarget target) {
@@ -107,8 +111,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         return PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
     }
 
-    private @NotNull StatusAwareContainerListPanel<C> createMultiValueListPanel() {
-        return new StatusAwareContainerListPanel<C>(ID_TABLE, getSchemaHandlingObjectsType()) {
+    protected @NotNull Component createMultiValueListPanel(String id) {
+        return new StatusAwareContainerListPanel<C>(id, getSchemaHandlingObjectsType()) {
 
             @Override
             protected StatusAwareDataFactory.SuggestionsModelDto<C> getSuggestionsModelDto() {
@@ -124,7 +128,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             public void refreshTable(AjaxRequestTarget target) {
                 super.refreshTable(target);
                 //TODO check it
-                if(get(ID_FORM) != null){
+                if (get(ID_FORM) != null) {
                     target.add(get(ID_FORM));
                 }
             }

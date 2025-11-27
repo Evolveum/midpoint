@@ -96,6 +96,7 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
         };
         selectedContainer.setOutputMarkupId(true);
         selectedItemsContainer.add(selectedContainer);
+        selectedContainer.add(new VisibleBehaviour(this::isSelectedItemsPanelVisible));
         return headerFragment;
     }
 

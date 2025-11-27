@@ -402,8 +402,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SynchronizationTaskFlavor.IMPORT, true);
-                    }
+                        newTaskPerformed(target, ResourceTaskFlavors.IMPORT, true);}
                 };
             }
         };
@@ -419,8 +418,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SynchronizationTaskFlavor.RECONCILIATION, true);
-                    }
+                        newTaskPerformed(target, ResourceTaskFlavors.RECONCILIATION, true);}
                 };
             }
         };
@@ -436,8 +434,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        newTaskPerformed(target, SynchronizationTaskFlavor.LIVE_SYNC, true);
-                    }
+                        newTaskPerformed(target, ResourceTaskFlavors.LIVE_SYNC, true);}
                 };
             }
         };
@@ -537,7 +534,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     }
 
     private void newTaskPerformed(
-            @NotNull AjaxRequestTarget target, @NotNull SynchronizationTaskFlavor flavor, boolean isSimulation) {
+            @NotNull AjaxRequestTarget target, @NotNull ResourceTaskFlavor<?> flavor, boolean isSimulation) {
 
         var newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
                 .hideSuccessfulStatus()
@@ -548,13 +545,12 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     }
 
                     PrismObject<ResourceType> resource = getResourceModel().getObject();
-                    ResourceTaskCreator creator =
-                            ResourceTaskCreator.forResource(resource.asObjectable(), getPageBase())
-                                    .ofFlavor(flavor)
-                                    .withCoordinates(
-                                            getKind(), // FIXME not static
-                                            getIntent(), // FIXME not static
-                                            getObjectClass()); // FIXME not static
+                    ResourceTaskCreator<?> creator = ResourceTaskCreator.of(flavor, getPageBase())
+                            .forResource(resource.asObjectable())
+                            .withCoordinates(
+                                    getKind(), // FIXME not static
+                                    getIntent(), // FIXME not static
+                                    getObjectClass()); // FIXME not static
 
                     if (isSimulation) {
                         creator = creator

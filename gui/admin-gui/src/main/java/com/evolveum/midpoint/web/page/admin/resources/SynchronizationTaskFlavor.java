@@ -19,33 +19,33 @@ import java.util.function.Function;
  * This enum is used to distinguish them. We do not use archetype OID for this, as that is quite technical and too broad a term.
  * Moreover, here we can attach some common functionality to avoid excessive use of branching ("if" commands).
  */
-public enum SynchronizationTaskFlavor {
+public enum SynchronizationTaskFlavor implements ResourceTaskFlavor<Void> {
 
-    IMPORT(
+    IMPORT("Import",
             SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
             resourceObjectSet -> new WorkDefinitionsType()
                     ._import(new ImportWorkDefinitionType()
                             .resourceObjects(resourceObjectSet))),
 
-    RECONCILIATION(
+    RECONCILIATION("Reconciliation",
             SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
             resourceObjectSet -> new WorkDefinitionsType()
                     .reconciliation(new ReconciliationWorkDefinitionType()
                             .resourceObjects(resourceObjectSet))),
 
-    LIVE_SYNC(
+    LIVE_SYNC("Live synchronization",
             SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
             resourceObjectSet -> new WorkDefinitionsType()
                     .liveSynchronization(new LiveSyncWorkDefinitionType()
                             .resourceObjects(resourceObjectSet))),
 
-    ASYNC_UPDATE(
+    ASYNC_UPDATE("Asynchronous update",
             SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value(),
             resourceObjectSet -> new WorkDefinitionsType()
                     .asynchronousUpdate(new AsyncUpdateWorkDefinitionType()
                             .updatedResourceObjects(resourceObjectSet))),
 
-    SHADOW_RECLASSIFICATION(
+    SHADOW_RECLASSIFICATION("Shadow reclassification",
             SystemObjectsType.ARCHETYPE_SHADOW_RECLASSIFICATION_TASK.value(),
             resourceObjectSet -> new WorkDefinitionsType()
                     .shadowReclassification(new ShadowReclassificationWorkDefinitionType()
@@ -56,10 +56,13 @@ public enum SynchronizationTaskFlavor {
 
     /** Creator of {@link WorkDefinitionsType} for given flavor. */
     @NotNull private final Function<ResourceObjectSetType, WorkDefinitionsType> workDefinitionsCreator;
+    @NotNull private final String name;
 
     SynchronizationTaskFlavor(
+            @NotNull String name,
             @NotNull String archetypeOid,
             @NotNull Function<ResourceObjectSetType, WorkDefinitionsType> workDefinitionsCreator) {
+        this.name = name;
         this.archetypeOid = archetypeOid;
         this.workDefinitionsCreator = workDefinitionsCreator;
     }
@@ -69,7 +72,13 @@ public enum SynchronizationTaskFlavor {
         return archetypeOid;
     }
 
-    public @NotNull WorkDefinitionsType createWorkDefinitions(@Nullable ResourceObjectSetType resourceObjectSet) {
+    public @NotNull WorkDefinitionsType createWorkDefinitions(@Nullable ResourceObjectSetType resourceObjectSet,
+            @Nullable Void config) {
         return workDefinitionsCreator.apply(resourceObjectSet);
+    }
+
+    @Override
+    public String flavorName() {
+        return this.name;
     }
 }

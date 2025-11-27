@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.*;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObjects;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion.SimulationCorrelationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
@@ -61,6 +62,7 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
     private static final String ID_METRICS_CONTAINER = "metricsContainer";
     private static final String ID_METRICS = "metrics";
     private static final String ID_METRIC = "metric";
+    private static final String ID_CORRELATION_PANEL = "correlationPanel";
 
     private IModel<TaskType> rootTaskModel;
     private IModel<List<DetailsTableItem>> detailsModel;
@@ -76,6 +78,10 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
 
         initModels();
         initLayout();
+
+        SimulationCorrelationPanel correlationPanel = new SimulationCorrelationPanel(ID_CORRELATION_PANEL, getModel());
+        correlationPanel.setOutputMarkupId(true);
+        add(correlationPanel);
     }
 
     private void initLayout() {

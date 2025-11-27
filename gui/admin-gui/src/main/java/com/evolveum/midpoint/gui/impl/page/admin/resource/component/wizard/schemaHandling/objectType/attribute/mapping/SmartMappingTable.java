@@ -21,7 +21,6 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.gui.impl.component.tile.column.ColumnTileTable;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.prism.*;
 
@@ -171,8 +169,12 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
                     @Override
                     protected void initPanelToolbarButtons(@NotNull RepeatingView toolbar) {
-                        toolbar.add(createToggleSuggestionVisibilityButton(toolbar.newChildId(), switchToggleModel
-                        ));
+                        toolbar.add(createToggleSuggestionVisibilityButton(getPageBase(),
+                                toolbar.newChildId(),
+                                switchToggleModel,
+                                SmartMappingTable.this::refreshAndDetach,
+                                null));
+
                         toolbar.add(createAcceptAllButton(toolbar.newChildId()));
                         toolbar.add(createDiscardAllButton(toolbar.newChildId()));
                         super.initPanelToolbarButtons(toolbar);
@@ -372,7 +374,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 @SuppressWarnings({ "unchecked", "rawtypes" })
                 @Override
                 protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
-                    if(rowModel.getObject().isReadOnly()){
+                    if (rowModel.getObject().isReadOnly()) {
                         return super.createColumnPanel(componentId, rowModel);
                     }
 
@@ -675,51 +677,6 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     protected IModel<Boolean> getSwitchToggleModel() {
         return switchToggleModel;
-    }
-
-    private @NotNull ToggleCheckBoxPanel createToggleSuggestionVisibilityButton(
-            @NotNull String idButton,
-            @NotNull IModel<Boolean> switchSuggestionModel) {
-        ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton, switchSuggestionModel) {
-
-            @Override
-            public @NotNull Component getTitleComponent(@NotNull String id) {
-                return new IconWithLabel(id, () -> getSwitchToggleModel().getObject()
-                        ? getString("SmartMappingTable.suggestion.enabled")
-                        : getString("SmartMappingTable.suggestion.disabled")) {
-                    @Override
-                    protected String getIconCssClass() {
-                        return GuiStyleConstants.CLASS_MAGIC_WAND + " text-purple ml-2";
-                    }
-
-                    @Override
-                    protected String getComponentCssClass() {
-                        return "d-flex m-0 font-weight-normal text-body";
-                    }
-                };
-            }
-
-            @Override
-            protected @NotNull Map<String, Object> createSwitchOptions() {
-                Map<String, Object> options = new LinkedHashMap<>();
-                options.put("onColor", "purple");
-                options.put("size", "mini");
-                return options;
-            }
-
-            @Override
-            protected void onToggle(@NotNull AjaxRequestTarget target) {
-                refreshAndDetach(target);
-            }
-
-            @Override
-            public @NotNull String getContainerCssClass() {
-                return "d-flex flex-row-reverse align-items-center gap-1";
-            }
-        };
-
-        togglePanel.setOutputMarkupId(true);
-        return togglePanel;
     }
 
     protected AjaxIconButton createDiscardAllButton(String id) {

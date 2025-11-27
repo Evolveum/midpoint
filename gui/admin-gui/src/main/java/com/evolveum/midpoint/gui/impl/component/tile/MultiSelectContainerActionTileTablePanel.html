@@ -1,0 +1,65 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="noValuePanel"></div>
+    <div class="d-flex flex-column flex-grow-1" wicket:id="tileView">
+        <div wicket:id="header"></div>
+        <div class="d-flex flex-wrap pt-3 mx-0 justify-content-center" wicket:id="tilesContainer"></div>
+        <div class="d-flex card-header" wicket:id="footerContainer">
+            <div class="d-flex">
+                <div wicket:id="buttonToolbar"></div>
+            </div>
+            <div class="ml-auto align-self-end" wicket:id="tilesPaging"></div>
+        </div>
+    </div>
+
+    <div wicket:id="table"></div>
+
+</wicket:panel>
+
+<wicket:fragment wicket:id="headerFragment">
+    <div class="d-flex flex-column">
+        <div class="d-flex" wicket:id="headerContainer">
+            <div class="w-100 mr-2 gap-2" wicket:id="toolbarButtons"></div>
+            <div class="ml-auto flex-grow-1" wicket:id="panelHeader"></div>
+            <div wicket:id="newObjectButton" class="ml-auto"></div>
+            <wicket:enclosure child="viewToggle">
+                <div class="ml-auto">
+                    <div wicket:id="viewToggle"></div>
+                </div>
+            </wicket:enclosure>
+        </div>
+        <div class="card-header d-flex flex-column" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
+                <span>
+                    <wicket:message key="SelectObjectClassesStepPanel.selectedItem"/>
+                </span>
+            <div class="d-flex flex-wrap gap-2">
+                <wicket:container wicket:id="selectedItemContainer">
+                    <div class="btn-sm btn-primary d-flex mr-2" style="cursor: auto;">
+                        <div class="text-break" wicket:id="selectedItem"></div>
+                        <a wicket:id="deselectButton">
+                            <i class="fa fa-xmark ml-2 text-white"></i>
+                        </a>
+                    </div>
+                </wicket:container>
+            </div>
+        </div>
+    </div>
+</wicket:fragment>
+<wicket:fragment wicket:id="tilesFragment">
+    <div wicket:id="tiles">
+        <div wicket:id="tile"></div>
+    </div>
+</wicket:fragment>
+<wicket:fragment wicket:id="buttonBar">
+    <div class="btn-group" wicket:id="buttonsRepeater">
+        <a wicket:id="button"></a>
+    </div>
+</wicket:fragment>
+</html>

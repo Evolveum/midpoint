@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Resou
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -75,7 +77,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        SimulationActionTaskButton simulationActionTaskButton = createSimulationMenuButton(buttons);
+        SimulationActionTaskButton<?> simulationActionTaskButton = createSimulationMenuButton(buttons);
         buttons.add(simulationActionTaskButton);
 
         AjaxIconButton previewData = new AjaxIconButton(
@@ -92,8 +94,8 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         buttons.add(previewData);
     }
 
-    private @NotNull SimulationActionTaskButton createSimulationMenuButton(@NotNull RepeatingView buttons) {
-        SimulationActionTaskButton simulationActionTaskButton = new SimulationActionTaskButton(
+    private @NotNull SimulationActionTaskButton<?> createSimulationMenuButton(@NotNull RepeatingView buttons) {
+        SimulationActionTaskButton<Void> simulationActionTaskButton = new SimulationActionTaskButton<>(
                 buttons.newChildId(),
                 this::getResourceObjectDefinition,
                 () -> getAssignmentHolderDetailsModel().getObjectType()) {
@@ -101,6 +103,11 @@ public abstract class ResourceObjectTypeWizardChoicePanel
             @Override
             public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
                 ResourceObjectTypeWizardChoicePanel.this.redirectToSimulationTasksWizard(target);
+            }
+
+            @Override
+            protected @NotNull ResourceTaskFlavor<Void> getTaskFlavor() {
+                return ResourceTaskFlavors.IMPORT;
             }
         };
 

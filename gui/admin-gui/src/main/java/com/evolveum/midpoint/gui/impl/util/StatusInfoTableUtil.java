@@ -8,11 +8,11 @@ package com.evolveum.midpoint.gui.impl.util;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -22,7 +22,6 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -31,9 +30,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -44,7 +41,9 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Duration;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.handleSuggestionSuspendResumeOperation;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.showSuggestionInfoPanelPopup;
@@ -412,16 +411,31 @@ public class StatusInfoTableUtil {
             @NotNull IModel<Boolean> switchSuggestionModel,
             @NotNull SerializableConsumer<AjaxRequestTarget> refreshFn,
             @Nullable Component componentToUpdate) {
-
         ToggleCheckBoxPanel togglePanel = new ToggleCheckBoxPanel(idButton, switchSuggestionModel) {
 
             @Override
             public @NotNull Component getTitleComponent(@NotNull String id) {
-                Label label = new Label(id,
-                        pageBase.createStringResource("ToggleCheckBoxPanel.show.suggestion.label"));
-                label.add(AttributeAppender.append("class", "m-0 font-weight-normal text-body"));
-                label.setOutputMarkupId(true);
-                return label;
+                return new IconWithLabel(id, () -> switchSuggestionModel.getObject()
+                        ? pageBase.getString("ToggleCheckBoxPanel.suggestion.enabled")
+                        : pageBase.getString("ToggleCheckBoxPanel.suggestion.disabled")) {
+                    @Override
+                    protected String getIconCssClass() {
+                        return GuiStyleConstants.CLASS_MAGIC_WAND + " text-purple ml-2";
+                    }
+
+                    @Override
+                    protected String getComponentCssClass() {
+                        return "d-flex m-0 font-weight-normal text-body";
+                    }
+                };
+            }
+
+            @Override
+            protected @NotNull Map<String, Object> createSwitchOptions() {
+                Map<String, Object> options = new LinkedHashMap<>();
+                options.put("onColor", "purple");
+                options.put("size", "mini");
+                return options;
             }
 
             @Override
@@ -432,7 +446,6 @@ public class StatusInfoTableUtil {
                 }
             }
 
-            @Contract(pure = true)
             @Override
             public @NotNull String getContainerCssClass() {
                 return "d-flex flex-row-reverse align-items-center gap-1";

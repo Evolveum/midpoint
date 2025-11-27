@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoicePopup;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -30,7 +31,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.SplitButtonWithDropdownMenu;
 import com.evolveum.midpoint.web.component.menu.cog.*;
 
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,7 +59,7 @@ import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObje
  *
  * Subclasses must implement {@link #redirectToSimulationTasksWizard(AjaxRequestTarget)}.
  */
-public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjectTypeDefinitionType> {
+public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceObjectTypeDefinitionType> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -78,6 +80,13 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
         super(id, model);
         this.resourceOidModel = resourceOid;
     }
+
+    /**
+     * Redirects to the simulation tasks wizard (to be implemented by subclasses).
+     */
+    public abstract void redirectToSimulationTasksWizard(AjaxRequestTarget target);
+
+    protected abstract @NotNull ResourceTaskFlavor<T> getTaskFlavor();
 
     @Override
     protected void onInitialize() {
@@ -194,33 +203,35 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
                         return null;
                     }
                     ResourceType resource = getResourceObject();
-                    ResourceTaskCreator creator =
-                            ResourceTaskCreator.forResource(resource, getPageBase())
-                                    .ofFlavor(getSynchronizationTaskFlavor())
-                                    .ownedByCurrentUser()
-                                    .withCoordinates(
-                                            resourceObjectTypeDef.getKind(),
-                                            resourceObjectTypeDef.getIntent(),
-                                            resourceObjectTypeDef.getObjectClass());
-
-                    creator = creator
+                    final ResourceTaskFlavor<T> taskFlavor = getTaskFlavor();
+                    return ResourceTaskCreator.of(taskFlavor, getPageBase())
+                            .forResource(resource)
+                            .withConfiguration(getWorkDefinitionConfiguration())
+                            .ownedByCurrentUser()
+                            .withCoordinates(
+                                    resourceObjectTypeDef.getKind(),
+                                    resourceObjectTypeDef.getIntent(),
+                                    resourceObjectTypeDef.getObjectClass())
                             .withExecutionMode(getExecutionMode())
                             .withPredefinedConfiguration(value)
+                            .withSubmissionOptions(ActivitySubmissionOptions.create()
+                                    .withTaskTemplate(new TaskType().name("Preview of " + taskFlavor.flavorName() +
+                                            " on " + resource.getName() + " resource")))
                             .withSimulationResultDefinition(
-                                    new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false));
+                                    new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false))
+                            .create(task, result);
 
-                    return creator.create(task, result);
                 });
 
         saveAndPerformSimulation(target, newTask);
     }
 
-    protected @NotNull SynchronizationTaskFlavor getSynchronizationTaskFlavor() {
-        return SynchronizationTaskFlavor.IMPORT;
-    }
-
     protected ExecutionModeType getExecutionMode() {
         return ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
+    }
+
+    protected T getWorkDefinitionConfiguration() {
+        return null;
     }
 
     /**
@@ -306,11 +317,6 @@ public abstract class SimulationActionTaskButton extends BasePanel<ResourceObjec
 
         };
     }
-
-    /**
-     * Redirects to the simulation tasks wizard (to be implemented by subclasses).
-     */
-    public abstract void redirectToSimulationTasksWizard(AjaxRequestTarget target);
 
     private @Nullable ResourceObjectTypeDefinitionType getResourceObjectDefinition() {
         return getModelObject();
