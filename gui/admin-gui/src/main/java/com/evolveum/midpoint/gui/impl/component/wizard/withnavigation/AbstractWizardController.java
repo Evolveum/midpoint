@@ -256,7 +256,7 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
     protected void setActiveWizardPartIndex(int index) {
         showSummaryPanel = false;
         this.indexOfActivePart = index;
-        if (indexOfActivePart != indexOfInProgressPart || getActivePartItem().isInitialized()) {
+        if (indexOfActivePart != indexOfInProgressPart || !getActivePartItem().isInitialized()) {
             getActivePartItem().init(getHelper().getDetailsModel().getPageAssignmentHolder(), this);
         }
         if (!getActivePartItem().isComplete() && indexOfInProgressPart < indexOfActivePart) {

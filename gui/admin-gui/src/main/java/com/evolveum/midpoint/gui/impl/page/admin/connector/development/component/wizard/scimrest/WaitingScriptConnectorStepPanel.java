@@ -27,7 +27,10 @@ public abstract class WaitingScriptConnectorStepPanel extends WaitingConnectorSt
     }
 
     public void resetScript(PageBase pageBase) {
-        getStatusModel().detach();
+        if (getStatusModel() != null){
+            getStatusModel().detach();
+        }
+        markAsReloaded();
         addOrReplace(createWaitingPanel());
     }
 
@@ -43,7 +46,7 @@ public abstract class WaitingScriptConnectorStepPanel extends WaitingConnectorSt
     public boolean isCompleted() {
         PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue =
                 ConnectorDevelopmentWizardUtil.getObjectClassValueWrapper(getDetailsModel(), getObjectClassName());
-        if (ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, ConnDevObjectClassInfoType.F_ATTRIBUTE)
+        if (!isReloaded() && ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, ConnDevObjectClassInfoType.F_ATTRIBUTE)
                 && ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, getScriptType().itemName)) {
             return true;
         }

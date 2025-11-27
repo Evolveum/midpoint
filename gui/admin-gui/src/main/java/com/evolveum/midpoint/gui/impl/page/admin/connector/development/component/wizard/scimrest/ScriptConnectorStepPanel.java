@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -49,11 +50,11 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     private static final String ID_PANEL = "panel";
 
     private static final String CLASS_DOT = ScriptConnectorStepPanel.class.getName() + ".";
-    private static final String OP_LOAD_DOCS = CLASS_DOT + "loadDocumentations";
+    private static final String OP_LOAD_SCRIPT = CLASS_DOT + "loadScript";
     private static final String OP_SAVE_SCRIPT = CLASS_DOT + "saveScript";
 
     private LoadableModel<ConnDevArtifactType> valueModel;
-    private boolean useOriginal = false;
+    private boolean isReloaded = false;
 
     public ScriptConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
@@ -76,20 +77,30 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         valueModel = new LoadableModel<>() {
             @Override
             protected ConnDevArtifactType load() {
-//                if (useOriginal) {
-//                    ConnDevArtifactType origValue = getOriginalContainerValue();
-//                    if (origValue != null) {
-//                        return origValue;
-//                    }
-//                }
+                if (!isReloaded && ConnectorDevelopmentWizardUtil.existScript(getDetailsModel(), getScriptType(), getObjectClassName())) {
 
-                Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_DOCS);
-                OperationResult result = task.getResult();
+                    PrismContainerValueWrapper<ConnDevArtifactType> artifactTypeValueWrapper = ConnectorDevelopmentWizardUtil.getScript(
+                            getDetailsModel(), getScriptType(), getObjectClassName());
+                    ConnDevArtifactType artifactType = artifactTypeValueWrapper.getRealValue();
+                    Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
+                    OperationResult result = task.getResult();
+                    try {
+                        String content = getDetailsModel().getConnectorDevelopmentOperation().getArtifactContent(artifactType, task, result);
+                        artifactType.setContent(content);
+                        return artifactType;
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
                 String token = getTaskToken();
 
                 if (StringUtils.isEmpty(token)) {
                     return null;
                 }
+
+                Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
+                OperationResult result = task.getResult();
 
                 StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
                 try {
@@ -199,7 +210,6 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 target.add(getFeedback());
                 return false;
             }
-            useOriginal = true;
             valueModel.detach();
         } catch (IOException | CommonException e) {
             throw new RuntimeException(e);
@@ -208,6 +218,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {
+            isReloaded = false;
             super.onNextPerformed(target);
         } else {
             target.add(getFeedback());
@@ -254,10 +265,10 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                     }
                 } else if (StringUtils.isNotEmpty(idOfFound)) {
                     setActiveStepById(target, parentWizardModel, idOfFound);
+                    isReloaded = true;
                     return;
                 }
             }
-            useOriginal = false;
             valueModel.detach();
         }
     }

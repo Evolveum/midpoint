@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
@@ -43,9 +44,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author lskublik
@@ -55,11 +54,11 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
     private static final String ID_PANEL = "panel";
 
     private static final String CLASS_DOT = ScriptsConnectorStepPanel.class.getName() + ".";
-    private static final String OP_LOAD_DOCS = CLASS_DOT + "loadDocumentations";
+    private static final String OP_LOAD_SCRIPT = CLASS_DOT + "loadScript";
     private static final String OP_SAVE_SCRIPT = CLASS_DOT + "saveScript";
 
     private LoadableModel<List<ConnDevArtifactType>> valueModel;
-    private boolean useOriginal = false;
+    private boolean isReloaded = false;
 
     public ScriptsConnectorStepPanel(
             WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
@@ -82,23 +81,34 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
         valueModel = new LoadableModel<>() {
             @Override
             protected List<ConnDevArtifactType> load() {
-
-//                if (useOriginal) {
-//                    List<ConnDevArtifactType> origValues = getOriginalContainerValues();
-//                    if (origValues != null && !origValues.isEmpty()) {
-//                        return origValues;
-//                    }
-//                }
-
-                List<String> tokens = getTokensForTasksForObtainResults();
+                Map<ConnectorDevelopmentArtifacts.KnownArtifactType, String> tokens = getTokensForTasksForObtainResults();
                 List<ConnDevArtifactType> list = new ArrayList<>();
-                tokens.forEach(token -> {
-                    Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_DOCS);
+                tokens.entrySet().forEach(tokenEntry -> {
+
+                    if (!isReloaded && ConnectorDevelopmentWizardUtil.existScript(getDetailsModel(), tokenEntry.getKey(), getObjectClassName())) {
+
+                        PrismContainerValueWrapper<ConnDevArtifactType> artifactTypeValueWrapper = ConnectorDevelopmentWizardUtil.getScript(
+                                getDetailsModel(), tokenEntry.getKey(), getObjectClassName());
+                        ConnDevArtifactType artifactType = artifactTypeValueWrapper.getRealValue();
+                        Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
+                        OperationResult result = task.getResult();
+                        try {
+                            String content = getDetailsModel().getConnectorDevelopmentOperation().getArtifactContent(artifactType, task, result);
+                            artifactType.setContent(content);
+                            list.add(artifactTypeValueWrapper.getRealValue());
+                            return;
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
+
+                    Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
                     OperationResult result = task.getResult();
 
                     StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
                     try {
-                        statusInfo = getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
+                        statusInfo = getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(tokenEntry.getValue(), task, result);
                     } catch (SchemaException | ObjectNotFoundException e) {
                         throw new RuntimeException(e);
                     }
@@ -119,23 +129,26 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
 
     protected abstract List<ConnectorDevelopmentArtifacts.KnownArtifactType> getScriptTypes();
 
-    private List<String> getTokensForTasksForObtainResults() {
+    private Map<ConnectorDevelopmentArtifacts.KnownArtifactType, String> getTokensForTasksForObtainResults() {
 
-        return getScriptTypes().stream()
-                .map(type -> {
+        Map<ConnectorDevelopmentArtifacts.KnownArtifactType, String> map = new LinkedHashMap<>();
+        getScriptTypes().stream()
+                .forEach(type -> {
                     try {
-                        return ConnectorDevelopmentWizardUtil.getTaskToken(
+                        String value = ConnectorDevelopmentWizardUtil.getTaskToken(
                                 WorkDefinitionsType.F_GENERATE_CONNECTOR_ARTIFACT,
                                 getObjectClassName(),
                                 type,
                                 getDetailsModel().getObjectWrapper().getOid(),
                                 getDetailsModel().getPageAssignmentHolder());
+                        if (value != null) {
+                            map.put(type, value);
+                        }
                     } catch (CommonException e) {
                         throw new RuntimeException(e);
                     }
-                })
-                .filter(Objects::nonNull)
-                .toList();
+                });
+        return map;
     }
 
     protected String getObjectClassName() {
@@ -230,7 +243,6 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
                     target.add(getFeedback());
                     return false;
                 }
-                useOriginal = true;
             } catch (IOException | CommonException e) {
                 throw new RuntimeException(e);
             }
@@ -241,6 +253,7 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
 
         onAfterSave(target);
         if (result != null && !result.isError()) {
+            isReloaded = false;
             super.onNextPerformed(target);
         } else {
             target.add(getFeedback());
@@ -288,10 +301,10 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
                     }
                 } else if (StringUtils.isNotEmpty(idOfFound)) {
                     setActiveStepById(target, parentWizardModel, idOfFound);
+                    isReloaded = true;
                     return;
                 }
             }
-            useOriginal = false;
             valueModel.detach();
         }
     }

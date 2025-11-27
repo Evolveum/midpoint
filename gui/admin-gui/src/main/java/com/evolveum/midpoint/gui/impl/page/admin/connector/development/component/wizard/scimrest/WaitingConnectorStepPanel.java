@@ -56,9 +56,18 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
     private LoadableModel<SmartGeneratingDto> statusModel;
     private LoadableModel<String> tokenModel;
+    private boolean isReloaded = false;
 
     public WaitingConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
+    }
+
+    protected final void markAsReloaded() {
+        isReloaded = true;
+    }
+
+    protected final boolean isReloaded() {
+        return isReloaded;
     }
 
     @Override
@@ -68,6 +77,10 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         tokenModel = new LoadableModel<>() {
             @Override
             protected String load() {
+                if (isReloaded) {
+                    return null;
+                }
+
                 try {
                     var objectClass = getObjectClassName();
                     if (objectClassRequired() && objectClass == null) {
@@ -177,7 +190,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
         SmartGeneratingPanel waitingPanel = createWaitingPanel();
         waitingPanel.setOutputMarkupId(true);
-        add(waitingPanel);
+        addOrReplace(waitingPanel);
     }
 
     protected final @NotNull SmartGeneratingPanel createWaitingPanel() {
@@ -270,6 +283,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         getDetailsModel().reset();
         getDetailsModel().reloadPrismObjectModel(
                 WebModelServiceUtils.loadObject(ConnectorDevelopmentType.class, oid, getPageBase(), task, task.getResult()));
+        isReloaded = false;
         return super.onNextPerformed(target);
     }
 

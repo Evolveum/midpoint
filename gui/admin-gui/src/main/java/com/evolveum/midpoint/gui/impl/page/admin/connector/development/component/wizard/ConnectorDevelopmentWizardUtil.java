@@ -301,29 +301,50 @@ public class ConnectorDevelopmentWizardUtil {
             ConnectorDevelopmentDetailsModel detailsModel,
             ConnectorDevelopmentArtifacts.KnownArtifactType classification,
             String objectClass) {
+        if (classification == null) {
+            return false;
+        }
+
+        if (objectClass != null) {
+            PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue = getObjectClassValueWrapper(detailsModel, objectClass);
+            if (objectClassValue == null) {
+                return false;
+            }
+            return existContainerValue(objectClassValue, classification.itemName);
+        } else {
+            return existContainerValue(detailsModel.getObjectWrapper(), ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, classification.itemName));
+        }
+    }
+
+    public static PrismContainerValueWrapper<ConnDevArtifactType> getScript(
+            ConnectorDevelopmentDetailsModel detailsModel,
+            ConnectorDevelopmentArtifacts.KnownArtifactType classification,
+            String objectClass) {
         try {
             if (classification == null) {
-                return false;
+                return null;
             }
 
             if (objectClass != null) {
-                PrismContainerWrapper<ConnDevObjectClassInfoType> objectClassWrapper = detailsModel.getObjectWrapper().findContainer(
-                        ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
-                if (objectClassWrapper == null || objectClassWrapper.getValues().isEmpty()) {
-                    return false;
-                }
 
-                PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue = objectClassWrapper.getValues().stream()
-                        .filter(value -> value.getRealValue().getName().equals(objectClass))
-                        .findFirst()
-                        .orElse(null);
+                PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue = getObjectClassValueWrapper(detailsModel, objectClass);
                 if (objectClassValue == null) {
-                    return false;
+                    return null;
                 }
 
-                return existContainerValue(objectClassValue, ItemPath.create(classification.itemName));
+                PrismContainerWrapper<ConnDevArtifactType> parentWrapper = objectClassValue.findContainer(classification.itemName);
+                if (parentWrapper == null || parentWrapper.getValues().isEmpty()) {
+                    return null;
+                }
+                return parentWrapper.getValue();
+
             } else {
-                return existContainerValue(detailsModel.getObjectWrapper(), ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, classification.itemName));
+                PrismContainerWrapper<ConnDevArtifactType> parentWrapper = detailsModel.getObjectWrapper().findContainer(
+                        ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, classification.itemName));
+                if (parentWrapper == null || parentWrapper.getValues().isEmpty()) {
+                    return null;
+                }
+                return parentWrapper.getValue();
             }
         } catch (SchemaException e) {
             throw new RuntimeException(e);
