@@ -251,7 +251,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
 
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary rounded ml-auto text-nowrap mr-2"));
+        newObjectButton.add(AttributeAppender.replace("class",
+                "text-nowrap btn btn-primary rounded ml-auto text-nowrap mr-2"));
         return newObjectButton;
     }
 

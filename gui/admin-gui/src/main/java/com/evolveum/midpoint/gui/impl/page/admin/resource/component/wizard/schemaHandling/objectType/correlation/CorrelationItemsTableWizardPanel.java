@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -53,7 +55,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.dialog.ConfigureSynchronizationConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
@@ -389,14 +390,19 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 || synchronization.getReaction() == null
                 || synchronization.getReaction().isEmpty()) {
 
-            ConfigureSynchronizationConfirmationPanel confirmationPanel = new ConfigureSynchronizationConfirmationPanel(
+            ConfirmationPanel confirmPanel = new ConfirmationPanel(
                     pageBase.getMainPopupBodyId(),
-                    pageBase.createStringResource("ConfigureSynchronizationConfirmationPanel.infoMessage"),
-                    getSynchronizationContainerPath(),
-                    this::getAssignmentHolderDetailsModel);
-
-            pageBase.showMainPopup(confirmationPanel, target);
+                    pageBase.createStringResource("CorrelationWizardPanelWizardPanel.noSynchronization.info")) {
+                @Override
+                public void yesPerformed(AjaxRequestTarget target) {
+                    navigateToSynchronizationPanel(target);
+                }
+            };
+            pageBase.showMainPopup(confirmPanel, target);
         }
+    }
+
+    protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
     }
 
     @Override
@@ -431,12 +437,6 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
 
         simulationActionTaskButton.setRenderBodyOnly(true);
         return simulationActionTaskButton;
-    }
-
-    protected ItemPath getSynchronizationContainerPath() {
-        return ItemPath.create(
-                getResourceObjectTypeDefinitionWrapper().getPath(),
-                ResourceObjectTypeDefinitionType.F_SYNCHRONIZATION);
     }
 
     protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
