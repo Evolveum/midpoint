@@ -610,6 +610,8 @@ ObjectFilter filter = prismContext.queryFor(OrgType.class)
     .isDirectChildOf("12345678-1234-1234-1234-0123456789abcd").buildFilter();
 ----
 
+{empty}
+
 ===== Relation matching examples
 
 Examples above do not consider relations of the references pointing to the organizations.
