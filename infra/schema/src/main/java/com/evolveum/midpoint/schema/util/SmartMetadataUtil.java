@@ -267,6 +267,22 @@ public class SmartMetadataUtil {
         return containerable;
     }
 
+    public static void unmarkAsInvalid(@Nullable PrismValue value) {
+        forEachLeafValue(value, SmartMetadataUtil::clearValidationOnValue);
+    }
+
+    public static <C extends Containerable> C unmarkAsInvalid(
+            @NotNull C containerable, ItemPath @NotNull ... paths) {
+
+        for (ItemPath path : paths) {
+            Item<?, ?> item = containerable.asPrismContainerValue().findItem(path);
+            if (item != null) {
+                item.getValues().forEach(SmartMetadataUtil::unmarkAsInvalid);
+            }
+        }
+        return containerable;
+    }
+
     /** Returns {@code true} if the value has validation metadata at the root level. */
     public static boolean isMarkedAsInvalid(@Nullable PrismValue value) {
         return value != null && value.hasValueMetadata() && hasErrorValidation(value);
@@ -306,6 +322,22 @@ public class SmartMetadataUtil {
             ValueMetadataTypeUtil.getOrCreateValidationMetadata(target).setValidationError(msg);
         } else {
             ValueMetadataTypeUtil.getOrCreateValidationMetadata(target);
+        }
+    }
+
+    private static void clearValidationOnValue(@NotNull PrismValue value) {
+        if (!value.hasValueMetadata()) {
+            return;
+        }
+        ValueMetadata metadata = value.getValueMetadata();
+        if (metadata.hasNoValues()) {
+            return;
+        }
+        for (PrismContainerValue<Containerable> pcv : metadata.getValues()) {
+            ValueMetadataType vmType = pcv.getRealValue();
+            if (vmType != null && vmType.getValidation() != null) {
+                vmType.setValidation(null);
+            }
         }
     }
 
