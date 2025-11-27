@@ -220,11 +220,13 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
             keySuffix = "inProgress";
             badgeClass = "badge-info";
         } else if (setSelectedItem && listItem.getIndex() == activeIndex) {
-            keySuffix = "edited";
-            badgeClass = "badge-primary";
-        } else if (getController().isStepWithError(listItem.getModelObject().getStepId())) {
-            keySuffix = "fixing";
-            badgeClass = "badge-danger";
+            if (getController().isStepWithError(listItem.getModelObject().getStepId())) {
+                keySuffix = "fixing";
+                badgeClass = "badge-danger";
+            } else {
+                keySuffix = "edited";
+                badgeClass = "badge-primary";
+            }
         }
 
         if (setSelectedItem && listItem.getIndex() == activeIndex) {

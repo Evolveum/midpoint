@@ -18,6 +18,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
+import org.apache.wicket.model.IModel;
+
 public class SchemaConnectorDevPartItem extends AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
 
     protected SchemaConnectorDevPartItem(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
@@ -53,8 +55,20 @@ public class SchemaConnectorDevPartItem extends AbstractWizardPartItem<Connector
         String objectClassName = getParameter();
         if (objectClassName == null) {
             objectClassName = ConnectorDevelopmentWizardUtil.getNameOfNewObjectClass(getObjectDetailsModel());
+            setParameter(objectClassName);
         }
-        objectClassStepsParent.setObjectClass(objectClassName);
+        IModel<String> objectClassNameModel = new IModel<>() {
+            @Override
+            public String getObject() {
+                return getParameter();
+            }
+
+            @Override
+            public void setObject(String object) {
+                setParameter(object);
+            }
+        };
+        objectClassStepsParent.setObjectClassNameModel(objectClassNameModel);
         return List.of(objectClassStepsParent);
     }
 

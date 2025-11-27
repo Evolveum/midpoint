@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassIn
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
 import org.apache.commons.lang3.Strings;
+import org.apache.wicket.model.IModel;
 
 import java.util.List;
 
@@ -86,8 +87,20 @@ public class InitObjectClassConnectorDevPartItem extends AbstractWizardPartItem<
         String objectClassName = getParameter();
         if (objectClassName == null) {
             objectClassName = ConnectorDevelopmentWizardUtil.getNameOfNewObjectClass(getObjectDetailsModel());
+            setParameter(objectClassName);
         }
-        objectClassStepsParent.setObjectClass(objectClassName);
+        IModel<String> objectClassNameModel = new IModel<>() {
+            @Override
+            public String getObject() {
+                return getParameter();
+            }
+
+            @Override
+            public void setObject(String object) {
+                setParameter(object);
+            }
+        };
+        objectClassStepsParent.setObjectClassNameModel(objectClassNameModel);
         return List.of(objectClassStepsParent);
     }
 
