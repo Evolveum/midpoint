@@ -47,7 +47,7 @@ public class FocusTypeSuggestionActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(FocusTypeSuggestionWorkStateType.COMPLEX_TYPE);
     }
 

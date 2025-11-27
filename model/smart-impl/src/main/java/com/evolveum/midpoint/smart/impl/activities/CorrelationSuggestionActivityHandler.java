@@ -43,7 +43,7 @@ public class CorrelationSuggestionActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(CorrelationSuggestionWorkStateType.COMPLEX_TYPE);
     }
 

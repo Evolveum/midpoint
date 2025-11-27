@@ -51,7 +51,7 @@ public class ObjectTypesSuggestionActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(ObjectTypesSuggestionWorkStateType.COMPLEX_TYPE);
     }
 

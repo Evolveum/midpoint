@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION
 
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.SimulationTransaction;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -65,7 +66,7 @@ public class CorrelationActivityRun
         }
         if (!isAnyPreview()) {
             throw new ActivityRunException("This activity is supported only in preview execution mode",
-                    OperationResultStatus.FATAL_ERROR, TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
+                    OperationResultStatus.FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR);
         }
         this.correlationDefinition = getWorkDefinition().provideCorrelators(result);
         return true;

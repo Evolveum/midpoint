@@ -57,7 +57,7 @@ public class AssociationsSuggestionActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(AssociationSuggestionWorkStateType.COMPLEX_TYPE);
     }
 

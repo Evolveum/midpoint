@@ -52,7 +52,7 @@ public abstract class AbstractConnDevActivityHandler<T extends AbstractConnDevAc
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(stateType);
     }
 

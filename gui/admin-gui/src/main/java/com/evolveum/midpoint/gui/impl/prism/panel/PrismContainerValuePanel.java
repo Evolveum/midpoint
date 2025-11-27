@@ -125,7 +125,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         expandableLabelContainer.add(AttributeModifier.append("aria-label", getExpandableLabelContainerAriaLabelModel()));
         header.add(expandableLabelContainer);
 
-        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
+        var headerLabelModel = getLabelModel();
         Label labelComponent = new Label(ID_LABEL, headerLabelModel);
         labelComponent.setOutputMarkupId(true);
         labelComponent.setOutputMarkupPlaceholderTag(true);

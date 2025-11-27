@@ -22,7 +22,7 @@ class Util {
         return ActivityState.getActivityStateUpwards(
                 run.getActivity().getPath().allExceptLast(),
                 run.getRunningTask(),
-                run.getActivityHandler().getRootActivityStateDefinition().getWorkStateTypeName(),
+                run.getActivityHandler().getRootActivityStateDefinition().workStateTypeName(),
                 result);
     }
 }

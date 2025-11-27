@@ -42,7 +42,7 @@ public class MappingsSuggestionActivityHandler
     }
 
     @Override
-    public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
+    public @NotNull ActivityStateDefinition getRootActivityStateDefinition() {
         return ActivityStateDefinition.normal(MappingsSuggestionWorkStateType.COMPLEX_TYPE);
     }
 
