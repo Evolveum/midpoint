@@ -122,8 +122,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
         buttonsList.add(createTableActionToolbar(idButton));
-        AjaxIconButton suggestObjectButton = createSuggestObjectButton(idButton);
-        suggestObjectButton.add(new VisibleBehaviour(this::displayNoValuePanel));
         buttonsList.add(createSuggestObjectButton(idButton));
         buttonsList.add(createToggleSuggestionButton(idButton, switchToggleModel));
 
@@ -132,7 +130,6 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
                 "text-nowrap btn btn-primary rounded text-nowrap mx-3"));
         newObjectPerformButton.add(new VisibleBehaviour(this::displayNoValuePanel));
         buttonsList.add(0, newObjectPerformButton);
-
         return buttonsList;
     }
 
