@@ -128,7 +128,8 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         return new LoadableModel<>() {
             @Override
             protected StatusInfo<CorrelationSuggestionsType> load() {
-                return loadCorrelationTypeSuggestion(getPageBase(), resourceOid, task, result);
+                var resourceObjectTypeIdentification = getResourceObjectTypeIdentification();
+                return loadCorrelationTypeSuggestion(getPageBase(), resourceOid, resourceObjectTypeIdentification, task, result);
             }
         };
     }
@@ -418,22 +419,22 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 new SimulationActionTaskButton<>(buttons.newChildId(), this::getResourceObjectDefinition,
                         () -> getAssignmentHolderDetailsModel().getObjectType()) {
 
-            @Override
-            public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
-                CorrelationItemsTableWizardPanel.this.redirectToSimulationTasksWizard(target);
-            }
+                    @Override
+                    public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                        CorrelationItemsTableWizardPanel.this.redirectToSimulationTasksWizard(target);
+                    }
 
-            @Override
-            protected @NotNull ResourceTaskFlavor<CorrelatorsDefinitionType> getTaskFlavor() {
-                return ResourceTaskFlavors.CORRELATION_PREVIEW_ACIVITY;
-            }
+                    @Override
+                    protected @NotNull ResourceTaskFlavor<CorrelatorsDefinitionType> getTaskFlavor() {
+                        return ResourceTaskFlavors.CORRELATION_PREVIEW_ACIVITY;
+                    }
 
-            @Override
-            protected CorrelatorsDefinitionType getWorkDefinitionConfiguration() {
-                return new CorrelatorsDefinitionType()
-                        .includeExistingCorrelators(true);
-            }
-        };
+                    @Override
+                    protected CorrelatorsDefinitionType getWorkDefinitionConfiguration() {
+                        return new CorrelatorsDefinitionType()
+                                .includeExistingCorrelators(true);
+                    }
+                };
 
         simulationActionTaskButton.setRenderBodyOnly(true);
         return simulationActionTaskButton;
