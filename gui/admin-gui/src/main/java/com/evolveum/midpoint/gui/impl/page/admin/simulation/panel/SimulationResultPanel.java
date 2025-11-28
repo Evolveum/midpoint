@@ -62,7 +62,6 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
     private static final String ID_METRICS_CONTAINER = "metricsContainer";
     private static final String ID_METRICS = "metrics";
     private static final String ID_METRIC = "metric";
-    private static final String ID_CORRELATION_PANEL = "correlationPanel";
 
     private IModel<TaskType> rootTaskModel;
     private IModel<List<DetailsTableItem>> detailsModel;
@@ -78,10 +77,6 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
 
         initModels();
         initLayout();
-
-        SimulationCorrelationPanel correlationPanel = new SimulationCorrelationPanel(ID_CORRELATION_PANEL, getModel());
-        correlationPanel.setOutputMarkupId(true);
-        add(correlationPanel);
     }
 
     private void initLayout() {
@@ -199,6 +194,10 @@ public class SimulationResultPanel extends BasePanel<SimulationResultType> {
             }
         };
 
+        loadMetricModel();
+    }
+
+    private void loadMetricModel() {
         metricsModel = new LoadableDetachableModel<>() {
 
             @Override

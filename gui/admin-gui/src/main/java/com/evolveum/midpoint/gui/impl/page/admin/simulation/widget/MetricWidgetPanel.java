@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObjects;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -347,7 +347,7 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
 
         IModel<CompositedIcon> iconModel = this::createIcon;
 
-        CompositedIconPanel icon = new CompositedIconPanel(ID_ICON, iconModel){
+        CompositedIconPanel icon = new CompositedIconPanel(ID_ICON, iconModel) {
             @Override
             public String getAdditionalLayerIconCssClass() {
                 return MetricWidgetPanel.this.getAdditionalLayerIconCssClass();
@@ -361,15 +361,24 @@ public class MetricWidgetPanel extends WidgetPanel<DashboardWidgetType> {
         chartContainer.setOutputMarkupId(true);
         displayContainer.add(chartContainer);
 
-        AjaxLink<Void> moreInfo = new AjaxLink<>(ID_MORE_INFO) {
+        AjaxIconButton moreInfo = new AjaxIconButton(ID_MORE_INFO, getActionLinkIconModel(), getActionLinkLabelModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onMoreInfoPerformed(target);
             }
         };
         moreInfo.add(new EnableBehaviour(this::isMoreInfoVisible));
+        moreInfo.showTitleAsLabel(true);
         moreInfo.add(AttributeAppender.append("class", () -> hasZeroValue(valueModel) ? "invisible" : "text-primary"));
         add(moreInfo);
+    }
+
+    protected IModel<String> getActionLinkLabelModel() {
+        return createStringResource("MetricWidgetPanel.open");
+    }
+
+    protected IModel<String> getActionLinkIconModel() {
+        return () -> "ml-1 fa-solid fa-circle-arrow-right";
     }
 
     private boolean hasZeroValue(IModel<String> valueModel) {

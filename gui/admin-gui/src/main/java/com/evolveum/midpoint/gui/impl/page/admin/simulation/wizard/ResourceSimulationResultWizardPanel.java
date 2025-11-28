@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardNavigationB
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRefsTable;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion.SimulationCorrelationPanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,6 +26,8 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult.isCorrelationSimulation;
 
 @PanelType(name = "rw-simulation-result")
 @PanelInstance(identifier = "rw-simulation-result",
@@ -53,6 +56,13 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
     }
 
     private void initLayout() {
+        if (isCorrelationSimulation(getPageBase(), simulationResultModel)) {
+            var correlationPanel = new SimulationCorrelationPanel(ID_PANEL, simulationResultModel);
+            correlationPanel.setOutputMarkupId(true);
+            add(correlationPanel);
+            return;
+        }
+
         SimulationResultPanel resultPanel = new SimulationResultPanel(ID_PANEL, simulationResultModel) {
             @Override
             protected void navigateToSimulationResultObjects(
@@ -79,6 +89,23 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
+
+        if(isCorrelationSimulation(getPageBase(), simulationResultModel)) {
+            AjaxIconButton export = new AjaxIconButton(buttons.newChildId(), () -> "fa fa-download mr-2",
+                    () -> getString("PageSimulationResult.export")) {
+                @Override
+                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                    // TODO implement export
+                }
+            };
+            export.showTitleAsLabel(true);
+            export.add(AttributeAppender.append("class", "btn btn-default ml-auto"));
+            export.setOutputMarkupId(true);
+            buttons.add(export);
+            return;
+        }
+
+
         AjaxIconButton button = new AjaxIconButton(buttons.newChildId(), () -> "fa-solid fa-magnifying-glass mr-2",
                 () -> getString("PageSimulationResult.viewProcessedObjects")) {
             @Override

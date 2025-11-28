@@ -1,12 +1,11 @@
 <!--
-  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="e5246605-73ee-4682-9efb-73a915427d18">
+    oid="e5246605-73ee-4682-9efb-73a915427d18">
     <name>Shadow owner not found</name>
     <description>Correlation of a shadow has not found its owner</description>
     <assignment id="1">
