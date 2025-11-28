@@ -21,8 +21,8 @@ import java.util.List;
  */
 public record OwnedShadow(ShadowType shadow, FocusType owner) {
 
-    public ValuesPair toValuesPair(ItemPath shadowAttrPath, ItemPath focusPropPath) {
-        return new ValuesPair(
+    public ValuesPair<?, ?> toValuesPair(ItemPath shadowAttrPath, ItemPath focusPropPath) {
+        return new ValuesPair<>(
                 getItemRealValues(shadow, shadowAttrPath),
                 getItemRealValues(owner, focusPropPath));
     }
