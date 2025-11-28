@@ -12,9 +12,9 @@
 
         <input type="checkbox" wicket:id="selectCheckbox" style="transform: scale(1.2);"/>
 
-        <div class="d-flex align-items-center p-3 col-3">
+        <div class="d-flex align-items-center p-3 col-2">
             <div class="text-left">
-                <h5 wicket:id="name" class="text-nowrap m-0"></h5>
+                <h5 wicket:id="name" class="text-nowrap m-0 text-truncate" style="width:220px"></h5>
                 <div wicket:id="tag"></div>
             </div>
         </div>
@@ -48,7 +48,7 @@
             </div>
 
             <!-- Action buttons -->
-            <div class="d-flex align-items-center justify-content-center col-3 p-3">
+            <div class="d-flex align-items-center justify-content-center col-4 p-3">
                 <div wicket:id="accept" class="btn btn-outline-primary me-2 gap-2"></div>
                 <div wicket:id="dismiss" class="btn btn-link text-danger me-2 gap-2"></div>
                 <div wicket:id="lifecycleState" class="text-nowrap"></div>
