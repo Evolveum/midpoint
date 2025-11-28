@@ -14,26 +14,30 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-
-import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
-import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
-import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
-import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
-import com.evolveum.midpoint.util.MiscUtil;
-
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
+import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
+import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -207,6 +211,7 @@ class MappingsSuggestionOperation {
 
         ExpressionType expression = null;
         MappingsQualityAssessor.AssessmentResult assessment = null;
+        String variableName = propertyDef.getItemName().getLocalPart();
 
         if (isScriptNeeded(valuesPairs, propertyDef, shadowAttrDef, direction)) {
             String errorLog = null;
@@ -218,7 +223,7 @@ class MappingsSuggestionOperation {
                 expression = buildScriptExpression(mappingResponse);
                 try {
                     assessment = this.qualityAssessor.assessMappingsQuality(
-                            testingValuesPairs, expression, direction == MappingDirection.INBOUND, this.ctx.task, parentResult);
+                            testingValuesPairs, expression, direction == MappingDirection.INBOUND, variableName, this.ctx.task, parentResult);
                     break;
                 } catch (ExpressionEvaluationException | SecurityViolationException e) {
                     if (attempt == 1) {
@@ -232,7 +237,7 @@ class MappingsSuggestionOperation {
             }
         } else {
             assessment = this.qualityAssessor.assessMappingsQuality(
-                    testingValuesPairs, expression, direction == MappingDirection.INBOUND, this.ctx.task, parentResult);
+                    testingValuesPairs, expression, direction == MappingDirection.INBOUND, variableName, this.ctx.task, parentResult);
         }
 
         AttributeMappingsSuggestionType suggestion = buildAttributeMappingSuggestion(
