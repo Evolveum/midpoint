@@ -124,6 +124,13 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         buttonsList.add(createTableActionToolbar(idButton));
         buttonsList.add(createSuggestObjectButton(idButton));
         buttonsList.add(createToggleSuggestionButton(idButton, switchToggleModel));
+
+        AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(idButton, null);
+        newObjectPerformButton.add(AttributeModifier.replace("class",
+                "text-nowrap btn btn-primary rounded text-nowrap mx-3"));
+        newObjectPerformButton.add(new VisibleBehaviour(this::displayNoValuePanel));
+        buttonsList.add(0, newObjectPerformButton);
+
         return buttonsList;
     }
 

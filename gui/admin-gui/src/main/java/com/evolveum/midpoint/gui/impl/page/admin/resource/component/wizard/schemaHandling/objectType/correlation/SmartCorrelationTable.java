@@ -502,11 +502,6 @@ public class SmartCorrelationTable
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = super.createToolbarButtonsList(idButton);
-        AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(idButton, null);
-        newObjectPerformButton.add(AttributeModifier.replace("class",
-                "text-nowrap btn btn-primary rounded text-nowrap mx-3"));
-        newObjectPerformButton.add(new VisibleBehaviour(this::displayNoValuePanel));
-        buttonsList.add(0, newObjectPerformButton);
         return buttonsList;
     }
 
