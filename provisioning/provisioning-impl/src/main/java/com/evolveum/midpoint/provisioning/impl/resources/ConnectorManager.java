@@ -610,6 +610,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         if (hostType == null) {
             query = prismContext.queryFor(ConnectorType.class)
                     .item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(connectorType.getFramework())
+                    .and().item(ConnectorType.F_CONNECTOR_BUNDLE).eq(connectorType.getConnectorBundle())
                     .and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(connectorType.getConnectorType())
                     .and().item(ConnectorType.F_CONNECTOR_HOST_REF).isNull()
                     .build();

@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.statistics.BasicComponentStructure;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl;
@@ -1489,6 +1490,14 @@ public class OperationResult
     public OperationResult addParam(String name, PolyString value) {
         if (recordingValues) {
             getParams().put(name, collectionize(value == null ? null : value.getOrig()));
+        }
+        return this;
+    }
+
+    @Override
+    public OperationResult addParam(String name, ResourceObjectTypeIdentification value) {
+        if (recordingValues) {
+            getParams().put(name, collectionize(stringify(value)));
         }
         return this;
     }

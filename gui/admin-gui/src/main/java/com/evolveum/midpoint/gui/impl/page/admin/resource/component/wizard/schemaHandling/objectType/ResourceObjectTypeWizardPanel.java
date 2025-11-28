@@ -21,9 +21,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.synchronization.SynchronizationWizardPanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -38,7 +41,12 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
 
     @Override
     protected ResourceObjectTypeBasicWizardPanel createNewTypeWizard(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
-        return new ResourceObjectTypeBasicWizardPanel(id, helper);
+        return new ResourceObjectTypeBasicWizardPanel(id, helper) {
+            @Override
+            protected void postSubmitPerformed(AjaxRequestTarget target) {
+                ResourceObjectTypeWizardPanel.this.showTypePreviewFragment(target);
+            }
+        };
     }
 
     @Override
@@ -75,6 +83,11 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
             }
 
             @Override
+            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                showChoiceFragment(target, buildSimulationWizard());
+            }
+
+            @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 super.onExitPerformed(target);
                 ResourceObjectTypeWizardPanel.this.onExitPerformed(target);
@@ -97,8 +110,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
     private void showResourceObjectTypeBasic(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new ResourceObjectTypeBasicWizardPanel(getIdOfChoicePanel(), createHelper(true))
-        );
+                createNewTypeWizard(getIdOfChoicePanel(), createHelper(true)));
     }
 
     private void showCredentialsWizardPanel(AjaxRequestTarget target) {
@@ -111,8 +123,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
     private void showCorrelationItemsTable(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new CorrelationWizardPanel(getIdOfChoicePanel(), createHelper(ResourceObjectTypeDefinitionType.F_CORRELATION, false))
-        );
+                new CorrelationWizardPanel(getIdOfChoicePanel(), createHelper(ResourceObjectTypeDefinitionType.F_CORRELATION, false)));
     }
 
     private void showCapabilitiesConfigWizard(AjaxRequestTarget target) {
@@ -158,5 +169,14 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                 showTypePreviewFragment(target);
             }
         });
+    }
+
+    private @NotNull SimulationWizardPanel<?> buildSimulationWizard() {
+        return new SimulationWizardPanel<>(getIdOfChoicePanel(), getHelper()) {
+            @Override
+            public void onBackPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTypePreview());
+            }
+        };
     }
 }

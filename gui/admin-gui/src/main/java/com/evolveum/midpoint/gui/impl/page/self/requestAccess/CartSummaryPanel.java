@@ -45,7 +45,7 @@ import org.apache.wicket.request.resource.IResource;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.TextArea;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
@@ -65,7 +65,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -101,12 +101,12 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
     private final PageBase page;
 
-    private final WizardModel wizard;
+    private final WizardModelBasic wizard;
 
     private IModel<List<RelationDefinitionType>> systemRelations;
     private LoadableDetachableModel<List<ShoppingCartItem>> shoppingCartItemsModel;
 
-    public CartSummaryPanel(String id, WizardModel wizard, IModel<RequestAccess> model, PageBase page) {
+    public CartSummaryPanel(String id, WizardModelBasic wizard, IModel<RequestAccess> model, PageBase page) {
         super(id, model);
 
         this.wizard = wizard;
@@ -617,7 +617,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         getPageBase().reloadShoppingCartIcon(target);
 
         PageParameters params = new PageParameters();
-        params.set(WizardModel.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
+        params.set(WizardModelBasic.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
 
         setResponsePage(PageRequestAccess.class, params);
     }

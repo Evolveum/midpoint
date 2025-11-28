@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:container wicket:id="contentContainer"></wicket:container>
+
+    <wicket:fragment wicket:id="columnTileFragment">
+        <div class="col-12 d-flex flex-row align-items-center px-3">
+            <div class="tile-column-header">
+                <wicket:container wicket:id="toolbar"></wicket:container>
+            </div>
+            <wicket:container wicket:id="columns">
+                <th>
+                <div wicket:id="cell" class="tile-column-header">
+                    <div wicket:id="header">
+                        <i wicket:id="icon"></i>
+                        <span wicket:id="label"></span>
+                    </div>
+                </div>
+                </th>
+            </wicket:container>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

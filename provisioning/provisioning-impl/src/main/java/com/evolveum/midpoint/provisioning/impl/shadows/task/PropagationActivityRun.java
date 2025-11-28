@@ -55,7 +55,11 @@ public final class PropagationActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws CommonException {
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
+
         ensureNoPreviewNorDryRun();
         String resourceOid = MiscUtil.requireNonNull(
                 getWorkDefinition().getResourceOid(),
@@ -65,6 +69,8 @@ public final class PropagationActivityRun
                         .getObject(ResourceType.class, resourceOid, null, getRunningTask(), result)
                         .asObjectable();
         setContextDescription("to " + resource);
+
+        return true;
     }
 
     @Override

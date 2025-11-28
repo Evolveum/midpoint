@@ -12,8 +12,8 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObje
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectObjectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -26,6 +26,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,10 +35,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serializable, O extends ObjectType, ODM extends ObjectDetailsModels>
-        extends SelectTileWizardStepPanel<SelectableBean<O>, ODM> {
+public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serializable, O extends ObjectType, AHDM extends AssignmentHolderDetailsModel>
+        extends SelectTileWizardStepPanel<SelectableBean<O>, AHDM> {
 
-    public MultiSelectObjectTypeTileWizardStepPanel(ODM model) {
+    public MultiSelectObjectTypeTileWizardStepPanel(AHDM model) {
         super(model);
     }
 
@@ -117,7 +118,7 @@ public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serial
             }
 
             @Override
-            protected void customizeNewRowItem(SelectableBean<O> value) {
+            protected void customizeNewRowItem(SelectableBean<O> value, Item<SelectableBean<O>> item) {
                 MultiSelectObjectTypeTileWizardStepPanel.this.customizeTile(value, null);
             }
 

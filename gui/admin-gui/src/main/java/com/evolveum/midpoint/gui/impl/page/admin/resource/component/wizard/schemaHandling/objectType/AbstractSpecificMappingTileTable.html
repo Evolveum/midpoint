@@ -7,6 +7,7 @@
 
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div wicket:id="noValuePanel"></div>
     <div wicket:id="tileView">
         <wicket:enclosure child="tilesContainer">
             <div class="d-flex flex-column flex-grow-1">
@@ -25,15 +26,17 @@
     <div wicket:id="table"/>
 
     <wicket:fragment wicket:id="headerFragment">
-        <div class="d-flex">
+        <div class="d-flex" wicket:id="headerContainer">
             <wicket:enclosure child="viewToggle">
                 <div class="mr-auto pr-4">
-                    <div wicket:id="viewToggle"/>
+                    <div wicket:id="viewToggle"></div>
                 </div>
             </wicket:enclosure>
-            <div class="ml-auto flex-grow-1" wicket:id="panelHeader"/>
+            <div class="mr-2 gap-2" wicket:id="toolbarButtons"></div>
+            <div class="ml-auto flex-grow-1" wicket:id="panelHeader"></div>
         </div>
     </wicket:fragment>
+
     <wicket:fragment wicket:id="tilesFragment">
 
         <div wicket:id="tiles" style="min-height: 250px;">

@@ -61,7 +61,7 @@ public final class AccessCertificationRemediationRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
         String campaignOid = getWorkDefinition().getCertificationCampaignRef().getOid();
         campaign = getBeans().repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result).asObjectable();
 
@@ -78,7 +78,7 @@ public final class AccessCertificationRemediationRun
 
         handler = getActivityHandler().getCertificationManager().findCertificationHandler(campaign);
 
-        super.beforeRun(result);
+        return super.beforeRun(result);
     }
 
     private ObjectQuery prepareObjectQuery() {

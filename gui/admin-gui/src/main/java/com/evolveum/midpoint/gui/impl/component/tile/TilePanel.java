@@ -50,7 +50,7 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
         this.horizontal = horizontal;
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         add(AttributeAppender.append("class", () -> horizontal ?
                 "tile-panel d-flex flex-column align-items-center rounded p-3 justify-content-center" :
                 "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-left"));

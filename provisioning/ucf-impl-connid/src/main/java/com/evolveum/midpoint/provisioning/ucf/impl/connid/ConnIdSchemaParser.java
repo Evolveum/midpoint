@@ -210,6 +210,7 @@ class ConnIdSchemaParser {
             if (ObjectClass.ACCOUNT_NAME.equals(connIdClassInfo.getType())) {
                 ocDefBuilder.setDefaultAccountDefinition(true);
             }
+            ocDefBuilder.setDescription(connIdClassInfo.getDescription());
         }
 
         private ItemName resolveFrameworkName(String frameworkName) {
@@ -232,19 +233,22 @@ class ConnIdSchemaParser {
 
             var mpItemDef = createNativeAttributeDefinition(xsdItemName, xsdTypeName);
 
-            if (!connIdAttrInfo.isReference()) {
+            if (!connIdAttrInfo.isReference() && !connIdAttrInfo.isEmbedded()) {
                 LOGGER.trace("  simple attribute conversion: ConnId: {}({}) -> XSD: {}({})",
                         connIdAttrName, connIdAttrInfo.getType().getSimpleName(),
                         PrettyPrinter.prettyPrintLazily(xsdItemName),
                         PrettyPrinter.prettyPrintLazily(xsdTypeName));
             } else {
+                LOGGER.trace("  {} attribute conversion: ConnId: {} ({}) -> XSD: {}",
+                        connIdAttrInfo.isEmbedded() ? "complex" : "reference",
+                        connIdAttrName, connIdAttrInfo.getSubtype(),
+                        PrettyPrinter.prettyPrintLazily(xsdItemName));
                 mpItemDef.setReferencedObjectClassName(
                         ConnIdNameMapper.connIdObjectClassNameToUcf(connIdAttrInfo.getReferencedObjectClassName(), legacySchema));
                 // Currently we require the role in reference; later, we may try to derive it (or let provide it by engineer).
                 mpItemDef.setReferenceParticipantRole(
                         determineParticipantRole(connIdAttrInfo));
-                LOGGER.trace("  reference attribute conversion: ConnId: {} ({}) -> XSD: {}",
-                        connIdAttrName, connIdAttrInfo.getSubtype(), PrettyPrinter.prettyPrintLazily(xsdItemName));
+                mpItemDef.setComplexAttribute(connIdAttrInfo.isEmbedded());
             }
 
             if (Uid.NAME.equals(connIdAttrName)) {
@@ -293,6 +297,7 @@ class ConnIdSchemaParser {
             processCommonDefinitionParts(mpItemDef, connIdAttrInfo);
             mpItemDef.setMatchingRuleQName(
                     connIdAttributeInfoToMatchingRule(connIdAttrInfo));
+            mpItemDef.setNativeDescription(connIdAttrInfo.getDescription());
 
             if (!Uid.NAME.equals(connIdAttrName)) {
                 ocDefBuilder.add(mpItemDef);

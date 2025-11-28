@@ -1,0 +1,57 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+
+    <div class="d-flex gap-3 p-3">
+        <div wicket:id="rulePanelContainer" class="card mt-3 col p-0">
+            <div class="card-header d-flex align-items-center">
+                <span wicket:id="ruleHeaderTitle"></span>
+            </div>
+
+            <div class="d-flex flex-column m-3 gap-2" style="max-height: 350px; overflow-y: auto; overflow-x: hidden;">
+                <div class="list-group list-group-flush border-bottom" wicket:id="ruleListView">
+                    <div class="list-group-item d-flex justify-content-between align-items-center p-0">
+
+                        <div>
+                            <div wicket:id="ruleName"></div>
+                        </div>
+
+                        <div wicket:id="ruleViewLink" class="btn btn-link btn-sm"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div wicket:id="candidatePanelContainer" class="card mt-3 col p-0">
+            <div class="card-header d-flex align-items-center">
+                <span wicket:id="candidateHeaderTitle"></span>
+                <button wicket:id="candidateHeaderButton" class="ml-auto btn btn-sm btn-default"></button>
+            </div>
+
+            <div class="d-flex flex-column m-3 gap-2" style="max-height: 350px; overflow-y: auto; overflow-x: hidden;">
+                <div class="list-group" wicket:id="candidateListView">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <div class="fw-bold" wicket:id="candidateName"></div>
+                            <div class="text-muted small" wicket:id="candidateIdentifier"></div>
+                        </div>
+
+                        <a wicket:id="candidateViewLink" class="btn btn-link btn-sm"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</wicket:panel>
+</body>
+</html>
+

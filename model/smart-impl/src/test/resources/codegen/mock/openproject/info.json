@@ -1,0 +1,17 @@
+{
+  "infoAboutSchema": {
+    "name": "OpenProject API",
+    "applicationVersion": "3",
+    "apiVersion": "3",
+    "apiType": [
+      "REST",
+      "OpenAPI"
+    ],
+    "baseApiEndpoint": [
+      {
+        "uri": "https://community.openproject.org/api/v3",
+        "type": "dynamic"
+      }
+    ]
+  }
+}

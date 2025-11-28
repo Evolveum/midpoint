@@ -14,7 +14,7 @@ import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
@@ -805,8 +805,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         getPageBase().taskAwareExecutor(target, OPERATION_RECLASSIFY_SHADOWS)
                 .runVoid((task, result) -> {
                     ResourceType resource = getObjectWrapperObject().asObjectable();
-                    ResourceTaskCreator.forResource(resource, getPageBase())
-                            .ofFlavor(SynchronizationTaskFlavor.IMPORT)
+                    ResourceTaskCreator.of(ResourceTaskFlavors.IMPORT, getPageBase())
+                            .forResource(resource)
                             .withCoordinates(
                                     getKind(), // FIXME not static
                                     getIntent(), // FIXME not static

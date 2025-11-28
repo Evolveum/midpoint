@@ -18,23 +18,16 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -66,14 +59,14 @@ public abstract class AbstractAssociationMappingContainerTableWizardPanel extend
         }
     }
 
+    @Override
+    protected IModel<String> getTitleIconModel() {
+        return AbstractAssociationMappingContainerTableWizardPanel.super.getTitleIconModel();
+    }
+
     protected abstract ItemName getItemNameForMappingContainer();
 
     private void initLayout() {
-
-        WebMarkupContainer icon = new WebMarkupContainer(ID_TITLE_ICON);
-        add(icon);
-        icon.add(AttributeAppender.append("class", getTitleIconClass()));
-
         add(new Label(ID_TITLE_LABEL, getTitleLabelModel()));
 
         IModel<List<PrismContainerValueWrapper<MappingType>>> model = new IModel<List<PrismContainerValueWrapper<MappingType>>>() {

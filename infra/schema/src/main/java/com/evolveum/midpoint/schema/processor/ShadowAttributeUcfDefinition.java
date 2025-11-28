@@ -46,6 +46,8 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
      * Returns name of the attribute as given in the connector framework.
      * This is not used for any significant logic. It is mostly for diagnostics.
      *
+     * Examples: `pass:[__UID__]`, `pass:[__NAME__]`.
+     *
      * @return name of the attribute as given in the connector framework.
      */
     String getFrameworkAttributeName();
@@ -54,6 +56,15 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
      * Is this attribute returned by default? (I.e. if no specific options are sent to the connector?)
      */
     @Nullable Boolean getReturnedByDefault();
+
+    /**
+     * Returns the description of an attribute as provided by the connector.
+     * Can be used to determine the potential use of the attribute.
+     *
+     * It is named "native" because of the conflict with {@link ShadowAttributeDefinition#getDescription()} that
+     * can provide also the configured attribute description.
+     */
+    String getNativeDescription();
 
     interface Delegable extends ShadowAttributeUcfDefinition {
 
@@ -70,6 +81,10 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
         default String getFrameworkAttributeName() {
             return ucfData().getFrameworkAttributeName();
         }
+
+        default String getNativeDescription() {
+            return ucfData().getNativeDescription();
+        }
     }
 
     /** Mutable interface to properties in this class. */
@@ -80,6 +95,8 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
         void setNativeAttributeName(String nativeAttributeName);
 
         void setFrameworkAttributeName(String frameworkAttributeName);
+
+        void setNativeDescription(String nativeDescription);
 
         interface Delegable extends Mutable {
 
@@ -96,6 +113,10 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
             default void setFrameworkAttributeName(String frameworkAttributeName) {
                 ucfData().setFrameworkAttributeName(frameworkAttributeName);
             }
+
+            default void setNativeDescription(String nativeDescription) {
+                ucfData().setNativeDescription(nativeDescription);
+            }
         }
     }
 
@@ -111,6 +132,8 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
         private String frameworkAttributeName;
 
         private Boolean returnedByDefault;
+
+        private String nativeDescription;
 
         @Override
         public String getNativeAttributeName() {
@@ -133,8 +156,17 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
         }
 
         @Override
+        public void setNativeDescription(String nativeDescription) {
+            this.nativeDescription = nativeDescription;
+        }
+
+        @Override
         public @Nullable Boolean getReturnedByDefault() {
             return returnedByDefault;
+        }
+
+        public String getNativeDescription() {
+            return nativeDescription;
         }
 
         public void setReturnedByDefault(Boolean returnedByDefault) {
@@ -156,12 +188,16 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
                 sb.append(" returnedByDefault=");
                 sb.append(returnedByDefault);
             }
+            if (nativeDescription != null) {
+                sb.append(" native description present");
+            }
         }
 
         void copyFrom(Data source) {
             this.nativeAttributeName = source.nativeAttributeName;
             this.frameworkAttributeName = source.frameworkAttributeName;
             this.returnedByDefault = source.returnedByDefault;
+            this.nativeDescription = source.nativeDescription;
         }
 
         @Override
@@ -175,12 +211,13 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
             Data data = (Data) o;
             return Objects.equals(nativeAttributeName, data.nativeAttributeName)
                     && Objects.equals(frameworkAttributeName, data.frameworkAttributeName)
-                    && Objects.equals(returnedByDefault, data.returnedByDefault);
+                    && Objects.equals(returnedByDefault, data.returnedByDefault)
+                    && Objects.equals(nativeDescription, data.nativeDescription);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(nativeAttributeName, frameworkAttributeName, returnedByDefault);
+            return Objects.hash(nativeAttributeName, frameworkAttributeName, returnedByDefault, nativeDescription);
         }
     }
 }

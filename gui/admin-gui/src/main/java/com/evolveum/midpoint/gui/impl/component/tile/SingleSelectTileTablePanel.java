@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
@@ -73,13 +74,19 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
         return "col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-5i col-xxl-5i p-2";
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     protected IModel<Search> createSearchModel() {
         return new LoadableModel<>(false) {
             @Override
             protected Search load() {
+                var collectionView = getCompiledCollectionViewFromPanelConfiguration(
+                        getPageBase(),
+                        getContainerConfiguration(),
+                        getType());
+
                 return new SearchBuilder(getType())
-                        .collectionView(getCompiledCollectionViewFromPanelConfiguration())
+                        .collectionView(collectionView)
                         .modelServiceLocator(getPageBase())
                         .additionalSearchContext(getAdditionalSearchContext())
                         .setFullTextSearchEnabled(isFullTextSearchEnabled())
@@ -102,8 +109,10 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
         return null;
     }
 
-    private CompiledObjectCollectionView getCompiledCollectionViewFromPanelConfiguration() {
-        ContainerPanelConfigurationType panelConfig = getContainerConfiguration();
+    public static CompiledObjectCollectionView getCompiledCollectionViewFromPanelConfiguration(
+            PageBase pageBase,
+            ContainerPanelConfigurationType panelConfig,
+            Class<? extends Containerable> type) {
 
         if (panelConfig == null) {
             return null;
@@ -116,21 +125,22 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
         CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration = null;
         if (collectionRefSpecificationType == null) {
             compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
-            getPageBase().getModelInteractionService().applyView(compiledCollectionViewFromPanelConfiguration, panelConfig.getListView());
+            pageBase.getModelInteractionService().applyView(compiledCollectionViewFromPanelConfiguration, panelConfig.getListView());
             return compiledCollectionViewFromPanelConfiguration;
         }
-        Task task = getPageBase().createSimpleTask("Compile collection");
+        Task task = pageBase.createSimpleTask("Compile collection");
         OperationResult result = task.getResult();
         try {
-            compiledCollectionViewFromPanelConfiguration = getPageBase().getModelInteractionService().compileObjectCollectionView(
-                    collectionRefSpecificationType, getType(), task, result);
+            compiledCollectionViewFromPanelConfiguration = pageBase.getModelInteractionService().compileObjectCollectionView(
+                    collectionRefSpecificationType, type, task, result);
         } catch (Throwable e) {
-            LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}", panelConfig, e.getMessage(), e);
-            result.recordFatalError("Cannot compile object collection view for panel configuration " + panelConfig + ". Reason: " + e.getMessage(), e);
-            getPageBase().showResult(result);
+            LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}",
+                    panelConfig, e.getMessage(), e);
+            result.recordFatalError("Cannot compile object collection view for panel configuration "
+                    + panelConfig + ". Reason: " + e.getMessage(), e);
+            pageBase.showResult(result);
         }
         return compiledCollectionViewFromPanelConfiguration;
-
     }
 
     public ContainerPanelConfigurationType getContainerConfiguration() {
@@ -138,7 +148,7 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
     }
 
     @Override
-    protected BoxedTablePanel createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
+    protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
         BoxedTablePanel<O> table = new BoxedTablePanel<>(idTable, provider, createColumns(), tableId) {
 
             @Override
@@ -158,16 +168,26 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
 
             @Override
             protected Item customizeNewRowItem(Item<O> item, IModel<O> model) {
-                SingleSelectTileTablePanel.this.customizeNewRowItem(model.getObject());
+                SingleSelectTileTablePanel.this.customizeNewRowItem(model.getObject(), item);
                 addClickableEventIfNeeded(item, model);
                 return item;
+            }
+
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                return SingleSelectTileTablePanel.this.getAdditionalTableCssClasses();
+            }
+
+            @Override
+            protected String getAdditionalFooterCssClasses() {
+                return getAdditionalFooterCss();
             }
         };
         table.setShowAsCard(false);
         return table;
     }
 
-    protected void customizeNewRowItem(O value) {
+    protected void customizeNewRowItem(O value, Item<O> item) {
     }
 
     private void addClickableEventIfNeeded(Item<O> item, IModel<O> model) {
@@ -189,9 +209,12 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
 
     void onSelectTableRow(IModel<O> model, AjaxRequestTarget target) {
         boolean oldState = model.getObject().isSelected();
-        ((SelectableBeanDataProvider) getProvider()).clearSelectedObjects();
 
-        model.getObject().setSelected(!oldState);
+        if (getProvider() instanceof SelectableBeanDataProvider<?>) {
+            ((SelectableBeanDataProvider<?>) getProvider()).clearSelectedObjects();
+            model.getObject().setSelected(!oldState);
+        }
+
         refresh(target);
     }
 

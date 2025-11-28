@@ -6,12 +6,14 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -89,7 +91,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+                getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
                 onExitPreProcessing(target);
                 onExitPerformed(target);
             }
@@ -108,7 +110,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
-                getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+                getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
                 onSubmitPerformed(target);
             }
 
@@ -146,8 +148,21 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         WebComponentUtil.addDisabledClassBehavior(next);
         buttonsStrip.add(next);
 
-        Label nextLabel = new Label(ID_NEXT_LABEL, getNextLabelModel());
+        Label nextLabel = new Label(ID_NEXT_LABEL, createNextModel());
         next.add(nextLabel);
+    }
+
+    private LoadableDetachableModel<String> createNextModel() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                IModel<String> nextModel = getNextLabelModel();
+                if (nextModel == null || StringUtils.isBlank(nextModel.getObject())) {
+                    return "";
+                }
+                return ": " + nextModel.getObject();
+            }
+        };
     }
 
     protected void onExitPreProcessing(AjaxRequestTarget target) {
@@ -245,5 +260,17 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     @Override
     public VisibleEnableBehaviour getHeaderBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    protected final Label getTextLabel(){
+        return (Label) get(ID_TEXT);
+    }
+
+    protected final Label getSubtextLabel(){
+        return (Label) get(ID_SUBTEXT);
+    }
+
+    protected final WebMarkupContainer getButtonContainer(){
+        return (WebMarkupContainer) get(ID_BUTTONS_STRIP);
     }
 }

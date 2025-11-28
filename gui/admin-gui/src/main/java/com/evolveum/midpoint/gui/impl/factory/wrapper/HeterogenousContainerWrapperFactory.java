@@ -75,9 +75,10 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
                 && (itemDef.getTypeClass().isAssignableFrom(CompositeCorrelatorType.class)
                 || itemDef.getTypeClass().isAssignableFrom(SecretsProvidersType.class)
                 || itemDef.getTypeClass().isAssignableFrom(SchemaHandlingType.class)
-                || itemDef.getTypeClass().isAssignableFrom(AssociatedResourceObjectTypeDefinitionType.class)
+                || itemDef.getTypeClass().isAssignableFrom(ResourceObjectTypeDefinitionType.class)
                 || itemDef.getTypeClass().isAssignableFrom(ShadowAssociationDefinitionType.class)
-                || itemDef.getTypeClass().isAssignableFrom(AdminGuiConfigurationType.class))) {
+                || itemDef.getTypeClass().isAssignableFrom(AdminGuiConfigurationType.class)
+                || itemDef.getTypeClass().isAssignableFrom(ConnDevConnectorType.class))) {
             return false;
         }
 

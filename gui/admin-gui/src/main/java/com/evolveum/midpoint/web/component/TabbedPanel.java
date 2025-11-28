@@ -102,7 +102,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
             }
         };
 
-        add(AttributeModifier.prepend("class", "card card-primary card-outline card-outline-tabs"));
+        initDefaultComponentCssClass();
 
         WebMarkupContainer tabsContainer = newTabsContainer(ID_TABS_CONTAINER);
         tabsContainer.setOutputMarkupId(true);
@@ -139,6 +139,10 @@ public class TabbedPanel<T extends ITab> extends Panel {
         tabsContainer.add(rightSideTabItem);
 
         add(newPanel());
+    }
+
+    protected void initDefaultComponentCssClass() {
+        add(AttributeModifier.prepend("class", "card card-primary card-outline card-outline-tabs"));
     }
 
     protected void populateLoopItem(LoopItem item) {

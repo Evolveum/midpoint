@@ -87,7 +87,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                     if (getModelObject().getDefinition() != null && getModelObject().getDefinition().isMultiValue()) {
                         key = "PrismContainerValuePanel.container";
                     }
-                    LoadableDetachableModel<String> labelModel = getLabelModel();
+                    IModel<String> labelModel = getLabelModel();
                     String label = labelModel.getObject();
                     labelModel.detach();
                     return getParentPage().createStringResource(
@@ -125,7 +125,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         expandableLabelContainer.add(AttributeModifier.append("aria-label", getExpandableLabelContainerAriaLabelModel()));
         header.add(expandableLabelContainer);
 
-        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
+        var headerLabelModel = getLabelModel();
         Label labelComponent = new Label(ID_LABEL, headerLabelModel);
         labelComponent.setOutputMarkupId(true);
         labelComponent.setOutputMarkupPlaceholderTag(true);
@@ -153,7 +153,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         //TODO always visible if isObject
     }
 
-    protected LoadableDetachableModel<String> getLabelModel() {
+    protected IModel<String> getLabelModel() {
         return createStringResource("${displayName}", getModel());
     }
 

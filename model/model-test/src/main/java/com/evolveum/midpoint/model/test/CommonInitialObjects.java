@@ -69,6 +69,10 @@ public interface CommonInitialObjects {
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_UTILITY_TASK = TestObject.classPath(
+            ARCHETYPES, "528-archetype-task-util.xml",
+            SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_CLASSIFICATION = TestObject.classPath(
             ARCHETYPES, "062-archetype-classification.xml",
             SystemObjectsType.ARCHETYPE_CLASSIFICATION.value());
@@ -300,6 +304,17 @@ public interface CommonInitialObjects {
             "600-origin-internal.xml",
             "00000000-0000-0000-0000-000000000600"
     );
+
+    TestObject<ServiceType> SERVICE_ORIGIN_ARTIFICIAL_INTELLIGENCE = TestObject.classPath(
+            SERVICES,
+            "602-origin-artificial-intelligence.xml",
+            SystemObjectsType.ORIGIN_ARTIFICIAL_INTELLIGENCE.value());
+
+    TestObject<ServiceType> SERVICE_ORIGIN_SYSTEM_INTELLIGENCE = TestObject.classPath(
+            SERVICES,
+            "603-origin-system-intelligence.xml",
+            SystemObjectsType.ORIGIN_SYSTEM_INTELLIGENCE.value());
+
 
     static void addCertificationTasks(AbstractModelIntegrationTest test, Task task, OperationResult result) throws CommonException, IOException{
         try {

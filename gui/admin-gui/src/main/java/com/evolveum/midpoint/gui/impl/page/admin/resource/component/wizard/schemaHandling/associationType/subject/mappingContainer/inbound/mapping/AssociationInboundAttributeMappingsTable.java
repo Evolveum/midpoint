@@ -28,17 +28,17 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.excludeUnwantedMappings;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundAttributeMappingsTable.getMappingUsedIconColumn;
 
 /**
  * @author lskublik
@@ -67,40 +67,7 @@ public abstract class AssociationInboundAttributeMappingsTable extends Attribute
 
     @Override
     protected IColumn<PrismContainerValueWrapper<MappingType>, String> createUsedIconColumn() {
-        return new IconColumn<>(Model.of()) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                super.populateItem(cellItem, componentId, rowModel);
-                cellItem.add(AttributeAppender.append("class", "text-center"));
-            }
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                PrismContainerValueWrapper<MappingType> mapping = rowModel.getObject();
-                MappingType mappingBean = mapping.getRealValue();
-
-                InboundMappingUseType mappingUsed = ((InboundMappingType) mappingBean).getUse();
-                if (mappingUsed == null) {
-                    mappingUsed = InboundMappingUseType.ALL;
-                }
-                for (MappingUsedFor usedFor : Arrays.stream(MappingUsedFor.values()).toList()) {
-                    if (usedFor.getType().equals(mappingUsed)) {
-                        return new DisplayType()
-                                .tooltip(usedFor.getTooltip())
-                                .beginIcon()
-                                .cssClass(usedFor.getIcon())
-                                .end();
-                    }
-                }
-                return new DisplayType();
-            }
-
-            @Override
-            public String getCssClass() {
-                return "px-0";
-            }
-        };
+        return getMappingUsedIconColumn(null);
     }
 
     @Override
@@ -200,16 +167,7 @@ public abstract class AssociationInboundAttributeMappingsTable extends Attribute
                     return list;
                 }
 
-                list.removeIf(valueWrapper -> {
-                    InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
-                    InboundMappingUseType valueUse = realValue.getUse();
-                    if (valueUse == null) {
-                        valueUse = InboundMappingUseType.ALL;
-                    }
-                    MappingUsedFor valueUsedFor = MappingUsedFor.valueOf(valueUse.name());
-
-                    return !usedFor.equals(valueUsedFor);
-                });
+                excludeUnwantedMappings(list, usedFor);
                 return list;
             }
         };

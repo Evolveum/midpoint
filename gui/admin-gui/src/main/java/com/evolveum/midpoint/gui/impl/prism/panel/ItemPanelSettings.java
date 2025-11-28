@@ -13,11 +13,14 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import org.jetbrains.annotations.Nullable;
+
 public class ItemPanelSettings implements Serializable {
 
     private ItemVisibilityHandler visibilityHandler;
     private ItemEditabilityHandler editabilityHandler = wrapper -> true;
     private boolean headerVisible = true;
+    private Boolean removeButtonVisible = null;
 
     private boolean displayedInColumn = false;
     private ItemMandatoryHandler mandatoryHandler;
@@ -75,12 +78,21 @@ public class ItemPanelSettings implements Serializable {
         this.displayedInColumn = displayedInColumn;
     }
 
+    void setRemoveButtonVisible(@Nullable Boolean removeButtonVisible) {
+        this.removeButtonVisible = removeButtonVisible;
+    }
+
+    public Boolean isRemoveButtonVisible() {
+        return removeButtonVisible;
+    }
+
     public ItemPanelSettings copy() {
         return new ItemPanelSettingsBuilder()
                 .editabilityHandler(editabilityHandler)
                 .visibilityHandler(visibilityHandler)
                 .mandatoryHandler(mandatoryHandler)
                 .displayedInColumn(displayedInColumn)
+                .isRemoveButtonVisible(removeButtonVisible)
                 .build();
     }
 }

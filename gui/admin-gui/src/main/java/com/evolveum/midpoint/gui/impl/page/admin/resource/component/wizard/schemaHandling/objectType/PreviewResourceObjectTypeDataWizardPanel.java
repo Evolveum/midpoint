@@ -102,6 +102,11 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
             protected Consumer<Task> createProviderSearchTaskCustomizer() {
                 return (Consumer<Task> & Serializable) (task) -> task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
             }
+
+            @Override
+            protected boolean isTaskButtonVisible() {
+                return false;
+            }
         };
         table.setOutputMarkupId(true);
         form.add(table);

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="card card-primary card-outline card-outline-tabs shadow-none mb-0">
+        <div class="card-header p-0 border-bottom-0">
+            <ul class="nav nav-tabs" wicket:id="tabs-container">
+                <li class="nav-item flex-grow-1" wicket:id="tabs">
+                    <a class="nav-link text-center" href="#" wicket:id="link">
+                        <i wicket:id="icon"></i>
+                        <span wicket:id="title"></span>
+                        <small class="badge" wicket:id="count"></small>
+                    </a>
+                </li>
+                <li wicket:id="rightSideTabItem" class="pull-right" style="border-radius: 0; margin: 10px">
+                    <div wicket:id="rightSideTab"></div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div wicket:id="panel" class="tab-pane active"></div>
+</wicket:panel>

@@ -1,0 +1,328 @@
+/*
+ * Copyright (C) 2010-2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.smart.impl;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import jakarta.xml.bind.JAXBElement;
+import org.apache.cxf.common.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.util.*;
+
+/**
+ * Provides logic for automatically suggesting {@link ShadowAssociationTypeDefinitionType} definitions
+ * based on the structure of native reference attributes in the resource schema.
+ * <p>
+ * This class inspects subject and object object types defined in the resource,
+ * evaluates their reference attributes, and generates association suggestions accordingly.
+ * </p>
+ *
+ * The resulting {@link AssociationsSuggestionType} object can be used to configure
+ * associations between object types in MidPoint.
+ */
+public class SmartAssociationImpl {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SmartAssociationImpl.class);
+
+    private List<ResourceObjectTypeDefinition> findObjectTypesForObjectClass(ResourceSchema resourceSchema, QName objectClassName) {
+        return resourceSchema.getObjectTypeDefinitions().stream()
+                .filter(ot -> ot.getObjectClassName().equals(objectClassName))
+                .toList();
+    }
+
+    private boolean isReferenceComplex(ShadowReferenceAttributeDefinition ref) {
+        var isComplex = ref.getNativeDefinition().isComplexAttribute();
+        var isTargetingEmbeddedClass = ref.isTargetingSingleEmbeddedObjectClass();
+        var isTargetingAuxiliaryClass = ref.getGeneralizedObjectSideObjectDefinition().getObjectClassDefinition().isAuxiliary();
+        return isComplex || isTargetingEmbeddedClass || isTargetingAuxiliaryClass;
+    }
+
+    /**
+     * Suggests potential associations between the provided subject and object types on the given resource.
+     * Associations are derived by analyzing reference attributes in native object class definitions.
+     *
+     * @param resource The resource in which to evaluate possible associations.
+     * @param isInbound if true suggest inbound mapping otherwise suggest outbound mapping
+     * @return Suggested associations as {@link AssociationsSuggestionType}.
+     */
+    public AssociationsSuggestionType suggestSmartAssociation(
+            @NotNull ResourceType resource,
+            boolean isInbound
+    ) throws SchemaException, ConfigurationException {
+        LOGGER.info("Start generating association suggestions, resource: {}, isInbound: {}", resource.getOid(), isInbound);
+
+        var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
+
+        AssociationsSuggestionType associationsSuggestionType = new AssociationsSuggestionType();
+
+        for (var subjectObjectType : resourceSchema.getObjectTypeDefinitions()) {
+            for (var refAttribute : subjectObjectType.getReferenceAttributeDefinitions()) {
+                LOGGER.trace("Processing subject reference, {}, {}", subjectObjectType.getTypeIdentification(), refAttribute.getItemName());
+
+                if (!refAttribute.canRead()) {
+                    LOGGER.trace("Skipping: cannot read attribute");
+                    continue;
+                }
+                var isObjectToSubject = refAttribute.getParticipantRole().equals(ShadowReferenceParticipantRole.OBJECT);
+                if (isObjectToSubject) {
+                    LOGGER.trace("Skipping: unsupported object to subject references");
+                    continue;
+                }
+                if (isReferenceComplex(refAttribute)) {
+                    LOGGER.trace("Skipping:unsupported complex reference");
+                    continue;
+                }
+                var targetObjectClass = refAttribute.getTargetObjectClassName();
+                var objectObjectTypes = findObjectTypesForObjectClass(resourceSchema, targetObjectClass);
+                for (var objectObjectType : objectObjectTypes) {
+                    LOGGER.debug(
+                            "generating association suggestion, subject: {}, ref: {}, object: {}",
+                            subjectObjectType.getTypeIdentification(),
+                            refAttribute.getItemName(),
+                            objectObjectType.getTypeIdentification()
+                    );
+                    var associationDef = resolveRefBasedAssociation(subjectObjectType, refAttribute, objectObjectType, isInbound);
+                    var suggestion = new AssociationSuggestionType().definition(associationDef);
+                    associationsSuggestionType.getAssociation().add(suggestion);
+                    traceAssociationSuggestion(suggestion);
+                }
+            }
+        }
+
+        LOGGER.info("Association suggestions generated, num: {}", associationsSuggestionType.getAssociation().size());
+
+        SmartMetadataUtil.markContainerProvenance(
+                associationsSuggestionType.asPrismContainerValue(),
+                SmartMetadataUtil.ProvenanceKind.SYSTEM);
+        return associationsSuggestionType;
+    }
+
+    /**
+     * Constructs association type from subject to object using a reference attribute.
+     *
+     * @param subjectObjectType association subject
+     * @param attributeReference referenced attribute
+     * @param objectObjectType association object
+     * @param isInbound inbound/outbound flag
+     */
+    private ShadowAssociationTypeDefinitionType resolveRefBasedAssociation(
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ShadowReferenceAttributeDefinition attributeReference,
+            @NotNull ResourceObjectTypeDefinition objectObjectType,
+            boolean isInbound) {
+
+        ShadowAssociationTypeDefinitionType association = new ShadowAssociationTypeDefinitionType();
+
+        String assocName = constructAssociationName(subjectObjectType, objectObjectType);
+        QName assocQName = new QName(assocName);
+        association.setName(assocQName);
+        var displayName = constructAssociationDisplayName(subjectObjectType, objectObjectType);
+        association.setDisplayName(displayName);
+
+        var subject = buildSubjectParticipantDefinitionType(subjectObjectType, objectObjectType, attributeReference, assocName, isInbound);
+        var object = buildObjectParticipantDefinitionType(objectObjectType);
+
+        String descriptionNote = createAssociationDescription(attributeReference, subjectObjectType, objectObjectType);
+
+        association.setSubject(subject);
+        association.getObject().add(object);
+        association.setDescription(descriptionNote);
+        return association;
+    }
+
+    /**
+     * Builds a human-readable description of the generated association for trace/debug purposes.
+     *
+     * @return A string describing how the association was derived.
+     */
+    private @NotNull String createAssociationDescription(
+            @NotNull ShadowReferenceAttributeDefinition attributeReference,
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ResourceObjectTypeDefinition objectObjectType) {
+        return "This association is derived from reference attribute '" + attributeReference.getItemName().getLocalPart() + "' on "
+                + "first participant (class=" + subjectObjectType.getObjectClassLocalName()
+                + ", kind=" + subjectObjectType.getKind()
+                + ", intent=" + subjectObjectType.getIntent() + ") "
+                + "which refers to second participant (class=" + objectObjectType.getObjectClassLocalName()
+                + ", kind=" + objectObjectType.getKind()
+                + ", intent=" + objectObjectType.getIntent() + ").";
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> ExpressionType makeExpressionType(QName elementName, T container) {
+        ExpressionType expression = new ExpressionType();
+        var clazz = (Class<T>) container.getClass();
+        JAXBElement<T> element = new JAXBElement<>(elementName, clazz, container);
+        expression.expressionEvaluator(element);
+        return expression;
+    }
+
+    private MappingType makeOutboundMapping(String associationName) {
+        var fromLinkEvaluator = new AssociationFromLinkExpressionEvaluatorType();
+        var fromLinkExpression = makeExpressionType(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK, fromLinkEvaluator);
+
+        var constructionEvaluator = new AssociationConstructionExpressionEvaluatorType()
+                .objectRef(new AttributeOutboundMappingsDefinitionType()
+                        .mapping(new MappingType()
+                                .name("associationFromLink")
+                                .expression(fromLinkExpression)
+                        )
+                );
+        var constructionExpression = makeExpressionType(SchemaConstantsGenerated.C_ASSOCIATION_CONSTRUCTION, constructionEvaluator);
+        var outboundMappingName = associationName + "-outbound";
+        return new MappingType()
+                .name(outboundMappingName)
+                .strength(MappingStrengthType.STRONG)
+                .expression(constructionExpression);
+    }
+
+    private InboundMappingType makeInboundMapping(String associationName) {
+        var mapping = new InboundMappingType()
+                .name("shadowOwner-into-targetRef")
+                .target(new VariableBindingDefinitionType().path(new ItemPathType(ItemPath.fromString("targetRef"))))
+                .expression(makeExpressionType(SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH, new ShadowOwnerReferenceSearchExpressionEvaluatorType()));
+        var synchronizationEvaluator = new AssociationSynchronizationExpressionEvaluatorType()
+                .synchronization(new ItemSynchronizationReactionsType()
+                        .reaction(new ItemSynchronizationReactionType()
+                                .name("unmatched-add")
+                                .situation(ItemSynchronizationSituationType.UNMATCHED)
+                                .actions(new ItemSynchronizationActionsType()
+                                        .addFocusValue(new AddFocusValueItemSynchronizationActionType())
+                                )
+                        )
+                        .reaction(new ItemSynchronizationReactionType()
+                                .name("matched-synchronize")
+                                .situation(ItemSynchronizationSituationType.MATCHED)
+                                .actions(new ItemSynchronizationActionsType()
+                                        .synchronize(new SynchronizeItemSynchronizationActionType())
+                                )
+                        )
+                        .reaction(new ItemSynchronizationReactionType()
+                                .name("indirectly-matched-ignore")
+                                .situation(ItemSynchronizationSituationType.MATCHED_INDIRECTLY)
+                        )
+                )
+                .objectRef(new AttributeInboundMappingsDefinitionType()
+                        .correlator(new ItemCorrelatorDefinitionType())
+                        .mapping(mapping)
+                );
+        var synchronizationExpression = makeExpressionType(SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION, synchronizationEvaluator);
+
+        var inboundMappingName = associationName + "-inbound";
+        return new InboundMappingType()
+                .name(inboundMappingName)
+                .expression(synchronizationExpression);
+    }
+
+    /**
+     * Builds a subject-side association participant definition.
+     */
+    private @NotNull ShadowAssociationTypeSubjectDefinitionType buildSubjectParticipantDefinitionType(
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ResourceObjectTypeDefinition objectObjectType,
+            @NotNull ShadowReferenceAttributeDefinition attributeReference,
+            String associationName,
+            boolean isInbound
+    ) {
+
+        var sourceRef = attributeReference.getItemName().toBean();
+        // this is a convention to name reference, uniqueness of this attribute is enforced by GUI
+        var refName = attributeReference.getItemName().withoutNamespace() + "-" + objectObjectType.getIntent();
+        var ref = new ItemPathType(ItemPath.fromString(refName));
+        ShadowAssociationDefinitionType assocDef = new ShadowAssociationDefinitionType()
+                .ref(ref)
+                .sourceAttributeRef(sourceRef);
+
+        if (isInbound) {
+            assocDef.inbound(makeInboundMapping(associationName));
+        } else {
+            assocDef.outbound(makeOutboundMapping(associationName));
+        }
+
+        return new ShadowAssociationTypeSubjectDefinitionType()
+                .association(assocDef)
+                .objectType(new ResourceObjectTypeIdentificationType()
+                        .kind(subjectObjectType.getKind())
+                        .intent(subjectObjectType.getIntent()));
+    }
+
+    /**
+     * Builds an object-side association participant definition.
+     */
+    private @NotNull ShadowAssociationTypeObjectDefinitionType buildObjectParticipantDefinitionType(
+            @NotNull ResourceObjectTypeDefinition objectObjectType) {
+
+        return new ShadowAssociationTypeObjectDefinitionType()
+                .objectType(new ResourceObjectTypeIdentificationType()
+                        .kind(objectObjectType.getKind())
+                        .intent(objectObjectType.getIntent()));
+    }
+
+    private String constructObjectTypeIdentifierDisplayName(ResourceObjectTypeDefinition objectType) {
+        if (StringUtils.isEmpty(objectType.getDisplayName())) {
+            return makeSafeObjectTypeIdentification(objectType);
+        }
+        return objectType.getDisplayName();
+    }
+
+    /**
+     * Using objectType.getTypeIdentification() (kind/intent format) in association name causes an issue:
+     * - when resource is re-saved from GUI (edit raw), for some reason it re-generates the association name
+     * - the generated name is malformed and causes an error
+     * - error: Namespace mismatch in {ACCOUNT/default-ref-ENTITLEMENT}default, expected http://midpoint.evolveum.com/xml/ns/public/resource/instance-3
+     * - it is likely due to '/' character, therefore generating safer name delimited with '-' character
+     */
+    private String makeSafeObjectTypeIdentification(@NotNull ResourceObjectTypeDefinition objectType) {
+        return objectType.getKind() + "-" + objectType.getIntent();
+    }
+
+    /**
+     * Constructs a machine-readable and unique name for an association based on subject/object kinds.
+     */
+    private @NotNull String constructAssociationName(
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ResourceObjectTypeDefinition objectObjectType) {
+        var subjectPart = makeSafeObjectTypeIdentification(subjectObjectType);
+        var objectPart = makeSafeObjectTypeIdentification(objectObjectType);
+        return subjectPart + "-ref-" + objectPart;
+    }
+
+    /**
+     * Constructs a human-readable for an association based on subject/object kinds.
+     * Uses object type's display names if available, kind/intent identifier otherwise.
+     */
+    private String constructAssociationDisplayName(
+            @NotNull ResourceObjectTypeDefinition subjectObjectType,
+            @NotNull ResourceObjectTypeDefinition objectObjectType) {
+        return constructObjectTypeIdentifierDisplayName(subjectObjectType) + " reference to " + constructObjectTypeIdentifierDisplayName(objectObjectType);
+    }
+
+    private void traceAssociationSuggestion(Object obj) {
+        try {
+            if (LOGGER.isTraceEnabled()) {
+                var serialized = PrismContext.get().xmlSerializer().serializeRealValue(obj);
+                LOGGER.trace("suggested association: {}", serialized);
+            }
+        } catch (SchemaException e) {
+            LOGGER.trace("Cannot serialize object: {}", e.getMessage());
+        }
+    }
+}

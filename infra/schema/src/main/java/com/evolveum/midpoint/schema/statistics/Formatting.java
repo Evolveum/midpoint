@@ -64,7 +64,7 @@ public abstract class Formatting {
         columns.add(new Column(label, alignment, formatter, ""));
     }
 
-    enum Alignment {
+    public enum Alignment {
         LEFT, RIGHT
     }
 

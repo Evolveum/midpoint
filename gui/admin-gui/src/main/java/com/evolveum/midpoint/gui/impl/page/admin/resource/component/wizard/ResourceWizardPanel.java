@@ -169,13 +169,6 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         return wizard;
     }
 
-    private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
-        OperationResult result = getHelper().onSaveObjectPerformed(target);
-        if (!result.isError()) {
-            exitToPreview(target);
-        }
-    }
-
     private PreviewResourceDataWizardPanel createPreviewResourceDataWizardPanel() {
         return new PreviewResourceDataWizardPanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override
@@ -186,7 +179,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         };
     }
 
-    private void exitToPreview(AjaxRequestTarget target) {
+    protected void exitToPreview(AjaxRequestTarget target) {
         SchemaHandlingWizardChoicePanel preview = new SchemaHandlingWizardChoicePanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override
             protected void onTileClickPerformed(SchemaHandlingWizardChoicePanel.PreviewTileType value, AjaxRequestTarget target) {

@@ -14,7 +14,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+
+import com.evolveum.midpoint.web.component.data.table.CollapsibleBoxedTablePanel;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -33,10 +36,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
@@ -90,7 +90,6 @@ import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -115,10 +114,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * Abstract class for List panels with table.
  */
+@SuppressWarnings("rawtypes")
 public abstract class ContainerableListPanel<C extends Serializable, PO extends SelectableRow> extends BasePanel<C> {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
+
+    private static final String ID_NO_VALUE_PANEL = "noValuePanel";
 
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
@@ -303,19 +305,19 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     private void initLayout() {
-        Component table;
 
-        if (isCollapsableTable()) {
-            table = initCollapsableItemTable();
-        } else {
-            table = initItemTable();
-        }
+        Component panelForNoValue = createPanelForNoValue();
+        add(panelForNoValue);
 
+        Component table = initItemTable();
         table.setOutputMarkupId(true);
         table.setOutputMarkupPlaceholderTag(true);
+
         add(table);
 
-        table.add(new VisibleBehaviour(this::isListPanelVisible));
+        table.add(new VisibleBehaviour(() ->
+                !displayNoValuePanel() && isListPanelVisible()));
+
         setOutputMarkupId(true);
     }
 
@@ -368,9 +370,29 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         ISelectableDataProvider<PO> provider = createProvider();
         setDefaultSorting(provider, columns);
         setUseCounting(provider);
-        BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
+        BoxedTablePanel<PO> itemTable = buildTableComponent(provider, columns);
+        itemTable.setOutputMarkupId(true);
+
+        itemTable.setItemsPerPage(getDefaultPageSize());
+
+        if (getPageStorage() != null) {
+            ObjectPaging pageStorage = getPageStorage().getPaging();
+            if (pageStorage != null) {
+                itemTable.setCurrentPageAndSort(pageStorage);
+            }
+        }
+        itemTable.setShowAsCard(showTableAsCard());
+
+        return itemTable;
+    }
+
+    private @NotNull BoxedTablePanel<PO> buildTableComponent(ISelectableDataProvider<PO> provider, List<IColumn<PO, String>> columns) {
+        if (isCollapsableTable()) {
+            return initCollapsableItemTable(provider, columns);
+        }
+
+        return new BoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
-            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createHeader(String headerId) {
@@ -384,7 +406,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
-            protected org.apache.wicket.markup.repeater.Item<PO> customizeNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
+            protected String getAdditionalFooterCssClasses() {
+                return ContainerableListPanel.this.getAdditionalFooterCssClasses();
+            }
+
+            @Override
+            protected Item<PO> customizeNewRowItem(Item<PO> item, IModel<PO> model) {
                 item.add(AttributeModifier.append("class", () -> GuiImplUtil.getObjectStatus(model.getObject())));
 
                 customProcessNewRowItem(item, model);
@@ -451,19 +478,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 ContainerableListPanel.this.onPagingChanged(paging);
             }
         };
-        itemTable.setOutputMarkupId(true);
+    }
 
-        itemTable.setItemsPerPage(getDefaultPageSize());
+    protected boolean isCollapseToggleColumnVisible() {
+        return true;
+    }
 
-        if (getPageStorage() != null) {
-            ObjectPaging pageStorage = getPageStorage().getPaging();
-            if (pageStorage != null) {
-                itemTable.setCurrentPageAndSort(pageStorage);
-            }
-        }
-        itemTable.setShowAsCard(showTableAsCard());
-
-        return itemTable;
+    protected Component createCollapsibleContent(String id, @NotNull IModel<PO> rowModel) {
+        return null;
     }
 
     protected WebMarkupContainer createTableButtonToolbar(String id) {
@@ -500,65 +522,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     /**
-     * <p>NOTE: This method is experimental and may be removed in the future.</p>
-     * Initializes a collapsible table for displaying items.
-     *
-     * <p>When using this method, ensure that specific IDs are used for the collapsible components,
-     * as defined in the RoleAnalysisCollapsableTablePanel class. These IDs are required for proper
-     * functionality of collapsible elements.
-     *
-     * <p>An example of how to utilize this method is provided below:
-     * <pre>{@code
-     * Component firstCollapseContainer = cellItem.findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
-     * Component secondCollapseContainer = cellItem.findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
-     *
-     * // Assuming there's a button in the table header with the ID "headerActionButton"
-     * AjaxButton headerActionButton = new AjaxButton("headerActionButton") {
-     *     @Override
-     *     public void onSubmit(AjaxRequestTarget target) {
-     *         // Your action logic here
-     *         target.appendJavaScript(getCollapseScript(firstCollapseContainer, secondCollapseContainer));
-     *     }
-     * };
-     * add(headerActionButton);
-     * }</pre>
-     *
-     * <p>You can customize components further by overriding the {@code newRowItem} method, as shown below:
-     * <pre>{@code
-     * @Override
-     * protected Item<SelectableBean<RoleAnalysisClusterType>> newRowItem(String id, int index,
-     * IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-     *     // Customization logic here
-     * }
-     * }</pre>
-     *
-     * @return The initialized RoleAnalysisCollapsableTablePanel instance.
+     * Initializes collapsable table panel.
      */
-    protected RoleAnalysisCollapsableTablePanel<PO> initCollapsableItemTable() {
+    protected CollapsibleBoxedTablePanel<PO> initCollapsableItemTable(ISelectableDataProvider<PO> provider, List<IColumn<PO, String>> columns) {
 
-        List<IColumn<PO, String>> columns = createColumns();
-        ISelectableDataProvider<PO> provider = createProvider();
-        setDefaultSorting(provider);
-        setUseCounting(provider);
-        RoleAnalysisCollapsableTablePanel<PO> itemTable = new RoleAnalysisCollapsableTablePanel<>(ID_ITEMS_TABLE,
+        //TODO cleand override duplicates
+        return new CollapsibleBoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Item<PO> newRowItem(String id, int index, Item<PO> item, @NotNull IModel<PO> rowModel) {
-
-                Item<PO> components = ContainerableListPanel.this.newRowItem(id, index, item, rowModel);
-                if (components != null) {
-                    return components;
-                } else {
-                    return super.newRowItem(id, index, item, rowModel);
-                }
-            }
-
-            @Override
-            public boolean isShowAsCard() {
-                return ContainerableListPanel.this.showTableAsCard();
-            }
 
             @Override
             protected Component createHeader(String headerId) {
@@ -572,20 +542,20 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
+            protected String getAdditionalFooterCssClasses() {
+                return ContainerableListPanel.this.getAdditionalFooterCssClasses();
+            }
+
+            @Override
             protected Item<PO> customizeNewRowItem(Item<PO> item, IModel<PO> model) {
                 item.add(AttributeModifier.append("class", () -> GuiImplUtil.getObjectStatus(model.getObject())));
-
                 customProcessNewRowItem(item, model);
                 return item;
             }
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                if (isPreview()) {
-                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
-                            (PreviewContainerPanelConfigurationType) config, getNavigationParametersModel());
-                }
-                return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
+                return createTableButtonToolbar(id);
             }
 
             @Override
@@ -599,13 +569,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
-            public int getAutoRefreshInterval() {
-                return ContainerableListPanel.this.getAutoRefreshInterval();
-            }
-
-            @Override
-            public boolean isAutoRefreshEnabled() {
-                return ContainerableListPanel.this.isRefreshEnabled();
+            protected boolean isDataTableVisible() {
+                return ContainerableListPanel.this.isDataTableVisible();
             }
 
             @Override
@@ -617,23 +582,42 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             protected boolean isPagingVisible() {
                 return ContainerableListPanel.this.isPagingVisible();
             }
-        };
-        itemTable.setOutputMarkupId(true);
 
-        itemTable.setItemsPerPage(getDefaultPageSize());
-
-        if (getPageStorage() != null) {
-            ObjectPaging pageStorage = getPageStorage().getPaging();
-            if (pageStorage != null) {
-                itemTable.setCurrentPageAndSort(pageStorage);
+            @Override
+            protected List<Integer> getPagingSizes() {
+                return ContainerableListPanel.this.getAvailablePageSizes();
             }
-        }
 
-        return itemTable;
-    }
+            @Override
+            protected boolean shouldAddPredefinedPagingSizes() {
+                return ContainerableListPanel.this.shouldAddPredefinedPagingSizes();
+            }
 
-    protected Item<PO> newRowItem(String id, int index, Item<PO> item, @NotNull IModel<PO> rowModel) {
-        return null;
+            @Override
+            protected void savePagingNewValue(Integer newPageSize) {
+                setPagingSizeNewValue(newPageSize);
+            }
+
+            @Override
+            protected void onPagingChanged(ObjectPaging paging) {
+                ContainerableListPanel.this.onPagingChanged(paging);
+            }
+
+            @Override
+            protected boolean isCollapseToggleColumnVisible() {
+                return ContainerableListPanel.this.isCollapseToggleColumnVisible();
+            }
+
+            @Override
+            protected Component createCollapsibleContent(String id, @NotNull IModel<PO> rowModel) {
+                Component collapsibleContent = ContainerableListPanel.this.createCollapsibleContent(id, rowModel);
+                if (collapsibleContent != null) {
+                    return collapsibleContent;
+                }
+
+                return super.createCollapsibleContent(id, rowModel);
+            }
+        };
     }
 
     private int getDefaultPageSize() {
@@ -655,11 +639,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             return configuredDefaultPageSize;
         }
 
-        Integer collectionViewPagingSize = getPagingMaxSize();
-        if (collectionViewPagingSize != null) {
-            return collectionViewPagingSize;
-        }
-
         if (getTableId() != null) {
             return getSession().getSessionStorage().getUserProfile().getPagingSize(getTableId());
         }
@@ -668,26 +647,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     /**
-     * Returns the paging max size for the query
-     * @return
-     */
-    private @Nullable Integer getPagingMaxSize() {
-        CompiledObjectCollectionView view = getObjectCollectionView();
-        Integer maxSize = view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
-        if (maxSize != null) {
-            return maxSize;
-        }
-
-        var defaultListViewConfigurations = getDefaultObjectListConfiguration();
-        if (defaultListViewConfigurations == null) {
-            return null;
-        }
-        return defaultListViewConfigurations.getPaging() != null ? defaultListViewConfigurations.getPaging().getMaxSize() : null;
-    }
-
-    /**
      * Returns configured default page size from view configuration or default settings.
-     * @return
      */
     private @Nullable Integer getConfiguredDefaultPageSize() {
         CompiledObjectCollectionView view = getObjectCollectionView();
@@ -821,11 +781,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return (BoxedTablePanel<PO>) getTableComponent();
     }
 
-    private RoleAnalysisCollapsableTablePanel<PO> getCollapsableTable() {
-        //noinspection unchecked
-        return (RoleAnalysisCollapsableTablePanel<PO>) getTableComponent();
-    }
-
     public Component getTableComponent() {
         return get(ID_ITEMS_TABLE);
     }
@@ -862,24 +817,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected IColumn<PO, String> createActionsColumn() {
-        List<InlineMenuItem> allItems = new ArrayList<>();
-        List<InlineMenuItem> menuItems = createInlineMenu();
-        if (menuItems != null) {
-            allItems.addAll(menuItems);
-        }
-        addBasicActions(allItems);
-        addCustomActions(allItems, this::getSelectedRealObjects);
+        List<InlineMenuItem> allItems = getInlineMenuItems();
 
         if (!allItems.isEmpty()) {
-            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
+            return new InlineMenuButtonColumn<>(allItems, getPageBase()) {
                 @Override
                 public String getCssClass() {
                     return getInlineMenuCssClass();
                 }
 
                 @Override
-                protected String getInlineMenuItemCssClass() {
-                    return ContainerableListPanel.this.getInlineMenuItemCssClass();
+                protected String getInlineMenuItemCssClass(IModel<PO> rowModel) {
+                    return ContainerableListPanel.this.getInlineMenuItemCssClass(rowModel);
                 }
 
                 @Override
@@ -898,9 +847,19 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                     return ContainerableListPanel.this.getRowObjectName(rowModel);
                 }
             };
-            return actionsColumn;
         }
         return null;
+    }
+
+    public @NotNull List<InlineMenuItem> getInlineMenuItems() {
+        List<InlineMenuItem> allItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = createInlineMenu();
+        if (menuItems != null) {
+            allItems.addAll(menuItems);
+        }
+        addBasicActions(allItems);
+        addCustomActions(allItems, this::getSelectedRealObjects);
+        return allItems;
     }
 
     /**
@@ -1007,8 +966,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
                 if (ObjectType.F_NAME.equivalent(columnPath) || (customColumns.indexOf(customColumn) == 0 && shouldCheckForNameColumn)) {
                     column = createNameColumn(columnDisplayModel, customColumn, expression);
-                }
-                else if (AbstractRoleType.F_DISPLAY_NAME.equivalent(columnPath)) {
+                } else if (AbstractRoleType.F_DISPLAY_NAME.equivalent(columnPath)) {
                     column = new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase()) {
                         @Override
                         public void populateItem(Item item, String componentId, IModel rowModel) {
@@ -1016,8 +974,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                             item.add(AttributeAppender.append("class", "name-min-width"));
                         }
                     };
-                }
-                else {
+                } else {
                     column = createCustomExportableColumn(columnDisplayModel, customColumn, expression);
                 }
 
@@ -1207,10 +1164,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     public List<PO> getSelectedObjects() {
-        if (isCollapsableTable()) {
-            return getSelectedObjectFromCollapsableTable();
-        }
-
         return getSelectedObjectFromDatatable(getTable().getDataTable());
     }
 
@@ -1222,10 +1175,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
         });
         return objects;
-    }
-
-    private @NotNull List<PO> getSelectedObjectFromCollapsableTable() {
-        return getSelectedObjectFromDatatable(getCollapsableTable().getDataTable());
     }
 
     public abstract List<C> getSelectedRealObjects();
@@ -1272,13 +1221,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId) {
             @Override
             protected DataTable<?, ?> getDataTable() {
-                Component tableComponent = getTableComponent();
-                if (tableComponent instanceof BoxedTablePanel) {
-                    return getTable().getDataTable();
-                } else if (tableComponent instanceof RoleAnalysisCollapsableTablePanel) {
-                    return getCollapsableTable().getDataTable();
-                }
-
                 return getTable().getDataTable();
             }
 
@@ -1464,12 +1406,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.anyClassToQName(getPrismContext(), getType()), null);
     }
 
-    protected ISelectableDataProvider getDataProvider() {
+    public ISelectableDataProvider getDataProvider() {
         Component tableComponent = getTableComponent();
         if (tableComponent instanceof BoxedTablePanel) {
             return (ISelectableDataProvider) getTable().getDataTable().getDataProvider();
-        } else if (tableComponent instanceof RoleAnalysisCollapsableTablePanel) {
-            return (ISelectableDataProvider) getCollapsableTable().getDataTable().getDataProvider();
         }
         return null;
     }
@@ -1777,7 +1717,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return null;
     }
 
-    protected String getInlineMenuItemCssClass() {
+    protected String getInlineMenuItemCssClass(@Nullable IModel<PO> rowModel) {
         return "btn btn-default btn-xs";
     }
 
@@ -1785,4 +1725,44 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return findParent(AbstractPageObjectDetails.class) != null;
     }
 
+    protected String getAdditionalFooterCssClasses() {
+        return null;
+    }
+
+    /**
+     * Determines whether the panel should display a special UI component
+     * (e.g. {@link NoValuePanel}) when there are no values
+     * present in the container.
+     */
+    public boolean displayNoValuePanel() {
+        return false;
+    }
+
+    /**
+     * Creates a fallback UI panel to be displayed when the container model has no values.
+     * <p>
+     * This method constructs a {@link NoValuePanel} that visually indicates the
+     * absence of configured resource object types and provides a set of actionable toolbar buttons
+     * (e.g., create new or suggest type).
+     * </p>
+     *
+     * @return A {@link Component} instance to be used as the panel when no values are present.
+     */
+    protected Component createPanelForNoValue() {
+        NoValuePanel components = new NoValuePanel(ID_NO_VALUE_PANEL, () -> new NoValuePanelDto(
+                defaultType.getSimpleName())) {
+
+            @Override
+            protected List<Component> createToolbarButtons(String buttonsId) {
+                return createToolbarButtonsList(ID_BUTTON);
+            }
+        };
+        components.setOutputMarkupId(true);
+        components.add(new VisibleBehaviour(this::displayNoValuePanel));
+        return components;
+    }
+
+    protected Component getNoValuePanel() {
+        return get(ID_NO_VALUE_PANEL);
+    }
 }

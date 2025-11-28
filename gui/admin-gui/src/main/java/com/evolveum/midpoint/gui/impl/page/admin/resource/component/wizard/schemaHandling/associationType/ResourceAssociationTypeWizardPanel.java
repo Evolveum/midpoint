@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.ObjectAssociationStepPanel;
@@ -75,7 +75,7 @@ public class ResourceAssociationTypeWizardPanel extends AbstractWizardChoicePane
                                 target,
                                 new WizardPanel(
                                         getIdOfWizardPanel(),
-                                        new WizardModel(createObjectStep())));
+                                        new WizardModelBasic(createObjectStep())));
                         break;
                 }
 

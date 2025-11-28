@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 
+import java.io.Serial;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -39,6 +40,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -48,7 +51,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     private static final String ID_HEADER = "header";
     private static final String ID_FOOTER = "footer";
-    private static final String ID_TABLE = "table";
+    protected static final String ID_TABLE = "table";
     private static final String ID_TABLE_CONTAINER = "tableContainer";
 
     private static final String ID_PAGING_FOOTER = "pagingFooter";
@@ -65,7 +68,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private boolean showPaging;
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
-    private List<IColumn<T, String>> columns;
+    protected List<IColumn<T, String>> columns;
 
     //interval in seconds
     private static final int DEFAULT_REFRESH_INTERVAL = 60;
@@ -84,6 +87,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         super(id);
         this.tableId = tableId;
         this.isRefreshEnabled = isRefreshEnabled;
+        customizeColumns(columns);
         initLayout(columns, provider);
     }
 
@@ -108,33 +112,17 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initResponsiveTable();"));
     }
 
-    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider) {
+    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T,String> provider) {
         setOutputMarkupId(true);
         add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
-        add(AttributeAppender.append("class", () -> getAdditionalBoxCssClasses()));
+        add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.setOutputMarkupId(true);
 
         int pageSize = getItemsPerPage(tableId);
-        DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, pageSize) {
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {
-                Item<T> item = super.newRowItem(id, index, rowModel);
-                return customizeNewRowItem(item, rowModel);
-            }
-
-            @Override
-            protected void onPageChanged() {
-                super.onPageChanged();
-
-                BoxedTablePanel.this.onPageChanged();
-            }
-        };
-        table.setOutputMarkupId(true);
-        table.add(new VisibleBehaviour(this::isDataTableVisible));
+        @NotNull DataTable<?,?> table = createDataTableComponent(columns, provider, pageSize, tableContainer);
         tableContainer.add(table);
         add(tableContainer);
 
@@ -162,8 +150,43 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         add(header);
         add(AttributeAppender.append("aria-labelledby", () -> header.isVisible() ? header.getMarkupId() : null));
         WebMarkupContainer footer = createFooter(ID_FOOTER);
-        footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
+        footer.add(AttributeAppender.append("class", getAdditionalFooterCssClasses()));
+        footer.add(new VisibleBehaviour(() -> isFooterVisible(provider, pageSize)));
         add(footer);
+    }
+
+    protected @NotNull DataTable<T, String> createDataTableComponent(
+            List<IColumn<T, String>> columns,
+            ISortableDataProvider<T, String> provider,
+            int pageSize,
+            @NotNull WebMarkupContainer tableContainer) {
+        DataTable<T, String> table = new SelectableDataTable<T>(BoxedTablePanel.ID_TABLE, columns, provider, pageSize) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {
+                Item<T> item = super.newRowItem(id, index, rowModel);
+                return customizeNewRowItem(item, rowModel);
+            }
+
+            @Override
+            protected void onPageChanged() {
+                super.onPageChanged();
+
+                BoxedTablePanel.this.onPageChanged();
+            }
+        };
+        table.setOutputMarkupId(true);
+        table.add(AttributeAppender.append("class", this::getTableAdditionalCssClasses));
+        table.add(new VisibleBehaviour(this::isDataTableVisible));
+        return table;
+    }
+
+    protected void customizeColumns(List<IColumn<T, String>> columns) {
+    }
+
+    protected String getAdditionalFooterCssClasses() {
+        return null;
     }
 
     //used only for debug pages, to refresh search properly when type is changed.
@@ -200,6 +223,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         Integer size = safeLongToInteger(itemsPerPage);
 
         return PrismContext.get().queryFactory().createPaging(o * size, size);
+    }
+
+    public String getTableAdditionalCssClasses() {
+        return null;
     }
 
     public int getAutoRefreshInterval() {
@@ -309,6 +336,16 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
 
             @Override
+            protected boolean isNavigatorPanelVisible() {
+                return BoxedTablePanel.this.isNavigatorPanelVisible();
+            }
+
+            @Override
+            protected boolean isPagingSizePanelVisible() {
+                return BoxedTablePanel.this.isPagingSizePanelVisible();
+            }
+
+            @Override
             protected List<Integer> getPagingSizes() {
                 return BoxedTablePanel.this.getPagingSizes();
             }
@@ -326,6 +363,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     protected boolean isPagingVisible() {
+        return true;
+    }
+
+    protected boolean isNavigatorPanelVisible() {
+        return true;
+    }
+
+    protected boolean isPagingSizePanelVisible() {
         return true;
     }
 
@@ -380,6 +425,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return new WebMarkupContainer(id);
     }
 
+    protected boolean isFooterVisible(ISortableDataProvider<T, String> provider, int pageSize) {
+        return !hideFooterIfSinglePage() || provider.size() > pageSize;
+    }
+
     private static class PagingFooter extends Fragment {
 
         public PagingFooter(String id, String markupId, BoxedTablePanel markupProvider, Table table) {
@@ -422,6 +471,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                     return PagingFooter.this.getPaginationCssClass();
                 }
             };
+            nb2.add(new VisibleBehaviour(() -> isNavigatorPanelVisible()));
             footerContainer.add(nb2);
 
             Form form = new MidpointForm(ID_FORM);
@@ -453,6 +503,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             };
             // todo nasty hack, we should decide whether paging should be normal or "small"
             menu.setSmall(getPaginationCssClass() != null);
+            menu.add(new VisibleBehaviour(() -> isPagingSizePanelVisible()));
             form.add(menu);
             add(footerContainer);
         }
@@ -478,6 +529,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         }
 
         protected boolean isPagingVisible() {
+            return true;
+        }
+
+        protected boolean isNavigatorPanelVisible() {
+            return true;
+        }
+
+        protected boolean isPagingSizePanelVisible() {
             return true;
         }
 

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisPagingRows;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -56,7 +57,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.data.column.RoleAnalysisIntersectionColumn;
 import com.evolveum.midpoint.web.component.data.column.RoleAnalysisObjectColumn;
-import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisPaginRows;
 import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisPagingColumns;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -373,7 +373,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     }
 
     protected WebMarkupContainer createRowsNavigation() {
-        return new RoleAnalysisPaginRows(RoleAnalysisTable.ID_FOOTER, ID_PAGING_FOOTER, this, new PropertyModel<>(getModel(), RoleAnalysisObjectDto.F_DISPLAY_VALUE_OPTION), getDataTable()) {
+        return new RoleAnalysisPagingRows(RoleAnalysisTable.ID_FOOTER, ID_PAGING_FOOTER, this, new PropertyModel<>(getModel(), RoleAnalysisObjectDto.F_DISPLAY_VALUE_OPTION), getDataTable()) {
 
             @Override
             protected boolean isPagingVisible() {

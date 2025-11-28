@@ -72,25 +72,32 @@ public class DirectoryScanningInfoManager implements ConnectorInfoManager {
         return ret;
     }
 
-    private boolean registerConnector(File bundle) {
+    private List<ConnectorInfo> registerConnector(File bundle) {
         if (ConnectorFactoryConnIdImpl.isThisJarFileBundle(bundle)) {
             return registerConnector(bundle.toURI());
         }
-        return false;
+        return List.of();
     }
 
-    private boolean registerConnector(URI bundle) {
+    List<ConnectorInfo> registerConnector(URI bundle) {
         if (isLoaded(bundle)) {
-            return false;
+            return List.of();
         }
         Optional<ConnectorInfoManager> maybeConnector = connectorFromURL(bundle);
         if (maybeConnector.isPresent()) {
             ConnectorInfoManager connector = maybeConnector.get();
             uriToManager.put(bundle, connector);
             managers.add(connector);
-            return true;
+            return connector.getConnectorInfos();
         }
-        return false;
+        return List.of();
+    }
+
+
+    URI findConnectorUri(ConnectorKey manager) {
+        return uriToManager.entrySet().stream().filter(entry -> entry.getValue().findConnectorInfo(manager) != null)
+                .map(Map.Entry::getKey)
+                .findFirst().orElse(null);
     }
 
     private boolean isLoaded(URI maybeConnector) {
@@ -107,7 +114,6 @@ public class DirectoryScanningInfoManager implements ConnectorInfoManager {
              * Fortunately ConnectorInfoManager does not hold any additional functionality
              * besides initialization of basic connector info and lookup in locally loaded connector
              * infos, thus we can have separate instance per bundle uri.
-             *
              *
              */
             ConnectorInfoManager localManager = factory.getLocalManager(bundleUrl.toURL());
@@ -176,7 +182,7 @@ public class DirectoryScanningInfoManager implements ConnectorInfoManager {
 
         @Override
         public void onFileCreate(File file) {
-            if (registerConnector(file)) {
+            if (!registerConnector(file).isEmpty()) {
                 ucfFactory.notifyConnectorAdded();
             }
         }

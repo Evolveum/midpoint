@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
+        <div wicket:id="feedback" class="messagePanel"/>
+    </div>
+    <div class="col-12 card p-0">
+        <div class="d-flex flex-row" wicket:id="panel">
+            <div class="h-100 m-auto pr-3">
+                <div wicket:id="check"/>
+            </div>
+            <div class="w-100 d-flex flex-column">
+                <div class="d-lex flex-row">
+                    <div class="d-inline" wicket:id="name"/>
+                    <div class="ml-2 badge badge-info" wicket:id="type"/>
+                </div>
+                <div class="text-sm text-secondary" wicket:id="description"/>
+            </div>
+        </div>
+    </div>
+</wicket:extend>
+</html>

@@ -20,9 +20,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -77,6 +75,36 @@ public class AssociationDuplicateResolver extends ContainerDuplicateResolver<Sha
                 .description(copyOf +
                         (originalBean.getDescription() == null ? "" : (System.lineSeparator() + originalBean.getDescription())));
 
+        fixAssociationRef(originalBean, duplicatedBean);
+
+        return duplicatedBean;
+    }
+
+    /**
+     * Duplicate without adding "copyOf" to name, displayName, or description.
+     */
+    public ShadowAssociationTypeDefinitionType duplicateObjectWithoutCopyOf(ShadowAssociationTypeDefinitionType originalBean) {
+        PrismContainerValue<ShadowAssociationTypeDefinitionType> originalObject = originalBean.asPrismContainerValue();
+        PrismContainerValue<ShadowAssociationTypeDefinitionType> duplicate =
+                DuplicationProcessHelper.duplicateContainerValueDefault(originalObject);
+        @NotNull ShadowAssociationTypeDefinitionType duplicatedBean = duplicate.asContainerable();
+
+        duplicatedBean
+                .name(originalBean.getName())
+                .displayName(originalBean.getDisplayName())
+                .lifecycleState(SchemaConstants.LIFECYCLE_PROPOSED)
+                .description(originalBean.getDescription());
+
+        fixAssociationRef(originalBean, duplicatedBean);
+
+        return duplicatedBean;
+    }
+
+    /**
+     * Extracted logic to handle association ref uniqueness.
+     */
+    private void fixAssociationRef(ShadowAssociationTypeDefinitionType originalBean,
+            @NotNull ShadowAssociationTypeDefinitionType duplicatedBean) {
         if (duplicatedBean.getSubject() != null
                 && duplicatedBean.getSubject().getAssociation() != null
                 && duplicatedBean.getSubject().getAssociation().getRef() != null
@@ -92,14 +120,11 @@ public class AssociationDuplicateResolver extends ContainerDuplicateResolver<Sha
 
                     refQName = new QName(refQName.getNamespaceURI(), origLocalPart + index, refQName.getPrefix());
                     index++;
-
                 }
                 duplicatedBean.getSubject().getAssociation().ref(new ItemPathType(ItemPath.create(refQName)));
             } catch (SchemaException e) {
                 LOGGER.error("Couldn't resolve association ref attribute.", e);
             }
         }
-
-        return duplicatedBean;
     }
 }

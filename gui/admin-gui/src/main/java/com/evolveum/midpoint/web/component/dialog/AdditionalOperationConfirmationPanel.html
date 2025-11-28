@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <p class="text-center" wicket:id="warningMessage"></p>
+
+    <p class="text-center" wicket:id="confirmText"></p>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <a class="btn btn-default" wicket:id="no"></a>
+            <a class="btn btn-default" wicket:id="yes"></a>
+            <a class="btn btn-primary ml-auto" wicket:id="process"></a>
+        </div>
+    </wicket:fragment>
+</wicket:panel>

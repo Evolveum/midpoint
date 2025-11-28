@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-row pb-2 border-bottom mb-2">
+        <div class="d-flex flex-column w-100">
+            <div class="d-flex flex-row">
+                <span class="font-weight-bold w-100 clamp-1-lines" wicket:id="title"/>
+                <div class="ml-auto" wicket:id="actions"/>
+                <a class="btn text-danger py-0" wicket:id="deleteButton"></a>
+            </div>
+            <span class="mt-1 text-secondary clamp-2-lines" wicket:id="description"/>
+        </div>
+
+    </div>
+    <div class="d-flex flex-column">
+        <div class="d-flex flex-row pb-1">
+            <div>
+                <wicket:message key="ConnectorObjectClassTilePanel.capabilitiesTitle"/>
+            </div>
+            <div class="pl-1" wicket:id="capabilitiesCount"/>
+        </div>
+        <div class="d-flex flex-row">
+            <div wicket:id="capabilities">
+                <div class="py-1 px-2 colored-form-secondary badge mr-2" wicket:id="capability">
+                    <div wicket:id="capabilityLabel"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>

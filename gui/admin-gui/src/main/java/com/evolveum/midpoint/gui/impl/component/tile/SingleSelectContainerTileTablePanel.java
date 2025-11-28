@@ -9,11 +9,9 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.wicket.Component;
@@ -99,5 +97,9 @@ public abstract class SingleSelectContainerTileTablePanel<C extends Containerabl
                 add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
             }
         };
+    }
+
+    public IModel<List<PrismContainerValueWrapper<C>>> getDetailsModel() {
+        return model;
     }
 }

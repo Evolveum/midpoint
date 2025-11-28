@@ -49,6 +49,11 @@ public class ItemPanelSettingsBuilder {
         return this;
     }
 
+    public ItemPanelSettingsBuilder isRemoveButtonVisible(Boolean isRemoveButtonVisible) {
+        settings.setRemoveButtonVisible(isRemoveButtonVisible);
+        return this;
+    }
+
     public ItemPanelSettings build() {
         return settings;
     }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+<service oid="77ab5de4-bdb3-4eb2-9fc3-200739d1128a"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>System intelligence</name>
+    <description>Origin for values provided by the system intelligence tools</description>
+</service>

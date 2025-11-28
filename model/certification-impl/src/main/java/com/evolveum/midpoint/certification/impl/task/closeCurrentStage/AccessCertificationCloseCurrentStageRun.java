@@ -73,7 +73,7 @@ public final class AccessCertificationCloseCurrentStageRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
         String campaignOid = getWorkDefinition().getCertificationCampaignRef().getOid();
         campaign = getBeans().repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result).asObjectable();
         outcomesToStopOn = getActivityHandler().getComputationHelper().getOutcomesToStopOn(campaign);
@@ -83,7 +83,7 @@ public final class AccessCertificationCloseCurrentStageRun
         stage = CertCampaignTypeUtil.findStage(campaign, or0(campaign.getStageNumber()));
         now = getActivityHandler().getModelBeans().clock.currentTimeXMLGregorianCalendar();
 
-        super.beforeRun(result);
+        return super.beforeRun(result);
     }
 
     @Override

@@ -102,6 +102,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /** "Pure" definition of the mapping. Just for convenience. Derived from {@link #mappingConfigItem}. */
     @NotNull final MBT mappingBean;
 
+    /** Supplies the expression if none is defined in the mapping bean. */
+    @NotNull final ExpressionSupplier defaultExpressionSupplier;
+
     /** Classification of the mapping (for reporting and diagnostic purposes). */
     @Experimental
     private final MappingKindType mappingKind;
@@ -423,6 +426,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         variables = builder.getVariables();
         mappingConfigItem = Objects.requireNonNull(builder.getMappingConfigItem(), "Mapping definition cannot be null");
         mappingBean = mappingConfigItem.value();
+        defaultExpressionSupplier = builder.defaultExpressionSupplier;
         mappingKind = builder.getMappingKind();
         implicitSourcePath = builder.getImplicitSourcePath();
         implicitTargetPath = builder.getImplicitTargetPath();
@@ -472,6 +476,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     protected AbstractMappingImpl(AbstractMappingImpl<V, D, MBT> prototype) {
         this.mappingConfigItem = prototype.mappingConfigItem;
         this.mappingBean = prototype.mappingBean;
+        this.defaultExpressionSupplier = prototype.defaultExpressionSupplier;
         this.mappingKind = prototype.mappingKind;
         this.implicitSourcePath = prototype.implicitSourcePath;
         this.implicitTargetPath = prototype.implicitTargetPath;
@@ -1447,8 +1452,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private void evaluateExpression(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
+        var expressionBean = mappingBean.getExpression();
         expression = ModelCommonBeans.get().expressionFactory.makeExpression(
-                mappingBean.getExpression(),
+                expressionBean != null ? expressionBean : defaultExpressionSupplier.get(),
                 getOutputDefinition(),
                 getExpressionProfile(),
                 "expression in " + getMappingContextDescription(),
@@ -1738,5 +1744,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     @Override
     public D getTargetItemDefinition() {
         return getOutputDefinition();
+    }
+
+    public interface ExpressionSupplier extends Serializable {
+        @Nullable ExpressionType get();
     }
 }

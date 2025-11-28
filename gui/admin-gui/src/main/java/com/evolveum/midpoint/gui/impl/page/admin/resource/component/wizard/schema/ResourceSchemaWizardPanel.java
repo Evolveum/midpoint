@@ -6,10 +6,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
@@ -17,13 +16,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.SelectObjectClassesStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.schema.component.wizard.CreateComplexOrEnumerationWizardPanel;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismSchemaWrapper;
-import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -35,14 +29,9 @@ import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
-
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +51,7 @@ public class ResourceSchemaWizardPanel extends AbstractWizardPanel<ResourceType,
     }
 
     protected void initLayout() {
-        add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModel(createSchemaSteps()))));
+        add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createSchemaSteps()))));
     }
 
     private List<WizardStep> createSchemaSteps() {

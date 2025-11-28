@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.component.button;
 import com.evolveum.midpoint.web.component.menu.cog.*;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,7 +22,11 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.io.Serial;
+import java.io.Serializable;
 
 /**
  * Universal button to display drop-down menus. The button itself can have numerous decorations: icon, label and tag with count (info)
@@ -31,7 +36,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
+
     private static final String ID_BUTTON_CONTAINER = "buttonContainer";
     private static final String ID_INFO = "info";
     private static final String ID_ICON = "icon";
@@ -41,7 +47,6 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     private static final String ID_DROPDOWN_MENU = "dropDownMenu";
     private static final String ID_MENU_ITEM = "menuItem";
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
-
 
     public DropdownButtonPanel(String id, DropdownButtonDto model) {
         super(id, Model.of(model));
@@ -71,23 +76,11 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeModifier.append("class", new PropertyModel<>(getModel(), DropdownButtonDto.F_ICON)));
-        icon.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public boolean isVisible() {
-                return getModelObject() != null && getModelObject().getIcon() != null;
-            }
-        });
+        icon.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null));
         buttonContainer.add(icon);
 
         WebMarkupContainer caret = new WebMarkupContainer(ID_CARET);
-        caret.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public boolean isVisible() {
-                return visibleCaret();
-            }
-        });
+        caret.add(new VisibleBehaviour(this::visibleCaret));
         buttonContainer.add(caret);
 
         WebMarkupContainer dropdownMenuContainer = new WebMarkupContainer(ID_DROPDOWN_MENU);
@@ -111,7 +104,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     }
 
     public WebMarkupContainer getButtonContainer() {
-        return (WebMarkupContainer)get(ID_BUTTON_CONTAINER);
+        return (WebMarkupContainer) get(ID_BUTTON_CONTAINER);
     }
 
     protected boolean visibleCaret() {
@@ -120,48 +113,72 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 
     protected void populateMenuItem(String componentId, ListItem<InlineMenuItem> menuItem) {
         menuItem.setRenderBodyOnly(true);
+        IModel<InlineMenuItem> model = menuItem.getModel();
+        Component menuItemBody = createMenuLinkPanel(componentId,
+                model,
+                showIcon(),
+                this::onBeforeClickMenuItem);
 
-        MenuLinkPanel menuItemBody;
-        if (showIcon() && menuItem.getModelObject() instanceof ButtonInlineMenuItem) {
-            IModel model = menuItem.getModel();
-            menuItemBody = new IconMenuLinkPanel(componentId, model) {
+        menuItemBody.setRenderBodyOnly(true);
+        menuItem.add(menuItemBody);
+        menuItem.add(new VisibleBehaviour(() -> menuItem.getModelObject().getVisible().getObject()));
+    }
+
+    public static <T extends InlineMenuItem> @NotNull Component createMenuLinkPanel(
+            String componentId,
+            IModel<T> model,
+            boolean showIcon,
+            OnBeforeClickHandler<T> beforeClickHandler) {
+
+        if (showIcon && model.getObject() instanceof ButtonInlineMenuItem) {
+            @SuppressWarnings("unchecked")
+            IModel<ButtonInlineMenuItem> buttonModel = (IModel<ButtonInlineMenuItem>) model;
+
+            return new IconMenuLinkPanel(componentId, buttonModel) {
+                @SuppressWarnings("unchecked")
                 @Override
                 protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<ButtonInlineMenuItem> item) {
-                    onBeforeClickMenuItem(target, action, item);
+                    beforeClickHandler.handle(target, action, (IModel<T>) item);
                     super.onClick(target, action, item);
                 }
 
+                @SuppressWarnings("unchecked")
                 @Override
                 protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<ButtonInlineMenuItem> item) {
-                    onBeforeClickMenuItem(target, action, item);
+                    beforeClickHandler.handle(target, action, (IModel<T>) item);
                     super.onSubmit(target, action, item);
                 }
             };
         } else {
-            menuItemBody = new MenuLinkPanel<>(componentId, menuItem.getModel()) {
+            return new MenuLinkPanel<>(componentId, model) {
                 @Override
-                protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
-                    onBeforeClickMenuItem(target, action, item);
+                protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item) {
+                    beforeClickHandler.handle(target, action, item);
                     super.onClick(target, action, item);
                 }
 
                 @Override
-                protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
-                    onBeforeClickMenuItem(target, action, item);
+                protected void onSubmit(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item) {
+                    beforeClickHandler.handle(target, action, item);
                     super.onSubmit(target, action, item);
                 }
             };
         }
-        menuItemBody.setRenderBodyOnly(true);
-        menuItem.add(menuItemBody);
-        menuItem.add(new VisibleBehaviour(() -> menuItem.getModelObject().getVisible().getObject()));
     }
 
     protected boolean showIcon() {
         return false;
     }
 
-    protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {
+    @FunctionalInterface
+    public interface OnBeforeClickHandler<T extends InlineMenuItem> extends Serializable {
+        void handle(AjaxRequestTarget target, InlineMenuItemAction action, IModel<T> item);
+    }
+
+    protected void onBeforeClickMenuItem(
+            AjaxRequestTarget target,
+            InlineMenuItemAction action,
+            IModel<? extends InlineMenuItem> item) {
     }
 
     protected String getSpecialButtonClass() {

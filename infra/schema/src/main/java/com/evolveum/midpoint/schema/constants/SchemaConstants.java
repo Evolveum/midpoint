@@ -75,6 +75,9 @@ public abstract class SchemaConstants {
     public static final QName C_RESOURCE_TYPE = new QName(NS_C, "ResourceType");
     public static final QName C_CONNECTOR_TYPE = new QName(NS_C, "ConnectorType");
     public static final ItemName C_CONNECTOR = new ItemName(NS_C, "connector");
+    public static final QName C_CONNECTOR_DEVELOPMENT_TYPE = new QName(NS_C, "ConnectorDevelopmentType");
+    public static final ItemName C_CONNECTOR_DEVELOPMENT = new ItemName(NS_C, "connectorDevelopment");
+
     public static final QName C_CONNECTOR_HOST_TYPE = new QName(NS_C, "ConnectorHostType");
     public static final ItemName C_CONNECTOR_HOST = new ItemName(NS_C, "connectorHost");
     public static final ItemName C_ROLE_ANALYSIS_CLUSTER_TYPE = new ItemName(NS_C, "RoleAnalysisClusterType");
@@ -458,6 +461,15 @@ public abstract class SchemaConstants {
 
     public static final ItemName MODEL_EXTENSION_CLEANUP_POLICIES = new ItemName(NS_MODEL_EXTENSION,
             "cleanupPolicies");
+
+    // TEMPORARY (until moved to new object type)
+    public static final ItemName MODEL_EXTENSION_RESOURCE_OID = ItemName.from(NS_MODEL_EXTENSION, "resourceOid");
+    public static final ItemName MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME = ItemName.from(NS_MODEL_EXTENSION, "objectClassLocalName");
+    public static final ItemName MODEL_EXTENSION_KIND_NAME = ItemName.from(NS_MODEL_EXTENSION, "kindName");
+    public static final ItemName MODEL_EXTENSION_INTENT_NAME = ItemName.from(NS_MODEL_EXTENSION, "intentName");
+    public static final ItemName MODEL_EXTENSION_STATISTICS = ItemName.from(NS_MODEL_EXTENSION, "statistics");
+    public static final ItemName MODEL_EXTENSION_OBJECT_TYPE_STATISTICS = ItemName.from(NS_MODEL_EXTENSION, "objectTypeStatistics");
+    public static final ItemName MODEL_EXTENSION_OBJECT_TYPE_SCHEMA_MATCH = ItemName.from(NS_MODEL_EXTENSION, "objectTypeSchemaMatch");
 
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ID = new ItemName(NS_MODEL_EXTENSION, "workItemId");
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTIONS = new ItemName(NS_MODEL_EXTENSION, "workItemActions");

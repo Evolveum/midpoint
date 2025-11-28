@@ -30,6 +30,8 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -54,6 +56,8 @@ public interface ModelServiceLocator {
     ModelService getModelService();
 
     ModelInteractionService getModelInteractionService();
+
+    SmartIntegrationService getSmartIntegrationService();
 
     DashboardService getDashboardService();
 
@@ -115,4 +119,6 @@ public interface ModelServiceLocator {
     RoleAnalysisService getRoleAnalysisService();
 
     TriggerHandlerRegistry getTriggerHandlerRegistry();
+
+    ConnectorDevelopmentService getConnectorService();
 }

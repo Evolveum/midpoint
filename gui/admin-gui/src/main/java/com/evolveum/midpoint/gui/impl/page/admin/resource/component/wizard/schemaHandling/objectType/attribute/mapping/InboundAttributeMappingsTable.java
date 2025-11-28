@@ -35,11 +35,15 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.excludeUnwantedMappings;
 
 /**
  * @author lskublik
@@ -68,10 +72,18 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
     @Override
     protected IColumn<PrismContainerValueWrapper<MappingType>, String> createUsedIconColumn() {
+        return getMappingUsedIconColumn(null);
+    }
+
+    public static @NotNull IconColumn<PrismContainerValueWrapper<MappingType>> getMappingUsedIconColumn(
+            @Nullable String additionalCssClass) {
         return new IconColumn<>(Model.of()) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+            public void populateItem(
+                    Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem,
+                    String componentId,
+                    IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
                 super.populateItem(cellItem, componentId, rowModel);
                 cellItem.add(AttributeAppender.append("class", "text-center"));
             }
@@ -99,7 +111,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
             @Override
             public String getCssClass() {
-                return "px-0";
+                return "px-0 " + additionalCssClass;
             }
         };
     }
@@ -201,22 +213,18 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                     return list;
                 }
 
-                list.removeIf(valueWrapper -> {
-                    InboundMappingType realValue = (InboundMappingType) valueWrapper.getRealValue();
-                    InboundMappingUseType valueUse = realValue.getUse();
-                    if (valueUse == null) {
-                        valueUse = InboundMappingUseType.ALL;
-                    }
-                    MappingUsedFor valueUsedFor = MappingUsedFor.valueOf(valueUse.name());
-
-                    return !usedFor.equals(valueUsedFor);
-                });
+                excludeMappings(list, usedFor);
                 return list;
             }
         };
     }
 
-    private MappingUsedFor getSelectedTypeOfMappings() {
+    protected void excludeMappings(@NotNull List<PrismContainerValueWrapper<MappingType>> list, MappingUsedFor usedFor) {
+        excludeUnwantedMappings(list, usedFor);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected MappingUsedFor getSelectedTypeOfMappings() {
         DropDownChoicePanel<MappingUsedFor> header = (DropDownChoicePanel<MappingUsedFor>) getTable().getHeader();
         return header.getModel().getObject();
     }

@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -131,7 +133,10 @@ public class RoleMembershipManagementActivityHandler
         }
 
         @Override
-        public void beforeRun(OperationResult result) throws CommonException {
+        public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+            if (!super.beforeRun(result)) {
+                return false;
+            }
             ensureNoDryRun();
             role = modelObjectResolver.resolve(
                     getWorkDefinition().roleRef,
@@ -140,6 +145,7 @@ public class RoleMembershipManagementActivityHandler
                     "roleRef resolution",
                     getRunningTask(), result);
             inducedRolesOids = RoleManagementUtil.getInducedRolesOids(role);
+            return true;
         }
 
         @Override

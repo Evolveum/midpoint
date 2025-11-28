@@ -13,9 +13,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -24,6 +27,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ResourceObjectTypeWizardChoicePanel
         extends ResourceWizardChoicePanel<ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType> {
@@ -72,7 +76,10 @@ public abstract class ResourceObjectTypeWizardChoicePanel
     }
 
     @Override
-    protected void addCustomButtons(RepeatingView buttons) {
+    protected void addCustomButtons(@NotNull RepeatingView buttons) {
+        SimulationActionTaskButton<?> simulationActionTaskButton = createSimulationMenuButton(buttons);
+        buttons.add(simulationActionTaskButton);
+
         AjaxIconButton previewData = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-magnifying-glass"),
@@ -85,6 +92,27 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         previewData.showTitleAsLabel(true);
         previewData.add(AttributeAppender.append("class", "btn btn-primary"));
         buttons.add(previewData);
+    }
+
+    private @NotNull SimulationActionTaskButton<?> createSimulationMenuButton(@NotNull RepeatingView buttons) {
+        SimulationActionTaskButton<Void> simulationActionTaskButton = new SimulationActionTaskButton<>(
+                buttons.newChildId(),
+                this::getResourceObjectDefinition,
+                () -> getAssignmentHolderDetailsModel().getObjectType()) {
+
+            @Override
+            public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+                ResourceObjectTypeWizardChoicePanel.this.redirectToSimulationTasksWizard(target);
+            }
+
+            @Override
+            protected @NotNull ResourceTaskFlavor<Void> getTaskFlavor() {
+                return ResourceTaskFlavors.IMPORT;
+            }
+        };
+
+        simulationActionTaskButton.setRenderBodyOnly(true);
+        return simulationActionTaskButton;
     }
 
     protected void showPreviewDataObjectType(AjaxRequestTarget target) {
@@ -127,5 +155,14 @@ public abstract class ResourceObjectTypeWizardChoicePanel
     @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("ResourceObjectTypeWizardPreviewPanel.text");
+    }
+
+    protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
+
+    }
+
+    private @Nullable ResourceObjectTypeDefinitionType getResourceObjectDefinition() {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = getValueModel().getObject();
+        return object != null ? object.getRealValue() : null;
     }
 }

@@ -797,6 +797,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="itemsSubCorrelator" type="tns:ItemsSubCorrelatorType"/>
 
     <xsd:complexType name="FilterSubCorrelatorType">
         <xsd:annotation>

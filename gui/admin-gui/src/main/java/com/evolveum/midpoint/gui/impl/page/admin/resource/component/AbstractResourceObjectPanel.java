@@ -6,6 +6,19 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import static com.evolveum.midpoint.common.LocalizationTestUtil.getLocalizationService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -29,22 +42,9 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItemWithCoun
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.SynchronizationTaskFlavor;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.common.LocalizationTestUtil.getLocalizationService;
 
 /**
  * Abstract class contains common methods for panels that show uncategorized and categorized resource objects.
@@ -119,20 +119,19 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
 
     protected abstract TaskCreationPopup<?> createNewTaskPopup();
 
-    protected void createNewTaskPerformed(SynchronizationTaskFlavor flavor, boolean isSimulation, AjaxRequestTarget target) {
+    protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean isSimulation, AjaxRequestTarget target) {
         var newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
                 .hideSuccessfulStatus()
                 .run((task, result) -> {
 
                     ResourceType resource = getObjectDetailsModels().getObjectType();
-                    ResourceTaskCreator creator =
-                            ResourceTaskCreator.forResource(resource, getPageBase())
-                                    .ofFlavor(flavor)
-                                    .ownedByCurrentUser()
-                                    .withCoordinates(
-                                            getKind(), // FIXME not static
-                                            getIntent(), // FIXME not static
-                                            getObjectClass()); // FIXME not static
+                    ResourceTaskCreator<?> creator = ResourceTaskCreator.of(flavor, getPageBase())
+                            .forResource(resource)
+                            .ownedByCurrentUser()
+                            .withCoordinates(
+                                    getKind(), // FIXME not static
+                                    getIntent(), // FIXME not static
+                                    getObjectClass()); // FIXME not static
 
                     if (isSimulation) {
                         creator = creator

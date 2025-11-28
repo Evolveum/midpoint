@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
-import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
+import static com.evolveum.midpoint.web.component.data.table.CollapsableDataTable.CollapsableRowItem.COLLAPSIBLE_CONTENT_ID;
 
 import java.io.Serial;
 import java.util.*;
@@ -24,6 +24,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Link
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
+import com.evolveum.midpoint.web.component.data.table.CollapsibleBoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.table.CollapsableDataTable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -52,8 +54,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.mining.CollapsableContainerPanel;
-import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -79,7 +79,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
     }
 
     private void initTable(RoleMiningProvider<PartitionObjectDto> provider) {
-        RoleAnalysisCollapsableTablePanel<PartitionObjectDto> table = buildTableComponent(provider);
+        CollapsibleBoxedTablePanel<PartitionObjectDto> table = buildTableComponent(provider);
         table.getDataTable().setItemsPerPage(10);
         table.enableSavePageSize();
         add(table);
@@ -92,9 +92,10 @@ public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
         return provider;
     }
 
-    private @NotNull RoleAnalysisCollapsableTablePanel<PartitionObjectDto> buildTableComponent(
+    private @NotNull CollapsibleBoxedTablePanel<PartitionObjectDto> buildTableComponent(
             RoleMiningProvider<PartitionObjectDto> provider) {
-        RoleAnalysisCollapsableTablePanel<PartitionObjectDto> table = new RoleAnalysisCollapsableTablePanel<>(
+
+        CollapsibleBoxedTablePanel<PartitionObjectDto> table = new CollapsibleBoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns()) {
 
             @Contract(pure = true)
@@ -104,24 +105,22 @@ public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
             }
 
             @Override
-            public boolean isShowAsCard() {
-                return RoleAnalysisOutlierTable.this.isShowAsCard();
-            }
-
-            @Override
             protected boolean isPagingVisible() {
                 return isPaginationVisible();
             }
 
             @Override
-            protected boolean visibleFooter(ISortableDataProvider<PartitionObjectDto, String> provider, int pageSize) {
-                if (RoleAnalysisOutlierTable.this.hideFooter()) {
-                    return false;
-                }
+            protected boolean isFooterVisible(ISortableDataProvider<PartitionObjectDto, String> provider, int pageSize) {
+                return !RoleAnalysisOutlierTable.this.hideFooter() && super.isFooterVisible(provider, pageSize);
+            }
 
-                return super.visibleFooter(provider, pageSize);
+            @Override
+            protected boolean isCollapseToggleColumnVisible() {
+                return false;
             }
         };
+
+        table.setShowAsCard(RoleAnalysisOutlierTable.this.isShowAsCard());
         table.setOutputMarkupId(true);
         return table;
     }
@@ -319,27 +318,16 @@ public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
 
                     @Override
                     protected void onClickPerform(AjaxRequestTarget target) {
-                        CollapsableContainerPanel collapseContainerUser = (CollapsableContainerPanel) cellItem
-                                .findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
-                        CollapsableContainerPanel collapseContainerRole = (CollapsableContainerPanel) cellItem
-                                .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
-
-                        if (!collapseContainerUser.isExpanded()) {
-                            CollapsableContainerPanel webMarkupContainerUser = new CollapsableContainerPanel(
-                                    ID_FIRST_COLLAPSABLE_CONTAINER);
-                            webMarkupContainerUser.setOutputMarkupId(true);
-                            webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
-                            webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
-                            webMarkupContainerUser.setExpanded(true);
-
+                        CollapsableDataTable<?, ?>.CollapsableRowItem rowItem = findParent(CollapsableDataTable.CollapsableRowItem.class);
+                        if (rowItem != null) {
+                            if (rowItem.isExpanded()) {
+                                rowItem.toggle(target);
+                                return;
+                            }
                             PartitionObjectDto modelObject = model.getObject();
-                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(modelObject, modelObject.getPartition());
-                            webMarkupContainerUser.add(detectedAnomalyTable);
-
-                            collapseContainerUser.replaceWith(webMarkupContainerUser);
-                            target.add(webMarkupContainerUser);
+                            var collapsePanel = buildDetectedAnomalyTable(modelObject, modelObject.getPartition());
+                            rowItem.toggleAndReplace(target, collapsePanel);
                         }
-                        target.appendJavaScript(getCollapseScript(collapseContainerUser, collapseContainerRole));
                     }
                 };
 
@@ -360,7 +348,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
 
         AnomalyObjectDto dto = new AnomalyObjectDto(
                 getPageBase().getRoleAnalysisService(), outlierObject, partition, false, task, result);
-        RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(ID_COLLAPSABLE_CONTENT, Model.of(dto)) {
+        RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(COLLAPSIBLE_CONTENT_ID, Model.of(dto)) {
 
             @Contract(pure = true)
             @Override

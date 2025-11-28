@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+        default-lazy-init="false" default-autowire="byName">
+
+    <import resource="ctx-model.xml"/>
+    <import resource="ctx-model-test.xml"/>
+    <import resource="ctx-model-common.xml"/>
+    <import resource="ctx-provisioning.xml"/>
+    <import resource="ctx-task.xml"/>
+    <import resource="ctx-audit.xml"/>
+    <import resource="ctx-common.xml"/>
+    <import resource="ctx-repo-common.xml"/>
+    <import resource="ctx-security.xml"/>
+    <import resource="ctx-security-enforcer.xml"/>
+    <import resource="classpath*:ctx-repository-test.xml"/>
+    <import resource="ctx-repo-cache.xml"/>
+    <import resource="ctx-configuration-test.xml"/>
+    <import resource="ctx-smart-integration.xml"/>
+</beans>

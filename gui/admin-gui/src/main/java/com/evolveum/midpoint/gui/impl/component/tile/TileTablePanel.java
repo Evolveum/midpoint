@@ -6,14 +6,20 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoValuePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoValuePanelDto;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
@@ -25,6 +31,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -37,12 +44,19 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
 public abstract class TileTablePanel<T extends Tile, O extends Serializable> extends BasePanel<O> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
+
+    private static final String ID_NO_VALUE_PANEL = "noValuePanel";
 
     static final String ID_TILE_VIEW = "tileView";
     static final String ID_TILES_CONTAINER = "tilesContainer";
@@ -50,8 +64,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     protected static final String ID_TILES = "tiles";
 
     private static final String ID_HEADER_FRAGMENT = "headerFragment";
+    private static final String ID_HEADER_CONTAINER = "headerContainer";
     static final String ID_HEADER = "header";
     private static final String ID_VIEW_TOGGLE = "viewToggle";
+    private static final String ID_TOOLBAR_BUTTONS = "toolbarButtons";
     private static final String ID_PANEL_HEADER = "panelHeader";
 
     protected static final String ID_TILE = "tile";
@@ -99,18 +115,23 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private void initLayout() {
         setOutputMarkupId(true);
 
+        Component panelForNoValue = createPanelForNoValue();
+        panelForNoValue.setOutputMarkupPlaceholderTag(true);
+        panelForNoValue.setOutputMarkupId(true);
+        add(panelForNoValue);
+
         WebMarkupContainer tilesView = new WebMarkupContainer(ID_TILE_VIEW);
-        tilesView.add(new VisibleBehaviour(this::isTileViewVisible));
+        tilesView.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
+        tilesView.setOutputMarkupPlaceholderTag(true);
         tilesView.setOutputMarkupId(true);
         add(tilesView);
-
-        initHeaderFragment(tilesView);
 
         ISortableDataProvider<O, String> provider = createProvider();
         WebMarkupContainer tilesContainer = createTilesContainer(ID_TILES_CONTAINER, provider, tableId);
         tilesContainer.add(new VisibleBehaviour(this::isTileViewVisible));
         tilesContainer.add(AttributeModifier.append("class", getTilesContainerAdditionalClass()));
         tilesContainer.add(AttributeModifier.append("role", getTilesContainerRole()));
+        tilesContainer.setOutputMarkupPlaceholderTag(true);
         tilesContainer.setOutputMarkupId(true);
         tilesView.add(tilesContainer);
 
@@ -120,20 +141,36 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         footerContainer.add(AttributeAppender.append("class", getTilesFooterCssClasses()));
         tilesView.add(footerContainer);
 
+        initHeaderFragment(tilesView);
+
         NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, getTiles(), true) {
 
             @Override
-            protected String getPaginationCssClass() {
+            protected void onPageChanged(AjaxRequestTarget target, long page) {
+                super.onPageChanged(target, page);
+                TileTablePanel.this.refresh(target);
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @Nullable String getPaginationCssClass() {
                 return null;
             }
         };
         footerContainer.add(tilesPaging);
+        tilesPaging.add(new VisibleBehaviour(() -> getProvider().size() > getTiles().getItemsPerPage()));
 
         WebMarkupContainer buttonToolbar = createTilesButtonToolbar(ID_BUTTON_TOOLBAR);
         footerContainer.add(buttonToolbar);
 
-        WebMarkupContainer table = createTablePanel(ID_TABLE, provider, tableId);
-        table.add(new VisibleBehaviour(this::isTableVisible));
+        var table = createTablePanel(ID_TABLE, provider, tableId);
+        table.add(new VisibleBehaviour(() -> isTableVisible() && !displayNoValuePanel()));
+        table.setOutputMarkupPlaceholderTag(true);
+        table.setOutputMarkupId(true);
+        initTable(table);
+    }
+
+    protected void initTable(@NotNull WebMarkupContainer table) {
         add(table);
     }
 
@@ -141,7 +178,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return "list";
     }
 
-    public void initHeaderFragment(WebMarkupContainer tilesView) {
+    public void initHeaderFragment(@NotNull WebMarkupContainer tilesView) {
         tilesView.addOrReplace(createHeaderFragment(ID_HEADER));
     }
 
@@ -153,13 +190,15 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, TileTablePanel.this);
         tilesFragment.add(AttributeAppender.replace("class", getTileContainerCssClass()));
 
-        PageableListView tiles = createTilesPanel(ID_TILES, provider);
+        PageableListView<T, O> tiles = createTilesPanel(ID_TILES, provider);
+        tiles.setOutputMarkupId(true);
         tilesFragment.add(tiles);
+        tilesFragment.setOutputMarkupId(true);
 
         return tilesFragment;
     }
 
-    protected PageableListView createTilesPanel(
+    protected PageableListView<T, O> createTilesPanel(
             String tilesId, ISortableDataProvider<O, String> provider) {
         return new PageableListView<T, O>(tilesId, provider, getTableId()) {
 
@@ -170,6 +209,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
                 Component tile = createTile(ID_TILE, item.getModel());
                 tile.add(AttributeAppender.append("role", getTileRole()));
+                customizeTileItemCss(tile, item.getModelObject());
                 item.add(tile);
             }
 
@@ -178,6 +218,9 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
                 return List.of(createTileObject(object));
             }
         };
+    }
+
+    protected void customizeTileItemCss(Component tile, T item) {
     }
 
     protected String getTileRole() {
@@ -193,7 +236,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
-        return new BoxedTablePanel(idTable, provider, createColumns(), tableId) {
+        return new BoxedTablePanel<>(idTable, provider, createColumns(), tableId) {
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
@@ -218,10 +261,130 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
                 }
                 return super.getAdditionalBoxCssClasses();
             }
+
+            @Override
+            public String getTableAdditionalCssClasses() {
+                return TileTablePanel.this.getAdditionalTableCssClasses();
+            }
         };
     }
 
+    public void setCurrentPage(int currentPage) {
+        if (!isTileViewVisible()) {
+            BoxedTablePanel<?> tiles = getBoxedTablePanelComponent();
+            tiles.getDataTable().setCurrentPage(currentPage);
+        } else {
+            PageableListView<?, ?> tiles = getTiles();
+            tiles.setCurrentPage(currentPage);
+        }
+    }
+
+    public void navigateToLastPage() {
+        if (!isTileViewVisible()) {
+            BoxedTablePanel<?> tiles = getBoxedTablePanelComponent();
+            tiles.goToLastPage();
+        } else {
+            navigateToLastTilePage();
+        }
+    }
+
+    private void navigateToLastTilePage() {
+        PageableListView<?, ?> tiles = getTiles();
+        long total = tiles.getItemCount();
+        long pageSize = tiles.getItemsPerPage();
+
+        if (pageSize <= 0) {
+            tiles.setCurrentPage(0);
+            return;
+        }
+
+        if (total == 0) {
+            tiles.setCurrentPage(0);
+            return;
+        }
+
+        long lastPage = (total - 1) / pageSize;
+        tiles.setCurrentPage(lastPage);
+    }
+
+    public List<O> getAllItems() {
+        List<O> allItems = new ArrayList<>();
+        ISortableDataProvider<O, String> provider = getProvider();
+        long size = provider.size();
+        Iterator<? extends O> it = provider.iterator(0, size);
+        it.forEachRemaining(allItems::add);
+        return allItems;
+    }
+
+    public List<O> getCurrentPageItems(long currentPage, long itemsPerPage) {
+        long total = getProvider().size();
+        if (total == 0 || itemsPerPage <= 0) {return Collections.emptyList();}
+
+        long start = Math.max(0, currentPage * itemsPerPage);
+        if (start >= total) {return Collections.emptyList();}
+
+        long length = Math.min(itemsPerPage, total - start);
+
+        List<O> page = new ArrayList<>((int) length);
+        Iterator<? extends O> it = getProvider().iterator(start, length);
+        it.forEachRemaining(page::add);
+        return page;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<O> getCurrentPageItems() {
+        if (isTileViewVisible()) {
+            return getTilesModel().getObject().stream()
+                    .map(Tile::getValue)
+                    .map(v -> (O) v)
+                    .toList();
+        }
+
+        BoxedTablePanel<?> table = getBoxedTablePanelComponent();
+        return getCurrentPageItems(
+                table.getDataTable().getCurrentPage(),
+                table.getDataTable().getItemsPerPage());
+    }
+
+    /**
+     * Ensures the table or tile view does not remain on an invalid (empty) page.
+     * Adjusts current page if it exceeds the last available page,
+     * or resets to 0 if there are no items.
+     */
+    protected void adjustPagingIfEmpty() {
+        if (isTileViewVisible()) {
+            adjustPagingIfEmpty(getTiles(), getTiles().getItemCount(), getTiles().getItemsPerPage());
+        } else {
+            BoxedTablePanel<?> table = getBoxedTablePanelComponent();
+            if (table != null && table.getDataTable() != null) {
+                adjustPagingIfEmpty(table.getDataTable(),
+                        table.getDataTable().getItemCount(),
+                        table.getDataTable().getItemsPerPage());
+            }
+        }
+    }
+
+    protected void adjustPagingIfEmpty(IPageable pageable, long total, long pageSize) {
+        if (total > 0) {
+            long maxPage = (total - 1) / pageSize;
+            if (pageable.getCurrentPage() > maxPage) {
+                pageable.setCurrentPage(maxPage);
+            }
+        } else {
+            pageable.setCurrentPage(0);
+        }
+    }
+
+    protected String getAdditionalFooterCss() {
+        return null;
+    }
+
     protected String getAdditionalBoxCssClasses() {
+        return null;
+    }
+
+    protected String getAdditionalTableCssClasses() {
         return null;
     }
 
@@ -284,6 +447,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return "pt-3";
     }
 
+    /** Be aware. Model need to be detached after remove operation. (Usually happens in tilePanelOperations) */
     public IModel<List<T>> getTilesModel() {
         PageableListView view = getTiles();
         return view.getModel();
@@ -291,10 +455,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     public ISortableDataProvider<O, String> getProvider() {
         PageableListView view = getTiles();
-        return view.getProvider();
+        return view == null ? null : view.getProvider();
     }
 
-    private PageableListView getTiles() {
+    public PageableListView getTiles() {
         return (PageableListView) get(ID_TILE_VIEW).get(ID_TILES_CONTAINER).get(ID_TILES);
     }
 
@@ -317,6 +481,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     public void refresh(AjaxRequestTarget target) {
         target.add(getPageBase().getFeedbackPanel());
 
+        target.add(get(ID_NO_VALUE_PANEL));
+
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
             target.add(get(ID_TABLE));
         } else {
@@ -324,8 +490,11 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         }
     }
 
-    public BoxedTablePanel getBoxedTablePanelComponent() {
-        return (BoxedTablePanel) get(ID_TABLE);
+    public BoxedTablePanel<?> getBoxedTablePanelComponent() {
+        if(get(ID_TABLE) instanceof ContainerableListPanel<?,?>){
+            return ((ContainerableListPanel<?,?>) get(ID_TABLE)).getTable();
+        }
+        return (BoxedTablePanel<?>) get(ID_TABLE);
     }
 
     protected NavigatorPanel getTilesNavigation() {
@@ -344,14 +513,37 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         Fragment fragment = new Fragment(id, ID_HEADER_FRAGMENT, TileTablePanel.this);
         fragment.setOutputMarkupId(true);
 
+        WebMarkupContainer headerContainer = createHeaderContainer();
+
         Component header = createHeader(ID_PANEL_HEADER);
         header.add(AttributeAppender.append("class", getTilesHeaderCssClasses()));
-        fragment.add(header);
+        header.add(new VisibleBehaviour(this::isHeaderPanelHeaderVisible));
 
-        fragment.add(createTogglePanel(ID_VIEW_TOGGLE));
-        fragment.add(getHeaderFragmentVisibility());
+        headerContainer.add(header);
+        headerContainer.add(createTogglePanel(ID_VIEW_TOGGLE));
+        headerContainer.add(createToolbarButtons(ID_TOOLBAR_BUTTONS));
+        headerContainer.add(getHeaderFragmentVisibility());
+        fragment.add(headerContainer);
 
         return fragment;
+    }
+
+    protected WebMarkupContainer createHeaderContainer() {
+        WebMarkupContainer headerContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
+        headerContainer.add(AttributeModifier.append("class", this::getAdditionalHeaderContainerCssClasses));
+        return headerContainer;
+    }
+
+    protected boolean isHeaderPanelHeaderVisible() {
+        return true;
+    }
+
+    protected Component createToolbarButtons(String id) {
+        return new WebMarkupContainer(id);
+    }
+
+    protected String getAdditionalHeaderContainerCssClasses() {
+        return null;
     }
 
     protected VisibleEnableBehaviour getHeaderFragmentVisibility() {
@@ -380,6 +572,10 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return new WebMarkupContainer(id);
     }
 
+    protected List<Component> createNoValueButtonToolbar(String id) {
+        return Collections.singletonList(createToolbarButtons(id));
+    }
+
     private void onSearchPerformed(AjaxRequestTarget target) {
         refresh(target);
     }
@@ -396,10 +592,51 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return viewToggleModel.getObject() == ViewToggle.TILE;
     }
 
-    protected  void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
+    protected void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
     }
 
     public WebMarkupContainer getTileTableComponent() {
         return (WebMarkupContainer) get(ID_TABLE);
+    }
+
+    /**
+     * Determines whether the panel should display a special UI component
+     * (e.g. {@link NoValuePanel}) when there are no values
+     * present in the container.
+     */
+    public boolean displayNoValuePanel() {
+        return false;
+    }
+
+    /**
+     * Creates a fallback UI panel to be displayed when the container model has no values.
+     * <p>
+     * This method constructs a {@link NoValuePanel} that visually indicates the
+     * absence of configured resource object types and provides a set of actionable toolbar buttons
+     * (e.g., create new or suggest type).
+     * </p>
+     *
+     * @return A {@link Component} instance to be used as the panel when no values are present.
+     */
+    protected Component createPanelForNoValue() {
+        NoValuePanel components = new NoValuePanel(ID_NO_VALUE_PANEL, () -> new NoValuePanelDto(
+                tableId != null ? tableId.toString() : "default")) {
+            @Override
+            protected @NotNull @Unmodifiable List<Component> createToolbarButtons(String buttonsId) {
+                return createNoValueButtonToolbar(buttonsId);
+            }
+
+            @Override
+            protected String getPanelAdditionalCssClass() {
+                return getNoValuePanelAdditionalCssClass();
+            }
+        };
+        components.setOutputMarkupId(true);
+        components.add(new VisibleBehaviour(this::displayNoValuePanel));
+        return components;
+    }
+
+    protected String getNoValuePanelAdditionalCssClass() {
+        return "card";
     }
 }

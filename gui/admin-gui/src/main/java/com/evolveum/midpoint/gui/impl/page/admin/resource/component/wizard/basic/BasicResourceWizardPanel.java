@@ -6,22 +6,29 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart.PageSmartIntegrationStart;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 
@@ -39,13 +46,31 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
         super(id, helper);
     }
 
-
     protected void initLayout() {
         if (isStartWithChoiceTemplate()) {
             add(createChoiceFragment(createTemplateChoicePanel()));
         } else {
-            add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps()))));
+            add(createWizardFragment(new WizardPanel(getIdOfWizardPanel(), new WizardModelBasic(createBasicSteps()))));
         }
+    }
+
+    @Override
+    protected boolean initStartWithChoiceTemplate() {
+        if (getHelper().getValueModel() != null
+                && getHelper().getValueModel().getObject() != null) {
+            PrismContainerValueWrapper<ResourceType> resource = getHelper().getValueModel().getObject();
+            ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
+            try {
+                PrismContainerWrapper<Containerable> configProperties = resource.findContainer(path);
+                if (configProperties != null && !configProperties.getValues().isEmpty()
+                        && !configProperties.getValue().getItems().isEmpty()) {
+                    return false;
+                }
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return super.initStartWithChoiceTemplate();
     }
 
     private Component createTemplateChoicePanel() {
@@ -58,13 +83,17 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
     }
 
     protected CreateResourceTemplatePanel createTemplatePanel() {
-        return new CreateResourceTemplatePanel(getIdOfChoicePanel(), templateType) {
 
+        if (templateType.getObject() == ResourceTemplate.TemplateType.SMART) {
+            throw new RestartResponseException(PageSmartIntegrationStart.class);
+        }
+
+        return new CreateResourceTemplatePanel(getIdOfChoicePanel(), templateType) {
             @Override
             protected void onTemplateSelectionPerformed(PrismObject<ResourceType> newObject, AjaxRequestTarget target) {
                 reloadObjectDetailsModel(newObject);
                 showWizardFragment(target, new WizardPanel(
-                        getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
+                        getIdOfWizardPanel(), new WizardModelBasic(createBasicSteps())));
             }
 
             @Override
@@ -81,7 +110,7 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
 
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new BasicInformationStepPanel(getAssignmentHolderModel()) {
+        steps.add(new BasicInformationResourceStepPanel(getAssignmentHolderModel()) {
 
             @Override
             public boolean onBackPerformed(AjaxRequestTarget target) {

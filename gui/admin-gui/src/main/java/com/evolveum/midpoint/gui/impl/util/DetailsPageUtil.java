@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplication;
+import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplications;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicies;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicyHistory;
@@ -23,6 +26,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleA
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchema;
 
 import com.evolveum.midpoint.gui.impl.page.admin.schema.PageSchemas;
+
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +60,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleHistory;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageServiceHistory;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
 import com.evolveum.midpoint.gui.impl.page.admin.task.PageTask;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUserHistory;
@@ -87,6 +91,7 @@ public final class DetailsPageUtil {
     static {
         OBJECT_DETAILS_PAGE_MAP = new HashMap<>();
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(UserType.class, PageUser.class);
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(ApplicationType.class, PageApplication.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(OrgType.class, PageOrg.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleType.class, PageRole.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(ServiceType.class, PageService.class);
@@ -111,6 +116,7 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(SchemaType.class, PageSchema.class);
 
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisOutlierType.class, PageRoleAnalysisOutlier.class);
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(ConnectorDevelopmentType.class, PageConnectorDevelopment.class);
 
     }
 
@@ -120,6 +126,7 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(RoleType.class, PageRoles.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageServices.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PolicyType.class, PagePolicies.class);
+        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ApplicationType.class, PageApplications.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PageMessageTemplate.class, PageMessageTemplates.class);

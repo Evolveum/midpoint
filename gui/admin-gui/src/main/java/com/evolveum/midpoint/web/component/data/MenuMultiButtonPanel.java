@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -47,13 +48,21 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
 
     private void initLayout() {
         DropdownButtonPanel inlineMenu = new DropdownButtonPanel(ID_INLINE_MENU_PANEL,
-                new DropdownButtonDto(null, null, null, menuItemsModel.getObject())) {
+                new DropdownButtonDto(null, getDropDownButtonIcon(), null, menuItemsModel.getObject())) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn-xs btn-default";
+                return MenuMultiButtonPanel.this.getSpecialButtonClass();
+            }
+
+            @Override
+            protected boolean hasToggleIcon() {
+                if(getDropDownButtonIcon() != null){
+                    return false;
+                }
+                return super.hasToggleIcon();
             }
 
             @Override
@@ -64,7 +73,6 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
         add(inlineMenu);
 
         inlineMenu.add(new VisibleBehaviour(() -> {
-
             List<InlineMenuItem> menuItems = menuItemsModel.getObject();
             for (InlineMenuItem menuItem : menuItems) {
                 if (!(menuItem instanceof ButtonInlineMenuItem)){
@@ -76,6 +84,14 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
     }
 
     protected void onBeforeClickMenuItem(AjaxRequestTarget target, InlineMenuItemAction action, IModel<? extends InlineMenuItem> item) {
+    }
+
+    protected String getDropDownButtonIcon() {
+        return null;
+    }
+
+    protected String getSpecialButtonClass() {
+        return "btn-xs btn-default";
     }
 
 

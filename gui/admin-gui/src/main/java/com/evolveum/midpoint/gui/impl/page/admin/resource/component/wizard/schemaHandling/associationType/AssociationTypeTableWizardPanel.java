@@ -15,11 +15,13 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -43,20 +45,25 @@ public abstract class AssociationTypeTableWizardPanel extends SchemaHandlingType
     }
 
     @Override
-    protected void initTable(String tableId) {
-        AssociationTypesPanel table = new AssociationTypesPanel(tableId, getAssignmentHolderDetailsModel(), getConfiguration()) {
+    protected void initPanel(String panelId) {
+        AssociationTypesPanel panel = new AssociationTypesPanel(panelId, getAssignmentHolderDetailsModel(), getConfiguration()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 AssociationTypeTableWizardPanel.this.onEditValue(valueModel, target);
             }
 
             @Override
-            protected void onNewValue(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel, AjaxRequestTarget target, boolean isDuplicate) {
+            protected void onNewValue(
+                    PrismContainerValue<ShadowAssociationTypeDefinitionType> value,
+                    IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel,
+                    AjaxRequestTarget target,
+                    boolean isDuplicate,
+                    @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
                 AssociationTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
             }
         };
-        table.setOutputMarkupId(true);
-        add(table);
+        panel.setOutputMarkupId(true);
+        add(panel);
     }
 
     @Override
