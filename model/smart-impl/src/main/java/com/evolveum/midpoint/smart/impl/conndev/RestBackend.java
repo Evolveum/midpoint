@@ -391,7 +391,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     private void downloadUsingScrapper(ArrayList<ConnDevDocumentationSourceType> byScrapper, ArrayList<ProcessedDocumentation> documentations) {
         var request = scrapperRequest(byScrapper);
-        try(var job = client().postJob("scrape/getRelevantDocumentation", request)) {
+        try(var job = client().postJob("scrape/{sessionId}/scrape", request)) {
             var scrapped = job.waitAndProcess(SLEEP_TIME, json -> {
                 var ret = new ArrayList<ProcessedDocumentation>();
                 var jsonUris = json.get("relevantDocuments");
@@ -470,8 +470,9 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     private boolean isOpenApi(ConnDevDocumentationSourceType doc) {
-        var uri = doc.getUri();
-        return uri.endsWith(".json") || uri.endsWith(".yml") || uri.endsWith(".yaml");
+        return false;
+        //var uri = doc.getUri();
+        //return uri.endsWith(".json") || uri.endsWith(".yml") || uri.endsWith(".yaml");
     }
 
     static ObjectNode toJsonAttributes(List<ConnDevAttributeInfoType> attributes) {

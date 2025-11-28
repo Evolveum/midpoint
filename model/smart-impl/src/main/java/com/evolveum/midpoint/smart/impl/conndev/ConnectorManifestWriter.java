@@ -44,6 +44,9 @@ public class ConnectorManifestWriter {
             writeScript(operations, objClass.getSearchAllOperation());
             writeScript(operations, objClass.getGetOperation());
             writeScript(operations, objClass.getSearchFilterOperation());
+            writeScript(operations, objClass.getCreateScript());
+            writeScript(operations, objClass.getUpdateScript());
+            writeScript(operations, objClass.getDeleteScript());
 
         }
         this.connector.set("schema", schemas);
