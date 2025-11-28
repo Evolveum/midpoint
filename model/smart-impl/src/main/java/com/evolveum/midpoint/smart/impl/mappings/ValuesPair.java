@@ -5,10 +5,9 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.smart.impl.DescriptiveItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
+public record ValuesPair<S, F>(Collection<S> shadowValues, Collection<F> focusValues) {
     public SiSuggestMappingExampleType toSiExample(
             String applicationAttrDescriptivePath, String midPointPropertyDescriptivePath) {
         return new SiSuggestMappingExampleType()

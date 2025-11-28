@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
+import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -100,7 +101,7 @@ class MappingsSuggestionOperation {
                 isInbound);
     }
 
-    private MappingDirection resolveDirection() throws ConfigurationException {
+    private MappingDirection resolveDirection() {
         return isInbound ? MappingDirection.INBOUND : MappingDirection.OUTBOUND;
     }
 
@@ -133,14 +134,14 @@ class MappingsSuggestionOperation {
                 mappingsSuggestionState.flush(result);
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
-                var suggestionPairs = toValuesPairs(suggestionShadows, shadowAttrPath, focusPropPath);
-                var testingPairs = toValuesPairs(testingShadows, shadowAttrPath, focusPropPath);
+                var suggestionPairs = ValuesPairSample.of(focusPropPath, shadowAttrPath)
+                        .from(suggestionShadows);
+                var testingPairs = ValuesPairSample.of(focusPropPath, shadowAttrPath)
+                        .from(testingShadows);
                 try {
                     suggestion.getAttributeMappings().add(
                             suggestMapping(
                                     matchPair,
-                                    shadowAttrPath,
-                                    focusPropPath,
                                     suggestionPairs,
                                     testingPairs,
                                     direction,
@@ -183,47 +184,30 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private static List<ValuesPair> toValuesPairs(
-            List<OwnedShadow> shadows,
-            ItemPath shadowAttrPath,
-            ItemPath focusPropPath) {
-        return shadows.stream()
-                .map(os -> os.toValuesPair(shadowAttrPath, focusPropPath))
-                .toList();
-    }
-
-
     private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
-            ItemPath shadowAttrPath,
-            ItemPath focusPropPath,
-            Collection<ValuesPair> valuesPairs,
-            Collection<ValuesPair> testingValuesPairs,
+            ValuesPairSample<?, ?> developmentSample,
+            ValuesPairSample<?, ?> testingSample,
             MappingDirection direction,
             OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
 
-        LOGGER.trace("Going to suggest {} mapping for {} <-> {} based on {} values pairs",
-                direction, matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath(), valuesPairs.size());
-
-        var propertyDef = ctx.getFocusTypeDefinition().findPropertyDefinition(focusPropPath);
-        var shadowAttrName = shadowAttrPath.rest().asSingleNameOrFail();
-        var shadowAttrDef = ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
+        LOGGER.trace("Going to suggest {} mapping for {} <-> {} based on {} values pairs", direction,
+                matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath(), developmentSample.pairs().size());
 
         ExpressionType expression = null;
         MappingsQualityAssessor.AssessmentResult assessment = null;
-        String variableName = propertyDef.getItemName().getLocalPart();
 
-        if (isScriptNeeded(valuesPairs, propertyDef, shadowAttrDef, direction)) {
+        if (isScriptNeeded(developmentSample, direction)) {
             String errorLog = null;
             String retryScript = null;
 
             for (int attempt = 1; attempt <= 2; attempt++) {
-                var mappingResponse = askMicroservice(matchPair, valuesPairs, errorLog, retryScript, direction);
+                var mappingResponse = askMicroservice(matchPair, developmentSample.pairs(), errorLog, retryScript, direction);
                 retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
                 expression = buildScriptExpression(mappingResponse);
                 try {
                     assessment = this.qualityAssessor.assessMappingsQuality(
-                            testingValuesPairs, expression, direction == MappingDirection.INBOUND, variableName, this.ctx.task, parentResult);
+                            testingSample, expression, direction == MappingDirection.INBOUND, this.ctx.task, parentResult);
                     break;
                 } catch (ExpressionEvaluationException | SecurityViolationException e) {
                     if (attempt == 1) {
@@ -237,11 +221,12 @@ class MappingsSuggestionOperation {
             }
         } else {
             assessment = this.qualityAssessor.assessMappingsQuality(
-                    testingValuesPairs, expression, direction == MappingDirection.INBOUND, variableName, this.ctx.task, parentResult);
+                    testingSample, expression, direction == MappingDirection.INBOUND, this.ctx.task, parentResult);
         }
 
         AttributeMappingsSuggestionType suggestion = buildAttributeMappingSuggestion(
-                shadowAttrPath, focusPropPath, assessment.quality(), expression, direction);
+                developmentSample.shadowAttributePath(), developmentSample.focusPropertyPath(), assessment.quality(),
+                expression, direction);
         SmartMetadataUtil.markAsAiProvided(suggestion); // everything is AI-provided now
         return suggestion;
     }
@@ -305,7 +290,7 @@ class MappingsSuggestionOperation {
 
     private SiSuggestMappingResponseType askMicroservice(
             SchemaMatchOneResultType matchPair,
-            Collection<ValuesPair> valuesPairs,
+            Collection<? extends ValuesPair<?, ?>> valuesPairs,
             @Nullable String errorLog,
             @Nullable String retryScript,
             MappingDirection direction) throws SchemaException {
@@ -326,7 +311,7 @@ class MappingsSuggestionOperation {
 
     /** Returns {@code true} if a simple "asIs" mapping is sufficient for the given direction. */
     private boolean doesAsIsSuffice(
-            Collection<ValuesPair> valuesPairs,
+            Collection<? extends ValuesPair<?, ?>> valuesPairs,
             PrismPropertyDefinition<?> targetDef,
             MappingDirection direction) {
         if (targetDef == null) {
@@ -369,36 +354,41 @@ class MappingsSuggestionOperation {
 
     /** Returns {@code true} if a transformation script is needed, direction-aware. */
     private boolean isScriptNeeded(
-            Collection<ValuesPair> valuesPairs,
-            PrismPropertyDefinition<?> focusPropertyDef,
-            PrismPropertyDefinition<?> shadowAttrDef,
+            ValuesPairSample<?, ?> sample,
             MappingDirection direction) {
-        if (valuesPairs.isEmpty()) {
+        final Collection<? extends ValuesPair<?, ?>> pairs = sample.pairs();
+        if (pairs.isEmpty()) {
             LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
             return false;
         }
-        boolean allNulls = valuesPairs.stream().allMatch(pair ->
+
+        boolean allNulls = pairs.stream().allMatch(pair ->
                 (pair.shadowValues() == null || pair.shadowValues().stream().allMatch(Objects::isNull))
                         || (pair.focusValues() == null || pair.focusValues().stream().allMatch(Objects::isNull)));
         if (allNulls) {
             LOGGER.trace(" -> all shadow or focus values are null, using 'asIs' mapping (without calling LLM)");
             return false;
         }
+
+        var focusPropertyDef = ctx.getFocusTypeDefinition().findPropertyDefinition(sample.focusPropertyPath());
+        var shadowAttrName = sample.shadowAttributePath().rest().asSingleNameOrFail();
+        var shadowAttrDef = ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
+
         if (direction == MappingDirection.INBOUND) {
-            if (doesAsIsSuffice(valuesPairs, focusPropertyDef, direction)) {
+            if (doesAsIsSuffice(pairs, focusPropertyDef, direction)) {
                 LOGGER.trace(" -> 'asIs' does suffice according to the data (inbound), so we'll use it (no LLM)");
                 return false;
             }
-            if (isTargetDataMissing(valuesPairs, direction)) {
+            if (isTargetDataMissing(pairs, direction)) {
                 LOGGER.trace(" -> target data missing (focus); assuming 'asIs' is fine (no LLM call)");
                 return false;
             }
         } else { // OUTBOUND
-            if (doesAsIsSuffice(valuesPairs, shadowAttrDef, direction)) {
+            if (doesAsIsSuffice(pairs, shadowAttrDef, direction)) {
                 LOGGER.trace(" -> 'asIs' does suffice according to the data (outbound), so we'll use it (no LLM)");
                 return false;
             }
-            if (isTargetDataMissing(valuesPairs, direction)) {
+            if (isTargetDataMissing(pairs, direction)) {
                 LOGGER.trace(" -> target data missing (shadow); assuming 'asIs' is fine (no LLM call)");
                 return false;
             }
@@ -409,7 +399,8 @@ class MappingsSuggestionOperation {
     }
 
     /** Returns {@code true} if there are no target data altogether, direction-aware. */
-    private boolean isTargetDataMissing(Collection<ValuesPair> valuesPairs, MappingDirection direction) {
+    private boolean isTargetDataMissing(Collection<? extends ValuesPair<?, ?>> valuesPairs,
+            MappingDirection direction) {
         if (direction == MappingDirection.INBOUND) {
             return valuesPairs.stream().allMatch(pair -> pair.focusValues() == null || pair.focusValues().isEmpty());
         } else {

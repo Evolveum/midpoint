@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
+import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -50,10 +51,9 @@ public class MappingsQualityAssessor {
      * The quality is computed as the fraction of sampled single-valued pairs where the (optionally transformed)
      * source equals the target. Multi-valued pairs are skipped.
      *
-     * @param valuePairs Sampled value pairs (shadow vs focus) used to estimate the mapping quality.
+     * @param testingSample Sampled value pairs (shadow vs focus) used to estimate the mapping quality.
      * @param suggestedExpression Optional expression (e.g. Groovy) applied to the source value before comparison.
      * @param inboundMapping {@code true} for inbound (shadow -> focus), {@code false} for outbound (focus -> shadow)
-     * @param sourceVariableName The name of the variable to use for the source value in expression evaluation (e.g., 'input' for inbound, property name for outbound)
      *
      * @return an {@link AssessmentResult} containing:
      *         - quality in the range {@code [0.0, 1.0]} (rounded to two decimals) with status {@link AssessmentStatus#OK}, or
@@ -64,16 +64,15 @@ public class MappingsQualityAssessor {
      * @throws MappingEvaluationException if transforming the value fails due to schema/configuration/communication issues
      */
     public AssessmentResult assessMappingsQuality(
-            Collection<ValuesPair> valuePairs,
+            ValuesPairSample<?, ?> testingSample,
             @Nullable ExpressionType suggestedExpression,
             boolean inboundMapping,
-            String sourceVariableName,
             Task task,
             OperationResult parentResult) throws ExpressionEvaluationException, SecurityViolationException {
         int totalSamples = 0;
         int matchedSamples = 0;
 
-        for (final ValuesPair valuePair : valuePairs) {
+        for (final ValuesPair<?, ?> valuePair : testingSample.pairs()) {
             final Collection<?> shadowValues = valuePair.shadowValues();
             final Collection<?> focusValues = valuePair.focusValues();
 
@@ -90,18 +89,13 @@ public class MappingsQualityAssessor {
             final String target = inboundMapping ? rawFocus : rawShadow;
             final String variableName = inboundMapping
                     ? ExpressionConstants.VAR_INPUT
-                    : sourceVariableName;
+                    : testingSample.focusPropertyPath().lastName().getLocalPart();
 
-            if (suggestedExpression != null) {
-                try {
-                    final String transformedSource = applyExpression(suggestedExpression, sourceValue, variableName,
-                            task, parentResult);
-                    if (target.equals(transformedSource)) {
-                        matchedSamples++;
-                    }
-                } catch (SchemaException | CommunicationException | ConfigurationException | ObjectNotFoundException e) {
-                    throw new MappingEvaluationException("Failed to evaluate suggested expression.", e);
-                }
+            final String transformedSource = suggestedExpression == null
+                    ? sourceValue
+                    : applyExpression(suggestedExpression, sourceValue, variableName, task, parentResult);
+            if (target.equals(transformedSource)) {
+                matchedSamples++;
             }
 
             totalSamples++;
@@ -115,21 +109,24 @@ public class MappingsQualityAssessor {
     }
 
     @Nullable
-    private String applyExpression(ExpressionType expressionType, String input, String variableName, Task task,
-            OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+    private String applyExpression(ExpressionType expressionType, @Nullable String input, String variableName,
+            Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, SecurityViolationException {
         final String description = "Mapping expression";
         final VariablesMap variables = new VariablesMap();
         variables.put(variableName, input, String.class);
         final ExpressionProfile profile = restrictedProfile();
-        final Collection<String> transformedInput = ExpressionUtil.evaluateStringExpression(variables, expressionType,
-                profile, this.expressionFactory, description, task, parentResult);
+        try {
+            final Collection<String> transformedInput = ExpressionUtil.evaluateStringExpression(variables,
+                    expressionType, profile, this.expressionFactory, description, task, parentResult);
 
-        if (transformedInput == null || transformedInput.isEmpty()) {
-            return null;
+            if (transformedInput == null || transformedInput.isEmpty()) {
+                return null;
+            }
+            return transformedInput.iterator().next();
+        } catch (SchemaException | CommunicationException | ConfigurationException | ObjectNotFoundException e) {
+            throw new MappingEvaluationException("Failed to evaluate suggested expression.", e);
         }
-        return transformedInput.iterator().next();
     }
 
     private static ExpressionProfile restrictedProfile() {
