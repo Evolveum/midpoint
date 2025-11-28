@@ -122,6 +122,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
         buttonsList.add(createTableActionToolbar(idButton));
+        AjaxIconButton suggestObjectButton = createSuggestObjectButton(idButton);
+        suggestObjectButton.add(new VisibleBehaviour(this::displayNoValuePanel));
         buttonsList.add(createSuggestObjectButton(idButton));
         buttonsList.add(createToggleSuggestionButton(idButton, switchToggleModel));
 
