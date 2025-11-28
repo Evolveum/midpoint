@@ -50,8 +50,8 @@ public class ConfigureSynchronizationConfirmationPanel extends ConfirmationPanel
     IModel<TargetSynchronizationAnswers> targetAnswersModel =
             Model.of(new TargetSynchronizationAnswers(
                     UnmatchedTargetChoice.DO_NOTHING,
-                    DeletedTargetChoice.DO_NOTHING,
-                    DisputedTargetChoice.DO_NOTHING));
+                    DeletedTargetChoice.REMOVE_BROKEN_LINK,
+                    DisputedTargetChoice.CREATE_CORRELATION_CASE));
 
     IModel<DirectionChoicePanel.DirectionSelection> directionSelectionModel = Model.of(
             DirectionChoicePanel.DirectionSelection.NONE);
