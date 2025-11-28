@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.dialog;
 
+import java.io.Serial;
 import java.util.*;
 
 import javax.xml.namespace.QName;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> implements Popupable {
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_OBJECT_TYPE = "type";
     private static final String ID_RELATION = "relation";
@@ -73,6 +75,8 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
         DropDownFormGroup<QName> type = new DropDownFormGroup<>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()),
                 new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"),
                 createStringResource("chooseFocusTypeAndRelationDialogPanel.tooltip.type"), null, null, true){
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected String getLabelContainerCssClass() {
                 return "col-md-4";
@@ -103,14 +107,11 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
         add(label);
 
         AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
-
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                DropDownFormGroup<QName> type = getTypePanel(getParent());
-                QName typeChosen = type.getModelObject();
-
+                QName typeChosen = getSelectedType();
                 ListMultipleChoicePanel<QName> relation = getRelationPanel(getParent());
                 Collection<QName> relationChosen = relation.getModelObject();
                 if (relationChosen.contains(PrismConstants.Q_ANY)) {
@@ -125,7 +126,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_OK,
                 createStringResource("Button.cancel")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -137,13 +138,11 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
         AjaxButton configuredButton = new AjaxButton(ID_CONFIGURE_TASK,
                 new StringResourceModel("ConfigureTaskConfirmationPanel.configure", this, null)) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                DropDownFormGroup<QName> type = getTypePanel(getParent());
-                QName typeChosen = type.getModelObject();
-
+                QName typeChosen = getSelectedType();
                 ListMultipleChoicePanel<QName> relation = getRelationPanel(getParent());
                 Collection<QName> relationChosen = relation.getModelObject();
                 PrismObject<TaskType> task = createTask(typeChosen, relationChosen, target);
@@ -160,12 +159,17 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
 
     }
 
-    private ListMultipleChoicePanel<QName> getRelationPanel(Component parent) {
-        return (ListMultipleChoicePanel<QName>) parent.get(ID_RELATION);
+    private QName getSelectedType() {
+        return isFocusTypeSelectorVisible() ? getTypeDropDownValue() : getDefaultObjectType();
     }
 
-    private DropDownFormGroup<QName> getTypePanel(Component parent) {
-        return (DropDownFormGroup<QName>) parent.get(ID_OBJECT_TYPE);
+    private QName getTypeDropDownValue() {
+        DropDownFormGroup<QName> type = (DropDownFormGroup<QName>) get(ID_OBJECT_TYPE);
+        return type.getModelObject();
+    }
+
+    private ListMultipleChoicePanel<QName> getRelationPanel(Component parent) {
+        return (ListMultipleChoicePanel<QName>) parent.get(ID_RELATION);
     }
 
     protected boolean isTaskConfigureButtonVisible() {

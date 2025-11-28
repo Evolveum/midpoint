@@ -1061,6 +1061,12 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                         return membershipAvailableRelations;
                     }
 
+                    @Override
+                    protected QName getDefaultObjectType() {
+                        return getMemberSearchType();
+                    }
+
+                    @Override
                     protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
                         unassignMembersPerformed(
                                 rowModel,
