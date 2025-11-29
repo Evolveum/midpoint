@@ -200,7 +200,7 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                             PrismContainerValue<ConnDevHttpEndpointType> clone =
                                     value.getRealValue().asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
                             clone.removeItem(ConnDevHttpEndpointType.F_SUGGESTED_USE);
-                            clone.asContainerable().suggestedUse(getEndpointIntents());
+                            //clone.asContainerable().suggestedUse(getEndpointIntents());
 
                             return (PrismContainerValueWrapper<ConnDevHttpEndpointType>) WebPrismUtil.createNewValueWrapper(
                                     container,
