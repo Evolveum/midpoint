@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.core5.http.ContentType;
@@ -200,6 +201,17 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation) {
         // FIXME: Upload new relations to server
+        try {
+            client().synchronizationClient().put("digester/{sessionId}/relations", () -> {
+                var relationJsons = toJsonRelations(developmentObject().getConnector().getRelation());
+                return EntityBuilder.create()
+                        .setContentType(ContentType.APPLICATION_JSON)
+                        .setText(relationJsons.toPrettyString()).build();
+            });
+        } catch (Exception e) {
+            throw new SystemException("Couldn't generate relation for " + artifactSpec + ". Unable to synchronize relationships", e);
+        }
+
         try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass())) {
             return job.waitAndProcess(SLEEP_TIME, json -> json.get("code").asText());
         } catch (Exception e) {
