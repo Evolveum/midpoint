@@ -261,6 +261,7 @@ public class SearchBuilder<C extends Serializable> {
         ObjectTypeSearchItemWrapper objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper(mergedConfig.getObjectTypeConfiguration());
         objectTypeSearchItemWrapper.setAllowAllTypesSearch(isAllowedAllTypesSearch());
         objectTypeSearchItemWrapper.setValueForNull(getValueRepresentingAllTypes());
+        objectTypeSearchItemWrapper.resetDefaultTypeIfNull(type);
         Search<C> search = new Search<>(objectTypeSearchItemWrapper, mergedConfig);
 
         OidSearchItemWrapper oidSearchItemWrapper = new OidSearchItemWrapper();

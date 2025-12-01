@@ -196,9 +196,14 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (panelConfig != null) {
             CompiledObjectCollectionView view = WebComponentUtil.getCompiledObjectCollectionView(panelConfig.getListView(),
                     panelConfig, getPageBase());
-            if (view != null && view.getTargetClass() != null
-                    && AssignmentHolderType.class.isAssignableFrom(view.getTargetClass())) {
-                return view.getTargetClass();
+            if (view != null) {
+                if (view.getTargetClass() != null && AssignmentHolderType.class.isAssignableFrom(view.getTargetClass())) {
+                    return view.getTargetClass();
+                }
+                var defaultObjectTypeFromSearchBoxConfig = getDefaultValueFromSearchBoxConfig(view.getSearchBoxConfiguration());
+                if (defaultObjectTypeFromSearchBoxConfig != null) {
+                    return (Class<AH>) defaultObjectTypeFromSearchBoxConfig;
+                }
             }
         }
         return (Class<AH>) UserType.class;
@@ -1741,5 +1746,22 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         String typeClass = getModelObject().getClass().getSimpleName();
         // remove "Type" suffix
         return "." + typeClass.substring(0, typeClass.length() - 4).toLowerCase();
+    }
+
+    private <AH extends AssignmentHolderType> Class<? extends AssignmentHolderType>  getDefaultValueFromSearchBoxConfig(SearchBoxConfigurationType config) {
+        if (config == null || config.getObjectTypeConfiguration() == null) {
+            return null;
+        }
+        QName defaultValue = null;
+        if (config.getObjectTypeConfiguration().getDefaultValue() != null) {
+            defaultValue = config.getObjectTypeConfiguration().getDefaultValue();
+        }
+        if (config.getDefaultObjectType() != null) {
+            defaultValue = config.getObjectTypeConfiguration().getDefaultValue();
+        }
+        if (defaultValue != null) {
+            return (Class<AH>) WebComponentUtil.qnameToClass(defaultValue);
+        }
+        return null;
     }
 }
