@@ -83,10 +83,10 @@ public class CertItemEditableCommentColumn extends AbstractCertificationItemColu
             result.computeStatusIfUnknown();
         }
 
-        if (!result.isSuccess()) {
+        if (!result.isSuccess() && !result.isInProgress() && !result.isHandledError()) {
             pageBase.showResult(result);
+            target.add(pageBase.getFeedbackPanel());
         }
-//        target.add(pageBase);
     }
 
     @Override
