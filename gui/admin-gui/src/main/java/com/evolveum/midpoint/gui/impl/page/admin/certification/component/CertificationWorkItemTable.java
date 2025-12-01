@@ -199,29 +199,6 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         return null;
     }
 
-//    @Override
-//    protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createCustomExportableColumn(
-//            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, ExpressionType expression) {
-//        ItemPath path = WebComponentUtil.getPath(guiObjectColumn);
-//
-//        if (ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT)
-//                .equivalent(path)) {
-//            String propertyExpression = "realValue" + "." + AccessCertificationWorkItemType.F_OUTPUT.getLocalPart() + "."
-//                    + AbstractWorkItemOutputType.F_COMMENT.getLocalPart();
-//            return new DirectlyEditablePropertyColumn<>(
-//                    createStringResource("PageCertDecisions.table.comment"), propertyExpression) {
-//                @Serial private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                public void onBlur(AjaxRequestTarget target,
-//                        IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> model) {
-//                    recordCommentPerformed(target, model.getObject());
-//                }
-//            };
-//        }
-//        return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
-//    }
-
     @Override
     protected boolean shouldCheckForNameColumn() {
         return false;
