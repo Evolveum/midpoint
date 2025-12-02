@@ -326,7 +326,9 @@ public class AdminGuiConfigurationMergeManager {
         if (action.getVisibility() != null) {
             composited.setVisibility(action.getVisibility());
         }
-        mergeRedirectionTargetType(composited.getTarget(), action.getTarget().clone());
+        if (action.getTarget() != null) {
+            mergeRedirectionTargetType(composited.getTarget(), action.getTarget().clone());
+        }
         return composited;
     }
 
