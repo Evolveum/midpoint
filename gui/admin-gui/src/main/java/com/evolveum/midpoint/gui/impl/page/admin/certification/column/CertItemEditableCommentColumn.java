@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -51,13 +52,14 @@ public class CertItemEditableCommentColumn extends AbstractCertificationItemColu
 
             @Override
             public void onBlur(AjaxRequestTarget target,
-                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> model) {
-                recordCommentPerformed(target, model.getObject());
+                    IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> model, IModel<String> previousTextInputValue) {
+                recordCommentPerformed(target, model.getObject(), previousTextInputValue);
             }
         };
     }
 
-    private void recordCommentPerformed(AjaxRequestTarget target, PrismContainerValueWrapper<AccessCertificationWorkItemType> certItemWrapper) {
+    private void recordCommentPerformed(AjaxRequestTarget target,
+            PrismContainerValueWrapper<AccessCertificationWorkItemType> certItemWrapper, IModel<String> previousCommentValue) {
         if (certItemWrapper == null) {
             return;
         }
@@ -68,14 +70,13 @@ public class CertItemEditableCommentColumn extends AbstractCertificationItemColu
             if (certItem == null) {
                 return;
             }
-            //todo check if comment was really changed
-            //for now certItemWrapper.findProperty(ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT))
-            //returns null so that we cannot analyze the delta
-            Task task = pageBase.createSimpleTask(OPERATION_RECORD_COMMENT);
             String comment = certItem.getOutput() != null ? certItem.getOutput().getComment() : null;
-            CertMiscUtil.recordCertItemResponse(
-                    certItem, null, comment, result, task, pageBase);
-
+            if (isCommentChanged(comment, previousCommentValue)) {
+                Task task = pageBase.createSimpleTask(OPERATION_RECORD_COMMENT);
+                CertMiscUtil.recordCertItemResponse(
+                        certItem, null, comment, result, task, pageBase);
+                previousCommentValue.setObject(comment);
+            }
         } catch (Exception ex) {
             LOGGER.error("Couldn't record comment for certification work item", ex);
             result.recordFatalError(ex);
@@ -87,6 +88,27 @@ public class CertItemEditableCommentColumn extends AbstractCertificationItemColu
             pageBase.showResult(result);
             target.add(pageBase.getFeedbackPanel());
         }
+    }
+
+    private boolean isCommentChanged(String comment, IModel<String> previousCommentValueModel) {
+        String previousComment = previousCommentValueModel == null ? null : previousCommentValueModel.getObject();
+        return ObjectUtils.notEqual(comment, previousComment);
+//        if (!(certItemOutput instanceof PrismContainerWrapperImpl<?> certItemOutputWrapper)) {
+//            return false;
+//        }
+//        try {
+//            PrismContainer<AbstractWorkItemOutputType> newOutputItem =
+//                    (PrismContainer<AbstractWorkItemOutputType>) certItemOutputWrapper.getItem();
+//            String newCommentValue = newOutputItem!= null ?
+//                    newOutputItem.getPropertyRealValue(AbstractWorkItemOutputType.F_COMMENT, String.class) : null;
+//            PrismContainer<AbstractWorkItemOutputType> oldOutputItem =
+//                    (PrismContainer<AbstractWorkItemOutputType>) certItemOutputWrapper.getOldItem();
+//            String oldCommentValue = oldOutputItem!= null ?
+//                    oldOutputItem.getPropertyRealValue(AbstractWorkItemOutputType.F_COMMENT, String.class) : null;
+//            return ObjectUtils.notEqual(oldCommentValue, newCommentValue);
+//        } catch (Exception e) {
+//            return false;
+//        }
     }
 
     @Override

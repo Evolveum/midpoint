@@ -15,7 +15,10 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+
+import java.io.Serial;
 
 /**
  * @author lazyman
@@ -23,6 +26,8 @@ import org.apache.wicket.model.PropertyModel;
  * EXPERIMENTAL - to be used with PageCertDecisions until sufficiently stable
  */
 public class DirectlyEditablePropertyColumn<T> extends PropertyColumn<T, String> {
+
+    @Serial private static final long serialVersionUID = 1L;
 
     public DirectlyEditablePropertyColumn(IModel<String> displayModel, String propertyExpression) {
         super(displayModel, propertyExpression);
@@ -35,18 +40,25 @@ public class DirectlyEditablePropertyColumn<T> extends PropertyColumn<T, String>
     }
 
     protected InputPanel createInputPanel(String componentId, final IModel<T> model) {
+        // due to #10912 the idea to refresh the whole cert. items table after each comment update was refused.
+        // instead, we remember the value of the previous comment value to be able to perform comment update
+        // only if the comment was changed
+        IModel<String> previousTextInputValue = Model.of();
+
         TextPanel<?> textPanel = new TextPanel<String>(componentId, new PropertyModel<>(model, getPropertyExpression()));
         TextField<?> textField = (TextField<?>) textPanel.getBaseFormComponent();     // UGLY HACK
         textField.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                onBlur(target, model);
+                onBlur(target, model, previousTextInputValue);
             }
         });
         return textPanel;
     }
 
-    public void onBlur(AjaxRequestTarget target, IModel<T> model) {
+    public void onBlur(AjaxRequestTarget target, IModel<T> model, IModel<String> previousTextInputValue) {
         // doing nothing; may be overridden in subclasses
     }
 }
