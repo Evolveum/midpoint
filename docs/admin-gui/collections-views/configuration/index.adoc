@@ -393,7 +393,7 @@ But when used in organizational hierarchies, then this search scope will be span
 | defaultObjectType
 | E.g. UserType or RoleType.
 | Default type of object for search boxes that support object type selection.
-To display all types at once as a default option, please, use the parent object type class which is suitable for the concrete panel (e.g. use AbstractRoleType for such panels as assignments or member; or use ObjectType on the panels where all midPoint object type can be present).
+To display all types at once as a default option, please, use the parent object type class which is suitable for the concrete panel (e.g. use AssignmentHolderType for members panel of the org. unit; or FocusType for members panel of the role or service; or use ObjectType on the panels where all midPoint object type can be present).
 Type selection may not be applicable to all types of lists/views.
 E.g. it does not make sense for lists that only contain objects of a single type.
 Therefore, some views may not even display object type selection at all.
@@ -432,7 +432,7 @@ Therefore, some views may not even display scope selection at all.
 Contains 2 attributes:
 1. _defaultValue_ is used to set the default type value for the Type search item.
 E.g. UserType or RoleType.
-To display all types at once as a default option, please, use the parent object type class which is suitable for the concrete panel (e.g. use AbstractRoleType for such panels as assignments or member; or use ObjectType on the panels where all midPoint object type can be present).
+To display all types at once as a default option, please, use the parent object type class which is suitable for the concrete panel (e.g. use AssignmentHolderType for members panel of the org. unit; or FocusType for members panel of the role or service; or use ObjectType on the panels where all midPoint object type can be present).
 2. multivalue _supportedTypes_ attribute defines a list of available object types for the list/view search.
 
 Type selection may not be applicable to all types of lists/views.
