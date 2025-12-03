@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
+import java.io.Serial;
 import java.text.DateFormat;
 import java.util.*;
 import javax.xml.namespace.QName;
@@ -86,7 +87,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(label = "pageTask.errors.title", icon = GuiStyleConstants.CLASS_TASK_ERRORS_ICON, order = 85))
 public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_ERRORS = "taskErrors";
 
@@ -110,6 +111,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
     private void initLayoutNew() {
         var provider = new SelectableBeanContainerDataProvider<>(this, searchModel, null, true) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String getDefaultSortParam() {
@@ -164,8 +166,9 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
             }
         };
 
-        BoxedTablePanel<?> table = new BoxedTablePanel<>(
-                ID_TASK_ERRORS, provider, initColumnsNew(), UserProfileStorage.TableId.PANEL_TASK_ERRORS) {
+        BoxedTablePanel<?> table = new BoxedTablePanel<>(ID_TASK_ERRORS, provider, initColumnsNew(),
+                UserProfileStorage.TableId.PANEL_TASK_ERRORS) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createHeader(String headerId) {
@@ -178,8 +181,13 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
         initSubtasksErrorsTable();
     }
 
+    private String getSessionStorageKey() {
+        return UserProfileStorage.TableId.PANEL_TASK_ERRORS + "." + getObjectWrapper().getOid();
+    }
+
     private void initSubtasksErrorsTable() {
         IModel<List<ActivityTaskStateOverviewType>> overviewModel = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ActivityTaskStateOverviewType> load() {
@@ -232,6 +240,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
             @Override
             protected IModel createLinkModel(IModel<ActivityTaskStateOverviewType> rowModel) {
                 return new LoadableDetachableModel() {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected String load() {
@@ -277,6 +286,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
                 ActivityTaskStateOverviewType.F_EXECUTION_STATE.getLocalPart()));
 
         columns.add(new IconColumn<ActivityTaskStateOverviewType>(createStringResource("TaskErrorsPanel.resultStatus")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected DisplayType getIconDisplayType(IModel<ActivityTaskStateOverviewType> rowModel) {
@@ -293,6 +303,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
         });
 
         columns.add(new AbstractColumn<>(createStringResource("TaskErrorsPanel.message")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(
@@ -323,6 +334,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
     private Component createSearch(String headerId) {
         return new SearchPanel<>(headerId, searchModel) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
@@ -333,10 +345,12 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
     private IModel<Search<OperationExecutionType>> createSearchModel() {
         return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Search<OperationExecutionType> load() {
-                PageStorage storage = getSessionStorage().getOrCreatePageStorage(SessionStorage.KEY_TASK_ERRORS_PANEL);
+                getSessionStorage().clearTaskErrorsStorage(getObjectWrapper().getOid());
+                PageStorage storage = getSessionStorage().getOrCreatePageStorage(getSessionStorageKey());
                 Search<OperationExecutionType> search = storage != null ? storage.getSearch() : null;
                 if (search == null) {
                     SearchBuilder<OperationExecutionType> searchBuilder =
@@ -433,13 +447,15 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
     private List<IColumn<TaskErrorSelectableBeanImpl, String>> initColumnsNew() {
         List<IColumn<TaskErrorSelectableBeanImpl, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorSelectableBeanImpl.F_OBJECT_REF_NAME) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public String getSortProperty() {
                 return "name";
             }
         });
         columns.add(new AbstractColumn<>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorSelectableBeanImpl.F_ERROR_TIMESTAMP) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskErrorSelectableBeanImpl>> cellItem, String componentId,
@@ -453,6 +469,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorSelectableBeanImpl.F_MESSAGE));
         columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.recordType"), TaskErrorSelectableBeanImpl.F_RECORD_TYPE));
         columns.add(new AjaxLinkColumn<>(createStringResource("pageTaskEdit.taskErros.realOwner"), TaskErrorSelectableBeanImpl.F_REAL_OWNER_DESCRIPTION) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<TaskErrorSelectableBeanImpl> rowModel) {
@@ -468,6 +485,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
     private void initLayoutOld() {
         SelectableBeanObjectDataProvider<? extends ObjectType> provider = new SelectableBeanObjectDataProvider<>(this, null) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String getDefaultSortParam() {
@@ -527,13 +545,15 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
     private List<IColumn<TaskErrorSelectableBeanImplOld<ObjectType>, String>> initColumnsOld() {
         List<IColumn<TaskErrorSelectableBeanImplOld<ObjectType>, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorSelectableBeanImplOld.F_OBJECT_REF_NAME) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public String getSortProperty() {
                 return "name";
             }
         });
         columns.add(new AbstractColumn<>(createStringResource("pageTaskEdit.taskErros.timestamp"), TaskErrorSelectableBeanImplOld.F_ERROR_TIMESTAMP) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskErrorSelectableBeanImplOld<ObjectType>>> cellItem, String componentId,
@@ -547,6 +567,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorSelectableBeanImplOld.F_MESSAGE));
         columns.add(new EnumPropertyColumn<>(createStringResource("pageTaskEdit.taskErros.recordType"), TaskErrorSelectableBeanImplOld.F_RECORD_TYPE));
         columns.add(new AjaxLinkColumn<>(createStringResource("pageTaskEdit.taskErros.realOwner"), TaskErrorSelectableBeanImplOld.F_REAL_OWNER_DESCRIPTION) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<TaskErrorSelectableBeanImplOld<ObjectType>> rowModel) {

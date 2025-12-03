@@ -8,8 +8,7 @@ package com.evolveum.midpoint.web.session;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
@@ -291,7 +290,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
         } else if (KEY_AUDIT_LOG.equals(key)
                 || key.startsWith(KEY_OBJECT_HISTORY_AUDIT_LOG)) {
             pageStorage = new AuditLogStorage();
-        } else if (KEY_TASK_ERRORS_PANEL.equals(key)) {
+        } else if (key.startsWith(KEY_TASK_ERRORS_PANEL)) {
             pageStorage = new GenericPageStorage();
         }
 
@@ -359,6 +358,17 @@ public class SessionStorage implements Serializable, DebugDumpable {
         pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
         pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
         pageStorageMap.remove(KEY_RESOURCE_OBJECT_CLASS_CONTENT);
+    }
+
+    public void clearTaskErrorsStorage(String taskOidToExclude) {
+        List<String> keysToRemove = new ArrayList<>();
+        pageStorageMap.keySet()
+                .forEach(key -> {
+                    if (key.startsWith(KEY_TASK_ERRORS_PANEL) && !key.contains(taskOidToExclude)) {
+                        keysToRemove.add(key);
+                    }
+                });
+        keysToRemove.forEach(key -> pageStorageMap.remove(key));
     }
 
     public GenericPageStorage getSimulation() {
