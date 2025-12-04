@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertItems;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
 import com.evolveum.midpoint.gui.impl.page.admin.objectcollection.PageObjectCollection;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
 import com.evolveum.midpoint.web.page.admin.objectTemplate.PageObjectTemplates;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
@@ -65,7 +65,7 @@ public enum PageTypes {
     SIMULATION_RESULT("simulationResults", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageSimulationResults.class, PageSimulationResult.class, SimulationResultType.COMPLEX_TYPE),
     MARK("marks", GuiStyleConstants.CLASS_MARK, PageMarks.class, PageMark.class, MarkType.COMPLEX_TYPE),
     SCHEMA("schemas", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA, PageSchemas.class, PageSchema.class, SchemaType.COMPLEX_TYPE),
-    ACCESS_CERT_ITEM_TYPE("certItems", GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, PageCertDecisions.class, null, AccessCertificationWorkItemType.COMPLEX_TYPE),
+    ACCESS_CERT_ITEM_TYPE("certItems", GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, PageCertItems.class, null, AccessCertificationWorkItemType.COMPLEX_TYPE),
     ANALYTICS("analytics", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageRoleAnalysis.class, PageRoleAnalysis.class, RoleAnalysisSessionType.COMPLEX_TYPE);
 
 
