@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
@@ -79,6 +80,7 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
         }
 
         if (hasValidSuggestions) {
+            clearPageFeedback(target);
             showChoiceFragment(target, buildSelectSuggestedObjectTypeWizardPanel(getIdOfChoicePanel(), objectClassName));
             return;
         }
@@ -96,7 +98,14 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
             return;
         }
 
+        clearPageFeedback(target);
         showChoiceFragment(target, buildGeneratingWizardPanel(getIdOfChoicePanel(), objectClassName));
+    }
+
+    /** Clears page-level feedback messages to prevent stale messages on step transitions. */
+    private void clearPageFeedback(@NotNull AjaxRequestTarget target) {
+        getPageBase().getFeedbackPanel().getFeedbackMessages().clear();
+        target.add(getPageBase().getFeedbackPanel());
     }
 
     /**
@@ -147,6 +156,7 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
                 ResourceObjectTypeDefinitionType suggestedObjectTypeDef = suggestedValueContainer.getRealValue();
                 PageBase pageBase = getPageBase();
 
+                clearPageFeedback(target);
                 getAssignmentHolderModel().getPageResource()
                         .showObjectTypeWizard(newValue, target, containerModel.getObject().getPath(),
                                 ajaxRequestTarget -> {
