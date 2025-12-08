@@ -94,7 +94,9 @@ public class ImagePanel extends BasePanel<DisplayType> {
         ExternalImage customLogoImgSrc = new ExternalImage(ID_IMAGE_SRC,
                 WebComponentUtil.getIconUrlModel(getModelObject() != null ? getModelObject().getIcon() : null));
         customLogoImgSrc.setOutputMarkupId(true);
-        customLogoImgSrc.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getImageUrl())));
+        customLogoImgSrc.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null
+                && StringUtils.isNotEmpty(getModelObject().getIcon().getImageUrl())));
+        customLogoImgSrc.add(AttributeAppender.append("alt", ""));
         add(customLogoImgSrc);
     }
 

@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.icon;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -16,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class CompositedIcon implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String F_LAYER_ICONS = "layerIcons";
 
