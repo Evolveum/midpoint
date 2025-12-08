@@ -15,11 +15,13 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.io.Serial;
+
 /**
  * @author skublik
  */
 public abstract class CompositedIconColumn<T> extends AbstractIconColumn<T, String> implements IColumn<T, String> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public CompositedIconColumn(IModel<String> displayModel) {
         super(displayModel);
