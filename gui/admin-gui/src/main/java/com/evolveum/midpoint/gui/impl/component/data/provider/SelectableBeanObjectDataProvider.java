@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -128,5 +129,39 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     public void setTaskConsumer(Consumer<Task> taskConsumer) {
         this.taskConsumer = taskConsumer;
+    }
+
+    @Override
+    public boolean supportsIterativeExport() {
+        return true;
+    }
+
+    /**
+     * Streaming export using searchObjectsIterative.
+     * This method does not load all data into memory.
+     */
+    @Override
+    public void exportIterative(
+            ObjectHandler<SelectableBean<O>> handler,
+            Task task,
+            OperationResult result) throws CommonException {
+
+        ObjectQuery query = getQuery();
+
+        LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(),
+                query != null ? query.debugDump() : "null");
+
+        getModelService().searchObjectsIterative(
+                getType(),
+                query,
+                (object, opResult) -> {
+                    O objectable = object.asObjectable();
+                    SelectableBean<O> wrapper = createDataObjectWrapper(objectable);
+                    return handler.handle(wrapper, opResult);
+                },
+                getSearchOptions(),
+                task,
+                result
+        );
     }
 }
