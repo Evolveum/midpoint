@@ -451,6 +451,11 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             }
 
             @Override
+            protected boolean isHeaderAriaLabelVisible() {
+                return false;
+            }
+
+            @Override
             protected DisplayType createDisplayType(IModel<ShoppingCartItem> model) {
                 AssignmentType a = model.getObject().getAssignment();
                 ObjectReferenceType ref = a != null ? a.getTargetRef() : null;

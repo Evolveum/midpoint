@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.data.column.icon;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -38,6 +40,7 @@ public abstract class AbstractIconColumn<T, S> extends AbstractColumn<T, S> {
         if (getDisplayModel() == null || StringUtils.isBlank(getDisplayModel().getObject())) {
             Label label = new Label(componentId, () -> LocalizationUtil.translate("AbstractIconColumn.header"));
             label.add(AttributeAppender.append("class", "sr-only"));
+            label.add(new VisibleBehaviour(this::isHeaderAriaLabelVisible));
             return label;
         }
         return super.getHeader(componentId);
@@ -46,5 +49,9 @@ public abstract class AbstractIconColumn<T, S> extends AbstractColumn<T, S> {
     @Override
     public String getCssClass() {
         return "align-middle";
+    }
+
+    protected boolean isHeaderAriaLabelVisible() {
+        return true;
     }
 }
