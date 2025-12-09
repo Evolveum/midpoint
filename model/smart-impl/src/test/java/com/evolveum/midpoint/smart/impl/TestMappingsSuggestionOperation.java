@@ -326,6 +326,54 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     }
 
     @Test
+    public void test005LowQualityMappingShouldBeSkipped() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Set up shadow data with dashed personal numbers
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "1-1-1-1-1");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "2-222-2");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33-3-33");
+
+        // Set up focus data that mostly doesn't match even after transformation
+        // Only user1 would match after removing dashes, giving quality around 33%
+        // But we need <10%, so let's make even worse match
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "99999");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "88888");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "77777");
+
+        refreshShadows();
+
+        // Provide a script that removes dashes, but since data doesn't match, quality will be very low
+        String script = "input.replaceAll('-', '')";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                script
+        );
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                true,
+                task,
+                result);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("Low quality mapping (below 10% threshold) should be skipped")
+                .hasSize(0);
+    }
+
+    @Test
     public void test010OutboundAsIsMappingWhenDataIdentical() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -378,7 +426,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         refreshShadows();
 
-        String script = "input.replaceAll('-', '')";
+        String script = "personalNumber.replaceAll('-', '')";
         var mockClient = createClient(
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
                 List.of(PERSONAL_NUMBER.path()),
@@ -471,8 +519,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         refreshShadows();
 
-        String invalidScript = "input.repalceAll('-', '')";
-        String validScript = "input.replaceAll('-', '')";
+        String invalidScript = "input.replaceAll('-', '')";
+        String validScript = "personalNumber.replaceAll('-', '')";
         var mockClient = createClient(
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
                 List.of(PERSONAL_NUMBER.path()),
@@ -500,6 +548,52 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getExpectedQuality()).isEqualTo(1.0f);
         assertThat(mapping.getDefinition().getOutbound().getExpression()).isNotNull();
+    }
+
+    @Test
+    public void test014OutboundLowQualityMappingShouldBeSkipped() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Set up focus data with dashed personal numbers
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "1-1-1-1-1");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "2-222-2");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33-3-33");
+
+        // Set up shadow data that doesn't match even after transformation
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "99999");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "88888");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "77777");
+
+        refreshShadows();
+
+        // Provide a script that removes dashes, but since data doesn't match, quality will be very low
+        String script = "personalNumber.replaceAll('-', '')";
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path()),
+                script
+        );
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                false,
+                task,
+                result);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("Outbound low quality mapping (below 10% threshold) should be skipped")
+                .hasSize(0);
     }
 
     @Test
@@ -617,8 +711,118 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression()).isNull();
         assertThat(mapping.getExpectedQuality())
-                .as("With no comparable samples, expected quality should be 0.0")
-                .isEqualTo(0.0f);
+                .as("With no comparable samples, expected quality should be null")
+                .isNull();
+    }
+
+    @Test
+    public void test061InboundAllSourceMissingAsIsWithNoSamples() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Ensure focus has data but shadow attributes are missing => source missing for inbound
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "11111");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "22222");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33333");
+
+        // Remove shadow personal numbers
+        modifyShadowReplace("user1", PERSONAL_NUMBER);
+        modifyShadowReplace("user2", PERSONAL_NUMBER);
+        modifyShadowReplace("user3", PERSONAL_NUMBER);
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
+                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
+                true, task, result);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
+        assertThat(suggestion.getAttributeMappings())
+                .as("Source data missing should discard mapping")
+                .isEmpty();
+    }
+
+    @Test
+    public void test070OutboundAllSourceMissingAsIsWithNoSamples() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Remove focus personal numbers => source missing for outbound
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER));
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER));
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER));
+
+        // Ensure shadow has data
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "11111");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "22222");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "33333");
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
+                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
+                false, task, result);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
+        assertThat(suggestion.getAttributeMappings())
+                .as("Source data missing should discard mapping")
+                .isEmpty();
+    }
+
+    @Test
+    public void test071OutboundAllTargetMissingAsIsWithNoSamples() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Ensure focus has data
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "11111");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "22222");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "33333");
+
+        // Remove shadow personal numbers => target missing for outbound
+        modifyShadowReplace("user1", PERSONAL_NUMBER);
+        modifyShadowReplace("user2", PERSONAL_NUMBER);
+        modifyShadowReplace("user3", PERSONAL_NUMBER);
+
+        refreshShadows();
+
+        var mockClient = createClient(
+                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
+                List.of(PERSONAL_NUMBER.path())
+        );
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
+                new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
+                false, task, result);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, task, result);
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
+        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
+        assertThat(mapping.getDefinition().getOutbound().getExpression())
+                .as("Outbound target data missing should result in asIs mapping")
+                .isNull();
+        assertThat(mapping.getExpectedQuality())
+                .as("With no target data, expected quality should be null")
+                .isNull();
     }
 
 }
