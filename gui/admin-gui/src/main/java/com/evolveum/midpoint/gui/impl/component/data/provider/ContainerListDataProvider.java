@@ -30,7 +30,10 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.schema.ObjectHandler;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -145,5 +148,47 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
     public void detach() {
         super.detach();
         getAvailableData().clear();
+    }
+
+    @Override
+    public boolean supportsIterativeExport() {
+        return true;
+    }
+
+    /**
+     * Streaming export using searchContainersIterative.
+     * This method does not load all data into memory.
+     */
+    @Override
+    public void exportIterative(
+            ObjectHandler<PrismContainerValueWrapper<C>> handler,
+            Task task,
+            OperationResult result) throws CommonException {
+
+        ObjectQuery query = getQuery();
+        if (query == null) {
+            query = getPrismContext().queryFactory().createQuery();
+        }
+
+        LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(), query.debugDump());
+
+        getModelService().searchContainersIterative(
+                getType(),
+                query,
+                (object, opResult) -> {
+                    try {
+                        PrismContainerValueWrapper<C> wrapper = createWrapper(object, task, result);
+                        if (wrapper != null) {
+                            return handler.handle(wrapper, opResult);
+                        }
+                        return true;
+                    } catch (SchemaException e) {
+                        throw new SystemException("Failed to create wrapper for container", e);
+                    }
+                },
+                options,
+                task,
+                result
+        );
     }
 }
