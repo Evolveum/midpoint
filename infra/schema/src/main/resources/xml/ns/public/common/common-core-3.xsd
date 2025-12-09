@@ -2115,6 +2115,7 @@
                                     <a:name>user-overview</a:name>
                                     <a:inclusion>include</a:inclusion>
                                 </a:diagram>
+                                <a:help>UserType.fullName.help</a:help>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
