@@ -148,8 +148,10 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
         ObjectQuery query = getQuery();
 
-        LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(),
-                query != null ? query.debugDump() : "null");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(),
+                    query != null ? query.debugDump() : "null");
+        }
 
         getModelService().searchObjectsIterative(
                 getType(),
