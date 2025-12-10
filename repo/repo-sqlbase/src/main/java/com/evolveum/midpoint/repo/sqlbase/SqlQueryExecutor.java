@@ -7,16 +7,22 @@
 package com.evolveum.midpoint.repo.sqlbase;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sqlbase.mapping.ResultListRowTransformer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -65,7 +71,6 @@ public class SqlQueryExecutor {
         context.beforeQuery();
         PageOf<Tuple> result;
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
-            var opResult = SqlBaseOperationTracker.fetchMultiplePrimaries();
             try (var ignored = SqlBaseOperationTracker.fetchMultiplePrimaries()){
                 result = context.executeQuery(jdbcSession);
             }
@@ -81,5 +86,64 @@ public class SqlQueryExecutor {
             metadata.setApproxNumberOfAllResults((int) result.totalCount());
         }
         return new SearchResultList<>(result.content(), metadata);
+    }
+
+    /**
+     * Streaming iterative search that processes rows one by one without loading all into memory.
+     * Uses JDBC cursor-based streaming with configurable fetch size.
+     *
+     * @param context query context
+     * @param query object query (may be null)
+     * @param options get operation options
+     * @param handler handler called for each transformed result
+     * @param operationResult operation result for handler
+     * @param fetchSize JDBC fetch size for streaming
+     * @return number of processed items
+     */
+    public <S, Q extends FlexibleRelationalPathBase<R>, R> int listStreaming(
+            @NotNull SqlQueryContext<S, Q, R> context,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull ObjectHandler<S> handler,
+            @NotNull OperationResult operationResult,
+            int fetchSize)
+            throws RepositoryException, SchemaException {
+
+        if (query != null) {
+            context.processFilter(query.getFilter());
+            context.processObjectPaging(query.getPaging());
+        }
+        context.processOptions(options);
+        context.beforeQuery();
+
+        int count = 0;
+        // PostgreSQL streaming requires autoCommit=false, use read-only transaction for optimization
+        try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+            try (Stream<Tuple> stream = context.executeQueryStreaming(jdbcSession, fetchSize)) {
+                ResultListRowTransformer<S, Q, R> rowTransformer =
+                        context.mapping().createRowTransformer(context, jdbcSession, options);
+
+                // Note: beforeTransformation with empty list - streaming doesn't support bulk pre-processing
+                rowTransformer.beforeTransformation(java.util.Collections.emptyList(), context.path());
+
+                Q entityPath = context.path();
+                Iterator<Tuple> iterator = stream.iterator();
+
+                while (iterator.hasNext()) {
+                    Tuple tuple = iterator.next();
+                    S transformed = rowTransformer.transform(tuple, entityPath);
+
+                    if (!handler.handle(transformed, operationResult)) {
+                        break;
+                    }
+                    count++;
+                }
+
+                rowTransformer.finishTransformation();
+            }
+
+            jdbcSession.commit();
+            return count;
+        }
     }
 }

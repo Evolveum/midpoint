@@ -156,8 +156,9 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
     }
 
     /**
-     * Streaming export using searchContainersIterative.
-     * This method does not load all data into memory.
+     * Streaming export using JDBC cursor-based streaming.
+     * This method does not load all data into memory - uses true JDBC streaming.
+     * Streaming is enabled by setting iterationPageSize to -1.
      */
     @Override
     public void exportIterative(
@@ -170,7 +171,14 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
             query = getPrismContext().queryFactory().createQuery();
         }
 
-        LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(), query.debugDump());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(), query.debugDump());
+        }
+
+        // Enable JDBC streaming mode by setting iterationPageSize to -1
+        Collection<SelectorOptions<GetOperationOptions>> streamingOptions =
+                SelectorOptions.updateRootOptions(options,
+                        opt -> opt.setIterationPageSize(-1), GetOperationOptions::new);
 
         getModelService().searchContainersIterative(
                 getType(),
@@ -186,7 +194,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
                         throw new SystemException("Failed to create wrapper for container", e);
                     }
                 },
-                options,
+                streamingOptions,
                 task,
                 result
         );
