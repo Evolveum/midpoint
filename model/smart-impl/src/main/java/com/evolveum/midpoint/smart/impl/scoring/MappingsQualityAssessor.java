@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.expression.FunctionLibrariesProfile;
 import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,27 +51,15 @@ public class MappingsQualityAssessor {
      * - Outbound (inboundMapping = false): source = focus, target = shadow (focus -> shadow)
      * The quality is computed as the fraction of sampled single-valued pairs where the (optionally transformed)
      * source equals the target. Multi-valued pairs are skipped.
-     *
-     * @param testingSample Sampled value pairs (shadow vs focus) used to estimate the mapping quality.
-     * @param suggestedExpression Optional expression (e.g. Groovy) applied to the source value before comparison.
-     * @param inboundMapping {@code true} for inbound (shadow -> focus), {@code false} for outbound (focus -> shadow)
-     *
-     * @return an {@link AssessmentResult} containing:
-     *         - quality in the range {@code [0.0, 1.0]} (rounded to two decimals) with status {@link AssessmentStatus#OK}, or
-     *         - status {@link AssessmentStatus#NO_SAMPLES} when no comparable samples were found
-     *
-     * @throws ExpressionEvaluationException if the expression evaluation fails
-     * @throws SecurityViolationException if the evaluation is not permitted by the configured expression profile
-     * @throws MappingEvaluationException if transforming the value fails due to schema/configuration/communication issues
      */
     public AssessmentResult assessMappingsQuality(
             ValuesPairSample<?, ?> testingSample,
             @Nullable ExpressionType suggestedExpression,
-            boolean inboundMapping,
             Task task,
             OperationResult parentResult) throws ExpressionEvaluationException, SecurityViolationException {
         int totalSamples = 0;
         int matchedSamples = 0;
+        boolean inboundMapping = testingSample.direction() == MappingDirection.INBOUND;
 
         for (final ValuesPair<?, ?> valuePair : testingSample.pairs()) {
             final Collection<?> shadowValues = valuePair.shadowValues();

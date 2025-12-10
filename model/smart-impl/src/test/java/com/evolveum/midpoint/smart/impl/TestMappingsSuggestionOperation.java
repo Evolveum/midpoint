@@ -330,21 +330,16 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // Set up shadow data with dashed personal numbers
         modifyShadowReplace("user1", PERSONAL_NUMBER, "1-1-1-1-1");
         modifyShadowReplace("user2", PERSONAL_NUMBER, "2-222-2");
         modifyShadowReplace("user3", PERSONAL_NUMBER, "33-3-33");
 
-        // Set up focus data that mostly doesn't match even after transformation
-        // Only user1 would match after removing dashes, giving quality around 33%
-        // But we need <10%, so let's make even worse match
         modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "99999");
         modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "88888");
         modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "77777");
 
         refreshShadows();
 
-        // Provide a script that removes dashes, but since data doesn't match, quality will be very low
         String script = "input.replaceAll('-', '')";
         var mockClient = createClient(
                 List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),

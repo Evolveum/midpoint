@@ -9,30 +9,25 @@ package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPING;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
+import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.MissingSourceDataException;
 import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
-import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -61,7 +56,7 @@ class MappingsSuggestionOperation {
     private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionOperation.class);
 
     private static final int LLM_EXAMPLES_COUNT = 20;
-    private static final int DEVELOPMENT_EXAMPLES_COUNT = 200;
+    private static final int VALIDATION_EXAMPLES_COUNT = 200;
     private static final float MISSING_DATA_THRESHOLD = 0.05f;
     private static final float MINIMUM_QUALITY_THRESHOLD = 0.1f;
 
@@ -71,8 +66,6 @@ class MappingsSuggestionOperation {
     private final MappingsQualityAssessor qualityAssessor;
     private final OwnedShadowsProvider ownedShadowsProvider;
     private final boolean isInbound;
-
-    private enum MappingDirection { INBOUND, OUTBOUND }
 
     private MappingsSuggestionOperation(
             TypeOperationContext ctx,
@@ -120,10 +113,10 @@ class MappingsSuggestionOperation {
 
         var ownedList = collectOwnedShadows(result);
         int llmDataCount = Math.min(LLM_EXAMPLES_COUNT, ownedList.size());
-        int developmentDataCount = Math.min(DEVELOPMENT_EXAMPLES_COUNT, ownedList.size());
+        int validationDataCount = Math.min(VALIDATION_EXAMPLES_COUNT, ownedList.size());
         var shadowsForLLM = ownedList.subList(0, llmDataCount);
-        var shadowsForDevelopment = ownedList.subList(ownedList.size() - developmentDataCount, ownedList.size());
-        LOGGER.trace("LLM data count = {}, Development data count={}, Total={}", llmDataCount, developmentDataCount, ownedList.size());
+        var shadowsForValidation = ownedList.subList(ownedList.size() - validationDataCount, ownedList.size());
+        LOGGER.trace("LLM data count = {}, Validation data count={}, Total={}.", llmDataCount, validationDataCount, ownedList.size());
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
@@ -137,17 +130,16 @@ class MappingsSuggestionOperation {
                 mappingsSuggestionState.flush(result);
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
-                var valuePairsForLLM = ValuesPairSample.of(focusPropPath, shadowAttrPath)
+                var valuePairsForLLM = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                         .from(shadowsForLLM);
-                var valuePairsForDevelopment = ValuesPairSample.of(focusPropPath, shadowAttrPath)
-                        .from(shadowsForDevelopment);
+                var valuePairsForValidation = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
+                        .from(shadowsForValidation);
                 try {
                     suggestion.getAttributeMappings().add(
                             suggestMapping(
                                     matchPair,
                                     valuePairsForLLM,
-                                    valuePairsForDevelopment,
-                                    direction,
+                                    valuePairsForValidation,
                                     result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (LowQualityMappingException e) {
@@ -181,10 +173,10 @@ class MappingsSuggestionOperation {
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
-        state.setExpectedProgress(LLM_EXAMPLES_COUNT + DEVELOPMENT_EXAMPLES_COUNT);
+        state.setExpectedProgress(LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
         state.flush(result); // because finding an owned shadow can take a while
         try {
-            return ownedShadowsProvider.fetch(ctx, state, result, LLM_EXAMPLES_COUNT + DEVELOPMENT_EXAMPLES_COUNT);
+            return ownedShadowsProvider.fetch(ctx, state, result, LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
         } catch (Exception e) {
             state.recordException(e);
             throw e;
@@ -196,40 +188,39 @@ class MappingsSuggestionOperation {
     private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuePairsForLLM,
-            ValuesPairSample<?, ?> valuePairsForDevelopment,
-            MappingDirection direction,
+            ValuesPairSample<?, ?> valuePairsForValidation,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, LowQualityMappingException,
             MissingSourceDataException {
 
-        LOGGER.trace("Going to suggest {} mapping for {} <-> {}", direction,
+        LOGGER.trace("Going to suggest {} mapping between shadow attribute: {} and focus property: {}.", valuePairsForValidation.direction(),
                 matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
 
         ExpressionType expression = null;
         MappingsQualityAssessor.AssessmentResult assessment = null;
 
-        if (valuePairsForLLM.pairs().isEmpty() || valuePairsForDevelopment.pairs().isEmpty()) {
-            LOGGER.trace(" -> no data pairs, so we'll use 'asIs' mapping (without calling LLM)");
-        } else if (isSourceDataMissing(valuePairsForDevelopment.pairs(), direction)) {
+        if (valuePairsForLLM.pairs().isEmpty() || valuePairsForValidation.pairs().isEmpty()) {
+            LOGGER.trace("No data pairs. We'll use 'asIs' mapping (no LLM call).");
+        } else if (valuePairsForValidation.isSourceDataMissing(MISSING_DATA_THRESHOLD)) {
             throw new MissingSourceDataException(matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
-        } else if (isTargetDataMissing(valuePairsForDevelopment.pairs(), direction)) {
-            LOGGER.trace(" -> target data missing; assuming 'asIs' is fine (no LLM call)");
-        } else if (canUseAsIsMapping(valuePairsForDevelopment, direction)) {
-            LOGGER.trace(" -> 'asIs' does suffice according to the data ({}), so we'll use it (no LLM)", direction);
+        } else if (valuePairsForValidation.isTargetDataMissing(MISSING_DATA_THRESHOLD)) {
+            LOGGER.trace("Target data missing. We'll use 'asIs' mapping (no LLM call).");
+        } else if (valuePairsForValidation.doAllConvertedSourcesMatchTargets(ctx.getFocusTypeDefinition(), ctx.typeDefinition, ctx.b.protector)) {
+            LOGGER.trace("AsIs {} mapping suffice according to the data (no LLM call).", valuePairsForValidation.direction());
             assessment = this.qualityAssessor.assessMappingsQuality(
-                    valuePairsForDevelopment, expression, direction == MappingDirection.INBOUND, this.ctx.task, parentResult);
+                    valuePairsForValidation, expression, this.ctx.task, parentResult);
         } else {
-            LOGGER.trace(" -> going to ask LLM about mapping script");
+            LOGGER.trace("Going to ask LLM about mapping script");
             String errorLog = null;
             String retryScript = null;
 
             for (int attempt = 1; attempt <= 2; attempt++) {
-                var mappingResponse = askMicroservice(matchPair, valuePairsForLLM.pairs(), errorLog, retryScript, direction);
+                var mappingResponse = askMicroservice(matchPair, valuePairsForLLM, errorLog, retryScript);
                 retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
                 expression = buildScriptExpression(mappingResponse);
                 try {
                     assessment = this.qualityAssessor.assessMappingsQuality(
-                            valuePairsForDevelopment, expression, direction == MappingDirection.INBOUND, this.ctx.task, parentResult);
+                            valuePairsForValidation, expression, this.ctx.task, parentResult);
                     break;
                 } catch (ExpressionEvaluationException | SecurityViolationException e) {
                     if (attempt == 1) {
@@ -252,32 +243,29 @@ class MappingsSuggestionOperation {
         }
 
         AttributeMappingsSuggestionType suggestion = buildAttributeMappingSuggestion(
-                valuePairsForDevelopment.shadowAttributePath(), valuePairsForDevelopment.focusPropertyPath(),
-                assessment != null ? assessment.quality() : null, expression, direction);
+                valuePairsForValidation, assessment != null ? assessment.quality() : null, expression);
         SmartMetadataUtil.markAsAiProvided(suggestion); // everything is AI-provided now
         return suggestion;
     }
 
     /** Builds the final suggestion structure for the given direction while encapsulating path handling quirks. */
     private static AttributeMappingsSuggestionType buildAttributeMappingSuggestion(
-            ItemPath shadowAttrPath,
-            ItemPath focusPropPath,
-            Float expectedQuality,
-            @Nullable ExpressionType expression,
-            MappingDirection direction) {
-        var sanitizedFocusPath = sanitizeFocusPathForTarget(focusPropPath);
+            ValuesPairSample<?, ?> pairSample,
+            @Nullable Float expectedQuality,
+            @Nullable ExpressionType expression) {
+        var sanitizedFocusPath = sanitizeFocusPathForTarget(pairSample.focusPropertyPath());
         var def = new ResourceAttributeDefinitionType()
-                .ref(shadowAttrPath.rest().toBean()); // FIXME! what about activation, credentials, etc?
+                .ref(pairSample.shadowAttributePath().rest().toBean()); // FIXME! what about activation, credentials, etc?
 
-        if (direction == MappingDirection.INBOUND) {
+        if (pairSample.direction() == MappingDirection.INBOUND) {
             def.inbound(new InboundMappingType()
-                    .name(shadowAttrPath.lastName().getLocalPart() + "-into-" + focusPropPath)
+                    .name(pairSample.shadowAttributePath().lastName().getLocalPart() + "-into-" + pairSample.focusPropertyPath())
                     .strength(MappingStrengthType.STRONG)
                     .target(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
                     .expression(expression));
         } else {
             def.outbound(new OutboundMappingType()
-                    .name(focusPropPath + "-to-" + shadowAttrPath.lastName().getLocalPart())
+                    .name(pairSample.focusPropertyPath() + "-to-" + pairSample.shadowAttributePath().lastName().getLocalPart())
                     .strength(MappingStrengthType.STRONG)
                     .source(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
                     .expression(expression));
@@ -317,111 +305,22 @@ class MappingsSuggestionOperation {
 
     private SiSuggestMappingResponseType askMicroservice(
             SchemaMatchOneResultType matchPair,
-            Collection<? extends ValuesPair<?, ?>> valuesPairs,
+            ValuesPairSample<?, ?> valuesPairs,
             @Nullable String errorLog,
-            @Nullable String retryScript,
-            MappingDirection direction) throws SchemaException {
+            @Nullable String retryScript) throws SchemaException {
         var siRequest = new SiSuggestMappingRequestType()
                 .applicationAttribute(matchPair.getShadowAttribute())
                 .midPointAttribute(matchPair.getFocusProperty())
-                .inbound(direction == MappingDirection.INBOUND)
+                .inbound(valuesPairs.direction() == MappingDirection.INBOUND)
                 .errorLog(errorLog)
                 .previousScript(retryScript);
-        valuesPairs.forEach(pair ->
+        valuesPairs.pairs().forEach(pair ->
                 siRequest.getExample().add(
                         pair.toSiExample(
                                 matchPair.getShadowAttribute().getName(),
                                 matchPair.getFocusProperty().getName())));
         return ctx.serviceClient
                 .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
-    }
-
-    /** Returns {@code true} if a simple "asIs" mapping is sufficient for the given direction. */
-    private boolean canUseAsIsMapping(ValuesPairSample<?, ?> sample, MappingDirection direction) {
-        PrismPropertyDefinition<?> targetDef = getTargetDefinition(sample, direction);
-        if (targetDef == null) {
-            LOGGER.trace("No definition available; cannot verify asIs mapping.");
-            return false;
-        }
-        for (var valuesPair : sample.pairs()) {
-            var sourceValues = getSourceValues(valuesPair, direction);
-            var targetValues = getTargetValues(valuesPair, direction);
-            if (sourceValues.size() != targetValues.size()) {
-                return false;
-            }
-            var expectedTargetValues = new ArrayList<>(sourceValues.size());
-            for (Object sourceValue : sourceValues) {
-                Object converted;
-                try {
-                    converted = ExpressionUtil.convertValue(
-                            targetDef.getTypeClass(), null, sourceValue, ctx.b.protector);
-                } catch (Exception e) {
-                    // Conversion not possible (e.g., different types) -> transformation is needed.
-                    LOGGER.trace("Value conversion failed ({}), assuming transformation is needed: {} (value: {})",
-                            direction, e.getMessage(), sourceValue);
-                    return false;
-                }
-                if (converted != null) {
-                    expectedTargetValues.add(converted);
-                }
-            }
-            if (!MiscUtil.unorderedCollectionEquals(targetValues, expectedTargetValues)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /** Direction-aware accessor for source values from a pair. */
-    private Collection<?> getSourceValues(ValuesPair<?, ?> pair, MappingDirection direction) {
-        var values = direction == MappingDirection.INBOUND ? pair.shadowValues() : pair.focusValues();
-        return values != null ? values : List.of();
-    }
-
-    /** Direction-aware accessor for target values from a pair. */
-    private Collection<?> getTargetValues(ValuesPair<?, ?> pair, MappingDirection direction) {
-        var values = direction == MappingDirection.INBOUND ? pair.focusValues() : pair.shadowValues();
-        return values != null ? values : List.of();
-    }
-
-    /** Direction-aware accessor for target definition. */
-    private PrismPropertyDefinition<?> getTargetDefinition(ValuesPairSample<?, ?> sample, MappingDirection direction) {
-        if (direction == MappingDirection.INBOUND) {
-            return ctx.getFocusTypeDefinition().findPropertyDefinition(sample.focusPropertyPath());
-        } else {
-            var shadowAttrName = sample.shadowAttributePath().rest().asSingleNameOrFail();
-            return ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
-        }
-    }
-
-    /**
-     * Returns {@code true} if target data is missing.
-     * Data is considered missing if less than 5% of pairs have non-empty target values.
-     */
-    private boolean isTargetDataMissing(Collection<? extends ValuesPair<?, ?>> valuesPairs, MappingDirection direction) {
-        if (valuesPairs.isEmpty()) {
-            return true;
-        }
-        long countWithValues = valuesPairs.stream()
-                .filter(pair -> !getTargetValues(pair, direction).isEmpty())
-                .count();
-        double percentageWithData = (double) countWithValues / valuesPairs.size();
-        return percentageWithData < MISSING_DATA_THRESHOLD;
-    }
-
-    /**
-     * Returns {@code true} if source data is missing.
-     * Data is considered missing if less than 5% of pairs have non-empty source values.
-     */
-    private boolean isSourceDataMissing(Collection<? extends ValuesPair<?, ?>> valuesPairs, MappingDirection direction) {
-        if (valuesPairs.isEmpty()) {
-            return true;
-        }
-        long countWithValues = valuesPairs.stream()
-                .filter(pair -> !getSourceValues(pair, direction).isEmpty())
-                .count();
-        double percentageWithData = (double) countWithValues / valuesPairs.size();
-        return percentageWithData < MISSING_DATA_THRESHOLD;
     }
 
 }
