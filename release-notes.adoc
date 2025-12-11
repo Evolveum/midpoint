@@ -48,7 +48,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 === Other Improvements
 
-* Added Slovenian language into repo/system-init/src/main/resources/initial-objects/lookup-table/200-lookup-languages.xml and repo/system-init/src/main/resources/initial-objects/210-lookup-locales.xml
+* Added support for Slovenian language (sl).
 
 === Major Bugfixes
 
