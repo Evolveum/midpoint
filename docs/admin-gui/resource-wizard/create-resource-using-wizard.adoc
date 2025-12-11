@@ -150,6 +150,37 @@ With the resource created and configured, continue with the configuration furthe
 * xref:./association-type[]
 * xref:/midpoint/reference/tasks/synchronization-tasks/import-and-reconciliation/[]
 
+=== Activate Proposed Resource
+
+When you create a new resource, you typically use the _Proposed_ lifecycle state for the resource itself as well as its various configurations, like mappings.
+
+Once you are done with all the configuration and testing, you need to put the whole resource and its configurations to production.
+Similarly, when you retire a resource, you deprecate it and then archive it.
+These are all lifecycle state changes.
+
+To change the lifecycle state of the whole resource:
+
+. In [.nowrap]#icon:database[] *Resources*# > [.nowrap]#icon:database[] *All resources*#, open your resource for editing.
+. In the resource toolbar, click the dropdown menu under *Lifecycle state* and select the desired state.
+    ** See xref:/midpoint/reference/concepts/object-lifecycle/[] for the explanation of the possible values.
+. Click btn:[Yes] in the confirmation modal to apply and save the change.
+
+.Change a resource lifecycle state using the resource toolbar
+image::change-resource-lifecycle-state.webp["Change a resource lifecycle state using the resource toolbar"]
+
+To make sure all the resource configuration items are set to the desired lifecycle states:
+
+. Click the [.nowrap]#icon:heart-pulse[] btn:[Check detailed lifecycle]# button in the resource toolbar.
+. Change the lifecycle states as needed.
+. Click btn:[Done] to apply the changes.
+. Click [.nowrap]#icon:save[] btn:[Save]# in the resource toolbar to save the changes.
+
+[WARNING]
+====
+You cannot use the [.nowrap]#icon:heart-pulse[] btn:[Check detailed lifecycle]# feature to change the lifecycle state of the whole resource.
+Although it appears possible, it does not work. This is a bug tracked in bug:MID-10700[].
+====
+
 :sectnums!:
 
 include::see-also.adoc[]
