@@ -162,6 +162,14 @@ public interface CommonInitialObjects {
             MARKS, "737-mark-shadow-correlation-state-changed.xml",
             SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value());
 
+    TestObject<MarkType> MARK_SHADOW_CORRELATION_OWNER_FOUND = TestObject.classPath(
+            MARKS, "739-mark-shadow-correlation-owner-found.xml",
+            SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value());
+
+    TestObject<MarkType> MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND = TestObject.classPath(
+            MARKS, "740-mark-shadow-correlation-owner-not-found.xml",
+            SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value());
+
     TestObject<MarkType> MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED = TestObject.classPath(
             MARKS, "738-mark-projection-resource-object-affected.xml",
             SystemObjectsType.MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED.value());
@@ -360,6 +368,8 @@ public interface CommonInitialObjects {
                     MARK_PROJECTION_PASSWORD_CHANGED,
                     MARK_SHADOW_CLASSIFICATION_CHANGED,
                     MARK_SHADOW_CORRELATION_STATE_CHANGED,
+                    MARK_SHADOW_CORRELATION_OWNER_FOUND,
+                    MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND,
                     MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED,
                     MARK_PROTECTED,
                     MARK_DECOMMISSION_LATER,
