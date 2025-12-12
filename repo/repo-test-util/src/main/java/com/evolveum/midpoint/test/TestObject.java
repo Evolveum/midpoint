@@ -251,6 +251,12 @@ public class TestObject<T extends ObjectType> {
         test.repositoryService.addObject(get(), null, result);
     }
 
+    public void initWithOverwrite(AbstractIntegrationTest test, Task task, OperationResult result) throws Exception {
+        test.deleteIfPresent(this, result);
+        reset();
+        commonInit(test, task, result);
+    }
+
     void commonInit(AbstractIntegrationTest test, Task task, OperationResult result) throws CommonException {
         test.registerTestObjectUsed(this);
         importObject(task, result);
