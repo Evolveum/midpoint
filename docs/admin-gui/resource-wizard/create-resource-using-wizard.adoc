@@ -175,12 +175,6 @@ To make sure all the resource configuration items are set to the desired lifecyc
 . Click btn:[Done] to apply the changes.
 . Click [.nowrap]#icon:save[] btn:[Save]# in the resource toolbar to save the changes.
 
-[WARNING]
-====
-You cannot use the [.nowrap]#icon:heart-pulse[] btn:[Check detailed lifecycle]# feature to change the lifecycle state of the whole resource.
-Although it appears possible, it does not work. This is a bug tracked in bug:MID-10700[].
-====
-
 :sectnums!:
 
 include::see-also.adoc[]
