@@ -338,9 +338,12 @@ export default class MidPointTheme {
                     wl['xsd:documentation'] = [];
 
                     var parent = $el.closest('.modal-dialog-content');
+                    var parent1 = $el.closest('.modal-dialog');
                     var container = "body";
                     if (parent.length !== 0) {
                         container = '#' + parent.attr('id');
+                    } else if (parent1.length !== 0) {
+                        container = '#' + parent1.attr('id');
                     }
 
                     $el.tooltip("dispose");
