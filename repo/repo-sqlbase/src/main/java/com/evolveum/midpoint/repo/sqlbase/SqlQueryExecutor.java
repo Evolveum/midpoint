@@ -91,11 +91,21 @@ public class SqlQueryExecutor {
     }
 
     /**
-     * Batch size for mini-batch processing in streaming mode.
+     * Batch size for mini-batch processing during row transformation.
      * This allows beforeTransformation to fetch child data (assignments, references)
-     * in batches instead of one-by-one, avoiding N+1 query problem while still streaming.
+     * in batches instead of one-by-one, avoiding N+1 query problem.
+     *
+     * Used in two scenarios:
+     * - Streaming queries: rows are processed in mini-batches of this size
+     * - Non-streaming list queries (GUI page display): beforeTransformation receives
+     *   the entire page at once (typically <= 100 rows)
+     *
+     * This value should be aligned with the maximum page size in GUI (currently 100).
+     * If GUI allows page sizes larger than this value in the future
+     * (e.g., via objectCollection configuration), this value should be adjusted accordingly
+     * or made configurable.
      */
-    private static final int STREAMING_BATCH_SIZE = 100;
+    private static final int TRANSFORM_BATCH_SIZE = 100;
 
     /**
      * Streaming iterative search that processes rows one by one without loading all into memory.
@@ -133,12 +143,12 @@ public class SqlQueryExecutor {
                 Iterator<Tuple> iterator = stream.iterator();
 
                 // Process in mini-batches to allow beforeTransformation to fetch child data
-                List<Tuple> batch = new ArrayList<>(STREAMING_BATCH_SIZE);
+                List<Tuple> batch = new ArrayList<>(TRANSFORM_BATCH_SIZE);
 
                 while (iterator.hasNext()) {
                     batch.add(iterator.next());
 
-                    if (batch.size() >= STREAMING_BATCH_SIZE) {
+                    if (batch.size() >= TRANSFORM_BATCH_SIZE) {
                         count += processBatch(context, jdbcSession, options, entityPath, batch, handler, operationResult);
                         if (count < 0) {
                             // Handler returned false, stop processing
