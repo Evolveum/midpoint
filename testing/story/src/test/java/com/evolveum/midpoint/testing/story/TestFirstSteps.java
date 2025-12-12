@@ -812,14 +812,14 @@ public class TestFirstSteps extends AbstractStoryTest {
         Function<
                 ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>>,
                 ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>>> noOwner = po ->
-                po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED)
+                po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED, MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND)
                         .assertSynchronizationSituationChangedTo(UNMATCHED)
                         .assertCorrelationSituationChangedTo(CorrelationSituationType.NO_OWNER);
 
         assertProcessedObjects(taskOid, "")
                 .display()
                 .by().objectOid(getJSmith1OpenDjShadow().getOid()).find(po ->
-                        po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED)
+                        po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED, MARK_SHADOW_CORRELATION_OWNER_FOUND)
                                 .assertSynchronizationSituationChangedTo(UNLINKED)
                                 .assertCorrelationSituationChangedTo(CorrelationSituationType.EXISTING_OWNER)
                                 .assertResultingOwnerChangedTo(getUserRef("empNo:1")))

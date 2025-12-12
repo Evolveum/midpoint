@@ -565,7 +565,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                 .contains("Dummy Resource Pink")
                 .contains("AccountObjectClass")
                 .contains("Default Account")
-                .contains("DummyConnector");
+                .contains("Dummy Connector");
 
         PrismObject<UserType> userHackerAfter = findUserByUsername("hacker");
         display("User after change execution", userHackerAfter);

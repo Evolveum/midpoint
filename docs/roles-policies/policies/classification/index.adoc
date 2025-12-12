@@ -483,7 +483,7 @@ Applications are objects that link classifications to roles, therefore it is ess
 The following generic policy enforces an approval workflow for any assignment of roles or services.
 Specifically, it requires that all owners of the requested object (e.g. role or service) must explicitly approve the assignment before it is completed.
 
-[source]
+[source,xml]
 ----
 <policy oid="e5f05e74-d0e6-45bf-b793-9345ba1df3bf"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">

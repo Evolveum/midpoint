@@ -993,7 +993,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     }
 
     private void assertCorrelationAsNoOwner(ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<Void>> po) {
-        po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED)
+        po.assertEventMarks(MARK_SHADOW_CORRELATION_STATE_CHANGED, MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND)
                 .delta()
                 .assertModify()
                 .assertModified(CORRELATION_START_TIMESTAMP_PATH)
