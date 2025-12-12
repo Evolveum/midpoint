@@ -170,6 +170,8 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         if (query == null) {
             query = getPrismContext().queryFactory().createQuery();
         }
+        // Set ordering from current sort settings (no offset/limit for full export)
+        query.setPaging(createPaging(0, Integer.MAX_VALUE));
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(), query.debugDump());

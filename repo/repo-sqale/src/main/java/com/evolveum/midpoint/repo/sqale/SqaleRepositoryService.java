@@ -1083,6 +1083,13 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult operationResult) throws SchemaException, RepositoryException {
 
+        // Check if streaming mode is requested via iterationPageSize = -1
+        Integer configuredPageSize = getIterationPageSize(options);
+        if (configuredPageSize != null && configuredPageSize == -1) {
+            // Use JDBC streaming mode with default fetch size of 1000
+            return executeSearchObjectsIterativeStreaming(type, originalQuery, handler, options, operationResult, 1000);
+        }
+
         try {
             ObjectPaging originalPaging = originalQuery != null ? originalQuery.getPaging() : null;
             // this is total requested size of the search
@@ -1181,6 +1188,41 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // This just counts the operation and adds zero/minimal time not to confuse user
             // with what could be possibly very long duration.
             long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
+            registerOperationFinish(opHandle);
+        }
+    }
+
+    /**
+     * Streaming version of searchObjectsIterative that uses JDBC cursor-based streaming.
+     * Does not use keyset pagination - fetches all matching rows in a single query with cursor.
+     * This is more efficient for large exports as it avoids multiple SQL round trips.
+     *
+     * @param fetchSize JDBC fetch size for streaming (e.g., 1000)
+     */
+    private <T extends ObjectType> SearchResultMetadata executeSearchObjectsIterativeStreaming(
+            Class<T> type,
+            ObjectQuery query,
+            ResultHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult operationResult,
+            int fetchSize) throws SchemaException, RepositoryException {
+
+        long opHandle = registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
+        try {
+            SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
+                    SqaleQueryContext.from(type, sqlRepoContext);
+
+            // Wrap handler to convert ObjectType to PrismObject
+            ObjectHandler<T> wrappedHandler = (object, opResult) -> {
+                @SuppressWarnings("unchecked")
+                PrismObject<T> prismObject = (PrismObject<T>) object.asPrismObject();
+                return handler.handle(prismObject, opResult);
+            };
+
+            int count = sqlQueryExecutor.listStreaming(queryContext, query, options, wrappedHandler, operationResult, fetchSize);
+
+            return new SearchResultMetadata().approxNumberOfAllResults(count);
+        } finally {
             registerOperationFinish(opHandle);
         }
     }

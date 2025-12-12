@@ -137,8 +137,9 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     }
 
     /**
-     * Streaming export using searchObjectsIterative.
-     * This method does not load all data into memory.
+     * Streaming export using searchObjectsIterative with JDBC streaming.
+     * This method does not load all data into memory - uses true JDBC streaming.
+     * Streaming is enabled by setting iterationPageSize to -1.
      */
     @Override
     public void exportIterative(
@@ -147,11 +148,20 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
             OperationResult result) throws CommonException {
 
         ObjectQuery query = getQuery();
+        if (query == null) {
+            query = getPrismContext().queryFactory().createQuery();
+        }
+        // Set ordering from current sort settings (no offset/limit for full export)
+        query.setPaging(createPaging(0, Integer.MAX_VALUE));
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(),
-                    query != null ? query.debugDump() : "null");
+            LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(), query.debugDump());
         }
+
+        // Enable JDBC streaming mode by setting iterationPageSize to -1
+        Collection<SelectorOptions<GetOperationOptions>> streamingOptions =
+                SelectorOptions.updateRootOptions(getSearchOptions(),
+                        opt -> opt.setIterationPageSize(-1), GetOperationOptions::new);
 
         getModelService().searchObjectsIterative(
                 getType(),
@@ -161,7 +171,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
                     SelectableBean<O> wrapper = createDataObjectWrapper(objectable);
                     return handler.handle(wrapper, opResult);
                 },
-                getSearchOptions(),
+                streamingOptions,
                 task,
                 result
         );
