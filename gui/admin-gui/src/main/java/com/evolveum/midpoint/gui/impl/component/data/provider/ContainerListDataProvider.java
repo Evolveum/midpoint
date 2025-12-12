@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -120,6 +121,15 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         return (PrismContainerValueWrapper<C>) factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context);
     }
 
+    /**
+     * Creates a lightweight wrapper for export purposes.
+     * This skips child wrapper creation which is the main performance bottleneck.
+     * The wrapper only holds the PrismContainerValue - columns access data via getRealValue().
+     */
+    protected PrismContainerValueWrapper<C> createExportWrapper(C object) {
+        return new PrismContainerValueWrapperImpl<>(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED);
+    }
+
     @Override
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
@@ -159,6 +169,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
      * Streaming export using JDBC cursor-based streaming.
      * This method does not load all data into memory - uses true JDBC streaming.
      * Streaming is enabled by setting iterationPageSize to -1.
+     * Uses lightweight wrapper to skip expensive child wrapper creation.
      */
     @Override
     public void exportIterative(
@@ -186,15 +197,11 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
                 getType(),
                 query,
                 (object, opResult) -> {
-                    try {
-                        PrismContainerValueWrapper<C> wrapper = createWrapper(object, task, result);
-                        if (wrapper != null) {
-                            return handler.handle(wrapper, opResult);
-                        }
-                        return true;
-                    } catch (SchemaException e) {
-                        throw new SystemException("Failed to create wrapper for container", e);
+                    PrismContainerValueWrapper<C> wrapper = createExportWrapper(object);
+                    if (wrapper != null) {
+                        return handler.handle(wrapper, opResult);
                     }
+                    return true;
                 },
                 streamingOptions,
                 task,
