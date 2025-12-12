@@ -69,7 +69,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
                 TestingAccount::new, task, result);
 
         and("Users matching correlation rule exists.");
-        importObjectsFromFileNotRaw(USERS, task, result);
+        importObjectsFromFileRaw(USERS, task, result);
 
         when("Correlation with particular definition is run on the account's shadow.");
         final ItemsSubCorrelatorType correlator = this.prismContext.parserFor(CORRELATOR)

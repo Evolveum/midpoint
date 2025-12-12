@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  ~
+  -->
+
+<task oid="04b4b768-3d56-48fd-b339-0586f76e264e"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+>
+
+    <name>Correlator Simulation</name>
+
+    <taskIdentifier>10000000-0000-0000-5656-56560000a205</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>runnable</executionState>
+
+    <activity>
+        <identifier>correlator-simulation</identifier>
+        <work>
+            <correlation>
+                <resourceObjects>
+                    <resourceRef oid="8582b8d8-7f29-4dbd-85f6-d674ca40df96" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+                <correlators>
+                    <inlineCorrelators>
+                        <correlators>
+                            <items>
+                                <name>by-name</name>
+                                <description>Match using the given name and family name.</description>
+                                <item>
+                                    <ref>familyName</ref>
+                                </item>
+                            </items>
+                        </correlators>
+                    </inlineCorrelators>
+                </correlators>
+            </correlation>
+        </work>
+        <execution>
+            <mode>preview</mode>
+        </execution>
+    </activity>
+</task>
