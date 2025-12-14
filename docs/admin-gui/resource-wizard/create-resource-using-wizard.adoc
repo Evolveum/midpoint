@@ -152,9 +152,9 @@ With the resource created and configured, continue with the configuration furthe
 
 === Activate Proposed Resource
 
-When you create a new resource, you typically use the _Proposed_ lifecycle state for the resource itself as well as its various configurations, like mappings.
+When you create a new resource, you typically use the _Proposed_ lifecycle state for the resource.
 
-Once you are done with all the configuration and testing, you need to put the whole resource and its configurations to production.
+Once you are done with all the configuration and testing, you need to put the whole resource to production.
 Similarly, when you retire a resource, you deprecate it and then archive it.
 These are all lifecycle state changes.
 
@@ -168,7 +168,7 @@ To change the lifecycle state of the whole resource:
 .Change a resource lifecycle state using the resource toolbar
 image::change-resource-lifecycle-state.webp["Change a resource lifecycle state using the resource toolbar"]
 
-To make sure all the resource configuration items are set to the desired lifecycle states:
+You can also check and selectively adjust lifecycle states for any of the resource configurations, such as mapping rules or synchronization reactions:
 
 . Click the [.nowrap]#icon:heart-pulse[] btn:[Check detailed lifecycle]# button in the resource toolbar.
 . Change the lifecycle states as needed.
