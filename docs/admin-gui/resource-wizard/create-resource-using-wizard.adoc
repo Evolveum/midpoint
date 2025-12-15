@@ -175,13 +175,6 @@ You can also check and selectively adjust lifecycle states for any of the resour
 . Click btn:[Done] to apply the changes.
 . Click [.nowrap]#icon:save[] btn:[Save]# in the resource toolbar to save the changes.
 
-[WARNING]
-====
-You cannot use the [.nowrap]#icon:heart-pulse[] btn:[Check detailed lifecycle]# feature to change the lifecycle state of the whole resource.
-Although it appears possible, it is not.
-Use the lifecycle state selector in the resource toolbar instead.
-====
-
 :sectnums!:
 
 include::see-also.adoc[]
