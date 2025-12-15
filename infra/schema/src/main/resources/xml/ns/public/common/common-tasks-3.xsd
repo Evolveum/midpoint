@@ -2566,6 +2566,18 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="mapping" type="tns:MappingWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Simulates a mapping on a selected sample of shadows.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.12</a:since>
+                            <a:displayName>WorkDefinitionsType.mapping</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="mappingsSuggestion" type="tns:MappingsSuggestionWorkDefinitionType"
                         minOccurs="0">
                     <xsd:annotation>
@@ -10412,6 +10424,34 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="correlationWorkDefinition" type="tns:CorrelationWorkDefinitionType"/>
+
+    <xsd:complexType name="MappingWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for mapping simulation activity. Selects shadows to be processed and
+                specifies the inline mapping to be simulated on them. Please note, that activity
+                implementing this work definition only supports PREVIEW execution mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ResourceWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="inlineMapping" type="c:MappingType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Inline definition of mapping to be simulated.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="mappingWorkDefinition" type="tns:MappingWorkDefinitionType"/>
 
     <xsd:complexType name="CorrelatorsDefinitionType">
         <xsd:annotation>
