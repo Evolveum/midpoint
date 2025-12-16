@@ -710,7 +710,9 @@ public class RequestAccess implements Serializable {
         for (AssignmentType a : assignments) {
             PrismContainerValue<AssignmentType> newValue = a.asPrismContainerValue();
 
-            newValue.applyDefinition(def, false);
+            if (!newValue.hasCompleteDefinition()) {
+                newValue.applyDefinition(def, false);
+            }
             if (addAssignments) {
                 delta.addValueToAdd(newValue.clone());
             } else {
