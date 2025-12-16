@@ -3494,6 +3494,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>ActivationType.activation</a:displayName>
+                <a:help>ActivationType.help</a:help>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
