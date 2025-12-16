@@ -297,8 +297,17 @@ export default class MidPointTheme {
                 });
 
                 $(document).on("mouseleave", "[data-toggle='tooltip']", function () {
-                    isHovered = false;
-                    checkHide($(this));
+                    const $el = $(this);
+                    var parentMorePopup = $el.closest('.popover');
+                    if (parentMorePopup && parentMorePopup.length !== 0) {
+                        setTimeout(function() {
+                            isHovered = false;
+                            checkHide($(this));
+                        }, 300);
+                    } else {
+                        isHovered = false;
+                        checkHide($(this));
+                    }
                 });
 
                 $(document).on("focusin", "[data-toggle='tooltip']", function () {
