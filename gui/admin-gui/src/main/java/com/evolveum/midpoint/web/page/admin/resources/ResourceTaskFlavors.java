@@ -9,8 +9,9 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.web.component.util.SerializableBiFunction;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -35,14 +36,14 @@ public final class ResourceTaskFlavors<T> implements ResourceTaskFlavor<T> {
             Arrays.stream(SynchronizationTaskFlavor.values())
                     .collect(Collectors.toMap(SynchronizationTaskFlavor::getArchetypeOid, factory -> factory));
 
-    private final BiFunction<ResourceObjectSetType, T, WorkDefinitionsType> workDefinitionsFactory;
+    private final SerializableBiFunction<ResourceObjectSetType, T, WorkDefinitionsType> workDefinitionsFactory;
     private final String name;
 
     public static ResourceTaskFlavor<?> forArchetype(String archetypeId) {
         return FACTORIES_BY_ARHETYPE.get(archetypeId);
     }
 
-    ResourceTaskFlavors(String name, BiFunction<ResourceObjectSetType, T, WorkDefinitionsType> workDefinitionsFactory) {
+    ResourceTaskFlavors(String name, SerializableBiFunction<ResourceObjectSetType, T, WorkDefinitionsType> workDefinitionsFactory) {
         this.name = name;
         this.workDefinitionsFactory = workDefinitionsFactory;
     }

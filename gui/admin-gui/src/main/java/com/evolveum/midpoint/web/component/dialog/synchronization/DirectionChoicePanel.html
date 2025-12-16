@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <div class="text-center font-weight-semibold text-muted" wicket:id="selectTitle"></div>
+
+    <div wicket:id="radioGroup" class="w-100">
+        <div class="p-2 row gap-2">
+            <label wicket:id="sourceContainer" class="gap-3 border d-flex col py-2 px-3 rounded">
+                <input type="radio" wicket:id="sourceRadio" class="me-2"/>
+                <div>
+                    <div class="fw-bold" wicket:id="sourceLabel"></div>
+                    <div class="text-muted small" wicket:id="sourceDesc"></div>
+                </div>
+            </label>
+
+            <label wicket:id="targetContainer" class="gap-3 border d-flex col py-2 px-3 rounded">
+                <input type="radio" wicket:id="targetRadio" class="me-2"/>
+                <div>
+                    <div class="fw-bold" wicket:id="targetLabel"></div>
+                    <div class="text-muted small" wicket:id="targetDesc"></div>
+                </div>
+            </label>
+        </div>
+
+    </div>
+</wicket:panel>

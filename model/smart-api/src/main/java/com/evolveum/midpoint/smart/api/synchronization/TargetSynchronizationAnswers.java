@@ -5,11 +5,15 @@
  */
 package com.evolveum.midpoint.smart.api.synchronization;
 
-public class TargetSynchronizationAnswers {
+import org.jetbrains.annotations.NotNull;
 
-    private final UnmatchedTargetChoice unmatched;
-    private final DeletedTargetChoice deleted;
-    private final DisputedTargetChoice disputed;
+import java.io.Serializable;
+
+public class TargetSynchronizationAnswers implements Serializable {
+
+    private UnmatchedTargetChoice unmatched;
+    private DeletedTargetChoice deleted;
+    private DisputedTargetChoice disputed;
 
     public TargetSynchronizationAnswers(UnmatchedTargetChoice unmatched, DeletedTargetChoice deleted, DisputedTargetChoice disputed) {
         this.unmatched = unmatched;
@@ -17,7 +21,7 @@ public class TargetSynchronizationAnswers {
         this.disputed = disputed;
     }
 
-    public static TargetSynchronizationAnswers of(UnmatchedTargetChoice unmatched, DeletedTargetChoice deleted, DisputedTargetChoice disputed) {
+    public static @NotNull TargetSynchronizationAnswers of(UnmatchedTargetChoice unmatched, DeletedTargetChoice deleted, DisputedTargetChoice disputed) {
         return new TargetSynchronizationAnswers(unmatched, deleted, disputed);
     }
 
@@ -31,5 +35,17 @@ public class TargetSynchronizationAnswers {
 
     public DisputedTargetChoice getDisputed() {
         return disputed;
+    }
+
+    public void setUnmatched(UnmatchedTargetChoice unmatched) {
+        this.unmatched = unmatched;
+    }
+
+    public void setDeleted(DeletedTargetChoice deleted) {
+        this.deleted = deleted;
+    }
+
+    public void setDisputed(DisputedTargetChoice disputed) {
+        this.disputed = disputed;
     }
 }

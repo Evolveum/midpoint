@@ -124,6 +124,12 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         buttonsList.add(createTableActionToolbar(idButton));
         buttonsList.add(createSuggestObjectButton(idButton));
         buttonsList.add(createToggleSuggestionButton(idButton, switchToggleModel));
+
+        AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(idButton, null);
+        newObjectPerformButton.add(AttributeModifier.replace("class",
+                "text-nowrap btn btn-primary rounded text-nowrap mx-3"));
+        newObjectPerformButton.add(new VisibleBehaviour(this::displayNoValuePanel));
+        buttonsList.add(0, newObjectPerformButton);
         return buttonsList;
     }
 
@@ -251,7 +257,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
 
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary rounded ml-auto text-nowrap mr-2"));
+        newObjectButton.add(AttributeAppender.replace("class",
+                "text-nowrap btn btn-primary rounded ml-auto text-nowrap mr-2"));
         return newObjectButton;
     }
 

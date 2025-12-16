@@ -513,7 +513,7 @@ public abstract class AssociationTablePanel
         button.setOutputMarkupId(true);
         button.showTitleAsLabel(true);
         button.add(AttributeModifier.replace("class", "ml-2 px-2 btn " + cssClass));
-        button.add(new VisibleBehaviour(() -> getSwitchToggleModel().getObject().equals(Boolean.TRUE)));
+        button.add(new VisibleBehaviour(() -> getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel()));
         return button;
     }
 

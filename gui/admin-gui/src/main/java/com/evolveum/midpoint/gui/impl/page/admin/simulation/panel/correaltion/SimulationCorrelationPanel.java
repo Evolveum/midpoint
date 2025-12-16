@@ -9,14 +9,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObject;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.widget.MetricWidgetPanel;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.SimulationMetricValuesTypeUtil;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -24,15 +23,19 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.SimulationWebUtil.loadAvailableMarksModel;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.*;
 
 public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> {
 
@@ -42,6 +45,13 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
     private static final String ID_TABLE = "table";
 
     IModel<CorrelationStatus> correlationStatusModel = Model.of();
+    private IModel<List<DashboardWidgetType>> metricsModel;
+    IModel<String> selectedMarkOidModel = Model.of(MARK_SHADOW_CORRELATION_OWNER_FOUND.value());
+
+    List<String> correlationMarksOids = List.of(
+            MARK_SHADOW_CORRELATION_OWNER_FOUND.value(),
+            MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value(),
+            MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN.value());
 
     public SimulationCorrelationPanel(String id, IModel<SimulationResultType> model) {
         super(id, model);
@@ -50,6 +60,9 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
     @Override
     protected void onInitialize() {
         super.onInitialize();
+
+        loadMetricModel();
+
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
@@ -58,55 +71,60 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
         initTable(form);
     }
 
-    private @NotNull Map<DashboardWidgetType, CorrelationStatus> loadWidgetsModel() {
-        Map<DashboardWidgetType, CorrelationStatus> statusMap = new LinkedHashMap<>();
+    private void loadMetricModel() {
+        metricsModel = new LoadableDetachableModel<>() {
+            @Override
+            protected List<DashboardWidgetType> load() {
+                List<SimulationMetricValuesType> metrics = getModelObject().getMetric();
 
-        int correlated = 0, uncertain = 0, notCorrelated = 0, total = 0;
+                List<DashboardWidgetType> collect = metrics.stream().map(m -> {
 
-        for (var processed : searchProcessedObjects(getPageBase(), getModelObject().getOid())) {
-            ObjectDelta<Objectable> delta;
-            try {
-                delta = DeltaConvertor.createObjectDeltaNullable(processed.getDelta());
-            } catch (SchemaException e) {
-                throw new RuntimeException("Couldn't parse object delta: " + e.getMessage(), e);
-            }
+                            SimulationMetricReferenceType ref = m.getRef();
+                            ObjectReferenceType eventMarkRef = ref.getEventMarkRef();
+                            if (eventMarkRef == null
+                                    || eventMarkRef.getOid() == null
+                                    || !correlationMarksOids.contains(eventMarkRef.getOid())) {
+                                return null;
+                            }
 
-            var candidates = parseResourceObjectOwnerOptionsFromDelta(delta);
+                            BigDecimal value = SimulationMetricValuesTypeUtil.getValue(m);
+                            String storedData = MetricWidgetPanel.formatValue(value, LocalizationUtil.findLocale());
 
-            if (candidates == null || candidates.isEmpty()) {notCorrelated++;} else if (candidates.size() == 1) {
-                correlated++;
-            } else {uncertain++;}
+                            DashboardWidgetType dw = new DashboardWidgetType();
+                            dw.beginData()
+                                    .sourceType(DashboardWidgetSourceTypeType.METRIC)
+                                    .metricRef(m.getRef())
+                                    .storedData(storedData)
+                                    .end();
+                            return dw;
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
 
-            total++;
-        }
+                int totalProcessed = collect.stream()
+                        .map(DashboardWidgetType::getData)
+                        .map(DashboardWidgetDataType::getStoredData)
+                        .mapToInt(s -> {
+                            try {
+                                return Integer.parseInt(s);
+                            } catch (NumberFormatException e) {
+                                return 0;
+                            }
+                        })
+                        .reduce(0, Integer::sum);
 
-        statusMap.put(buildWidget("SimulationCorrelationPanel.correlated",
-                "SimulationCorrelationPanel.correlated.help",
-                "fa fa-link metric-icon success",
-                correlated), CorrelationStatus.CORRELATED);
-
-        statusMap.put(buildWidget("SimulationCorrelationPanel.uncertain",
-                        "SimulationCorrelationPanel.uncertain.help",
-                        "fa-solid fa-question metric-icon warning text-warning",
-                        uncertain), CorrelationStatus.UNCERTAIN);
-
-        statusMap.put(buildWidget("SimulationCorrelationPanel.notCorrelated",
-                        "SimulationCorrelationPanel.notCorrelated.help",
-                        "fa fa-link-slash metric-icon secondary",
-                        notCorrelated), CorrelationStatus.NOT_CORRELATED);
-
-        statusMap.put(buildWidget("SimulationCorrelationPanel.total",
+                DashboardWidgetType totalProcessedWidget = buildWidget("SimulationCorrelationPanel.total",
                         "SimulationCorrelationPanel.total.help",
                         "fa fa-cube metric-icon info",
-                        total), null);
-        return statusMap;
+                        totalProcessed);
+                collect.add(totalProcessedWidget);
+                return collect;
+            }
+        };
     }
 
     private void initDashboard(@NotNull MidpointForm<?> form) {
-        // TODO Auto-generated method stub
-        Map<DashboardWidgetType, CorrelationStatus> statusMap = loadWidgetsModel();
-        List<DashboardWidgetType> dashboardWidgetTypes = new ArrayList<>(statusMap.keySet());
-        ListView<DashboardWidgetType> components = new ListView<>(ID_DASHBOARD, () -> new ArrayList<>(dashboardWidgetTypes)) {
+        ListView<DashboardWidgetType> components = new ListView<>(ID_DASHBOARD, () -> new ArrayList<>(metricsModel.getObject())) {
 
             @Override
             protected void populateItem(@NotNull ListItem<DashboardWidgetType> item) {
@@ -136,9 +154,32 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
                     }
 
                     @Override
+                    protected IModel<String> getActionLinkLabelModel() {
+                        return createStringResource("SimulationCorrelationPanel.viewProcessedObjects");
+                    }
+
+                    @Override
+                    protected IModel<String> getActionLinkIconModel() {
+                        return Model.of("");
+                    }
+
+                    @Override
                     protected void onMoreInfoPerformed(AjaxRequestTarget target) {
-                        correlationStatusModel.setObject(statusMap.get(item.getModelObject()));
-                        getTable().refreshTable(target);
+                        DashboardWidgetType widget = getModelObject();
+                        if (widget == null || widget.getData() == null) {
+                            selectedMarkOidModel.setObject(null);
+                            return;
+                        } else {
+                            SimulationMetricReferenceType metricRef = widget.getData().getMetricRef();
+                            ObjectReferenceType markRef = metricRef != null ? metricRef.getEventMarkRef() : null;
+                            if (markRef == null) {
+                                selectedMarkOidModel.setObject(null);
+                            } else {
+                                selectedMarkOidModel.setObject(markRef.getOid());
+                            }
+                        }
+
+                        target.add(getTable());
                     }
                 });
             }
@@ -149,13 +190,27 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
     }
 
     private void initTable(@NotNull MidpointForm<?> form) {
+        CorrelationProcessedObjectPanel table = buildTableComponent();
+        form.add(table);
+    }
+
+    private @NotNull CorrelationProcessedObjectPanel buildTableComponent() {
         IModel<List<MarkType>> availableMarksModel = loadAvailableMarksModel(getPageBase(), getModelObject());
+        availableMarksModel.getObject().removeIf(mark ->
+                !correlationMarksOids.contains(mark.getOid())
+        );
+
         CorrelationProcessedObjectPanel table = new CorrelationProcessedObjectPanel(
                 ID_TABLE,
                 availableMarksModel) {
             @Override
-            protected @Nullable CorrelationStatus filterByStatus() {
-                return correlationStatusModel.getObject();
+            protected String getMarkOidForSearch() {
+                return selectedMarkOidModel.getObject();
+            }
+
+            @Override
+            public LoadableDetachableModel<Search<SimulationResultProcessedObjectType>> getSearchModel() {
+                return super.getSearchModel();
             }
 
             @Override
@@ -174,7 +229,7 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
             }
         };
         table.setOutputMarkupId(true);
-        form.add(table);
+        return table;
     }
 
     private CorrelationProcessedObjectPanel getTable() {

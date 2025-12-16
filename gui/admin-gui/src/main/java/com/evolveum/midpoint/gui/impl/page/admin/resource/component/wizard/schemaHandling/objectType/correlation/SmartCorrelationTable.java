@@ -33,11 +33,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
@@ -57,6 +59,7 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.yaml.snakeyaml.events.Event;
 
 import java.io.Serial;
 import java.time.Duration;
@@ -494,6 +497,17 @@ public class SmartCorrelationTable
         }
         ResourceObjectTypeDefinitionType realValue = parentWrapper.getRealValue();
         return ResourceObjectTypeIdentification.of(realValue.getKind(), realValue.getIntent());
+    }
+
+    @Override
+    protected List<Component> createToolbarButtonsList(String idButton) {
+        List<Component> buttonsList = super.createToolbarButtonsList(idButton);
+        return buttonsList;
+    }
+
+    @Override
+    protected RepeatingView createTableActionToolbar(String id) {
+        return super.createTableActionToolbar(id);
     }
 
     @Override

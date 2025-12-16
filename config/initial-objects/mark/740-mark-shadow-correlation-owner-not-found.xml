@@ -6,7 +6,7 @@
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="e5246605-73ee-4682-9efb-73a915427d18">
+        oid="e5246605-73ee-4682-9efb-73a915427d18">
     <name>Shadow owner not found</name>
     <description>Correlation of a shadow has not found its owner</description>
     <assignment id="1">
@@ -14,5 +14,12 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>530</displayOrder>
+    <display>
+        <label>SimulationCorrelationPanel.notCorrelated.label</label>
+        <help>SimulationCorrelationPanel.notCorrelated.help</help>
+        <icon>
+            <cssClass>fa fa-link-slash metric-icon secondary</cssClass>
+        </icon>
+    </display>
     <!-- No policy rule. This is set explicitly by the correlation simulation. -->
 </mark>

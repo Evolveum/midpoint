@@ -46,8 +46,8 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectClassConnectorStepPanel.class);
 
-    private String objectClass;
-    private IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
+    private IModel<String> objectClassNameModel;
+    private IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassModel;
 
     public AbstractObjectClassConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -59,16 +59,20 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
         createValueModel(getHelper().getDetailsModel().getServiceLocator());
     }
 
-    public final void setObjectClass(String objectClass) {
-        this.objectClass = objectClass;
+    public final void setObjectClassNameModel(IModel<String> objectClassNameModel) {
+        this.objectClassNameModel = objectClassNameModel;
+    }
+
+    public String getObjectClassName() {
+        return objectClassNameModel.getObject();
     }
 
     private void createValueModel(ModelServiceLocator modelServiceLocator) {
-        valueModel = new LoadableDetachableModel<>() {
+        objectClassModel = new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerValueWrapper<ConnDevObjectClassInfoType> load() {
-                if (objectClass == null) {
-                    objectClass = getHelper().getVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME);
+                if (getObjectClassName() == null) {
+                    setObjectClassName(getHelper().getVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME));
                     getHelper().removeVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME);
                 }
 
@@ -78,7 +82,7 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
                         ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_OBJECT_CLASS));
 
                 if (model.getObject().getValues().isEmpty()
-                        || (objectClass == null && model.getObject().getValues().stream().noneMatch(
+                        || (getObjectClassName() == null && model.getObject().getValues().stream().noneMatch(
                                 value -> value.getStatus() ==  ValueStatus.ADDED && StringUtils.isEmpty(value.getRealValue().getName())))) {
                     try {
                         PrismContainerValue<ConnDevObjectClassInfoType> newItem = model.getObject().getItem().createNewValue();
@@ -96,9 +100,9 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
 
                 PrismContainerValueWrapper<ConnDevObjectClassInfoType> newItemWrapper = model.getObject().getValues().stream()
                         .filter(value ->
-                                (!StringUtils.isEmpty(objectClass)
-                                        && Strings.CS.equals(objectClass, value.getRealValue().getName()))
-                                        || (objectClass == null && value.getStatus() == ValueStatus.ADDED && StringUtils.isEmpty(value.getRealValue().getName())))
+                                (!StringUtils.isEmpty(getObjectClassName())
+                                        && Strings.CS.equals(getObjectClassName(), value.getRealValue().getName()))
+                                        || (getObjectClassName() == null && value.getStatus() == ValueStatus.ADDED && StringUtils.isEmpty(value.getRealValue().getName())))
                         .findFirst()
                         .orElse(null);
                 if (newItemWrapper != null) {
@@ -125,6 +129,10 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
 //                super.onDetach();
 //            }
         };
+    }
+
+    private void setObjectClassName(String objectClassName) {
+        objectClassNameModel.setObject(objectClassName);
     }
 
     @Override
@@ -203,8 +211,8 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
     public IModel<String> getTitle() {
         return () -> {
             String title = createStringResource(getTitleKey()).getString();
-            if (StringUtils.isNotEmpty(valueModel.getObject().getRealValue().getName())) {
-                title += ": " + valueModel.getObject().getRealValue().getName();
+            if (StringUtils.isNotEmpty(objectClassModel.getObject().getRealValue().getName())) {
+                title += ": " + objectClassModel.getObject().getRealValue().getName();
             }
             return title;
         };
@@ -231,8 +239,8 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
 
     @Override
     public String getStepId() {
-        if (StringUtils.isNotEmpty(valueModel.getObject().getRealValue().getName())) {
-            return getPanelType() + "-" + StringUtils.normalizeSpace(valueModel.getObject().getRealValue().getName());
+        if (StringUtils.isNotEmpty(objectClassModel.getObject().getRealValue().getName())) {
+            return getPanelType() + "-" + StringUtils.normalizeSpace(objectClassModel.getObject().getRealValue().getName());
         }
         return getDefaultStepId();
     }
@@ -263,6 +271,6 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
     }
 
     protected final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> getObjectClassModel() {
-        return valueModel;
+        return objectClassModel;
     }
 }

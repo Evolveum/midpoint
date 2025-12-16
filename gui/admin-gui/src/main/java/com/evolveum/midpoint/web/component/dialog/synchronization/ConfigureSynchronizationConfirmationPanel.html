@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <div class="px-3">
+        <p class="p-3 text-center" wicket:id="confirmText"></p>
+
+        <div wicket:id="directionChoicePanel"></div>
+        <div wicket:id="specificationsContainer">
+            <div class="alert alert-info-light d-flex align-items-center mt-3" wicket:id="infoBox">
+                <i class="fa fa-info-circle fa-lg mr-2 mt-1 text-info"></i>
+                <div>
+                    <wicket:message key="ConfigureSynchronizationConfirmationPanel.linked"/>
+                    <wicket:message key="ConfigureSynchronizationConfirmationPanel.unlinked"/>
+                </div>
+            </div>
+
+            <div wicket:id="sourceDirectionSpecificationPanel"></div>
+            <div wicket:id="targetDirectionSpecificationPanel"></div>
+        </div>
+
+        <wicket:fragment wicket:id="buttons">
+            <div class="d-flex flex-wrap gap-2 w-100">
+                <a class="btn btn-outline-primary" wicket:id="no"></a>
+                <button class="btn btn-primary ml-auto" wicket:id="yes"></button>
+            </div>
+        </wicket:fragment>
+    </div>
+</wicket:panel>

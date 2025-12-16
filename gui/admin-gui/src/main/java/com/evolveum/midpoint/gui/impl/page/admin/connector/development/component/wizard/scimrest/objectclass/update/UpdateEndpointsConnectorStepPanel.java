@@ -23,6 +23,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassIn
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * @author lskublik
  */
@@ -43,8 +46,8 @@ public class UpdateEndpointsConnectorStepPanel extends EndpointsConnectorStepPan
     }
 
     @Override
-    protected ConnDevHttpEndpointIntentType getOperation() {
-        return ConnDevHttpEndpointIntentType.UPDATE;
+    protected Collection<ConnDevHttpEndpointIntentType> getEndpointIntents() {
+        return List.of(ConnDevHttpEndpointIntentType.UPDATE);
     }
 
     protected String getPanelType() {

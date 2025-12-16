@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,10 +38,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -87,8 +84,12 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                         try {
                             PrismContainerWrapper<ConnDevHttpEndpointType> endpointsContainer = objectClassContainer
                                     .get().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
+                            // Filter endpoints which contain any of the supported intents for the script.
                             return endpointsContainer.getValues().stream()
-                                    .filter(value -> value.getRealValue().getSuggestedUse().contains(getOperation()))
+                                    .filter(value ->
+                                            getEndpointIntents().stream().anyMatch(
+                                                i -> value.getRealValue().getSuggestedUse().contains(i))
+                                    )
                                     .toList();
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
@@ -102,7 +103,7 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
         };
     }
 
-    protected abstract ConnDevHttpEndpointIntentType getOperation();
+    protected abstract Collection<ConnDevHttpEndpointIntentType> getEndpointIntents();
 
     private void initLayout() {
         getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
@@ -199,7 +200,7 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                             PrismContainerValue<ConnDevHttpEndpointType> clone =
                                     value.getRealValue().asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
                             clone.removeItem(ConnDevHttpEndpointType.F_SUGGESTED_USE);
-                            clone.asContainerable().suggestedUse(getOperation());
+                            //clone.asContainerable().suggestedUse(getEndpointIntents());
 
                             return (PrismContainerValueWrapper<ConnDevHttpEndpointType>) WebPrismUtil.createNewValueWrapper(
                                     container,
@@ -213,7 +214,7 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                     .toList();
 
             List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> valuesToRemove = container.getValues().stream()
-                    .filter(value -> value.getRealValue().getSuggestedUse().contains(getOperation()))
+                    .filter(value -> value.getRealValue().getSuggestedUse().contains(getEndpointIntents()))
                     .toList();
             valuesToRemove.forEach(
                     value -> {
@@ -259,7 +260,7 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
 
             return container.getValues().stream()
                     .anyMatch(value -> value.getRealValue() != null
-                            && value.getRealValue().getSuggestedUse().contains(getOperation()));
+                            && value.getRealValue().getSuggestedUse().contains(getEndpointIntents()));
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class OperationConnectorDevPartItem extends AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
@@ -51,8 +52,20 @@ public abstract class OperationConnectorDevPartItem extends AbstractWizardPartIt
         String objectClassName = getParameter();
         if (objectClassName == null) {
             objectClassName = ConnectorDevelopmentWizardUtil.getNameOfNewObjectClass(getObjectDetailsModel());
+            setParameter(objectClassName);
         }
-        objectClassStepsParent.setObjectClass(objectClassName);
+        IModel<String> objectClassNameModel = new IModel<>() {
+            @Override
+            public String getObject() {
+                return getParameter();
+            }
+
+            @Override
+            public void setObject(String object) {
+                setParameter(object);
+            }
+        };
+        objectClassStepsParent.setObjectClassNameModel(objectClassNameModel);
         return List.of(objectClassStepsParent);
     }
 

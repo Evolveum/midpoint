@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
-import java.util.List;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.impl.component.tile.EnumTileChoicePanel;
@@ -15,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -22,17 +21,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -55,34 +50,21 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
     private static final String ID_OBJECT_CLASS_POSSIBILITIES = "objectClassPossibilities";
     private static final String ID_CONNECTOR_ACTION = "connectorAction";
 
-    private LoadableModel<List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>>> valuesModel;
+    private IModel<String> objectClassModel;
 
-    public NextStepsConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    public NextStepsConnectorStepPanel(
+            WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
+            IModel<String> objectClassModel) {
         super(helper);
+        this.objectClassModel = objectClassModel;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        createValuesModel();
         initLayout();
     }
 
-    private void createValuesModel() {
-        valuesModel = new LoadableModel<>() {
-            @Override
-            protected List<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> load() {
-                try {
-                    PrismContainerWrapper<ConnDevObjectClassInfoType> container = getDetailsModel().getObjectWrapper().findContainer(
-                            ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevSchemaType.F_OBJECT_CLASS));
-
-                    return container.getValues();
-                } catch (SchemaException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-    }
 
     private void initLayout() {
         add(AttributeAppender.replace("class", "col-12"));
@@ -91,37 +73,33 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
         getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
-        ListView<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> objectClassPanel = new ListView<>(ID_OBJECT_CLASS, valuesModel) {
+        WebMarkupContainer objectClassContainer = new WebMarkupContainer(ID_OBJECT_CLASS);
+        objectClassContainer.setOutputMarkupId(true);
+        add(objectClassContainer);
+
+        Label name = new Label(ID_OBJECT_CLASS_NAME, objectClassModel);
+        name.setOutputMarkupId(true);
+        objectClassContainer.add(name);
+
+        EnumTileChoicePanel<ObjectClassOperation> objectClassPanel = new EnumTileChoicePanel<>(ID_OBJECT_CLASS_POSSIBILITIES, ObjectClassOperation.class) {
             @Override
-            protected void populateItem(ListItem<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> listItem) {
-                IModel<String> objectClassNameModel = () -> listItem.getModelObject().getRealValue().getName();
-                Label name = new Label(ID_OBJECT_CLASS_NAME, objectClassNameModel);
-                name.setOutputMarkupId(true);
-                listItem.add(name);
+            protected String getDescriptionForTile(ObjectClassOperation type) {
+                return getString(type.getDescription());
+            }
 
-                EnumTileChoicePanel<ObjectClassOperation> objectClassPanel = new EnumTileChoicePanel<>(ID_OBJECT_CLASS_POSSIBILITIES, ObjectClassOperation.class) {
-                    @Override
-                    protected String getDescriptionForTile(ObjectClassOperation type) {
-                        return getString(type.getDescription());
-                    }
-
-                    @Override
-                    protected void onTemplateChosePerformed(ObjectClassOperation action, AjaxRequestTarget target) {
-                        switch (action) {
-                            case SCHEMA -> getController().editSchema(objectClassNameModel.getObject(), target);
-                            case SEARCH_ALL -> getController().editSearchAll(objectClassNameModel.getObject(), target);
-                            case CREATE -> getController().editCreateOp(objectClassNameModel.getObject(), target);
-                            case UPDATE -> getController().editUpdateOp(objectClassNameModel.getObject(), target);
-                            case DELETE -> getController().editDeleteOp(objectClassNameModel.getObject(), target);
-                        }
-                    }
-                };
-                objectClassPanel.setOutputMarkupId(true);
-                listItem.add(objectClassPanel);
+            @Override
+            protected void onTemplateChosePerformed(ObjectClassOperation action, AjaxRequestTarget target) {
+                switch (action) {
+                    case SCHEMA -> getController().editSchema(objectClassModel.getObject(), target);
+                    case SEARCH_ALL -> getController().editSearchAll(objectClassModel.getObject(), target);
+                    case CREATE -> getController().editCreateOp(objectClassModel.getObject(), target);
+                    case UPDATE -> getController().editUpdateOp(objectClassModel.getObject(), target);
+                    case DELETE -> getController().editDeleteOp(objectClassModel.getObject(), target);
+                }
             }
         };
         objectClassPanel.setOutputMarkupId(true);
-        add(objectClassPanel);
+        objectClassContainer.add(objectClassPanel);
 
         NextStepsActionsPanel connectorActionPanel = new NextStepsActionsPanel(
                 ID_CONNECTOR_ACTION, getDetailsModel(), (ConnectorDevelopmentController) getWizard());
@@ -179,7 +157,7 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
                 "ObjectClassOperations.SCHEMA.description"),
         SEARCH_ALL("fa fa-search text-secondary bg-gray-100",
                 "ObjectClassOperations.SEARCH_ALL.description"),
-//        GET_ONE("fa fa-search text-secondary bg-gray-100",
+        //        GET_ONE("fa fa-search text-secondary bg-gray-100",
 //                "ObjectClassOperations.GET_ONE.description"),
 //        SEARCH_FILTERS("fa fa-search text-secondary bg-gray-100",
 //                "ObjectClassOperations.SEARCH_FILTERS.description"),

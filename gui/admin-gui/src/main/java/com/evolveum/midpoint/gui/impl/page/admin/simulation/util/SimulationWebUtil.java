@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class SimulationWebUtil {
 
@@ -53,7 +54,8 @@ public class SimulationWebUtil {
 
                 return marks.stream()
                         .map(o -> o.asObjectable())
-                        .toList();
+                        .collect(Collectors.toList());
+
             }
         };
     }

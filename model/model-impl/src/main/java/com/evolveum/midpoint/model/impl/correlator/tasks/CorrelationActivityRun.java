@@ -91,18 +91,18 @@ public class CorrelationActivityRun
 
     private List<ItemDelta<?, ?>> createDelta(CompleteCorrelationResult correlationResult, ShadowType shadow)
             throws SchemaException {
-        final S_ItemEntry builder = this.prismContext.deltaFor(ShadowType.class)
+        S_ItemEntry builder = this.prismContext.deltaFor(ShadowType.class)
                 .oldObject(shadow)
                 .optimizing();
         if (correlationResult.isError()) {
-            builder.item(CORRELATION_SITUATION_PATH)
+            builder = builder.item(CORRELATION_SITUATION_PATH)
                     .replace(CorrelationSituationType.ERROR);
         } else {
             if (ownerOptionsChanged(shadow, correlationResult.getOwnerOptions())) {
-                builder.item(CORRELATION_OWNER_OPTIONS_PATH)
+                builder = builder.item(CORRELATION_OWNER_OPTIONS_PATH)
                         .replace(correlationResult.getOwnerOptions());
             }
-            builder.item(CORRELATION_SITUATION_PATH)
+            builder = builder.item(CORRELATION_SITUATION_PATH)
                     .replace(correlationResult.getSituation())
                     .item(CORRELATION_RESULTING_OWNER_PATH)
                     .replace(ObjectTypeUtil.createObjectRef(correlationResult.getOwner()));

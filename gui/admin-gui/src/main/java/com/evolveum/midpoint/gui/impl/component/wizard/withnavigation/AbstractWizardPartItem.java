@@ -62,7 +62,7 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
     }
 
     @Nullable
-    protected String getParameter() {
+    public String getParameter() {
         return parameter;
     }
 

@@ -33,7 +33,7 @@ public class NextConnectorDevPartItem extends AbstractWizardPartItem<ConnectorDe
     @Override
     protected List<WizardParentStep> createWizardSteps() {
         return List.of(
-                new NextStepsConnectorStepPanel(getHelper()));
+                new NextStepsConnectorStepPanel(getHelper(), () -> getParameter()));
     }
 
     @Override

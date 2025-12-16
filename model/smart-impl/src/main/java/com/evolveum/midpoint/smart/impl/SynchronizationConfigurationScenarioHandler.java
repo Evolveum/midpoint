@@ -8,6 +8,11 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
 import com.evolveum.midpoint.smart.api.synchronization.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -239,6 +244,54 @@ public class SynchronizationConfigurationScenarioHandler {
             SynchronizationSituationType situation, SynchronizationActionsType actions) {
         return new SynchronizationReactionType()
                 .situation(situation)
+                .name(deriveReactionName(situation, actions))
                 .actions(actions);
     }
+
+    private static String deriveReactionName(SynchronizationSituationType situation, SynchronizationActionsType actions) {
+        return capitalizeEnumName(situation.name()) + " - " + buildActionsName(actions);
+    }
+
+    private static String buildActionsName(SynchronizationActionsType actions) {
+        if (actions == null) {
+            return "Do nothing";
+        }
+        List<AbstractSynchronizationActionType> all = new ArrayList<>();
+        all.addAll(actions.getSynchronize());
+        all.addAll(actions.getLink());
+        all.addAll(actions.getUnlink());
+        all.addAll(actions.getAddFocus());
+        all.addAll(actions.getDeleteFocus());
+        all.addAll(actions.getInactivateFocus());
+        all.addAll(actions.getDeleteResourceObject());
+        all.addAll(actions.getInactivateResourceObject());
+        all.addAll(actions.getCreateCorrelationCase());
+        if (all.isEmpty()) {
+            return "Do nothing";
+        }
+        all.sort(Comparator.comparing(a -> Optional.ofNullable(a.getOrder()).orElse(Integer.MAX_VALUE)));
+        List<String> names = new ArrayList<>(all.size());
+        for (AbstractSynchronizationActionType a : all) {
+            names.add(a.getName());
+        }
+        return String.join(", ", names);
+    }
+
+    private static String capitalizeEnumName(String s) {
+        if (s == null || s.isEmpty()) {
+            return "";
+        }
+        String[] parts = s.toLowerCase().split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty())
+                continue;
+            if (!sb.isEmpty())
+                sb.append('-');
+            sb.append(Character.toUpperCase(part.charAt(0)))
+                    .append(part.substring(1));
+        }
+        return sb.toString();
+    }
+
 }
