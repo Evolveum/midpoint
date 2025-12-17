@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
@@ -29,10 +28,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.session.SuggestionsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -744,6 +745,24 @@ public class SmartIntegrationUtils {
                 () -> existingDefinitions,
                 ResourceObjectTypeDefinitionType.F_DISPLAY_NAME,
                 paths
+        );
+    }
+
+    /**
+     * Creates a model representing the enabled/disabled state of suggestions of the given type.
+     * It is backed by the session storage.
+     */
+    public static @NotNull IModel<Boolean> createSuggestionSwitchModel(
+            @NotNull PageBase pageBase,
+            @NotNull SuggestionsStorage.SuggestionType type) {
+
+        return LambdaModel.of(
+                () -> pageBase.getSessionStorage()
+                        .getSuggestions()
+                        .isEnabled(type),
+                value -> pageBase.getSessionStorage()
+                        .getSuggestions()
+                        .setEnabled(type, Boolean.TRUE.equals(value))
         );
     }
 }

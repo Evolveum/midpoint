@@ -491,8 +491,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     public BoxedTablePanel<?> getBoxedTablePanelComponent() {
-        if(get(ID_TABLE) instanceof ContainerableListPanel<?,?>){
-            return ((ContainerableListPanel<?,?>) get(ID_TABLE)).getTable();
+        if (get(ID_TABLE) instanceof ContainerableListPanel<?, ?>) {
+            return ((ContainerableListPanel<?, ?>) get(ID_TABLE)).getTable();
         }
         return (BoxedTablePanel<?>) get(ID_TABLE);
     }
@@ -573,7 +573,9 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     protected List<Component> createNoValueButtonToolbar(String id) {
-        return Collections.singletonList(createToolbarButtons(id));
+        List<Component> buttons = new ArrayList<>();
+        buttons.add(createToolbarButtons(id));
+        return buttons;
     }
 
     private void onSearchPerformed(AjaxRequestTarget target) {
@@ -632,6 +634,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             }
         };
         components.setOutputMarkupId(true);
+        components.setOutputMarkupPlaceholderTag(true);
         components.add(new VisibleBehaviour(this::displayNoValuePanel));
         return components;
     }

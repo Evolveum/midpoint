@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.SuggestionsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -53,11 +54,13 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
         display = @PanelDisplay(label = "PageResource.tab.objectTypes", icon = GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM, order = 10))
 public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<ResourceObjectTypeDefinitionType> {
 
-    private static final String OP_DETERMINE_STATUSES =
-            ResourceObjectTypesPanel.class.getName() + ".determineStatuses";
-
     public ResourceObjectTypesPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
+    }
+
+    @Override
+    protected SuggestionsStorage.SuggestionType getSuggestionType() {
+        return SuggestionsStorage.SuggestionType.OBJECT_TYPE;
     }
 
     @Override

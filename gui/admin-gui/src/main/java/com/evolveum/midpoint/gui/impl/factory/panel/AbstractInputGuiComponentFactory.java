@@ -104,7 +104,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             }
             formComponent.add(panelCtx.getVisibleEnableBehavior());
             if (panelCtx.getAttributeValuesMap() != null) {
-                panelCtx.getAttributeValuesMap().keySet().stream()
+                panelCtx.getAttributeValuesMap().keySet()
                         .forEach(a -> formComponent.add(AttributeAppender.replace(a, panelCtx.getAttributeValuesMap().get(a))));
             }
         }
@@ -113,7 +113,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             panel.getBaseFormComponent().add(panelCtx.getAjaxEventBehavior());
         }
 
-        ExpressionValidator ev = panelCtx.getExpressionValidator();
+        ExpressionValidator<?,?> ev = panelCtx.getExpressionValidator();
         if (ev != null) {
             panel.getValidatableComponent().add(ev);
         }

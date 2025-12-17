@@ -485,7 +485,7 @@ public abstract class ColumnTileTable<O extends Serializable>
         };
 
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-link rounded ml-auto"));
+        newObjectButton.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-auto"));
         newObjectButton.add(new VisibleBehaviour(this::isNewObjectCreationEnabled));
         return newObjectButton;
     }

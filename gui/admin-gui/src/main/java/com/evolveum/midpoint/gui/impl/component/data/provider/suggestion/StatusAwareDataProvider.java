@@ -50,6 +50,8 @@ public class StatusAwareDataProvider<C extends Containerable>
 
     private final String resourceOid;
 
+    private int pageSuggestionCount = 0;
+
     public StatusAwareDataProvider(
             @NotNull Component component,
             @NotNull IModel<Search<C>> search,
@@ -65,6 +67,7 @@ public class StatusAwareDataProvider<C extends Containerable>
     protected void postProcessWrapper(@NotNull PrismContainerValueWrapper<C> vw) {
         StatusInfo<?> info = suggestionResolver.apply(vw);
         if (info != null) {
+            this.pageSuggestionCount++;
             tokenByWrapper.put(vw, info.getToken());
             statusByToken.putIfAbsent(info.getToken(), info);
         }
@@ -126,8 +129,15 @@ public class StatusAwareDataProvider<C extends Containerable>
     @Override
     public void clearCache() {
         super.clearCache();
-        tokenByWrapper.clear();
-        statusByToken.clear();
+        this.tokenByWrapper.clear();
+        this.statusByToken.clear();
+        this.pageSuggestionCount = 0;
+    }
+
+    @Override
+    public void detach() {
+        super.detach();
+        this.pageSuggestionCount = 0;
     }
 
     /** Optionally warm the cache for all rows (not just current page). */
@@ -170,5 +180,9 @@ public class StatusAwareDataProvider<C extends Containerable>
      */
     protected void applyInitialSorting() {
         this.setSort(null);
+    }
+
+    public int getPageSuggestionCount() {
+        return pageSuggestionCount;
     }
 }

@@ -455,6 +455,10 @@ public class SmartIntegrationStatusInfoUtils {
                 || OperationResultStatusType.FATAL_ERROR.equals(operationStatus);
     }
 
+    public static boolean isSuggestionExists(@Nullable StatusInfo<?> statusInfo) {
+        return statusInfo != null;
+    }
+
     private static boolean isCorrelationSuggestionEligible(
             @Nullable StatusInfo<CorrelationSuggestionsType> si,
             @NotNull ResourceObjectTypeDefinitionType rotDef) {
