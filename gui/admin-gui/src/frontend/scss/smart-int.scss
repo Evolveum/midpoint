@@ -100,19 +100,10 @@
   background-color: #{$secondary-light} !important;
 }
 
-.bg-primary-light {
-  background-color: #{$primary-light} !important;
-}
-
 .alert.purple-light-alert {
   --label-color: #{$purple-light};
   background-color: var(--label-color);
   border-color: #{$purple};
-}
-
-.alert-info-light {
-  background-color: #{$info-light};   /* light blue background */
-  border-color: #{$info};
 }
 
 /* AI Suggestion badge */
