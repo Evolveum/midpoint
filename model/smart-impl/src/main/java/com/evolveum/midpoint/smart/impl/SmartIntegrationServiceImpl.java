@@ -52,7 +52,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -80,8 +79,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     private static final String OP_CREATE_NEW_RESOURCE = "createNewResource";
     private static final String OP_ESTIMATE_OBJECT_CLASS_SIZE = "estimateObjectClassSize";
-    private static final String OP_GET_LATEST_STATISTICS = "getLatestStatistics";
-    private static final String OP_GET_LATEST_OBJECT_TYPE_STATISTICS = "getLatestObjectTypeStatistics";
     private static final String OP_GET_LATEST_OBJECT_TYPE_SCHEMA_MATCH = "getLatestObjectTypeSchemaMatch";
     private static final String OP_SUGGEST_OBJECT_TYPES = "suggestObjectTypes";
     private static final String OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION = "suggestObjectTypesOperation";
@@ -117,12 +114,14 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private final ServiceClientFactory clientFactory;
     private final MappingSuggestionOperationFactory mappingSuggestionOperationFactory;
     private final ObjectTypesSuggestionOperationFactory objectTypesSuggestionOperationFactory;
+    private final StatisticsService statisticsService;
 
     public SmartIntegrationServiceImpl(ModelService modelService,
             TaskService taskService, ModelInteractionServiceImpl modelInteractionService, TaskManager taskManager,
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
             ServiceClientFactory clientFactory, MappingSuggestionOperationFactory mappingSuggestionOperationFactory,
-            ObjectTypesSuggestionOperationFactory objectTypesSuggestionOperationFactory) {
+            ObjectTypesSuggestionOperationFactory objectTypesSuggestionOperationFactory,
+            StatisticsService statisticsService) {
         this.modelService = modelService;
         this.taskService = taskService;
         this.modelInteractionService = modelInteractionService;
@@ -131,6 +130,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         this.clientFactory = clientFactory;
         this.mappingSuggestionOperationFactory = mappingSuggestionOperationFactory;
         this.objectTypesSuggestionOperationFactory = objectTypesSuggestionOperationFactory;
+        this.statisticsService = statisticsService;
     }
 
     @Override
@@ -342,69 +342,25 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
             throws SchemaException {
-        var result = parentResult.subresult(OP_GET_LATEST_STATISTICS)
-                .addParam("resourceOid", resourceOid)
-                .addParam("objectClassName", objectClassName)
-                .build();
-        try {
-            var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME)
-                            .eq(objectClassName.getLocalPart())
-                            .build(),
-                    null,
-                    result);
-            return objects.stream()
-                    .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(o).getTimestamp())))
-                    .map(o -> o.asObjectable())
-                    .orElse(null);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
-        } finally {
-            result.close();
-        }
+        return statisticsService.getLatestStatistics(resourceOid, objectClassName, task, parentResult);
     }
 
-    public Optional<String> getLatestObjectTypeStatisticsOID(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+    @Override
+    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
             throws SchemaException {
-        var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
-                .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind)
-                .addParam("intent", intent)
-                .build();
-        try {
-            var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                            .eq(kind)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                            .eq(intent)
-                            .build(),
-                    null,
-                    result);
-            return objects.stream()
-                    .map(o -> o.asObjectable())
-                    // consider only objects that actually contain statistics
-                    .filter(o ->
-                            ObjectTypeUtil.getExtensionItemRealValue(
-                                    o.getExtension(), MODEL_EXTENSION_OBJECT_TYPE_STATISTICS) != null)
-                    .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(o).getTimestamp())))
-                    .map(GenericObjectType::getOid);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
-        } finally {
-            result.close();
-        }
+        return statisticsService.getLatestObjectTypeStatistics(resourceOid, kind, intent, task, parentResult);
+    }
+
+    @Override
+    public void deleteStatisticsForResource(String resourceOid, QName objectClassName, Task task, OperationResult result)
+            throws SchemaException {
+        statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, task, result);
+    }
+
+    @Override
+    public void deleteObjectTypeStatistics(String resourceOid, String kind, String intent, Task task, OperationResult result)
+            throws SchemaException {
+        statisticsService.deleteObjectTypeStatistics(resourceOid, kind, intent, task, result);
     }
 
     public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)

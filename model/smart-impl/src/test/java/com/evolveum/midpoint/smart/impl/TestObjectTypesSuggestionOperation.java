@@ -29,8 +29,13 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.setExtensionPropertyRealValues;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectClassStatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,6 +43,10 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.Date;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 @ContextConfiguration(locations = {"classpath:ctx-smart-integration-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -267,6 +276,243 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         var t = suggestion.getObjectType().get(0);
         assertThat(t.getIntent()).isEqualTo("employee");
         assertThat(t.getDelineation().getFilter()).hasSize(1);
+    }
+
+    @Test
+    public void test100StatisticsTTL_ExpiredStatisticsAreDeleted() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var expiredTimestamp = XmlTypeConverter.createXMLGregorianCalendar(
+                new Date(System.currentTimeMillis() - 25 * 60 * 60 * 1000));
+        var statistics = new ShadowObjectClassStatisticsType()
+                .timestamp(expiredTimestamp)
+                .size(100)
+                .coverage(1.0f);
+
+        var statisticsObject = new GenericObjectType()
+                .name("Expired Statistics");
+        var holderPcv = statisticsObject.asPrismContainerValue();
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "account");
+
+        String oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
+        assertThat(oid).isNotNull();
+
+        var retrieved = smartIntegrationService.getLatestStatistics(
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+
+        assertThat(retrieved).isNull();
+        assertNoRepoObject(GenericObjectType.class, oid);
+    }
+
+    @Test
+    public void test101StatisticsTTL_FreshStatisticsAreRetained() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var freshTimestamp = XmlTypeConverter.createXMLGregorianCalendar(
+                new Date(System.currentTimeMillis() - 1 * 60 * 60 * 1000));
+        var statistics = new ShadowObjectClassStatisticsType()
+                .timestamp(freshTimestamp)
+                .size(100)
+                .coverage(1.0f);
+
+        var statisticsObject = new GenericObjectType()
+                .name("Fresh Statistics");
+        var holderPcv = statisticsObject.asPrismContainerValue();
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "account");
+
+        String oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
+
+        var retrieved = smartIntegrationService.getLatestStatistics(
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+
+        assertThat(retrieved).isNotNull();
+        assertThat(retrieved.getOid()).isEqualTo(oid);
+        var retrievedStats = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(retrieved.asPrismObject());
+        assertThat(retrievedStats.getSize()).isEqualTo(100);
+    }
+
+    @Test
+    public void test110ObjectTypeStatisticsTTL_ExpiredStatisticsAreDeleted() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var expiredTimestamp = XmlTypeConverter.createXMLGregorianCalendar(
+                new Date(System.currentTimeMillis() - 30 * 60 * 60 * 1000));
+        var statistics = new ShadowObjectClassStatisticsType()
+                .timestamp(expiredTimestamp)
+                .size(50)
+                .coverage(1.0f);
+
+        var statisticsObject = new GenericObjectType()
+                .name("Expired Object Type Statistics");
+        var holderPcv = statisticsObject.asPrismContainerValue();
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_TYPE_STATISTICS, statistics);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_KIND_NAME, "account");
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_INTENT_NAME, "default");
+
+        String oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
+
+        var retrieved = smartIntegrationService.getLatestObjectTypeStatistics(
+                RESOURCE_DUMMY.oid, "account", "default", task, result);
+
+        assertThat(retrieved).isNull();
+        assertNoRepoObject(GenericObjectType.class, oid);
+    }
+
+    @Test
+    public void test111ObjectTypeStatisticsTTL_FreshStatisticsAreRetained() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var freshTimestamp = XmlTypeConverter.createXMLGregorianCalendar(
+                new Date(System.currentTimeMillis() - 2 * 60 * 60 * 1000));
+        var statistics = new ShadowObjectClassStatisticsType()
+                .timestamp(freshTimestamp)
+                .size(75)
+                .coverage(1.0f);
+
+        var statisticsObject = new GenericObjectType()
+                .name("Fresh Object Type Statistics");
+        var holderPcv = statisticsObject.asPrismContainerValue();
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_TYPE_STATISTICS, statistics);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_KIND_NAME, "account");
+        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_INTENT_NAME, "employee");
+
+        String oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
+
+        var retrieved = smartIntegrationService.getLatestObjectTypeStatistics(
+                RESOURCE_DUMMY.oid, "account", "employee", task, result);
+
+        assertThat(retrieved).isNotNull();
+        assertThat(retrieved.getOid()).isEqualTo(oid);
+        var retrievedStats = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(retrieved.asPrismObject());
+        assertThat(retrievedStats.getSize()).isEqualTo(75);
+    }
+
+    @Test
+    public void test120ManualDeletion_DeleteStatisticsForResource() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Create multiple statistics objects for the same resource
+        var timestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+        for (int i = 0; i < 3; i++) {
+            var statistics = new ShadowObjectClassStatisticsType()
+                    .timestamp(timestamp)
+                    .size(100 + i)
+                    .coverage(1.0f);
+
+            var statisticsObject = new GenericObjectType()
+                    .name("Statistics " + i);
+            var holderPcv = statisticsObject.asPrismContainerValue();
+            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
+            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
+            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "account");
+
+            repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
+        }
+
+        // Verify statistics exist
+        var before = smartIntegrationService.getLatestStatistics(
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+        assertThat(before).isNotNull();
+
+        // Delete all statistics for this resource and object class
+        smartIntegrationService.deleteStatisticsForResource(
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+
+        // Verify all statistics were deleted
+        var after = smartIntegrationService.getLatestStatistics(
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+        assertThat(after).isNull();
+    }
+
+    @Test
+    public void test121ManualDeletion_DeleteObjectTypeStatistics() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Create multiple object type statistics for the same resource/kind/intent
+        var timestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+        for (int i = 0; i < 2; i++) {
+            var statistics = new ShadowObjectClassStatisticsType()
+                    .timestamp(timestamp)
+                    .size(50 + i)
+                    .coverage(1.0f);
+
+            var statisticsObject = new GenericObjectType()
+                    .name("Object Type Statistics " + i);
+            var holderPcv = statisticsObject.asPrismContainerValue();
+            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_TYPE_STATISTICS, statistics);
+            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
+            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_KIND_NAME, "account");
+            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_INTENT_NAME, "test");
+
+            repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
+        }
+
+        // Verify statistics exist
+        var before = smartIntegrationService.getLatestObjectTypeStatistics(
+                RESOURCE_DUMMY.oid, "account", "test", task, result);
+        assertThat(before).isNotNull();
+
+        // Delete all object type statistics for this resource/kind/intent
+        smartIntegrationService.deleteObjectTypeStatistics(
+                RESOURCE_DUMMY.oid, "account", "test", task, result);
+
+        // Verify all statistics were deleted
+        var after = smartIntegrationService.getLatestObjectTypeStatistics(
+                RESOURCE_DUMMY.oid, "account", "test", task, result);
+        assertThat(after).isNull();
+    }
+
+    @Test
+    public void test130Filter_OnlyObjectsWithStatisticsAreConsidered() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        var timestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+
+        // Create an object WITHOUT statistics extension
+        var objectWithoutStats = new GenericObjectType()
+                .name("Object Without Statistics");
+        var pcvWithoutStats = objectWithoutStats.asPrismContainerValue();
+        setExtensionPropertyRealValues(pcvWithoutStats, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
+        setExtensionPropertyRealValues(pcvWithoutStats, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "group");
+
+        repositoryService.addObject(objectWithoutStats.asPrismObject(), null, result);
+
+        // Create an object WITH statistics extension
+        var statistics = new ShadowObjectClassStatisticsType()
+                .timestamp(timestamp)
+                .size(200)
+                .coverage(1.0f);
+
+        var objectWithStats = new GenericObjectType()
+                .name("Object With Statistics");
+        var pcvWithStats = objectWithStats.asPrismContainerValue();
+        setExtensionPropertyRealValues(pcvWithStats, MODEL_EXTENSION_STATISTICS, statistics);
+        setExtensionPropertyRealValues(pcvWithStats, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
+        setExtensionPropertyRealValues(pcvWithStats, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "group");
+
+        String oidWithStats = repositoryService.addObject(objectWithStats.asPrismObject(), null, result);
+
+        // Retrieve statistics - should only return the object WITH statistics
+        var retrieved = smartIntegrationService.getLatestStatistics(
+                RESOURCE_DUMMY.oid, new QName(NS_RI, "group"), task, result);
+
+        assertThat(retrieved).isNotNull();
+        assertThat(retrieved.getOid()).isEqualTo(oidWithStats);
+        var retrievedStats = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(retrieved.asPrismObject());
+        assertThat(retrievedStats.getSize()).isEqualTo(200);
     }
 
 }
