@@ -14,7 +14,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.validator.ResourceObjectFocusTypeValidator;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
@@ -129,15 +128,13 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
                         .getRealValue();
 
         final String resourceOid = resource != null ? resource.getOid() : null;
-        final ResourceObjectTypeIdentification identification =
-                ResourceObjectTypeIdentification.of(objectTypeDef.getKind(), objectTypeDef.getIntent());
 
         Task task = pageBase.createSimpleTask("Suggest focus type");
         OperationResult result = task.getResult();
 
         try {
             SmartIntegrationService sis = pageBase.getSmartIntegrationService();
-            FocusTypeSuggestionType suggestion = sis.suggestFocusType(resourceOid, identification, task, result);
+            FocusTypeSuggestionType suggestion = sis.suggestFocusType(resourceOid, objectTypeDef, task, result);
             if (suggestion != null && suggestion.getFocusType() != null) {
                 QName focusType = suggestion.getFocusType();
                 baseFormComponent.setModelObject(focusType);
