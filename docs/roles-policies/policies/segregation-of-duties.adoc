@@ -16,21 +16,23 @@ compliance:
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/segregation-of-duties/
 :page-toc: top
+:page-keywords: segregation of duties, SoD, role exclusion, policy rule, policy action
+:page-summary: This page describes the Segregation of Duties (SoD) mechanism in midPoint, which prevents accumulating too much power in the hands of a single person by placing constraints on assignments of entitlements to users.
 
 
 Segregation of Duties (SoD) is a mechanism that prevents accumulating too much power in the hands of a single person.
 It places constraints on assignments of entitlements to users.
 For example, a SoD may prevent a single user from creating a request and also approving it.
 
-In its simplest form, the Segregation of Duties is implemented at the RBAC level by _role exclusions_. It means that roles that _exclude_ each other cannot be assigned to the same user at the same time, or such a situation is followed by another action (e.g., an extra approval workflow).
+In its simplest form, the Segregation of Duties is implemented at the RBAC level by _role exclusions_. It means that roles that _exclude_ each other cannot be assigned to the same user at the same time, or that such a situation is followed by another action (e.g., an extra approval workflow).
 This is the basic SoD mechanism that is implemented in midPoint now.
 More complex SoD rules will be implemented in the future.
 
 
 [#_role_exclusion_definition]
-== Role Exclusion Definition
+== Role exclusion definition
 
-In midPoint 3.5 and later, the SoD is defined by using the xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] mechanism.
+SoD is defined by using the xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] mechanism.
 It contains two parts important for the role exclusion configuration: `policyConstraints` and `policyActions`.
 The role `exclusion` definition is to be placed within the `policyConstraints` of the rule.
 It defines which roles are mutually exclusive.
@@ -59,9 +61,6 @@ It defines which roles are mutually exclusive.
     </assignment>
 </role>
 ----
-
-[NOTE]
-====
 The role above excludes the Developer role.
 This means that an attempt to assign the Scrum Master role when the Developer role is already assigned will result in a specific action.
 The action may forbid assigning both the Scrum Master role and the Developer role to the same person.
@@ -69,17 +68,16 @@ It may also mean that one person can have both roles assigned, but it has to be 
 The exclusion is considered bidirectional, even if it is defined in only one of the two excluded roles.
 Therefore, the order of role assignment is insignificant.
 Whichever role is assigned as second will trigger the action.
-====
 
-== Policy Actions
+== Policy actions
 
-The `policyActions` part defines what to do when such an exclusion violation is detected.
+The `policyActions` part defines what to do when an exclusion violation is detected.
 There are various xref:/midpoint/reference/roles-policies/policies/policy-rules/#policy_actions[policy actions] available.
-Following options are the most common for implementing the SoD use cases:
+The following options are the most common for implementing the SoD use cases:
 
 * *Enforcement* means that the role conflict is not allowed.
-Any attempt to assign conflicting roles will end up with an error.
-
+Any attempt to assign conflicting roles will end up in an error.
++
 [source,xml]
 ----
 <role>
@@ -104,29 +102,26 @@ Any attempt to assign conflicting roles will end up with an error.
     </assignment>
 </role>
 ----
-
-[NOTE]
-====
-In the example above, the role Financial Auditor excludes the role Accountant.
+In the example above, the Financial Auditor role excludes the Accountant role.
 As these two roles must not be assigned to the same person at the same time, the _enforcement_ policy action is set.
 Therefore, an attempt to assign the Accountant role when the Financial Auditor role is already assigned (or vice versa) will not be successful, and the requester will receive an error message about the situation.
-====
+
 
 * *Pruning* means that the conflicting roles are unassigned.
 When a new role is assigned, the existing roles that are in conflict with the new role will be unassigned.
-
++
 [source,xml]
 ----
 <role>
-    <name>Product Student Licence</name>
+    <name>Product Student License</name>
     <assignment>
         <policyRule>
-            <name>Product Employee Licence Exclusion Policy Rule</name>
+            <name>Product Employee License Exclusion Policy Rule</name>
             <policyConstraints>
                 <exclusion>
                     <targetRef relation="org:default" type="c:RoleType">
                         <filter>
-                            <q:text>name = 'Product Employee Licence'</q:text>
+                            <q:text>name = 'Product Employee License'</q:text>
                         </filter>
                         <resolutionTime>run</resolutionTime>
                     </targetRef>
@@ -139,21 +134,17 @@ When a new role is assigned, the existing roles that are in conflict with the ne
     </assignment>
 </role>
 ----
-
-[NOTE]
-====
-In the example above, the Product Employee Licence excludes the Product Student Licence.
-To not waste resources, the company does not want to assign both types of licenses to the same person for the same product.
-However, the policy may be that the licence that was assigned (or requested by a user) later is the preferred one we want to keep.
-With the _prune_ policy action, an attempt to assign the employee licence when the student licence is already assigned will be successful, but the student licence will be unassigned during the process.
-In the opposite situation, the employee's licence would be unassigned.
-====
+In the example above, the Product Employee License excludes the Product Student License.
+To use resources efficiently, the company does not want to assign both types of licenses to the same person for the same product.
+However, the policy may be that the license that was assigned (or requested by a user) later is the preferred one we want to keep.
+With the _prune_ policy action, an attempt to assign the employee license when the student license is already assigned will be successful, but the student license will be unassigned in the process.
+In the opposite situation, the employee's license would be unassigned.
 
 
 * *Approval* means that the request will be subject to an additional approval.
 The approver may decide whether to allow assignment of conflicting roles.
 If the operation is approved, then it proceeds.
-
++
 [source,xml]
 ----
 <role>
@@ -196,18 +187,14 @@ If the operation is approved, then it proceeds.
     </assignment>
 </role>
 ----
-
-[NOTE]
-====
 In the example above, we get back to the exclusion of the Scrum Master and the Developer roles.
 The company does not approve such job positions to be assigned to the same person by default, but there may be exceptions.
 Therefore, the _approval_ policy action is set so each case can be examined.
 As a result, any attempt to assign the Developer role when the Scrum Master role is already assigned (or vice versa) will trigger an approval workflow. In this case, any member of the Senior Manager role can approve or reject the request.
-====
 
 * *Record* means that the conflict will be recorded using a feature:object-mark[mark].
 The mark can be used to report violations and gradually enforce the policy.
-
++
 [source,xml]
 ----
 <role>
@@ -236,20 +223,17 @@ The mark can be used to report violations and gradually enforce the policy.
     </assignment>
 </role>
 ----
-
-[NOTE]
-====
 In the example above, the company has decided that the product testing and the product development should not be performed by the same employees.
-Thus, a new policy was created, mutually excluding the roles Developer and Tester.
-However, as such a change will require updating employees' contracts, we cannot take immediate action but need to choose a more subtle approach.
+Thus, a new policy was created, mutually excluding the Developer and Tester roles.
+However, as such a change will require updating employee contracts, we cannot take immediate action but need to choose a more subtle approach.
 Therefore, we use the _record_ policy action, which will effectively mark each assignment that violates the newly created exclusion policy.
-This information can be later used in dashboards, reports, or in the certification campaigns to review the current status and continuously enforce the newly created policy.
-====
+This information can be later used in dashboards, reports, or in certification campaigns to review the current status and continuously enforce the newly created policy.
 
-== Exclusion Class
 
-MidPoint does not have a direct configuration for role exclusion classes (set of roles where each excludes all other roles from the same class or from different classes).
-However, this configuration can easily be created and maintained by using xref:/midpoint/reference/roles-policies/roles/rbac/[role hierarchies] and xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[metaroles].
+== Exclusion class
+
+MidPoint does not have a direct configuration for role exclusion classes (set of roles where each role excludes all other roles from the same class or from different classes).
+However, this configuration can easily be created and maintained by using xref:/midpoint/reference/roles-policies/roles/rbac/#role-hierarchy[role hierarchies] and xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/#metarole[metaroles].
 
 For example, the following configuration illustrates an "exclusion class" between executive and controlling roles.
 The controlling metarole defines exclusion of all executive roles:
@@ -292,10 +276,8 @@ Hence, if roles `A` and `B` are mutually exclusive, and a user has an assignment
 (Technically, both roles are still _assigned_ at the same time.
 Also, the two assignments cannot be _effectively active_ at any moment.)
 
-See also bug:MID-8299[].
-We are considering an improvement that would weaken this definition (see bug:MID-8572[]).
 
-== See Also
+== See also
 
 * xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 * xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[Gradual Policy Enforcement]
