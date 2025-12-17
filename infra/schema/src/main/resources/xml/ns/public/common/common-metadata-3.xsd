@@ -124,6 +124,7 @@
                         <a:operational>true</a:operational>
                         <a:indexed>true</a:indexed>
                         <a:since>3.5</a:since>
+                        <a:help>StorageMetadataType.createTimestamp.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -177,6 +178,7 @@
                         <a:displayName>MetadataType.modifyTimestamp</a:displayName>
                         <a:operational>true</a:operational>
                         <a:indexed>true</a:indexed>
+                        <a:help>StorageMetadataType.modifyTimestamp.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
