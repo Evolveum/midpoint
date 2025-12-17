@@ -104,7 +104,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             }
             formComponent.add(panelCtx.getVisibleEnableBehavior());
             if (panelCtx.getAttributeValuesMap() != null) {
-                panelCtx.getAttributeValuesMap().keySet().stream()
+                panelCtx.getAttributeValuesMap().keySet()
                         .forEach(a -> formComponent.add(AttributeAppender.replace(a, panelCtx.getAttributeValuesMap().get(a))));
             }
         }
@@ -113,7 +113,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             panel.getBaseFormComponent().add(panelCtx.getAjaxEventBehavior());
         }
 
-        ExpressionValidator ev = panelCtx.getExpressionValidator();
+        ExpressionValidator<?,?> ev = panelCtx.getExpressionValidator();
         if (ev != null) {
             panel.getValidatableComponent().add(ev);
         }
@@ -171,20 +171,24 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
         }
 
         PrismValue value = prismValueWrapper.getNewValue();
+
+        formComponent.add(AttributeModifier.append("class", () ->
+                SmartMetadataUtil.isMarkedAsInvalid(prismValueWrapper.getNewValue())
+                        ? IS_FAILED_TO_APPLY_CLASS
+                        : ""));
+
         boolean markedAsInvalid = SmartMetadataUtil.isMarkedAsInvalid(value);
-
-        if (!markedAsInvalid) {
-            return false;
+        if (markedAsInvalid) {
+            String filterInvalidMessage = getFilterInvalidMessage(value);
+            if (filterInvalidMessage != null && !filterInvalidMessage.isBlank()) {
+                formComponent.error(filterInvalidMessage);
+            }
+        } else {
+            // Ensure stale error messages are removed once the filter becomes valid
+            formComponent.getFeedbackMessages().clear();
         }
 
-        formComponent.add(AttributeModifier.append("class", IS_FAILED_TO_APPLY_CLASS));
-
-        String filterInvalidMessage = getFilterInvalidMessage(value);
-        if (filterInvalidMessage != null && !filterInvalidMessage.isBlank()) {
-            formComponent.error(filterInvalidMessage);
-        }
-
-        return true;
+        return markedAsInvalid;
     }
 
     private static <T> boolean hasAiMark(

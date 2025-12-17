@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -34,16 +35,19 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.SuggestionsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -52,6 +56,7 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serial;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
@@ -121,6 +126,38 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             public void refreshAndDetach(AjaxRequestTarget target) {
                 super.refreshAndDetach(target);
                 target.add(AssociationTypesPanel.this);
+            }
+
+            @Override
+            protected List<Component> createNoValueButtonToolbar(String id) {
+                List<Component> noValueButtonToolbar = super.createNoValueButtonToolbar(id);
+                AjaxIconButton generateButton = new AjaxIconButton(id, new Model<>(GuiStyleConstants.CLASS_MAGIC_WAND),
+                        () -> isSuggestionExists()
+                                ? createStringResource("Suggestion.button.showSuggest").getString()
+                                : createStringResource("Suggestion.button.suggest").getString()) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (isSuggestionExists()) {
+                            getSwitchSuggestionModel().setObject(Boolean.TRUE);
+                            target.add(AssociationTypesPanel.this);
+                            refreshAndDetach(target);
+                            return;
+                        }
+
+                        getSwitchSuggestionModel().setObject(Boolean.TRUE);
+                        onSuggestValue(createContainerModel(), target);
+                    }
+                };
+                generateButton.add(new VisibleBehaviour(this::displayNoValuePanel));
+                generateButton.add(AttributeModifier.append("class", "btn btn-default text-ai"));
+                generateButton.setOutputMarkupId(true);
+                generateButton.showTitleAsLabel(true);
+
+                noValueButtonToolbar.add(generateButton);
+                return noValueButtonToolbar;
             }
 
             @Override
@@ -286,7 +323,7 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
             @NotNull IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel,
             AjaxRequestTarget target) {
         IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel = createContainerModel();
-       PrismContainerValue<ShadowAssociationTypeDefinitionType> prismContainerValue =
+        PrismContainerValue<ShadowAssociationTypeDefinitionType> prismContainerValue =
                 prepareNewPrismContainerValue(valueModel, containerModel);
 
         prismContainerValue.setParent(containerModel.getObject().getItem());
@@ -371,5 +408,10 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
     protected String getResourceOid() {
         return getObjectDetailsModels().getObjectType().getOid();
+    }
+
+    @Override
+    protected SuggestionsStorage.SuggestionType getSuggestionType() {
+        return SuggestionsStorage.SuggestionType.ASSOCIATION;
     }
 }

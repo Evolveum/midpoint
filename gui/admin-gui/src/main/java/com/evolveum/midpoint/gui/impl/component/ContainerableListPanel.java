@@ -1422,6 +1422,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
 
         target.add(getTableComponent());
+        target.add(getNoValuePanel());
         target.add(getFeedbackPanel());
     }
 
@@ -1758,6 +1759,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
         };
         components.setOutputMarkupId(true);
+        components.setOutputMarkupPlaceholderTag(true);
         components.add(new VisibleBehaviour(this::displayNoValuePanel));
         return components;
     }

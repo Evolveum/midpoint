@@ -250,7 +250,9 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_DELETE) {
             setPartItems(createBasicPartItems());
             refresh();
-            int index = addWizardPartOnEnd(new NextConnectorDevPartItem(getHelper()));
+            NextConnectorDevPartItem partItem = new NextConnectorDevPartItem(getHelper());
+            partItem.setParameter(oldActivePartItem.getParameter());
+            int index = addWizardPartOnEnd(partItem);
             clearInProgressPart();
             setActiveWizardPartIndex(index);
             return;

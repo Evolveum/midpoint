@@ -20,6 +20,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
+import org.apache.wicket.model.IModel;
+
 import java.util.List;
 
 public class InitConnectorDevPartItem extends AbstractWizardPartItem<ConnectorDevelopmentType, ConnectorDevelopmentDetailsModel> {
@@ -41,8 +43,20 @@ public class InitConnectorDevPartItem extends AbstractWizardPartItem<ConnectorDe
         String objectClassName = getParameter();
         if (objectClassName == null) {
             objectClassName = ConnectorDevelopmentWizardUtil.getNameOfNewObjectClass(getObjectDetailsModel());
+            setParameter(objectClassName);
         }
-        objectClassStepsParent.setObjectClass(objectClassName);
+        IModel<String> objectClassNameModel = new IModel<>() {
+            @Override
+            public String getObject() {
+                return getParameter();
+            }
+
+            @Override
+            public void setObject(String object) {
+                setParameter(object);
+            }
+        };
+        objectClassStepsParent.setObjectClassNameModel(objectClassNameModel);
 
         return List.of(
                 new BasicInformationConnectorStepPanel(getHelper()),

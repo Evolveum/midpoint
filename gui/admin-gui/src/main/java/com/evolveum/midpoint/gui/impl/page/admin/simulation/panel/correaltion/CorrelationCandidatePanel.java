@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -34,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
 
@@ -60,12 +63,18 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
 
     List<CorrelationRuleDetails> correlationRuleDetailsList = new ArrayList<>();
     IModel<SimulationResultType> simulationResultModel;
+    IModel<CorrelationDefinitionType> correlationDefinitionModel;
+    Map<ItemPath, ItemPath> shadowCorrelationPathMap;
 
     public CorrelationCandidatePanel(String id,
             IModel<ProcessedObject<?>> model,
-            IModel<SimulationResultType> simulationResulModel) {
+            IModel<SimulationResultType> simulationResulModel,
+            IModel<CorrelationDefinitionType> correlationDefinitionModel,
+            Map<ItemPath, ItemPath> shadowCorrelationPathMap) {
         super(id, model);
         this.simulationResultModel = simulationResulModel;
+        this.correlationDefinitionModel = correlationDefinitionModel;
+        this.shadowCorrelationPathMap = shadowCorrelationPathMap;
     }
 
     @Override
@@ -84,8 +93,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
      * Loads correlation rule details based on the current simulation result and processed shadow.
      */
     private void loadModel() {
-        CorrelationDefinitionType correlationDefinition =
-                findCorrelationDefinition(getPageBase(), getSimulationResultModel().getObject());
+        CorrelationDefinitionType correlationDefinition = correlationDefinitionModel.getObject();
 
         if (correlationDefinition == null) {
             return;
@@ -108,7 +116,12 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                 ItemPathType itemPath = correlationItem.getRef();
                 String displayName = CorrelationUtil.getItemDisplayName(itemPath, UserType.class);
 
-                Object realValue = getPropertyRealValue(shadowPrismObject, itemPath);
+                Object realValue = "N/A";
+                ItemPath shadowPath = shadowCorrelationPathMap.get(itemPath.getItemPath());
+                if (shadowPath != null) {
+                    realValue = getPropertyRealValue(shadowPrismObject,
+                            ItemPath.create(ShadowType.F_ATTRIBUTES.getLocalPart(), shadowPath));
+                }
                 correlationRuleDetailsList.add(
                         new CorrelationRuleDetails(displayName, realValue, false)
                 );
@@ -119,12 +132,12 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
     /**
      * Retrieves the real value of a property using the given item path.
      */
-    private Object getPropertyRealValue(PrismObject<ShadowType> shadow, ItemPathType itemPath) {
+    private Object getPropertyRealValue(PrismObject<ShadowType> shadow, ItemPath itemPath) {
         if (shadow == null || itemPath == null) {
             return "N/A";
         }
 
-        PrismProperty<Object> property = shadow.findProperty(itemPath.getItemPath());
+        PrismProperty<Object> property = shadow.findProperty(itemPath);
         if (property == null || property.getRealValue() == null) {
             return "N/A";
         }
@@ -150,7 +163,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                         CorrelationRuleDetails details = item.getModelObject();
 
                         if (details.isHeader()) {
-                            item.add(createLabel(ID_RULE_NAME, details.title(), "text-bold"));
+                            item.add(createLabel(ID_RULE_NAME, details.title(), "font-weight-semibold"));
                             item.add(createViewRuleButton(details));
                         } else {
                             item.add(createLabel(ID_RULE_NAME, details.title(), "text-muted"));
@@ -164,6 +177,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
 
         container.add(ruleListView);
     }
+
     private @NotNull Label createLabel(String id, String text, String cssClass) {
         Label label = new Label(id, Model.of(text));
         if (cssClass != null && !cssClass.isEmpty()) {
@@ -244,23 +258,37 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
         manualCorrelationButton.showTitleAsLabel(true);
         container.add(manualCorrelationButton);
 
+        ProcessedObject<?> modelObject = getModelObject();
+        ObjectDelta<?> delta = modelObject.getDelta();
+        List<String> correlatedOwnersOid = findCorrelatedOwners(delta);
+
         ListView<ResourceObjectOwnerOptionType> listView =
                 new ListView<>(ID_CANDIDATE_LIST_VIEW, candidateModel) {
 
                     @Override
                     protected void populateItem(@NotNull ListItem<ResourceObjectOwnerOptionType> item) {
+                        WebMarkupContainer candidateRow = new WebMarkupContainer("candidateRow");
+                        candidateRow.setOutputMarkupId(true);
+                        item.add(candidateRow);
+
                         ResourceObjectOwnerOptionType option = item.getModelObject();
 
                         ObjectReferenceType ref = option.getCandidateOwnerRef();
+                        String candidateOid = ref.getOid();
 
                         String displayName = WebModelServiceUtils.resolveReferenceName(ref, getPageBase());
+
+                        if (correlatedOwnersOid.contains(candidateOid)) {
+                            candidateRow.add(AttributeModifier.append("class", "bg-success-light"));
+                            displayName += " (Correlated)";
+                        }
 
                         String identifier =
                                 option.getIdentifier() != null ?
                                         option.getIdentifier() : "";
 
-                        item.add(new Label(ID_CANDIDATE_NAME, Model.of(displayName)));
-                        item.add(new Label(ID_CANDIDATE_IDENTIFIER, Model.of(identifier)));
+                        candidateRow.add(new Label(ID_CANDIDATE_NAME, Model.of(displayName)));
+                        candidateRow.add(new Label(ID_CANDIDATE_IDENTIFIER, Model.of(identifier)));
 
                         AjaxIconButton viewLink = new AjaxIconButton(ID_CANDIDATE_VIEW_LINK,
                                 Model.of("fa fa-eye"),
@@ -272,7 +300,8 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                         };
                         viewLink.setOutputMarkupId(true);
                         viewLink.showTitleAsLabel(true);
-                        item.add(viewLink);
+                        candidateRow.add(viewLink);
+                        item.add(candidateRow);
                     }
                 };
 

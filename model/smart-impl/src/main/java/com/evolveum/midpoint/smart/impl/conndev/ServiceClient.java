@@ -112,6 +112,9 @@ public class ServiceClient {
         return job;
     }
 
+    public RestorationClient synchronizationClient() {
+        return new RestorationClient();
+    }
 
 
     enum JobStatus {
@@ -279,6 +282,11 @@ public class ServiceClient {
                 throw new IOException("problem determining content presence at " + uri + ". Status code: " + checkCode);
             }
 
+            put(apiUri, entitySupplier);
+        }
+
+        public void put(String apiUri, Supplier<HttpEntity> entitySupplier) throws IOException {
+            var uri = appendSession(apiBase + apiUri);
             var request = new HttpPut(uri);
             request.setEntity(entitySupplier.get());
             var uploadResponse = client.execute(request);

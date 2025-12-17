@@ -14,7 +14,7 @@ import java.util.List;
 public class RestTestBackend extends RestBackend {
 
     private static final ConnDevDocumentationSourceType OPENAPI = new ConnDevDocumentationSourceType()
-            .name("OpenProject OpenAPI specificication")
+            .name("OpenProject OpenAPI specification")
             .description("OpenAPI specification")
             .uri("https://www.openproject.org/docs/api/v3/spec.yml");
 
@@ -24,7 +24,9 @@ public class RestTestBackend extends RestBackend {
 
     @Override
     public List<ConnDevDocumentationSourceType> discoverDocumentation() {
-        return super.discoverDocumentation();
+        var ret = new ArrayList<>(super.discoverDocumentation());
+        ret.add(OPENAPI);
+        return ret;
     }
 
     @Override

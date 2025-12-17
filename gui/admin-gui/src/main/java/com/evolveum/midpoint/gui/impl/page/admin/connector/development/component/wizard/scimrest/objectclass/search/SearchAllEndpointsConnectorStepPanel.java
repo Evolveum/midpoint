@@ -21,6 +21,9 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * @author lskublik
  */
@@ -41,8 +44,8 @@ public class SearchAllEndpointsConnectorStepPanel extends EndpointsConnectorStep
     }
 
     @Override
-    protected ConnDevHttpEndpointIntentType getOperation() {
-        return ConnDevHttpEndpointIntentType.SEARCH;
+    protected Collection<ConnDevHttpEndpointIntentType> getEndpointIntents() {
+        return List.of(ConnDevHttpEndpointIntentType.SEARCH, ConnDevHttpEndpointIntentType.GET_ALL, ConnDevHttpEndpointIntentType.GET_BY_ID);
     }
 
     protected String getPanelType() {

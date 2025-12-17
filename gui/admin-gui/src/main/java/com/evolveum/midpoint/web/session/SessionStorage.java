@@ -86,6 +86,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
      * Store session information for user preferences about paging size in midPoint GUI
      */
     private UserProfileStorage userProfile;
+    private SuggestionsStorage suggestions;
 
     /**
      * place to store information in session for various pages
@@ -319,6 +320,17 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
     public void setUserProfile(UserProfileStorage profile) {
         userProfile = profile;
+    }
+
+    public SuggestionsStorage getSuggestions() {
+        if (suggestions == null) {
+            suggestions = new SuggestionsStorage();
+        }
+        return suggestions;
+    }
+
+    public void setSuggestions(SuggestionsStorage suggestions) {
+        this.suggestions = suggestions;
     }
 
     @Override

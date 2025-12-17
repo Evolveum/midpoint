@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -63,6 +64,13 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+    }
+
+    /**
+     * @return component that is represented as "li" in html list of menus
+     */
+    public Component getItem() {
+        return get(ID_ITEM);
     }
 
     private void initLayout() {

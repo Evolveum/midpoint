@@ -1,0 +1,77 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <div class="text-center mb-4" wicket:id="sectionTitle"></div>
+
+    <div class="my-4">
+        <div class="mb-2">
+            <wicket:message key="TargetDirectionSpecificationPanel.question.unmatched"/>
+        </div>
+
+        <div wicket:id="unmatchedGroup" class="d-flex flex-column gap-2">
+
+            <div class="d-flex gap-2">
+                <input wicket:id="unmatchedDisable" type="radio"/>
+                <span wicket:id="unmatchedDisableLabel"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <input wicket:id="unmatchedDelete" type="radio"/>
+                <span wicket:id="unmatchedDeleteLabel"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <input wicket:id="unmatchedNothing" type="radio"/>
+                <span wicket:id="unmatchedNothingLabel"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="my-4">
+        <div class="mb-2">
+            <wicket:message key="TargetDirectionSpecificationPanel.question.deleted"/>
+        </div>
+
+        <div wicket:id="deletedGroup" class="d-flex flex-column gap-2">
+
+            <div class="d-flex gap-2">
+                <input wicket:id="deletedRemove" type="radio"/>
+                <span wicket:id="deletedRemoveLabel"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <input wicket:id="deletedNothing" type="radio"/>
+                <span wicket:id="deletedNothingLabel"></span>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="my-4">
+        <div class="mb-2">
+            <wicket:message key="TargetDirectionSpecificationPanel.question.disputed"/>
+        </div>
+
+        <div wicket:id="disputedGroup" class="d-flex flex-column gap-2">
+
+            <div class="d-flex gap-2">
+                <input wicket:id="disputedCase" type="radio"/>
+                <span wicket:id="disputedCaseLabel"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <input wicket:id="disputedNothing" type="radio"/>
+                <span wicket:id="disputedNothingLabel"></span>
+            </div>
+
+        </div>
+    </div>
+
+</wicket:panel>

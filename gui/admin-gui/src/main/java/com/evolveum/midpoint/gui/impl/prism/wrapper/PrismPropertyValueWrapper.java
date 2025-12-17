@@ -84,6 +84,8 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
 
         getNewValue().setValue(newRealValue);
 
+        SmartMetadataUtil.unmarkAsInvalid(getNewValue());
+
         SmartMetadataUtil.syncAiProvenanceWithChangeIfApplied(getNewValue(),getOldValue());
 
         setStatus(ValueStatus.MODIFIED);

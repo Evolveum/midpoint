@@ -338,6 +338,7 @@ public class SmartIntegrationStatusInfoUtils {
     public static @Nullable StatusInfo<CorrelationSuggestionsType> loadCorrelationTypeSuggestion(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
+            @NotNull ResourceObjectTypeIdentification resourceObjectTypeIdentification,
             @NotNull Task task,
             @NotNull OperationResult result) {
         var smart = pageBase.getSmartIntegrationService();
@@ -348,7 +349,12 @@ public class SmartIntegrationStatusInfoUtils {
             if (statusInfos == null || statusInfos.isEmpty()) {
                 return null;
             }
-            return statusInfos.get(0);
+
+            return statusInfos.stream()
+                    .filter(s -> s.getRequest() != null
+                            && s.getRequest().getKind().equals(resourceObjectTypeIdentification.getKind())
+                            && s.getRequest().getIntent().equals(resourceObjectTypeIdentification.getIntent()))
+                    .findFirst().orElse(null);
         } catch (Throwable t) {
             result.recordException(t);
             LoggingUtils.logException(LOGGER, "Couldn't load Correlation status for {}", t, resourceOid);
@@ -447,6 +453,10 @@ public class SmartIntegrationStatusInfoUtils {
         return !statusInfo.isComplete()
                 || OperationResultStatusType.IN_PROGRESS.equals(operationStatus)
                 || OperationResultStatusType.FATAL_ERROR.equals(operationStatus);
+    }
+
+    public static boolean isSuggestionExists(@Nullable StatusInfo<?> statusInfo) {
+        return statusInfo != null;
     }
 
     private static boolean isCorrelationSuggestionEligible(

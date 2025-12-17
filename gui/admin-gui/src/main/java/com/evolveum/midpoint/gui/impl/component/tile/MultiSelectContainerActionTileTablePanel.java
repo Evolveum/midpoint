@@ -123,7 +123,15 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         List<Component> buttonsList = new ArrayList<>();
         buttonsList.add(createTableActionToolbar(idButton));
         buttonsList.add(createSuggestObjectButton(idButton));
-        buttonsList.add(createToggleSuggestionButton(idButton, switchToggleModel));
+        ToggleCheckBoxPanel toggleSuggestionButton = createToggleSuggestionButton(idButton, switchToggleModel);
+        toggleSuggestionButton.add(new VisibleBehaviour(() -> !displayNoValuePanel()));
+        buttonsList.add(toggleSuggestionButton);
+
+        AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(idButton, null);
+        newObjectPerformButton.add(AttributeModifier.replace("class",
+                "text-nowrap btn btn-primary rounded text-nowrap mx-3"));
+        newObjectPerformButton.add(new VisibleBehaviour(this::displayNoValuePanel));
+        buttonsList.add(0, newObjectPerformButton);
         return buttonsList;
     }
 
@@ -192,8 +200,10 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
             boolean isTile) {
         if (isTile) {
             switch (value.getStatus()) {
-                case DELETED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger border-large-left"));
-                case ADDED -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success border-large-left"));
+                case DELETED ->
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-danger border-large-left"));
+                case ADDED ->
+                        component.add(AttributeModifier.replace("class", "card rounded h-100 m-0 border border-success border-large-left"));
                 default -> component.add(AttributeModifier.replace("class", "card rounded h-100 m-0"));
             }
             return;
@@ -251,7 +261,8 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
 
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary rounded ml-auto text-nowrap mr-2"));
+        newObjectButton.add(AttributeAppender.replace("class",
+                "text-nowrap btn btn-primary rounded ml-auto text-nowrap mr-2"));
         return newObjectButton;
     }
 
@@ -557,7 +568,11 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     @NotNull
     protected ToggleCheckBoxPanel createToggleSuggestionButton(String idButton, IModel<Boolean> switchToggleModel) {
         return createToggleSuggestionVisibilityButton(getPageBase(), idButton, switchToggleModel,
-                this::refreshAndDetach, null);
+                this::refreshAndDetach, getComponentToFocusAfterAiToggle());
+    }
+
+    protected Component getComponentToFocusAfterAiToggle() {
+        return this;
     }
 
     protected AjaxIconButton createDiscardButton(String id, IModel<PrismContainerValueWrapper<C>> rowModel) {
@@ -704,7 +719,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
     @Override
     protected String getAdditionalHeaderContainerCssClasses() {
-        return isTileViewVisible() ? "border-0 p-0" : super.getAdditionalHeaderContainerCssClasses();
+        return isTileViewVisible() ? "border-0 p-0" : "p-3";
     }
 
     @Override

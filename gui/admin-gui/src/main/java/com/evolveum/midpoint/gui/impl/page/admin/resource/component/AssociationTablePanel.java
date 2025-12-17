@@ -471,17 +471,18 @@ public abstract class AssociationTablePanel
     }
 
     protected AjaxIconButton createDiscardAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id, "SmartMappingTable.discard.all",
-                "btn-default text-purple", false);
+        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-check"), "SmartMappingTable.dismiss.all",
+                "text-danger", false);
     }
 
     protected AjaxIconButton createAcceptAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id, "SmartMappingTable.apply.all",
-                "btn-success bg-purple", true);
+        return createAcceptDiscardBulkActionButton(id,  Model.of("fa fa-times"), "SmartMappingTable.apply.all",
+                "btn-outline-primary", true);
     }
 
-    protected AjaxIconButton createAcceptDiscardBulkActionButton(String id, String labelKey, String cssClass, boolean isAccept) {
-        AjaxIconButton button = new AjaxIconButton(id, Model.of(""), createStringResource(labelKey)) {
+    protected AjaxIconButton createAcceptDiscardBulkActionButton(String id,
+            IModel<String> iconCss, String labelKey, String cssClass, boolean isAccept) {
+        AjaxIconButton button = new AjaxIconButton(id, iconCss, createStringResource(labelKey)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> allItems = getAllItems();
@@ -513,8 +514,15 @@ public abstract class AssociationTablePanel
         button.setOutputMarkupId(true);
         button.showTitleAsLabel(true);
         button.add(AttributeModifier.replace("class", "ml-2 px-2 btn " + cssClass));
-        button.add(new VisibleBehaviour(() -> getSwitchToggleModel().getObject().equals(Boolean.TRUE)));
+        button.add(new VisibleBehaviour(() -> getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel()
+                && getStatusAwareDataProvider().getPageSuggestionCount() > 1));
         return button;
+    }
+
+
+    @SuppressWarnings("rawtypes")
+    protected StatusAwareDataProvider<?> getStatusAwareDataProvider() {
+        return (StatusAwareDataProvider) getProvider();
     }
 
     protected abstract void onReviewValue(

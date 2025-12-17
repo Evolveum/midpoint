@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -71,17 +72,14 @@ import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto
 /**
  * Multi-select tile table for correlation items.
  */
-public class SmartCorrelationTable
+public abstract class SmartCorrelationTable
         extends MultiSelectContainerActionTileTablePanel<PrismContainerValueWrapper<ItemsSubCorrelatorType>, ItemsSubCorrelatorType, TemplateTile<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> {
 
     private static final String CLASS_DOT = SmartCorrelationTable.class.getName() + ".";
     private static final String OP_SUGGEST_CORRELATION_RULES = CLASS_DOT + "suggestCorrelationRules";
     private static final String OP_DELETE_CORRELATION_RULES = CLASS_DOT + "deleteCorrelationRules";
-    private static final String OP_SUSPEND_SUGGESTION = CLASS_DOT + "suspendSuggestion";
 
     private static final int MAX_TILE_COUNT = 4;
-
-    private final String resourceOid;
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartCorrelationTable.class);
 
@@ -92,10 +90,8 @@ public class SmartCorrelationTable
             @NotNull UserProfileStorage.TableId tableId,
             @NotNull IModel<ViewToggle> toggleView,
             @NotNull IModel<Boolean> switchToggleModel,
-            IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> correlationWrapper,
-            @NotNull String resourceOid) {
+            IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> correlationWrapper) {
         super(id, tableId, toggleView, switchToggleModel);
-        this.resourceOid = resourceOid;
         this.correlationWrapper = correlationWrapper;
         setDefaultPagingSize(tableId, MAX_TILE_COUNT);
         this.setOutputMarkupId(true);
@@ -104,6 +100,11 @@ public class SmartCorrelationTable
     @Override
     protected IModel<RequestDetailsRecordDto> buildSmartPermissionRecordDto() {
         return () -> new RequestDetailsRecordDto(null, initDummyCorrelationPermissionData());
+    }
+
+    @Override
+    protected Component getComponentToFocusAfterAiToggle() {
+        return this.getParent();
     }
 
     @Override
@@ -145,7 +146,7 @@ public class SmartCorrelationTable
     protected TemplateTile<PrismContainerValueWrapper<ItemsSubCorrelatorType>> createTileObject(
             @NotNull PrismContainerValueWrapper<ItemsSubCorrelatorType> object) {
         StatusInfo<CorrelationSuggestionsType> statusInfo = getStatusInfo(object);
-        return new SmartCorrelationTileModel<>(object, resourceOid, statusInfo != null ? statusInfo.getToken() : null);
+        return new SmartCorrelationTileModel<>(object, getResourceOid(), statusInfo != null ? statusInfo.getToken() : null);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -191,7 +192,7 @@ public class SmartCorrelationTable
                 getSwitchToggleModel(),
                 () -> getContainerModel().getObject(), //detach
                 findResourceObjectTypeDefinition(),
-                resourceOid);
+                getResourceOid());
 
         return new StatusAwareDataProvider<>(this, Model.of(), dto, false);
     }
@@ -406,12 +407,16 @@ public class SmartCorrelationTable
 
     @Override
     protected void onSuggestNewPerformed(AjaxRequestTarget target) {
+        getSwitchToggleModel().setObject(Boolean.TRUE);
         PageBase pageBase = getPageBase();
         ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
         SmartIntegrationService service = pageBase.getSmartIntegrationService();
         pageBase.taskAwareExecutor(target, OP_SUGGEST_CORRELATION_RULES)
+                .withOpResultOptions(OpResult.Options.create()
+                        .withHideSuccess(true)
+                        .withHideInProgress(true))
                 .runVoid((task, result) -> {
-                    service.submitSuggestCorrelationOperation(resourceOid, objectTypeIdentification, task, result);
+                    service.submitSuggestCorrelationOperation(getResourceOid(), objectTypeIdentification, task, result);
                     refreshAndDetach(target);
                 });
     }
@@ -497,6 +502,11 @@ public class SmartCorrelationTable
     }
 
     @Override
+    protected RepeatingView createTableActionToolbar(String id) {
+        return super.createTableActionToolbar(id);
+    }
+
+    @Override
     protected void onCreateNewObjectPerform(AjaxRequestTarget target) {
         editItemPerformed(target, null, false);
     }
@@ -526,6 +536,14 @@ public class SmartCorrelationTable
         return false;
     }
 
+    protected abstract ResourceType getResourceType();
+
+    protected String getResourceOid() {
+        if (getResourceType() == null) {
+            return null;
+        }
+        return getResourceType().getOid();
+    }
 }
 
 

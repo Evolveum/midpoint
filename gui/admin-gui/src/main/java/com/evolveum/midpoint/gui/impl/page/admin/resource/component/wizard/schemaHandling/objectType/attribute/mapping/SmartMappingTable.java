@@ -96,7 +96,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     IModel<PrismContainerValueWrapper<P>> refAttributeDefValue;
     IModel<MappingDirection> mappingDirectionIModel;
     IModel<MappingUsedFor> mappingUsedForIModel = new Model<>(MappingUsedFor.ALL);
-    IModel<Boolean> switchToggleModel;
+    IModel<Boolean> suggestionToggleModel;
 
     // Cache of accepted suggestions to keep them shown on the same place after refresh
     private final Set<PrismContainerValueWrapper<MappingType>> acceptedSuggestionsCache = new HashSet<>();
@@ -105,11 +105,11 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     public SmartMappingTable(
             @NotNull String id,
             @NotNull IModel<MappingDirection> mappingDirection,
-            @NotNull IModel<Boolean> switchToggleModel,
+            @NotNull IModel<Boolean> suggestionToggleModel,
             IModel<PrismContainerValueWrapper<P>> refAttributeDefValue,
             @NotNull String resourceOid) {
         super(id);
-        this.switchToggleModel = switchToggleModel;
+        this.suggestionToggleModel = suggestionToggleModel;
         this.resourceOid = resourceOid;
         this.refAttributeDefValue = refAttributeDefValue;
         this.mappingDirectionIModel = mappingDirection;
@@ -132,7 +132,17 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         this::getColumns) {
 
                     @Override
-                    protected Component createHeader(String id) {
+                    public boolean displayNoValuePanel() {
+                        return SmartMappingTable.this.displayNoValuePanel();
+                    }
+
+                    @Override
+                    protected @NotNull String getNoValuePanelAdditionalCssClass() {
+                        return super.getNoValuePanelAdditionalCssClass() + " border-top-none";
+                    }
+
+                    @Override
+                    protected @NotNull Component createHeader(String id) {
                         return new SimpleCustomSearchPanel(id, searchTextModel) {
                             @Override
                             protected void searchPerformed(AjaxRequestTarget target) {
@@ -168,10 +178,17 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     }
 
                     @Override
+                    protected List<Component> createNoValueButtonToolbar(String id) {
+                        List<Component> noValueButtonToolbar = super.createNoValueButtonToolbar(id);
+                        addAdditionalNoValueToolbarButtons(noValueButtonToolbar, id);
+                        return noValueButtonToolbar;
+                    }
+
+                    @Override
                     protected void initPanelToolbarButtons(@NotNull RepeatingView toolbar) {
                         toolbar.add(createToggleSuggestionVisibilityButton(getPageBase(),
                                 toolbar.newChildId(),
-                                switchToggleModel,
+                                suggestionToggleModel,
                                 SmartMappingTable.this::refreshAndDetach,
                                 null));
 
@@ -192,10 +209,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
                             @Override
                             protected Search<?> load() {
-                                SearchBuilder<?> searchBuilder = new SearchBuilder<>(MappingType.class)
-//                                        .setFullTextSearchEnabled(true)
-                                        .modelServiceLocator(getPageBase());
-                                return searchBuilder.build();
+                                return new SearchBuilder<>(MappingType.class)
+                                        .modelServiceLocator(getPageBase())
+                                        .build();
                             }
                         };
                     }
@@ -220,7 +236,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     @SuppressWarnings("unchecked")
                     @Override
                     protected @NotNull ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> createProvider() {
-                        var dto = StatusAwareDataFactory.createMappingModel(this, resourceOid, switchToggleModel,
+                        var dto = StatusAwareDataFactory.createMappingModel(this, resourceOid, suggestionToggleModel,
                                 () -> getContainerModel().getObject(), findResourceObjectTypeDefinition(), getMappingType(),
                                 acceptedSuggestionsCache);
                         return new StatusAwareDataProvider<>(
@@ -275,6 +291,10 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         columnTileTable.setDefaultPagingSize(MAX_TILE_COUNT);
 
         return columnTileTable;
+    }
+
+    protected boolean displayNoValuePanel() {
+        return getTable().getProvider().size() == 0 && !suggestionToggleModel.getObject();
     }
 
     private @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getColumns() {
@@ -621,7 +641,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     protected InlineMenuItem createDiscardItemMenu() {
         return createSuggestActionMenuBuilder()
-                .label(createStringResource("SmartMappingTable.discard"))
+                .label(createStringResource("SmartMappingTable.dismiss"))
                 .icon("not-fa")
                 .action(createDiscardColumnAction())
                 .additionalCssClass("btn-link text-purple mr-2")
@@ -651,7 +671,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected boolean isSuggestionInlineMenuVisible() {
-        return switchToggleModel.getObject().equals(Boolean.TRUE);
+        return suggestionToggleModel.getObject().equals(Boolean.TRUE);
     }
 
     public ColumnMenuAction<PrismContainerValueWrapper<MappingType>> createAcceptSuggestionColumnAction() {
@@ -675,22 +695,23 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         };
     }
 
-    protected IModel<Boolean> getSwitchToggleModel() {
-        return switchToggleModel;
+    protected IModel<Boolean> getSuggestionToggleModel() {
+        return suggestionToggleModel;
     }
 
     protected AjaxIconButton createDiscardAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id, "SmartMappingTable.discard.all",
-                "btn-default text-purple", false);
+        return createAcceptDiscardBulkActionButton(id, Model.of("fa fa-check"), "SmartMappingTable.dismiss.all",
+                "text-danger", false);
     }
 
     protected AjaxIconButton createAcceptAllButton(String id) {
-        return createAcceptDiscardBulkActionButton(id, "SmartMappingTable.apply.all",
-                "btn-success bg-purple", true);
+        return createAcceptDiscardBulkActionButton(id,  Model.of("fa fa-times"), "SmartMappingTable.apply.all",
+                "btn-outline-primary", true);
     }
 
-    protected AjaxIconButton createAcceptDiscardBulkActionButton(String id, String labelKey, String cssClass, boolean isAccept) {
-        AjaxIconButton button = new AjaxIconButton(id, Model.of(""), createStringResource(labelKey)) {
+    protected AjaxIconButton createAcceptDiscardBulkActionButton(String id,
+            IModel<String> iconCss, String labelKey, String cssClass, boolean isAccept) {
+        AjaxIconButton button = new AjaxIconButton(id, iconCss, createStringResource(labelKey)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 List<PrismContainerValueWrapper<MappingType>> allItems = getTable().getAllItems();
@@ -721,12 +742,22 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         button.setOutputMarkupId(true);
         button.showTitleAsLabel(true);
         button.add(AttributeModifier.replace("class", "px-2 btn " + cssClass));
-        button.add(new VisibleBehaviour(() -> getSwitchToggleModel().getObject().equals(Boolean.TRUE)));
+        button.add(new VisibleBehaviour(() -> getSuggestionToggleModel().getObject().equals(Boolean.TRUE)
+                && getProvider().getPageSuggestionCount() > 1));
         return button;
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected StatusAwareDataProvider<?> getProvider() {
+        return (StatusAwareDataProvider) getTable().getProvider();
     }
 
     protected @NotNull String getSearchTextModelObject() {
         return searchTextModel != null && searchTextModel.getObject() != null ? searchTextModel.getObject() : "";
+    }
+
+    protected void addAdditionalNoValueToolbarButtons(List<Component> toolbarButtonsList, String idButton) {
+        // empty implementation, can be overridden in subclasses
     }
 }
 

@@ -9,15 +9,19 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.ProcessedObjectsPanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.ProcessedObjectsProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
@@ -26,6 +30,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -34,32 +39,82 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.CorrelationStatus.fromSimulationResultProcessedObject;
 
 public abstract class CorrelationProcessedObjectPanel
         extends ContainerableListPanel<SimulationResultProcessedObjectType, SelectableBean<SimulationResultProcessedObjectType>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(CorrelationProcessedObjectPanel.class);
-    private static final String DOT_CLASS = ProcessedObjectsPanel.class.getName() + ".";
-    private static final String OPERATION_MARK_OBJECT = DOT_CLASS + "markObject";
-
     private final IModel<List<MarkType>> availableMarksModel;
+    IModel<CorrelationDefinitionType> correlationDefinitionModel = Model.of();
+    Map<ItemPath, ItemPath> shadowCorrelationPathMap;
 
     public CorrelationProcessedObjectPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
         this.availableMarksModel = availableMarksModel;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        loadCorrelationDefinition();
+        loadCorrelationPathMap();
+    }
+
+    @Override
+    public String getAdditionalBoxCssClasses() {
+        return super.getAdditionalBoxCssClasses() + " table-td-middle";
+    }
+
+    private void loadCorrelationPathMap() {
+        shadowCorrelationPathMap = getShadowCorrelationPathMap(getPageBase(),
+                getSimulationResultModel().getObject(),
+                correlationDefinitionModel.getObject());
+    }
+
+    private void loadCorrelationDefinition() {
+        CorrelationDefinitionType correlationDefinition =
+                findCorrelationDefinition(getPageBase(), getSimulationResultModel().getObject());
+        correlationDefinitionModel.setObject(correlationDefinition);
+    }
+
+    protected String getMarkOidForSearch() {
+        return null;
+    }
+
+    @Override
+    protected SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+        List<DisplayableValue<String>> values = createSearchValuesForAvailableMarks();
+        ctx.setAvailableEventMarks(values);
+        ctx.setSelectedEventMark(getMarkOidForSearch());
+
+        return ctx;
+    }
+
+    @Override
+    public LoadableDetachableModel<Search<SimulationResultProcessedObjectType>> getSearchModel() {
+        return super.getSearchModel();
+    }
+
+    private List<DisplayableValue<String>> createSearchValuesForAvailableMarks() {
+        return availableMarksModel.getObject().stream()
+                .map(o -> new DisplayableValueImpl<>(
+                        o.getOid(),
+                        WebComponentUtil.getDisplayNameOrName(o.asPrismObject()),
+                        o.getDescription()))
+                .sorted(Comparator.comparing(DisplayableValueImpl::getLabel, Comparator.naturalOrder()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -84,7 +139,10 @@ public abstract class CorrelationProcessedObjectPanel
         ProcessedObject<?> processedObject = SimulationsGuiUtil
                 .parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
         CorrelationCandidatePanel components = new CorrelationCandidatePanel(id,
-                () -> processedObject, CorrelationProcessedObjectPanel.this.getSimulationResultModel());
+                () -> processedObject,
+                CorrelationProcessedObjectPanel.this.getSimulationResultModel(),
+                correlationDefinitionModel,
+                shadowCorrelationPathMap);
         components.setOutputMarkupId(true);
         return components;
     }
@@ -149,16 +207,16 @@ public abstract class CorrelationProcessedObjectPanel
                 return CorrelationProcessedObjectPanel.this.getSimulationResultModel().getObject().getOid();
             }
 
-            @Override
-            protected boolean additionalMatching(SimulationResultProcessedObjectType object) {
-                CorrelationStatus correlationStatus = fromSimulationResultProcessedObject(getPageBase(), object);
-                CorrelationStatus filterStatus = filterByStatus();
-                if (filterStatus != null) {
-                    return correlationStatus == filterStatus;
-                }
-
-                return super.additionalMatching(object);
-            }
+//            @Override
+//            protected boolean additionalMatching(SimulationResultProcessedObjectType object) {
+//                CorrelationStatus correlationStatus = fromSimulationResultProcessedObject(getPageBase(), object);
+//                CorrelationStatus filterStatus = filterByStatus();
+//                if (filterStatus != null) {
+//                    return correlationStatus == filterStatus;
+//                }
+//
+//                return super.additionalMatching(object);
+//            }
         };
     }
 
@@ -182,25 +240,23 @@ public abstract class CorrelationProcessedObjectPanel
                     Item<ICellPopulator<SelectableBean<SimulationResultProcessedObjectType>>> cellItem,
                     String componentId,
                     IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
-
+                SimulationResultProcessedObjectType simulationResultProcessedObject = rowModel.getObject().getValue();
                 ProcessedObject<?> processedObject = SimulationsGuiUtil
-                        .parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
+                        .parseProcessedObject(simulationResultProcessedObject, getPageBase());
 
                 assert processedObject != null;
-
-                List<ResourceObjectOwnerOptionType> candidates =
-                        getCorrelationCandidateModel(processedObject).getObject();
-
-                Badge badge = createStatusBadge(candidates.size(), getPageBase());
+                List<ObjectReferenceType> eventMarkRef = simulationResultProcessedObject.getEventMarkRef();
+                Badge badge = createStatusBadge(eventMarkRef, getPageBase());
                 BadgeListPanel statusPanel =
                         new BadgeListPanel(componentId, () -> Collections.singletonList(badge));
-
+                statusPanel.add(AttributeModifier.append("class", "font-weight-semibold"));
+                statusPanel.add(AttributeModifier.append("style", "font-size:12px"));
                 cellItem.add(statusPanel);
             }
 
             @Override
             public String getCssClass() {
-                return "col-1 align-middle";
+                return "col-1 align-middle py-4";
             }
         });
 
@@ -220,10 +276,14 @@ public abstract class CorrelationProcessedObjectPanel
 
                 assert processedObject != null;
 
+
+                @Nullable ObjectDelta<?> delta = processedObject.getDelta();
+                List<String> correlatedOwnersOid = findCorrelatedOwners(delta);
+
                 List<ResourceObjectOwnerOptionType> candidates =
                         getCorrelationCandidateModel(processedObject).getObject();
 
-                CorrelationUtil.CandidateDisplayData displayData = createCandidateDisplay(getPageBase(), candidates);
+                CorrelationUtil.CandidateDisplayData displayData = createCandidateDisplay(getPageBase(), candidates, correlatedOwnersOid);
 
                 AjaxIconButton panel = new AjaxIconButton(componentId,
                         () -> displayData.icon,
@@ -267,10 +327,6 @@ public abstract class CorrelationProcessedObjectPanel
         return columns;
     }
 
-    protected @Nullable CorrelationStatus filterByStatus() {
-        return null;
-    }
-
     protected void navigateToSimulationResultObject(
             @NotNull String simulationResultOid,
             @Nullable String markOid,
@@ -278,4 +334,10 @@ public abstract class CorrelationProcessedObjectPanel
             @NotNull AjaxRequestTarget target) {
     }
 
+    @Override
+    public void refreshTable(AjaxRequestTarget target) {
+
+        getDataProvider().detach();
+        super.refreshTable(target);
+    }
 }

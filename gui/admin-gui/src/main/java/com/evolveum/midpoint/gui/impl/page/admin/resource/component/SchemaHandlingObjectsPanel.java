@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -16,19 +17,24 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusA
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.SuggestionsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -49,20 +55,31 @@ import java.io.Serial;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
 import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyObjectTypePermissionData;
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
+    private static final String CLASS_DOT = SchemaHandlingObjectsPanel.class.getName() + ".";
+    private static final String OP_LOAD_SUGGESTION = CLASS_DOT + "loadSuggestion";
+
     private static final String ID_AI_PANEL = "aiPanel";
     private static final String ID_TABLE = "table";
     private static final String ID_FORM = "form";
 
-    private final IModel<Boolean> switchSuggestion = Model.of(Boolean.TRUE);
+    private IModel<Boolean> switchSuggestion = Model.of(Boolean.FALSE);
 
     public SchemaHandlingObjectsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
+    }
+
+    @Override
+    protected void onInitialize() {
+        initSwitchSuggestionModel();
+        super.onInitialize();
     }
 
     protected void initLayout() {
@@ -78,9 +95,31 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         form.add(panel);
     }
 
+    private void initSwitchSuggestionModel() {
+        switchSuggestion = SmartIntegrationUtils.createSuggestionSwitchModel(getPageBase(),
+                getSuggestionType());
+    }
+
+    protected boolean isSuggestionExists() {
+        Task task = getPageBase().createSimpleTask(OP_LOAD_SUGGESTION);
+        if (getSchemaHandlingObjectsType().equals(ShadowAssociationTypeDefinitionType.class)) {
+            var statusInfos = loadAssociationSuggestions(getPageBase(), getResourceOid(), task, task.getResult());
+            return statusInfos != null && !statusInfos.isEmpty();
+        }
+
+        var statusInfos = loadObjectTypeSuggestions(getPageBase(), getResourceOid(), task, task.getResult());
+        return statusInfos != null && !statusInfos.isEmpty();
+    }
+
+    private String getResourceOid() {
+        return getObjectWrapperObject().getOid();
+    }
+
     protected Component getTablePanelComponent() {
         return get(ID_FORM).get(ID_TABLE);
     }
+
+    protected abstract SuggestionsStorage.SuggestionType getSuggestionType();
 
     protected @NotNull SmartAlertGeneratingPanel createSmartAlertGeneratingPanel(String idAiPanel,
             IModel<Boolean> switchSuggestion) {
@@ -104,6 +143,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         };
 
         aiPanel.setOutputMarkupId(true);
+        aiPanel.add(new VisibleBehaviour(switchSuggestion::getObject)); // Visible only when suggestions are enabled
         return aiPanel;
     }
 
@@ -127,10 +167,11 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             @Override
             public void refreshTable(AjaxRequestTarget target) {
                 super.refreshTable(target);
-                //TODO check it
-                if (get(ID_FORM) != null) {
-                    target.add(get(ID_FORM));
+
+                if (displayNoValuePanel()) {
+                    switchSuggestion.setObject(Boolean.FALSE);
                 }
+                updateForm(target);
             }
 
             @Override
@@ -249,6 +290,38 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
+            protected List<Component> createToolbarButtonsList(String idButton) {
+                List<Component> toolbarButtonsList = super.createToolbarButtonsList(idButton);
+                AjaxIconButton generateButton = new AjaxIconButton(idButton, new Model<>(GuiStyleConstants.CLASS_MAGIC_WAND),
+                        () -> isSuggestionExists()
+                                ? createStringResource("Suggestion.button.showSuggest").getString()
+                                : createStringResource("Suggestion.button.suggest").getString()) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (isSuggestionExists()) {
+                            switchSuggestion.setObject(Boolean.TRUE);
+                            target.add(SchemaHandlingObjectsPanel.this);
+                            refreshTable(target);
+                            return;
+                        }
+
+                        switchSuggestion.setObject(Boolean.TRUE);
+                        onSuggestValue(createContainerModel(), target);
+                    }
+                };
+                generateButton.add(new VisibleBehaviour(this::displayNoValuePanel));
+                generateButton.add(AttributeModifier.append("class", "btn btn-default btn-sm text-ai"));
+                generateButton.setOutputMarkupId(true);
+                generateButton.showTitleAsLabel(true);
+
+                toolbarButtonsList.add(generateButton);
+                return toolbarButtonsList;
+            }
+
+            @Override
             public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
                     List<PrismContainerValueWrapper<C>> listItems) {
                 AbstractPageObjectDetails<?, ?> parent = findParent(AbstractPageObjectDetails.class);
@@ -275,6 +348,13 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
         };
+    }
+
+    private void updateForm(AjaxRequestTarget target) {
+        Component form = SchemaHandlingObjectsPanel.this.get(ID_FORM);
+        if (form != null) {
+            target.add(form);
+        }
     }
 
     protected void customizeInlineMenuItems(@NotNull List<InlineMenuItem> inlineMenuItems) {

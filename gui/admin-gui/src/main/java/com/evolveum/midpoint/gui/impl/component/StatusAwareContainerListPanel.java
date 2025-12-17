@@ -302,7 +302,7 @@ public abstract class StatusAwareContainerListPanel<C extends Containerable>
         List<Component> bar = new ArrayList<>();
         createNewObjectPerformButton(idButton, bar);
         ToggleCheckBoxPanel togglePanel = createToggleSuggestionVisibilityButton(getPageBase(), idButton, getSwitchSuggestion(),
-                this::refreshTable, StatusAwareContainerListPanel.this);
+                this::refreshTable, StatusAwareContainerListPanel.this.getParent());
         togglePanel.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
         bar.add(togglePanel);
         return bar;

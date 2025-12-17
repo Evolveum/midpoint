@@ -10,9 +10,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.page;
 import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultPanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion.SimulationCorrelationPanel;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -70,6 +76,9 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
     }
 
     private void initLayout() {
+
+        boolean isCorrelationSimulation = isCorrelationSimulation(this, resultModel);
+
         NavigationPanel navigation = new NavigationPanel(ID_NAVIGATION) {
 
             @Contract(pure = true)
@@ -85,6 +94,19 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
 
             @Override
             protected @NotNull AjaxLink<?> createNextButton(String id, IModel<String> nextTitle) {
+                if(isCorrelationSimulation) {
+                    AjaxIconButton export = new AjaxIconButton(id, () -> "fa fa-download mr-2",
+                            () -> getString("PageSimulationResult.export")) {
+                        @Override
+                        public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                            // TODO move it outside and implement export
+                        }
+                    };
+                    export.showTitleAsLabel(true);
+                    export.add(AttributeAppender.append("class", "btn btn-default"));
+                    return export;
+                }
+
                 AjaxIconButton next = new AjaxIconButton(id, () -> "fa-solid fa-magnifying-glass mr-2",
                         () -> getString("PageSimulationResult.viewProcessedObjects")) {
                     @Override
@@ -100,9 +122,37 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
         };
         add(navigation);
 
+        if (isCorrelationSimulation) {
+            var correlationPanel = new SimulationCorrelationPanel(PageSimulationResult.ID_RESULT_PANEL, resultModel);
+            correlationPanel.setOutputMarkupId(true);
+            add(correlationPanel);
+            return;
+        }
+
         SimulationResultPanel resultPanel = new SimulationResultPanel(PageSimulationResult.ID_RESULT_PANEL, resultModel);
         resultPanel.setOutputMarkupId(true);
         add(resultPanel);
+    }
+
+    // TODO temporary "hack" solution to identify correlation simulations - to be replaced by a proper flag in SimulationResultType
+    public static boolean isCorrelationSimulation(PageBase pageBase, IModel<SimulationResultType> resultModel) {
+        SimulationResultType result = resultModel != null ? resultModel.getObject() : null;
+        if (result == null || result.getMetric() == null) {
+            return false;
+        }
+
+        PrismObject<ObjectType> task = WebModelServiceUtils.loadObject(resultModel.getObject().getRootTaskRef(), pageBase);
+        if (task == null) {
+            return false;
+        }
+
+        PrismContainer<ResourceObjectSetType> container =
+                task.findContainer(ItemPath.create(
+                        TaskType.F_ACTIVITY,
+                        ActivityDefinitionType.F_WORK,
+                        WorkDefinitionsType.F_CORRELATION));
+
+        return container != null && !container.isEmpty();
     }
 
     private void initModels() {
