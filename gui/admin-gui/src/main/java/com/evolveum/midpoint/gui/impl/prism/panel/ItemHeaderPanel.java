@@ -88,7 +88,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
         Label srOnlyLabel = new Label(ID_SR_ONLY_LABEL);
         srOnlyLabel.add(new VisibleBehaviour(() -> labelModel != null && StringUtils.isNotEmpty(labelModel.getObject())));
-        srOnlyLabel.add(AttributeAppender.append("aria-label", labelModel));
+        srOnlyLabel.add(AttributeAppender.append("aria-labelledby", displayName.getMarkupId()));
         srOnlyLabel.setOutputMarkupId(true);
         add(srOnlyLabel);
     }
