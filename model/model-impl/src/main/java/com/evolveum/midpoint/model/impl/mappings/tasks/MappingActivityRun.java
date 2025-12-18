@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
@@ -54,7 +55,7 @@ public class MappingActivityRun
             throw new ActivityRunException(
                     "This activity is supported only in preview execution mode",
                     OperationResultStatus.FATAL_ERROR,
-                    TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
+                    ActivityRunResultStatus.PERMANENT_ERROR);
         }
 
         return true;
