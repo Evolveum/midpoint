@@ -1088,6 +1088,7 @@
                         <a:operational>true</a:operational>
                         <a:indexed>true</a:indexed>
                         <a:since>3.5</a:since>
+                        <a:help>MetadataType.createTimestamp.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1182,6 +1183,7 @@
                         <a:displayName>MetadataType.modifyTimestamp</a:displayName>
                         <a:operational>true</a:operational>
                         <a:indexed>true</a:indexed>
+                        <a:help>MetadataType.modifyTimestamp.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3522,6 +3524,7 @@
                     <xsd:appinfo>
                         <a:displayName>ActivationType.administrativeStatus</a:displayName>
                         <a:displayOrder>100</a:displayOrder>
+                        <a:help>ActivationType.administrativeStatus.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3546,6 +3549,7 @@
                         <a:operational>true</a:operational>
                         <a:displayName>ActivationType.effectiveStatus</a:displayName>
                         <a:displayOrder>110</a:displayOrder>
+                        <a:help>ActivationType.effectiveStatus.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
