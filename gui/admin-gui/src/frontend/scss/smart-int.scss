@@ -209,3 +209,11 @@
 .table-ai {
   background-color: #eae6f1 !important;
 }
+
+.card.border-top-none {
+  border-top: none !important;
+  border-top-width: 0 !important;
+  box-shadow: none !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}

@@ -44,7 +44,6 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
     private static final String ID_WIDGET = "widget";
     private static final String ID_TABLE = "table";
 
-    IModel<CorrelationStatus> correlationStatusModel = Model.of();
     private IModel<List<DashboardWidgetType>> metricsModel;
     IModel<String> selectedMarkOidModel = Model.of(MARK_SHADOW_CORRELATION_OWNER_FOUND.value());
 
@@ -172,13 +171,8 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
                         } else {
                             SimulationMetricReferenceType metricRef = widget.getData().getMetricRef();
                             ObjectReferenceType markRef = metricRef != null ? metricRef.getEventMarkRef() : null;
-                            if (markRef == null) {
-                                selectedMarkOidModel.setObject(null);
-                            } else {
-                                selectedMarkOidModel.setObject(markRef.getOid());
-                            }
+                            selectedMarkOidModel.setObject(markRef == null ? null : markRef.getOid());
                         }
-
                         target.add(getTable());
                     }
                 });
@@ -206,11 +200,6 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
             @Override
             protected String getMarkOidForSearch() {
                 return selectedMarkOidModel.getObject();
-            }
-
-            @Override
-            public LoadableDetachableModel<Search<SimulationResultProcessedObjectType>> getSearchModel() {
-                return super.getSearchModel();
             }
 
             @Override

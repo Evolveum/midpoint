@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
@@ -25,6 +26,8 @@ import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionT
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionFlow;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationParams;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -39,6 +42,7 @@ import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
@@ -355,10 +359,67 @@ public abstract class SmartCorrelationTable
     @Override
     public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
         List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems(tileModel);
+        inlineMenuItems.add(createSimulationInlineMenu(tileModel));
         inlineMenuItems.add(createViewRuleInlineMenu(tileModel));
         inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
         inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
         return inlineMenuItems;
+    }
+
+    protected InlineMenuItem createSimulationInlineMenu(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
+        return new InlineMenuItem(
+                createStringResource("SmartCorrelationTilePanel.simulate")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public @NotNull InlineMenuItemAction initAction() {
+                ColumnMenuAction<PrismContainerValueWrapper<ItemsSubCorrelatorType>> columnMenuAction = new ColumnMenuAction<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        CorrelationDefinitionType correlationDefinition = new CorrelationDefinitionType();
+                        correlationDefinition.setCorrelators(new CompositeCorrelatorType());
+
+                        if (getRowModel() != null) {
+                            PrismContainerValueWrapper<ItemsSubCorrelatorType> item = getRowModel().getObject();
+                            correlationDefinition.getCorrelators().getItems().add(item.getRealValue().clone());
+                        } else {
+                            IModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> selectedItemsModel = getSelectedItemsModel();
+                            if (selectedItemsModel.getObject().isEmpty()) {
+                                return;
+                            }
+
+                            CompositeCorrelatorType correlators = correlationDefinition.getCorrelators();
+                            for (PrismContainerValueWrapper<ItemsSubCorrelatorType> item : selectedItemsModel.getObject()) {
+                                correlators.getItems().add(item.getRealValue().clone());
+                            }
+                        }
+
+                        //noinspection unchecked
+                        WebPrismUtil.cleanupEmptyContainerValue(correlationDefinition.asPrismContainerValue());
+                        SimulationParams<?> params = new SimulationParams<>(
+                                getPageBase(),
+                                getResourceType(),
+                                findResourceObjectTypeDefinition().getRealValue(),
+                                ResourceTaskFlavors.CORRELATION_PREVIEW_ACIVITY,
+                                new CorrelatorsDefinitionType()
+                                        .inlineCorrelators(correlationDefinition) //TODO add mappings from suggestions
+                                        .includeExistingCorrelators(false),
+                                ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
+                        );
+
+                        SimulationActionFlow<?> flow = new SimulationActionFlow<>(params);
+                        flow.start(target);
+                    }
+                };
+
+                if (tileModel != null) {
+                    columnMenuAction.setRowModel(() -> tileModel);
+                }
+                return columnMenuAction;
+            }
+        };
     }
 
     protected ButtonInlineMenuItem createViewRuleInlineMenu(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {

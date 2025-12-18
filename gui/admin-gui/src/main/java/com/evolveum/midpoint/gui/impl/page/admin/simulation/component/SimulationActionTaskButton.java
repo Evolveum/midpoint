@@ -8,22 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoicePopup;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -32,17 +18,13 @@ import com.evolveum.midpoint.web.component.input.SplitButtonWithDropdownMenu;
 import com.evolveum.midpoint.web.component.menu.cog.*;
 
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,7 +47,6 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
 
     private static final String DOT_CLASS = SimulationActionTaskButton.class.getName() + ".";
     private static final String OP_COUNT_TASKS = DOT_CLASS + "countTasks";
-    private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
 
     private static final Trace LOGGER = TraceManager.getTrace(SimulationActionTaskButton.class);
 
@@ -108,9 +89,20 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
         DropdownButtonDto model = new DropdownButtonDto(
                 null, "fa fa-flask", getString("CorrelationItemsTableWizardPanel.simulate.title"), items);
         SplitButtonWithDropdownMenu simulationButton = new SplitButtonWithDropdownMenu(SimulationActionTaskButton.ID_COMPONENT, () -> model) {
+
             @Override
             protected void performPrimaryButtonAction(AjaxRequestTarget target) {
-                showPredefinedConfigPopup(target);
+                SimulationParams<T> params = new SimulationParams<>(
+                        getPageBase(),
+                        getResourceObject(),
+                        getResourceObjectDefinition(),
+                        getTaskFlavor(),
+                        getWorkDefinitionConfiguration(),
+                        getExecutionMode()
+                );
+
+                SimulationActionFlow<T> flow = new SimulationActionFlow<>(params);
+                flow.start(target);
             }
 
             @Override
@@ -126,146 +118,12 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
         simulationButton.setOutputMarkupId(true);
         return simulationButton;
     }
-
-    /**
-     * Shows a popup for selecting a predefined simulation configuration.
-     */
-    protected void showPredefinedConfigPopup(AjaxRequestTarget target) {
-        PredefinedConfigurationType defaultSimulationPredefinedConf = PredefinedConfigurationType.DEVELOPMENT;
-
-        ResourceObjectTypeDefinitionType modelObject = getModelObject();
-        String lifecycleState = modelObject.getLifecycleState();
-        boolean isConfigurationEnabled = lifecycleState == null
-                || !lifecycleState.equals(ShadowLifecycleStateType.PROPOSED.value());
-
-        if (!isConfigurationEnabled) {
-            createNewTaskPerformed(target, defaultSimulationPredefinedConf);
-            return;
-        }
-
-        List<Tile<PredefinedConfigurationType>> tiles = Arrays.stream(PredefinedConfigurationType.values())
-                .map(cfg -> {
-                    String icon = cfg == PredefinedConfigurationType.PRODUCTION
-                            ? "fa-solid fa-industry"
-                            : "fa-solid fa-flask";
-
-                    Tile<PredefinedConfigurationType> tile = new Tile<>(icon,
-                            getString("PredefinedConfigurationType." + cfg.name()));
-                    tile.setValue(cfg);
-                    tile.setDescription(getString(
-                            "PredefinedConfigurationType." + cfg.name() + ".description"));
-                    return tile;
-                })
-                .toList();
-
-        TileChoicePopup<PredefinedConfigurationType> popup = new TileChoicePopup<>(
-                getPageBase().getMainPopupBodyId(),
-                () -> tiles,
-                defaultSimulationPredefinedConf) {
-
-            @Override
-            protected IModel<String> getText() {
-                return createStringResource("SimulationActionButton.simulate.text");
-            }
-
-            @Override
-            protected IModel<String> getSubText() {
-
-                return createStringResource("SimulationActionButton.simulate.subText");
-            }
-
-            @Override
-            protected IModel<String> getAcceptButtonLabel() {
-                return createStringResource("SimulationActionButton.simulate.save.and.execute");
-            }
-
-            @Override
-            protected void performAction(AjaxRequestTarget target, PredefinedConfigurationType value) {
-                createNewTaskPerformed(target, value);
-            }
-        };
-
-        getPageBase().showMainPopup(popup, target);
-    }
-
-    /**
-     * Creates and saves a new simulation task for the selected configuration.
-     */
-    protected void createNewTaskPerformed(AjaxRequestTarget target, PredefinedConfigurationType value) {
-        TaskType newTask = getPageBase().taskAwareExecutor(target, OP_CREATE_TASK)
-                .hideSuccessfulStatus()
-                .run((task, result) -> {
-
-                    @Nullable ResourceObjectTypeDefinitionType resourceObjectTypeDef = getResourceObjectDefinition();
-                    if (resourceObjectTypeDef == null) {
-                        result.recordWarning(createStringResource("SimulationActionButton.noResourceObjectDefinition")
-                                .getString());
-                        return null;
-                    }
-                    ResourceType resource = getResourceObject();
-                    final ResourceTaskFlavor<T> taskFlavor = getTaskFlavor();
-                    return ResourceTaskCreator.of(taskFlavor, getPageBase())
-                            .forResource(resource)
-                            .withConfiguration(getWorkDefinitionConfiguration())
-                            .ownedByCurrentUser()
-                            .withCoordinates(
-                                    resourceObjectTypeDef.getKind(),
-                                    resourceObjectTypeDef.getIntent(),
-                                    resourceObjectTypeDef.getObjectClass())
-                            .withExecutionMode(getExecutionMode())
-                            .withPredefinedConfiguration(value)
-                            .withSubmissionOptions(ActivitySubmissionOptions.create()
-                                    .withTaskTemplate(new TaskType().name("Preview of " + taskFlavor.flavorName() +
-                                            " on " + resource.getName() + " resource")))
-                            .withSimulationResultDefinition(
-                                    new SimulationDefinitionType().useOwnPartitionForProcessedObjects(false))
-                            .create(task, result);
-
-                });
-
-        saveAndPerformSimulation(target, newTask);
-    }
-
     protected ExecutionModeType getExecutionMode() {
         return ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
     }
 
     protected T getWorkDefinitionConfiguration() {
         return null;
-    }
-
-    /**
-     * Persists the newly created task immediately:
-     * - Wraps it into a PrismObjectWrapper
-     * - Prepares delta and executes it via ObjectChangesExecutor
-     * - Ensures task is saved to repository before continuing
-     */
-    private void saveAndPerformSimulation(AjaxRequestTarget target, TaskType newTask) {
-        if (newTask != null) {
-            Task task = getPageBase().createSimpleTask(OP_CREATE_TASK);
-            OperationResult result = task.getResult();
-
-            PrismObject<TaskType> object = newTask.asPrismObject();
-            PrismObjectWrapperFactory<TaskType> factory = getPageBase().findObjectWrapperFactory(object.getDefinition());
-            WrapperContext ctx = new WrapperContext(task, result);
-            ctx.setCreateIfEmpty(true);
-
-            try {
-                PrismObjectWrapper<TaskType> wrapper = factory.createObjectWrapper(object, ItemStatus.ADDED, ctx);
-                WebComponentUtil.setTaskStateBeforeSave(wrapper, true, getPageBase(), target);
-                ObjectDelta<TaskType> objectDelta = wrapper.getObjectDelta();
-                ObjectChangeExecutor changeExecutor = new ObjectChangesExecutorImpl();
-                changeExecutor.executeChanges(Collections.singleton(objectDelta), false, task, result, target);
-            } catch (CommonException e) {
-                LOGGER.error("Couldn't create task wrapper", e);
-                getPageBase().error("Couldn't create task wrapper: " + e.getMessage());
-                target.add(getPageBase().getFeedbackPanel().getParent());
-            } finally {
-                result.computeStatusIfUnknown();
-                getPageBase().showResult(result);
-                target.add(getPageBase().getFeedbackPanel().getParent());
-            }
-        }
     }
 
     /**
@@ -318,7 +176,7 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
         };
     }
 
-    private @Nullable ResourceObjectTypeDefinitionType getResourceObjectDefinition() {
+    private @NotNull ResourceObjectTypeDefinitionType getResourceObjectDefinition() {
         return getModelObject();
     }
 
