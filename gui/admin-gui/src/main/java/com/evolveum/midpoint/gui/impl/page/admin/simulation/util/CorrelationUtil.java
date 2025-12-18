@@ -11,8 +11,6 @@ import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -20,10 +18,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -48,9 +42,6 @@ public class CorrelationUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationUtil.class);
 
-    private static final String DOT_CLASS = CorrelationUtil.class.getName() + ".";
-    private static final String OPERATION_SEARCH_PROCESSED_OBJECTS = DOT_CLASS + "searchProcessedObjects";
-
     public enum CorrelationStatus {
         CORRELATED("info-badge success-light", "Correlation.simulation.state.correlated"),
         UNCERTAIN("info-badge warning-light", "Correlation.simulation.state.uncertain"),
@@ -73,26 +64,6 @@ public class CorrelationUtil {
             }
         }
 
-        public static CorrelationStatus fromProcessedObject(ProcessedObject<?> object) {
-            if (object == null) {
-                return CorrelationStatus.NOT_CORRELATED;
-            }
-            var correlationCandidateModel = getCorrelationCandidateModel(object);
-            var candidates = correlationCandidateModel.getObject();
-            if (candidates == null) {
-                return CorrelationStatus.NOT_CORRELATED;
-            }
-            return fromCount(candidates.size());
-        }
-
-        public static CorrelationStatus fromSimulationResultProcessedObject(
-                @NotNull PageBase pageBase,
-                @NotNull SimulationResultProcessedObjectType object) {
-            ProcessedObject<?> processedObject = SimulationsGuiUtil
-                    .parseProcessedObject(object, pageBase);
-            return fromProcessedObject(processedObject);
-        }
-
         public String cssClass() {
             return cssClass;
         }
@@ -102,16 +73,57 @@ public class CorrelationUtil {
         }
     }
 
-    /**
-     * Finds the CorrelationDefinitionType related to the simulation result.
-     */
-    public static @Nullable CorrelationDefinitionType findCorrelationDefinition(
+    public static @Nullable CorrelationDefinitionType findUsedCorrelationDefinition(
             @NotNull PageBase page, @NotNull SimulationResultType result) {
 
-        ResourceObjectTypeDefinitionType objectType = findResourceObjectTypeDefinitionType(page, result);
-        if (objectType == null) {return null;}
+        PrismObject<TaskType> task = WebModelServiceUtils.loadObject(result.getRootTaskRef(), page);
+        if (task == null) {
+            LOGGER.warn("Task not found for simulation result {}", result.getOid());
+            return null;
+        }
 
-        return objectType.getCorrelation();
+        CorrelationWorkDefinitionType correlationWorkDefinition = findCorrelationWorkDefinition(task);
+        if (correlationWorkDefinition == null) {
+            LOGGER.debug("No correlation work definition found in task {}", task.getOid());
+            return null;
+        }
+
+        CorrelationDefinitionType definition = new CorrelationDefinitionType();
+
+        CorrelatorsDefinitionType correlators = correlationWorkDefinition.getCorrelators();
+        if (correlators == null) {
+            return definition;
+        }
+
+        Boolean includeExistingCorrelators = correlators.isIncludeExistingCorrelators();
+        if (Boolean.TRUE.equals(includeExistingCorrelators)) {
+            ResourceObjectTypeDefinitionType objectType = findResourceObjectTypeDefinitionType(page, result);
+            if (objectType != null && objectType.getCorrelation() != null) {
+                definition = objectType.getCorrelation().clone();
+            }
+        }
+
+        CorrelationDefinitionType inlineCorrelators = correlators.getInlineCorrelators();
+        if (inlineCorrelators != null && inlineCorrelators.getCorrelators() != null) {
+            CompositeCorrelatorType compositeCorrelator = definition.getCorrelators();
+            if (compositeCorrelator == null) {
+                compositeCorrelator = new CompositeCorrelatorType();
+                definition.setCorrelators(compositeCorrelator);
+            }
+            List<ItemsSubCorrelatorType> items = inlineCorrelators.getCorrelators().getItems();
+            for (ItemsSubCorrelatorType item : items) {
+                compositeCorrelator.getItems().add(item.clone());
+            }
+        }
+
+        return definition;
+    }
+
+    //TODO suggestion mappings (add when logic implemented on BE side)
+    public static @Nullable List<ResourceAttributeDefinitionType> findCandidateMappings(
+            PageBase pageBase, @NotNull SimulationResultType result) {
+        var resourceObjectTypeDef = findResourceObjectTypeDefinitionType(pageBase, result);
+        return resourceObjectTypeDef != null ? resourceObjectTypeDef.getAttribute() : null;
     }
 
     //TODO how to properly identify ref?
@@ -130,15 +142,12 @@ public class CorrelationUtil {
      * target path matches that correlation path. If found, the mapping is returned.
      * </p>
      *
-     * @param page page context
-     * @param result simulation result containing the resource reference
      * @param correlationDefinition correlation definition with correlators/items
      * @return map of correlated item path → shadow attribute path
      */
     public static @NotNull Map<ItemPath, ItemPath> getShadowCorrelationPathMap(
-            @NotNull PageBase page,
-            @NotNull SimulationResultType result,
-            @NotNull CorrelationDefinitionType correlationDefinition) {
+            @NotNull CorrelationDefinitionType correlationDefinition,
+            List<ResourceAttributeDefinitionType> mappings) {
 
         List<ItemPath> correlatedPaths = new ArrayList<>();
 
@@ -164,12 +173,11 @@ public class CorrelationUtil {
 
         Map<ItemPath, ItemPath> correlationMap = new HashMap<>();
 
-        ResourceObjectTypeDefinitionType objectType = findResourceObjectTypeDefinitionType(page, result);
-        if (objectType == null || objectType.getAttribute() == null) {
+        if (mappings == null || mappings.isEmpty()) {
             return correlationMap;
         }
 
-        for (ResourceAttributeDefinitionType attributeDef : objectType.getAttribute()) {
+        for (ResourceAttributeDefinitionType attributeDef : mappings) {
             ItemPathType attributeRef = attributeDef.getRef();
             if (attributeRef == null) {
                 continue;
@@ -196,45 +204,6 @@ public class CorrelationUtil {
         }
 
         return correlationMap;
-    }
-
-    /**
-     * Loads all SimulationResultProcessedObjectType objects related to the given simulation result OID.
-     */
-    public static @NotNull List<SimulationResultProcessedObjectType> searchProcessedObjects(
-            @NotNull PageBase pageBase,
-            @NotNull String resultOid) {
-
-        Task task = pageBase.createSimpleTask(OPERATION_SEARCH_PROCESSED_OBJECTS);
-        OperationResult result = task.getResult();
-
-        ObjectQuery query = pageBase.getPrismContext()
-                .queryFor(SimulationResultProcessedObjectType.class)
-                .ownedBy(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT)
-                .id(resultOid)
-                .build();
-
-        List<SimulationResultProcessedObjectType> processedObjects = new ArrayList<>();
-
-        ModelService modelService = pageBase.getModelService();
-
-        try {
-            modelService.searchContainersIterative(
-                    SimulationResultProcessedObjectType.class,
-                    query,
-                    (o, parentResult) -> {
-                        processedObjects.add(o);
-                        return true;
-                    },
-                    null,
-                    task,
-                    result);
-        } catch (SchemaException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-            LOGGER.error("Error loading processed objects for simulation result {}: {}", resultOid, e.getMessage(), e);
-        }
-
-        return processedObjects;
     }
 
     /**
@@ -267,15 +236,20 @@ public class CorrelationUtil {
 
     private static @Nullable ResourceObjectSetType findResourceObjects(
             @NotNull PrismObject<TaskType> task) {
-        //TODO return coeelators if exists
-        PrismContainer<ResourceObjectSetType> container =
+        CorrelationWorkDefinitionType correlationWorkDefinition = findCorrelationWorkDefinition(task);
+        return correlationWorkDefinition != null
+                ? correlationWorkDefinition.getResourceObjects()
+                : null;
+    }
+
+    private static @Nullable CorrelationWorkDefinitionType findCorrelationWorkDefinition(
+            @NotNull PrismObject<TaskType> task) {
+        PrismContainer<CorrelationWorkDefinitionType> container =
                 task.findContainer(ItemPath.create(
                         TaskType.F_ACTIVITY,
                         ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_CORRELATION,
-                        CorrelationWorkDefinitionType.F_RESOURCE_OBJECTS
+                        WorkDefinitionsType.F_CORRELATION
                 ));
-
         return container != null ? container.getRealValue() : null;
     }
 
@@ -430,8 +404,7 @@ public class CorrelationUtil {
         } else if (state.equals(UNCERTAIN)) {
             if (!correlatedOwnersOid.isEmpty()) {
                 StringBuilder ownerNames = new StringBuilder();
-
-                ownerNames.append("Matched owner: ");
+                ownerNames.append(pageBase.getString("CandidateDisplayData.matched.owner"));
                 for (ResourceObjectOwnerOptionType candidate : candidates) {
                     String candidateOid = candidate.getCandidateOwnerRef().getOid();
                     if (correlatedOwnersOid.contains(candidateOid)) {
@@ -441,7 +414,10 @@ public class CorrelationUtil {
                         ownerNames.append(" ");
                     }
                 }
-                ownerNames.append("(").append(count).append(" candidates found)");
+
+                ownerNames.append("(").append(count).append(" ")
+                        .append(pageBase.getString("CandidateDisplayData.candidate.found"))
+                        .append(")");
 
                 return new CandidateDisplayData(
                         ownerNames.toString(),
@@ -451,12 +427,12 @@ public class CorrelationUtil {
             }
 
             return new CandidateDisplayData(
-                    count + " candidates found",
+                    count + " " + pageBase.getString("CandidateDisplayData.candidates.found"),
                     GuiStyleConstants.CLASS_WARNING_ICON + " text-warning"
             );
         } else {
             return new CandidateDisplayData(
-                    "No match found",
+                    pageBase.getString("CandidateDisplayData.no.match.found"),
                     GuiStyleConstants.CLASS_WARNING_ICON + " text-danger"
             );
         }

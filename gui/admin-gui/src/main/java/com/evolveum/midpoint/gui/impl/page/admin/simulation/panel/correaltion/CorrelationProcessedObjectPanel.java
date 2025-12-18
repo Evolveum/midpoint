@@ -15,7 +15,6 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.ProcessedObjectsProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -27,6 +26,7 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -39,16 +39,17 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND;
 
 public abstract class CorrelationProcessedObjectPanel
         extends ContainerableListPanel<SimulationResultProcessedObjectType, SelectableBean<SimulationResultProcessedObjectType>> {
@@ -58,6 +59,7 @@ public abstract class CorrelationProcessedObjectPanel
     private final IModel<List<MarkType>> availableMarksModel;
     IModel<CorrelationDefinitionType> correlationDefinitionModel = Model.of();
     Map<ItemPath, ItemPath> shadowCorrelationPathMap;
+    String markOidForSearch = MARK_SHADOW_CORRELATION_OWNER_FOUND.value();
 
     public CorrelationProcessedObjectPanel(String id, IModel<List<MarkType>> availableMarksModel) {
         super(id, SimulationResultProcessedObjectType.class);
@@ -77,14 +79,12 @@ public abstract class CorrelationProcessedObjectPanel
     }
 
     private void loadCorrelationPathMap() {
-        shadowCorrelationPathMap = getShadowCorrelationPathMap(getPageBase(),
-                getSimulationResultModel().getObject(),
-                correlationDefinitionModel.getObject());
+        var mappings = findCandidateMappings(getPageBase(), getSimulationResultModel().getObject());
+        shadowCorrelationPathMap = getShadowCorrelationPathMap(correlationDefinitionModel.getObject(), mappings);
     }
 
     private void loadCorrelationDefinition() {
-        CorrelationDefinitionType correlationDefinition =
-                findCorrelationDefinition(getPageBase(), getSimulationResultModel().getObject());
+        var correlationDefinition = findUsedCorrelationDefinition(getPageBase(), getSimulationResultModel().getObject());
         correlationDefinitionModel.setObject(correlationDefinition);
     }
 
@@ -94,17 +94,25 @@ public abstract class CorrelationProcessedObjectPanel
 
     @Override
     protected SearchContext createAdditionalSearchContext() {
+        this.markOidForSearch = getMarkOidForSearch();
         SearchContext ctx = new SearchContext();
         List<DisplayableValue<String>> values = createSearchValuesForAvailableMarks();
         ctx.setAvailableEventMarks(values);
-        ctx.setSelectedEventMark(getMarkOidForSearch());
-
+        ctx.setSelectedEventMark(markOidForSearch);
         return ctx;
     }
 
-    @Override
-    public LoadableDetachableModel<Search<SimulationResultProcessedObjectType>> getSearchModel() {
-        return super.getSearchModel();
+    @SuppressWarnings("unchecked")
+    protected <T extends Serializable> Search<T> loadSearch(PageStorage storage) {
+        Search<T> search = null;
+        if (storage != null && markOidForSearch.equals(getMarkOidForSearch())) {
+            search = storage.getSearch();
+        }
+
+        if (!isUseStorageSearch(search)) {
+            search = createSearch();
+        }
+        return search;
     }
 
     private List<DisplayableValue<String>> createSearchValuesForAvailableMarks() {
@@ -206,17 +214,6 @@ public abstract class CorrelationProcessedObjectPanel
             protected @NotNull String getSimulationResultOid() {
                 return CorrelationProcessedObjectPanel.this.getSimulationResultModel().getObject().getOid();
             }
-
-//            @Override
-//            protected boolean additionalMatching(SimulationResultProcessedObjectType object) {
-//                CorrelationStatus correlationStatus = fromSimulationResultProcessedObject(getPageBase(), object);
-//                CorrelationStatus filterStatus = filterByStatus();
-//                if (filterStatus != null) {
-//                    return correlationStatus == filterStatus;
-//                }
-//
-//                return super.additionalMatching(object);
-//            }
         };
     }
 
@@ -275,15 +272,13 @@ public abstract class CorrelationProcessedObjectPanel
                         .parseProcessedObject(rowModel.getObject().getValue(), getPageBase());
 
                 assert processedObject != null;
-
-
                 @Nullable ObjectDelta<?> delta = processedObject.getDelta();
                 List<String> correlatedOwnersOid = findCorrelatedOwners(delta);
 
                 List<ResourceObjectOwnerOptionType> candidates =
                         getCorrelationCandidateModel(processedObject).getObject();
 
-                CorrelationUtil.CandidateDisplayData displayData = createCandidateDisplay(getPageBase(), candidates, correlatedOwnersOid);
+                CandidateDisplayData displayData = createCandidateDisplay(getPageBase(), candidates, correlatedOwnersOid);
 
                 AjaxIconButton panel = new AjaxIconButton(componentId,
                         () -> displayData.icon,
