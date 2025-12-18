@@ -40,6 +40,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     @Serial private static final long serialVersionUID = 1L;
 
     protected static final String ID_LABEL = "label";
+    protected static final String ID_SR_ONLY_LABEL = "srOnlyLabel";
     protected static final String ID_HELP = "help";
     private static final String ID_EXPERIMENTAL = "experimental";
     private static final String ID_DEPRECATED = "deprecated";
@@ -80,11 +81,16 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     }
 
     private void createTitle() {
-        Component displayName = createTitle(createLabelModel());
+        IModel<String> labelModel = createLabelModel();
+        Component displayName = createTitle(labelModel);
         displayName.add(new AttributeModifier("style", getDeprecatedCss())); //TODO create deprecated css class?
-
         add(displayName);
 
+        Label srOnlyLabel = new Label(ID_SR_ONLY_LABEL);
+        srOnlyLabel.add(new VisibleBehaviour(() -> labelModel != null && StringUtils.isNotEmpty(labelModel.getObject())));
+        srOnlyLabel.add(AttributeAppender.append("aria-label", labelModel));
+        srOnlyLabel.setOutputMarkupId(true);
+        add(srOnlyLabel);
     }
 
     public IModel<String> createLabelModel() {
