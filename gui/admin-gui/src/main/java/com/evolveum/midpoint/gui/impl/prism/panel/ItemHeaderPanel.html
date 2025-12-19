@@ -7,6 +7,19 @@
 
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <wicket:remove>
+        <!-- When header panel contains visible label element with an inner text which is followed by the tooltip component,
+         the screen reader cannot handle tooltip component behavior correctly. E.g. when the screen reader is active
+         and the user is navigating through the page using arrow keys, the header panel is announced by the screen reader in
+         such a way that label and tooltip components are announced at once. If user tries to activate tooltip by Enter or Space
+         key button down event, nothing happens. As far, as label component doesn't have inner text, the screen reader handles
+         label and tooltip components correctly: at first, label component is announced, then user can navigate with the help
+         of arrow key to the tooltip component and can activate tooltip by Enter or Space key down event. This behavior of the
+         screen reader is not clear for us now. Therefore, the following hack was implemented: a real label component (with
+         inner text) was hidden from the screen reader but screen-reader-only component was added instead (it doesn't contain
+         any inner text). 'srOnlyLabel' describes real label component, so the user will get the information about the label.
+         -->
+    </wicket:remove>
     <span wicket:id="srOnlyLabel" class="sr-only"/>
     <span wicket:id="label" aria-hidden="true"/>
     <span wicket:id="required" style="color: #f00; font-weight: bold;" wicket:message="title:prismPropertyPanel.required">*</span>
