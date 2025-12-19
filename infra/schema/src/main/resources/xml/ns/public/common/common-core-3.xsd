@@ -1635,6 +1635,7 @@
                                 <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
                                 <a:operational>true</a:operational>
                                 <a:displayName>FocusType.roleMembershipRef</a:displayName>
+                                <a:help>FocusType.roleMembershipRef.help</a:help>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3699,6 +3700,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ActivationType.lockOutStatus</a:displayName>
+                        <a:help>ActivationType.lockoutStatus.help</a:help>
                         <a:displayOrder>180</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -7357,6 +7359,7 @@
                             <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.displayName</a:displayName>
                                 <a:displayOrder>9</a:displayOrder>
+                                <a:help>AbstractRoleType.displayName.help</a:help>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -7375,6 +7378,7 @@
                             <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.identifier</a:displayName>
                                 <a:displayOrder>110</a:displayOrder>
+                                <a:help>AbstractRoleType.identifier.help</a:help>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -7426,6 +7430,7 @@
                             </xsd:documentation>
                              <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.requestable</a:displayName>
+                                 <a:help>AbstractRoleType.requestable.help</a:help>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
