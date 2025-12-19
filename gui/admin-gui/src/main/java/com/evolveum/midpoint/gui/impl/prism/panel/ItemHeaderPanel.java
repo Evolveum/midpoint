@@ -124,7 +124,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
         experimental.add(new InfoTooltipBehavior() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getCssClass() {
@@ -146,7 +146,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
                 createStringResource("ItemHeaderPanel.deprecated", getModelObject() != null && getModelObject().getDeprecatedSince() != null ? getModelObject().getDeprecatedSince() : "N/A")));
         deprecated.add(new InfoTooltipBehavior() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getCssClass() {
@@ -178,32 +178,19 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     protected void initButtons() {
         AjaxLink<Void> addButton = new AjaxLink<>(ID_ADD_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addValue(target);
             }
         };
-        addButton.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled() {
-                return isButtonEnabled();
-            }
-
-            @Override
-            public boolean isVisible() {
-                return isAddButtonVisible();
-            }
-        });
+        addButton.add(new VisibleEnableBehaviour(this::isAddButtonVisible, this::isButtonEnabled));
         addButton.add(AttributeAppender.append("title", getTitleForAddButton()));
         add(addButton);
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
