@@ -19,9 +19,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -116,13 +114,15 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             }
         };
         removeButton.add(new VisibleBehaviour(this::isRemoveButtonVisible));
-        removeButton.add(AttributeModifier.replace("title", () -> {
+        IModel<String> titleModel = () -> {
             if (isRemoveButtonVisible()) {
                 String value = this.getModelObject().getParent().getDisplayName();
                 return getString("PrismValuePanel.button.deleteDetailed", value);
             }
             return getString("PrismValuePanel.button.delete");
-        }));
+        };
+        removeButton.add(AttributeModifier.replace("title", titleModel));
+        removeButton.add(AttributeAppender.append("aria-label", titleModel));
 
         removeButton.add(new VisibleBehaviour(this::isRemoveButtonVisible));
         buttonContainer.add(removeButton);
