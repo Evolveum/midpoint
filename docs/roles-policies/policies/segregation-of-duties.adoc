@@ -17,7 +17,7 @@ compliance:
 :page-moved-from: /midpoint/reference/roles-policies/segregation-of-duties/
 :page-toc: top
 :page-keywords: segregation of duties, SoD, role exclusion, policy rule, policy action
-:page-summary: This page describes the Segregation of Duties (SoD) mechanism in midPoint, which prevents accumulating too much power in the hands of a single person by placing constraints on assignments of entitlements to users.
+:page-description: This page describes the Segregation of Duties mechanism that prevents excessive power concentration by constraining how entitlements are assigned to users.
 
 
 Segregation of Duties (SoD) is a mechanism that prevents accumulating too much power in the hands of a single person.
