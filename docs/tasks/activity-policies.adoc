@@ -2,7 +2,7 @@
 :page-since: "4.10"
 :page-toc: top
 :page-upkeep-status: green
-:page-summary: This page describes activity policies that define when a task activity should react to specific conditions and how it should respond through actions that improve reliability and resilience.
+:page-description: This page describes activity policies that define when a task activity should react to specific conditions and how it should respond through actions that improve reliability and resilience.
 :page-keywords: activity policies, task activities, task reliability, task resilience, task error handling
 
 This page describes activity policies that define when a task activity should react to specific conditions and how it should respond through actions that improve reliability and resilience.
