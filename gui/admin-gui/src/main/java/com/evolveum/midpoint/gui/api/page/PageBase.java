@@ -102,6 +102,7 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     private static final String ID_MAIN_HEADER = "mainHeader";
+    private static final String ID_ACCESSIBILITY_LOGO = "accessibilityLogo";
     private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
     private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
     private static final String ID_PAGE_TITLE = "pageTitle";
@@ -248,6 +249,9 @@ public abstract class PageBase extends PageAdminLTE {
         }
 
         getSession().getFeedbackMessages().clear();
+
+        LeftMenuPanel sidebarMenu = getSideBarMenuPanel();
+        updateAccessibilityLogo(sidebarMenu.getLogoMarkupId());
     }
 
     private void initHeaderLayout(WebMarkupContainer container) {
@@ -467,6 +471,14 @@ public abstract class PageBase extends PageAdminLTE {
 //        mainPopup.setResizable(false);
         mainPopup.setOutputMarkupId(true);
         add(mainPopup);
+
+        WebMarkupContainer accessibilityLogo = new WebMarkupContainer(ID_ACCESSIBILITY_LOGO);
+        mainHeader.add(accessibilityLogo);
+    }
+
+    private void updateAccessibilityLogo(String logoId) {
+        Component accessibilityLogo = get(createComponentPath(ID_MAIN_HEADER, ID_ACCESSIBILITY_LOGO));
+        accessibilityLogo.add(AttributeAppender.replace("aria-owns", () -> logoId));
     }
 
     protected boolean isContentVisible() {
