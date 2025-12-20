@@ -175,6 +175,10 @@ public class LeftMenuPanel extends BasePanel<Void> {
         initLayout();
     }
 
+    public String getLogoMarkupId() {
+        return get(ID_LOGO).getMarkupId();
+    }
+
     private void initLayout() {
         AjaxLink<String> logo = new AjaxLink<>(ID_LOGO) {
 

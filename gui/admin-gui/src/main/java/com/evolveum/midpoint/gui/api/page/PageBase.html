@@ -16,6 +16,12 @@
             </a>
         </div>
         <nav wicket:id="mainHeader" class="main-header navbar navbar-expand border-bottom-0">
+            <wicket:remove>
+                accessibilityLogo component is here only to place logo in the correct spot for
+                keyboard navigation when using screen reader. Actual logo is placed in the sidebar.
+                (WCAG 2.2)
+            </wicket:remove>
+            <div class="sr-only" wicket:id="accessibilityLogo"/>
             <div class="navbar-nav">
                 <a wicket:id="menuToggle"  tabindex="3"  class="nav-link" data-widget="pushmenu" href="#" role="button" wicket:message="title:Accessibility.PageBase.pushmenu.title"><i class="fas fa-bars"></i></a>
             </div>
