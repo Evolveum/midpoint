@@ -28,6 +28,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -177,7 +178,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     public String getLogoMarkupId() {
-        return get(ID_LOGO).getMarkupId();
+        Component logoComponent = isCustomLogoVisible() ? get(ID_CUSTOM_LOGO) : get(ID_LOGO);
+        return logoComponent != null ? logoComponent.getMarkupId() : "";
     }
 
     private void initLayout() {
@@ -197,7 +199,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         IModel<IconType> logoModel = new IModel<>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public IconType getObject() {
@@ -211,7 +213,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         };
 
         AjaxLink<String> customLogo = new AjaxLink<>(ID_CUSTOM_LOGO) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -225,7 +227,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             IconType icon = logoModel.getObject();
             return StringUtils.isNotEmpty(icon.getImageUrl()) ? logoModel.getObject().getCssClass() : null;
         }));
-        customLogo.add(new VisibleBehaviour(() -> isCustomLogoVisible()));
+        customLogo.add(new VisibleBehaviour(this::isCustomLogoVisible));
         add(customLogo);
 
         ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC) {
