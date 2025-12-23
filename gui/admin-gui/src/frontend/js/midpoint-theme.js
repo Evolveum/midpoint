@@ -856,10 +856,33 @@ export default class MidPointTheme {
             });
         }
         picker.subscribe('show.td', () => {
+            const $switchEl = $('.calendar-header .picker-switch');
+            $switchEl.attr("aria-live", "polite");
+            const switchElId = 'pickerSwitch-' + Math.random().toString(16).substr(2, 6);
+            $switchEl.attr('id', switchElId);
+
+            // we add aria-live="polite" to every focused element so that it is announced
+            var $actionElements = $('.date-container [data-action]:not([data-action=""])');
+            $actionElements.on('focus', function () {
+                $actionElements.removeAttr('aria-live');
+                if ($(this).closest('.calendar-header').length > 0) {
+                    const prevButton = $('.calendar-header .previous');
+                    const nextButton = $('.calendar-header .next');
+                    prevButton.removeAttr('aria-label');
+                    prevButton.attr('aria-describedby', switchElId);
+                    nextButton.removeAttr('aria-label');
+                    nextButton.attr('aria-describedby', switchElId);
+                } else {
+                    $(this).attr('aria-live', 'polite');
+                }
+            });
+
             const prevButton = $('.calendar-header .previous');
             const nextButton = $('.calendar-header .next');
-
-            window.MidPointTheme.improveDateTimePickerAccessibility(prevButton, nextButton, messageCurrent);
+            prevButton.attr('role', 'button');
+            prevButton.attr('aria-describedby', switchElId);
+            nextButton.attr('role', 'button');
+            nextButton.attr('aria-describedby', switchElId);
 
             prevButton.on('click', function () {
                 event.preventDefault();
