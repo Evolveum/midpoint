@@ -881,6 +881,9 @@ export default class MidPointTheme {
             const nextButton = $('.calendar-header .next');
             prevButton.attr('role', 'button');
             prevButton.attr('aria-describedby', switchElId);
+            setTimeout(() => {
+                prevButton.focus();
+            }, 200);
             nextButton.attr('role', 'button');
             nextButton.attr('aria-describedby', switchElId);
 
