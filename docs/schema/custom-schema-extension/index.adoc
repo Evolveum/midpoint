@@ -191,13 +191,15 @@ h| How is it stored in xref:/midpoint/reference/repository/native-postgresql/[Na
 a| stored in `ext` JSONB column as string value
 
 | xsd:int (Integer)
-.3+a| stored in `ext` JSONB as numeric
+a| stored in `ext` JSONB as numeric
 
 This is not JSON/EcmaScript limited number, but virtually limitless PostgreSQL numeric value.
 
 | xsd:long (Long)
+a|
 
 | xsd:integer (BigInteger)
+a|
 
 | xsd:boolean (Boolean)
 a| stored in `ext` JSONB as boolean
