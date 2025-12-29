@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplication;
 import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplications;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicies;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
@@ -117,6 +118,7 @@ public final class DetailsPageUtil {
 
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisOutlierType.class, PageRoleAnalysisOutlier.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(ConnectorDevelopmentType.class, PageConnectorDevelopment.class);
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(AccessCertificationDefinitionType.class, PageCertDefinition.class);
 
     }
 
