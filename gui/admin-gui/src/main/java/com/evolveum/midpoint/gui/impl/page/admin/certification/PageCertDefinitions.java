@@ -129,6 +129,11 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                     protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
                         navigateToNext(PageCertDefinition.class);
                     }
+
+                    @Override
+                    protected boolean isDuplicationSupported() {
+                        return false;
+                    }
                 };
         mainPanel.setOutputMarkupId(true);
         mainPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES);
