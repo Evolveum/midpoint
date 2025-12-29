@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicies;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicyHistory;
@@ -112,6 +113,7 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(SchemaType.class, PageSchema.class);
 
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleAnalysisOutlierType.class, PageRoleAnalysisOutlier.class);
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(AccessCertificationDefinitionType.class, PageCertDefinition.class);
 
     }
 

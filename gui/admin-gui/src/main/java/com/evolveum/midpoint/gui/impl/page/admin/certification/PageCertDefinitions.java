@@ -130,10 +130,6 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                         navigateToNext(PageCertDefinition.class);
                     }
 
-                    @Override
-                    protected boolean isDuplicationSupported() {
-                        return false;
-                    }
                 };
         mainPanel.setOutputMarkupId(true);
         mainPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES);

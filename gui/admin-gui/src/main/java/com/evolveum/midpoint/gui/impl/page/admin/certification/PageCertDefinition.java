@@ -89,11 +89,24 @@ public class PageCertDefinition extends PageAdminCertification {
     private static final String ID_MAIN = "main";
 
     private final String definitionOid;
+    private final PrismObject<AccessCertificationDefinitionType> certDef;
 
     private LoadableModel<CertDefinitionDto> definitionModel;
 
     public PageCertDefinition(PageParameters parameters) {
         definitionOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+        certDef = null;
+        initModels();
+        initLayout();
+    }
+
+    /**
+     * this constructor was added in order to support Duplicate action for cert. definition
+     * @param certDef
+     */
+    public PageCertDefinition(PrismObject<AccessCertificationDefinitionType> certDef) {
+        this.certDef = certDef;
+        definitionOid = null;
         initModels();
         initLayout();
     }
@@ -105,6 +118,12 @@ public class PageCertDefinition extends PageAdminCertification {
             protected CertDefinitionDto load() {
                 if (definitionOid != null) {
                     return loadDefinition(definitionOid);
+                } else if (certDef != null) {
+                    try {
+                        return new CertDefinitionDto(certDef.asObjectable(), PageCertDefinition.this);
+                    } catch (SchemaException e) {
+                        throw new SystemException(e.getMessage(), e);
+                    }
                 } else {
                     try {
                         return createDefinition();
