@@ -129,7 +129,11 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
 
     public boolean isMandatory() {
         if (mandatoryHandler != null) {
-            return mandatoryHandler.isMandatory(itemWrapper.getObject());
+            if (mandatoryHandler.skipValidation(itemWrapper.getObject())) {
+                return false;
+            } else {
+                return mandatoryHandler.isMandatory(itemWrapper.getObject());
+            }
         }
         return itemWrapper.getObject().isMandatory();
     }
