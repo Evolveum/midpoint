@@ -80,7 +80,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
                 panel.getValidatableComponent().add(
                         new ChoiceRequiredValidator(SCHEMA_CHOICES_DIFINITIONS.get(parentClass), panelCtx.getItemWrapperModel()));
             } else if (panelCtx.isMandatory()) {
-                formComponent.add(new NotNullValidator<>("Required", panelCtx.getItemWrapperModel()));
+                formComponent.add(new NotNullValidator<>("Required"));
             }
 
             if (formComponent instanceof TextField) {

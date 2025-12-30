@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -141,7 +142,6 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON, createCancelButtonLabel()) {
             @Serial private static final long serialVersionUID = 1L;
 
-
             @Override
             public void onClick(AjaxRequestTarget target) {
                 cancelPerformed(target);
@@ -199,6 +199,8 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
         List<VirtualContainersSpecificationType> containers = configuration.getContainer();
 
         ListView<VirtualContainersSpecificationType> items = new ListView<>(ID_ITEMS, () -> containers) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void populateItem(ListItem<VirtualContainersSpecificationType> item) {
 
@@ -206,7 +208,19 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
 
                 ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                         .visibilityHandler((wrapper) -> ItemVisibility.AUTO)
-                        .mandatoryHandler((wrapper) -> isMandatoryItem(item.getModelObject(), wrapper))
+                        .mandatoryHandler(new ItemMandatoryHandler() {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public boolean isMandatory(ItemWrapper<?, ?> itemWrapper) {
+                                return isMandatoryItem(item.getModelObject(), itemWrapper);
+                            }
+
+                            @Override
+                            public boolean skipValidation(ItemWrapper<?, ?> itemWrapper) {
+                                return false;
+                            }
+                        })
                         .build();
 
                 VerticalFormPrismContainerPanel<Containerable> panel = new VerticalFormPrismContainerPanel<>(ID_ITEM, virtualContainerModel, settings);

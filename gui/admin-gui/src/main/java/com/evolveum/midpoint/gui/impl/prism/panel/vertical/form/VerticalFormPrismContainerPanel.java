@@ -21,13 +21,15 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serial;
+
 /**
  * @author katka
  *
  */
 public class VerticalFormPrismContainerPanel<C extends Containerable> extends PrismContainerPanel<C, PrismContainerWrapper<C>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_HEADER = "header";
     private static final String ID_CONTAINER = "container";
