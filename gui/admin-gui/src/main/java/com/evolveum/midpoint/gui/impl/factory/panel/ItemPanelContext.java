@@ -134,6 +134,10 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
         return itemWrapper.getObject().isMandatory();
     }
 
+    public boolean forceMandatoryCheck() {
+        return mandatoryHandler != null && mandatoryHandler.forceValidation();
+    }
+
     public boolean isEditable() {
         if (editabilityHandler != null) {
             return editabilityHandler.isEditable(itemWrapper.getObject());
