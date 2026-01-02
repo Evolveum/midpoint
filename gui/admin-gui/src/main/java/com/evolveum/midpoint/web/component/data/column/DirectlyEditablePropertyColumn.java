@@ -17,12 +17,15 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import java.io.Serial;
+
 /**
  * @author lazyman
  *
  * EXPERIMENTAL - to be used with PageCertDecisions until sufficiently stable
  */
 public class DirectlyEditablePropertyColumn<T> extends PropertyColumn<T, String> {
+    @Serial private static final long serialVersionUID = 1L;
 
     public DirectlyEditablePropertyColumn(IModel<String> displayModel, String propertyExpression) {
         super(displayModel, propertyExpression);
@@ -37,16 +40,18 @@ public class DirectlyEditablePropertyColumn<T> extends PropertyColumn<T, String>
     protected InputPanel createInputPanel(String componentId, final IModel<T> model) {
         TextPanel<?> textPanel = new TextPanel<String>(componentId, new PropertyModel<>(model, getPropertyExpression()));
         TextField<?> textField = (TextField<?>) textPanel.getBaseFormComponent();     // UGLY HACK
-        textField.add(new AjaxFormComponentUpdatingBehavior("blur") {
+        textField.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                onBlur(target, model);
+                onUpdateValue(target, model);
             }
         });
         return textPanel;
     }
 
-    public void onBlur(AjaxRequestTarget target, IModel<T> model) {
+    public void onUpdateValue(AjaxRequestTarget target, IModel<T> model) {
         // doing nothing; may be overridden in subclasses
     }
 }
