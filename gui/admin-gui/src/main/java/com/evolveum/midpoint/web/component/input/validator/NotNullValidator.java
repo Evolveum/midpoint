@@ -17,20 +17,24 @@ import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
 
+import java.io.Serial;
+
 public class NotNullValidator<T> implements INullAcceptingValidator<T>{
 
-    private static final long serialVersionUID = 1L;
-    private String key;
+    @Serial private static final long serialVersionUID = 1L;
+    private final String key;
     private boolean useModel = false;
     private IModel<PrismPropertyWrapper<T>> propertyWrapper = null;
+    private boolean forceValidation;
 
     public NotNullValidator(String errorMessageKey) {
         this.key = errorMessageKey;
     }
 
-    public NotNullValidator(String errorMessageKey, IModel<PrismPropertyWrapper<T>> propertyWrapper) {
+    public NotNullValidator(String errorMessageKey, IModel<PrismPropertyWrapper<T>> propertyWrapper, boolean forceValidation) {
         this.propertyWrapper = propertyWrapper;
         this.key = errorMessageKey;
+        this.forceValidation = forceValidation;
     }
 
     public void setUseModel(boolean useModel) {
@@ -39,7 +43,7 @@ public class NotNullValidator<T> implements INullAcceptingValidator<T>{
 
     @Override
     public void validate(IValidatable<T> validatable) {
-        if(propertyWrapper != null && skipValidation()) {
+        if(skipValidation()) {
             return;
         }
 
@@ -55,6 +59,12 @@ public class NotNullValidator<T> implements INullAcceptingValidator<T>{
     }
 
     private boolean skipValidation() {
+        if (forceValidation) {
+            return false;
+        }
+        if (propertyWrapper == null) {
+            return false;
+        }
         PrismContainerValueWrapper parentContainer = propertyWrapper.getObject().getParent();
         if (parentContainer == null || parentContainer.getNewValue() == null
                 || (parentContainer.getParent() != null && parentContainer.getParent().isMultiValue())) {
