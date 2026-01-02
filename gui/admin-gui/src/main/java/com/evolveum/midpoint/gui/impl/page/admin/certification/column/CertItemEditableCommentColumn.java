@@ -50,7 +50,7 @@ public class CertItemEditableCommentColumn extends AbstractCertificationItemColu
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onBlur(AjaxRequestTarget target,
+            public void onUpdateValue(AjaxRequestTarget target,
                     IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> model) {
                 recordCommentPerformed(target, model.getObject());
             }
