@@ -20,7 +20,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
+import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaService;
+import com.evolveum.midpoint.smart.impl.knownschemas.SchemaDetectionResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -80,39 +84,10 @@ public class SchemaMatchService {
             SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()
                     .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
             for (var attributeMatch : match.getAttributeMatch()) {
-                var shadowAttrPath = matchingOp.getApplicationItemPath(attributeMatch.getApplicationAttribute());
-                if (shadowAttrPath.size() != 2 || !shadowAttrPath.startsWith(ShadowType.F_ATTRIBUTES)) {
-                    LOGGER.warn("Ignoring attribute {}. It is not a traditional attribute.", shadowAttrPath);
-                    continue;
+                var matchResult = processAttributeMatch(attributeMatch, matchingOp, ctx, focusTypeDefinition);
+                if (matchResult != null) {
+                    schemaMatchResult.getSchemaMatchResult().add(matchResult);
                 }
-                var shadowAttrName = shadowAttrPath.rest().asSingleNameOrFail();
-                var shadowAttrDef = ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
-                if (shadowAttrDef == null) {
-                    LOGGER.warn("No shadow attribute definition found for {}. Skipping schema match record.", shadowAttrName);
-                    continue;
-                }
-                var focusPropPath = matchingOp.getFocusItemPath(attributeMatch.getMidPointAttribute());
-                var focusPropDef = focusTypeDefinition.findPropertyDefinition(focusPropPath);
-                if (focusPropDef == null) {
-                    LOGGER.warn("No focus property definition found for {}. Skipping schema match record.", focusPropPath);
-                    continue;
-                }
-                var applicationAttrDefBean = new SiAttributeDefinitionType()
-                        .name(DescriptiveItemPath.of(shadowAttrPath, ctx.getShadowDefinition()).asString())
-                        .type(getTypeName(shadowAttrDef))
-                        .minOccurs(shadowAttrDef.getMinOccurs())
-                        .maxOccurs(shadowAttrDef.getMaxOccurs());
-                var midPointPropertyDefBean = new SiAttributeDefinitionType()
-                        .name(DescriptiveItemPath.of(focusPropPath, focusTypeDefinition).asString())
-                        .type(getTypeName(focusPropDef))
-                        .minOccurs(focusPropDef.getMinOccurs())
-                        .maxOccurs(focusPropDef.getMaxOccurs());
-
-                schemaMatchResult.getSchemaMatchResult().add(new SchemaMatchOneResultType()
-                        .shadowAttributePath(shadowAttrPath.toStringStandalone())
-                        .shadowAttribute(applicationAttrDefBean)
-                        .focusPropertyPath(focusPropPath.toStringStandalone())
-                        .focusProperty(midPointPropertyDefBean));
             }
             return schemaMatchResult;
         } catch (Throwable t) {
@@ -121,6 +96,54 @@ public class SchemaMatchService {
         } finally {
             result.close();
         }
+    }
+
+    private SchemaMatchOneResultType processAttributeMatch(
+            SiAttributeMatchSuggestionType attributeMatch,
+            SchemaMatchingOperation matchingOp,
+            TypeOperationContext ctx,
+            PrismObjectDefinition<?> focusTypeDefinition) {
+        var shadowAttrPath = matchingOp.getApplicationItemPath(attributeMatch.getApplicationAttribute());
+        if (shadowAttrPath.size() != 2 || !shadowAttrPath.startsWith(ShadowType.F_ATTRIBUTES)) {
+            LOGGER.warn("Ignoring attribute {}. It is not a traditional attribute.", shadowAttrPath);
+            return null;
+        }
+
+        var shadowAttrName = shadowAttrPath.rest().asSingleNameOrFail();
+        var shadowAttrDef = ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
+        if (shadowAttrDef == null) {
+            LOGGER.warn("No shadow attribute definition found for {}. Skipping schema match record.", shadowAttrName);
+            return null;
+        }
+
+        var focusPropPath = matchingOp.getFocusItemPath(attributeMatch.getMidPointAttribute());
+        var focusPropDef = focusTypeDefinition.findPropertyDefinition(focusPropPath);
+        if (focusPropDef == null) {
+            LOGGER.warn("No focus property definition found for {}. Skipping schema match record.", focusPropPath);
+            return null;
+        }
+
+        var applicationAttrDefBean = createAttributeDefinition(
+                shadowAttrPath, shadowAttrDef, ctx.getShadowDefinition());
+        var midPointPropertyDefBean = createAttributeDefinition(
+                focusPropPath, focusPropDef, focusTypeDefinition);
+
+        return new SchemaMatchOneResultType()
+                .shadowAttributePath(shadowAttrPath.toStringStandalone())
+                .shadowAttribute(applicationAttrDefBean)
+                .focusPropertyPath(focusPropPath.toStringStandalone())
+                .focusProperty(midPointPropertyDefBean);
+    }
+
+    private SiAttributeDefinitionType createAttributeDefinition(
+            ItemPath path,
+            PrismPropertyDefinition<?> definition,
+            PrismObjectDefinition<?> objectDefinition) {
+        return new SiAttributeDefinitionType()
+                .name(DescriptiveItemPath.of(path, objectDefinition).asString())
+                .type(getTypeName(definition))
+                .minOccurs(definition.getMinOccurs())
+                .maxOccurs(definition.getMaxOccurs());
     }
 
     public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
