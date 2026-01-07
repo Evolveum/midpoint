@@ -15,7 +15,6 @@ image::step-2-mappings-inbound.png[100%, title=Table of inbound mappings]
 
 In addition to the xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/index.adoc#inbound_mappings[basic inbound mapping settings], you can use a more advanced configuration:
 
-[#use_inbound_for_correlation]
 . Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
 
 . For an existing inbound mapping, click icon:edit[] *Edit*, and configure:
