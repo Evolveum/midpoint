@@ -2,7 +2,7 @@
 :page-nav-title: Advanced Mappings
 :page-toc: top
 :experimental:
-:page-since: "4.9"
+:page-since: "4.8"
 :page-description: Adjust advanced mapping settings for finer control over the data manipulation rules you define using the mappings.
 
 Adjust advanced mapping settings for finer control over the data manipulation rules you define using the mappings.
