@@ -19,13 +19,8 @@ In addition to the xref:/midpoint/reference/admin-gui/resource-wizard/object-typ
 
 . For an existing inbound mapping, click icon:edit[] *Edit*, and configure:
 
-[[mapping-strength]]
-    * *Strength*: Defines how aggressively the mapping is applied:
-        ** _Strong_: Always enforces source values.
-        For single-value attributes, the source value replaces the target value, while for multi-value attributes, source values are added to target values.
-        ** _Normal_: Applies source values only if they have changed (not during reconciliation).
-        If the target was modified manually, then the source value does not overwrite the target value.
-        ** _Weak_: Applies the source value only if the target has no value.
+    * *Strength*: Defines how aggressively the mapping is applied.
+        Refer to xref:/midpoint/reference/expressions/mappings/#_mapping_strength[] for details on the possible options.
     * *Use for*: Defines operations in which the mapping is applied.
     This enables you to define different mappings for different contexts.
     For example, when fetching user numbers from a resource, you may want to match them exactly during correlation, however, during synchronization, you may want to normalize them (e.g. strip prefixes).
