@@ -847,10 +847,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         displayCollection("audit records", records);
     }
 
-    /**
-     * MID-10983
-     */
-    @Test(enabled = false)
+    @Test
     public void test420ListDynamicExtensionDelta() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
