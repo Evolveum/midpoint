@@ -13,6 +13,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.prism.polystring.PolyString.fromOrig;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +21,8 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,23 +32,30 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -77,7 +87,17 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/audit");
 
-    private static final int INITIAL_NUMBER_OF_AUDIT_RECORDS = 26;
+    private static final TestObject<SchemaType> SCHEMA_USER =
+            TestObject.file(COMMON_DIR, "schema-user.xml", "4b731d55-a0e7-42e7-aa2b-dbd4ed55e3af");
+
+    private static final TestObject<UserType> USER_WITH_EXTENSION =
+            TestObject.file(COMMON_DIR, "user-with-extension.xml", "1061ecfc-7482-4a6c-b9bf-590a556aff14");
+
+    private static final String NS_EXAMPLE = "https://example.com";
+
+    private static final ItemName STRING_PROPERTY = ItemName.from(NS_EXAMPLE, "stringProperty");
+
+    private static final int INITIAL_NUMBER_OF_AUDIT_RECORDS = 28;
 
     private XMLGregorianCalendar initialTs;
     private XMLGregorianCalendar jackKidTs;
@@ -93,6 +113,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        addObject(SCHEMA_USER, initTask, initResult);
     }
 
     @Test
@@ -823,5 +845,39 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                 .assertDescription("single");
 
         displayCollection("audit records", records);
+    }
+
+    @Test
+    public void test420ListDynamicExtensionDelta() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given();
+
+        PrismObject<UserType> user = USER_WITH_EXTENSION.get();
+
+        executeChanges(user.createAddDelta(), null, task, result);
+
+        ObjectDelta<UserType> delta = user.createModifyDelta();
+        delta.addModificationReplaceProperty(ItemPath.create(UserType.F_EXTENSION, STRING_PROPERTY), "value2", "value3");
+
+        executeChanges(delta, null, task, result);
+
+        when();
+        List<AuditEventRecordType> records = getObjectAuditRecords(user.getOid());
+
+        then();
+        Assertions.assertThat(records)
+                .hasSize(4);
+
+        for (AuditEventRecordType record : records) {
+            Assertions.assertThat(record.getDelta())
+                    .hasSize(1);
+
+            ObjectDeltaOperationType odo = record.getDelta().get(0);
+
+            Assertions.assertThat(odo.getObjectDelta())
+                    .isNotNull();
+        }
     }
 }
