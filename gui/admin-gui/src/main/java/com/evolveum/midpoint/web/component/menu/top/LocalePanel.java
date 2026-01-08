@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.component.menu.top;
 
+import java.io.Serial;
 import java.util.Locale;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public abstract class LocalePanel extends BasePanel {
 
+    @Serial private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(LocalePanel.class);
 
     private static final String FLAG_CLASS_PREFIX = "fi fi-";
