@@ -31,11 +31,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import java.io.Serial;
+
 /**
  * @author Viliam Repan (lazyman)
  */
 public class MainMenuPanel extends BasePanel<MainMenuItem> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ITEM = "item";
     private static final String ID_LINK = "link";
@@ -77,7 +79,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                 "${nameModel}",
                 getModel()).setDefaultValue(new PropertyModel<>(getModel(), "nameModel"));
         AjaxLink<Void> link = new AjaxLink<>(ID_LINK) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -130,7 +132,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         labelModel.setDefaultValue(new PropertyModel<>(menuItem, "nameModel"));
 
         Link<String> subLink = new Link<>(ID_SUB_LINK) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick() {

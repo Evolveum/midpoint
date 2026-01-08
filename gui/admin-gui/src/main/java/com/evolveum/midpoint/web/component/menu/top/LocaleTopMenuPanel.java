@@ -15,12 +15,14 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 
+import java.io.Serial;
+
 /**
  * @author lazyman
  */
 public class LocaleTopMenuPanel extends LocalePanel {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
     private static final String ID_LOCALES_MENU = "localesMenu";
@@ -37,7 +39,7 @@ public class LocaleTopMenuPanel extends LocalePanel {
 
         LocalesDropDownMenu localesMenu = new LocalesDropDownMenu(ID_LOCALES_MENU) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void changeLocale(AjaxRequestTarget target, AvailableLocale.LocaleDescriptor descriptor) {

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.menu;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
@@ -112,7 +114,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         sideBarMenuModel = new LoadableModel<>(false) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<SideBarMenuItem> load() {
@@ -121,7 +123,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         };
 
         workItemCountModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
@@ -145,7 +147,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         };
         certWorkItemCountModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
@@ -751,7 +753,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
             String label = "MenuItem.noName";
             PolyStringType display = WebComponentUtil.getCollectionLabel(viewDisplayType);
             if (display != null) {
-                label = WebComponentUtil.getTranslatedPolyString(display);
+                if (StringUtils.isNotEmpty(getLabelTranslationKey(display))) {
+                    label = getLabelTranslationKey(display);
+                } else {
+                    label = LocalizationUtil.translatePolyString(display);
+                }
             }
 
             String iconClass = GuiDisplayTypeUtil.getIconCssClass(viewDisplayType);
