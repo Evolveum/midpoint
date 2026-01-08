@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.PageConnectorDevelopment;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
@@ -117,7 +118,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
         sideBarMenuModel = new LoadableModel<>(false) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<SideBarMenuItem> load() {
@@ -126,7 +127,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         };
 
         workItemCountModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
@@ -150,7 +151,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         };
         certWorkItemCountModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
@@ -838,7 +839,11 @@ public class LeftMenuPanel extends BasePanel<Void> {
             String label = "MenuItem.noName";
             PolyStringType display = WebComponentUtil.getCollectionLabel(viewDisplayType);
             if (display != null) {
-                label = WebComponentUtil.getTranslatedPolyString(display);
+                if (StringUtils.isNotEmpty(getLabelTranslationKey(display))) {
+                    label = getLabelTranslationKey(display);
+                } else {
+                    label = LocalizationUtil.translatePolyString(display);
+                }
             }
 
             String iconClass = GuiDisplayTypeUtil.getIconCssClass(viewDisplayType);
