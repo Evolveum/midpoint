@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaService;
-import com.evolveum.midpoint.smart.impl.knownschemas.SchemaDetectionResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -56,12 +55,15 @@ public class SchemaMatchService {
 
     private final RepositoryService repositoryService;
     private final ServiceClientFactory clientFactory;
+    private final KnownSchemaService knownSchemaService;
 
     public SchemaMatchService(
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
-            ServiceClientFactory clientFactory) {
+            ServiceClientFactory clientFactory,
+            KnownSchemaService knownSchemaService) {
         this.repositoryService = repositoryService;
         this.clientFactory = clientFactory;
+        this.knownSchemaService = knownSchemaService;
     }
 
     public SchemaMatchResultType computeSchemaMatch(
@@ -78,11 +80,18 @@ public class SchemaMatchService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result);
             var focusTypeDefinition = ctx.getFocusTypeDefinition();
-            var matchingOp = new SchemaMatchingOperation(ctx);
+            var matchingOp = new SchemaMatchingOperation(ctx, knownSchemaService);
             var match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource);
 
             SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()
                     .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+
+            var detectedSchemaType = matchingOp.getDetectedSchemaType();
+            if (detectedSchemaType != null) {
+                schemaMatchResult.setKnownSchemaType(detectedSchemaType.name());
+                LOGGER.debug("Stored known schema type: {} for resource {}", detectedSchemaType, resourceOid);
+            }
+
             for (var attributeMatch : match.getAttributeMatch()) {
                 var matchResult = processAttributeMatch(attributeMatch, matchingOp, ctx, focusTypeDefinition);
                 if (matchResult != null) {

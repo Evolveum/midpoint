@@ -1251,6 +1251,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="knownSchemaType" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The detected known schema type (e.g., LDAP_INETORGPERSON, SCIM_2_0_USER, AD_USER).
+                        If present, indicates that this resource schema was matched to a known schema pattern
+                        and pre-defined mappings were used or are available.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="timestamp" type="xsd:dateTime">
                 <xsd:annotation>
                     <xsd:documentation>
