@@ -12,7 +12,6 @@ Refer to xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/
 .Configuration screen with the list of inbound mappings
 image::mapping-rules-setup-entry-point-via-accounts-configure-menu.webp["Configuration menu in resource accounts list as an entry point to the mapping rules wizard"]
 
-[[advanced_inbound_mappings]]
 == Configure advanced inbound mappings
 
 In this guide, we expect you want to edit advanced settings of an existing mapping.
