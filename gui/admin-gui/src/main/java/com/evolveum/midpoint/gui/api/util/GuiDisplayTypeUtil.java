@@ -259,13 +259,7 @@ public class GuiDisplayTypeUtil {
         if (displayType == null || displayType.getLabel() == null) {
             return "";
         }
-        String translated = LocalizationUtil.translatePolyString(displayType.getLabel());
-        //see #7576; sometimes labels from DisplayType contain translation key in the orig value.
-        // They should be treated as a key and should be translated
-        if (translated != null && translated.equals(displayType.getLabel().getOrig())) {
-            return LocalizationUtil.translate(translated);
-        }
-        return translated;
+        return LocalizationUtil.translatePolyString(displayType.getLabel());
     }
 
     public static String getIconColor(DisplayType displayType) {

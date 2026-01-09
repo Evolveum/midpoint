@@ -382,7 +382,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 return "N/A";
             }
 
-            return GuiDisplayTypeUtil.getTranslatedLabel(config.getDisplay());
+            return LocalizationUtil.translatePolyString(config.getDisplay().getLabel());
         };
     }
 
