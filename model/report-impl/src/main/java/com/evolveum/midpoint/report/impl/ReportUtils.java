@@ -740,7 +740,7 @@ public class ReportUtils {
     public static List<String> printDelta(ObjectDeltaOperationType deltaOperation, ItemPath itemPath, DeltaPrinterOptions options)
             throws SchemaException {
 
-        if (deltaOperation == null) {
+        if (deltaOperation == null || deltaOperation.getObjectDelta() == null) {
             return List.of();
         }
 
