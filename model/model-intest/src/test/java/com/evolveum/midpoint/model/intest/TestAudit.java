@@ -848,9 +848,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-     * MID-10983
+     * MID-10983 Audit delta not rendered when extension schema created via GUI
      */
-    @Test(enabled = false)
+    @Test
     public void test420ListDynamicExtensionDelta() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
