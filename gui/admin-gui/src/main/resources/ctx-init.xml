@@ -41,13 +41,6 @@
         <property name="model" ref="modelController"/>
     </bean>
 
-    <bean id="schemaCache"
-            class="com.evolveum.midpoint.init.SchemaCache"
-            init-method="init">
-        <property name="prismContext" ref="prismContext"/>
-        <property name="repositoryService" ref="repositoryService"/>
-    </bean>
-
     <bean id="postInitialDataImport"
             class="com.evolveum.midpoint.init.PostInitialDataImport"
             init-method="init">

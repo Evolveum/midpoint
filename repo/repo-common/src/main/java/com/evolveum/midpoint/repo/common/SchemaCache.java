@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2023 Evolveum and contributors
+ * Copyright (c) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.init;
+package com.evolveum.midpoint.repo.common;
 
 import java.util.*;
 
@@ -16,6 +16,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
@@ -30,22 +31,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
+@Component
 public class SchemaCache implements Cache {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaCache.class);
 
-    private PrismContext prismContext;
-    private RepositoryService repositoryService;
+    private static final Collection<Class<?>> INVALIDATION_RELATED_CLASSES = List.of(SchemaType.class);
+
+    @Autowired private PrismContext prismContext;
+    @Autowired private RepositoryService repositoryService;
 
     @Autowired private CacheRegistry cacheRegistry;
-
-    public void setPrismContext(PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
-
-    public void setRepositoryService(RepositoryService repositoryService) {
-        this.repositoryService = repositoryService;
-    }
 
     @PostConstruct
     public void register() {
@@ -95,12 +91,9 @@ public class SchemaCache implements Cache {
             } catch (SchemaException e) {
                 LOGGER.error("Couldn't reload schema", e);
             }
+            System.out.println();
         }
     }
-
-    private static final Collection<Class<?>> INVALIDATION_RELATED_CLASSES = Arrays.asList(
-            SchemaType.class
-    );
 
     @Override
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
