@@ -53,7 +53,7 @@ To add an inbound mapping:
     Alternatively, setting the lifecycle state to `Draft` disables the mapping, etc.
 . Click icon:check[] btn:[Save mappings]
 
-You can access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/advanced-mappings.adoc#advanced_inbound_mappings[advanced inbound mapping configuration] by clicking the icon:edit[] *Edit* button.
+Click [.nowrap]#icon:edit[] btn:[Edit]# at the far right of the mapping rule row to access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/advanced-mappings.adoc[advanced mapping configuration].
 
 You can delete a mapping by clicking icon:trash-alt[] *Delete*.
 
