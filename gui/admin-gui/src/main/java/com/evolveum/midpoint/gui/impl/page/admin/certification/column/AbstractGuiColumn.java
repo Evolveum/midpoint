@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.column;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
@@ -40,7 +41,7 @@ public abstract class AbstractGuiColumn<C extends Containerable, S extends Selec
         return () -> {
             DisplayType display = columnConfig != null ? columnConfig.getDisplay() : null;
             PolyStringType label = display != null ? display.getLabel() : null;
-            String labelTranslated = label != null ? LocalizationUtil.translatePolyString(label) : null;
+            String labelTranslated = label != null ? GuiDisplayTypeUtil.getTranslatedLabel(display) : null;
             if (StringUtils.isEmpty(labelTranslated)) {
                 ColumnType columnType = AbstractGuiColumn.this.getClass().getAnnotation(ColumnType.class);
                 labelTranslated = LocalizationUtil.translate(columnType.display().label());

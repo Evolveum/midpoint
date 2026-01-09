@@ -168,7 +168,7 @@ public class GuiDisplayTypeUtil {
                     }
                 }
                 if (def.getDisplay().getLabel() != null) {
-                    relationValue = LocalizationUtil.translatePolyString(def.getDisplay().getLabel());
+                    relationValue = translateAndTreatOrigAsKey(def.getDisplay().getLabel());
                 } else {
                     String relationKey = "RelationTypes." + RelationTypes.getRelationTypeByRelationValue(relation);
                     relationValue = pageBase.createStringResource(relationKey).getString();
@@ -205,7 +205,7 @@ public class GuiDisplayTypeUtil {
             PolyStringType label = displayType.getSingularLabel() != null ?
                     displayType.getSingularLabel() : displayType.getLabel();
 
-            String name = LocalizationUtil.translatePolyString(label);
+            String name = translateAndTreatOrigAsKey(label);
 
             String tooltip = LocalizationUtil.translate("MainObjectListPanel.newObjectWithName", new Object[]{ name });
 
@@ -257,10 +257,21 @@ public class GuiDisplayTypeUtil {
         if (displayType == null || displayType.getLabel() == null) {
             return "";
         }
-        String translated = LocalizationUtil.translatePolyString(displayType.getLabel());
-        //see #7576; sometimes labels from DisplayType contain translation key in the orig value.
-        // They should be treated as a key and should be translated
-        if (translated != null && translated.equals(displayType.getLabel().getOrig())) {
+        return translateAndTreatOrigAsKey(displayType.getLabel());
+    }
+
+    /**
+     * Sometimes labels from DisplayType contain translation key in the orig value.
+     * They should be treated as a key and should be translated.
+     * See #7576
+     * @return
+     */
+    private static String translateAndTreatOrigAsKey(PolyStringType valueToTranslate) {
+        if (valueToTranslate == null) {
+            return null;
+        }
+        String translated = LocalizationUtil.translatePolyString(valueToTranslate);
+        if (translated != null && translated.equals(valueToTranslate.getOrig())) {
             return LocalizationUtil.translate(translated);
         }
         return translated;
@@ -277,14 +288,14 @@ public class GuiDisplayTypeUtil {
         if (displayType == null || displayType.getHelp() == null) {
             return "";
         }
-        return LocalizationUtil.translatePolyString(displayType.getHelp());
+        return translateAndTreatOrigAsKey(displayType.getHelp());
     }
 
     public static String getTooltip(DisplayType displayType) {
         if (displayType == null || displayType.getTooltip() == null) {
             return "";
         }
-        return LocalizationUtil.translatePolyString(displayType.getTooltip());
+        return translateAndTreatOrigAsKey(displayType.getTooltip());
     }
 
     public static String getDisplayTypeTitle(DisplayType displayType) {
