@@ -106,6 +106,13 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-impl</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>smart-api</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
