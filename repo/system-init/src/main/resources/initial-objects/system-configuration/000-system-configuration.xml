@@ -548,7 +548,12 @@
                             <key>MyCases.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>My case</singularLabel>
+                    <singularLabel>
+                        <orig>My case</orig>
+                        <translation>
+                            <key>MyCases.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
                     <icon>
                         <cssClass>fe fe-case-object</cssClass>
                     </icon>
@@ -576,8 +581,18 @@
                             <key>AllManualCases.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Manual case</singularLabel>
-                    <tooltip>Manual provisioning cases</tooltip>
+                    <singularLabel>
+                        <orig>Manual case</orig>
+                        <translation>
+                            <key>AllManualCases.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
+                    <tooltip>
+                        <orig>Manual provisioning cases</orig>
+                        <translation>
+                            <key>AllManualCases.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>1010</displayOrder>
                 <type>CaseType</type>
@@ -602,8 +617,18 @@
                             <key>AllRequests.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Request</singularLabel>
-                    <tooltip>Operation requests</tooltip>
+                    <singularLabel>
+                        <orig>Request</orig>
+                        <translation>
+                            <key>OperationRequestCase.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
+                    <tooltip>
+                        <orig>Operation requests</orig>
+                        <translation>
+                            <key>OperationRequestCase.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>1020</displayOrder>
                 <type>CaseType</type>
@@ -628,8 +653,18 @@
                             <key>AllApprovals.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Approval</singularLabel>
-                    <tooltip>Approval cases</tooltip>
+                    <singularLabel>
+                        <orig>Approval</orig>
+                        <translation>
+                            <key>ApprovalCase.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
+                    <tooltip>
+                        <orig>Approval cases</orig>
+                        <translation>
+                            <key>ApprovalCase.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>1030</displayOrder>
                 <type>CaseType</type>
@@ -654,8 +689,18 @@
                             <key>AllCorrelations.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Correlation</singularLabel>
-                    <tooltip>Correlation cases</tooltip>
+                    <singularLabel>
+                        <orig>Correlation</orig>
+                        <translation>
+                            <key>CorrelationCase.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
+                    <tooltip>
+                        <orig>Correlation cases</orig>
+                        <translation>
+                            <key>CorrelationCase.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>1040</displayOrder>
                 <type>CaseType</type>
@@ -1094,7 +1139,12 @@
                             <key>ResourceType.template.all.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Resource template</singularLabel>
+                    <singularLabel>
+                        <orig>Resource template</orig>
+                        <translation>
+                            <key>ResourceTemplates.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
                     <icon>
                         <cssClass>fa fa-file-alt</cssClass>
                     </icon>
@@ -1120,7 +1170,12 @@
                             <key>classification.label</key>
                         </translation>
                     </singularLabel>
-                    <tooltip>Information classifications (labels)</tooltip>
+                    <tooltip>
+                        <orig>Information classifications (labels)</orig>
+                        <translation>
+                            <key>Classification.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>200</displayOrder>
                 <type>PolicyType</type>
@@ -1144,7 +1199,12 @@
                             <key>clearance.label</key>
                         </translation>
                     </singularLabel>
-                    <tooltip>Security clearances</tooltip>
+                    <tooltip>
+                        <orig>Security clearances</orig>
+                        <translation>
+                            <key>Clearance.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>210</displayOrder>
                 <type>PolicyType</type>

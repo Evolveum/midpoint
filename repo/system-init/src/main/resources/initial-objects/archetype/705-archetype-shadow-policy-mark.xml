@@ -29,7 +29,12 @@
                     <key>ShadowPolicyMark.archetype.label</key>
                 </translation>
             </label>
-            <pluralLabel>Shadow Policy Marks</pluralLabel>
+            <pluralLabel>
+                <orig>Shadow Policy Marks</orig>
+                <translation>
+                    <key>ShadowPolicyMark.archetype.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-tag</cssClass> <!-- TODO -->
                 <color>blue</color>  <!-- TODO -->
