@@ -14,8 +14,18 @@
     </assignment>
     <displayOrder>540</displayOrder>
     <display>
-        <label>SimulationCorrelationPanel.uncertain.label</label>
-        <help>SimulationCorrelationPanel.uncertain.help</help>
+        <label>
+            <orig>Uncertain correlations</orig>
+            <translation>
+                <key>SimulationCorrelationPanel.uncertain.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of objects that could be correlated to multiple resource owners.</orig>
+            <translation>
+                <key>SimulationCorrelationPanel.uncertain.help</key>
+            </translation>
+        </help>
         <icon>
             <cssClass>fa-solid fa-question metric-icon warning</cssClass>
         </icon>

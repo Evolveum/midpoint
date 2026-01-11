@@ -14,8 +14,18 @@
     </assignment>
     <displayOrder>520</displayOrder>
     <display>
-        <label>SimulationCorrelationPanel.correlated.label</label>
-        <help>SimulationCorrelationPanel.correlated.help</help>
+        <label>
+            <orig>Correlated</orig>
+            <translation>
+                <key>SimulationCorrelationPanel.correlated.label</key>
+            </translation>
+        </label>
+        <help>
+            <orig>Number of objects that were successfully correlated to resource owners.</orig>
+            <translation>
+                <key>SimulationCorrelationPanel.correlated.help</key>
+            </translation>
+        </help>
         <icon>
             <cssClass>fa fa-link metric-icon success</cssClass>
         </icon>

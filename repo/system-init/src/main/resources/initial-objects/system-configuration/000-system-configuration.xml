@@ -386,7 +386,12 @@
                             <key>PageSelfDashboard.profile</key>
                         </translation>
                     </label>
-                    <help>PageSelfDashboard.profile.description</help>
+                    <help>
+                        <orig>Profile</orig>
+                        <translation>
+                            <key>PageSelfDashboard.profile.description</key>
+                        </translation>
+                    </help>
                     <cssClass>col-md-3</cssClass>
                     <icon>
                         <cssClass>bg-green fa fa-user</cssClass>
@@ -409,7 +414,12 @@
                             <key>PageSelfDashboard.credentials</key>
                         </translation>
                     </label>
-                    <help>PageSelfDashboard.credentials.description</help>
+                    <help>
+                        <orig>Credentials</orig>
+                        <translation>
+                            <key>PageSelfDashboard.credentials.description</key>
+                        </translation>
+                    </help>
                     <cssClass>col-md-3</cssClass>
                     <icon>
                         <cssClass>bg-blue fa fa-shield-alt</cssClass>
@@ -1405,7 +1415,12 @@
                     <container id="130">
                         <identifier>basic</identifier>
                         <display>
-                            <label>PageResource.wizard.step.objectType.basicSettings</label>
+                            <label>
+                                <orig>Basic information</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.objectType.basicSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="132">
                             <path>schemaHandling/objectType/displayName</path>
@@ -1448,7 +1463,12 @@
                     <container id="138">
                         <identifier>delineation</identifier>
                         <display>
-                            <label>PageResource.wizard.step.objectType.delineation</label>
+                            <label>
+                                <orig>Resource data</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.objectType.delineation</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="140">
                             <path>schemaHandling/objectType/delineation/objectClass</path>
@@ -1483,7 +1503,12 @@
                     <container id="145">
                         <identifier>limitationsMapping</identifier>
                         <display>
-                            <label>PageResource.wizard.step.attributes.limitation</label>
+                            <label>
+                                <orig>Limitations</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.attributes.limitation</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="147">
                             <path>schemaHandling/objectType/attribute/limitations/access/read</path>
@@ -1522,7 +1547,12 @@
                     <container id="153">
                         <identifier>reactionMainSetting</identifier>
                         <display>
-                            <label>PageResource.wizard.step.synchronization.reaction.mainSettings</label>
+                            <label>
+                                <orig>Main configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.synchronization.reaction.mainSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="155">
                             <path>schemaHandling/objectType/synchronization/reaction/name</path>
@@ -1549,7 +1579,12 @@
                     <container id="158">
                         <identifier>reactionOptionalSetting</identifier>
                         <display>
-                            <label>PageResource.wizard.step.synchronization.reaction.optionalSettings</label>
+                            <label>
+                                <orig>Optional settings</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.synchronization.reaction.optionalSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="160">
                             <path>schemaHandling/objectType/synchronization/reaction/condition</path>
@@ -1576,7 +1611,12 @@
                     <container id="262">
                         <identifier>associationReactionMainSetting</identifier>
                         <display>
-                            <label>PageResource.wizard.step.synchronization.reaction.mainSettings</label>
+                            <label>
+                                <orig>Main configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.synchronization.reaction.mainSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="263">
                             <path>schemaHandling/associationType/subject/association/synchronization/reaction/name</path>
@@ -1603,7 +1643,12 @@
                     <container id="256">
                         <identifier>associationReactionOptionalSetting</identifier>
                         <display>
-                            <label>PageResource.wizard.step.synchronization.reaction.optionalSettings</label>
+                            <label>
+                                <orig>Optional settings</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.synchronization.reaction.optionalSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="257">
                             <path>schemaHandling/associationType/subject/association/synchronization/reaction/order</path>
@@ -1622,7 +1667,12 @@
                     <container id="163">
                         <identifier>mainConfigurationAttribute</identifier>
                         <display>
-                            <label>PageResource.wizard.step.attributes.mainConfiguration</label>
+                            <label>
+                                <orig>Main configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.attributes.mainConfiguration</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="165">
                             <path>schemaHandling/objectType/attribute/ref</path>
@@ -1681,7 +1731,12 @@
                     <container id="174">
                         <identifier>association</identifier>
                         <display>
-                            <label>PageResource.wizard.step.associations</label>
+                            <label>
+                                <orig>Configuration of the association</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.associations</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="176">
                             <path>schemaHandling/objectType/association/ref</path>
@@ -1750,7 +1805,12 @@
                     <container id="189">
                         <identifier>required</identifier>
                         <display>
-                            <label>PageResource.wizard.step.configuration</label>
+                            <label>
+                                <orig>Configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.configuration</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="191">
                             <path>connectorConfiguration/configurationProperties/jdbcUrlTemplate</path>
@@ -1794,7 +1854,12 @@
                     <container id="199">
                         <identifier>required</identifier>
                         <display>
-                            <label>PageResource.wizard.step.configuration</label>
+                            <label>
+                                <orig>Configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.configuration</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="201">
                             <path>connectorConfiguration/configurationProperties/host</path>
@@ -1834,7 +1899,12 @@
                     <container id="207">
                         <identifier>required</identifier>
                         <display>
-                            <label>PageResource.wizard.step.configuration</label>
+                            <label>
+                                <orig>Configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.configuration</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="209">
                             <path>connectorConfiguration/configurationProperties/host</path>

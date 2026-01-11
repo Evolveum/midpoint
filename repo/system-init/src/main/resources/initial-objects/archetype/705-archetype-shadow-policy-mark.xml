@@ -23,7 +23,12 @@
     <superArchetypeRef oid="00000000-0000-0000-0000-000000000701"/>
     <archetypePolicy>
         <display>
-            <label>Shadow Policy Mark</label>
+            <label>
+                <orig>Shadow Policy Mark</orig>
+                <translation>
+                    <key>ShadowPolicyMark.archetype.label</key>
+                </translation>
+            </label>
             <pluralLabel>Shadow Policy Marks</pluralLabel>
             <icon>
                 <cssClass>fa fa-tag</cssClass> <!-- TODO -->

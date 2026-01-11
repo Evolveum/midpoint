@@ -10,6 +10,12 @@
     <name>Certification-campaign-start-related task</name>
     <archetypePolicy>
         <display>
+            <label>
+                <orig>Certification campaign start related task</orig>
+                <translation>
+                    <key>CertificationCampaignStartRelatedTask.label</key>
+                </translation>
+            </label>
             <label>Certification campaign start related task</label>
             <pluralLabel>
                 <orig>Certification-campaign-start-related tasks</orig>
