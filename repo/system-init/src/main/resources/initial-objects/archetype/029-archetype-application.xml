@@ -107,12 +107,10 @@
                             </translation>
                         </label>
                         <tooltip>
-                            <tooltip>
-                                <orig>Information classifications (labels)</orig>
-                                <translation>
-                                    <key>classifications.panel.tooltip</key>
-                                </translation>
-                            </tooltip>
+                            <orig>Information classifications (labels)</orig>
+                            <translation>
+                                <key>classifications.panel.tooltip</key>
+                            </translation>
                         </tooltip>
                         <icon>
                             <cssClass>fa fa-tags</cssClass>
