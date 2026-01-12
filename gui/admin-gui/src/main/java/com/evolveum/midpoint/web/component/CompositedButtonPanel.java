@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -46,13 +48,13 @@ public class CompositedButtonPanel extends BasePanel<CompositedIconButtonDto> {
 
         Label label = new Label(ID_LABEL, () -> {
             DisplayType displayType = getModelObject().getAdditionalButtonDisplayType();
-            return WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
+            return GuiDisplayTypeUtil.getTranslatedLabel(displayType);
         });
         buttonContainer.add(label);
 
         buttonContainer.add(AttributeAppender.append("title", () -> {
             DisplayType displayType = getModelObject().getAdditionalButtonDisplayType();
-            return WebComponentUtil.getTranslatedPolyString(displayType.getTooltip());
+            return GuiDisplayTypeUtil.getTooltip(displayType);
         }));
         buttonContainer.add(new TooltipBehavior());
 
