@@ -3,10 +3,10 @@
 :page-toc: top
 :experimental:
 :page-since: "4.8"
-:page-description: Configure which data are received from and sent to resources and how to transform them.
+:page-description: Configure mappings to define how midPoint manages and transforms data you need to exchange among various systems connected to it.
 
-Mapping is a mechanism that takes input properties from the source, transforms them, and inserts the result into another property that is then used by a resource.
-In other words, mapping enables you to use the data from your source systems, such as HR applications, and adapt them so that you can use them in your target systems, such as an LDAP server.
+Mapping is a mechanism that takes input properties from a source, transforms them, and inserts the result into a target property.
+In other words, mappings are your means of data transformation and exchange among various systems you have connected to midPoint.
 
 Refer to xref:/midpoint/reference/expressions/[] for more details on the topic.
 
@@ -25,14 +25,14 @@ They map data in the direction which points _out of_ midPoint.
 
 In mapping rules of either direction, you need to define:
 
-* A *name* which should be descriptive and has to be unique across the whole resource.
+* A *name* which should be descriptive and has to be unique across the whole midPoint xref:/glossary/#resource[resource].
 * A *source* attribute, the value of which serves as the input for the mapping rule.
 * A *target* attribute to which the mapping sends its output.
-* An *expression* declaring what to do with the input value.
+* An *expression* declaring how to handle the input value.
 * A *lifecycle state*.
 
-For inbound mappings, the source is an attribute on the remote resource and the target is a focus attribute in midPoint.
-Conversely, for outbound mappings, the source is in midPoint and target is on the remote resource.
+For inbound mappings, the source is an attribute in the resource and the target is a focus attribute in midPoint.
+Conversely, for outbound mappings, the source is in midPoint and target is in the resource.
 
 == Configure mapping rules
 
@@ -41,8 +41,8 @@ To configure mappings in a midPoint resource:
 . In icon:database[] *Resources* > icon:database[] *All Resources*, select your resource.
 . In icon:male[] *Accounts*, click icon:cog[] btn:[Configure] > icon:retweet[] *Mappings*.
 
-.Configuration menu in resource accounts list as an entry point to the mapping rules wizard
-image::mapping-rules-setup-entry-point-via-accounts-configure-menu.webp["Configuration menu in resource accounts list as an entry point to the mapping rules wizard"]
+.Configuration menu in the resource account list as an entry point to the mapping rules wizard
+image::mapping-rules-setup-entry-point-via-accounts-configure-menu.webp["Configuration menu in the resource account list as an entry point to the mapping rules wizard"]
 
 The mapping configuration screen contains two tabs:
 
@@ -58,21 +58,21 @@ and configure the mapping:
 
 * *Name*: Name your mapping descriptively.
     This is convenient during troubleshooting and when using xref:/midpoint/reference/resources/resource-configuration/inheritance/[resource template inheritance].
-* *From resource attribute* (inbound mapping): Define a resource attribute that is used as an input for the mapping.
-* *Source* (outbound mapping): Define a midPoint focus attribute to be used as an input for the mapping.
-* *Expression*: Specify how to handle the source attribute.
+* *From resource attribute* (inbound mapping): Select a resource attribute that is used as an input for the mapping.
+* *Source* (outbound mapping): Select a midPoint focus attribute to be used as an input for the mapping.
+* *Expression*: Select how to handle the source attribute value.
     Refer to xref:/midpoint/reference/expressions/expressions/#expression-evaluators[] for more details.
     ** _As is_ (default): Copy values without changes.
     ** _Literal_: Specify one or more constant values upon clicking btn:[Show values].
     ** _Script_: Define a more complex behavior using a script upon clicking btn:[Show script].
-    ** _Generate_: Generate a random string abiding the xref:/midpoint/reference/security/credentials/password-policy/[].
-        This is typically used for generating passwords.
+    ** _Generate_: Generate a random string.
+        This is typically used for generating passwords abiding the xref:/midpoint/reference/security/credentials/password-policy/[].
         Click btn:[Show generate] to select the mode:
         *** _Policy_: Select the policy for the password generation.
         *** _Universal Unique Identifier_: Generate a unique identifier (UUID).
     ** _Path_: Reference a property or a variable upon clicking btn:[Show path].
-* *Target* (inbound mapping): Select a midPoint property in which to to store the mapping output.
-* *To resource attribute* (outbound mapping): Select a resource property in which to to store the mapping output.
+* *Target* (inbound mapping): Select a midPoint property in which to store the mapping output.
+* *To resource attribute* (outbound mapping): Select a resource property in which to store the mapping output.
 * *Lifecycle state*: Select the xref:/midpoint/reference/concepts/object-lifecycle/[lifecycle state] of the mapping.
 
 Click icon:check[] btn:[Save mappings] to save your configuration.
@@ -86,7 +86,7 @@ Use the buttons at the far right of the mapping list rows to delete, rename, or 
 == Attribute overrides
 
 Attribute configuration can be overridden beyond the context of the mappings to give you more maneuvering space, for example to override the default connector behavior.
-Attribute override apply to any use of the overridden attributes;
+Attribute overrides apply to any use of the overridden attributes;
 you cannot override an attribute only for outbound mappings, for instance.
 
 Refer to xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/[] and the nested articles for details.
@@ -100,7 +100,7 @@ To configure attribute overrides:
 
 [NOTE]
 ====
-By default, all attributes that are or have been used in a mapping are listed on the attribute override screen.
+By default, all attributes that are or have been used in a mapping rule are listed on the attribute overrides screen.
 ====
 
 .List of configured attribute overrides
@@ -112,11 +112,11 @@ These are the options you can configure for an attribute override:
 * *Display name*: Specify the display name of the attribute.
 * *Description*: Define the description of the attribute.
 * *Mandatory field*: Specify if the attribute is mandatory (_True_) or not (_False_).
-* *Multi-value*: Define if the attribute can contain multiple values (_True_) or only a single value (_False_).
-* *Tolerant*: Define whether values of foreign origin are tolerated.
-    ** When an attribute is tolerant, midPoint will _tolerate_ values it has not provisioned itself, e.g., those set directly on the resource.
+* *Multi-value field*: Define if the attribute can contain multiple values (_True_) or only a single value (_False_).
+* *Tolerant*: Define whether values of a foreign origin are tolerated.
+    ** When an attribute is tolerant, midPoint will _tolerate_ values it has not provisioned itself, e.g., those set directly in the resource.
     ** When an attribute is not tolerant, midPoint will proactively remove during a reconciliation any value that that does not originate from midPoint.
-* *Lifecycle state*: Define the xref:/midpoint/reference/concepts/object-lifecycle/[lifecycle state] of the attribute.
+* *Lifecycle state*: Select the xref:/midpoint/reference/concepts/object-lifecycle/[lifecycle state] of the attribute.
 
 Click icon:check[] btn:[Save overrides] to save your changes.
 
