@@ -119,11 +119,12 @@ class SaveReportFileSupport {
             return;
         }
 
-        String aggregatedFilePath = getDestinationFileName(report, dataWriter);
+        String dateTimeForName = getDateTime();
+        String aggregatedFilePath = getDestinationFileName(report, dataWriter, dateTimeForName);
 
         if (storeType == ONLY_FILE || storeType == WIDGET_AND_FILE)  {
             writeToReportFile(completedReport, aggregatedFilePath, dataWriter.getEncoding());
-            saveReportDataObject(dataWriter, aggregatedFilePath, emptyExportedDataObjectRef, result);
+            saveReportDataObject(dataWriter, aggregatedFilePath, dateTimeForName, emptyExportedDataObjectRef, result);
             if (report.getPostReportScript() != null) {
                 processPostReportScript(report, aggregatedFilePath, runningTask, result);
             }
@@ -180,17 +181,22 @@ class SaveReportFileSupport {
     }
 
     private String getDestinationFileName(ReportType reportType,
-            ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter) {
+            ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
+            String dateTimeForName) {
         File exportDir = ReportSupportUtil.getOrCreateExportDir();
 
         String reportName = StringUtils.replace(reportType.getName().getOrig(), File.separator, "_");
-        String fileNamePrefix = reportName + "-EXPORT " + getDateTime();
+        String fileNamePrefix = reportName + "-EXPORT " + dateTimeForName;
         String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
         return new File(exportDir, MiscUtil.fixFileName(fileName)).getPath();
     }
 
     static String getNameOfExportedReportData(ReportType reportType, String type) {
-        String fileName = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
+        return getNameOfExportedReportData(reportType, type, getDateTime());
+    }
+
+    static String getNameOfExportedReportData(ReportType reportType, String type, String dateTimeForName) {
+        String fileName = reportType.getName().getOrig() + "-EXPORT " + dateTimeForName;
         return fileName + " - " + type;
     }
 
@@ -212,12 +218,12 @@ class SaveReportFileSupport {
 
     private void saveReportDataObject(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            String filePath,
+            String filePath, String dateTimeForName,
             @Nullable ObjectReferenceType emptyExportedDataObjectRef,
             OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createSubresult(OP_CREATE_REPORT_DATA);
         try {
-            ReportDataType reportDataObject = createReportDataObject(dataWriter, filePath, emptyExportedDataObjectRef, result);
+            ReportDataType reportDataObject = createReportDataObject(dataWriter, filePath, dateTimeForName, emptyExportedDataObjectRef, result);
             String reportDataOid = putReportDataObjectToRepository(reportDataObject, result);
             recordDataOidIntoTask(reportDataOid, result);
             sendReportCreatedEvent(reportDataObject, result);
@@ -254,13 +260,13 @@ class SaveReportFileSupport {
 
     private @NotNull ReportDataType createReportDataObject(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            String filePath,
+            String filePath, String dateTimeForName,
             @Nullable ObjectReferenceType emptyExportedDataObjectRef,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
 
-        String reportDataName = getNameOfExportedReportData(report, dataWriter.getType());
+        String reportDataName = getNameOfExportedReportData(report, dataWriter.getType(), dateTimeForName);
 
         ReportDataType reportDataObject = new ReportDataType();
 
