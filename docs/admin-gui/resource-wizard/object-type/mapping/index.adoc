@@ -1,8 +1,8 @@
-= Resource Wizard: Object Type Mappings
+= Configure object type mappings
 :page-nav-title: Mappings
 :page-toc: top
 :experimental:
-:page-since: "4.9"
+:page-since: "4.8"
 :page-description: Configure which data are received from and sent to resources and how to transform them.
 
 Mapping is a mechanism that takes input properties from the source, transforms them, and inserts the result into another property that is then used by a resource.
