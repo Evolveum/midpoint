@@ -52,7 +52,7 @@ public class RealResourceStatus implements ResourceStatus {
         for (var objectClassDefinition : schema.getObjectClassDefinitions()) {
             var ocName = objectClassDefinition.getObjectClassName();
             var sizeEstimation = sis.estimateObjectClassSize(resourceOid, ocName, 100, task, result);
-            var statsObject = sis.getLatestStatistics(resourceOid, ocName, task, result);
+            var statsObject = sis.getLatestStatistics(resourceOid, ocName, result);
             var stats = statsObject != null ? ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(statsObject) : null;
             var typeDefs = schema.getObjectTypeDefinitions(t -> t.getObjectClassName().equals(ocName));
             objectClassInfoMap.put(ocName, new ObjectClassInfo(
