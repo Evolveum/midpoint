@@ -1,4 +1,4 @@
-= Resource Wizard: Advanced Mapping Configuration
+= Adjust advanced mapping options
 :page-nav-title: Advanced Mappings
 :page-toc: top
 :experimental:
