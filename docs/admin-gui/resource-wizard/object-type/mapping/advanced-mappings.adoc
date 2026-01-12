@@ -37,7 +37,7 @@ image::advanced-mappings-entry-point.webp["Enter advanced mapping settings by cl
 * *Strength*: Define how aggressively the mapping is applied.
     Refer to xref:/midpoint/reference/expressions/mappings/#_mapping_strength[] for details.
 * *Use for*: You can limit mappings to specific operational contexts—correlation and synchronization.
-    For example, you can use a resource attribute only to correlate accounts, or transform values differently during correlation and synchronization (e.g., strip prefixes when correlating and then synchronize the value _As is_ to another attribute).
+    For example, you can use a resource attribute only to correlate accounts, or transform values differently during correlation and synchronization (e.g., strip phone number prefixes when correlating and then synchronize the value _As is_ to another attribute).
     This option is applicable only to inbound mappings.
     ** _Synchronization_: Use the mapping for xref:/midpoint/reference/admin-gui/resource-wizard/object-type/synchronization/[synchronization], i.e., the initial import, reconciliation, or live synchronization.
     ** _Correlation_: Use the mapping for xref:/midpoint/reference/admin-gui/resource-wizard/object-type/correlation/[correlation], e.g., to match resource objects to focal objects without actually importing the attribute value.
@@ -65,12 +65,12 @@ These are the options on the second wizard screen:
 * *Authoritative*: Control whether the mapping can remove values.
     An authoritative mapping is allowed to delete values that it previously wrote, while a non‑authoritative mapping never removes anything it has added.
     Refer to xref:/midpoint/reference/expressions/mappings/#authoritative[] for details.
-* *Exclusive*: Define how many mappings may handle the target property of this mapping:
+* *Exclusive*: Define how many mappings may handle the target property:
     ** _True_: The mapping is exclusive to the selected target property.
         Using the same target property in a different mapping will cause an error.
     ** _False_: You can use the selected target property in other mappings as well (default).
 * *Channel*: Limit the mapping to a specific xref:/midpoint/reference/concepts/channel.adoc[channel].
-If empty, the mapping applies for all channels.
+If empty, the mapping applies to all channels.
 * *Except channel*: Define a channel in which the mapping is _not_ applied.
 
 NOTE: The _Undefined_ value available in various options applies the defaults as defined in the xref:/midpoint/reference/resources/resource-schema[].
@@ -109,8 +109,8 @@ image::mappings-advanced-attribute-override-entry-point.webp["Enter advanced att
 * *Volatility incoming operation*: Define for which operations (_Add_, _Modify_, or _Delete_) the attribute value can change in midPoint without midPoint initiating the change.
     Incoming volatility means that the attribute in question is the volatile one, i.e., it depends on other attributes.
     For example, if you construct email addresses from user names in midPoint, you can use this option to tell midPoint to expect a change in the email address attribute when a user name changes.
-    Refer to xref:https://docs.evolveum.com/midpoint/reference/support-4.10/resources/resource-configuration/schema-handling/volatility/[] for details.
-* *Volatility outgoing operation*: Defines which operations (_Add_, _Modify_, or _Delete_) may the attribute trigger in other attributes.
+    Refer to xref:/midpoint/reference/resources/resource-configuration/schema-handling/volatility/[] for details.
+* *Volatility outgoing operation*: Define which operations (_Add_, _Modify_, or _Delete_) may the attribute trigger on other attributes.
     Outgoing volatility means that the attribute in question is the volatility source for other (volatile) attributes, i.e., those other attributes depend on it.
 
 .The first screen of the advanced attribute override wizard
@@ -124,15 +124,15 @@ Refer to xref:/midpoint/reference/resources/resource-configuration/schema-handli
 * *Read*, *Add*, *Modify*: Specify allowed operations regarding the attribute.
     ** You can use these restrictions to prevent data corruption when working with a resource that may contain invalid data.
     ** Default is _True_, i.e., allow.
-* *Min occurs*, *Max occurs*: Define if the attribute is mandatory, and if it is single/multi-valued by overriding the resource schema definition of xref:/midpoint/reference/resources/resource-schema/index.adoc#object-class[minOccurs and maxOccurs].
+* *Min occurs*, *Max occurs*: Define if the attribute is mandatory, and if it is single/multi-value by overriding the resource schema definition of xref:/midpoint/reference/resources/resource-schema/index.adoc#object-class[minOccurs and maxOccurs].
 * *Processing*: Specify the manner of processing:
     ** _Ignore_: The attribute is not processed at all.
-    ** _Minimal_: The attribute basic data structure is maintained and the attribute values can be logged.
+    ** _Minimal_: The basic data structure of the attribute is maintained and the attribute values can be logged.
         You can process the attribute and the underlying data structure using a custom code.
         However, all built-in automatic processing, presentation, transformation, or any similar processing is skipped.
 // TODO: Do we not have any detailed documentation on attribute processing? @dakle 2026-01-11
 
-NOTE: The _Undefined_ option that is available in various settings applies the defaults as defined in the xref:/midpoint/reference/resources/resource-schema[].
+NOTE: The _Undefined_ value available in various options applies the defaults as defined in the xref:/midpoint/reference/resources/resource-schema[].
 
 .The limitations screen of the advanced attribute override wizard
 image::mappings-advanced-attribute-override-02-limitations.webp["The limitations screen of the advanced attribute override wizard"]
