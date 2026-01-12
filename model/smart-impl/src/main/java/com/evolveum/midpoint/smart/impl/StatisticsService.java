@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,7 +63,7 @@ public class StatisticsService {
      * Returns the object holding last known statistics for the given resource and object class.
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
-    public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
+    public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_STATISTICS)
                 .addParam("resourceOid", resourceOid)
@@ -91,7 +90,7 @@ public class StatisticsService {
 
             if (latestStatistics != null) {
                 var statistics = ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(latestStatistics);
-                if (isStatisticsExpired(statistics.getTimestamp(), task, result)) {
+                if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Statistics {} for resource {} and class {} expired, deleting",
                             latestStatistics.getOid(), resourceOid, objectClassName);
                     deleteStatistics(latestStatistics.getOid(), result);
@@ -112,7 +111,7 @@ public class StatisticsService {
      * Returns the object holding last known statistics for the given resource, kind and intent.
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
-    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
                 .addParam("resourceOid", resourceOid)
@@ -142,7 +141,7 @@ public class StatisticsService {
 
             if (latestStatistics != null) {
                 var statistics = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(latestStatistics);
-                if (isStatisticsExpired(statistics.getTimestamp(), task, result)) {
+                if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Object type statistics {} for resource {}/{}/{} expired, deleting",
                             latestStatistics.getOid(), resourceOid, kind, intent);
                     deleteStatistics(latestStatistics.getOid(), result);
@@ -162,7 +161,6 @@ public class StatisticsService {
     public void deleteStatisticsForResource(
             String resourceOid,
             QName objectClassName,
-            Task task,
             OperationResult parentResult) throws SchemaException {
         var result = parentResult.subresult("deleteStatisticsForResource")
                 .addParam("resourceOid", resourceOid)
@@ -199,7 +197,6 @@ public class StatisticsService {
             String resourceOid,
             String kind,
             String intent,
-            Task task,
             OperationResult parentResult) throws SchemaException {
         var result = parentResult.subresult("deleteObjectTypeStatistics")
                 .addParam("resourceOid", resourceOid)
@@ -239,7 +236,7 @@ public class StatisticsService {
      * Retrieves the configured TTL for statistics from system configuration.
      * Falls back to default 24 hours if not configured.
      */
-    private Duration getConfiguredTTL(Task task, OperationResult result) {
+    private Duration getConfiguredTTL(OperationResult result) {
         try {
             SystemConfigurationType systemConfig = Objects.requireNonNull(systemObjectCache.getSystemConfiguration(result))
                     .asObjectable();
@@ -257,11 +254,11 @@ public class StatisticsService {
     /**
      * Checks if statistics have expired based on the configured TTL.
      */
-    private boolean isStatisticsExpired(XMLGregorianCalendar timestamp, Task task, OperationResult result) {
+    private boolean isStatisticsExpired(XMLGregorianCalendar timestamp, OperationResult result) {
         if (timestamp == null) {
             return true;
         }
-        Duration ttl = getConfiguredTTL(task, result);
+        Duration ttl = getConfiguredTTL(result);
         XMLGregorianCalendar expirationTime = XmlTypeConverter.addDuration(timestamp, ttl);
         return XmlTypeConverter.isBeforeNow(expirationTime);
     }

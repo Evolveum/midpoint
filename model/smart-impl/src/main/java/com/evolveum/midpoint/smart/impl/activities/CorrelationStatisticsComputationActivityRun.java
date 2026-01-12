@@ -87,7 +87,7 @@ public class CorrelationStatisticsComputationActivityRun extends SearchBasedActi
         var workDef = getWorkDefinition();
         var statistics = SmartIntegrationBeans.get().smartIntegrationService
                 .getLatestObjectTypeStatistics(
-                        workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), getRunningTask(), result);
+                        workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), result);
         return statistics != null ? statistics.getOid() : null;
     }
 

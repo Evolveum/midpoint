@@ -301,7 +301,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         assertThat(oid).isNotNull();
 
         var retrieved = smartIntegrationService.getLatestStatistics(
-                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, result);
 
         assertThat(retrieved).isNull();
         assertNoRepoObject(GenericObjectType.class, oid);
@@ -329,7 +329,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         String oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
 
         var retrieved = smartIntegrationService.getLatestStatistics(
-                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, result);
 
         assertThat(retrieved).isNotNull();
         assertThat(retrieved.getOid()).isEqualTo(oid);
@@ -360,7 +360,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         String oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
 
         var retrieved = smartIntegrationService.getLatestObjectTypeStatistics(
-                RESOURCE_DUMMY.oid, "account", "default", task, result);
+                RESOURCE_DUMMY.oid, "account", "default", result);
 
         assertThat(retrieved).isNull();
         assertNoRepoObject(GenericObjectType.class, oid);
@@ -389,7 +389,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         String oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
 
         var retrieved = smartIntegrationService.getLatestObjectTypeStatistics(
-                RESOURCE_DUMMY.oid, "account", "employee", task, result);
+                RESOURCE_DUMMY.oid, "account", "employee", result);
 
         assertThat(retrieved).isNotNull();
         assertThat(retrieved.getOid()).isEqualTo(oid);
@@ -422,16 +422,16 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         // Verify statistics exist
         var before = smartIntegrationService.getLatestStatistics(
-                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, result);
         assertThat(before).isNotNull();
 
         // Delete all statistics for this resource and object class
         smartIntegrationService.deleteStatisticsForResource(
-                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, result);
 
         // Verify all statistics were deleted
         var after = smartIntegrationService.getLatestStatistics(
-                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, task, result);
+                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, result);
         assertThat(after).isNull();
     }
 
@@ -461,16 +461,16 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         // Verify statistics exist
         var before = smartIntegrationService.getLatestObjectTypeStatistics(
-                RESOURCE_DUMMY.oid, "account", "test", task, result);
+                RESOURCE_DUMMY.oid, "account", "test", result);
         assertThat(before).isNotNull();
 
         // Delete all object type statistics for this resource/kind/intent
         smartIntegrationService.deleteObjectTypeStatistics(
-                RESOURCE_DUMMY.oid, "account", "test", task, result);
+                RESOURCE_DUMMY.oid, "account", "test", result);
 
         // Verify all statistics were deleted
         var after = smartIntegrationService.getLatestObjectTypeStatistics(
-                RESOURCE_DUMMY.oid, "account", "test", task, result);
+                RESOURCE_DUMMY.oid, "account", "test", result);
         assertThat(after).isNull();
     }
 
@@ -507,7 +507,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         // Retrieve statistics - should only return the object WITH statistics
         var retrieved = smartIntegrationService.getLatestStatistics(
-                RESOURCE_DUMMY.oid, new QName(NS_RI, "group"), task, result);
+                RESOURCE_DUMMY.oid, new QName(NS_RI, "group"), result);
 
         assertThat(retrieved).isNotNull();
         assertThat(retrieved.getOid()).isEqualTo(oidWithStats);

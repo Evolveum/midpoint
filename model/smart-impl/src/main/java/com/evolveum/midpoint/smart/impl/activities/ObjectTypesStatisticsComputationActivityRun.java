@@ -106,7 +106,7 @@ public class ObjectTypesStatisticsComputationActivityRun
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
         var workDef = getWorkDefinition();
         var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestStatistics(
-                workDef.getResourceOid(), workDef.getObjectClassName(), getRunningTask(), result);
+                workDef.getResourceOid(), workDef.getObjectClassName(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 

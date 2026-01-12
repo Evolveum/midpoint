@@ -13819,7 +13819,7 @@
                         will be automatically deleted when accessed. Default is P1D (1 day).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.9.1</a:since>
+                        <a:since>4.11</a:since>
                         <a:displayName>InternalsConfigurationType.smartIntegrationStatisticsTtl</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>

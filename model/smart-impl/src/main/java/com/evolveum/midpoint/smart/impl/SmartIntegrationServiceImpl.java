@@ -340,27 +340,27 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
+    public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
             throws SchemaException {
-        return statisticsService.getLatestStatistics(resourceOid, objectClassName, task, parentResult);
+        return statisticsService.getLatestStatistics(resourceOid, objectClassName, parentResult);
     }
 
     @Override
-    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
             throws SchemaException {
-        return statisticsService.getLatestObjectTypeStatistics(resourceOid, kind, intent, task, parentResult);
+        return statisticsService.getLatestObjectTypeStatistics(resourceOid, kind, intent, parentResult);
     }
 
     @Override
-    public void deleteStatisticsForResource(String resourceOid, QName objectClassName, Task task, OperationResult result)
+    public void deleteStatisticsForResource(String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException {
-        statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, task, result);
+        statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, result);
     }
 
     @Override
-    public void deleteObjectTypeStatistics(String resourceOid, String kind, String intent, Task task, OperationResult result)
+    public void deleteObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult result)
             throws SchemaException {
-        statisticsService.deleteObjectTypeStatistics(resourceOid, kind, intent, task, result);
+        statisticsService.deleteObjectTypeStatistics(resourceOid, kind, intent, result);
     }
 
     public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)

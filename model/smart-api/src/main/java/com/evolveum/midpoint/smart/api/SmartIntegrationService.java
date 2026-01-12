@@ -62,23 +62,23 @@ public interface SmartIntegrationService {
 
     /** Returns the object holding last known statistics for the given resource and object class. */
     GenericObjectType getLatestStatistics(
-            String resourceOid, QName objectClassName, Task task, OperationResult result)
+            String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException;
 
     /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
     GenericObjectType getLatestObjectTypeStatistics(
-            String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
+            String resourceOid, String kind, String intent, OperationResult parentResult)
             throws SchemaException;
 
 
     /** Deletes all statistics objects for the given resource and object class. */
     void deleteStatisticsForResource(
-            String resourceOid, QName objectClassName, Task task, OperationResult result)
+            String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException;
 
     /** Deletes all object type statistics for the given resource, kind, and intent. */
     void deleteObjectTypeStatistics(
-            String resourceOid, String kind, String intent, Task task, OperationResult result)
+            String resourceOid, String kind, String intent, OperationResult result)
             throws SchemaException;
 
     /** Returns the object holding last known schema match for the given resource, kind and intent. */
