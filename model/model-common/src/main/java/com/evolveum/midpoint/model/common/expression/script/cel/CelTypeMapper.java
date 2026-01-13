@@ -6,14 +6,25 @@
 
 package com.evolveum.midpoint.model.common.expression.script.cel;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypes;
+import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.CelValue;
+import dev.cel.common.values.OpaqueValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +41,10 @@ public class CelTypeMapper {
 
     private static final Map<CelType, QName> CEL_TO_XSD_TYPE_MAP = new HashMap<>();
     private static final Map<QName, CelType> XSD_TO_CEL_TYPE_MAP = new HashMap<>();
+
+    public static final String POLYSTRING_PACKAGE_NAME = PolyString.class.getTypeName();
+    public static final CelType POLYSTRING_TYPE =
+            OpaqueType.create(POLYSTRING_PACKAGE_NAME);
 
     private static final Trace LOGGER = TraceManager.getTrace(CelTypeMapper.class);
 
@@ -53,7 +68,7 @@ public class CelTypeMapper {
 //        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
 //        addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
-        addMapping(SimpleType.STRING, PrismConstants.POLYSTRING_TYPE_QNAME, false);
+        addMapping(POLYSTRING_TYPE, PrismConstants.POLYSTRING_TYPE_QNAME, true);
 
 //        addXsdToCelMapping(DOMUtil.XSD_ANYURI, String.class);
     }
@@ -104,6 +119,56 @@ public class CelTypeMapper {
         return XSD_TO_CEL_TYPE_MAP.get(xsdType);
     }
 
+
+    static <T> Object convertVariableValue(TypedValue<T> typedValue) {
+        ItemDefinition def = typedValue.getDefinition();
+        if (def == null) {
+            return typedValue.getValue();
+        }
+        if (def instanceof PrismPropertyDefinition<?>) {
+            if (QNameUtil.match(((PrismPropertyDefinition<?>)def).getTypeName(), PrismConstants.POLYSTRING_TYPE_QNAME)) {
+                Object value = typedValue.getValue();
+                if (value == null) {
+                    return createPolystringCelValue(null);
+                }
+                if (value instanceof PolyString) {
+
+                    return createPolystringCelValue((PolyString) value);
+                }
+                if (value instanceof PolyStringType) {
+                    PolyStringType polystringtype = (PolyStringType) typedValue.getValue();
+                    return createPolystringCelValue(polystringtype.toPolyString());
+                }
+            }
+        }
+        return typedValue.getValue();
+    }
+
+    private static CelValue createPolystringCelValue(PolyString polystring) {
+        return OpaqueValue.create(CelTypeMapper.POLYSTRING_PACKAGE_NAME, polystring);
+    }
+
+    public static boolean stringEqualsOpaque(String s, OpaqueValue opaqueValue) {
+        if (s == null && opaqueValue == null) {
+            return true;
+        }
+        if (s == null || opaqueValue == null) {
+            return false;
+        }
+        Object value = opaqueValue.value();
+        if (value == null) {
+            return false;
+        }
+        if (value instanceof PolyString) {
+            return s.equals(((PolyString)value).getOrig());
+        } else {
+            return s.equals(value);
+        }
+    }
+
+    public static boolean opaqueEqualsString(OpaqueValue opaqueValue, String s) {
+        return stringEqualsOpaque(s,opaqueValue);
+    }
 
     static {
         try {

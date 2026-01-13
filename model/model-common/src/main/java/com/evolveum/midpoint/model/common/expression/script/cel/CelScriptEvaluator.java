@@ -9,39 +9,35 @@ package com.evolveum.midpoint.model.common.expression.script.cel;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.script.groovy.SandboxTypeCheckingExtension;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.exception.*;
 
 import dev.cel.common.CelAbstractSyntaxTree;
-import dev.cel.common.CelValidationException;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.CelValidationResult;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.OpaqueValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
-import dev.cel.expr.Type;
 import dev.cel.parser.CelStandardMacro;
-import dev.cel.runtime.CelEvaluationException;
+import dev.cel.parser.Operator;
+import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntime;
+import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeFactory;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.glassfish.jaxb.core.v2.TODO;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Method;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -51,6 +47,8 @@ public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
 
     public static final String LANGUAGE_NAME = "CEL";
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
+    private static final String FUNCTION_STRING_EQUALS_OPAQUE_NAME = "string-equals-opaque";
+    private static final String FUNCTION_OPAQUE_EQUALS_STRING_NAME = "opaque-equals-string";
 
     /** Called by Spring but also by lower-level tests */
     public CelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
@@ -90,8 +88,14 @@ public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     }
 
     private CelCompiler getCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        // TODO: caching
+        return createCompiler(context);
+    }
+
+    private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         CelCompilerBuilder builder = CelCompilerFactory.standardCelCompilerBuilder();
         builder.setStandardMacros(CelStandardMacro.HAS);
+        compilerAddPolyStringDeclarations(builder, context);
         // TODO: Further compiler config
         for (var varEntry : prepareScriptVariablesTypedValueMap(context).entrySet()) {
             builder.addVar(varEntry.getKey(), convertToCelType(varEntry.getValue()));
@@ -136,14 +140,67 @@ public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         CelRuntime runtime = getRuntime(context);
         CelRuntime.Program program = runtime.createProgram(compiledScript);
 
-        Map<String, ?> variables = prepareScriptVariablesValueMap(context);
+        Map<String, ?> variables = prepareVariablesValueMap(context);
         Object resultObject = program.eval(variables);
         return resultObject;
     }
 
     private CelRuntime getRuntime(ScriptExpressionEvaluationContext context) {
+        return createRuntime(context);
+    }
+
+    private CelRuntime createRuntime(ScriptExpressionEvaluationContext context) {
         // TODO: consider expression profiles?
-        return CelRuntimeFactory.standardCelRuntimeBuilder().build();
+        // TODO: caching
+        CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
+        runtimeAddPolyStringDeclarations(builder, context);
+        return builder.build();
+    }
+
+    private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        final Map<String, Object> scriptVariableMap = new HashMap<>();
+        prepareScriptVariablesMap(context, scriptVariableMap, CelTypeMapper::convertVariableValue);
+        return scriptVariableMap;
+    }
+
+    private void compilerAddPolyStringDeclarations(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) {
+        builder.addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                        Operator.EQUALS.getFunction(),
+                        CelOverloadDecl.newGlobalOverload(
+                                FUNCTION_STRING_EQUALS_OPAQUE_NAME,
+                                SimpleType.BOOL,
+                                SimpleType.STRING,
+                                CelTypeMapper.POLYSTRING_TYPE
+                        )
+                )
+        );
+        builder.addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                        Operator.EQUALS.getFunction(),
+                        CelOverloadDecl.newGlobalOverload(
+                                FUNCTION_OPAQUE_EQUALS_STRING_NAME,
+                                SimpleType.BOOL,
+                                CelTypeMapper.POLYSTRING_TYPE,
+                                SimpleType.STRING
+                        )
+                )
+        );
+    }
+
+    private void runtimeAddPolyStringDeclarations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) {
+        builder.addFunctionBindings(
+                CelFunctionBinding.from(
+                        FUNCTION_STRING_EQUALS_OPAQUE_NAME,
+                        String.class, OpaqueValue.class,
+                        CelTypeMapper::stringEqualsOpaque
+                ),
+                CelFunctionBinding.from(
+                        FUNCTION_OPAQUE_EQUALS_STRING_NAME,
+                        OpaqueValue.class, String.class,
+                        CelTypeMapper::opaqueEqualsString
+                )
+        );
     }
 
     private static Throwable serializationSafeThrowable(Throwable e) {

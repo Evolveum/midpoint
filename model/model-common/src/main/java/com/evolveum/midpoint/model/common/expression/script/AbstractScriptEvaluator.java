@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
@@ -142,19 +140,21 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 
 
     /**
-     * Returns simple variable map: name -> value.
+     * Returns simple variable map: name -> value, including function libraries, contexts and all other objects.
      */
-    protected Map<String, Object> prepareScriptVariablesValueMap(ScriptExpressionEvaluationContext context)
+    protected Map<String, Object> prepareUnifiedScriptVariablesValueMap(ScriptExpressionEvaluationContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         final Map<String, Object> scriptVariableMap = new HashMap<>();
+        prepareFunctionLibraryMap(context, scriptVariableMap,
+                variableTypedValue -> variableTypedValue.getValue());
         prepareScriptVariablesMap(context, scriptVariableMap,
                 variableTypedValue -> variableTypedValue.getValue());
         return scriptVariableMap;
     }
 
     /**
-     * Returns typed variable map: name -> TypedValue.
+     * Returns typed variable map: name -> TypedValue, just for the variables.
      */
     protected Map<String, TypedValue<?>> prepareScriptVariablesTypedValueMap(ScriptExpressionEvaluationContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
@@ -163,6 +163,21 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         prepareScriptVariablesMap(context, scriptVariableMap,
                 variableTypedValue -> variableTypedValue);
         return scriptVariableMap;
+    }
+
+    /**
+     * Process functional libraries (name -> implementation) into a map, including a value conversion by lambda.
+     */
+    protected <T> void prepareFunctionLibraryMap(ScriptExpressionEvaluationContext context, Map<String,T> map, Function<TypedValue<?>,T> converter)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+
+        // Functions
+        for (FunctionLibraryBinding funcLib : emptyIfNull(context.getFunctionLibraryBindings())) {
+            Object implementation = funcLib.getImplementation();
+            TypedValue<?> typedValue = new TypedValue<>(implementation, implementation.getClass());
+            map.put(funcLib.getVariableName(), converter.apply(typedValue));
+        }
     }
 
     /**

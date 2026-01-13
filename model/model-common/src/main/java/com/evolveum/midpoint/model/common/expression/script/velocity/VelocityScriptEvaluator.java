@@ -59,7 +59,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         VelocityContext velocityCtx = new VelocityContext();
-        Map<String, Object> scriptVariables = prepareScriptVariablesValueMap(context);
+        Map<String, Object> scriptVariables = prepareUnifiedScriptVariablesValueMap(context);
         for (Map.Entry<String, Object> scriptVariable : scriptVariables.entrySet()) {
             velocityCtx.put(scriptVariable.getKey(), scriptVariable.getValue());
         }

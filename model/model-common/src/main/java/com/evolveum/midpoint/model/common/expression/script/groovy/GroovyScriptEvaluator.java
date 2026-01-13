@@ -183,7 +183,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
             throw new ExpressionEvaluationException("Expected groovy script class, but got " + compiledScriptClass);
         }
 
-        Binding binding = new Binding(prepareScriptVariablesValueMap(context));
+        Binding binding = new Binding(prepareUnifiedScriptVariablesValueMap(context));
         try {
             Script scriptResultObject = InvokerHelper.createScript(compiledScriptClass, binding);
 
