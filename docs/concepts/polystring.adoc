@@ -61,7 +61,7 @@ And there is an (experimental) option to create a completely custom normalizer.
 
 See xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normalization Configuration] page for more details.
 
-=== PolyString Localization
+== PolyString Localization
 
 MidPoint has a fully localized user interface.
 This means that all the strings used in the user interface are localized.
