@@ -6,11 +6,15 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import java.io.BufferedWriter;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
@@ -256,12 +260,31 @@ public class SqaleRepoContext extends SqlRepoContext {
         try {
             // Note that escaping invalid characters and using toString for unsupported types
             // is safe in the context of operation result serialization.
-            return createStringSerializer()
+            String string = createStringSerializer()
                     .options(SerializationOptions.createEscapeInvalidCharacters()
                             .serializeUnsupportedTypesAsString(true)
                             .skipWhitespaces(true))
-                    .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT)
-                    .getBytes(StandardCharsets.UTF_8);
+                    .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT);
+            try {
+                return string.getBytes(StandardCharsets.UTF_8);
+            } catch (RuntimeException e) {
+                LOGGER.error("Failed to encode the operation result into UTF-8; will try UTF-16LE", e);
+                var filename = "operation-result-%s".formatted(UUID.randomUUID().toString());
+                try {
+                    Files.writeString(Path.of(filename + ".utf16"), string, StandardCharsets.UTF_16LE);
+                } catch (Exception e1) {
+                    LOGGER.error("Failed to encode the operation result into UTF-16LE for debugging purposes; will try hex dump", e1);
+                    try (BufferedWriter w = Files.newBufferedWriter(Path.of(filename + ".txt"))) {
+                        for (int i = 0; i < string.length(); i++) {
+                            w.write(String.format("%04X ", (int) string.charAt(i)));
+                        }
+                    } catch (Exception e2) {
+                        throw new SystemException("Failed to write operation result to hex dump", e2);
+                    }
+                }
+                throw new SystemException(
+                        "Failed to encode the operation result into UTF-8; a debug dump has been written to " + filename, e);
+            }
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema exception", e);
         }
