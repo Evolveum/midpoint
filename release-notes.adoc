@@ -277,12 +277,18 @@ Note that:
 Upgrade from midPoint versions other than 4.9.x to midPoint {release-version} is not supported directly.
 Please upgrade to 4.9.5 first.
 
-=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.9
+=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.10
 
 NOTE: This section is relevant to the majority of midPoint deployments.
 It refers to the most significant functionality removals and changes in this version.
 
-The support for databases other than PostgreSQL was dropped.
+* The _PolyStringType.orig_ value is no longer treated as a translation key.
+Previously, due to the old PolyStringType structure, there were situations where the orig value of a polystring was interpreted as a translation key.
+For example, this occurred when a polystring was defined within a DisplayType object as a label for an object collection view.
+In such cases, if no explicit translation key was provided, midPoint attempted to translate the orig value.
+Starting from 4.11 version, the orig value will never be translated.
+Please ensure that all PolyStringType values in your environment are defined correctly.
+If localization is required, explicitly define translation keys or language-specific values within the polystring.
 
 === Changes In Initial Objects Since 4.9
 
