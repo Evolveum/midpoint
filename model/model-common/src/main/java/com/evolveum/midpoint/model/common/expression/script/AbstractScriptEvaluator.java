@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -137,16 +140,43 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         return false;
     }
 
+
     /**
      * Returns simple variable map: name -> value.
      */
     protected Map<String, Object> prepareScriptVariablesValueMap(ScriptExpressionEvaluationContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        Map<String, Object> scriptVariableMap = new HashMap<>();
+        final Map<String, Object> scriptVariableMap = new HashMap<>();
+        prepareScriptVariablesMap(context, scriptVariableMap,
+                variableTypedValue -> variableTypedValue.getValue());
+        return scriptVariableMap;
+    }
+
+    /**
+     * Returns typed variable map: name -> TypedValue.
+     */
+    protected Map<String, TypedValue<?>> prepareScriptVariablesTypedValueMap(ScriptExpressionEvaluationContext context)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        final Map<String, TypedValue<?>> scriptVariableMap = new HashMap<>();
+        prepareScriptVariablesMap(context, scriptVariableMap,
+                variableTypedValue -> variableTypedValue);
+        return scriptVariableMap;
+    }
+
+    /**
+     * Process variables (name -> TypedValue) into a map, including a value conversion by lambda.
+     */
+    protected <T> void prepareScriptVariablesMap(ScriptExpressionEvaluationContext context, Map<String,T> map, Function<TypedValue<?>,T> converter)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+
         // Functions
         for (FunctionLibraryBinding funcLib : emptyIfNull(context.getFunctionLibraryBindings())) {
-            scriptVariableMap.put(funcLib.getVariableName(), funcLib.getImplementation());
+            Object implementation = funcLib.getImplementation();
+            TypedValue<?> typedValue = new TypedValue<>(implementation, implementation.getClass());
+            map.put(funcLib.getVariableName(), converter.apply(typedValue));
         }
 
         // Variables
@@ -169,7 +199,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
                         valueVariableMode,
                         prismContext, context.getTask(), context.getResult());
 
-                scriptVariableMap.put(variableName, variableTypedValue.getValue());
+                map.put(variableName, converter.apply(variableTypedValue));
                 if (context.getTrace() != null && !variables.isAlias(variableName)) {
                     ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType();
                     variableTrace.setName(new QName(variableName));
@@ -181,15 +211,14 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             }
         }
 
-        putIfMissing(scriptVariableMap, ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
-        putIfMissing(scriptVariableMap, ExpressionConstants.VAR_LOCALIZATION_SERVICE, localizationService);
-
-        return scriptVariableMap;
+        putIfMissing(map, converter, ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
+        putIfMissing(map, converter, ExpressionConstants.VAR_LOCALIZATION_SERVICE, localizationService);
     }
 
-    private void putIfMissing(Map<String, Object> scriptVariableMap, String key, Object value) {
-        if (!scriptVariableMap.containsKey(key)) {
-            scriptVariableMap.put(key, value);
+    private <T> void putIfMissing(Map<String,T> map, Function<TypedValue<?>,T> converter, String key, Object value) {
+        if (!map.containsKey(key)) {
+            TypedValue<?> typedValue = new TypedValue<>(value, value.getClass());
+            map.put(key, converter.apply(typedValue));
         }
     }
 
