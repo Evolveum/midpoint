@@ -66,10 +66,11 @@ and configure the mapping:
     ** _Literal_: Specify one or more constant values upon clicking btn:[Show values].
     ** _Script_: Define a more complex behavior using a script upon clicking btn:[Show script].
     ** _Generate_: Generate a random string.
-        This is typically used for generating passwords abiding the xref:/midpoint/reference/security/credentials/password-policy/[].
+        You can use this to generate passwords.
         Click btn:[Show generate] to select the mode:
-        *** _Policy_: Select the policy for the password generation.
-        *** _Universal Unique Identifier_: Generate a unique identifier (UUID).
+        *** _Policy_: Generate a password abiding a default or explicitly selected xref:/midpoint/reference/security/credentials/password-policy/[password policy].
+        *** _Universal Unique Identifier_: Generate a random unique identifier (UUID).
+// The UUID mode does not take any policy, selected or not, into account. The related schema docs: https://github.com/Evolveum/midpoint/blob/a6d3e857d2f989822d157f06dce84cc4be55d4b3/infra/schema/src/main/resources/xml/ns/public/common/common-core-3.xsd#L6525 @dakle 2026-01-13
     ** _Path_: Reference a property or a variable upon clicking btn:[Show path].
 * *Target* (inbound mapping): Select a midPoint property in which to store the mapping output.
 * *To resource attribute* (outbound mapping): Select a resource property in which to store the mapping output.
