@@ -517,6 +517,10 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
             logger.error("Couldn't parse object {} {}: {}: {}\nSerialized form: '{}'",
                     clazz.getSimpleName(), identifier,
                     e.getClass().getName(), e.getMessage(), serializedForm);
+            if (logger.isDebugEnabled()) {
+                // TODO Switch to LoggingUtils.logException eventually (but that would require using Trace instead of Logger)
+                logger.debug(e.getMessage(), e); // This is to obtain the stacktrace in debug logs
+            }
             throw e;
         }
     }
