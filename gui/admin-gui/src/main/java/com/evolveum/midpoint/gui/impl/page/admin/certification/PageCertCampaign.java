@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -246,8 +248,13 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             }
         };
         button.showTitleAsLabel(true);
+        button.add(new VisibleBehaviour(this::isAuthorizedForReportCreation));
         button.add(AttributeModifier.append("class", "btn btn-default"));
         rightButtonsView.add(button);
+    }
+
+    private boolean isAuthorizedForReportCreation() {
+        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI);
     }
 
     private void addReloadButton(RepeatingView rightButtonsView) {
