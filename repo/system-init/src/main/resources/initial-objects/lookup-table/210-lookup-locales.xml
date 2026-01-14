@@ -92,4 +92,8 @@
         <key>sl</key>
         <label>Slovenščina</label>
     </row>
+    <row id="22">
+        <key>lv</key>
+        <label>Latvių</label>
+    </row>
 </lookupTable>
