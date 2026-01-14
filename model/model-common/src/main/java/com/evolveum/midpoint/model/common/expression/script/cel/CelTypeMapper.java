@@ -170,6 +170,32 @@ public class CelTypeMapper {
         return stringEqualsOpaque(s,opaqueValue);
     }
 
+    public static String funcPolystringOrig(OpaqueValue opaqueValue) {
+        if (opaqueValue == null || opaqueValue.value() == null) {
+            return null;
+        }
+        return getPolystring(opaqueValue).getOrig();
+    }
+
+    public static String funcPolystringNorm(OpaqueValue opaqueValue) {
+        if (opaqueValue == null || opaqueValue.value() == null) {
+            return null;
+        }
+        return getPolystring(opaqueValue).getNorm();
+    }
+
+    private static PolyString getPolystring(OpaqueValue opaqueValue) {
+        Object value = opaqueValue.value();
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof PolyString) {
+            return (PolyString)value;
+        } else {
+            throw new IllegalArgumentException("Expected PolyString value, but got "+value+" ("+value.getClass()+")");
+        }
+    }
+
     static {
         try {
             initTypeMap();
@@ -178,5 +204,6 @@ public class CelTypeMapper {
             throw new IllegalStateException("Cannot initialize XSD-CEL type mapping: " + e.getMessage(), e);
         }
     }
+
 
 }

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.common.expression.script.cel;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.util.exception.*;
 
 import dev.cel.common.CelAbstractSyntaxTree;
@@ -36,6 +38,7 @@ import dev.cel.runtime.CelRuntimeFactory;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,12 +46,18 @@ import java.util.Map;
 /**
  * Expression evaluator that is using Common Expression Language (CEL).
  */
-public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree> {
+public class CelScriptEvaluator extends AbstractScriptEvaluator {
+// TODO: proper caching
+//    public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree> {
 
     public static final String LANGUAGE_NAME = "CEL";
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
-    private static final String FUNCTION_STRING_EQUALS_OPAQUE_NAME = "string-equals-opaque";
-    private static final String FUNCTION_OPAQUE_EQUALS_STRING_NAME = "opaque-equals-string";
+    private static final String FUNCTION_STRING_EQUALS_OPAQUE_ID = "string-equals-opaque";
+    private static final String FUNCTION_OPAQUE_EQUALS_STRING_ID = "opaque-equals-string";
+    private static final String FUNCTION_POLYSTRING_ORIG_NAME = "orig";
+    private static final String FUNCTION_POLYSTRING_ORIG_ID = "polystring-orig";
+    private static final String FUNCTION_POLYSTRING_NORM_NAME = "norm";
+    private static final String FUNCTION_POLYSTRING_NORM_ID = "polystring-norm";
 
     /** Called by Spring but also by lower-level tests */
     public CelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
@@ -72,14 +81,26 @@ public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         return true;
     }
 
+    // TODO: Temporary
     @Override
+    public @Nullable Object evaluateInternal(
+            @NotNull String codeString, @NotNull ScriptExpressionEvaluationContext context)
+            throws Exception {
+
+        CelAbstractSyntaxTree compiledScript = compileScript(codeString, context);
+
+        InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
+        return evaluateScript(compiledScript, context);
+    }
+
+//    @Override
     protected CelAbstractSyntaxTree compileScript(String codeString, ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, SecurityViolationException {
         try {
             CelValidationResult validationResult = getCompiler(context).compile(codeString, context.getContextDescription());
             // TODO: validationResult.hasError()
             return validationResult.getAst();
-        } catch (Throwable e) {
+        } catch (Throwable e) { // TODO: CelValidationException
             throw new ExpressionEvaluationException(
                     "Unexpected error during compilation of script in %s: %s".formatted(
                             context.getContextDescription(), e.getMessage()),
@@ -134,7 +155,7 @@ public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
 //    }
 
 
-    @Override
+//    @Override
     protected Object evaluateScript(CelAbstractSyntaxTree compiledScript, ScriptExpressionEvaluationContext context) throws Exception {
 
         CelRuntime runtime = getRuntime(context);
@@ -168,21 +189,35 @@ public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
                 CelFunctionDecl.newFunctionDeclaration(
                         Operator.EQUALS.getFunction(),
                         CelOverloadDecl.newGlobalOverload(
-                                FUNCTION_STRING_EQUALS_OPAQUE_NAME,
+                                FUNCTION_STRING_EQUALS_OPAQUE_ID,
                                 SimpleType.BOOL,
                                 SimpleType.STRING,
                                 CelTypeMapper.POLYSTRING_TYPE
                         )
-                )
-        );
-        builder.addFunctionDeclarations(
+                ),
                 CelFunctionDecl.newFunctionDeclaration(
                         Operator.EQUALS.getFunction(),
                         CelOverloadDecl.newGlobalOverload(
-                                FUNCTION_OPAQUE_EQUALS_STRING_NAME,
+                                FUNCTION_OPAQUE_EQUALS_STRING_ID,
                                 SimpleType.BOOL,
                                 CelTypeMapper.POLYSTRING_TYPE,
                                 SimpleType.STRING
+                        )
+                ),
+                CelFunctionDecl.newFunctionDeclaration(
+                        FUNCTION_POLYSTRING_ORIG_NAME,
+                        CelOverloadDecl.newMemberOverload(
+                                FUNCTION_POLYSTRING_ORIG_ID,
+                                SimpleType.STRING,
+                                CelTypeMapper.POLYSTRING_TYPE
+                        )
+                ),
+                CelFunctionDecl.newFunctionDeclaration(
+                        FUNCTION_POLYSTRING_NORM_NAME,
+                        CelOverloadDecl.newMemberOverload(
+                                FUNCTION_POLYSTRING_NORM_ID,
+                                SimpleType.STRING,
+                                CelTypeMapper.POLYSTRING_TYPE
                         )
                 )
         );
@@ -191,14 +226,24 @@ public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     private void runtimeAddPolyStringDeclarations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) {
         builder.addFunctionBindings(
                 CelFunctionBinding.from(
-                        FUNCTION_STRING_EQUALS_OPAQUE_NAME,
+                        FUNCTION_STRING_EQUALS_OPAQUE_ID,
                         String.class, OpaqueValue.class,
                         CelTypeMapper::stringEqualsOpaque
                 ),
                 CelFunctionBinding.from(
-                        FUNCTION_OPAQUE_EQUALS_STRING_NAME,
+                        FUNCTION_OPAQUE_EQUALS_STRING_ID,
                         OpaqueValue.class, String.class,
                         CelTypeMapper::opaqueEqualsString
+                ),
+                CelFunctionBinding.from(
+                        FUNCTION_POLYSTRING_ORIG_ID,
+                        OpaqueValue.class,
+                        CelTypeMapper::funcPolystringOrig
+                ),
+                CelFunctionBinding.from(
+                        FUNCTION_POLYSTRING_NORM_ID,
+                        OpaqueValue.class,
+                        CelTypeMapper::funcPolystringNorm
                 )
         );
     }
