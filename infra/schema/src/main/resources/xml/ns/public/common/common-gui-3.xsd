@@ -3907,7 +3907,7 @@
                     </xsd:documentation>
                     <!-- Note: this may be later extended to accept also more specific pattern, e.g. HH:MM:SS  -->
                     <xsd:appinfo>
-                        <a:displayName>AdminGuiConfigurationRoleManagementType.assignmentApprovalRequestLimit</a:displayName>
+                        <a:displayName>AdminGuiConfigurationDisplayFormatsType.shortDateTimeFormat</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -3919,19 +3919,19 @@
                             concern (e.g. full-screen forms).
                             The pattern is a two character code. The first character is the date style, and the second
                             character is the time style. Specify a character of 'S' for short style, 'M' for medium,
-                            'L' for long, and 'F' for full. A date or time may be ommitted by specifying a style character '-'.
+                            'L' for long, and 'F' for full. A date or time may be omitted by specifying a style character '-'.
                             The actual presentation of days, months, hours and so on are specified by localization settings.
                         </p>
                     </xsd:documentation>
                     <!-- Note: this may be later extended to accept also more specific pattern, e.g. HH:MM:SS  -->
                     <xsd:appinfo>
-                        <a:displayName>AdminGuiConfigurationRoleManagementType.assignmentApprovalRequestLimit</a:displayName>
+                        <a:displayName>AdminGuiConfigurationDisplayFormatsType.longDateTimeFormat</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- Note: more display settings may come here later, e.g.:
-                        precision (ronuding) of floating-point values
-                        deafault boolean presentation (checkbox, on/off switch, dropdown) -->
+                        precision (rounding) of floating-point values
+                        default boolean presentation (checkbox, on/off switch, dropdown) -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

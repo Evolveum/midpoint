@@ -61,6 +61,101 @@ And there is an (experimental) option to create a completely custom normalizer.
 
 See xref:/midpoint/reference/schema/polystring-normalization/[PolyString Normalization Configuration] page for more details.
 
+== PolyString Localization
+
+MidPoint has a fully localized user interface.
+This means that all the strings used in the user interface are localized.
+User interface is using keys instead of final strings and the keys are translated to a specific language by using translation catalogs.
+Such localization works well for all the strings that are present at _compile time_. But there are many things in midPoint that are configured during the deployment.
+E.g. it is often desired to name objects in multiple languages.
+Maybe we need names of the roles in several languages.
+Or names of organizational units.
+Those objects are not present at compile time.
+Therefore ordinary localization techniques cannot be used on their own.
+
+We have considered this issue very early in midPoint design.
+And it was one of the motivations to introduce PolyString.
+The idea is that PolyString could be used to store language mutations.
+Simplest form is to specify strings for all supported languages:
+
+[source,xml]
+----
+<role>
+  <name>
+    <orig>System administrator</orig> <!-- This will be used for languages that do not have translations. -->
+    <lang>
+      <en>
+        <orig>System administrator</orig>
+      </en>
+      <sk>
+        <orig>Systémový správca</orig>
+     </sk>
+     <cz>
+        <orig>Správce systému</orig>
+     </cz>
+   </lang>
+  </name>
+  ...
+</role>
+----
+
+There may be a cases, when the object name is in fact already part of the localization catalogs, e.g. if the object refers to some well-known object in midPoint.
+In that case the PolyString can simply refer to a localization key:
+
+[source,xml]
+----
+<role>
+  <name>
+    <translation>
+      <key>RelationTypes.owner</key>
+    </translation>
+  </name>
+  ...
+</role>
+----
+
+Or there may be a more complex case that includes translation parameters:
+
+[source,xml]
+----
+<case>
+  <name>
+    <translation>
+      <key>ObjectSpecification</key>
+      <argument>
+        <translation>
+          <key>ObjectTypeLowercase.RoleType</key>
+          <fallback>RoleType</fallback>
+        </translation>
+      </argument>
+      <argument>
+        <value>Role1</value>
+      </argument>
+    </translation>
+  </name>
+  ...
+</case>
+----
+
+==== Implementation
+
+The algorithm is supposed to work like this:
+
+. Values from `lang` are processed.
+If there is a suitable value for current language then this value is displayed.
+The values of `lang` are supposed to always override anything else in polystring.
+
+. Translations are processed.
+MidPoint looks in the catalog files for translation keys.
+In case that a particular translation key is not found, the `fallback` will be used.
+In case that fallback is not specified for any inner (nested) translations, then the translation key itself will be used.
+In case of top-level translation the behavior is different: if the key cannot be found and there is no fallback then the `orig` value will be used.
+
+. The `orig` value of the polystring is used as default value.
+It will be used in case that there is no suitable `lang` for a particular language, there is no `translation` or that the translation does not provide meaningful result (e.g. the translation key cannot be found).
+
+IMPORTANT: _orig_ value of the polystring is never treated as a translation key. Therefore, it cannot be translated, but it is always used as it is. To make a polystring value localized, please, configure it in a right way using translation keys or languages within polystring.
+
 == Future
 
 See xref:/midpoint/features/planned/polystring/[PolyString Improvements] page to learn about planned improvements to polystrings.

@@ -13812,6 +13812,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="smartIntegrationStatisticsTtl" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Time-to-live for smart integration statistics objects. Statistics older than this
+                        will be automatically deleted when accessed. Default is P1D (1 day).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>InternalsConfigurationType.smartIntegrationStatisticsTtl</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
