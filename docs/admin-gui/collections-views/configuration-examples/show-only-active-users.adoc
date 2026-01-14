@@ -1,4 +1,6 @@
 = Show Only Active Users HOWTO
+// NGDe2 redirect
+:page-moved-from: /midpoint/reference/admin-gui/collections-views/show-only-active-users/
 :page-wiki-name: Show Only Active Users HOWTO
 :page-wiki-id: 26214493
 :page-wiki-metadata-create-user: semancik

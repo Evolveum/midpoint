@@ -1,4 +1,6 @@
 = Example of Audit search panel configuration
+// NGDe2 redirect
+:page-moved-from: /midpoint/reference/admin-gui/collections-views/example-audit-search/
 :page-nav-title: Example: audit search
 :page-wiki-name: Example of Audit search panel configuration
 :page-wiki-id: 61472777

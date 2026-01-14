@@ -1,4 +1,6 @@
 = Example of custom collection view in searchbox
+// NGDe2 redirect
+:page-moved-from: /midpoint/reference/admin-gui/collections-views/example-searchbox-managers/
 :page-nav-title: Example: Custom collection in searchbox
 :page-wiki-name: Example of custom collection view in searchbox
 
