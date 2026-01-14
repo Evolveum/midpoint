@@ -1,0 +1,53 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<objectDeltaOperation xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xsi:type="c:ObjectDeltaOperationType">
+
+    <objectDelta>
+        <t:changeType>modify</t:changeType>
+        <t:objectType>UserType</t:objectType>
+        <t:itemDelta>
+            <t:modificationType>replace</t:modificationType>
+            <t:path>description</t:path>
+            <t:value xsi:type="xsd:string">my custom description</t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>replace</t:modificationType>
+            <t:path>organization</t:path>
+            <t:value xsi:type="t:PolyStringType">org1</t:value>
+            <t:value xsi:type="t:PolyStringType">org2</t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>add</t:modificationType>
+            <t:path>activation</t:path>
+            <t:value id="0" xsi:type="c:ActivationType">
+                <administrativeStatus>disabled</administrativeStatus>
+                <disableReason>somedisable reason</disableReason>
+            </t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>add</t:modificationType>
+            <t:path>assignment</t:path>
+            <t:value id="0" xsi:type="c:AssignmentType">
+                <description>Approved</description>
+                <targetRef oid="123a49bc-6f5b-4746-8461-2e1a63307123" type="c:RoleType"/>
+            </t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>add</t:modificationType>
+            <t:path>assignment</t:path>
+            <t:value id="1" xsi:type="c:AssignmentType">
+                <description>Default</description>
+                <targetRef oid="456a49bc-6f5b-4746-8461-2e1a63307456" type="c:RoleType"/>
+            </t:value>
+        </t:itemDelta>
+    </objectDelta>
+</objectDeltaOperation>
