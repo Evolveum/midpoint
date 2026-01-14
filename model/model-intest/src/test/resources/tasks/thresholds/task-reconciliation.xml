@@ -1,0 +1,63 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="ccd6df6c-123a-4d9d-b48e-e4de9bf3f2e2">
+    <name>Dummy reconciliatione</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <objectRef oid="8f82e457-6c6e-42d7-a433-1a346b1899ee" type="ResourceType"/>
+    <binding>loose</binding>
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="8f82e457-6c6e-42d7-a433-1a346b1899ee" type="ResourceType"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <policies>
+            <policy>
+                <name>policy rule with notify</name>
+                <policyConstraints>
+                    <itemProcessingResult>
+                        <errorCategory>network</errorCategory>
+                    </itemProcessingResult>
+                </policyConstraints>
+                <policyThreshold>
+                    <lowWaterMark>
+                        <count>2</count>
+                    </lowWaterMark>
+                </policyThreshold>
+                <policyActions>
+                    <notification/>
+                </policyActions>
+                <order>10</order>
+            </policy>
+            <policy>
+                <name>policy rule with suspend</name>
+                <policyConstraints>
+                    <itemProcessingResult>
+                        <errorCategory>network</errorCategory>
+                    </itemProcessingResult>
+                </policyConstraints>
+                <policyThreshold>
+                    <lowWaterMark>
+                        <count>3</count>
+                    </lowWaterMark>
+                </policyThreshold>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
+                <order>20</order>
+            </policy>
+        </policies>
+    </activity>
+</task>
