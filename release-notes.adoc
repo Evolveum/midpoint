@@ -40,15 +40,13 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 * bug:MID-10965[] Fast correlators simulation.
 
-== Changes With Respect To Version 4.10
-
-=== New Features and Major Improvements
-
 #TODO#
 
 === Other Improvements
 
 * Added support for Slovenian (sl), Latvian (lv) language.
+* Multiple libraries updated, including spring boot.
+* Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
 
 === Major Bugfixes
 
@@ -66,7 +64,8 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed required comment validation while approving certification item. See bug:MID-10974[].
 * Fixed translation of the left menu items for collection views. See bug:MID-10998[].
 * Fixed polystring translation. From now, orig value of the polystring is never translated. See bug:MID-10996[].
-
+* Fixed attempt to modify immutable definition. See bug:MID-11001[].
+* Fixed schema type object updates and prism context schema registry reload. See bug:MID-10983[].
 
 === Releases Of Other Components
 
