@@ -69,6 +69,7 @@ public class SchemaMatchService {
     public SchemaMatchResultType computeSchemaMatch(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            boolean useAiService,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -81,7 +82,7 @@ public class SchemaMatchService {
             var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result);
             var focusTypeDefinition = ctx.getFocusTypeDefinition();
             var matchingOp = new SchemaMatchingOperation(ctx, knownSchemaService);
-            var match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource);
+            var match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource, useAiService);
 
             SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()
                     .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));

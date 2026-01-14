@@ -53,7 +53,8 @@ class SchemaMatchingOperation {
     SiMatchSchemaResponseType matchSchema(
             ResourceObjectTypeDefinition objectTypeDef,
             PrismObjectDefinition<?> focusDef,
-            ResourceType resource)
+            ResourceType resource,
+            boolean useAiService)
             throws SchemaException {
 
         MiscUtil.stateCheck(resourceSideSerializer == null, "matchSchema method was already called");
@@ -61,6 +62,7 @@ class SchemaMatchingOperation {
         resourceSideSerializer = ResourceObjectClassSchemaSerializer.create(objectTypeDef.getObjectClassDefinition(), resource);
         midPointSideSerializer = PrismComplexTypeDefinitionSerializer.create(focusDef);
 
+        SiMatchSchemaResponseType systemSchemaMatch = null;
         Optional<KnownSchemaType> detection = knownSchemaService.detectSchemaType(resource, objectTypeDef);
         if (detection.isPresent()) {
             detectedSchemaType = detection.get();
@@ -68,15 +70,66 @@ class SchemaMatchingOperation {
             if (provider.isPresent()) {
                 LOGGER.info("Using known schema mappings for resource {} (detected: {})",
                         resource.getOid(), detection.get());
-                return convertToSchemaResponse(provider.get().getSchemaMatches());
+                systemSchemaMatch = convertToSchemaResponse(provider.get().getSchemaMatches());
             }
         }
 
-        LOGGER.debug("No known schema detected for resource {}, calling AI service", resource.getOid());
-        var siRequest = new SiMatchSchemaRequestType()
-                .applicationSchema(resourceSideSerializer.serialize())
-                .midPointSchema(midPointSideSerializer.serialize());
-        return ctx.serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
+        SiMatchSchemaResponseType aiSchemaMatch = null;
+        if (useAiService) {
+            LOGGER.debug("Calling AI service for schema matching on resource {}", resource.getOid());
+            var siRequest = new SiMatchSchemaRequestType()
+                    .applicationSchema(resourceSideSerializer.serialize())
+                    .midPointSchema(midPointSideSerializer.serialize());
+            aiSchemaMatch = ctx.serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
+        }
+
+        return mergeSchemaMatches(systemSchemaMatch, aiSchemaMatch);
+    }
+
+    private SiMatchSchemaResponseType mergeSchemaMatches(
+            SiMatchSchemaResponseType heuristicMatches,
+            SiMatchSchemaResponseType aiMatches) {
+
+        if (heuristicMatches == null && aiMatches == null) {
+            LOGGER.debug("No schema matches available from either heuristic or AI service");
+            return new SiMatchSchemaResponseType();
+        }
+
+        if (aiMatches == null || aiMatches.getAttributeMatch().isEmpty()) {
+            LOGGER.debug("Using only heuristic matches (AI matches not available)");
+            return heuristicMatches != null ? heuristicMatches : new SiMatchSchemaResponseType();
+        }
+
+        if (heuristicMatches == null || heuristicMatches.getAttributeMatch().isEmpty()) {
+            LOGGER.debug("Using only AI matches (heuristic matches not available)");
+            return aiMatches;
+        }
+
+        var heuristicMatchPairs = heuristicMatches.getAttributeMatch().stream()
+                .map(match -> new MatchPair(match.getApplicationAttribute(), match.getMidPointAttribute()))
+                .collect(java.util.stream.Collectors.toSet());
+
+        SiMatchSchemaResponseType mergedResponse = new SiMatchSchemaResponseType();
+        mergedResponse.getAttributeMatch().addAll(heuristicMatches.getAttributeMatch());
+
+        int addedAiMatches = 0;
+        int skippedDuplicates = 0;
+        for (SiAttributeMatchSuggestionType aiMatch : aiMatches.getAttributeMatch()) {
+            MatchPair aiPair = new MatchPair(aiMatch.getApplicationAttribute(), aiMatch.getMidPointAttribute());
+            if (!heuristicMatchPairs.contains(aiPair)) {
+                mergedResponse.getAttributeMatch().add(aiMatch);
+                addedAiMatches++;
+            } else {
+                skippedDuplicates++;
+                LOGGER.debug("Skipping AI match '{}' -> '{}' - already covered by heuristic match",
+                        aiMatch.getApplicationAttribute(), aiMatch.getMidPointAttribute());
+            }
+        }
+
+        LOGGER.info("Schema match merge complete: {} heuristic + {} AI = {} total ({} duplicates skipped)",
+                heuristicMatches.getAttributeMatch().size(), addedAiMatches, mergedResponse.getAttributeMatch().size(), skippedDuplicates);
+
+        return mergedResponse;
     }
 
     ItemPath getFocusItemPath(String descriptivePath) {
@@ -102,5 +155,8 @@ class SchemaMatchingOperation {
                     .midPointAttribute(DescriptiveItemPath.asStringSimple(focusPath)));
         }
         return response;
+    }
+
+    private record MatchPair(String applicationAttribute, String midPointAttribute) {
     }
 }

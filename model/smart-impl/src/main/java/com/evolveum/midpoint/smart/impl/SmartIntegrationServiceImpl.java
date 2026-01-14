@@ -190,11 +190,12 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public SchemaMatchResultType computeSchemaMatch(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            boolean useAiService,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        return schemaMatchService.computeSchemaMatch(resourceOid, typeIdentification, task, parentResult);
+        return schemaMatchService.computeSchemaMatch(resourceOid, typeIdentification, useAiService, task, parentResult);
     }
 
     @Override
