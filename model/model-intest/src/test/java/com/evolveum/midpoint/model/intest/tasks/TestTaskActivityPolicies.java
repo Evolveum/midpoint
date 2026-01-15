@@ -8,14 +8,18 @@ package com.evolveum.midpoint.model.intest.tasks;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 import org.assertj.core.api.Assertions;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
+import com.evolveum.icf.dummy.resource.ConnectorOperationHook;
+import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -157,7 +161,16 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        dummyResourceCtl.getDummyResource().setBreakMode(mode);
+        dummyResourceCtl.getDummyResource().registerHook(new ConnectorOperationHook() {
+
+            @Override
+            public void beforeHandleResultObject(DummyObject object) {
+                // only one specific account is "broken" and can't be fetched
+                if (Objects.equals(object.getName(), "jsmith")) {
+                    throw new ConnectorException("Dummy generic connector exception on jsmith account");
+                }
+            }
+        });
 
         TestTask testTask = TASK_RECONCILIATION;
         testTask.initWithOverwrite(this, task, result);
