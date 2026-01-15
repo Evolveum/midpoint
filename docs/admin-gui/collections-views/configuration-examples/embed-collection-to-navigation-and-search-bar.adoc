@@ -10,38 +10,48 @@ Have you ever wondered how to configure a custom element in the search bar? In t
 
 === Usecase
 
-Our example task is to quickly filter out managers (all that have relation=manager) from all users.
+The example task is to filter out an organization managers and make the filter easily accessible in the midPoint GUI.
 
 We have 2 ways of dealing with this situation
 
 ==== 1. Custom collection under Users
 Create a new *objectCollectionView* dedicated to display only accounts that have an assignment with relation "manager". This way you create a subpage/category under "Users" that will show only such users
 
-Paste the code into system configuration
+== Custom collection under Users in the main navigation
+
+Create a new `objectCollectionView` dedicated to displaying only accounts that are managers of an organization.
+This way, you create a new category under "Users" that will show only such users.
+Add this configuration to the midPoint system configuration.
+
+.Admin GUI configuration adding a navigation menu item to display only users who are managers of an organization
 [source,xml]
 ----
-...
-<objectCollectionView>
-    <identifier>managers-view</identifier>
-    <description>Managers</description>
-    <documentation>This view displays all users with relation "Manager" assignment</documentation>
-    <display>
-        <label>Managers</label>
-        <singularLabel>Manager</singularLabel>
-        <tooltip>All managers in system</tooltip>
-        <icon>
-            <cssClass>fa fa-user-tie</cssClass>
-        </icon>
-    </display>
-    <displayOrder>10</displayOrder>
-    <type>UserType</type>
-    <collection>
-        <filter>
-            <q:text>assignment/targetRef matches ( relation = manager )</q:text>
-        </filter>
-    </collection>
-</objectCollectionView>
-...
+<systemConfiguration ...>
+    <adminGuiConfiguration>
+        <objectCollectionViews>
+            <objectCollectionView>
+                <identifier>managers-view</identifier>
+                <description>Managers</description>
+                <documentation>This view displays all users with relation "Manager" assignment</documentation>
+                <display>
+                    <label>Managers</label>
+                    <singularLabel>Manager</singularLabel>
+                    <tooltip>All managers in system</tooltip>
+                    <icon>
+                        <cssClass>fa fa-user-tie</cssClass>
+                    </icon>
+                </display>
+                <displayOrder>10</displayOrder>
+                <type>UserType</type>
+                <collection>
+                    <filter>
+                        <q:text>assignment/targetRef matches ( relation = manager and targetType = OrgType )</q:text>
+                    </filter>
+                </collection>
+            </objectCollectionView>
+        </objectCollectionViews>
+    </adminGuiConfiguration>
+</systemConfiguration>
 ----
 
 .Custom collection in sidemenu
@@ -50,9 +60,13 @@ image::mngrs-cllctn.png[width=100%]
 ==== 2. Custom toggle for fast filter in All users
 Create a new search panel item dedicated to filter only accounts that have an assignment with relation "manager" quickly.
 
-NOTE: If you want to use this toggle for custom collection (under Users, e.g. Persons, etc.) just take the *<searchBoxConfiguration>* part of code and paste it to desired *objectCollectionView*
+Create a new search panel item dedicated to filtering only accounts that are managers of an organization.
 
-Paste the code into system configuration
+NOTE: If you want to use this quick search filter for a custom collection (under Users, e.g., Persons, etc.), take the `<searchBoxConfiguration>` part of code and put it to desired `objectCollectionView`
+
+Put the code into the system configuration.
+
+.Admin GUI configuration adding a quick search filter to show only users matching the specified criteria
 [source,xml]
 ----
 ...
@@ -63,7 +77,7 @@ Paste the code into system configuration
         <searchItems>
             <searchItem>
                 <filter>
-                    <q:text>assignment/targetRef matches ( relation = manager )</q:text>
+                    <q:text>assignment/targetRef matches ( relation = manager and targetType = OrgType )</q:text>
                 </filter>
                 <display>
                     <label>Show managers only</label>
