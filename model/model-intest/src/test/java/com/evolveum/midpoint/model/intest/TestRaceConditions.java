@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.AbstractMultithreadCycleRunner;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -111,7 +113,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
     private void deleteAssignment(PrismObject<UserType> user, int index, Task task, OperationResult result) {
         try {
-            login(userAdministrator.clone());       // without cloning there are conflicts on login->getPrincipal->recompute
+            login(userAdministrator.copy()); // without cloning there are conflicts on login->getPrincipal->recompute
             @SuppressWarnings({ "raw" })
             ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
                     .item(FocusType.F_ASSIGNMENT).delete(user.asObjectable().getAssignment().get(index).clone())
@@ -121,5 +123,49 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         } catch (Throwable t) {
             throw new SystemException(t);
         }
+    }
+
+    /**
+     * Assign the same role concurrently in different threads.
+     * There should be a single assignment at the end.
+     *
+     * #10714
+     */
+    @Test(enabled = false) // fails now
+    public void test120AssignRoleConcurrently() throws Exception {
+        skipIfNotNativeRepository();
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        int THREADS = 4;
+        long DURATION = 10_000L;
+
+        given("a user without assignments");
+        UserType user = new UserType().name(getTestName());
+        String oid = addObject(user.asPrismObject(), task, result);
+
+        when("assigning the same role concurrently in different threads");
+        ParallelTestThread[] threads = multithread(
+                new AbstractMultithreadCycleRunner(DURATION) {
+                    @Override
+                    public void init(int threadIndex) throws Exception {
+                        super.init(threadIndex);
+                        login(userAdministrator.mutableCopy());
+                    }
+
+                    @Override
+                    public void run(int threadIndex, int cycleNumber) throws Exception {
+                        Task localTask = createTask(getTestNameShort());
+                        assignRole(oid, ROLE_SUPERUSER.oid, localTask, localTask.getResult());
+                    }
+                },
+                THREADS,
+                null);
+        waitForThreads(threads, DURATION * 10);
+
+        then("the role is assigned just once");
+        assertUserAfter(oid)
+                .assertAssignments(1);
     }
 }
