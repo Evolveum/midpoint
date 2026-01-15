@@ -6,6 +6,7 @@ import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaService;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -20,11 +21,14 @@ public class MappingSuggestionOperationFactory {
 
     private final MappingsQualityAssessor mappingsQualityAssessor;
     private final OwnedShadowsProvider ownedShadowsProvider;
+    private final KnownSchemaService knownSchemaService;
 
     public MappingSuggestionOperationFactory(MappingsQualityAssessor mappingsQualityAssessor,
-            OwnedShadowsProvider ownedShadowsProvider) {
+            OwnedShadowsProvider ownedShadowsProvider,
+            KnownSchemaService knownSchemaService) {
         this.mappingsQualityAssessor = mappingsQualityAssessor;
         this.ownedShadowsProvider = ownedShadowsProvider;
+        this.knownSchemaService = knownSchemaService;
     }
 
     public MappingsSuggestionOperation create(ServiceClient client, String resourceOid,
@@ -33,6 +37,6 @@ public class MappingSuggestionOperationFactory {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return MappingsSuggestionOperation.init(client, resourceOid, typeIdentification, activityState,
-                this.mappingsQualityAssessor, this.ownedShadowsProvider, isInbound, task, parentResult);
+                this.mappingsQualityAssessor, this.ownedShadowsProvider, this.knownSchemaService, isInbound, task, parentResult);
     }
 }

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 
 import org.springframework.stereotype.Service;
 
@@ -61,6 +62,22 @@ public class KnownSchemaService {
 
     public Optional<KnownSchemaMappingProvider> getProvider(KnownSchemaType schemaType) {
         return Optional.ofNullable(mappingProviders.get(schemaType));
+    }
+
+    public Optional<KnownSchemaMappingProvider> getProviderFromSchemaMatch(SchemaMatchResultType schemaMatch) {
+        String knownSchemaTypeStr = schemaMatch.getKnownSchemaType();
+        if (knownSchemaTypeStr == null) {
+            LOGGER.trace("No known schema type in schema match result.");
+            return Optional.empty();
+        }
+
+        try {
+            KnownSchemaType knownSchemaType = KnownSchemaType.valueOf(knownSchemaTypeStr);
+            return getProvider(knownSchemaType);
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn("Unknown schema type string: {}. Ignoring.", knownSchemaTypeStr);
+            return Optional.empty();
+        }
     }
 
 }

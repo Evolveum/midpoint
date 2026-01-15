@@ -10,6 +10,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
+import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaService;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AttrName;
@@ -54,6 +55,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
             "for-mappings-suggestion", c -> dummyScenario = on(c).initialize());
 
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private KnownSchemaService knownSchemaService;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -179,6 +181,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 true,
                 task,
                 result);
@@ -223,6 +226,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 true,
                 task,
                 result);
@@ -266,6 +270,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 true,
                 task,
                 result);
@@ -308,6 +313,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 true,
                 task,
                 result);
@@ -356,6 +362,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 true,
                 task,
                 result);
@@ -389,6 +396,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 false,
                 task,
                 result);
@@ -437,6 +445,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 false,
                 task,
                 result);
@@ -485,6 +494,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 false,
                 task,
                 result);
@@ -532,6 +542,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 false,
                 task,
                 result);
@@ -579,6 +590,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
+                knownSchemaService,
                 false,
                 task,
                 result);
@@ -605,7 +617,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                true, task, result);
+                knownSchemaService, true, task, result);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match);
@@ -638,7 +650,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                true, task, result);
+                knownSchemaService, true, task, result);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match);
@@ -665,7 +677,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                true, task, result);
+                knownSchemaService, true, task, result);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match);
@@ -698,7 +710,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                true, task, result);
+                knownSchemaService, true, task, result);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match);
@@ -736,7 +748,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                true, task, result);
+                knownSchemaService, true, task, result);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match);
@@ -771,7 +783,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                false, task, result);
+                knownSchemaService, false, task, result);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match);
@@ -806,7 +818,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         var op = MappingsSuggestionOperation.init(
                 mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null,
                 new MappingsQualityAssessor(expressionFactory), new OwnedShadowsProviderFromResource(),
-                false, task, result);
+                knownSchemaService, false, task, result);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match);

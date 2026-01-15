@@ -43,8 +43,8 @@ public class UserScimMappingProvider implements KnownSchemaMappingProvider {
     }
 
     @Override
-    public List<InboundMappingType> getInboundMappings() {
-        List<InboundMappingType> mappings = new ArrayList<>();
+    public List<AttributeMappingsSuggestionType> getInboundMappings() {
+        List<AttributeMappingsSuggestionType> mappings = new ArrayList<>();
         mappings.add(createInboundMapping("userName", UserType.F_NAME, "SCIM userName to midPoint name", null));
         mappings.add(createInboundMapping("displayName", UserType.F_FULL_NAME, "SCIM displayName to midPoint fullName", null));
         mappings.add(createInboundMapping("givenName", UserType.F_GIVEN_NAME, "SCIM givenName to midPoint givenName", null));
@@ -54,17 +54,52 @@ public class UserScimMappingProvider implements KnownSchemaMappingProvider {
         return mappings;
     }
 
-    private InboundMappingType createInboundMapping(
+    @Override
+    public List<AttributeMappingsSuggestionType> getOutboundMappings() {
+        List<AttributeMappingsSuggestionType> mappings = new ArrayList<>();
+        mappings.add(createOutboundMapping("userName", UserType.F_NAME, "midPoint name to SCIM userName", null));
+        mappings.add(createOutboundMapping("displayName", UserType.F_FULL_NAME, "midPoint fullName to SCIM displayName", null));
+        mappings.add(createOutboundMapping("givenName", UserType.F_GIVEN_NAME, "midPoint givenName to SCIM givenName", null));
+        mappings.add(createOutboundMapping("familyName", UserType.F_FAMILY_NAME, "midPoint familyName to SCIM familyName", null));
+        mappings.add(createOutboundMapping("emailAddress", UserType.F_EMAIL_ADDRESS, "midPoint emailAddress to SCIM emailAddress", null));
+        mappings.add(createOutboundMapping("phoneNumber", UserType.F_TELEPHONE_NUMBER, "midPoint telephoneNumber to SCIM phoneNumber", null));
+        return mappings;
+    }
+
+    private AttributeMappingsSuggestionType createInboundMapping(
             String shadowAttrName,
             ItemPath focusPropertyPath,
             String description,
             @Nullable ExpressionType expression) {
-        return new InboundMappingType()
+        var inboundMapping = new InboundMappingType()
                 .name(shadowAttrName + "-into-" + focusPropertyPath.lastName())
                 .description(description)
                 .strength(MappingStrengthType.STRONG)
                 .expression(expression)
                 .target(new VariableBindingDefinitionType().path(focusPropertyPath.toBean()));
+
+        return new AttributeMappingsSuggestionType()
+                .expectedQuality(null)
+                .definition(new ResourceAttributeDefinitionType()
+                        .inbound(inboundMapping));
+    }
+
+    private AttributeMappingsSuggestionType createOutboundMapping(
+            String shadowAttrName,
+            ItemPath focusPropertyPath,
+            String description,
+            @Nullable ExpressionType expression) {
+        var outboundMapping = new OutboundMappingType()
+                .name(focusPropertyPath.lastName() + "-to-" + shadowAttrName)
+                .description(description)
+                .strength(MappingStrengthType.STRONG)
+                .expression(expression)
+                .source(new VariableBindingDefinitionType().path(focusPropertyPath.toBean()));
+
+        return new AttributeMappingsSuggestionType()
+                .expectedQuality(null)
+                .definition(new ResourceAttributeDefinitionType()
+                        .outbound(outboundMapping));
     }
 
 }

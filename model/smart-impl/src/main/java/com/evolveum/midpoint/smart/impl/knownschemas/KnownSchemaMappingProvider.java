@@ -9,11 +9,10 @@
 package com.evolveum.midpoint.smart.impl.knownschemas;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeMappingsSuggestionType;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Provider of predefined mappings for a specific known schema type.
@@ -33,26 +32,14 @@ public interface KnownSchemaMappingProvider {
     Map<ItemPath, ItemPath> getSchemaMatches();
 
     /**
-     * Returns all predefined mappings for the supported schema type.
+     * Returns all predefined inbound mappings as ready-to-use AttributeMappingsSuggestionType instances.
+     * These are directly added to the mappings suggestion without further processing.
      */
-    List<InboundMappingType> getInboundMappings();
+    List<AttributeMappingsSuggestionType> getInboundMappings();
 
     /**
-     * Finds a specific predefined mapping for the given attribute and property paths.
+     * Returns all predefined outbound mappings as ready-to-use AttributeMappingsSuggestionType instances.
+     * These are directly added to the mappings suggestion without further processing.
      */
-    default Optional<InboundMappingType> findMapping(ItemPath focusPropertyPath) {
-        return getInboundMappings().stream()
-                .filter(m -> {
-                    if (m.getTarget() == null || m.getTarget().getPath() == null) {
-                        return false;
-                    }
-                    try {
-                        ItemPath targetPath = m.getTarget().getPath().getItemPath();
-                        return targetPath.equivalent(focusPropertyPath);
-                    } catch (Exception e) {
-                        return false;
-                    }
-                })
-                .findFirst();
-    }
+    List<AttributeMappingsSuggestionType> getOutboundMappings();
 }

@@ -41,8 +41,8 @@ public class UserActiveDirectoryMappingProvider implements KnownSchemaMappingPro
     }
 
     @Override
-    public List<InboundMappingType> getInboundMappings() {
-        List<InboundMappingType> mappings = new ArrayList<>();
+    public List<AttributeMappingsSuggestionType> getInboundMappings() {
+        List<AttributeMappingsSuggestionType> mappings = new ArrayList<>();
         mappings.add(createInboundMapping("sAMAccountName", UserType.F_NAME, "AD sAMAccountName to midPoint name", null));
         mappings.add(createInboundMapping("cn", UserType.F_FULL_NAME, "AD cn (common name) to midPoint fullName", null));
         mappings.add(createInboundMapping("givenName", UserType.F_GIVEN_NAME, "AD givenName to midPoint givenName", null));
@@ -51,17 +51,51 @@ public class UserActiveDirectoryMappingProvider implements KnownSchemaMappingPro
         return mappings;
     }
 
-    private InboundMappingType createInboundMapping(
+    @Override
+    public List<AttributeMappingsSuggestionType> getOutboundMappings() {
+        List<AttributeMappingsSuggestionType> mappings = new ArrayList<>();
+        mappings.add(createOutboundMapping("sAMAccountName", UserType.F_NAME, "midPoint name to AD sAMAccountName", null));
+        mappings.add(createOutboundMapping("cn", UserType.F_FULL_NAME, "midPoint fullName to AD cn (common name)", null));
+        mappings.add(createOutboundMapping("givenName", UserType.F_GIVEN_NAME, "midPoint givenName to AD givenName", null));
+        mappings.add(createOutboundMapping("sn", UserType.F_FAMILY_NAME, "midPoint familyName to AD sn (surname)", null));
+        mappings.add(createOutboundMapping("mail", UserType.F_EMAIL_ADDRESS, "midPoint emailAddress to AD mail", null));
+        return mappings;
+    }
+
+    private AttributeMappingsSuggestionType createInboundMapping(
             String shadowAttrName,
             ItemPath focusPropertyPath,
             String description,
             @Nullable ExpressionType expression) {
-        return new InboundMappingType()
+        var inboundMapping = new InboundMappingType()
                 .name(shadowAttrName + "-into-" + focusPropertyPath.lastName())
                 .description(description)
                 .strength(MappingStrengthType.STRONG)
                 .expression(expression)
                 .target(new VariableBindingDefinitionType().path(focusPropertyPath.toBean()));
+
+        return new AttributeMappingsSuggestionType()
+                .expectedQuality(null)
+                .definition(new ResourceAttributeDefinitionType()
+                        .inbound(inboundMapping));
+    }
+
+    private AttributeMappingsSuggestionType createOutboundMapping(
+            String shadowAttrName,
+            ItemPath focusPropertyPath,
+            String description,
+            @Nullable ExpressionType expression) {
+        var outboundMapping = new OutboundMappingType()
+                .name(focusPropertyPath.lastName() + "-to-" + shadowAttrName)
+                .description(description)
+                .strength(MappingStrengthType.STRONG)
+                .expression(expression)
+                .source(new VariableBindingDefinitionType().path(focusPropertyPath.toBean()));
+
+        return new AttributeMappingsSuggestionType()
+                .expectedQuality(null)
+                .definition(new ResourceAttributeDefinitionType()
+                        .outbound(outboundMapping));
     }
 
 }
