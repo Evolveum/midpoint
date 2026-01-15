@@ -103,6 +103,10 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(UserType.F_ADDITIONAL_NAME),
                 ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
                 ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
+                ItemPath.create(UserType.F_ORGANIZATION),
+                ItemPath.create(UserType.F_HONORIFIC_PREFIX),
+                ItemPath.create(UserType.F_HONORIFIC_SUFFIX),
+                ItemPath.create(UserType.F_NICK_NAME),
                 ItemPath.create(UserType.F_PERSONAL_NUMBER)
         ));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
