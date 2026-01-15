@@ -1,21 +1,19 @@
-= Example of custom collection view in searchbox
-// NGDe2 redirect
+= Filter users in GUI using object collection view
+:page-toc: top
+:page-description: Create an object collection view to filter out an organization managers and make the filter easily accessible in the midPoint GUI
 :page-moved-from: /midpoint/reference/admin-gui/collections-views/example-searchbox-managers/
 :page-nav-title: Example: Custom collection in searchbox
 :page-wiki-name: Example of custom collection view in searchbox
 
-== Introduction
+Have you ever wondered how to configure a custom element in the search bar? Below, you can see how to embed a custom object collection with a user query query into the search panel and the main navigation.
 
-Have you ever wondered how to configure a custom element in the search bar? In the example below you can see how we can embed a custom object collection or query into a sidebar or searchbox panel.
-
-=== Usecase
+== Use case
 
 The example task is to filter out an organization managers and make the filter easily accessible in the midPoint GUI.
 
-We have 2 ways of dealing with this situation
+You have two ways of addressing the task.
 
-==== 1. Custom collection under Users
-Create a new *objectCollectionView* dedicated to display only accounts that have an assignment with relation "manager". This way you create a subpage/category under "Users" that will show only such users
+:sectnums:
 
 == Custom collection under Users in the main navigation
 
@@ -54,11 +52,10 @@ Add this configuration to the midPoint system configuration.
 </systemConfiguration>
 ----
 
-.Custom collection in sidemenu
-image::mngrs-cllctn.png[width=100%]
+.Custom collection in the main navigation menu
+image::mngrs-cllctn.png["Custom collection in the main navigation menu"]
 
-==== 2. Custom toggle for fast filter in All users
-Create a new search panel item dedicated to filter only accounts that have an assignment with relation "manager" quickly.
+== Custom quick search filter
 
 Create a new search panel item dedicated to filtering only accounts that are managers of an organization.
 
@@ -89,10 +86,12 @@ Put the code into the system configuration.
 </objectCollectionView>
 ...
 ----
-.Custom toggle in the search bar for "All Users"
-image::mngrs-tggl-1.png[width=100%]
+.The custom quick search filter in the search bar for "All Users"
+image::mngrs-tggl-1.png["Custom quick search filter active in the search bar for All Users"]
 
-.Custom toggle active in the search bar for "All Users"
-image::mngrs-tggl-2.png[width=100%]
+.The custom quick search filter in the search bar for "All Users" is active
+image::mngrs-tggl-2.png["Custom quick search filter is active"]
 
-TIP: For better filtering you can use *roleMembershipRef matches ( relation = manager )* query if you wish to list all managers who got their role with "relation:manager" indirectly (from inducement)
+TIP: For better filtering, you can use `roleMembershipRef matches ( relation = manager )` query to list all managers who got their role with `relation:manager` indirectly (from inducement)
+
+:sectnums!:
