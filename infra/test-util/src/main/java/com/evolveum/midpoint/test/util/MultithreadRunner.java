@@ -14,6 +14,6 @@ package com.evolveum.midpoint.test.util;
 @FunctionalInterface
 public interface MultithreadRunner {
 
-    void run(int i) throws Exception;
+    void run(int threadIndex) throws Exception;
 
 }
