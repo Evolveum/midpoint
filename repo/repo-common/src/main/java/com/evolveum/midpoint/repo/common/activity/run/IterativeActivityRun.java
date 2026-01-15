@@ -449,6 +449,9 @@ public abstract class IterativeActivityRun<
                 simulationSupport.openSimulationTransaction(result));
         try {
             iterateOverItemsInBucket(result);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw ex;
         } finally {
             // This is redundant in the case of live sync event handling (because the handler gets a notification when all
             // items are submitted, and must stop the threads in order to allow provisioning to update the token).

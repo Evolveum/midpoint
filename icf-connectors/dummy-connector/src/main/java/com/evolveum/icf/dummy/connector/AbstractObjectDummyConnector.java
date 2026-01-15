@@ -782,6 +782,9 @@ public abstract class AbstractObjectDummyConnector
         }
         co = filterOutAttributesToGet(co, object, attributesToGet, options.getReturnDefaultAttributes());
         resource.searchHandlerSync();
+
+        resource.invokeHooks(h -> h.beforeHandleResultObject(object));
+
         LOG.info("HANDLE:START: {0}", object.getName());
         boolean ret = handler.handle(co);
         LOG.info("HANDLE:END: {0}", object.getName());
