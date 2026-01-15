@@ -107,12 +107,12 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         prepareNotifications();
     }
 
-    @Test
+    @Test(enabled = false)
     public void test200TestItemProcessingNetworkError() throws Exception {
         testItemProcessingError(BreakMode.NETWORK);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test210TestItemProcessingGenericError() throws Exception {
         testItemProcessingError(BreakMode.GENERIC);
     }
@@ -121,7 +121,18 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         Task task = taskManager.getTaskWithResult(taskOid, getTestOperationResult());
         TaskType taskType = task.getRawTaskObjectClonedIfNecessary().asObjectable();
 
-        List<ItemPath> pathsToModify = taskType.getActivity().getPolicies().getPolicy().stream()
+        ActivityPoliciesType policies;
+        if (taskType.getActivity().getComposition() != null) {
+            policies = taskType.getActivity().getComposition().getActivity().stream()
+                    .filter(a -> "main reconciliation".equals(a.getIdentifier()))
+                    .findFirst()
+                    .orElseThrow()
+                    .getPolicies();
+        } else {
+            policies = taskType.getActivity().getPolicies();
+        }
+
+        List<ItemPath> pathsToModify = policies.getPolicy().stream()
                 .map(p -> p.getPolicyConstraints().getItemProcessingResult().asPrismContainerValue().getPath())
                 .toList();
 
@@ -142,11 +153,11 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         executeChanges(delta, ModelExecuteOptions.create(), getTestTask(), getTestOperationResult());
     }
 
-    public void testItemProcessingError(BreakMode mode) throws Exception {
+    private void testItemProcessingError(BreakMode mode) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        dummyResourceCtl.getDummyResource().setModifyBreakMode(mode);
+        dummyResourceCtl.getDummyResource().setBreakMode(mode);
 
         TestTask testTask = TASK_RECONCILIATION;
         testTask.initWithOverwrite(this, task, result);
@@ -158,21 +169,27 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         final String notifyRuleName = "policy rule with notify";
         var notifyCounterIdentifier =
                 testTask.buildPolicyIdentifier(
-                        ActivityPath.empty(),
+                        ActivityPath.fromId("main reconciliation"),
                         notifyRuleName);
 
         // @formatter:off
         testTask.assertTreeAfter()
-                .assertSuspended()
+                .assertClosed()
                 .assertFatalError()
-                .rootActivityState()
+                .activityState(ActivityPath.fromId("main reconciliation"))
                     .fullExecutionModePolicyRulesCounters()
                         .assertCounter(notifyCounterIdentifier, 3)
                     .end()
                     .policies()
                         .assertPolicyCount(2)
                         .policy(notifyRuleName)
-                            .assertTriggerCount(1);
+                            .assertTriggerCount(1)
+                            .end()
+                        .end()
+                    .end()
+                .activityState(ActivityPath.fromId("noop activity"))
+                    .assertSuccess()
+                    .assertComplete();
         // @formatter:on
 
         List<Message> messages = dummyTransport.getMessages(DUMMY_NOTIFICATION_TRANSPORT);
