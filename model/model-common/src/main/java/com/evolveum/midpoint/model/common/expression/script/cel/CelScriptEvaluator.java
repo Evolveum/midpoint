@@ -118,6 +118,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
         builder.setStandardMacros(CelStandardMacro.HAS);
         compilerAddPolyStringDeclarations(builder, context);
         // TODO: Further compiler config
+        new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
         for (var varEntry : prepareScriptVariablesTypedValueMap(context).entrySet()) {
             builder.addVar(varEntry.getKey(), convertToCelType(varEntry.getValue()));
         }
@@ -174,6 +175,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
         // TODO: consider expression profiles?
         // TODO: caching
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
+        new CelFunctionLibraryMapper(context).runtimeAddFunctionLibraryDeclarations(builder);
         runtimeAddPolyStringDeclarations(builder, context);
         return builder.build();
     }

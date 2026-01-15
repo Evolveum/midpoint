@@ -378,6 +378,104 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionStringMixString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-mix.xml",
+                "testExpressionStringMixString",
+                createVariables(
+                        "foo", "Foo", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                "FOO foo!");
+    }
+
+    @Test
+    public void testExpressionStringMixPolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-mix.xml",
+                "testExpressionStringMixPolyString",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                "FOO foo!");
+    }
+
+    @Test
+    public void testExpressionStringConcatNameString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-concatname.xml",
+                "testExpressionStringConcatNameString",
+                createVariables(
+                        "foo", "Foo", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                "Foo BAR");
+    }
+
+    @Test
+    public void testExpressionStringConcatNamePolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-concatname.xml",
+                "testExpressionStringConcatNamePolyString",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", PrismTestUtil.createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
+                ),
+                "Foo BAR");
+    }
+
+    @Test
+    public void testExpressionStringConcatNamePolyStringMix() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-concatname.xml",
+                "testExpressionStringConcatNamePolyStringMix",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                "Foo BAR");
+    }
+
+    @Test
+    public void testExpressionStringConcatString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-concat.xml",
+                "testExpressionStringConcatString",
+                createVariables(
+                        "foo", "Foo", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                "FooBAR");
+    }
+
+    @Test
+    public void testExpressionStringConcatPolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-concat.xml",
+                "testExpressionStringConcatPolyString",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrismTestUtil.createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
+                ),
+                "FooBAR");
+    }
+
+    @Test
+    public void testExpressionStringConcatPolyStringMix() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-concat.xml",
+                "testExpressionStringConcatPolyStringMix",
+                createVariables(
+                        PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                "FooBAR");
+    }
+
+
+
+    @Test
     public void testLookAtPoison() throws Exception {
         Poison poison = new Poison();
 
