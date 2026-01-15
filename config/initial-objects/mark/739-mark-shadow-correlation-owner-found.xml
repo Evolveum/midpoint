@@ -6,7 +6,7 @@
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="ca29f4d4-305b-4e72-9f1c-30a34619bd41">
+    oid="ca29f4d4-305b-4e72-9f1c-30a34619bd41">
     <name>Shadow owner found</name>
     <description>Correlation of a shadow found its owner</description>
     <assignment id="1">
@@ -14,12 +14,5 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>520</displayOrder>
-    <display>
-        <label>SimulationCorrelationPanel.correlated.label</label>
-        <help>SimulationCorrelationPanel.correlated.help</help>
-        <icon>
-            <cssClass>fa fa-link metric-icon success</cssClass>
-        </icon>
-    </display>
     <!-- No policy rule. This is set explicitly by the correlation simulation. -->
 </mark>

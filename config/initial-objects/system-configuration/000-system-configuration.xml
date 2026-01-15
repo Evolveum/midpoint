@@ -212,7 +212,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to the all assignments panel on the user's profile page.</orig>
+                            <orig>View all accesses.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.myAccesses.viewAll.help</key>
                             </translation>
@@ -236,7 +236,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to the Request access wizard.</orig>
+                            <orig>Initiate access request.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.requestAccess.wizard.help</key>
                             </translation>
@@ -277,7 +277,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to the approval cases table with a requestor set to the logged in user.</orig>
+                            <orig>View all requests.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.myRequests.viewAll.help</key>
                             </translation>
@@ -319,7 +319,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to work items table where assignee is set to the logged in user.</orig>
+                            <orig>View all work items.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.myWorkItems.viewAll.help</key>
                             </translation>
@@ -360,7 +360,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to the Projections panel on the user's profile page.</orig>
+                            <orig>View all accounts.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.myAccounts.viewAll.help</key>
                             </translation>
@@ -386,7 +386,12 @@
                             <key>PageSelfDashboard.profile</key>
                         </translation>
                     </label>
-                    <help>PageSelfDashboard.profile.description</help>
+                    <help>
+                        <orig>Profile</orig>
+                        <translation>
+                            <key>PageSelfDashboard.profile.description</key>
+                        </translation>
+                    </help>
                     <cssClass>col-md-3</cssClass>
                     <icon>
                         <cssClass>bg-green fa fa-user</cssClass>
@@ -409,7 +414,12 @@
                             <key>PageSelfDashboard.credentials</key>
                         </translation>
                     </label>
-                    <help>PageSelfDashboard.credentials.description</help>
+                    <help>
+                        <orig>Credentials</orig>
+                        <translation>
+                            <key>PageSelfDashboard.credentials.description</key>
+                        </translation>
+                    </help>
                     <cssClass>col-md-3</cssClass>
                     <icon>
                         <cssClass>bg-blue fa fa-shield-alt</cssClass>
@@ -494,6 +504,12 @@
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>
                         </label>
+                        <help>
+                            <orig>View all certification items.</orig>
+                            <translation>
+                                <key>PageSelfDashboard.widget.myCertificationItems.viewAll.help</key>
+                            </translation>
+                        </help>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
                         </icon>
@@ -532,7 +548,12 @@
                             <key>MyCases.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>My case</singularLabel>
+                    <singularLabel>
+                        <orig>My case</orig>
+                        <translation>
+                            <key>MyCases.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
                     <icon>
                         <cssClass>fe fe-case-object</cssClass>
                     </icon>
@@ -560,8 +581,18 @@
                             <key>AllManualCases.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Manual case</singularLabel>
-                    <tooltip>Manual provisioning cases</tooltip>
+                    <singularLabel>
+                        <orig>Manual case</orig>
+                        <translation>
+                            <key>AllManualCases.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
+                    <tooltip>
+                        <orig>Manual provisioning cases</orig>
+                        <translation>
+                            <key>AllManualCases.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>1010</displayOrder>
                 <type>CaseType</type>
@@ -586,8 +617,18 @@
                             <key>AllRequests.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Request</singularLabel>
-                    <tooltip>Operation requests</tooltip>
+                    <singularLabel>
+                        <orig>Request</orig>
+                        <translation>
+                            <key>OperationRequestCase.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
+                    <tooltip>
+                        <orig>Operation requests</orig>
+                        <translation>
+                            <key>OperationRequestCase.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>1020</displayOrder>
                 <type>CaseType</type>
@@ -612,8 +653,18 @@
                             <key>AllApprovals.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Approval</singularLabel>
-                    <tooltip>Approval cases</tooltip>
+                    <singularLabel>
+                        <orig>Approval</orig>
+                        <translation>
+                            <key>ApprovalCase.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
+                    <tooltip>
+                        <orig>Approval cases</orig>
+                        <translation>
+                            <key>ApprovalCase.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>1030</displayOrder>
                 <type>CaseType</type>
@@ -638,8 +689,18 @@
                             <key>AllCorrelations.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Correlation</singularLabel>
-                    <tooltip>Correlation cases</tooltip>
+                    <singularLabel>
+                        <orig>Correlation</orig>
+                        <translation>
+                            <key>CorrelationCase.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
+                    <tooltip>
+                        <orig>Correlation cases</orig>
+                        <translation>
+                            <key>CorrelationCase.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>1040</displayOrder>
                 <type>CaseType</type>
@@ -1078,7 +1139,12 @@
                             <key>ResourceType.template.all.title</key>
                         </translation>
                     </pluralLabel>
-                    <singularLabel>Resource template</singularLabel>
+                    <singularLabel>
+                        <orig>Resource template</orig>
+                        <translation>
+                            <key>ResourceTemplates.objectCollectionView.singularLabel</key>
+                        </translation>
+                    </singularLabel>
                     <icon>
                         <cssClass>fa fa-file-alt</cssClass>
                     </icon>
@@ -1104,7 +1170,12 @@
                             <key>classification.label</key>
                         </translation>
                     </singularLabel>
-                    <tooltip>Information classifications (labels)</tooltip>
+                    <tooltip>
+                        <orig>Information classifications (labels)</orig>
+                        <translation>
+                            <key>Classification.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>200</displayOrder>
                 <type>PolicyType</type>
@@ -1128,7 +1199,12 @@
                             <key>clearance.label</key>
                         </translation>
                     </singularLabel>
-                    <tooltip>Security clearances</tooltip>
+                    <tooltip>
+                        <orig>Security clearances</orig>
+                        <translation>
+                            <key>Clearance.objectCollectionView.tooltip</key>
+                        </translation>
+                    </tooltip>
                 </display>
                 <displayOrder>210</displayOrder>
                 <type>PolicyType</type>
@@ -1399,7 +1475,12 @@
                     <container id="130">
                         <identifier>basic</identifier>
                         <display>
-                            <label>PageResource.wizard.step.objectType.basicSettings</label>
+                            <label>
+                                <orig>Basic information</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.objectType.basicSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="132">
                             <path>schemaHandling/objectType/displayName</path>
@@ -1442,7 +1523,12 @@
                     <container id="138">
                         <identifier>delineation</identifier>
                         <display>
-                            <label>PageResource.wizard.step.objectType.delineation</label>
+                            <label>
+                                <orig>Resource data</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.objectType.delineation</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="140">
                             <path>schemaHandling/objectType/delineation/objectClass</path>
@@ -1477,7 +1563,12 @@
                     <container id="145">
                         <identifier>limitationsMapping</identifier>
                         <display>
-                            <label>PageResource.wizard.step.attributes.limitation</label>
+                            <label>
+                                <orig>Limitations</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.attributes.limitation</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="147">
                             <path>schemaHandling/objectType/attribute/limitations/access/read</path>
@@ -1516,7 +1607,12 @@
                     <container id="153">
                         <identifier>reactionMainSetting</identifier>
                         <display>
-                            <label>PageResource.wizard.step.synchronization.reaction.mainSettings</label>
+                            <label>
+                                <orig>Main configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.synchronization.reaction.mainSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="155">
                             <path>schemaHandling/objectType/synchronization/reaction/name</path>
@@ -1543,7 +1639,12 @@
                     <container id="158">
                         <identifier>reactionOptionalSetting</identifier>
                         <display>
-                            <label>PageResource.wizard.step.synchronization.reaction.optionalSettings</label>
+                            <label>
+                                <orig>Optional settings</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.synchronization.reaction.optionalSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="160">
                             <path>schemaHandling/objectType/synchronization/reaction/condition</path>
@@ -1570,7 +1671,12 @@
                     <container id="262">
                         <identifier>associationReactionMainSetting</identifier>
                         <display>
-                            <label>PageResource.wizard.step.synchronization.reaction.mainSettings</label>
+                            <label>
+                                <orig>Main configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.synchronization.reaction.mainSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="263">
                             <path>schemaHandling/associationType/subject/association/synchronization/reaction/name</path>
@@ -1597,7 +1703,12 @@
                     <container id="256">
                         <identifier>associationReactionOptionalSetting</identifier>
                         <display>
-                            <label>PageResource.wizard.step.synchronization.reaction.optionalSettings</label>
+                            <label>
+                                <orig>Optional settings</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.synchronization.reaction.optionalSettings</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="257">
                             <path>schemaHandling/associationType/subject/association/synchronization/reaction/order</path>
@@ -1616,7 +1727,12 @@
                     <container id="163">
                         <identifier>mainConfigurationAttribute</identifier>
                         <display>
-                            <label>PageResource.wizard.step.attributes.mainConfiguration</label>
+                            <label>
+                                <orig>Main configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.attributes.mainConfiguration</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="165">
                             <path>schemaHandling/objectType/attribute/ref</path>
@@ -1675,7 +1791,12 @@
                     <container id="174">
                         <identifier>association</identifier>
                         <display>
-                            <label>PageResource.wizard.step.associations</label>
+                            <label>
+                                <orig>Configuration of the association</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.associations</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="176">
                             <path>schemaHandling/objectType/association/ref</path>
@@ -1744,7 +1865,12 @@
                     <container id="189">
                         <identifier>required</identifier>
                         <display>
-                            <label>PageResource.wizard.step.configuration</label>
+                            <label>
+                                <orig>Configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.configuration</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="191">
                             <path>connectorConfiguration/configurationProperties/jdbcUrlTemplate</path>
@@ -1788,7 +1914,12 @@
                     <container id="199">
                         <identifier>required</identifier>
                         <display>
-                            <label>PageResource.wizard.step.configuration</label>
+                            <label>
+                                <orig>Configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.configuration</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="201">
                             <path>connectorConfiguration/configurationProperties/host</path>
@@ -1828,7 +1959,12 @@
                     <container id="207">
                         <identifier>required</identifier>
                         <display>
-                            <label>PageResource.wizard.step.configuration</label>
+                            <label>
+                                <orig>Configuration</orig>
+                                <translation>
+                                    <key>PageResource.wizard.step.configuration</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="209">
                             <path>connectorConfiguration/configurationProperties/host</path>

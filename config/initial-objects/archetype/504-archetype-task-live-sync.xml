@@ -87,7 +87,12 @@
                     <container id="15">
                         <identifier>objects-to-synchronize</identifier>
                         <display>
-                            <label>LiveSynchronizationTask.objectsToSynchronize</label>
+                            <label>
+                                <orig>Objects to synchronize</orig>
+                                <translation>
+                                    <key>LiveSynchronizationTask.objectsToSynchronize</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="17">
                             <c:path>objectRef</c:path>
@@ -105,7 +110,12 @@
                     <container id="16">
                         <identifier>synchronization-options</identifier>
                         <display>
-                            <label>LiveSynchronizationTask.synchronizationOptions</label>
+                            <label>
+                                <orig>Synchronization options</orig>
+                                <translation>
+                                    <key>LiveSynchronizationTask.synchronizationOptions</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="21">
                             <c:path>extension/mext:workerThreads</c:path>

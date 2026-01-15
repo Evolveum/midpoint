@@ -54,7 +54,12 @@
                     <container id="7">
                         <identifier>async-options</identifier>
                         <display>
-                            <label>AsynchronousUpdateTask.options</label>
+                            <label>
+                                <orig>Options</orig>
+                                <translation>
+                                    <key>AsynchronousUpdateTask.options</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="8">
                             <path>objectRef</path>

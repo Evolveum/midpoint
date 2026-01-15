@@ -6,7 +6,7 @@
   -->
 
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="ed7018b7-5cc4-4675-9e1e-a6a158c2f31a">
+    oid="ed7018b7-5cc4-4675-9e1e-a6a158c2f31a">
     <name>Shadow owner not certain</name>
     <description>Correlation of a shadow has not found its owner with certainty</description>
     <assignment id="1">
@@ -14,12 +14,5 @@
         <targetRef oid="00000000-0000-0000-0000-000000000700" type="ArchetypeType"/>
     </assignment>
     <displayOrder>540</displayOrder>
-    <display>
-        <label>SimulationCorrelationPanel.uncertain.label</label>
-        <help>SimulationCorrelationPanel.uncertain.help</help>
-        <icon>
-            <cssClass>fa-solid fa-question metric-icon warning</cssClass>
-        </icon>
-    </display>
     <!-- No policy rule. This is set explicitly by the correlation simulation. -->
 </mark>

@@ -23,7 +23,12 @@
                     <key>Persons.pluralLabel</key>
                 </translation>
             </pluralLabel>
-            <tooltip>Person</tooltip>
+            <tooltip>
+                <orig>Person</orig>
+                <translation>
+                    <key>Persons.archetype.tooltip</key>
+                </translation>
+            </tooltip>
             <icon>
                 <cssClass>fa fa-user</cssClass>
                 <color>green</color>
