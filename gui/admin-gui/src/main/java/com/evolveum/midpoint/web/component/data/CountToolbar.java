@@ -24,6 +24,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author lazyman
  */
@@ -65,7 +67,7 @@ public class CountToolbar extends AbstractToolbar {
         form.add(pageSize);
     }
 
-    private IModel<String> createModel(Component component, IPageable pageable) {
+    private @NotNull IModel<String> createModel(Component component, IPageable pageable) {
         return new LoadableModel<>() {
 
             @Override
@@ -73,6 +75,27 @@ public class CountToolbar extends AbstractToolbar {
                 return createCountString(pageable);
             }
         };
+    }
+
+    public static String totalCountString(IPageable pageable) {
+        long count = 0;
+
+        if (pageable instanceof DataViewBase view) {
+            count = view.getItemCount();
+        } else if (pageable instanceof DataTable table) {
+            count = table.getItemCount();
+        }
+
+        if (count > 0) {
+            if (count == Integer.MAX_VALUE) {
+                return PageBase.createStringResourceStatic("CountToolbar.label.unknownTotalCount",
+                        new Object[] { count }).getString();
+            }
+
+            return PageBase.createStringResourceStatic("CountToolbar.searchResult.label", new Object[] { count }).getString();
+        }
+
+        return PageBase.createStringResourceStatic("CountToolbar.noFound").getString();
     }
 
     public static String createCountString(IPageable pageable) {

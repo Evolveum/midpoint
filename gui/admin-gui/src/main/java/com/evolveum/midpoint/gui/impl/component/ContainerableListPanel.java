@@ -30,6 +30,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -429,6 +430,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
+            public String getTableContainerAdditionalCssClasses() {
+                return ContainerableListPanel.this.getTableContainerAdditionalCssClasses();
+            }
+
+            @Override
             protected boolean hideFooterIfSinglePage() {
                 return ContainerableListPanel.this.hideFooterIfSinglePage();
             }
@@ -477,7 +483,43 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             protected void onPagingChanged(ObjectPaging paging) {
                 ContainerableListPanel.this.onPagingChanged(paging);
             }
+
+            @Override
+            protected boolean isSearchResultInfoVisible() {
+                return ContainerableListPanel.this.isSearchResultInfoVisible();
+            }
+
+            @Override
+            public boolean displayIsolatedNoValuePanel() {
+                return ContainerableListPanel.this.displayIsolatedNoValuePanel();
+            }
+
+            @Override
+            protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
+                return ContainerableListPanel.this.getNoValuePanelCustomSubTitleModel();
+            }
+
+            @Override
+            protected boolean isFooterVisible(ISortableDataProvider<PO, String> provider, int pageSize) {
+                return ContainerableListPanel.this.isFooterVisible(super.isFooterVisible(provider, pageSize));
+            }
         };
+    }
+
+    protected boolean isFooterVisible(boolean defaultCondition) {
+        return defaultCondition;
+    }
+
+    protected boolean displayIsolatedNoValuePanel() {
+        return false;
+    }
+
+    protected String getTableContainerAdditionalCssClasses() {
+        return null;
+    }
+
+    protected boolean isSearchResultInfoVisible() {
+        return false;
     }
 
     protected boolean isCollapseToggleColumnVisible() {
@@ -616,6 +658,21 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 }
 
                 return super.createCollapsibleContent(id, rowModel);
+            }
+
+            @Override
+            public boolean displayIsolatedNoValuePanel() {
+                return ContainerableListPanel.this.displayIsolatedNoValuePanel();
+            }
+
+            @Override
+            protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
+                return ContainerableListPanel.this.getNoValuePanelCustomSubTitleModel();
+            }
+
+            @Override
+            protected boolean isFooterVisible(ISortableDataProvider<PO, String> provider, int pageSize) {
+                return ContainerableListPanel.this.isFooterVisible(super.isFooterVisible(provider, pageSize));
             }
         };
     }
@@ -1757,6 +1814,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             protected List<Component> createToolbarButtons(String buttonsId) {
                 return createToolbarButtonsList(ID_BUTTON);
             }
+
+            @Override
+            protected StringResourceModel getCustomSubTitleModel() {
+                return getNoValuePanelCustomSubTitleModel();
+            }
         };
         components.setOutputMarkupId(true);
         components.setOutputMarkupPlaceholderTag(true);
@@ -1766,5 +1828,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected Component getNoValuePanel() {
         return get(ID_NO_VALUE_PANEL);
+    }
+
+    protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
+        return null;
     }
 }
