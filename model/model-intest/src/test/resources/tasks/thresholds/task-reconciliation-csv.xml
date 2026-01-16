@@ -7,7 +7,7 @@
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         oid="ccd6df6c-123a-4d9d-b48e-e4de9bf3f2e2">
-    <name>Dummy reconciliatione</name>
+    <name>CSV Reconciliation</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>closed</executionState>
     <objectRef oid="8f82e457-6c6e-42d7-a433-1a346b1899ee" type="ResourceType"/>
@@ -19,7 +19,7 @@
                 <work>
                     <reconciliation>
                         <resourceObjects>
-                            <resourceRef oid="8f82e457-6c6e-42d7-a433-1a346b1899ee" type="ResourceType"/>
+                            <resourceRef oid="764d58e1-cb44-4ad3-a4e0-465ff952c43e" type="ResourceType"/>
                             <kind>account</kind>
                             <intent>default</intent>
                             <objectclass>ri:AccountObjectClass</objectclass>
@@ -31,7 +31,7 @@
                         <name>policy rule with notify</name>
                         <policyConstraints>
                             <itemProcessingResult>
-                                <errorCategory>network</errorCategory>
+                                <errorCategory>generic</errorCategory>
                             </itemProcessingResult>
                         </policyConstraints>
                         <policyThreshold>
@@ -48,7 +48,7 @@
                         <name>policy rule with skip</name>
                         <policyConstraints>
                             <itemProcessingResult>
-                                <errorCategory>network</errorCategory>
+                                <errorCategory>generic</errorCategory>
                             </itemProcessingResult>
                         </policyConstraints>
                         <policyThreshold>

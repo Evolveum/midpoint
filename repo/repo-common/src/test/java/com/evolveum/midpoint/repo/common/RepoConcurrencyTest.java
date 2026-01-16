@@ -607,6 +607,62 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
                 .isEqualTo(globalCounter.get());
     }
 
+    /**
+     * Adds the same assignment multiple times concurrently (although with different metadata - they are not substantial
+     * for the assignment identity).
+     *
+     * The user should get only one such assignment.
+     *
+     * See #10714.
+     */
+    @Test
+    public void test115AddSameAssignment() throws Exception {
+        skipIfNotNativeRepository();
+
+        OperationResult result = getTestOperationResult();
+
+        int THREADS = 8;
+        long DURATION = 30_000L;
+
+        AtomicInteger globalCounter = new AtomicInteger();
+
+        UserType user = new UserType().name(getTestName());
+
+        String oid = plainRepositoryService.addObject(user.asPrismObject(), null, result);
+
+        displayValue("object added", oid);
+
+        logger.info("Starting worker threads");
+
+        List<DeltaExecutionThread> threads = new ArrayList<>();
+        for (int i = 0; i < THREADS; i++) {
+            DeltaExecutionThread thread = new DeltaExecutionThread(i, UserType.class, oid, "assignment adder #" + i) {
+                @Override
+                Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
+                    globalCounter.incrementAndGet();
+                    return prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_ASSIGNMENT).add(
+                                    new AssignmentType()
+                                            .targetRef("70fbdfc3-ba96-4f3d-8673-1df49014bfaf", OrgType.COMPLEX_TYPE)
+                                            .metadata(new MetadataType()
+                                                    .requestTimestamp(clock.currentTimeXMLGregorianCalendar())
+                                                    .createTimestamp(clock.currentTimeXMLGregorianCalendar())
+                                                    .createTaskRef(UUID.randomUUID().toString(), TaskType.COMPLEX_TYPE)))
+                            .asItemDeltas();
+                }
+            };
+            thread.start();
+            threads.add(thread);
+        }
+
+        waitForThreads(threads, DURATION);
+        PrismObject<UserType> userAfter = plainRepositoryService.getObject(UserType.class, oid, null, result);
+        displayDumpable("user after", userAfter);
+        assertThat(userAfter.asObjectable().getAssignment().size())
+                .as("# of assignments")
+                .isEqualTo(1);
+    }
+
     @Test
     public void test120AddApproverRef() throws Exception {
         int THREADS = 4;
