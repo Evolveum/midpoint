@@ -185,6 +185,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-csv</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-impl</artifactId>
             <version>${project.version}</version>
