@@ -112,7 +112,7 @@ public class QAccessCertificationCaseMapping
                 QOrgMapping::getOrgMapping);
         addItemMapping(F_OUTCOME, stringMapper(q -> q.outcome));
         addItemMapping(F_REMEDIED_TIMESTAMP, timestampMapper(q -> q.remediedTimestamp));
-        addItemMapping(F_CURRENT_STAGE_DEADLINE, timestampMapper(q -> q.currentStageCreateTimestamp));
+        addItemMapping(F_CURRENT_STAGE_DEADLINE, timestampMapper(q -> q.currentStageDeadline));
         addItemMapping(F_CURRENT_STAGE_CREATE_TIMESTAMP, timestampMapper(q -> q.currentStageCreateTimestamp));
         addItemMapping(F_STAGE_NUMBER, integerMapper(q -> q.stageNumber));
         addRefMapping(F_TARGET_REF,
