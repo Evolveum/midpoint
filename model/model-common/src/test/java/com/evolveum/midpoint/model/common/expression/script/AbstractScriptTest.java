@@ -425,6 +425,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, testName, variables);
         PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, testName);
+        displayValue("Expression result", expressionResult);
         assertNotNull("Expression " + testName + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
         assertEquals("Expression " + testName + " resulted in wrong value", expectedValue, expressionResult.getValue());
     }

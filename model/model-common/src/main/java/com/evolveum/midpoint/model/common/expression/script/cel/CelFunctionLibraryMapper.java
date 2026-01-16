@@ -23,6 +23,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.ListType;
 import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelValue;
@@ -32,13 +33,12 @@ import dev.cel.parser.Operator;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelFunctionOverload;
 import dev.cel.runtime.CelRuntimeBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -73,16 +73,38 @@ public class CelFunctionLibraryMapper {
         processFunctionLibraryDeclarations(funcLib, (library, method, funcName, funcId) -> {
             CelType returnType = CelTypeMapper.toCelType(method.getReturnType());
             List<CelType> paramTypes = new ArrayList<>();
-            for (Parameter parameter : method.getParameters()) {
-                Class<?> parameterType = parameter.getType();
-                if (parameterType == Object.class) {
+            for (Type genericParameterType : method.getGenericParameterTypes()) {
+                if (genericParameterType == Object.class) {
                     paramTypes.add(SimpleType.ANY);
-                } else {
-                    paramTypes.add(CelTypeMapper.toCelType(parameterType));
+                } else if (genericParameterType instanceof Class) {
+                    paramTypes.add(CelTypeMapper.toCelType((Class<?>)genericParameterType));
+                } else if (genericParameterType instanceof ParameterizedType) {
+                    ParameterizedType parametrizedType = (ParameterizedType) genericParameterType;
+                    LOGGER.info("PPPPPP: owner: {}, raw: {}",parametrizedType.getOwnerType(),parametrizedType.getRawType());
+                    Type rawType = parametrizedType.getRawType();
+                    if (rawType instanceof Class<?> rawClass) {
+                        if (List.class.isAssignableFrom(rawClass)) {
+                            Type elementType = ((ParameterizedType) genericParameterType).getActualTypeArguments()[0];
+                            LOGGER.info("TTTTTTTT: element type {} ({}) -> {}", elementType, elementType.getClass(), elementType.getTypeName());
+                            CelType elementCelType;
+                            if (elementType == Object.class) {
+                                elementCelType = SimpleType.ANY;
+                            } else if (elementType instanceof Class) {
+                                elementCelType = CelTypeMapper.toCelType((Class<?>) elementType);
+                            } else {
+                                throw new IllegalArgumentException("Unexpected element Java Type " + elementType + " (" + elementType.getClass() + ")");
+                            }
+                            paramTypes.add(ListType.create(elementCelType));
+                        } else {
+                            throw new IllegalArgumentException("Unexpected Java Type "+rawClass);
+                        }
+                    } else {
+                        throw new IllegalArgumentException("Unexpected Java Type "+genericParameterType+" ("+genericParameterType.getClass()+")");
+                    }
                 }
             }
 
-            LOGGER.info("FFFF: Declaring CEL function {}[{}]({}): {}", funcName, funcId, null, returnType);
+            LOGGER.info("FFFF: Declaring CEL function {}[{}]({}): {}", funcName, funcId, StringUtils.join(paramTypes, ", "), returnType);
             builder.addFunctionDeclarations(
                     CelFunctionDecl.newFunctionDeclaration(
                             funcName,
@@ -145,7 +167,7 @@ public class CelFunctionLibraryMapper {
                 return CelTypeMapper.toCelValue(celReturnValue);
             };
 
-            LOGGER.info("FFFF: Binding CEL function {}[{}]({})", funcName, funcId);
+            LOGGER.info("FFFF: Binding CEL function {}[{}]({})", funcName, funcId, StringUtils.join(paramTypes, ", "));
 
             builder.addFunctionBindings(
                     CelFunctionBinding.from(

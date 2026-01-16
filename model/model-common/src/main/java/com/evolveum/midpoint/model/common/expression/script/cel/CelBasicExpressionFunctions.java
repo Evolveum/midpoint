@@ -14,6 +14,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import dev.cel.common.types.CelType;
 import dev.cel.common.values.CelValue;
 
+import java.util.List;
+
 public class CelBasicExpressionFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(CelBasicExpressionFunctions.class);
@@ -55,6 +57,14 @@ public class CelBasicExpressionFunctions {
             return implementation.norm((String)orig);
         }
         return implementation.norm(orig.toString());
+    }
+
+    public String concatName(List<Object> components) {
+        LOGGER.info("CCCCCCC: concatName {}", components);
+        if (components == null) {
+            return null;
+        }
+        return implementation.concatName(components.toArray());
     }
 
     public String stringify(Object whatever) {
