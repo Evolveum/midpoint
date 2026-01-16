@@ -359,11 +359,17 @@ public abstract class SmartCorrelationTable
     @Override
     public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
         List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems(tileModel);
-        inlineMenuItems.add(createSimulationInlineMenu(tileModel));
         inlineMenuItems.add(createViewRuleInlineMenu(tileModel));
         inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
         inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
         return inlineMenuItems;
+    }
+
+    @Override
+    public List<InlineMenuItem> getDefaultMenuActions(PrismContainerValueWrapper<ItemsSubCorrelatorType> model) {
+        List<InlineMenuItem> defaultMenuActions = super.getDefaultMenuActions(model);
+        defaultMenuActions.add(createSimulationInlineMenu(model));
+        return defaultMenuActions;
     }
 
     protected InlineMenuItem createSimulationInlineMenu(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
@@ -409,7 +415,9 @@ public abstract class SmartCorrelationTable
                                 ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
                         );
 
-                        SimulationActionFlow<?> flow = new SimulationActionFlow<>(params);
+                        SimulationActionFlow<?> flow = new SimulationActionFlow(params);
+                        flow.enableSampling();
+                        flow.showProgressPopup();
                         flow.start(target);
                     }
                 };

@@ -11,10 +11,13 @@ import com.evolveum.midpoint.model.impl.correlator.tasks.CorrelationDefinitionPr
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceSetTaskWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
 
 /**
  * Work definition for correlation simulation activity.
@@ -33,6 +36,8 @@ public class CorrelationWorkDefinition extends ResourceSetTaskWorkDefinition {
             throw new IllegalArgumentException("Expected " + CorrelationWorkDefinitionType.class.getSimpleName()
                     + " but got: " + workDefBean.getClass());
         }
+
+        ResourceObjectSetUtil.setDefaultQueryApplicationMode(getResourceObjectSetSpecification(), APPEND);
 
         this.correlatorsToUse = workDef.getCorrelators();
         this.correlationDefProviderFactory = correlationDefProviderFactory;

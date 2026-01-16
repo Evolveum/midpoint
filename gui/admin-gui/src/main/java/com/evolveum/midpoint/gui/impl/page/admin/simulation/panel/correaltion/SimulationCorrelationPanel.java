@@ -112,7 +112,8 @@ public class SimulationCorrelationPanel extends BasePanel<SimulationResultType> 
                         })
                         .reduce(0, Integer::sum);
 
-                DashboardWidgetType totalProcessedWidget = buildWidget("SimulationCorrelationPanel.total",
+                DashboardWidgetType totalProcessedWidget = buildWidget(
+                        createStringResource("SimulationCorrelationPanel.total").getString(),
                         "SimulationCorrelationPanel.total.help",
                         "fa fa-cube metric-icon info",
                         totalProcessed);
