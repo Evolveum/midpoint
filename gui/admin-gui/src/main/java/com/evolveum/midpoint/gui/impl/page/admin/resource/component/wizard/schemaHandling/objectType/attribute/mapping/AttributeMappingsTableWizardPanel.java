@@ -403,6 +403,10 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 buttons.newChildId(),
                 objectTypeDefModel,
                 () -> getAssignmentHolderDetailsModel().getObjectType()) {
+            @Override
+            protected boolean isSamplingEnabled() {
+                return true;
+            }
 
             @Override
             protected @NotNull ResourceTaskFlavor<Void> getTaskFlavor() {

@@ -67,6 +67,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.io.Serial;
 import java.util.*;
 
 public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
@@ -421,19 +422,25 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         };
         columns.add(ownerColumn);
 
-        columns.add(new AbstractColumn<>(
-                createStringResource("PageAccounts.accounts.pendingOperations")) {
+        if (isPendingOperationsVisible()) {
+            columns.add(new AbstractColumn<>(
+                    createStringResource("PageAccounts.accounts.pendingOperations")) {
 
-            private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
-                    String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
-                cellItem.add(new PendingOperationPanel(componentId,
-                        new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + ShadowType.F_PENDING_OPERATION.getLocalPart())));
-            }
-        });
+                @Override
+                public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
+                        String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
+                    cellItem.add(new PendingOperationPanel(componentId,
+                            new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + ShadowType.F_PENDING_OPERATION.getLocalPart())));
+                }
+            });
+        }
         return columns;
+    }
+
+    protected boolean isPendingOperationsVisible() {
+        return true;
     }
 
     private void shadowDetailsPerformed(String accountName, String accountOid) {
@@ -818,7 +825,6 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
         return getPageBase().getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(FocusType.class);
     }
-
 
     protected ModelExecuteOptions createModelExecuteOptions() {
         return null;

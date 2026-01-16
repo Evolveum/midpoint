@@ -15,21 +15,31 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoicePopup;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +56,8 @@ public class SimulationActionFlow<T> implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(SimulationActionFlow.class);
 
     private final SimulationParams<T> context;
+    boolean isSamplingEnabled = false;
+    boolean showProgressPopup = true;
 
     public SimulationActionFlow(@NotNull SimulationParams<T> context) {
         this.context = context;
@@ -59,11 +71,14 @@ public class SimulationActionFlow<T> implements Serializable {
         PredefinedConfigurationType defaultCfg = PredefinedConfigurationType.DEVELOPMENT;
 
         String lifecycleState = def.getLifecycleState();
-        boolean isConfigurationEnabled = lifecycleState == null
-                || !lifecycleState.equals(ShadowLifecycleStateType.PROPOSED.value());
+        boolean isProposed = ShadowLifecycleStateType.PROPOSED.value().equals(lifecycleState);
 
-        if (!isConfigurationEnabled) {
-            runSimulation(target, defaultCfg);
+        if (isProposed) {
+            if (isSamplingEnabled) {
+                runSamplingSimulation(context.pageBase(), target, defaultCfg);
+            } else {
+                runSimulation(target, defaultCfg, null);
+            }
             return;
         }
 
@@ -109,27 +124,128 @@ public class SimulationActionFlow<T> implements Serializable {
 
             @Override
             protected IModel<String> getAcceptButtonLabel() {
-                return createStringResource("SimulationActionButton.simulate.save.and.execute");
+
+                return isSamplingEnabled ? createStringResource("SimulationActionButton.simulate.save.execute.and.sample")
+                        : createStringResource("SimulationActionButton.simulate.save.and.execute");
             }
 
             @Override
             protected void performAction(AjaxRequestTarget target, PredefinedConfigurationType value) {
-                runSimulation(target, value);
+                pageBase.hideMainPopup(target);
+
+                if (!isSamplingEnabled) {
+                    runSimulation(target, value, null);
+                    return;
+                }
+
+                runSamplingSimulation(pageBase, target, value);
             }
         };
-
         pageBase.showMainPopup(popup, target);
     }
 
-    protected void runSimulation(AjaxRequestTarget target, PredefinedConfigurationType cfg) {
+    private void runSamplingSimulation(PageBase pageBase, AjaxRequestTarget target, PredefinedConfigurationType value) {
+        ResourceDetailsModel resourceModel = getResourceDetailsModel(pageBase);
+        ResourceObjectTypeDefinitionType def = context.definition();
+        SimulationDataSamplingPanel panel = new SimulationDataSamplingPanel(
+                pageBase.getMainPopupBodyId(),
+                Model.of(resourceModel)) {
+
+            @Override
+            protected ResourceObjectTypeDefinition getObjectTypeDefinition() {
+                return resourceModel.getObjectTypeDefinition(def.getKind(), def.getIntent());
+            }
+
+            @Override
+            protected List<IModel<String>> getInfoMessagesModels() {
+                T workDefinitionConfig = context.workDefinitionConfiguration();
+                if (workDefinitionConfig != null && !workDefinitionConfig.getClass().equals(CorrelatorsDefinitionType.class)) {
+                    return List.of(
+                            createStringResource("SimulationDataSamplingPanel.simulation.mode.mapping.info"),
+                            createStringResource("SimulationDataSamplingPanel.approximateCount.mapping.info")
+                    );
+                }
+                return super.getInfoMessagesModels();
+            }
+
+            public void yesPerformed(AjaxRequestTarget target,
+                    @Nullable Integer sampleSize,
+                    @Nullable ObjectQuery objectQuery) {
+                Integer effectiveSampleSize = sanitizeSampleSize(sampleSize);
+
+                if (objectQuery == null && effectiveSampleSize == null) {
+                    pageBase.hideMainPopup(target);
+                    runSimulation(target, value, null);
+                    return;
+                }
+
+                ObjectQuery localQuery = objectQuery != null
+                        ? objectQuery.clone()
+                        : PrismContext.get().queryFactory().createQuery();
+
+                if (effectiveSampleSize != null) {
+                    ObjectPaging paging = PrismContext.get()
+                            .queryFactory()
+                            .createPaging(0, effectiveSampleSize);
+                    localQuery.setPaging(paging);
+                }
+
+                QueryType query;
+                try {
+                    query = PrismContext.get().getQueryConverter().createQueryType(localQuery);
+                } catch (SchemaException e) {
+                    var result = new OperationResult("createQueryType");
+                    result.recordFatalError("Couldn't prepare simulation query: " + e.getMessage(), e);
+                    getPageBase().showResult(result);
+                    target.add(getPageBase().getFeedbackPanel());
+                    return;
+                }
+
+                pageBase.hideMainPopup(target);
+                runSimulation(target, value, query);
+            }
+        };
+        pageBase.showMainPopup(panel, target);
+    }
+
+    /**
+     * Returns null if sample size is missing/invalid => "run full".
+     * Otherwise, returns a clamped positive sample size.
+     */
+    private @Nullable Integer sanitizeSampleSize(@Nullable Integer sampleSize) {
+        if (sampleSize == null) {
+            return null;
+        }
+        if (sampleSize <= 0) {
+            return null;
+        }
+
+        return sampleSize;
+    }
+
+    private @NotNull ResourceDetailsModel getResourceDetailsModel(PageBase pageBase) {
+        ResourceType resource = context.resource();
+        PrismObject<ResourceType> prismObject = resource.asPrismObject();
+        LoadableDetachableModel<PrismObject<ResourceType>> resourceModelModel =
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected PrismObject<ResourceType> load() {
+                        return prismObject;
+                    }
+                };
+
+        return new ResourceDetailsModel(resourceModelModel,
+                pageBase);
+    }
+
+    protected void runSimulation(AjaxRequestTarget target, PredefinedConfigurationType cfg, QueryType query) {
         PageBase pageBase = context.pageBase();
         ResourceType resource = context.resource();
         ResourceObjectTypeDefinitionType def = context.definition();
         ResourceTaskFlavor<T> flavor = context.flavor();
-
         TaskType newTask = pageBase.taskAwareExecutor(target, OP_CREATE_TASK)
                 .hideSuccessfulStatus()
-                .run((task, result) -> createTask(task, result, pageBase, resource, def, flavor, cfg));
+                .run((task, result) -> createTask(task, result, pageBase, query, resource, def, flavor, cfg));
 
         saveAndPerformSimulation(target, pageBase, newTask);
     }
@@ -138,6 +254,7 @@ public class SimulationActionFlow<T> implements Serializable {
             Task task,
             OperationResult result,
             PageBase pageBase,
+            QueryType query,
             ResourceType resource,
             @NotNull ResourceObjectTypeDefinitionType def,
             ResourceTaskFlavor<T> flavor,
@@ -152,6 +269,7 @@ public class SimulationActionFlow<T> implements Serializable {
                             def.getKind(),
                             def.getIntent(),
                             def.getObjectClass())
+                    .withQuery(query)
                     .withExecutionMode(context.executionMode())
                     .withPredefinedConfiguration(cfg)
                     .withSubmissionOptions(ActivitySubmissionOptions.create()
@@ -205,6 +323,36 @@ public class SimulationActionFlow<T> implements Serializable {
             result.computeStatusIfUnknown();
             pageBase.showResult(result);
             target.add(pageBase.getFeedbackPanel().getParent());
+//            if (showProgressPopup() && !result.isError()) {
+//                SimulationProgressPanel simulationProgressPanel = new SimulationProgressPanel(
+//                        pageBase.getMainPopupBodyId(),
+//                        Model.of(pageBase.getString("SimulationProgressPanel.simulationInProgress.title")),
+//                        Model.of(pageBase.getString("SimulationProgressPanel.simulationInProgress.subTitle")),
+//                        Model.of(newTask)) {
+//                    @Override
+//                    protected void onStop(AjaxRequestTarget target) {
+//
+//                    }
+//
+//                    @Override
+//                    protected void onShowResults(AjaxRequestTarget target) {
+//
+//                    }
+//                };
+//                pageBase.showMainPopup(simulationProgressPanel, target);
+//            } else {
+//                pageBase.showResult(result);
+//                target.add(pageBase.getFeedbackPanel().getParent());
+//            }
         }
+    }
+
+    public void enableSampling() {
+        this.isSamplingEnabled = true;
+    }
+
+    //TODO require BE implementation (simulation task not reporting progress yet)
+    public void showProgressPopup() {
+        this.showProgressPopup = true;
     }
 }
