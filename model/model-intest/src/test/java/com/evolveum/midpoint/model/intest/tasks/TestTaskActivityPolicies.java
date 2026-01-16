@@ -147,7 +147,7 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
     }
 
     @Test(enabled = false)
-    public void test300TestItemProcessingNetworkErrorCSV() throws Exception {
+    public void test300TestItemProcessingGenericErrorCSV() throws Exception {
         OperationResult result = getTestOperationResult();
 
         dummyTransport.clearMessages();
