@@ -17,20 +17,20 @@ public class ParallelTestThread extends Thread {
 
     private static final Trace LOGGER = TraceManager.getTrace(ParallelTestThread.class);
 
-    private int i;
-    private MultithreadRunner target;
+    private final int threadIndex;
+    private final MultithreadRunner runner;
     private Throwable exception;
 
-    public ParallelTestThread(int i, MultithreadRunner target) {
+    ParallelTestThread(int threadIndex, MultithreadRunner runner) {
         super();
-        this.i = i;
-        this.target = target;
+        this.threadIndex = threadIndex;
+        this.runner = runner;
     }
 
     @Override
     public void run() {
         try {
-            target.run(i);
+            runner.run(threadIndex);
         } catch (RuntimeException | Error e) {
             recordException(e);
             throw e;
