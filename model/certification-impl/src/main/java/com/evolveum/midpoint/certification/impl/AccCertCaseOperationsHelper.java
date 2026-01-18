@@ -48,6 +48,7 @@ import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -95,6 +96,18 @@ public class AccCertCaseOperationsHelper {
 
         ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getFocus());
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+
+        // Check if the stage deadline has passed
+        XMLGregorianCalendar deadline = aCase.getCurrentStageDeadline();
+        if (deadline != null && now.compare(deadline) > 0) {
+            result.recordWarning("Deadline exceeded: " + deadline);
+            result.setUserFriendlyMessage(
+                    new LocalizableMessageBuilder()
+                            .key("AccCertCaseOperationsHelper.cannotRecordDecisionAfterDeadline")
+                            .arg(deadline)
+                            .build());
+            return;
+        }
         ItemPath workItemPath = ItemPath.create(F_CASE, caseId, F_WORK_ITEM, workItemId);
         Collection<ItemDelta<?,?>> deltaList = prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(workItemPath.append(AccessCertificationWorkItemType.F_OUTPUT))

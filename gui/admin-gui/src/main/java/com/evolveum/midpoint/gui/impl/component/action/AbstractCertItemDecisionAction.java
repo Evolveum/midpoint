@@ -48,6 +48,7 @@ public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<A
             CertMiscUtil.recordCertItemResponse(workItem, response, getComment(workItem), oneActionResult, task, pageBase);
         });
         result.computeStatus();
+        pageBase.showResult(result, false);
         target.add(pageBase);
     }
 
