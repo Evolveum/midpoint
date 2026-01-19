@@ -15,7 +15,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart.PageSmartIntegrationStart;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -28,7 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 
@@ -83,10 +81,6 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
     }
 
     protected CreateResourceTemplatePanel createTemplatePanel() {
-
-        if (templateType.getObject() == ResourceTemplate.TemplateType.SMART) {
-            throw new RestartResponseException(PageSmartIntegrationStart.class);
-        }
 
         return new CreateResourceTemplatePanel(getIdOfChoicePanel(), templateType) {
             @Override
