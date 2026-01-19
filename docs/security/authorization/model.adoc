@@ -100,6 +100,12 @@ Each individual created object also needs to pass through authorization for `add
 | Allows to execute xref:/midpoint/reference/misc/bulk/[midPoint scripts a.k.a. bulk actions]
 | Authorizes the possibility to execute the bulk actions.
 See xref:bulk-actions.adoc[].
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#runReport
+| N/A
+| N/A
+| Allows to execute run report action.
+| Authorizes the possibility to run reports.
 |===
 
 The `assign` and `unassign` authorizations are designed especially to allow assignment and un-assignment of specific roles and orgs, e.g. in cases of delegated administration, multi-tenancy and similar set-ups.
