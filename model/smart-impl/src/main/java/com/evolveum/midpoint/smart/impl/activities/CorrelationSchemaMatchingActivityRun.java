@@ -58,7 +58,7 @@ public class CorrelationSchemaMatchingActivityRun extends LocalActivityRun<
         var typeIdentification = workDef.getTypeIdentification();
 
         SchemaMatchResultType match = SmartIntegrationBeans.get().smartIntegrationService
-                .computeSchemaMatch(resourceOid, typeIdentification, getRunningTask(), result);
+                .computeSchemaMatch(resourceOid, typeIdentification, true, getRunningTask(), result);
 
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH, match);
