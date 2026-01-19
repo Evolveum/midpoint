@@ -275,8 +275,8 @@ public class RelationUtil {
     }
 
     public static List<QName> getCategoryRelationChoices(AreaCategoryType category, List<RelationDefinitionType> defList) {
-        List<QName> relationsList = new ArrayList<>();
-        defList.sort((rD1, rD2) -> {
+        List<RelationDefinitionType> definitions = new ArrayList<>(defList);
+        definitions.sort((rD1, rD2) -> {
             if (rD1 == null || rD2 == null) {
                 return 0;
             }
@@ -296,11 +296,14 @@ public class RelationUtil {
             }
             return compare;
         });
-        defList.forEach(def -> {
+
+        List<QName> relationsList = new ArrayList<>();
+        definitions.forEach(def -> {
             if (def.getCategory() != null && def.getCategory().contains(category)) {
                 relationsList.add(def.getRef());
             }
         });
+
         return relationsList;
     }
 

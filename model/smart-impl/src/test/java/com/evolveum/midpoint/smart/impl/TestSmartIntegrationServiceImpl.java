@@ -1182,6 +1182,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestedMappings = smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
@@ -1251,6 +1252,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
@@ -1295,6 +1297,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestedCorrelations = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
