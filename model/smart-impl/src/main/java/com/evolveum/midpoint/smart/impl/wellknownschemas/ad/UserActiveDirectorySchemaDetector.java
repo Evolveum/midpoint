@@ -6,11 +6,11 @@
  *
  */
 
-package com.evolveum.midpoint.smart.impl.knownschemas.ad;
+package com.evolveum.midpoint.smart.impl.wellknownschemas.ad;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaDetector;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaType;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaDetector;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class UserActiveDirectorySchemaDetector implements KnownSchemaDetector {
+public class UserActiveDirectorySchemaDetector implements WellKnownSchemaDetector {
 
     private static final Set<String> AD_CONNECTOR_TYPES = Set.of(
             "com.evolveum.polygon.connector.ldap.ad.AdLdapConnector"
@@ -36,7 +36,7 @@ public class UserActiveDirectorySchemaDetector implements KnownSchemaDetector {
     );
 
     @Override
-    public Optional<KnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition) {
+    public Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition) {
         var objectClassDef = typeDefinition.getObjectClassDefinition();
         String objectClassName = objectClassDef.getTypeName().getLocalPart();
 
@@ -49,7 +49,7 @@ public class UserActiveDirectorySchemaDetector implements KnownSchemaDetector {
             String connectorType = connectorRef.getType() != null ? connectorRef.getType().getLocalPart() : "";
 
             if (AD_CONNECTOR_TYPES.stream().anyMatch(type -> connectorType.contains(type))) {
-                return Optional.of(KnownSchemaType.AD_USER);
+                return Optional.of(WellKnownSchemaType.AD_USER);
             }
         }
 
@@ -58,14 +58,9 @@ public class UserActiveDirectorySchemaDetector implements KnownSchemaDetector {
                 .collect(Collectors.toSet());
 
         if (attributeNames.containsAll(AD_USER_ATTRIBUTES_LOWERCASE)) {
-            return Optional.of(KnownSchemaType.AD_USER);
+            return Optional.of(com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType.AD_USER);
         }
 
         return Optional.empty();
-    }
-
-    @Override
-    public KnownSchemaType getSupportedSchemaType() {
-        return KnownSchemaType.AD_USER;
     }
 }

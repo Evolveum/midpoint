@@ -6,11 +6,11 @@
  *
  */
 
-package com.evolveum.midpoint.smart.impl.knownschemas.scim;
+package com.evolveum.midpoint.smart.impl.wellknownschemas.scim;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaDetector;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaType;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaDetector;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 
 @Component
-public class UserScimSchemaDetector implements KnownSchemaDetector {
+public class UserScimSchemaDetector implements WellKnownSchemaDetector {
 
     private static final Set<String> SCIM_CONNECTOR_TYPES = Set.of(
             "com.evolveum.polygon.connector.scim.ScimConnector",
@@ -38,7 +38,7 @@ public class UserScimSchemaDetector implements KnownSchemaDetector {
     );
 
     @Override
-    public Optional<KnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition) {
+    public Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition) {
         var objectClassDef = typeDefinition.getObjectClassDefinition();
         String objectClassName = objectClassDef.getTypeName().getLocalPart();
 
@@ -51,7 +51,7 @@ public class UserScimSchemaDetector implements KnownSchemaDetector {
             String connectorType = connectorRef.getType() != null ? connectorRef.getType().getLocalPart() : "";
 
             if (SCIM_CONNECTOR_TYPES.stream().anyMatch(type -> connectorType.contains(type))) {
-                return Optional.of(KnownSchemaType.SCIM_2_0_USER);
+                return Optional.of(WellKnownSchemaType.SCIM_2_0_USER);
             }
         }
 
@@ -60,14 +60,9 @@ public class UserScimSchemaDetector implements KnownSchemaDetector {
                 .collect(Collectors.toSet());
 
         if (attributeNames.containsAll(SCIM_USER_ATTRIBUTES_LOWERCASE)) {
-            return Optional.of(KnownSchemaType.SCIM_2_0_USER);
+            return Optional.of(com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType.SCIM_2_0_USER);
         }
 
         return Optional.empty();
-    }
-
-    @Override
-    public KnownSchemaType getSupportedSchemaType() {
-        return KnownSchemaType.SCIM_2_0_USER;
     }
 }

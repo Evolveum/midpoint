@@ -21,8 +21,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaMappingProvider;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaService;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
 import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.MissingSourceDataException;
@@ -67,19 +67,19 @@ class MappingsSuggestionOperation {
     private final TypeOperationContext ctx;
     private final MappingsQualityAssessor qualityAssessor;
     private final OwnedShadowsProvider ownedShadowsProvider;
-    private final KnownSchemaService knownSchemaService;
+    private final WellKnownSchemaService wellKnownSchemaService;
     private final boolean isInbound;
 
     private MappingsSuggestionOperation(
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
-            KnownSchemaService knownSchemaService,
+            WellKnownSchemaService wellKnownSchemaService,
             boolean isInbound) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
         this.ownedShadowsProvider = ownedShadowsProvider;
-        this.knownSchemaService = knownSchemaService;
+        this.wellKnownSchemaService = wellKnownSchemaService;
         this.isInbound = isInbound;
     }
 
@@ -90,7 +90,7 @@ class MappingsSuggestionOperation {
             @Nullable CurrentActivityState<?> activityState,
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
-            KnownSchemaService knownSchemaService,
+            WellKnownSchemaService wellKnownSchemaService,
             boolean isInbound,
             Task task,
             OperationResult result)
@@ -100,7 +100,7 @@ class MappingsSuggestionOperation {
                 TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result),
                 qualityAssessor,
                 ownedShadowsProvider,
-                knownSchemaService,
+                wellKnownSchemaService,
                 isInbound);
     }
 
@@ -118,7 +118,7 @@ class MappingsSuggestionOperation {
             return new MappingsSuggestionType();
         }
 
-        var knownSchemaProvider = knownSchemaService.getProviderFromSchemaMatch(schemaMatch).orElse(null);
+        var knownSchemaProvider = wellKnownSchemaService.getProviderFromSchemaMatch(schemaMatch).orElse(null);
 
         var ownedList = collectOwnedShadows(result);
         int llmDataCount = Math.min(LLM_EXAMPLES_COUNT, ownedList.size());
@@ -180,18 +180,18 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private void addSystemMappings(MappingsSuggestionType suggestion, KnownSchemaMappingProvider knownSchemaProvider) {
+    private void addSystemMappings(MappingsSuggestionType suggestion, WellKnownSchemaProvider knownSchemaProvider) {
         if (knownSchemaProvider == null) {
             return;
         }
         LOGGER.info("Adding predefined mappings from known schema provider: {}", knownSchemaProvider.getSupportedSchemaType());
         if (isInbound) {
-            for (AttributeMappingsSuggestionType predefinedSuggestion : knownSchemaProvider.getInboundMappings()) {
+            for (AttributeMappingsSuggestionType predefinedSuggestion : knownSchemaProvider.suggestInboundMappings()) {
                 SmartMetadataUtil.markAsSystemProvided(predefinedSuggestion);
                 suggestion.getAttributeMappings().add(predefinedSuggestion);
             }
         } else {
-            for (AttributeMappingsSuggestionType predefinedSuggestion : knownSchemaProvider.getOutboundMappings()) {
+            for (AttributeMappingsSuggestionType predefinedSuggestion : knownSchemaProvider.suggestOutboundMappings()) {
                 SmartMetadataUtil.markAsSystemProvided(predefinedSuggestion);
                 suggestion.getAttributeMappings().add(predefinedSuggestion);
             }

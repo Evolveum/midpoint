@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Optional;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaService;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -55,15 +56,15 @@ public class SchemaMatchService {
 
     private final RepositoryService repositoryService;
     private final ServiceClientFactory clientFactory;
-    private final KnownSchemaService knownSchemaService;
+    private final WellKnownSchemaService wellKnownSchemaService;
 
     public SchemaMatchService(
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
             ServiceClientFactory clientFactory,
-            KnownSchemaService knownSchemaService) {
+            WellKnownSchemaService wellKnownSchemaService) {
         this.repositoryService = repositoryService;
         this.clientFactory = clientFactory;
-        this.knownSchemaService = knownSchemaService;
+        this.wellKnownSchemaService = wellKnownSchemaService;
     }
 
     public SchemaMatchResultType computeSchemaMatch(
@@ -81,23 +82,21 @@ public class SchemaMatchService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result);
             var focusTypeDefinition = ctx.getFocusTypeDefinition();
-            var matchingOp = new SchemaMatchingOperation(ctx, knownSchemaService);
-            var match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource, useAiService);
+            var matchingOp = new SchemaMatchingOperation(serviceClient, wellKnownSchemaService, useAiService);
+            var match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource);
 
             SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()
                     .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 
             var detectedSchemaType = matchingOp.getDetectedSchemaType();
             if (detectedSchemaType != null) {
-                schemaMatchResult.setKnownSchemaType(detectedSchemaType.name());
+                schemaMatchResult.setWellKnownSchemaType(detectedSchemaType.name());
                 LOGGER.debug("Stored known schema type: {} for resource {}", detectedSchemaType, resourceOid);
             }
 
             for (var attributeMatch : match.getAttributeMatch()) {
-                var matchResult = processAttributeMatch(attributeMatch, matchingOp, ctx, focusTypeDefinition);
-                if (matchResult != null) {
-                    schemaMatchResult.getSchemaMatchResult().add(matchResult);
-                }
+                processAttributeMatch(attributeMatch, matchingOp, ctx, focusTypeDefinition)
+                        .ifPresent(schemaMatchResult.getSchemaMatchResult()::add);
             }
             return schemaMatchResult;
         } catch (Throwable t) {
@@ -108,7 +107,7 @@ public class SchemaMatchService {
         }
     }
 
-    private SchemaMatchOneResultType processAttributeMatch(
+    private Optional<SchemaMatchOneResultType> processAttributeMatch(
             SiAttributeMatchSuggestionType attributeMatch,
             SchemaMatchingOperation matchingOp,
             TypeOperationContext ctx,
@@ -116,21 +115,21 @@ public class SchemaMatchService {
         var shadowAttrPath = matchingOp.getApplicationItemPath(attributeMatch.getApplicationAttribute());
         if (shadowAttrPath.size() != 2 || !shadowAttrPath.startsWith(ShadowType.F_ATTRIBUTES)) {
             LOGGER.warn("Ignoring attribute {}. It is not a traditional attribute.", shadowAttrPath);
-            return null;
+            return Optional.empty();
         }
 
         var shadowAttrName = shadowAttrPath.rest().asSingleNameOrFail();
         var shadowAttrDef = ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
         if (shadowAttrDef == null) {
             LOGGER.warn("No shadow attribute definition found for {}. Skipping schema match record.", shadowAttrName);
-            return null;
+            return Optional.empty();
         }
 
         var focusPropPath = matchingOp.getFocusItemPath(attributeMatch.getMidPointAttribute());
         var focusPropDef = focusTypeDefinition.findPropertyDefinition(focusPropPath);
         if (focusPropDef == null) {
             LOGGER.warn("No focus property definition found for {}. Skipping schema match record.", focusPropPath);
-            return null;
+            return Optional.empty();
         }
 
         var applicationAttrDefBean = createAttributeDefinition(
@@ -138,11 +137,11 @@ public class SchemaMatchService {
         var midPointPropertyDefBean = createAttributeDefinition(
                 focusPropPath, focusPropDef, focusTypeDefinition);
 
-        return new SchemaMatchOneResultType()
+        return Optional.of(new SchemaMatchOneResultType()
                 .shadowAttributePath(shadowAttrPath.toStringStandalone())
                 .shadowAttribute(applicationAttrDefBean)
                 .focusPropertyPath(focusPropPath.toStringStandalone())
-                .focusProperty(midPointPropertyDefBean);
+                .focusProperty(midPointPropertyDefBean));
     }
 
     private SiAttributeDefinitionType createAttributeDefinition(

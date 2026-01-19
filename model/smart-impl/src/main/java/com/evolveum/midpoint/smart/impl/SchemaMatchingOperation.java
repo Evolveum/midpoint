@@ -12,9 +12,9 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.MATCH_SCHEMA;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaMappingProvider;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaService;
-import com.evolveum.midpoint.smart.impl.knownschemas.KnownSchemaType;
+import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SiMatchSchemaRequest
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiMatchSchemaResponseType;
 
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * This is an operation used from {@link MappingsSuggestionOperation} as well as from {@link CorrelationSuggestionOperation}.
@@ -39,22 +38,23 @@ class SchemaMatchingOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaMatchingOperation.class);
 
-    private final TypeOperationContext ctx;
-    private final KnownSchemaService knownSchemaService;
+    private final ServiceClient serviceClient;
+    private final WellKnownSchemaService wellKnownSchemaService;
+    private final boolean useAiService;
     private ResourceObjectClassSchemaSerializer resourceSideSerializer;
     private PrismComplexTypeDefinitionSerializer midPointSideSerializer;
-    private KnownSchemaType detectedSchemaType;
+    private WellKnownSchemaType detectedSchemaType;
 
-    SchemaMatchingOperation(TypeOperationContext ctx, KnownSchemaService knownSchemaService) {
-        this.ctx = ctx;
-        this.knownSchemaService = knownSchemaService;
+    SchemaMatchingOperation(ServiceClient serviceClient, WellKnownSchemaService wellKnownSchemaService, boolean useAiService) {
+        this.serviceClient = serviceClient;
+        this.wellKnownSchemaService = wellKnownSchemaService;
+        this.useAiService = useAiService;
     }
 
     SiMatchSchemaResponseType matchSchema(
             ResourceObjectTypeDefinition objectTypeDef,
             PrismObjectDefinition<?> focusDef,
-            ResourceType resource,
-            boolean useAiService)
+            ResourceType resource)
             throws SchemaException {
 
         MiscUtil.stateCheck(resourceSideSerializer == null, "matchSchema method was already called");
@@ -62,33 +62,32 @@ class SchemaMatchingOperation {
         resourceSideSerializer = ResourceObjectClassSchemaSerializer.create(objectTypeDef.getObjectClassDefinition(), resource);
         midPointSideSerializer = PrismComplexTypeDefinitionSerializer.create(focusDef);
 
-        SiMatchSchemaResponseType systemSchemaMatch = null;
-        Optional<KnownSchemaType> detection = knownSchemaService.detectSchemaType(resource, objectTypeDef);
-        if (detection.isPresent()) {
-            detectedSchemaType = detection.get();
-            Optional<KnownSchemaMappingProvider> provider = knownSchemaService.getProvider(detection.get());
-            if (provider.isPresent()) {
-                LOGGER.info("Using known schema mappings for resource {} (detected: {})",
-                        resource.getOid(), detection.get());
-                systemSchemaMatch = convertToSchemaResponse(provider.get().getSchemaMatches());
-            }
-        }
+        SiMatchSchemaResponseType systemSchemaMatch = wellKnownSchemaService.detectSchemaType(resource, objectTypeDef)
+                .map(schemaType -> {
+                    detectedSchemaType = schemaType;
+                    return schemaType;
+                })
+                .flatMap(wellKnownSchemaService::getProvider)
+                .map(provider -> convertToSchemaResponse(provider.suggestSchemaMatches()))
+                .orElse(null);
 
-        SiMatchSchemaResponseType aiSchemaMatch = null;
-        if (useAiService) {
-            LOGGER.debug("Calling AI service for schema matching on resource {}", resource.getOid());
-            var siRequest = new SiMatchSchemaRequestType()
-                    .applicationSchema(resourceSideSerializer.serialize())
-                    .midPointSchema(midPointSideSerializer.serialize());
-            aiSchemaMatch = ctx.serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
-        }
+        SiMatchSchemaResponseType aiSchemaMatch = useAiService ? invokeAiService(resource) : null;
 
-        return mergeSchemaMatches(systemSchemaMatch, aiSchemaMatch);
+        return mergeSchemaMatches(systemSchemaMatch, aiSchemaMatch, resource);
+    }
+
+    private SiMatchSchemaResponseType invokeAiService(ResourceType resource) throws SchemaException {
+        LOGGER.debug("Calling AI service for schema matching on resource {}", resource.getOid());
+        var siRequest = new SiMatchSchemaRequestType()
+                .applicationSchema(resourceSideSerializer.serialize())
+                .midPointSchema(midPointSideSerializer.serialize());
+        return serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
     }
 
     private SiMatchSchemaResponseType mergeSchemaMatches(
             SiMatchSchemaResponseType heuristicMatches,
-            SiMatchSchemaResponseType aiMatches) {
+            SiMatchSchemaResponseType aiMatches,
+            ResourceType resource) {
 
         if (heuristicMatches == null && aiMatches == null) {
             LOGGER.debug("No schema matches available from either heuristic or AI service");
@@ -140,7 +139,7 @@ class SchemaMatchingOperation {
         return resourceSideSerializer.getItemPath(descriptivePath);
     }
 
-    KnownSchemaType getDetectedSchemaType() {
+    WellKnownSchemaType getDetectedSchemaType() {
         return detectedSchemaType;
     }
 

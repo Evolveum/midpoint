@@ -6,13 +6,13 @@
  *
  */
 
-package com.evolveum.midpoint.smart.impl.knownschemas;
+package com.evolveum.midpoint.smart.impl.wellknownschemas;
 
 /**
  * Enumeration of known schema types that have predefined mappings.
  * These schemas are commonly used in enterprise integration scenarios.
  */
-public enum KnownSchemaType {
+public enum WellKnownSchemaType {
 
     SCIM_2_0_USER("SCIM 2.0 User", "RFC 7643 User Schema"),
     LDAP_INETORGPERSON("LDAP inetOrgPerson", "RFC 2798 inetOrgPerson Object Class"),
@@ -21,7 +21,7 @@ public enum KnownSchemaType {
     private final String displayName;
     private final String description;
 
-    KnownSchemaType(String displayName, String description) {
+    WellKnownSchemaType(String displayName, String description) {
         this.displayName = displayName;
         this.description = description;
     }

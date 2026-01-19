@@ -6,7 +6,7 @@
  *
  */
 
-package com.evolveum.midpoint.smart.impl.knownschemas;
+package com.evolveum.midpoint.smart.impl.wellknownschemas;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -22,18 +22,18 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class KnownSchemaService {
+public class WellKnownSchemaService {
 
-    private static final Trace LOGGER = TraceManager.getTrace(KnownSchemaService.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WellKnownSchemaService.class);
 
-    private final List<KnownSchemaDetector> detectors;
-    private final Map<KnownSchemaType, KnownSchemaMappingProvider> mappingProviders;
+    private final List<WellKnownSchemaDetector> detectors;
+    private final Map<WellKnownSchemaType, WellKnownSchemaProvider> mappingProviders;
 
-    public KnownSchemaService(List<KnownSchemaDetector> detectors, List<KnownSchemaMappingProvider> mappingProviders) {
+    public WellKnownSchemaService(List<WellKnownSchemaDetector> detectors, List<WellKnownSchemaProvider> mappingProviders) {
         this.detectors = detectors;
         this.mappingProviders = mappingProviders.stream()
                 .collect(Collectors.toMap(
-                        KnownSchemaMappingProvider::getSupportedSchemaType,
+                        WellKnownSchemaProvider::getSupportedSchemaType,
                         provider -> provider));
     }
 
@@ -41,11 +41,11 @@ public class KnownSchemaService {
      * Attempts to detect known schema type for the given resource and object type.
      * Returns the detection with highest confidence if multiple schemas match.
      */
-    public Optional<KnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition) {
+    public Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition) {
 
-        for (KnownSchemaDetector detector : detectors) {
+        for (WellKnownSchemaDetector detector : detectors) {
             try {
-                Optional<KnownSchemaType> result = detector.detectSchemaType(resource, typeDefinition);
+                Optional<WellKnownSchemaType> result = detector.detectSchemaType(resource, typeDefinition);
                 if (result.isPresent()) {
                     LOGGER.debug("Detected known schema: {}", result.get());
                     return result;
@@ -60,20 +60,20 @@ public class KnownSchemaService {
         return Optional.empty();
     }
 
-    public Optional<KnownSchemaMappingProvider> getProvider(KnownSchemaType schemaType) {
+    public Optional<WellKnownSchemaProvider> getProvider(WellKnownSchemaType schemaType) {
         return Optional.ofNullable(mappingProviders.get(schemaType));
     }
 
-    public Optional<KnownSchemaMappingProvider> getProviderFromSchemaMatch(SchemaMatchResultType schemaMatch) {
-        String knownSchemaTypeStr = schemaMatch.getKnownSchemaType();
+    public Optional<WellKnownSchemaProvider> getProviderFromSchemaMatch(SchemaMatchResultType schemaMatch) {
+        String knownSchemaTypeStr = schemaMatch.getWellKnownSchemaType();
         if (knownSchemaTypeStr == null) {
             LOGGER.trace("No known schema type in schema match result.");
             return Optional.empty();
         }
 
         try {
-            KnownSchemaType knownSchemaType = KnownSchemaType.valueOf(knownSchemaTypeStr);
-            return getProvider(knownSchemaType);
+            WellKnownSchemaType wellKnownSchemaType = com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType.valueOf(knownSchemaTypeStr);
+            return getProvider(wellKnownSchemaType);
         } catch (IllegalArgumentException e) {
             LOGGER.warn("Unknown schema type string: {}. Ignoring.", knownSchemaTypeStr);
             return Optional.empty();
