@@ -43,15 +43,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class CorrelationActivityRun
-        extends SearchBasedActivityRun<ShadowType, CorrelationWorkDefinition, CorrelationActivityHandler, AbstractActivityWorkStateType> {
+public class CorrelationSimulationActivityRun
+        extends SearchBasedActivityRun<ShadowType, CorrelationWorkDefinition, CorrelationSimulationActivityHandler, AbstractActivityWorkStateType> {
 
     private final CorrelationService correlationService;
     private final PrismContext prismContext;
     private CorrelationDefinitionType correlationDefinition;
 
-    public CorrelationActivityRun(
-            ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationActivityHandler> ctx,
+    public CorrelationSimulationActivityRun(
+            ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> ctx,
             CorrelationService correlationService, PrismContext prismContext) {
         super(ctx, "Correlation");
         this.correlationService = correlationService;
