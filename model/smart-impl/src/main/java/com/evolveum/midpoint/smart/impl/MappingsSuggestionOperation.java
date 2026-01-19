@@ -113,11 +113,6 @@ class MappingsSuggestionOperation {
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         ctx.checkIfCanRun();
 
-        if (schemaMatch.getSchemaMatchResult().isEmpty()) {
-            LOGGER.warn("No schema match found for {}. Returning empty suggestion.", this);
-            return new MappingsSuggestionType();
-        }
-
         var knownSchemaProvider = wellKnownSchemaService.getProviderFromSchemaMatch(schemaMatch).orElse(null);
 
         var ownedList = collectOwnedShadows(result);
@@ -134,7 +129,7 @@ class MappingsSuggestionOperation {
             var suggestion = new MappingsSuggestionType();
             var direction = resolveDirection();
 
-            addSystemMappings(suggestion, knownSchemaProvider);
+            addSystemMappings(suggestion, knownSchemaProvider, ownedList, result);
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
@@ -180,20 +175,43 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private void addSystemMappings(MappingsSuggestionType suggestion, WellKnownSchemaProvider knownSchemaProvider) {
+    private void addSystemMappings(
+            MappingsSuggestionType suggestion,
+            WellKnownSchemaProvider knownSchemaProvider,
+            List<OwnedShadow> ownedList,
+            OperationResult result) {
         if (knownSchemaProvider == null) {
             return;
         }
-        LOGGER.info("Adding predefined mappings from known schema provider: {}", knownSchemaProvider.getSupportedSchemaType());
-        if (isInbound) {
-            for (AttributeMappingsSuggestionType predefinedSuggestion : knownSchemaProvider.suggestInboundMappings()) {
-                SmartMetadataUtil.markAsSystemProvided(predefinedSuggestion);
-                suggestion.getAttributeMappings().add(predefinedSuggestion);
-            }
-        } else {
-            for (AttributeMappingsSuggestionType predefinedSuggestion : knownSchemaProvider.suggestOutboundMappings()) {
-                SmartMetadataUtil.markAsSystemProvided(predefinedSuggestion);
-                suggestion.getAttributeMappings().add(predefinedSuggestion);
+        var direction = resolveDirection();
+        var shadowsForValidation = ownedList.subList(
+                Math.max(0, ownedList.size() - Math.min(VALIDATION_EXAMPLES_COUNT, ownedList.size())),
+                ownedList.size());
+
+        var mappings = isInbound
+                ? knownSchemaProvider.suggestInboundMappings()
+                : knownSchemaProvider.suggestOutboundMappings();
+
+        for (var systemMapping : mappings) {
+            Float quality = null;
+            try {
+                var valuePairs = ValuesPairSample.of(
+                        systemMapping.focusPropertyPath(),
+                        systemMapping.shadowAttributePath(),
+                        direction).from(shadowsForValidation);
+
+                if (!valuePairs.pairs().isEmpty()) {
+                    var assessment = qualityAssessor.assessMappingsQuality(valuePairs, systemMapping.expression(), ctx.task, result);
+                    if (assessment != null && assessment.status() == MappingsQualityAssessor.AssessmentStatus.OK) {
+                        quality = assessment.quality();
+                    }
+                }
+                var mappingSuggestion = buildAttributeMappingSuggestion(valuePairs, quality, systemMapping.expression());
+                SmartMetadataUtil.markAsSystemProvided(mappingSuggestion);
+                suggestion.getAttributeMappings().add(mappingSuggestion);
+            } catch (Exception e) {
+                LOGGER.debug("Failed to assess system mapping quality for {}: {}",
+                        systemMapping.shadowAttributePath(), e.getMessage());
             }
         }
     }

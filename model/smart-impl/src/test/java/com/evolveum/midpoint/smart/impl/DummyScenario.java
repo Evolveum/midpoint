@@ -62,6 +62,7 @@ public class DummyScenario extends AbstractDummyScenario {
             public static final AttrName CREATED = AttrName.ri("created");
             public static final AttrName LAST_LOGIN = AttrName.ri("lastLogin");
             public static final AttrName DN = AttrName.ri("distinguishedName");
+            public static final AttrName CN = AttrName.ri("cn");
         }
 
         void initialize() {
@@ -77,6 +78,7 @@ public class DummyScenario extends AbstractDummyScenario {
             controller.addAttrDef(oc, AttributeNames.CREATED.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.LAST_LOGIN.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.DN.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.CN.local(), String.class, false, false);
         }
 
         @Override

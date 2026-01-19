@@ -9,6 +9,7 @@
 package com.evolveum.midpoint.smart.impl.wellknownschemas.scim;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -41,26 +42,26 @@ public class UserScimMappingProvider implements WellKnownSchemaProvider {
     }
 
     @Override
-    public List<AttributeMappingsSuggestionType> suggestInboundMappings() {
-        List<AttributeMappingsSuggestionType> mappings = new ArrayList<>();
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("userName", UserType.F_NAME, "SCIM userName to midPoint name", null));
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("displayName", UserType.F_FULL_NAME, "SCIM displayName to midPoint fullName", null));
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("givenName", UserType.F_GIVEN_NAME, "SCIM givenName to midPoint givenName", null));
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("familyName", UserType.F_FAMILY_NAME, "SCIM familyName to midPoint familyName", null));
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("emailAddress", UserType.F_EMAIL_ADDRESS, "SCIM emailAddress to midPoint emailAddress", null));
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("phoneNumber", UserType.F_TELEPHONE_NUMBER, "SCIM phoneNumber to midPoint telephoneNumber", null));
+    public List<SystemMappingSuggestion> suggestInboundMappings() {
+        List<SystemMappingSuggestion> mappings = new ArrayList<>();
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("userName", UserType.F_NAME, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("displayName", UserType.F_FULL_NAME, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("givenName", UserType.F_GIVEN_NAME, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("familyName", UserType.F_FAMILY_NAME, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("emailAddress", UserType.F_EMAIL_ADDRESS, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("phoneNumber", UserType.F_TELEPHONE_NUMBER, null, null));
         return mappings;
     }
 
     @Override
-    public List<AttributeMappingsSuggestionType> suggestOutboundMappings() {
-        List<AttributeMappingsSuggestionType> mappings = new ArrayList<>();
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("userName", UserType.F_NAME, "midPoint name to SCIM userName", null));
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("displayName", UserType.F_FULL_NAME, "midPoint fullName to SCIM displayName", null));
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("givenName", UserType.F_GIVEN_NAME, "midPoint givenName to SCIM givenName", null));
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("familyName", UserType.F_FAMILY_NAME, "midPoint familyName to SCIM familyName", null));
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("emailAddress", UserType.F_EMAIL_ADDRESS, "midPoint emailAddress to SCIM emailAddress", null));
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("phoneNumber", UserType.F_TELEPHONE_NUMBER, "midPoint telephoneNumber to SCIM phoneNumber", null));
+    public List<SystemMappingSuggestion> suggestOutboundMappings() {
+        List<SystemMappingSuggestion> mappings = new ArrayList<>();
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("userName", UserType.F_NAME, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("displayName", UserType.F_FULL_NAME, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("givenName", UserType.F_GIVEN_NAME, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("familyName", UserType.F_FAMILY_NAME, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("emailAddress", UserType.F_EMAIL_ADDRESS, null, null));
+        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("phoneNumber", UserType.F_TELEPHONE_NUMBER, null, null));
         return mappings;
     }
 }
