@@ -677,7 +677,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         };
     }
 
-    private int getDefaultPageSize() {
+    protected int getDefaultPageSize() {
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
             return Objects.requireNonNullElse(previewSize, UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
