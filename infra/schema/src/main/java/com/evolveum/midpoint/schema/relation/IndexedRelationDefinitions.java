@@ -147,7 +147,10 @@ class IndexedRelationDefinitions {
             LOGGER.error("No 'member' relation was defined. This would be a fatal condition, so we define one.");
             validatedDefinitions.add(RelationRegistryImpl.createRelationDefinitionFromStaticDefinition(RelationTypes.MEMBER));
         }
-        return validatedDefinitions;
+
+        validatedDefinitions.forEach(d -> d.freeze());
+
+        return Collections.unmodifiableList(validatedDefinitions);
     }
 
     /**

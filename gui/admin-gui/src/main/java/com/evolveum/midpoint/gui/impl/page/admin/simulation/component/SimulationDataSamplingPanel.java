@@ -45,6 +45,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -354,6 +355,11 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
             @Override
             protected boolean isFooterVisible(boolean defaultCondition) {
                 return super.isFooterVisible(defaultCondition) && !displayIsolatedNoValuePanel();
+            }
+
+            @Override
+            protected IColumn<SelectableBean<ShadowType>, String> createCheckboxColumn() {
+                return null;
             }
 
             @Override

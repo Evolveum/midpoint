@@ -66,6 +66,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed polystring translation. From now, orig value of the polystring is never translated. See bug:MID-10996[].
 * Fixed attempt to modify immutable definition. See bug:MID-11001[].
 * Fixed schema type object updates and prism context schema registry reload. See bug:MID-10983[].
+* Fixed ConcurrentModificationException in RelationUtil. See bug:MID-10940[]
 
 === Releases Of Other Components
 

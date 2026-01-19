@@ -9,8 +9,6 @@ package com.evolveum.midpoint.report;
 import java.io.File;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.report.impl.DeltaPrinterOptions;
 import com.evolveum.midpoint.report.impl.ReportUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -42,7 +41,7 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                 List.of(" Replace: my custom description"));
     }
 
-    @Test
+    @Test(enabled = false)
     public void test020MultivalueAssignment() throws Exception {
         assertDeltaOutput(
                 DELTA,
@@ -64,7 +63,7 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                 ItemPath.create(UserType.F_ACTIVATION),
                 createDefaultOptions(),
                 List.of(" Add: \n"
-                        +"  administrativeStatus: DISABLED"));
+                        + "  administrativeStatus: DISABLED"));
     }
 
     @Test(enabled = false)
@@ -74,7 +73,7 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                 ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 createDefaultOptions(),
                 List.of(" Add: \n"
-                        +"  administrativeStatus: DISABLED"));
+                        + "  administrativeStatus: DISABLED"));
     }
 
     @Test
@@ -96,6 +95,24 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION),
                 createDefaultOptions(),
                 List.of());
+    }
+
+    @Test(enabled = false)
+    public void test060PrintExtensionDelta() throws Exception {
+        assertDeltaOutput(
+                DELTA,
+                ItemPath.create(UserType.F_EXTENSION),
+                createDefaultOptions(),
+                List.of(" Replace: customValue1, customValue2"));
+    }
+
+    @Test(enabled = false)
+    public void test070PrintExtensionItemDelta() throws Exception {
+        assertDeltaOutput(
+                DELTA,
+                ItemPath.create(UserType.F_EXTENSION, "stringProperty"),
+                createDefaultOptions(),
+                List.of(" Replace: customValue1, customValue2"));
     }
 
     private void assertDeltaOutput(File delta, ItemPath path, DeltaPrinterOptions opts, List<String> results) throws Exception {

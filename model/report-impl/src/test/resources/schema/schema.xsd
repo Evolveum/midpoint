@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<xsd:schema
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        elementFormDefault="qualified"
+        targetNamespace="https://example.com"
+        xml:space="preserve">
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+
+    <xsd:annotation>
+        <xsd:appinfo>
+            <a:defaultPrefix>ex</a:defaultPrefix>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:complexType name="userExtension">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="stringProperty" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>
+
+

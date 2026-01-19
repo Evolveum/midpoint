@@ -115,13 +115,14 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private final MappingSuggestionOperationFactory mappingSuggestionOperationFactory;
     private final ObjectTypesSuggestionOperationFactory objectTypesSuggestionOperationFactory;
     private final StatisticsService statisticsService;
+    private final SchemaMatchService schemaMatchService;
 
     public SmartIntegrationServiceImpl(ModelService modelService,
             TaskService taskService, ModelInteractionServiceImpl modelInteractionService, TaskManager taskManager,
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
             ServiceClientFactory clientFactory, MappingSuggestionOperationFactory mappingSuggestionOperationFactory,
             ObjectTypesSuggestionOperationFactory objectTypesSuggestionOperationFactory,
-            StatisticsService statisticsService) {
+            StatisticsService statisticsService, SchemaMatchService schemaMatchService) {
         this.modelService = modelService;
         this.taskService = taskService;
         this.modelInteractionService = modelInteractionService;
@@ -131,6 +132,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         this.mappingSuggestionOperationFactory = mappingSuggestionOperationFactory;
         this.objectTypesSuggestionOperationFactory = objectTypesSuggestionOperationFactory;
         this.statisticsService = statisticsService;
+        this.schemaMatchService = schemaMatchService;
     }
 
     @Override
@@ -184,84 +186,16 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         return SynchronizationConfigurationScenarioHandler.getSynchronizationReactionsFromTarget(answers);
     }
 
-    private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
-        if (propertyDefinition.isEnum()) {
-            // We don't want to bother Python microservice with enums; maybe later.
-            // It should work with the values as with simple strings.
-            return DOMUtil.XSD_STRING;
-        }
-        var typeName = propertyDefinition.getTypeName();
-        if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, typeName)) {
-            return DOMUtil.XSD_STRING; // We don't want to bother Python microservice with polystrings.
-        } else if (QNameUtil.match(ProtectedStringType.COMPLEX_TYPE, typeName)) {
-            return DOMUtil.XSD_STRING; // the same
-        } else {
-            return typeName;
-        }
-    }
-
     @Override
     public SchemaMatchResultType computeSchemaMatch(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            boolean useAiService,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        var result = parentResult.subresult("computeSchemaMatch")
-                .addParam("resourceOid", resourceOid)
-                .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
-                .build();
-        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
-            var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result);
-            var focusTypeDefinition = ctx.getFocusTypeDefinition();
-            var matchingOp = new SchemaMatchingOperation(ctx);
-            var match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource);
-
-            SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()
-                    .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-            for (var attributeMatch : match.getAttributeMatch()) {
-                var shadowAttrPath = matchingOp.getApplicationItemPath(attributeMatch.getApplicationAttribute());
-                if (shadowAttrPath.size() != 2 || !shadowAttrPath.startsWith(ShadowType.F_ATTRIBUTES)) {
-                    LOGGER.warn("Ignoring attribute {}. It is not a traditional attribute.", shadowAttrPath);
-                    continue; // TODO implement support for activation etc
-                }
-                var shadowAttrName = shadowAttrPath.rest().asSingleNameOrFail();
-                var shadowAttrDef = ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
-                if (shadowAttrDef == null) {
-                    LOGGER.warn("No shadow attribute definition found for {}. Skipping schema match record.", shadowAttrName);
-                    continue;
-                }
-                var focusPropPath = matchingOp.getFocusItemPath(attributeMatch.getMidPointAttribute());
-                var focusPropDef = focusTypeDefinition.findPropertyDefinition(focusPropPath);
-                if (focusPropDef == null) {
-                    LOGGER.warn("No focus property definition found for {}. Skipping schema match record.", focusPropPath);
-                    continue;
-                }
-                var applicationAttrDefBean = new SiAttributeDefinitionType()
-                        .name(DescriptiveItemPath.of(shadowAttrPath, ctx.getShadowDefinition()).asString())
-                        .type(getTypeName(shadowAttrDef))
-                        .minOccurs(shadowAttrDef.getMinOccurs())
-                        .maxOccurs(shadowAttrDef.getMaxOccurs());
-                var midPointPropertyDefBean = new SiAttributeDefinitionType()
-                        .name(DescriptiveItemPath.of(focusPropPath, focusTypeDefinition).asString())
-                        .type(getTypeName(focusPropDef))
-                        .minOccurs(focusPropDef.getMinOccurs())
-                        .maxOccurs(focusPropDef.getMaxOccurs());
-
-                schemaMatchResult.getSchemaMatchResult().add(new SchemaMatchOneResultType()
-                        .shadowAttributePath(shadowAttrPath.toStringStandalone())
-                        .shadowAttribute(applicationAttrDefBean)
-                        .focusPropertyPath(focusPropPath.toStringStandalone())
-                        .focusProperty(midPointPropertyDefBean));
-            }
-            return schemaMatchResult;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
-        } finally {
-            result.close();
-        }
+        return schemaMatchService.computeSchemaMatch(resourceOid, typeIdentification, useAiService, task, parentResult);
     }
 
     @Override
@@ -365,39 +299,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
             throws SchemaException {
-        var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_SCHEMA_MATCH)
-                .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind)
-                .addParam("intent", intent)
-                .build();
-        try {
-            var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                            .eq(kind)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                            .eq(intent)
-                            .build(),
-                    null,
-                    result);
-            return objects.stream()
-                    .map(o -> o.asObjectable())
-                    // consider only objects that actually contain schema match
-                    .filter(o ->
-                            ObjectTypeUtil.getExtensionItemRealValue(
-                                    o.getExtension(), MODEL_EXTENSION_OBJECT_TYPE_SCHEMA_MATCH) != null)
-                    .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectTypeStatisticsTypeUtil.getObjectTypeSchemaMatchRequired(o).getTimestamp())))
-                    .orElse(null);
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
-        } finally {
-            result.close();
-        }
+        return schemaMatchService.getLatestObjectTypeSchemaMatch(resourceOid, kind, intent, task, parentResult);
     }
 
     @Override
