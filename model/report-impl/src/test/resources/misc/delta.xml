@@ -9,11 +9,20 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:ex="https://example.com"
         xsi:type="c:ObjectDeltaOperationType">
 
     <objectDelta>
         <t:changeType>modify</t:changeType>
         <t:objectType>UserType</t:objectType>
+        <!--<t:itemDelta>
+            <t:modificationType>replace</t:modificationType>
+            <t:path>extension</t:path>
+            <t:value xsi:type="c:ExtensionType">
+                <ex:stringProperty>value1</ex:stringProperty>
+                <ex:stringProperty>value2</ex:stringProperty>
+            </t:value>
+        </t:itemDelta>-->
         <t:itemDelta>
             <t:modificationType>replace</t:modificationType>
             <t:path>description</t:path>
@@ -48,6 +57,11 @@
                 <description>Default</description>
                 <targetRef oid="456a49bc-6f5b-4746-8461-2e1a63307456" type="c:RoleType"/>
             </t:value>
+        </t:itemDelta>
+        <t:itemDelta>
+            <t:modificationType>add</t:modificationType>
+            <t:path>assignment[25]/description</t:path>
+            <t:value xsi:type="xsd:string">simple assignment description</t:value>
         </t:itemDelta>
     </objectDelta>
 </objectDeltaOperation>
