@@ -25,7 +25,7 @@ On the other hand, you do not want users to list all the objects.
 But reading an object and seeing the object in a list are both considered to be reading by the authorization subsystem.
 Therefore, there is no way to disable one and enable the other.
 
-Solution to this in the xref:/midpoint/reference/security/authorization/admin-gui/[midPoint GUI are authorizations] combined with xref:/midpoint/reference/admin-gui/collections-views/[object collection and views].
+Solution to this are the xref:/midpoint/reference/security/authorization/admin-gui/[midPoint GUI authorizations] combined with xref:/midpoint/reference/admin-gui/collections-views/[object collections and views].
 
 == Outline of the solution
 
