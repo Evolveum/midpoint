@@ -1,8 +1,8 @@
-= Filter users in GUI using object collection view
+= Add custom quick search filters
+:page-nav-title: Custom quick search filters
 :page-toc: top
 :page-description: Create an object collection view to filter out an organization managers and make the filter easily accessible in the midPoint GUI
 :page-moved-from: /midpoint/reference/admin-gui/collections-views/example-searchbox-managers/
-:page-nav-title: Example: Custom collection in searchbox
 :page-wiki-name: Example of custom collection view in searchbox
 
 Have you ever wondered how to configure a custom element in the search bar? Below, you can see how to embed a custom object collection with a user query query into the search panel and the main navigation.
