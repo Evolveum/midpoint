@@ -18,6 +18,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -93,6 +95,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
+
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
@@ -750,9 +754,11 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             }
 
             @Override
-            protected List<Component> createToolbarButtonsList(String buttonId) {
+            protected @NotNull List<Component> createToolbarButtonsList(String buttonId) {
                 List<Component> buttonsList = new ArrayList<>();
-                buttonsList.add(createReloadButton(buttonId));
+                buttonsList.add(createReloadButton(buttonId, getPageBase(), getShadowTable(),
+                        getObjectDetailsModels().getObjectType(),
+                        () -> getSelectedObjectTypeDefinition(), () -> getKind(), true, null));
                 buttonsList.addAll(super.createToolbarButtonsList(buttonId));
                 return buttonsList;
             }
@@ -892,26 +898,44 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
         return null;
     }
 
-    private ReloadableButton createReloadButton(String buttonId) {
+    public static @NotNull ReloadableButton createReloadButton(
+            @NotNull String buttonId,
+            @NotNull PageBase pageBase,
+            @NotNull ShadowTablePanel associatedTable,
+            @NotNull ResourceType resource,
+            @NotNull IModel<ResourceObjectTypeDefinition> objectTypeModel,
+            @NotNull IModel<ShadowKindType> kindType,
+            boolean reloadEveryPoll,
+            @Nullable String buttonCssClass) {
 
         ReloadableButton reload = new ReloadableButton(
-                buttonId, getPageBase()) {
+                buttonId, pageBase) {
 
             @Override
-            protected void refresh(AjaxRequestTarget target) {
-                target.add(getShadowTable());
+            protected void refresh(@NotNull AjaxRequestTarget target) {
+                target.add(associatedTable);
+            }
+
+            @Override
+            protected String getButtonCssClass() {
+                return buttonCssClass != null ? buttonCssClass : super.getButtonCssClass();
+            }
+
+            @Override
+            protected boolean reloadComponentEveryPoll() {
+                return reloadEveryPoll;
             }
 
             @Override
             protected ActivityDefinitionType createActivityDefinition() {
 
-                ResourceObjectTypeDefinition objectType = getSelectedObjectTypeDefinition();
                 ShadowKindType kind;
                 String resourceOid;
                 String intent = null;
+                ResourceObjectTypeDefinition objectType = objectTypeModel.getObject();
                 if (objectType == null) {
-                    resourceOid = getObjectDetailsModels().getObjectType().getOid();
-                    kind = getKind();
+                    resourceOid = resource.getOid();
+                    kind = kindType.getObject();
                 } else {
                     resourceOid = objectType.getResourceOid();
                     kind = objectType.getKind();
@@ -929,11 +953,11 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             }
 
             @Override
-            protected String getTaskName() {
-                return "Reload objects on " + getObjectWrapperObject().asObjectable();
+            protected @NotNull String getTaskName() {
+                return "Reload objects on " + resource;
             }
         };
-        reload.add(new VisibleBehaviour(() -> getSelectedObjectTypeDefinition() != null));
+        reload.add(new VisibleBehaviour(() -> objectTypeModel.getObject() != null));
         return reload;
     }
 

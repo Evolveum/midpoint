@@ -94,3 +94,13 @@ td.rounded-icon-column div.img-circle {
   text-align: center;
   vertical-align: middle;
 }
+
+.shadow-sample-table thead th {
+  background-color: #f8f9fa
+}
+
+.shadow-sample-table-overflow {
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}

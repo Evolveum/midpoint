@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
 
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.dialog.AdditionalOperationConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -49,12 +52,14 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObjectTypeSimulationTasks;
+import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_TASKS_WIZARD;
 
 @PanelType(name = "rw-simulation-task")
 @PanelInstance(identifier = "rw-simulation-task",
@@ -67,6 +72,8 @@ public class ResourceSimulationTaskWizardPanel<C extends Containerable> extends 
 
     private static final String PANEL_TYPE = "rw-simulation-task";
     private static final String ID_TABLE = "table";
+
+    private static final int DEFAULT_ITEMS_PER_PAGE = 10;
 
     public ResourceSimulationTaskWizardPanel(
             String id,
@@ -86,6 +93,21 @@ public class ResourceSimulationTaskWizardPanel<C extends Containerable> extends 
             @Override
             protected @NotNull ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {
                 return createSelectableBeanObjectDataProvider(() -> getTaskQuery(), null, null);
+            }
+
+            @Override
+            protected int getDefaultPageSize() {
+                return DEFAULT_ITEMS_PER_PAGE;
+            }
+
+            @Override
+            protected String getDefaultSortParam() {
+                return TaskType.F_LAST_RUN_START_TIMESTAMP.getLocalPart();
+            }
+
+            @Override
+            protected SortOrder getDefaultSortOrder() {
+                return SortOrder.DESCENDING;
             }
 
             @Override
@@ -145,7 +167,7 @@ public class ResourceSimulationTaskWizardPanel<C extends Containerable> extends 
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.TABLE_TASKS;
+                return TABLE_TASKS_WIZARD;
             }
         };
         tablePanel.setOutputMarkupId(true);
@@ -186,8 +208,25 @@ public class ResourceSimulationTaskWizardPanel<C extends Containerable> extends 
 
     private void addCustomColumns(@NotNull List<IColumn<SelectableBean<TaskType>, String>> columns) {
 
+        columns.add(0, new AbstractColumn<>(createStringResource("SimulationTaskWizardPanel.simulation.start.task")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String id, IModel<SelectableBean<TaskType>> iModel) {
+                TaskType task = iModel.getObject().getValue();
+                XMLGregorianCalendar lastRunStartTimestamp = task.getLastRunStartTimestamp();
+                String convertedTime = lastRunStartTimestamp != null ? WebComponentUtil.formatDate(lastRunStartTimestamp) : "-";
+                Label label = new Label(id, createStringResource(convertedTime));
+                label.setOutputMarkupId(true);
+                item.add(label);
+            }
+
+            @Override
+            public String getSortProperty() {
+                return TaskType.F_LAST_RUN_START_TIMESTAMP.getLocalPart();
+            }
+        });
+
         if (isRefColumnVisible()) {
-            columns.add(0, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"),
+            columns.add(1, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"),
                     SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
                 @Serial private static final long serialVersionUID = 1L;
 

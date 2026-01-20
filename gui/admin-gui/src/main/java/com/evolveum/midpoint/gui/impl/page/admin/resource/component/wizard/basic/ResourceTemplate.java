@@ -11,7 +11,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 public class ResourceTemplate implements Serializable {
@@ -36,8 +35,7 @@ public class ResourceTemplate implements Serializable {
     public enum TemplateType implements TileEnum {
         INHERIT_TEMPLATE(ResourceType.class, "fa fa-code-branch fa-rotate-180"),
         CONNECTOR(ConnectorType.class, "fa-solid fa-pencil"),
-        COPY_FROM_TEMPLATE(ResourceType.class, "fa-regular fa-copy"),
-        SMART(ResourceType.class, "fa-solid fa-gear");
+        COPY_FROM_TEMPLATE(ResourceType.class, "fa-regular fa-copy");
 
         private final Class<? extends AssignmentHolderType> type;
         private final String icon;

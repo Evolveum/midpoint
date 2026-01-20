@@ -684,8 +684,13 @@ public class LensUtil {
             int iteration, int maxIterations, String conflictMessage, SingleLocalizableMessage humanReadableReason)
             throws ObjectAlreadyExistsException {
         if (iteration > maxIterations) {
-            throw new ObjectAlreadyExistsException(
-                    new SingleLocalizableMessage(humanReadableReason.getKey(), humanReadableReason.getArgs(), conflictMessage));
+            SingleLocalizableMessage localizableMessage;
+            if (humanReadableReason != null) {
+                localizableMessage = new SingleLocalizableMessage(humanReadableReason.getKey(), humanReadableReason.getArgs(), conflictMessage);
+            } else {
+                localizableMessage = new SingleLocalizableMessage(conflictMessage);
+            }
+            throw new ObjectAlreadyExistsException(localizableMessage);
         }
     }
 

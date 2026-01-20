@@ -489,6 +489,10 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         SimulationActionTaskButton<CorrelatorsDefinitionType> simulationActionTaskButton =
                 new SimulationActionTaskButton<>(buttons.newChildId(), this::getResourceObjectDefinition,
                         () -> getAssignmentHolderDetailsModel().getObjectType()) {
+                    @Override
+                    protected boolean isSamplingEnabled() {
+                        return true;
+                    }
 
                     @Override
                     public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {

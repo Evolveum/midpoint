@@ -90,6 +90,7 @@ public interface SmartIntegrationService {
     SchemaMatchResultType computeSchemaMatch(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            boolean useAiService,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,

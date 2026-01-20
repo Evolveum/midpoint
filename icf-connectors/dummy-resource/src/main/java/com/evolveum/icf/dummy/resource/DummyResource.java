@@ -1447,6 +1447,10 @@ public class DummyResource implements DebugDumpable {
         hookRegistry.registerHook(hook);
     }
 
+    public void resetHooks() {
+        hookRegistry.reset();
+    }
+
     public void invokeHooks(@NotNull Consumer<ConnectorOperationHook> invoker) {
         hookRegistry.invokeHooks(invoker);
     }
