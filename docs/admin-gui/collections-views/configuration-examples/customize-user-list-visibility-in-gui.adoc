@@ -45,6 +45,8 @@ As a rule of thumb, object collection views you add to the global midPoint confi
 Once you move an object collection view from the global configuration to an archetype or role, it becomes invisible to anyone but the members of the particular archetype or role.
 ====
 
+:sectnums:
+
 == Create object collection view to list employees
 
 Define an object collection view listing all users of the _Employee_ archetype.
@@ -161,6 +163,8 @@ If you move the definition, put it to the XML definition of the particular arche
 ----
 
 Similarly to the example above, you can define any other object collection views specific for the particular archetype or role.
+
+:sectnums!:
 
 == See also
 
