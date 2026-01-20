@@ -105,7 +105,9 @@ class SchemaMatchingOperation {
         }
 
         var heuristicMatchPairs = heuristicMatches.getAttributeMatch().stream()
-                .map(match -> new MatchPair(match.getApplicationAttribute(), match.getMidPointAttribute()))
+                .map(match -> new MatchPair(
+                        getApplicationItemPath(match.getApplicationAttribute()),
+                        getFocusItemPath(match.getMidPointAttribute())))
                 .collect(java.util.stream.Collectors.toSet());
 
         SiMatchSchemaResponseType mergedResponse = new SiMatchSchemaResponseType();
@@ -114,7 +116,9 @@ class SchemaMatchingOperation {
         int addedAiMatches = 0;
         int skippedDuplicates = 0;
         for (SiAttributeMatchSuggestionType aiMatch : aiMatches.getAttributeMatch()) {
-            MatchPair aiPair = new MatchPair(aiMatch.getApplicationAttribute(), aiMatch.getMidPointAttribute());
+            MatchPair aiPair = new MatchPair(
+                    getApplicationItemPath(aiMatch.getApplicationAttribute()),
+                    getFocusItemPath(aiMatch.getMidPointAttribute()));
             if (!heuristicMatchPairs.contains(aiPair)) {
                 mergedResponse.getAttributeMatch().add(aiMatch);
                 addedAiMatches++;
@@ -149,13 +153,37 @@ class SchemaMatchingOperation {
             ItemPath shadowAttrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, entry.getKey().first());
             ItemPath focusPath = entry.getValue();
 
+            String shadowAttrPathString = DescriptiveItemPath.asStringSimple(shadowAttrPath);
+            String focusPathString = DescriptiveItemPath.asStringSimple(focusPath);
+
+            resourceSideSerializer.registerPathMapping(shadowAttrPathString, shadowAttrPath);
+            midPointSideSerializer.registerPathMapping(focusPathString, focusPath);
+
             response.getAttributeMatch().add(new SiAttributeMatchSuggestionType()
-                    .applicationAttribute(DescriptiveItemPath.asStringSimple(shadowAttrPath))
-                    .midPointAttribute(DescriptiveItemPath.asStringSimple(focusPath)));
+                    .applicationAttribute(shadowAttrPathString)
+                    .midPointAttribute(focusPathString));
         }
         return response;
     }
 
-    private record MatchPair(String applicationAttribute, String midPointAttribute) {
+    private record MatchPair(ItemPath applicationAttribute, ItemPath midPointAttribute) {
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (!(obj instanceof MatchPair other)) return false;
+            String thisAttrName = applicationAttribute.rest().lastName().getLocalPart();
+            String otherAttrName = other.applicationAttribute.rest().lastName().getLocalPart();
+            return thisAttrName.equals(otherAttrName)
+                    && midPointAttribute.equivalent(other.midPointAttribute);
+        }
+
+        @Override
+        public int hashCode() {
+            var appLocalPart = applicationAttribute.rest().lastName().getLocalPart();
+            var focusLocalParts = midPointAttribute.namedSegmentsOnly().getSegments().stream()
+                    .map(seg -> ItemPath.toName(seg).getLocalPart())
+                    .toList();
+            return java.util.Objects.hash(appLocalPart, focusLocalParts);
+        }
     }
 }

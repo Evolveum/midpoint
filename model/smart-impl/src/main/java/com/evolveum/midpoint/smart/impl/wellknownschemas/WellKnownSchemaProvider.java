@@ -65,6 +65,7 @@ public interface WellKnownSchemaProvider {
         return new AttributeMappingsSuggestionType()
                 .expectedQuality(null)
                 .definition(new ResourceAttributeDefinitionType()
+                        .ref(ItemPath.create(shadowAttrName).toBean())
                         .inbound(inboundMapping));
     }
 
@@ -83,6 +84,7 @@ public interface WellKnownSchemaProvider {
         return new AttributeMappingsSuggestionType()
                 .expectedQuality(null)
                 .definition(new ResourceAttributeDefinitionType()
+                        .ref(ItemPath.create(shadowAttrName).toBean())
                         .outbound(outboundMapping));
     }
 }
