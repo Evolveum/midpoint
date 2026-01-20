@@ -137,11 +137,17 @@ public class SchemaMatchService {
         var midPointPropertyDefBean = createAttributeDefinition(
                 focusPropPath, focusPropDef, focusTypeDefinition);
 
-        return Optional.of(new SchemaMatchOneResultType()
+        SchemaMatchOneResultType result = new SchemaMatchOneResultType()
                 .shadowAttributePath(shadowAttrPath.toStringStandalone())
                 .shadowAttribute(applicationAttrDefBean)
                 .focusPropertyPath(focusPropPath.toStringStandalone())
-                .focusProperty(midPointPropertyDefBean));
+                .focusProperty(midPointPropertyDefBean);
+
+        if (Boolean.TRUE.equals(attributeMatch.getIsSystemProvided())) {
+            result.setIsSystemProvided(true);
+        }
+
+        return Optional.of(result);
     }
 
     private SiAttributeDefinitionType createAttributeDefinition(

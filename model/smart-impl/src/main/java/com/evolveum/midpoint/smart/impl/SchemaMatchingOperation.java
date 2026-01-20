@@ -149,9 +149,12 @@ class SchemaMatchingOperation {
             ItemPath shadowAttrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, entry.getKey().first());
             ItemPath focusPath = entry.getValue();
 
-            response.getAttributeMatch().add(new SiAttributeMatchSuggestionType()
+            SiAttributeMatchSuggestionType match = new SiAttributeMatchSuggestionType()
                     .applicationAttribute(DescriptiveItemPath.asStringSimple(shadowAttrPath))
-                    .midPointAttribute(DescriptiveItemPath.asStringSimple(focusPath)));
+                    .midPointAttribute(DescriptiveItemPath.asStringSimple(focusPath))
+                    .isSystemProvided(true);
+
+            response.getAttributeMatch().add(match);
         }
         return response;
     }

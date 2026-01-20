@@ -136,6 +136,7 @@ class MappingsSuggestionOperation {
                 mappingsSuggestionState.flush(result);
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
+                boolean isSystemProvided = Boolean.TRUE.equals(matchPair.getIsSystemProvided());
                 var valuePairsForLLM = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                         .from(shadowsForLLM);
                 var valuePairsForValidation = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
@@ -146,6 +147,7 @@ class MappingsSuggestionOperation {
                                     matchPair,
                                     valuePairsForLLM,
                                     valuePairsForValidation,
+                                    isSystemProvided,
                                     result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (LowQualityMappingException e) {
@@ -236,6 +238,7 @@ class MappingsSuggestionOperation {
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuePairsForLLM,
             ValuesPairSample<?, ?> valuePairsForValidation,
+            boolean isSystemProvided,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, LowQualityMappingException,
             MissingSourceDataException {
@@ -279,6 +282,7 @@ class MappingsSuggestionOperation {
                     }
                 }
             }
+            isSystemProvided = false;
         }
 
         if (assessment != null && assessment.quality() < MINIMUM_QUALITY_THRESHOLD) {
@@ -291,7 +295,12 @@ class MappingsSuggestionOperation {
 
         AttributeMappingsSuggestionType suggestion = buildAttributeMappingSuggestion(
                 valuePairsForValidation, assessment != null ? assessment.quality() : null, expression);
-        SmartMetadataUtil.markAsAiProvided(suggestion); // everything is AI-provided now
+
+        if (isSystemProvided) {
+            SmartMetadataUtil.markAsSystemProvided(suggestion);
+        } else {
+            SmartMetadataUtil.markAsAiProvided(suggestion);
+        }
         return suggestion;
     }
 
