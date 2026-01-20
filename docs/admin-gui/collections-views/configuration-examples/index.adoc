@@ -1,0 +1,7 @@
+= Configuration examples
+:page-moved-from: /midpoint/reference/admin-gui/collections-views/show-only-active-users/
+:page-description: Object collections and views configuration examples
+
+This section contains object collections and views configuration examples.
+
+{% children %}
