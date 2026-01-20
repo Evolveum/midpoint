@@ -186,10 +186,10 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
-    public void testExpressionPolyStringEqualsOrigTrue() throws Exception {
+    public void testExpressionPolyStringEqualsOrigFuncTrue() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
-                "expression-polystring-equals-orig.xml",
-                "testExpressionPolyStringEqualsOrigTrue",
+                "expression-polystring-equals-orig-func.xml",
+                "testExpressionPolyStringEqualsOrigFuncTrue",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -198,10 +198,10 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
-    public void testExpressionPolyStringEqualsOrigFalse() throws Exception {
+    public void testExpressionPolyStringEqualsOrigFuncFalse() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
-                "expression-polystring-equals-orig.xml",
-                "testExpressionPolyStringEqualsOrigTrue",
+                "expression-polystring-equals-orig-func.xml",
+                "testExpressionPolyStringEqualsOrigFuncFalse",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -210,10 +210,10 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
-    public void testExpressionPolyStringEqualsNormTrue() throws Exception {
+    public void testExpressionPolyStringEqualsOrigFieldTrue() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
-                "expression-polystring-equals-norm.xml",
-                "testExpressionPolyStringEqualsOrigTrue",
+                "expression-polystring-equals-orig-field.xml",
+                "testExpressionPolyStringEqualsOrigFieldTrue",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -222,10 +222,58 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
-    public void testExpressionPolyStringEqualsNormFalse() throws Exception {
+    public void testExpressionPolyStringEqualsOrigFieldFalse() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
-                "expression-polystring-equals-norm.xml",
-                "testExpressionPolyStringEqualsOrigTrue",
+                "expression-polystring-equals-orig-field.xml",
+                "testExpressionPolyStringEqualsOrigFieldFalse",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsNormFieldTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-norm-field.xml",
+                "testExpressionPolyStringEqualsNormFieldTrue",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsNormFieldFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-norm-field.xml",
+                "testExpressionPolyStringEqualsNormFieldFalse",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsNormFuncTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-norm-func.xml",
+                "testExpressionPolyStringEqualsNormFuncTrue",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionPolyStringEqualsNormFuncFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-norm-func.xml",
+                "testExpressionPolyStringEqualsNormFuncFalse",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING

@@ -20,7 +20,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.OpaqueValue;
@@ -45,10 +44,6 @@ public class CelTypeMapper {
     private static final Map<CelType, Class<?>> CEL_TO_JAVA_TYPE_MAP = new HashMap<>();
     private static final Map<Class<?>, CelType> JAVA_TO_CEL_TYPE_MAP = new HashMap<>();
 
-    public static final String POLYSTRING_PACKAGE_NAME = PolyString.class.getTypeName();
-    public static final CelType POLYSTRING_TYPE =
-            OpaqueType.create(POLYSTRING_PACKAGE_NAME);
-
     private static final Trace LOGGER = TraceManager.getTrace(CelTypeMapper.class);
 
     private static void initXsdTypeMap() {
@@ -71,7 +66,7 @@ public class CelTypeMapper {
 //        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
 //        addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
-        addXsdMapping(POLYSTRING_TYPE, PrismConstants.POLYSTRING_TYPE_QNAME, true);
+        addXsdMapping(MidPointTypeProvider.POLYSTRING_TYPE, PrismConstants.POLYSTRING_TYPE_QNAME, true);
 
 //        addXsdToCelMapping(DOMUtil.XSD_ANYURI, String.class);
     }
@@ -121,8 +116,8 @@ public class CelTypeMapper {
 //        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
 //        addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
-        addJavaMapping(POLYSTRING_TYPE, PolyString.class, true);
-        addJavaMapping(POLYSTRING_TYPE, PolyStringType.class, false);
+        addJavaMapping(MidPointTypeProvider.POLYSTRING_TYPE, PolyString.class, true);
+        addJavaMapping(MidPointTypeProvider.POLYSTRING_TYPE, PolyStringType.class, false);
 
 //        addXsdToCelMapping(DOMUtil.XSD_ANYURI, String.class);
     }
@@ -248,8 +243,10 @@ public class CelTypeMapper {
         if (celValue == null) {
             return null;
         }
-        if (celValue instanceof OpaqueValue) {
-            return ((OpaqueValue)celValue).value();
+        if (celValue instanceof PolyStringCelValue) {
+            return ((PolyStringCelValue) celValue).getPolystring();
+        } else if (celValue instanceof OpaqueValue) {
+                return ((OpaqueValue)celValue).value();
         } else {
             throw new IllegalArgumentException("Unknown CEL value "+celValue+" ("+celValue.getClass().getName()+")");
         }
@@ -293,55 +290,35 @@ public class CelTypeMapper {
     }
 
     private static CelValue createPolystringCelValue(PolyString polystring) {
-        return OpaqueValue.create(CelTypeMapper.POLYSTRING_PACKAGE_NAME, polystring);
+        return PolyStringCelValue.create(polystring);
     }
 
-    public static boolean stringEqualsOpaque(String s, OpaqueValue opaqueValue) {
-        if (s == null && opaqueValue == null) {
+    public static boolean stringEqualsPolyString(String s, PolyStringCelValue polystringValue) {
+        if (s == null && polystringValue == null) {
             return true;
         }
-        if (s == null || opaqueValue == null) {
+        if (s == null || polystringValue == null) {
             return false;
         }
-        Object value = opaqueValue.value();
-        if (value == null) {
-            return false;
-        }
-        if (value instanceof PolyString) {
-            return s.equals(((PolyString)value).getOrig());
-        } else {
-            return s.equals(value);
-        }
+        return s.equals(polystringValue.getOrig());
     }
 
-    public static boolean opaqueEqualsString(OpaqueValue opaqueValue, String s) {
-        return stringEqualsOpaque(s,opaqueValue);
+    public static boolean polystringEqualsString(PolyStringCelValue polystringValue, String s) {
+        return stringEqualsPolyString(s,polystringValue);
     }
 
-    public static String funcPolystringOrig(OpaqueValue opaqueValue) {
-        if (opaqueValue == null || opaqueValue.value() == null) {
+    public static String funcPolystringOrig(PolyStringCelValue polystringValue) {
+        if (polystringValue == null || polystringValue.value() == null) {
             return null;
         }
-        return getPolystring(opaqueValue).getOrig();
+        return polystringValue.getOrig();
     }
 
-    public static String funcPolystringNorm(OpaqueValue opaqueValue) {
-        if (opaqueValue == null || opaqueValue.value() == null) {
+    public static String funcPolystringNorm(PolyStringCelValue polystringValue) {
+        if (polystringValue == null || polystringValue.value() == null) {
             return null;
         }
-        return getPolystring(opaqueValue).getNorm();
-    }
-
-    private static PolyString getPolystring(OpaqueValue opaqueValue) {
-        Object value = opaqueValue.value();
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof PolyString) {
-            return (PolyString)value;
-        } else {
-            throw new IllegalArgumentException("Expected PolyString value, but got "+value+" ("+value.getClass()+")");
-        }
+        return polystringValue.getNorm();
     }
 
     static {
