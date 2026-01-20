@@ -1,6 +1,4 @@
-= Show Only Active Users HOWTO
-// NGDe2 redirect
-:page-moved-from: /midpoint/reference/admin-gui/collections-views/show-only-active-users/
+= Customize user lists visible in GUI
 :page-wiki-name: Show Only Active Users HOWTO
 :page-wiki-id: 26214493
 :page-wiki-metadata-create-user: semancik
@@ -9,73 +7,163 @@
 :page-wiki-metadata-modify-date: 2019-04-03T14:06:39.695+02:00
 :page-upkeep-status: yellow
 :page-alias: { "parent" : "/midpoint/guides/" }
+:page-toc: top
+:page-moved-from: /midpoint/reference/admin-gui/collections-views/show-only-active-users/
+:page-description: Limit which lists users can see in midPoint GUI to avoid confusion, provide more straightforward experience, and keep information visibility on the need-to-know basis.
 
-There are scenarios, when it is needed to limit the number of objects that users see.
-This would normally be done by using xref:/midpoint/reference/security/authorization/[authorizations]. But authorizations have their limits.
-For example, we may normally need to allow users to see basic details of almost any objects.
-This is often needed because objects may be referenced from tasks, workitems, audit records and so on.
-Therefore users must be authorized to read such objects.
-On the other hand we do not want users to _list_ all the objects.
-But getting and object and listing objects are both considered to be _reading_ by an authorization subsystem.
-Therefore there is no way to disable one and enable the other.
+Limit which lists users can see in midPoint GUI to avoid confusion, provide more straightforward experience, and keep information visibility on the need-to-know basis.
 
-But there is an elegant way how to limit listing of objects in midPoint user interface: xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]. This feature was partially implemented in midPoint 3.9 specifically for the purpose of satisfying this use case.
-The basic principle is to define a special view containing only those objects that the users can see (e.g. "Employees" view).
-The remove authorizations for the pages that list all users.
-And leave only authorizations to access that specific view.
+== Use case
 
+There are scenarios when you need to limit the limit the number of objects that users can see.
+Normally, you would handle such restriction using xref:/midpoint/reference/security/authorization/[authorizations].
+But authorizations have their limits.
 
-== Configuration
+For example, you need to allow users to see the basic details of almost all objects because they are referenced by tasks, work item, audit records, and so on.
+Therefore, users must be authorized to read such objects.
+On the other hand, you do not want users to list all the objects.
+But reading an object and seeing the object in a list are both considered to be reading by the authorization subsystem.
+Therefore, there is no way to disable one and enable the other.
 
-Definition of object view in adminGuiConfig in a role:
+Solution to this in the xref:/midpoint/reference/security/authorization/admin-gui/[midPoint GUI are authorizations] combined with xref:/midpoint/reference/admin-gui/collections-views/[object collection and views].
 
+== Outline of the solution
+
+In the example configuration we present here, there are, among others, employees of the _Employee_ archetype.
+The goal is to hide from them the list of all users while showing them a narrower list of all employees instead.
+
+. Add object collection view to the global configuration in order to add a new navigation menu item under [.nowrap]#icon:user[] *Users*#.
+    Configure this view to only show employees, i.e., the users of the _Employee_ archetype.
+. Configure authorizations for the employee archetype so that its members only see the user lists they need.
+
+Whatever we do here with archetypes, you can do with roles instead should it better suit your needs.
+You can also define the employee list object collection view in the archetype or role for employees instead, effectively hiding it from anyone else but the employees themselves.
+
+[TIP]
+====
+As a rule of thumb, object collection views you add to the global midPoint configuration are visible to everyone.
+Once you move an object collection view from the global configuration to an archetype or role, it becomes invisible to anyone but the members of the particular archetype or role.
+====
+
+== Create object collection view to list employees
+
+Define an object collection view listing all users of the _Employee_ archetype.
+Put the definition to the system configuration:
+
+. In [.nowrap]#icon:cog[] *System*#, select [.nowrap]#icon:wrench[] *System configuration*# tile.
+. Click [.nowrap]#icon:edit[] *Edit raw*# to access the XML configuration.
+. Add the `objectCollectionView` element below to the configuration as a direct child of `systemConfiguration` > `adminGuiConfiguration` > `objectCollectionViews`.
+
+.Object collection view filtering users by archetype
 [source,xml]
 ----
-...
-<adminGuiConfiguration>
-    <objectLists>
-        <objectList>
-			<type>UserType</type>
-            <name>empls-view</name>
-            <display>
-                <label>Employee</label>
-                <pluralLabel>Employees</pluralLabel>
-            </display>
-            <collectionRef oid="2c2028c8-755e-11e8-bb29-53818f7c88fb" type="ObjectCollectionType"/>
-        </objectList>
-    </objectLists>
-</adminGuiConfiguration>
-...
-----
-
-Definition of object collection as a separate midPoint object:
-
-[source,xml]
-----
-<objectCollection xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		oid="2c2028c8-755e-11e8-bb29-53818f7c88fb">
-    <name>empls</name>
+<objectCollectionView>
+    <identifier>employee-view</identifier>
+    <description>Employees</description>
+    <documentation>This view displays all users with archetype "Employee" archetype</documentation>
+    <display>
+        <label>Employees</label>
+        <singularLabel>Employee</singularLabel>
+        <tooltip>All employees in system</tooltip>
+        <icon>
+            <cssClass>fa fa-circle-user</cssClass>
+        </icon>
+    </display>
+    <displayOrder>10</displayOrder>
     <type>UserType</type>
-    <filter>
-        <q:text>subtype="EMP"</q:text>
-    </filter>
-</objectCollection>
+    <collection>
+        <filter>
+            <q:text>archetypeRef/@/name = "Employee"</q:text> <1>
+        </filter>
+    </collection>
+</objectCollectionView>
+----
+<1> Filter selecting only objects of the _Employee_ archetype.
+    To filter users by role, you could use `assignment/targetRef/@/name = "role-name"`.
+
+With the configuration above, you have added the _Employee_ item in the navigation menu.
+Proceed with the steps below to hide the [.nowrap]#icon:user[] *All users*# and possibly other lists from employees.
+
+== Configure archetype authorizations to adjust what employees can view
+
+To fulfil the goal of this exercise, you need to hide the [.nowrap]#icon:user[] *All users*# list from employees.
+This you can do using xref:/midpoint/reference/security/authorization/[authorizations]—do not let users of the _Employee_ archetype view the all users list but let them view the object collections.
+
+.Add these authorizations to the Employee archetype. They grant a read-only privilege to see all users and their projections and assignments.
+[source,xml]
+----
+<authorization>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersView</action> <1>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action> <2>
+</authorization>
+<authorization>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action> <3>
+    <object>
+        <type>UserType</type> <4>
+    </object>
+    <object>
+        <type>ShadowType</type> <5>
+    </object>
+</authorization>
+<authorization>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+</authorization>
+----
+<1> GUI authorization to show the [.nowrap]#icon:user[] *Users*# item in the navigation menu.
+<2> GUI authorization allowing to view other user's profile.
+    This does not authorize to any changes.
+<3> Authorization allowing to view other users;
+    without this, users can only see themselves alone in user lists.
+<4> This limits the authorization to the _UserType_ scope, meaning it allows viewing only focal objects, not shadows. See (4) for details on what it entails.
+<5> Adds _ShadowType_ to the authorization scope allowing to view not only focal objects, but shadows as well.
+    This gives users the option to view projections, i.e., see on which resources another user has accounts, including the mapped attributes.
+    You can omit this scope specification should you wish to hide this information from employees.
+
+[TIP]
+====
+Make sure users of the Employee archetype do not have the `http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll` authorization which would show them the [.nowrap]#icon:user[] *All users*# list in the navigation menu.
+====
+
+.User list showing only a selected user collection while the All users navigation item is hidden
+image::object-collection-view-show-only-employees-hide-all-users.webp["User list showing only a selected user collection while the All users navigation item is hidden"]
+
+== Bonus point: Hide the Persons view from employees
+
+The last step is to hide the [.nowrap]#icon:user[] *Persons*# object collection view from users who are not supposed to see it.
+Your course of action in this regard depends highly on your selection of archetypes.
+
+This Persons view lists users of the _Person_ archetype.
+The object collection view for the list is identified by `<identifier>person-view</identifier>` and it is in the midPoint global configuration by default.
+
+Your options regarding the _Persons_ view:
+
+* Move the object collection view definition from the global configuration to archetypes or roles that are supposed to see it.
+* Delete the view altogether if you do not use the _Person_ archetype or do not need anyone to access the list.
+* You can, of course, leave the view as it is if it suits your configuration requirements.
+
+If you move the definition, put it to the XML definition of the particular archetypes or roles you want to see the Persons list:
+
+.Persons object collection view definition excerpt inside a role
+[source,xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" ...>
+    ...
+    <adminGuiConfiguration>
+        <objectCollectionViews>
+            <objectCollectionView id="80">
+                <identifier>person-view</identifier>
+                <description>Persons</description>
+                ...
+            </objectCollectionView>
+        </objectCollectionViews>
+    </adminGuiConfiguration>
+</role
 ----
 
-GUI representation
+Similarly to the example above, you can define any other object collection views specific for the particular archetype or role.
 
-image::usersView.png[]
+== See also
 
-
-== Authorizations
-
-Users should be authorized to access the "user view" page: [.underline]#link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersView[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersView]#
-
-Make sure that users do *not* have authorization to access "All users" page ([.underline]#link:http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll]#).
-
-
-== See Also
-
-* xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
-
-* bug:MID-4654[]
+* xref:/midpoint/reference/security/authorization/admin-gui/[]
+* xref:/midpoint/reference/security/authorization/[]
+* xref:/midpoint/reference/admin-gui/admin-gui-config/admin-gui-config-examples/[]
