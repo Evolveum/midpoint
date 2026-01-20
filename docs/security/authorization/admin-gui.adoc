@@ -89,7 +89,8 @@ The authorization is also check while deciding if previewButton should be shown.
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminCreateReportButton
-| 'Create report' component authorization on the object list pages (e.g. 'Create report' toolbar button on the All Users page)
+| 'Create report' component authorization on the object list pages (e.g. 'Create report' toolbar button on the All Users page).
+Also, covers 'Create report' button on the Campaign details page.
 |
 
 |===

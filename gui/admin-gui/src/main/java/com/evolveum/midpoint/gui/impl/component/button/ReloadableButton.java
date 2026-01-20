@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -92,6 +91,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
                 if (taskBean == null || WebComponentUtil.isClosedTask(taskBean.asObjectable())) {
                     stop(target);
                     taskOidForReloaded = null;
+                    refresh(target);
                 } else if (WebComponentUtil.isSuspendedTask(taskBean.asObjectable())) {
                     OperationResult taskResult = OperationResult.createOperationResult(taskBean.asObjectable().getResult());
                     if (taskResult != null && (taskResult.isFatalError() || taskResult.isPartialError())) {
@@ -100,11 +100,20 @@ public abstract class ReloadableButton extends AjaxIconButton {
                         target.add(pageBase.getFeedbackPanel());
                         taskOidForReloaded = null;
                     }
+                    refresh(target);
                 }
-                refresh(target);
+                if (reloadComponentEveryPoll()) {
+                    refresh(target);
+                }
             }
         };
         add(reloadedBehaviour);
+    }
+
+    //TODO this is problem.... It's added because reloading stop after first ajax update (refresh).
+    // I think problem is because reload button is inside another ajax updated component. Need to investigate more.
+    protected boolean reloadComponentEveryPoll() {
+        return true;
     }
 
     private LoadableDetachableModel<String> createIconModel() {

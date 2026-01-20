@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <h4 class="d-flex mb-3 align-items-center justify-content-center" wicket:id="subtitle"></h4>
+
+    <div class="d-flex align-items-start gap-3">
+        <div class="w-100">
+            <span wicket:id="infoMessage"></span>
+
+            <div class="my-4" wicket:id="sampleSizeContainer">
+                <h5 class="mb-1 font-weight-semibold" wicket:id="sampleSizeTitle"></h5>
+                <div class="text-muted mb-3" wicket:id="sampleSizeDescription"></div>
+
+                <div class="mb-2 d-flex align-items-center gap-2">
+                    <div class="font-weight-semibold" wicket:id="sampleSizeLabel"></div>
+                </div>
+
+                <input type="number"
+                        class="form-control"
+                        style="max-width: 130px;"
+                        wicket:id="sampleSize"/>
+
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <div wicket:id="sampleSizePresets">
+                        <a class="btn btn-outline-secondary rounded-pill px-3 gap-2" wicket:id="presetBtn">
+                            <i class="fa fa-check me-2" wicket:id="presetIcon" aria-hidden="true"></i>
+                            <span wicket:id="presetLabel"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <form wicket:id="form">
+                <div class="card-body p-0 mt-5 shadow-sample-table" wicket:id="table"></div>
+            </form>
+
+        </div>
+    </div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex justify-content-between align-items-center flex-wrap w-100 gap-2">
+            <a class="btn btn-link" wicket:id="no"></a>
+            <div class="btn btn-primary" wicket:id="runSampling"></div>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+
+

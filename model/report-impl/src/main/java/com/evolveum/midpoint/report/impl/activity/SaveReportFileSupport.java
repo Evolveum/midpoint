@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -119,12 +120,14 @@ class SaveReportFileSupport {
             return;
         }
 
-        String dateTimeForName = getDateTime();
-        String aggregatedFilePath = getDestinationFileName(report, dataWriter, dateTimeForName);
+        String timestampSuffix = getDateTimeString();
+        String randomStringSuffix = getRandomString();
+        String aggregatedFilePath = getDestinationFileName(report, dataWriter, timestampSuffix, randomStringSuffix);
 
         if (storeType == ONLY_FILE || storeType == WIDGET_AND_FILE)  {
             writeToReportFile(completedReport, aggregatedFilePath, dataWriter.getEncoding());
-            saveReportDataObject(dataWriter, aggregatedFilePath, dateTimeForName, emptyExportedDataObjectRef, result);
+            saveReportDataObject(dataWriter, aggregatedFilePath, timestampSuffix, randomStringSuffix,
+                    emptyExportedDataObjectRef, result);
             if (report.getPostReportScript() != null) {
                 processPostReportScript(report, aggregatedFilePath, runningTask, result);
             }
@@ -182,28 +185,33 @@ class SaveReportFileSupport {
 
     private String getDestinationFileName(ReportType reportType,
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            String dateTimeForName) {
+            String timestampSuffix, String randomStringSuffix) {
         File exportDir = ReportSupportUtil.getOrCreateExportDir();
 
         String reportName = StringUtils.replace(reportType.getName().getOrig(), File.separator, "_");
-        String fileNamePrefix = reportName + "-EXPORT " + dateTimeForName;
+        String fileNamePrefix = reportName + "-EXPORT " + timestampSuffix + "-" + randomStringSuffix;
         String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
         return new File(exportDir, MiscUtil.fixFileName(fileName)).getPath();
     }
 
     static String getNameOfExportedReportData(ReportType reportType, String type) {
-        return getNameOfExportedReportData(reportType, type, getDateTime());
+        return getNameOfExportedReportData(reportType, type, getDateTimeString(), getRandomString());
     }
 
-    static String getNameOfExportedReportData(ReportType reportType, String type, String dateTimeForName) {
-        String fileName = reportType.getName().getOrig() + "-EXPORT " + dateTimeForName;
+    static String getNameOfExportedReportData(ReportType reportType, String type, String timestampSuffix,
+            String randomStringSuffix) {
+        String fileName = reportType.getName().getOrig() + "-EXPORT " + timestampSuffix + "-" + randomStringSuffix;
         return fileName + " - " + type;
     }
 
-    private static String getDateTime() {
+    private static String getDateTimeString() {
         Date createDate = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss.SSS");
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss");
         return formatDate.format(createDate);
+    }
+
+    private static String getRandomString() {
+        return RandomStringUtils.insecure().nextAlphabetic(6).toLowerCase(Locale.ROOT);
     }
 
     private void writeToReportFile(String contextOfFile, String aggregatedFilePath, @NotNull Charset encoding) {
@@ -218,12 +226,13 @@ class SaveReportFileSupport {
 
     private void saveReportDataObject(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            String filePath, String dateTimeForName,
+            String filePath, String timestampSuffix, String randomStringSuffix,
             @Nullable ObjectReferenceType emptyExportedDataObjectRef,
             OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createSubresult(OP_CREATE_REPORT_DATA);
         try {
-            ReportDataType reportDataObject = createReportDataObject(dataWriter, filePath, dateTimeForName, emptyExportedDataObjectRef, result);
+            ReportDataType reportDataObject = createReportDataObject(dataWriter, filePath, timestampSuffix, randomStringSuffix,
+                    emptyExportedDataObjectRef, result);
             String reportDataOid = putReportDataObjectToRepository(reportDataObject, result);
             recordDataOidIntoTask(reportDataOid, result);
             sendReportCreatedEvent(reportDataObject, result);
@@ -260,13 +269,13 @@ class SaveReportFileSupport {
 
     private @NotNull ReportDataType createReportDataObject(
             ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> dataWriter,
-            String filePath, String dateTimeForName,
+            String filePath, String timestampSuffix, String randomStringSuffix,
             @Nullable ObjectReferenceType emptyExportedDataObjectRef,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
 
-        String reportDataName = getNameOfExportedReportData(report, dataWriter.getType(), dateTimeForName);
+        String reportDataName = getNameOfExportedReportData(report, dataWriter.getType(), timestampSuffix, randomStringSuffix);
 
         ReportDataType reportDataObject = new ReportDataType();
 

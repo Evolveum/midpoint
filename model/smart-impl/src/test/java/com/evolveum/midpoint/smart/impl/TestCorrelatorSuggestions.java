@@ -261,6 +261,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -296,6 +297,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -332,6 +334,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -371,6 +374,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -407,6 +411,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -447,6 +452,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -493,6 +499,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
@@ -549,6 +556,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var match = smartIntegrationService.computeSchemaMatch(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
+                true,
                 task, result);
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,

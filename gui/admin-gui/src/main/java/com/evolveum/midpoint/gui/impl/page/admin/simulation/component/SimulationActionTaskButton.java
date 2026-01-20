@@ -102,6 +102,9 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
                 );
 
                 SimulationActionFlow<T> flow = new SimulationActionFlow<>(params);
+                if(isSamplingEnabled()){
+                    flow.enableSampling();
+                }
                 flow.start(target);
             }
 
@@ -118,6 +121,11 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
         simulationButton.setOutputMarkupId(true);
         return simulationButton;
     }
+
+    protected boolean isSamplingEnabled(){
+        return false;
+    }
+
     protected ExecutionModeType getExecutionMode() {
         return ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW;
     }

@@ -62,7 +62,9 @@ public abstract class NoValuePanel extends BasePanel<NoValuePanelDto> {
         Label titleComponent = createLabelComponent(ID_TITLE, getModelObject().getTitle());
         panel.add(titleComponent);
 
-        Label subtitleComponent = createLabelComponent(ID_SUBTITLE, getModelObject().getSubtitle());
+        Label subtitleComponent = createLabelComponent(ID_SUBTITLE, getCustomSubTitleModel() != null
+                ? getCustomSubTitleModel()
+                : getModelObject().getSubtitle());
         panel.add(subtitleComponent);
 
         ButtonBar<Containerable, SelectableRow<?>> components = new ButtonBar<>(ID_BUTTON_TOOLBAR, ID_BUTTON_BAR,
@@ -95,5 +97,9 @@ public abstract class NoValuePanel extends BasePanel<NoValuePanelDto> {
 
     protected String getPanelAdditionalCssClass() {
         return "card";
+    }
+
+    protected StringResourceModel getCustomSubTitleModel() {
+        return null;
     }
 }

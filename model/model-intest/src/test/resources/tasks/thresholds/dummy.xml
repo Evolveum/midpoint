@@ -67,32 +67,27 @@
                 </correlation>
                 <attribute>
                     <ref>icfs:name</ref>
+                    <outbound>
+                        <strength>strong</strength>
+                        <source>
+                            <path>name</path>
+                        </source>
+                    </outbound>
                     <inbound>
                         <strength>strong</strength>
-                        <expression>
-                            <script>
-                                <code>
-                                    Thread.sleep(300)
-
-                                    return input
-                                </code>
-                            </script>
-                        </expression>
                         <target>
                             <path>name</path>
                         </target>
                     </inbound>
                 </attribute>
                 <attribute>
-                    <ref>icfs:uid</ref>
-                    <inbound>
-                        <expression>
-                            <value>reconciliation</value>
-                        </expression>
-                        <target>
-                            <path>subtype</path>
-                        </target>
-                    </inbound>
+                    <ref>ri:fullname</ref>
+                    <outbound>
+                        <strength>strong</strength>
+                        <source>
+                            <path>fullName</path>
+                        </source>
+                    </outbound>
                 </attribute>
                 <synchronization>
                     <reaction>

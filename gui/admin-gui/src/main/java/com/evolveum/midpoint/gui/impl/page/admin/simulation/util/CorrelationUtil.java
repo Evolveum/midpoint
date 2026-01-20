@@ -405,6 +405,7 @@ public class CorrelationUtil {
             if (!correlatedOwnersOid.isEmpty()) {
                 StringBuilder ownerNames = new StringBuilder();
                 ownerNames.append(pageBase.getString("CandidateDisplayData.matched.owner"));
+                ownerNames.append(" ");
                 for (ResourceObjectOwnerOptionType candidate : candidates) {
                     String candidateOid = candidate.getCandidateOwnerRef().getOid();
                     if (correlatedOwnersOid.contains(candidateOid)) {
