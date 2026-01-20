@@ -4,4 +4,6 @@
 
 This section contains object collections and views configuration examples.
 
+++++
 {% children %}
+++++
