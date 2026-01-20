@@ -316,6 +316,15 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     @Test
+    public void testExpressionListLiteral() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-list-literal.xml",
+                "testExpressionListLiteral",
+                null,
+                "alfa", "bravo", "charlie");
+    }
+
+    @Test
     public void testExpressionFunc() throws Exception {
         evaluateAndAssertStringScalarExpression("expression-func.xml",
                 "testExpressionFunc", null, "gulocka v jamocke");

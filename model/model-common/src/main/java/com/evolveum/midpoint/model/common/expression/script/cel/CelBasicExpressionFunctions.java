@@ -59,8 +59,20 @@ public class CelBasicExpressionFunctions {
         return implementation.norm(orig.toString());
     }
 
+    public String concatNameO(Object arguments) {
+        LOGGER.info("CCCCCCC: concatName {}", arguments);
+        if (arguments == null) {
+            return null;
+        }
+        if (arguments instanceof List) {
+            return implementation.concatName(((List)arguments).toArray());
+        } else {
+            throw new IllegalArgumentException("Unsupported argument type "+arguments+" ("+arguments.getClass()+") in concatName");
+        }
+    }
+
     public String concatName(List<Object> components) {
-        LOGGER.info("CCCCCCC: concatName {}", components);
+        LOGGER.info("CCCCCCL: concatName {}", components);
         if (components == null) {
             return null;
         }

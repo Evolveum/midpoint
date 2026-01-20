@@ -22,7 +22,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.SimpleType;
-import dev.cel.common.types.CelTypes;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.OpaqueValue;
 import org.jetbrains.annotations.NotNull;
@@ -32,9 +31,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Maintains mapping of XSD types (qnames) and Java types to CEL types
@@ -223,7 +220,9 @@ public class CelTypeMapper {
             if (args[i] == null) {
                 javaArgs[i] = null;
             } else if (args[i] instanceof CelValue) {
-                javaArgs[i] = toJavaValue((CelValue)args[i]);
+                javaArgs[i] = toJavaValue((CelValue) args[i]);
+            } else if (args[i] instanceof List) {
+                javaArgs[i] = toJavaValueList((List<?>)args[i]);
             } else {
                 javaArgs[i] = args[i];
             }
@@ -231,6 +230,18 @@ public class CelTypeMapper {
         return javaArgs;
     }
 
+    @NotNull
+    private static List<?> toJavaValueList(@NotNull List<?> celArgs) {
+        List<Object> javaValues = new ArrayList<Object>(celArgs.size());
+        for (Object celArg : celArgs) {
+            if (celArg instanceof CelValue) {
+                javaValues.add(toJavaValue((CelValue) celArg));
+            } else {
+                javaValues.add(celArg);
+            }
+        }
+        return javaValues;
+    }
 
     @Nullable
     public static Object toJavaValue(@Nullable  CelValue celValue) {
