@@ -1,5 +1,4 @@
 = Example of Audit search panel configuration
-// NGDe2 redirect
 :page-moved-from: /midpoint/reference/admin-gui/collections-views/example-audit-search/
 :page-nav-title: Example: audit search
 :page-wiki-name: Example of Audit search panel configuration
@@ -8,6 +7,9 @@
 :page-wiki-metadata-create-date: 2021-01-19T12:49:53.940+01:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2021-01-19T13:15:49.441+01:00
+:page-visibility: hidden
+// Hide this page because the configurations do not work in modern (4.8+) midPoint versions and need to be adjusted
+// JiriL tested this and it works on MP 4.3.1
 
 This example describe how to configure time interval search item.
 
