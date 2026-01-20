@@ -5,7 +5,7 @@
 :page-wiki-metadata-create-date: 2018-06-21T15:39:42.654+02:00
 :page-wiki-metadata-modify-user: vix
 :page-wiki-metadata-modify-date: 2019-04-03T14:06:39.695+02:00
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-toc: top
 :page-moved-from: /midpoint/reference/admin-gui/collections-views/show-only-active-users/
