@@ -1,4 +1,5 @@
-= Customize user lists visible in GUI
+= Customize user lists visibility in GUI
+:page-nav-title: Customize user lists visibility
 :page-wiki-name: Show Only Active Users HOWTO
 :page-wiki-id: 26214493
 :page-wiki-metadata-create-user: semancik
