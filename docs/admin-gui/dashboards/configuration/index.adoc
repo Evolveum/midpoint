@@ -15,7 +15,7 @@ doc-type: config
 :page-display-order: 30
 :page-keywords: [ 'dashboard', 'dashboards', 'configuration' ]
 :search-alias: "dashboard configuration"
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :experimental:
 
 This article contains advanced configuration options for dashboards and dashboard widgets in particular.
