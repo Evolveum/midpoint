@@ -70,14 +70,19 @@
                     </target>
                 </inbound>
             </attribute>
-            <attribute>
-                <ref>ri:familyName</ref>
-                <inbound>
-                    <target>
-                        <path>familyName</path>
-                    </target>
-                </inbound>
-            </attribute>
+            <!--
+            Bellow attribute is commented, because in test of the correlation service we want to add it explicitly
+            during test of correlation with additional mapping. I don't want to remove it from here just in case
+            somebody would want to add it here again in the future.
+             -->
+<!--            <attribute>-->
+<!--                <ref>ri:familyName</ref>-->
+<!--                <inbound>-->
+<!--                    <target>-->
+<!--                        <path>familyName</path>-->
+<!--                    </target>-->
+<!--                </inbound>-->
+<!--            </attribute>-->
             <attribute>
                 <ref>ri:honorificPrefix</ref>
                 <inbound>

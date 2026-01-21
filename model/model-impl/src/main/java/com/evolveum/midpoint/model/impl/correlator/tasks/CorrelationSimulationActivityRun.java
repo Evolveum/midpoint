@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_RESULTING_OWNER_PATH;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_SITUATION_PATH;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
@@ -78,7 +79,7 @@ public class CorrelationSimulationActivityRun
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(shadow,
-                this.correlationDefinition, task, result);
+                this.correlationDefinition, Collections.emptyList(), task, result);
 
         final SimulationTransaction simulationTransaction = getSimulationTransaction();
         if (simulationTransaction != null) {
