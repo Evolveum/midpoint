@@ -68,7 +68,7 @@ public class SimulationActionFlow<T> implements Serializable {
         this.context = context;
 
         T workDefinitionConfig = context.workDefinitionConfiguration();
-        if (workDefinitionConfig != null && workDefinitionConfig.getClass().equals(CorrelatorsDefinitionType.class)) {
+        if (workDefinitionConfig != null && workDefinitionConfig.getClass().equals(SimulatedCorrelatorsType.class)) {
             this.isCorrelationFastSimulation = true;
         }
     }

@@ -10673,7 +10673,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ResourceWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="correlators" type="tns:CorrelatorsDefinitionType">
+                    <xsd:element name="correlators" type="tns:SimulatedCorrelatorsType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specify what correlators should be used for the correlation.
@@ -10714,7 +10714,7 @@
     </xsd:complexType>
     <xsd:element name="mappingWorkDefinition" type="tns:MappingWorkDefinitionType"/>
 
-    <xsd:complexType name="CorrelatorsDefinitionType">
+    <xsd:complexType name="SimulatedCorrelatorsType">
         <xsd:annotation>
             <xsd:documentation>
                 Specify what correlators to use for correlation. Note that if the `includeExistingCorrelators` is set
@@ -10760,7 +10760,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="correlatorsDefinition" type="tns:CorrelatorsDefinitionType"/>
+    <xsd:element name="simulatedCorrelators" type="tns:SimulatedCorrelatorsType"/>
 
     <xsd:complexType name="MappingsSuggestionWorkDefinitionType">
         <xsd:annotation>

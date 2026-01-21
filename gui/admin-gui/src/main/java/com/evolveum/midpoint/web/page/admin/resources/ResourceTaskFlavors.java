@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public final class ResourceTaskFlavors<T> implements ResourceTaskFlavor<T> {
-    public static final ResourceTaskFlavor<CorrelatorsDefinitionType> CORRELATION_PREVIEW_ACIVITY =
+    public static final ResourceTaskFlavor<SimulatedCorrelatorsType> CORRELATION_PREVIEW_ACIVITY =
             new ResourceTaskFlavors<>("Correlation", (resourceObjectSetType, correlators) ->
                     new WorkDefinitionsType()
                             .correlation(new CorrelationWorkDefinitionType()

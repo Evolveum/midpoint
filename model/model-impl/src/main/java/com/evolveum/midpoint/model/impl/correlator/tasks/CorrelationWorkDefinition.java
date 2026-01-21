@@ -26,7 +26,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
  */
 public class CorrelationWorkDefinition extends ResourceSetTaskWorkDefinition {
 
-    private final CorrelatorsDefinitionType correlatorsToUse;
+    private final SimulatedCorrelatorsType correlatorsToUse;
     private final CorrelationDefinitionProviderFactory correlationDefProviderFactory;
 
     public CorrelationWorkDefinition(WorkDefinitionFactory.WorkDefinitionInfo info,
