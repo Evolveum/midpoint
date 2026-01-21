@@ -45,23 +45,4 @@ public interface WellKnownSchemaProvider {
      * Returns all predefined outbound mappings with their paths for quality assessment.
      */
     List<SystemMappingSuggestion> suggestOutboundMappings();
-
-    static SystemMappingSuggestion createSystemMappingSuggestion(
-            String shadowAttrName,
-            ItemPath focusPropertyPath,
-            @Nullable String script,
-            @Nullable String scriptDescription) {
-        ExpressionType expression = null;
-        if (script != null) {
-            expression = new ExpressionType()
-                    .description(scriptDescription)
-                    .expressionEvaluator(
-                            new ObjectFactory().createScript(
-                                    new ScriptExpressionEvaluatorType().code(script)));
-        }
-        return new SystemMappingSuggestion(
-                ItemPath.create(ShadowType.F_ATTRIBUTES, shadowAttrName),
-                focusPropertyPath,
-                expression);
-    }
 }

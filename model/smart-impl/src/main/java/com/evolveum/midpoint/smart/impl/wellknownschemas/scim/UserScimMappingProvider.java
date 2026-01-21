@@ -44,24 +44,24 @@ public class UserScimMappingProvider implements WellKnownSchemaProvider {
     @Override
     public List<SystemMappingSuggestion> suggestInboundMappings() {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("userName", UserType.F_NAME, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("displayName", UserType.F_FULL_NAME, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("givenName", UserType.F_GIVEN_NAME, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("familyName", UserType.F_FAMILY_NAME, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("emailAddress", UserType.F_EMAIL_ADDRESS, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("phoneNumber", UserType.F_TELEPHONE_NUMBER, null, null));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("userName", UserType.F_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("displayName", UserType.F_FULL_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("familyName", UserType.F_FAMILY_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("emailAddress", UserType.F_EMAIL_ADDRESS));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("phoneNumber", UserType.F_TELEPHONE_NUMBER));
         return mappings;
     }
 
     @Override
     public List<SystemMappingSuggestion> suggestOutboundMappings() {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("userName", UserType.F_NAME, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("displayName", UserType.F_FULL_NAME, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("givenName", UserType.F_GIVEN_NAME, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("familyName", UserType.F_FAMILY_NAME, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("emailAddress", UserType.F_EMAIL_ADDRESS, null, null));
-        mappings.add(WellKnownSchemaProvider.createSystemMappingSuggestion("phoneNumber", UserType.F_TELEPHONE_NUMBER, null, null));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("userName", UserType.F_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("displayName", UserType.F_FULL_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("familyName", UserType.F_FAMILY_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("emailAddress", UserType.F_EMAIL_ADDRESS));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("phoneNumber", UserType.F_TELEPHONE_NUMBER));
         return mappings;
     }
 }

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.smart.impl;
 import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPING;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
@@ -129,14 +131,13 @@ class MappingsSuggestionOperation {
             var suggestion = new MappingsSuggestionType();
             var direction = resolveDirection();
 
-            addSystemMappings(suggestion, knownSchemaProvider, ownedList, result);
+            suggestion.getAttributeMappings().addAll(collectSystemMappings(knownSchemaProvider, ownedList, result));
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
                 mappingsSuggestionState.flush(result);
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
                 ItemPath focusPropPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getFocusPropertyPath());
-                boolean isSystemProvided = Boolean.TRUE.equals(matchPair.getIsSystemProvided());
                 var valuePairsForLLM = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                         .from(shadowsForLLM);
                 var valuePairsForValidation = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
@@ -147,7 +148,6 @@ class MappingsSuggestionOperation {
                                     matchPair,
                                     valuePairsForLLM,
                                     valuePairsForValidation,
-                                    isSystemProvided,
                                     result));
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (LowQualityMappingException e) {
@@ -177,44 +177,50 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private void addSystemMappings(
-            MappingsSuggestionType suggestion,
+    private List<AttributeMappingsSuggestionType> collectSystemMappings(
             WellKnownSchemaProvider knownSchemaProvider,
             List<OwnedShadow> ownedList,
             OperationResult result) {
         if (knownSchemaProvider == null) {
-            return;
+            return List.of();
         }
-        var direction = resolveDirection();
         var shadowsForValidation = ownedList.subList(
                 Math.max(0, ownedList.size() - Math.min(VALIDATION_EXAMPLES_COUNT, ownedList.size())),
                 ownedList.size());
 
-        var mappings = isInbound
-                ? knownSchemaProvider.suggestInboundMappings()
-                : knownSchemaProvider.suggestOutboundMappings();
+        var mappings = isInbound ? knownSchemaProvider.suggestInboundMappings() : knownSchemaProvider.suggestOutboundMappings();
 
-        for (var systemMapping : mappings) {
+        return mappings.stream()
+                .map(systemMapping -> assessAndBuildSystemMapping(systemMapping, shadowsForValidation, result))
+                .flatMap(opt -> opt.stream())
+                .toList();
+    }
+
+    private Optional<AttributeMappingsSuggestionType> assessAndBuildSystemMapping(
+            SystemMappingSuggestion systemMapping,
+            List<OwnedShadow> shadowsForValidation,
+            OperationResult result) {
+        try {
+            var direction = resolveDirection();
+            var valuePairs = ValuesPairSample.of(
+                    systemMapping.focusPropertyPath(),
+                    systemMapping.shadowAttributePath(),
+                    direction).from(shadowsForValidation);
+
             Float quality = null;
-            try {
-                var valuePairs = ValuesPairSample.of(
-                        systemMapping.focusPropertyPath(),
-                        systemMapping.shadowAttributePath(),
-                        direction).from(shadowsForValidation);
-
-                if (!valuePairs.pairs().isEmpty()) {
-                    var assessment = qualityAssessor.assessMappingsQuality(valuePairs, systemMapping.expression(), ctx.task, result);
-                    if (assessment != null && assessment.status() == MappingsQualityAssessor.AssessmentStatus.OK) {
-                        quality = assessment.quality();
-                    }
+            if (!valuePairs.pairs().isEmpty()) {
+                var assessment = qualityAssessor.assessMappingsQuality(valuePairs, systemMapping.expression(), ctx.task, result);
+                if (assessment != null && assessment.status() == MappingsQualityAssessor.AssessmentStatus.OK) {
+                    quality = assessment.quality();
                 }
-                var mappingSuggestion = buildAttributeMappingSuggestion(valuePairs, quality, systemMapping.expression());
-                SmartMetadataUtil.markAsSystemProvided(mappingSuggestion);
-                suggestion.getAttributeMappings().add(mappingSuggestion);
-            } catch (Exception e) {
-                LOGGER.debug("Failed to assess system mapping quality for {}: {}",
-                        systemMapping.shadowAttributePath(), e.getMessage());
             }
+
+            var mappingSuggestion = buildAttributeMappingSuggestion(valuePairs, quality, systemMapping.expression());
+            SmartMetadataUtil.markAsSystemProvided(mappingSuggestion);
+            return Optional.of(mappingSuggestion);
+        } catch (Exception e) {
+            LOGGER.debug("Failed to assess system mapping quality for {}: {}", systemMapping.shadowAttributePath(), e.getMessage());
+            return Optional.empty();
         }
     }
 
@@ -238,7 +244,6 @@ class MappingsSuggestionOperation {
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuePairsForLLM,
             ValuesPairSample<?, ?> valuePairsForValidation,
-            boolean isSystemProvided,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, LowQualityMappingException,
             MissingSourceDataException {
@@ -248,6 +253,7 @@ class MappingsSuggestionOperation {
 
         ExpressionType expression = null;
         MappingsQualityAssessor.AssessmentResult assessment = null;
+        boolean isSystemProvided = Boolean.TRUE.equals(matchPair.getIsSystemProvided());
 
         if (valuePairsForLLM.pairs().isEmpty() || valuePairsForValidation.pairs().isEmpty()) {
             LOGGER.trace("No data pairs. We'll use 'asIs' mapping (no LLM call).");

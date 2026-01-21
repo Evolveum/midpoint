@@ -141,11 +141,8 @@ public class SchemaMatchService {
                 .shadowAttributePath(shadowAttrPath.toStringStandalone())
                 .shadowAttribute(applicationAttrDefBean)
                 .focusPropertyPath(focusPropPath.toStringStandalone())
-                .focusProperty(midPointPropertyDefBean);
-
-        if (Boolean.TRUE.equals(attributeMatch.getIsSystemProvided())) {
-            result.setIsSystemProvided(true);
-        }
+                .focusProperty(midPointPropertyDefBean)
+                .isSystemProvided(Boolean.TRUE.equals(attributeMatch.getIsSystemProvided()));
 
         return Optional.of(result);
     }

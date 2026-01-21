@@ -73,7 +73,7 @@ class SchemaMatchingOperation {
 
         SiMatchSchemaResponseType aiSchemaMatch = useAiService ? invokeAiService(resource) : null;
 
-        return mergeSchemaMatches(systemSchemaMatch, aiSchemaMatch, resource);
+        return mergeSchemaMatches(systemSchemaMatch, aiSchemaMatch);
     }
 
     private SiMatchSchemaResponseType invokeAiService(ResourceType resource) throws SchemaException {
@@ -81,13 +81,14 @@ class SchemaMatchingOperation {
         var siRequest = new SiMatchSchemaRequestType()
                 .applicationSchema(resourceSideSerializer.serialize())
                 .midPointSchema(midPointSideSerializer.serialize());
-        return serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
+        SiMatchSchemaResponseType response = serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
+        response.getAttributeMatch().forEach(match -> match.setIsSystemProvided(false));
+        return response;
     }
 
     private SiMatchSchemaResponseType mergeSchemaMatches(
             SiMatchSchemaResponseType heuristicMatches,
-            SiMatchSchemaResponseType aiMatches,
-            ResourceType resource) {
+            SiMatchSchemaResponseType aiMatches) {
 
         if (heuristicMatches == null && aiMatches == null) {
             LOGGER.debug("No schema matches available from either heuristic or AI service");
