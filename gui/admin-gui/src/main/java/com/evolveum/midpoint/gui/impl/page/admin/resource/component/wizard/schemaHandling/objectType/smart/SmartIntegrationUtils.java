@@ -336,7 +336,7 @@ public class SmartIntegrationUtils {
             if (from != DEFAULT_AI) {
                 return from;
             }
-            markContainerProvenance(value, SmartMetadataUtil.ProvenanceKind.SYSTEM);
+
             boolean markedAsSystemProvided = isMarkedAsSystemProvided(value);
             if (markedAsSystemProvided) {
                 return DEFAULT_SYSTEM;
