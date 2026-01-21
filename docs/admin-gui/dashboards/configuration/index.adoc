@@ -18,7 +18,7 @@ doc-type: config
 :page-upkeep-status: green
 :experimental:
 
-This article contains advanced configuration options for dashboards and dashboard widgets in particular.
+Use the configuration options described here to customize your dashboards and dashboard widgets in particular.
 You can use the options to select the data sources for your widgets or adjust the appearance of your dashboard widgets,
 including conditioning the appearance so that you get a visual warning when there are, for example, users with too many high-privilege roles.
 
@@ -29,21 +29,6 @@ include::../use-idea-for-midpoint-engineering.adoc[]
 == Define data sources for widgets
 
 The `data` element defines the source of the data that the widget displays.
-
-To take off lightly, here is the simplest possible example of a widget with an object collection as its data source:
-
-[source,xml]
-----
-<widget>
-    ...
-    <data>
-        <sourceType>objectCollection</sourceType>
-        <collection>
-            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/>
-        </collection>
-    </data>
-</widget>
-----
 
 The table below contains more details about the configuration options you have regarding the data sources.
 
@@ -93,6 +78,28 @@ a| Specify the type of input data for generating a message shown in the widget.
 
 |===
 
+=== Synchronous widget using object collection
+
+Here is the simplest possible example of a widget with an object collection as its data source:
+
+[source,xml]
+----
+<widget>
+    ...
+    <data>
+        <sourceType>objectCollection</sourceType>
+        <collection>
+            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="ObjectCollectionType"/>
+        </collection>
+    </data>
+</widget>
+----
+
+=== Asynchronous widget using object collection
+
+Below is a bare-bones asynchronous widget that uses an object collection as its data source.
+See xref:/midpoint/reference/admin-gui/dashboards/dashboard-configuration-intro/#async-widget[Create asynchronous widget to reduce system load] for the required configuration regarding asynchronous widgets.
+
 .An example of a simple asynchronous widget
 [source,xml]
 ----
@@ -102,7 +109,7 @@ a| Specify the type of input data for generating a message shown in the widget.
         <sourceType>objectCollection</sourceType> <!--1-->
         <displaySourceType>widgetData</displaySourceType> <!--2-->
         <collection>
-            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/> <!--3-->
+            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="ObjectCollectionType"/> <!--3-->
         </collection>
         <storedData>25/25 runnable</storedData> <!--4-->
     </data>
@@ -117,7 +124,7 @@ a| Specify the type of input data for generating a message shown in the widget.
 You can use an `objectCollection`, `auditSearch` or `object` as a data source for asynchronous widgets.
 Regardless the widget data source, for asynchronous widgets, you need to use the `displaySourceType` element with the `widgetData` value.
 
-=== Use specific object as a widget data source
+=== Specific object as widget data source
 
 Another option is to define a specific `object` as a source.
 In this case, a part of the configuration is a reference to the object which is used as the source.
