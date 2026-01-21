@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.correlator.tasks;
 
+import java.util.List;
+
 import com.evolveum.midpoint.model.impl.correlator.tasks.CorrelationDefinitionProvider.ResourceWithObjectTypeId;
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceSetTaskWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
@@ -48,6 +50,10 @@ public class CorrelationWorkDefinition extends ResourceSetTaskWorkDefinition {
         final ResourceWithObjectTypeId resourceWithObjectType = ResourceWithObjectTypeId.from(
                 getResourceObjectSetSpecification());
         return this.correlationDefProviderFactory.providerFor(this.correlatorsToUse, resourceWithObjectType).get(result);
+    }
+
+    public List<AdditionalCorrelationItemMapping> getAdditionalCorrelationMappings() {
+        return this.correlatorsToUse.getAdditionalItemsMappings();
     }
 
 }

@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_RESULTING_OWNER_PATH;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_SITUATION_PATH;
 
-import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
@@ -50,6 +49,7 @@ public class CorrelationSimulationActivityRun
     private final CorrelationService correlationService;
     private final PrismContext prismContext;
     private CorrelationDefinitionType correlationDefinition;
+    private List<AdditionalCorrelationItemMapping> additionalMappings;
 
     public CorrelationSimulationActivityRun(
             ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> ctx,
@@ -70,6 +70,7 @@ public class CorrelationSimulationActivityRun
                     OperationResultStatus.FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR);
         }
         this.correlationDefinition = getWorkDefinition().provideCorrelators(result);
+        this.additionalMappings = getWorkDefinition().getAdditionalCorrelationMappings();
         return true;
     }
 
@@ -79,7 +80,7 @@ public class CorrelationSimulationActivityRun
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(shadow,
-                this.correlationDefinition, Collections.emptyList(), task, result);
+                this.correlationDefinition, this.additionalMappings, task, result);
 
         final SimulationTransaction simulationTransaction = getSimulationTransaction();
         if (simulationTransaction != null) {

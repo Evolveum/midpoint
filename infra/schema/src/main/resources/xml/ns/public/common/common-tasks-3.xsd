@@ -10718,7 +10718,8 @@
         <xsd:annotation>
             <xsd:documentation>
                 Specify what correlators to use for correlation. Note that if the `includeExistingCorrelators` is set
-                to false (default), then at least one of `inlineCorrelators` or `correlatorsRef` has to be specified.
+                to false (default), then at least one of `inlineCorrelators` or `correlatorsRef` has to be
+                specified.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -10739,8 +10740,21 @@
             <xsd:element name="inlineCorrelators" type="c:CorrelationDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Inline definition of correlators. Intended to be a dedicated CorrelatorsType;
-                        ExtensionType is used as a placeholder in this schema.
+                        Inline definition of correlators. It can be used to explicitly define the correlator, for
+                        example in case when we want to simulate suggested correlation (which is not stored yet).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="additionalItemsMappings" type="c:AdditionalCorrelationItemMapping" minOccurs="0"
+                         maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of additional item inbound mappings, which could be used from the explicitly
+                        defined correlators (see above), but which are not stored yet.
+
+                        The example usage is when the smart service suggests some new correlator. In such case the
+                        new correlator often uses also some newly suggested mapping. Neither of these is stored in
+                        repository yet, thus they need to be explicitly defined in the simulation task work definition.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
