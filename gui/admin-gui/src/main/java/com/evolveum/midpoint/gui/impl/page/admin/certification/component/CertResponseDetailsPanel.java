@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconW
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTablePanel;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,8 +30,11 @@ import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumnPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -160,7 +164,14 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
 
                 @Override
                 public Component createValueComponent(String id) {
-                    AccessCertificationResponseType response = OutcomeUtils.fromUri(getModelObject().getRealValue().getCurrentStageOutcome());
+                    var certCase = getModelObject().getRealValue();
+                    AccessCertificationResponseType response;
+                    if (stageNumber == certCase.getStageNumber()) {
+                        response = OutcomeUtils.fromUri(certCase.getCurrentStageOutcome());
+                    } else {
+                        response = CertMiscUtil.getStageOutcome(certCase, stageNumber);
+                    }
+//                    AccessCertificationResponseType response = OutcomeUtils.fromUri(getModelObject().getRealValue().getCurrentStageOutcome());
                     DisplayType responseDisplayType = new CertificationItemResponseHelper(response).getResponseDisplayType();
 
                     CompositedIcon icon = new CompositedIconBuilder()
@@ -179,7 +190,9 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
     }
 
     private void addActionsPanel() {
-        DisplayType titleDisplay = new DisplayType().label("CertResponseDetailsPanel.activity");
+        PolyStringType activityLabel = new PolyStringType("Activity");
+        activityLabel.setTranslation(new PolyStringTranslationType().key("CertResponseDetailsPanel.activity"));
+        DisplayType titleDisplay = new DisplayType().label(activityLabel);
 
         IModel<List<ChatMessageItem>> actionsModel = createActionsModel();
         ChatPanel actionsPanel = new ChatPanel(ID_ACTIONS_PANEL, Model.of(titleDisplay), actionsModel);
@@ -325,7 +338,7 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
             }
         };
         actionsPanel.setOutputMarkupId(true);
-        actionsPanel.add(new VisibleEnableBehaviour(() -> certItem != null && !actions.isEmpty()));
+        actionsPanel.add(new VisibleBehaviour(() -> certItem != null && !actions.isEmpty()));
         add(actionsPanel);
     }
 
