@@ -2,7 +2,7 @@
 midpoint-feature: object-collection-and-view
 doc-type: config
 ---
-= Object Collections and Views Configuration
+= Object collections and views configuration
 :page-nav-title: Configuration
 :page-display-order: 50
 :page-wiki-name: Object Collections and Views Configuration
@@ -13,19 +13,13 @@ doc-type: config
 :page-wiki-metadata-modify-date: 2021-02-26T14:25:04.587+01:00
 :page-since: "4.0"
 :page-toc: top
+:page-upkeep-status: yellow
+:page-upkeep-note: Collection domain is no longer experimental. The page is probably old, we need to review this page.
 
+Group related objects in collections and configure object collection views to customize the midPoint user interface.
+Use the views to show relevant object lists dynamically to different groups of users based on what they need to know.
 
-== Introduction
-
-MidPoint objects are quite a social animals.
-They like to be grouped together.
-There is often need to show collections of objects, such as employees, active users, new proposed roles and so on.
-MidPoint has a flexible search and filter functionality that can be used for this purpose.
-However, those collections are used so often that they deserve a special place in the system.
-Those collections deserve its own definition, its own name and its own form of presentation.
-That is the reason why midPoint supports functionality for object collections and views.
-
-Collections and views are two concepts that are very related, but still somehow distinct:
+Collections and views are two concepts that are related, yet distinct:
 
 * *Object collection* is a core midPoint concept.
 There is a special object type (ObjectCollectionType) that is used to define a collection.
@@ -44,7 +38,7 @@ E.g. views can be adjusted and overridden in xref:/midpoint/reference/admin-gui/
 Although collections and view have different purposes, and they are based on different mechanisms, they are almost always used together.
 
 
-== Object Collection
+== Object collection
 
 Object collection is a special midPoint object.
 The collection usually specifies a search filter that is used to find all the objects that belong to the collection:
@@ -78,7 +72,7 @@ These metrics are critical for compliance reporting, as they quantify risks or d
 Based on the calculated ratios, policy rules can also trigger further actions, such as notifying managers about the need for remediation.
 
 
-=== Derived Object Collection
+=== Derived object collection
 
 Some collections are often based on other collections.
 For example _active employees_ collection may be based on _employee_ archetype:
@@ -102,7 +96,7 @@ The collections can refer to each other.
 Therefore, if one definition changes, all the collections take notice.
 
 
-=== Configuration Consistency
+=== Configuration consistency
 
 The use of collections in midPoint 4.0 is somehow limited.
 In future midPoint releases, Collections may be reused in authorizations and policy rules.
@@ -166,7 +160,7 @@ Placing definition of view in xref:/midpoint/reference/admin-gui/admin-gui-confi
 Therefore, all the roles will have they own customized presentation of the data.
 
 
-=== Views And Implicit Collections
+=== Views and implicit collections
 
 Some midPoint objects can be considered collections of their own, especially xref:/midpoint/reference/schema/archetypes/[archetypes]. We want to make things simple and elegant whenever possible.
 Therefore, archetypes can be used instead of a collection in the view definition:
@@ -209,7 +203,7 @@ There is also experimental functionality allowing to hide and show the collectio
 </adminGuiConfiguration>
 ----
 
-=== Default Collection Views (since midPoint 4.4)
+=== Default collection views
 
 MidPoint comes with default collections defined for most of objects.
 These default collections are based on object type, e.g., there is a default collection for all users in midPoint available in the main application left-side menu.
@@ -600,7 +594,7 @@ Therefore, *link:https://evolveum.com/services/professional-support/[midPoint Pl
 ++++
 
 
-== See Also
+== See also
 
 * xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements]
 
