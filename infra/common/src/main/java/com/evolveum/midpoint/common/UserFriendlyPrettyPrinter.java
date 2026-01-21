@@ -315,7 +315,7 @@ public class UserFriendlyPrettyPrinter {
         return sb.toString();
     }
 
-    private String prettyPrintObjectSimple(PrismObject<?> object, int indent) {
+    public String prettyPrintObjectSimple(PrismObject<?> object, int indent) {
         StringBuilder sb = new StringBuilder();
         sb.append(indent(indent));
 

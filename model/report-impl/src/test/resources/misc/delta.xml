@@ -3,65 +3,70 @@
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
-
-<objectDeltaOperation xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<objectDelta xmlns="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         xmlns:ex="https://example.com"
-        xsi:type="c:ObjectDeltaOperationType">
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <objectDelta>
-        <t:changeType>modify</t:changeType>
-        <t:objectType>UserType</t:objectType>
-        <!--<t:itemDelta>
-            <t:modificationType>replace</t:modificationType>
-            <t:path>extension</t:path>
-            <t:value xsi:type="c:ExtensionType">
-                <ex:stringProperty>value1</ex:stringProperty>
-                <ex:stringProperty>value2</ex:stringProperty>
-            </t:value>
-        </t:itemDelta>-->
-        <t:itemDelta>
-            <t:modificationType>replace</t:modificationType>
-            <t:path>description</t:path>
-            <t:value xsi:type="xsd:string">my custom description</t:value>
-        </t:itemDelta>
-        <t:itemDelta>
-            <t:modificationType>replace</t:modificationType>
-            <t:path>organization</t:path>
-            <t:value xsi:type="t:PolyStringType">org1</t:value>
-            <t:value xsi:type="t:PolyStringType">org2</t:value>
-        </t:itemDelta>
-        <t:itemDelta>
-            <t:modificationType>add</t:modificationType>
-            <t:path>activation</t:path>
-            <t:value id="0" xsi:type="c:ActivationType">
-                <administrativeStatus>disabled</administrativeStatus>
-                <disableReason>somedisable reason</disableReason>
-            </t:value>
-        </t:itemDelta>
-        <t:itemDelta>
-            <t:modificationType>add</t:modificationType>
-            <t:path>assignment</t:path>
-            <t:value id="0" xsi:type="c:AssignmentType">
-                <description>Approved</description>
-                <targetRef oid="123a49bc-6f5b-4746-8461-2e1a63307123" type="c:RoleType"/>
-            </t:value>
-        </t:itemDelta>
-        <t:itemDelta>
-            <t:modificationType>add</t:modificationType>
-            <t:path>assignment</t:path>
-            <t:value id="1" xsi:type="c:AssignmentType">
-                <description>Default</description>
-                <targetRef oid="456a49bc-6f5b-4746-8461-2e1a63307456" type="c:RoleType"/>
-            </t:value>
-        </t:itemDelta>
-        <t:itemDelta>
-            <t:modificationType>add</t:modificationType>
-            <t:path>assignment[25]/description</t:path>
-            <t:value xsi:type="xsd:string">simple assignment description</t:value>
-        </t:itemDelta>
-    </objectDelta>
-</objectDeltaOperation>
+    <changeType>modify</changeType>
+    <objectType>UserType</objectType>
+    <itemDelta>
+        <modificationType>replace</modificationType>
+        <path>extension</path>
+        <value xsi:type="c:ExtensionType">
+            <ex:stringProperty>value1</ex:stringProperty>
+            <ex:stringProperty>value2</ex:stringProperty>
+        </value>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>replace</modificationType>
+        <path>description</path>
+        <value xsi:type="xsd:string">my custom description</value>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>replace</modificationType>
+        <path>organization</path>
+        <value xsi:type="PolyStringType">org1</value>
+        <value xsi:type="PolyStringType">org2</value>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>add</modificationType>
+        <path>activation</path>
+        <value id="0" xsi:type="c:ActivationType">
+            <c:administrativeStatus>disabled</c:administrativeStatus>
+            <c:validFrom>2013-05-21T14:57:50.759+02:00</c:validFrom>
+            <c:disableReason>somedisable reason</c:disableReason>
+        </value>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>delete</modificationType>
+        <path>assignment</path>
+        <value xsi:type="c:AssignmentType">
+            <c:description>Approved</c:description>
+            <c:targetRef oid="123a49bc-6f5b-4746-8461-2e1a63307123" type="c:RoleType"/>
+        </value>
+        <value id="2" xsi:type="c:AssignmentType">
+            <c:description>Approved Two</c:description>
+            <c:targetRef oid="123a49bc-6f5b-4746-8461-2e1a63307777" type="c:RoleType"/>
+        </value>
+        <estimatedOldValue id="0" xsi:type="c:AssignmentType">
+            <c:description>OldApproved</c:description>
+            <c:targetRef oid="123a49bc-6f5b-4746-8461-2e1a63307123" type="c:RoleType"/>
+        </estimatedOldValue>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>add</modificationType>
+        <path>assignment</path>
+        <value id="1" xsi:type="c:AssignmentType">
+            <c:description>Default</c:description>
+            <c:targetRef oid="456a49bc-6f5b-4746-8461-2e1a63307456" type="c:RoleType"/>
+        </value>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>add</modificationType>
+        <path>assignment[25]/description</path>
+        <value xsi:type="xsd:string">simple assignment description</value>
+        <estimatedOldValue xsi:type="xsd:string">old simple assignment description</estimatedOldValue>
+    </itemDelta>
+</objectDelta>
