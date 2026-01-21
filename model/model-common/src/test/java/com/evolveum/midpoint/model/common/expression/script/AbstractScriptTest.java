@@ -178,7 +178,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testExpressionObjectRefVariablesNonExistingObject() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-objectref-variables.xml",
-                "testExpressionObjectRefVariables",
+                "testExpressionObjectRefVariablesNonExistingObject",
                 createVariables(
                         "foo", "Captain", String.class,
                         "jack",
@@ -240,6 +240,15 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     @Test
+    public void testUserAdministrativeStatus() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-administrative-status.xml",
+                "testUserAdministrativeStatus",
+                createUserScriptVariables(),
+                "enabled");
+    }
+
+    @Test
     public void testUserExtensionShip() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-extension-ship.xml",
@@ -271,7 +280,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     // TODO: user + numeric
     // TODO: user + no property value
 
-    private VariablesMap createUserScriptVariables() {
+    protected VariablesMap createUserScriptVariables() {
         return createVariables(
                 ExpressionConstants.VAR_USER,
                 MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
@@ -457,6 +466,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         List<PrismPropertyValue<String>> expressionResultList =
                 evaluateStringExpression(fileName, testName, variables);
+        displayValue("Expression result", expressionResultList);
         TestUtil.assertSetEquals("Expression " + testName + " resulted in wrong values",
                 PrismValueCollectionsUtil.getValues(expressionResultList), expectedValues);
     }

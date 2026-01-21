@@ -33,6 +33,29 @@
     <organizationalUnit>Followers</organizationalUnit>
     <locality>Black Pearl</locality>
 
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+
+    <assignment>
+        <identifier>alfa</identifier>
+        <description>First assignment</description>
+        <targetRef oid="c0c010c0-d34d-b33f-f00d-111111111112" relation="owner"/>
+    </assignment>
+
+    <assignment>
+        <identifier>bravo</identifier>
+        <description>Second assignment</description>
+        <focusMappings>
+            <mapping>
+                <name>First focus mapping</name>
+            </mapping>
+            <mapping>
+                <name>Second focus mapping</name>
+            </mapping>
+        </focusMappings>
+    </assignment>
+
     <credentials>
         <password>
             <value>

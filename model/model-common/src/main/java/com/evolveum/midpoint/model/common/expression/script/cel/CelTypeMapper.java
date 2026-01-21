@@ -6,6 +6,10 @@
 
 package com.evolveum.midpoint.model.common.expression.script.cel;
 
+import com.evolveum.midpoint.model.common.expression.script.cel.value.ContainerValueCelValue;
+import com.evolveum.midpoint.model.common.expression.script.cel.value.MultivalueCelValue;
+import com.evolveum.midpoint.model.common.expression.script.cel.value.ObjectCelValue;
+import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -22,7 +26,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelValue;
+import dev.cel.common.values.ListValue;
+import dev.cel.common.values.NullValue;
 import dev.cel.common.values.OpaqueValue;
+import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -181,6 +188,28 @@ public class CelTypeMapper {
         }
     }
 
+    @NotNull
+    public static CelType toCelType(TypedValue<?> typedValue) {
+        ItemDefinition<?> def = typedValue.getDefinition();
+        if (def == null) {
+            Class<?> typeClass = typedValue.getTypeClass();
+            if (typeClass == null) {
+                throw new IllegalStateException("Typed value " + typedValue + " does not have neither definition nor class");
+            }
+            return SimpleType.DYN;
+//            throw new NotImplementedException("Cannot convert class "+typeClass.getSimpleName()+" to CEL");
+            // TODO: convert based on class
+        } else {
+            if (def instanceof PrismPropertyDefinition<?> propDef) {
+                return CelTypeMapper.toCelType(propDef.getTypeName());
+            } else if (def instanceof PrismObjectDefinition<?>) {
+                // TODO: something more sophisticated? Maybe handled by TypeMapper?
+                return SimpleType.DYN;
+            }
+            throw new NotImplementedException("Cannot convert "+def+" to CEL");
+        }
+    }
+
     @Nullable
     public static CelType getCelType(@NotNull QName xsdType) {
         return XSD_TO_CEL_TYPE_MAP.get(xsdType);
@@ -246,7 +275,11 @@ public class CelTypeMapper {
         if (celValue instanceof PolyStringCelValue) {
             return ((PolyStringCelValue) celValue).getPolystring();
         } else if (celValue instanceof OpaqueValue) {
-                return ((OpaqueValue)celValue).value();
+            return ((OpaqueValue) celValue).value();
+        } else if (celValue instanceof List) {
+            return toJavaValueList((List)celValue);
+//        } else if (celValue instanceof Map) {
+//            return celValue;
         } else {
             throw new IllegalArgumentException("Unknown CEL value "+celValue+" ("+celValue.getClass().getName()+")");
         }
@@ -260,12 +293,37 @@ public class CelTypeMapper {
             return javaValue;
         }
         if (javaValue instanceof PolyString) {
-            return createPolystringCelValue((PolyString) javaValue);
+            return PolyStringCelValue.create((PolyString) javaValue);
+        }
+        if (javaValue instanceof Item) {
+            //noinspection unchecked,rawtypes
+            return toCelValue((Item)javaValue);
         }
         return javaValue;
     }
 
+    public static <IV extends PrismValue, ID extends ItemDefinition<?>> Object toListMapValue(Item<IV, ID> item) {
+        if (item.getDefinition().isMultiValue()) {
+            return MultivalueCelValue.create(item);
+        } else {
+            // Single-value items
+            if (item instanceof PrismProperty<?> property) {
+                return toCelValue(property.getRealValue());
+            }
+            if (item instanceof PrismContainer<?> container) {
+                return ContainerValueCelValue.create(container.getValue());
+            }
+        }
+        // TODO
+        return null;
+    }
+
+
     static <T> Object convertVariableValue(TypedValue<T> typedValue) {
+        if (typedValue == null || typedValue.getValue() == null) {
+            // CEL has special type and value for null
+            return NullValue.NULL_VALUE;
+        }
         ItemDefinition def = typedValue.getDefinition();
         if (def == null) {
             return typedValue.getValue();
@@ -274,23 +332,26 @@ public class CelTypeMapper {
             if (QNameUtil.match(((PrismPropertyDefinition<?>)def).getTypeName(), PrismConstants.POLYSTRING_TYPE_QNAME)) {
                 Object value = typedValue.getValue();
                 if (value == null) {
-                    return createPolystringCelValue(null);
+                    return PolyStringCelValue.create(null);
                 }
                 if (value instanceof PolyString) {
 
-                    return createPolystringCelValue((PolyString) value);
+                    return PolyStringCelValue.create((PolyString) value);
                 }
                 if (value instanceof PolyStringType) {
                     PolyStringType polystringtype = (PolyStringType) typedValue.getValue();
-                    return createPolystringCelValue(polystringtype.toPolyString());
+                    return PolyStringCelValue.create(polystringtype.toPolyString());
                 }
             }
         }
+        if (def instanceof PrismObjectDefinition<?>) {
+            if (typedValue.getValue() instanceof PrismObject<?>) {
+                return ObjectCelValue.create((PrismObject<?>) typedValue.getValue());
+            } else if (typedValue.getValue() instanceof Objectable) {
+                return ObjectCelValue.create(((Objectable) typedValue.getValue()).asPrismObject());
+            }
+        }
         return typedValue.getValue();
-    }
-
-    private static CelValue createPolystringCelValue(PolyString polystring) {
-        return PolyStringCelValue.create(polystring);
     }
 
     public static boolean stringEqualsPolyString(String s, PolyStringCelValue polystringValue) {

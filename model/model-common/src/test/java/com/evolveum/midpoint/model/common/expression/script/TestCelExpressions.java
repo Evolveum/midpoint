@@ -13,6 +13,9 @@ import java.io.File;
 
 import com.evolveum.midpoint.model.common.expression.script.cel.CelScriptEvaluator;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -521,6 +524,54 @@ public class TestCelExpressions extends AbstractScriptTest {
                 "FooBAR");
     }
 
+    @Test
+    public void testUserAssignmentFirst() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-assignment-first.xml",
+                "testUserAssignmentFirst",
+                createUserScriptVariables(),
+                "First assignment");
+    }
+
+    @Test
+    public void testUserAssignmentSecond() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-assignment-second.xml",
+                "testUserAssignmentSecond",
+                createUserScriptVariables(),
+                "Second assignment");
+    }
+
+    @Test
+    public void testUserAssignmentSecondMapping() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-assignment-second-mapping.xml",
+                "testUserAssignmentSecondMapping",
+                createUserScriptVariables(),
+                "Second focus mapping");
+    }
+
+    @Test
+    public void testExpressionNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-null.xml",
+                "testExpressionNull",
+                createVariables(
+                        "foo", null, String.class
+                ),
+                "true");
+    }
+
+    @Test
+    public void testExpressionNotNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-null.xml",
+                "testExpressionNotNull",
+                createVariables(
+                        "foo", "BAR", String.class
+                ),
+                "false");
+    }
 
 
     @Test

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.script.cel;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -26,15 +27,13 @@ import dev.cel.common.*;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.CelValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.Operator;
-import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeBuilder;
-import dev.cel.runtime.CelRuntimeFactory;
+import dev.cel.runtime.*;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
@@ -126,7 +125,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
         // TODO: Further compiler config
         new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
         for (var varEntry : prepareScriptVariablesTypedValueMap(context).entrySet()) {
-            builder.addVar(varEntry.getKey(), convertToCelType(varEntry.getValue()));
+            builder.addVar(varEntry.getKey(), CelTypeMapper.toCelType(varEntry.getValue()));
         }
         return builder.build();
     }
@@ -143,25 +142,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
         return midPointTypeProvider;
     }
 
-    @NotNull
-    private CelType convertToCelType(TypedValue<?> typedValue) {
-        ItemDefinition<?> def = typedValue.getDefinition();
-        if (def == null) {
-            Class<?> typeClass = typedValue.getTypeClass();
-            if (typeClass == null) {
-                throw new IllegalStateException("Typed value " + typedValue + " does not have neither definition nor class");
-            }
-            return SimpleType.DYN;
-//            throw new NotImplementedException("Cannot convert class "+typeClass.getSimpleName()+" to CEL");
-            // TODO: convert based on class
-        } else {
-            if (def instanceof PrismPropertyDefinition<?>) {
-                PrismPropertyDefinition<?> propDef = (PrismPropertyDefinition<?>)def;
-                return CelTypeMapper.toCelType(propDef.getTypeName());
-            }
-            throw new NotImplementedException("Cannot convert "+def+" to CEL");
-        }
-    }
+
 
 //    private GroovyClassLoader getGroovyLoader(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
 //        GroovyClassLoader existingLoader = getScriptCache().getInterpreter(context.getExpressionProfile());
@@ -182,6 +163,13 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
 
         Map<String, ?> variables = prepareVariablesValueMap(context);
         Object resultObject = program.eval(variables);
+        if (resultObject instanceof CelUnknownSet) {
+            // This means error
+            throw new ExpressionEvaluationException("CEL expression evaluation error: "+resultObject);
+        }
+        if (resultObject instanceof CelValue) {
+            resultObject = CelTypeMapper.toJavaValue((CelValue) resultObject);
+        }
         return resultObject;
     }
 
@@ -193,6 +181,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
         // TODO: consider expression profiles?
         // TODO: caching
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
+        builder.setOptions(CelOptions.current().enableUnknownTracking(true).build());
 //        builder.setOptions(CelOptions.current().enableCelValue(true).build());
 //        builder.setTypeFactory(typeFactory);
 //        builder.setValueProvider(CelScriptEvaluator::valueProvider);

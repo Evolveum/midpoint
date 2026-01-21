@@ -7,7 +7,5 @@
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#CEL</language>
-    <code>
-        user.givenName
-    </code>
+    <code>foo == null</code>
 </script>

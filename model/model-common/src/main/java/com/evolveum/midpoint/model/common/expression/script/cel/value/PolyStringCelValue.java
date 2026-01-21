@@ -3,16 +3,15 @@
  *
  * Licensed under the EUPL-1.2 or later.
  */
-package com.evolveum.midpoint.model.common.expression.script.cel;
+package com.evolveum.midpoint.model.common.expression.script.cel.value;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.common.expression.script.cel.MidPointTypeProvider;
 import dev.cel.common.types.CelType;
 import dev.cel.common.values.CelValue;
-import dev.cel.common.values.MapValue;
-import dev.cel.common.values.StringValue;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
