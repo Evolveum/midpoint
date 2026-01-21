@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard;
 
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -18,10 +19,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationR
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,11 +27,8 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.dialog.AdditionalOperationConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.TaskTablePanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -55,10 +50,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObjectTypeSimulationTasks;
+import static com.evolveum.midpoint.web.page.admin.server.PageTasks.createObjectRefColumn;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_TASKS_WIZARD;
 
 @PanelType(name = "rw-simulation-task")
@@ -226,28 +221,7 @@ public class ResourceSimulationTaskWizardPanel<C extends Containerable> extends 
         });
 
         if (isRefColumnVisible()) {
-            columns.add(1, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"),
-                    SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                    SelectableBean<TaskType> bean = rowModel.getObject();
-                    ObjectReferenceType objectRef = bean.getValue().getObjectRef();
-                    if (objectRef != null) {
-                        objectRef.asReferenceValue().clearParent();
-                    }
-                    return Model.ofList(Collections.singletonList(objectRef));
-                }
-
-                @Override
-                protected Collection<SelectorOptions<GetOperationOptions>> getOptions(ObjectReferenceType ref) {
-                    if (ref != null && QNameUtil.match(ResourceType.COMPLEX_TYPE, ref.getType())) {
-                        return GetOperationOptions.createNoFetchReadOnlyCollection();
-                    }
-                    return null;
-                }
-            });
+            columns.add(1, createObjectRefColumn((PageBase) getPage()));
         }
 
         columns.add(new AbstractColumn<>(createStringResource("SimulationTaskWizardPanel.simulation.result")) {
@@ -284,7 +258,11 @@ public class ResourceSimulationTaskWizardPanel<C extends Containerable> extends 
         getPageBase().navigateToNext(PageSimulationResult.class, params);
     }
 
-    private @Nullable ObjectReferenceType getSimulationResultReference(@NotNull TaskType task) {
+    public static @Nullable ObjectReferenceType getSimulationResultReference(@NotNull TaskType task) {
+        return getSimulationTaskObjectRef(task);
+    }
+
+    public static @Nullable ObjectReferenceType getSimulationTaskObjectRef(@NotNull TaskType task) {
         TaskActivityStateType activityState = task.getActivityState();
         if (activityState == null || activityState.getActivity() == null) {
             return null;
