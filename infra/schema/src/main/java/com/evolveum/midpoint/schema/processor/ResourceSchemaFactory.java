@@ -23,8 +23,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /** The official place where resource schemas are created. */
 public class ResourceSchemaFactory {
@@ -206,26 +205,30 @@ public class ResourceSchemaFactory {
 
     /**
      * Executes the real parsing. Returns complete schema (raw + refined).
-     *
-     * Normally internal to this class, but may be called externally from the test code.
-     *
-     * DO NOT call it directly from the production code. The returned schema is NOT immutable here, but we want to ensure
-     * immutability throughout the running system. Use {@link #getCompleteSchema(PrismObject)} instead.
      */
-    @VisibleForTesting
     public static CompleteResourceSchema parseCompleteSchema(ResourceType resource) throws SchemaException, ConfigurationException {
         return parseCompleteSchema(resource, ResourceSchemaFactory.getNativeSchema(resource));
+    }
+
+    /**
+     * Parse "complete schema" of the resource with additional definitions which are not stored in the resource.
+     *
+     * During the parsing the provided additional schema handling is considered as well as the schema handling and
+     * native schema which are already present in the resource.
+     * @param resource The resource schema of which should be parsed.
+     * @param additions The additional definitions specified in schema handling.
+     * @return Instance of parsed complete schema.
+     */
+    public static CompleteResourceSchema parseCompleteSchemaWithAdditions(ResourceType resource,
+            SchemaHandlingType additions) throws SchemaException, ConfigurationException {
+        return parseCompleteSchema(resource, ResourceSchemaFactory.getNativeSchema(resource), additions);
     }
 
     /** Parses the complete schema from the provided raw schema plus definitions in the resource. */
     @Contract("_, null -> null; _, !null -> !null")
     public static CompleteResourceSchema parseCompleteSchema(@NotNull ResourceType resource, NativeResourceSchema nativeSchema)
             throws SchemaException, ConfigurationException {
-        if (nativeSchema != null) {
-            return ResourceSchemaParser.parseComplete(resource, nativeSchema);
-        } else {
-            return null;
-        }
+        return parseCompleteSchema(resource, nativeSchema, null);
     }
 
     public static @NotNull NativeResourceSchema parseNativeSchema(@NotNull Element sourceXsdElement, String description)
@@ -251,7 +254,21 @@ public class ResourceSchemaFactory {
     @Contract("null -> null; !null -> !null")
     public static BareResourceSchema nativeToBare(@Nullable NativeResourceSchema nativeResourceSchema) throws SchemaException {
         return nativeResourceSchema != null ?
-                ResourceSchemaParser.parseBare(nativeResourceSchema) :
+                ResourceSchemaParser.parseNativeOnly(nativeResourceSchema) :
                 null;
+    }
+
+    private static CompleteResourceSchema parseCompleteSchema(@NotNull ResourceType resource,
+            NativeResourceSchema nativeSchema, SchemaHandlingType additions)
+            throws SchemaException, ConfigurationException {
+        if (nativeSchema != null) {
+            if (additions != null) {
+                return ResourceSchemaParser.parseSchemaWithAdditionalSchemaHandling(resource, nativeSchema, additions);
+            } else {
+                return ResourceSchemaParser.parseSchema(resource, nativeSchema);
+            }
+        } else {
+            return null;
+        }
     }
 }
