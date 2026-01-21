@@ -1,0 +1,133 @@
+= Security note: CSV Exports and Spreadsheet Formula Interpretation
+:experimental:
+:page-keywords: security, csv, export, weakness, vulnerability, mitigation, excel, formula injection
+:page-description: This document explains how spreadsheet applications may interpret CSV files exported from midPoint and how to mitigate related implications.
+:page-toc: top
+:page-display-order: 310
+
+This document explains how spreadsheet applications may interpret CSV files exported from midPoint and how to mitigate related implications.
+
+== Security implications of CSV exports
+
+MidPoint enables users to export data in the CSV format in various places in GUI, such as:
+
+* User lists, and other data table views.
+* Through midPoint reports, by creating a task that produce a _report output_ and a related CSV file.
+
+By default, data exported to CSV files are raw and not escaped or sanitized in any way.
+
+Some spreadsheet applications (such as Microsoft Excel or LibreOffice Calc) may interpret certain cell values as formulas, which can lead to potentially hazardous situations.
+
+If a CSV export contains cells with values starting with special characters (like '=', '+', '-', or '@'), opening the file in a spreadsheet application that does not handle these characters safely may trigger unintended behavior.
+This may result in command execution, unauthorized data access, or the spread of malware.
+
+An attacker can exploit this behavior by creating or updating midPoint objects with attribute values that will later be used in an exported CSV file.
+
+.Example of malicious data in a user object created/modified by an attacker
+[source, xml]
+----
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>jdoe</name>
+    <email>jdoe@example.com</email>
+    <organization>=10+20+cmd|' /C calc'!A0</organization>
+</user>
+----
+
+.Example of a malicious CSV export created by a victim exporting all users
+[source, csv]
+----
+Name;Email;Organization
+jdoe;jdoe@example.com;=10+20+cmd|' /C calc'!A0
+----
+
+[NOTE]
+====
+While data can be sanitized or escaped for CSV exports, sanitized data might not be suitable for use in other contexts, e.g., for extract-transform-load (ETL) systems.
+
+To address this issue more comprehensively, midPoint will provide specialized export options - unsanitized (for ETL), and sanitized (for spreadsheet use) - in the future.
+====
+
+== Mitigation measures
+
+In deployments where the security implications of CSV export are significant, it is crucial that you:
+
+* Do not use spreadsheet processors that do not allow disabling formula evaluation.
+* Use the latest versions of spreadsheet applications, and make sure formula evaluation is disabled for CSV files.
+* Educate users about the risks of opening CSV files from untrusted sources.
+
+In addition, configure midPoint to limit access to the CSV export capabilities only to trusted users:
+
+* <<guicontrols,Use GUI controls authorizations>> to restrict access to the CSV export functionality.
+* <<reportdatatype,Limit access to ReportDataType objects>> that contain CSV report outputs.
+* <<restrictrunreport,Restrict the _Run report_ functionality>> to prevent unauthorized users from creating CSV report data.
+
+[[guicontrols]]
+=== Use GUI controls authorizations
+
+There are 2 relevant xref:/midpoint/reference/security/authorization/admin-gui/#overall-administration-actions[GUI authorizations] that can be used to control access to the CSV export functionality:
+
+* `pass:[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminCSVexport]`
++
+This controls the _Export csv_ component authorization on object list pages (e.g., the _Export csv_ toolbar button on the All Users page).
+
+* `pass:[http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminCreateReportButton]`
++
+This controls the 'Create report' component authorization on object list pages (e.g., the _Create report_ toolbar button on the All Users page), and starting with midPoint 4.9, also the 'Create report' component on the Campaign details page.
+
+.Example of an authorization rule to restrict access to CSV export and report creation buttons
+[source, xml]
+----
+<authorization>
+    <name>hide-report-export-buttons-for-users</name>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminCSVexport</action>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminCreateReportButton</action>
+    <decision>deny</decision>
+    <phase>request</phase>
+    <object>
+        <type>UserType</type>
+    </object>
+</authorization>
+----
+
+
+[NOTE]
+====
+The btn:[Create report] button on the _Audit log viewer_ and _Campaign details_ pages is not controlled by the described authorizations in versions prior to midPoint 4.11, 4.10.1, 4.9.6, and 4.8.11.
+If you have an older version of midPoint, you will not be able to use authorizations to restrict access to the CSV export functionality.
+However, you can still <<reportdatatype,limit access to the outputs>>, achieving a comparable level of protection.
+====
+
+[[reportdatatype]]
+===  Limit access to ReportDataType objects
+
+Another mitigation layer is to limit access to objects of the `ReportDataType` type which contain the report outputs including links to CSV files.
+
+.Example of an authorization rule to restrict access to ReportDataType objects
+[source, xml]
+----
+<authorization>
+    <name>disable-read-csv-report-data</name>
+    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    <decision>deny</decision>
+    <object>
+        <type>ReportDataType</type>
+        <filter>
+            <q:text>fileFormat = 'csv'</q:text>
+        </filter>
+    </object>
+</authorization>
+----
+
+Even if users are able to run a report and to create a `ReportDataType` object as a result, they will not be able to download CSV report files due to this authorization's restriction.
+
+To learn more about the midPoint _read_ authorization, refer to xref:/midpoint/reference/security/authorization/configuration/#object-authorization-actions[Object Authorization Actions].
+
+[[restrictrunreport]]
+=== Restrict the _Run report_ functionality
+
+In case you need to restrict users from creating report data altogether, make sure they are not granted the following xref:/midpoint/reference/security/authorization/model/[authorization]:
+
+* `pass:[http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#runReport]`
+
+Without this authorization, users are not permitted to run reports at all.
+Even if they can access the report configuration functionality in GUI, the report operation will fail after an attempt to run a report.
