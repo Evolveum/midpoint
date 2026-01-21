@@ -43,6 +43,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +65,7 @@ import java.util.List;
 @CollectionInstance(identifier = "allReports", applicableForType = ReportType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "PageAdmin.menu.top.reports.list", singularLabel = "ObjectType.report", icon = GuiStyleConstants.CLASS_REPORT_ICON))
 public class PageReports extends PageAdmin {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
@@ -88,7 +89,7 @@ public class PageReports extends PageAdmin {
         add(mainForm);
 
         MainObjectListPanel<ReportType> table = new MainObjectListPanel<>(ID_TABLE, ReportType.class) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -126,7 +127,7 @@ public class PageReports extends PageAdmin {
 
         RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(pageBase.getMainPopupBodyId(), report.asObjectable()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             protected void runConfirmPerformed(AjaxRequestTarget target, PrismObject<ReportType> reportType, PrismContainer<ReportParameterType> reportParam) {
                 PageReports.this.runConfirmPerformed(target, reportType, reportParam, pageBase);
@@ -160,7 +161,7 @@ public class PageReports extends PageAdmin {
     public void importReportPerformed(AjaxRequestTarget target, PrismObject<ReportType> report, PageBase pageBase) {
         ImportReportPopupPanel importReportPopupPanel = new ImportReportPopupPanel(pageBase.getMainPopupBodyId(), report.asObjectable()) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             protected void importConfirmPerformed(AjaxRequestTarget target, ReportDataType reportImportData) {
                 PageReports.this.importConfirmPerformed(target, report, reportImportData, pageBase);
@@ -191,12 +192,12 @@ public class PageReports extends PageAdmin {
     private List<InlineMenuItem> createInlineMenu(){
         List<InlineMenuItem> menu = new ArrayList<>();
         ButtonInlineMenuItem runButton = new ButtonInlineMenuItem(createStringResource("PageReports.button.run")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBeanImpl<ReportType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -223,12 +224,12 @@ public class PageReports extends PageAdmin {
         menu.add(runButton);
 
         ButtonInlineMenuItem importButton = new ButtonInlineMenuItem(createStringResource("PageReports.button.import")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBeanImpl<ReportType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -254,12 +255,12 @@ public class PageReports extends PageAdmin {
 
         menu.add(importButton);
         menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.configure")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBeanImpl<ReportType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -280,12 +281,12 @@ public class PageReports extends PageAdmin {
             }
         });
         menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.showOutput")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBeanImpl<ReportType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {

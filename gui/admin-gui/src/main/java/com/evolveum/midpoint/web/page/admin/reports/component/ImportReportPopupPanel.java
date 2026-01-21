@@ -7,10 +7,13 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -54,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ImportReportPopupPanel extends BasePanel<ReportType> implements Popupable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportReportPopupPanel.class);
 
@@ -69,7 +72,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     private static final String ID_CHOSE_FILE = "choseFile";
     private static final String ID_NAME_FOR_DATA = "reportDataName";
     private static final String ID_FILE_AS_NAME = "fileAsString";
-
+    private static final Pattern FILENAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._-]{1,100}$");
     private static final String CSV_SUFFIX = ".csv"; //Import report now support only csv format, so we use it
 
 
@@ -93,12 +96,12 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
         mainForm.add(feedback);
 
         Model<String> nameModel = Model.of("");
-        TextPanel nameField = new TextPanel(ID_NAME_FOR_DATA, nameModel);
+        TextPanel<String> nameField = new TextPanel<>(ID_NAME_FOR_DATA, nameModel);
         nameField.setOutputMarkupId(true);
         mainForm.add(nameField);
 
         Model<String> fileStringModel = Model.of("");
-        TextAreaPanel fileStringField = new TextAreaPanel(ID_FILE_AS_NAME, fileStringModel, 5);
+        TextAreaPanel<String> fileStringField = new TextAreaPanel<>(ID_FILE_AS_NAME, fileStringModel, 5);
         fileStringField.setOutputMarkupId(true);
         mainForm.add(fileStringField);
 
@@ -121,7 +124,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
                 createStringResource("userBrowserDialog.button.cancelButton")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -145,10 +148,17 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     private void importConfirmPerformed(AjaxRequestTarget target, Model<String> nameModel, Model<String> fileStringImport) {
         String dataName;
         if (nameModel == null || StringUtils.isEmpty(nameModel.getObject())) {
-
             dataName = getModelObject().getName().getOrig() + "-IMPORT " + getDataTime();
         } else {
             dataName = nameModel.getObject();
+        }
+
+        if (!FILENAME_PATTERN.matcher(dataName).matches()) {
+            LOGGER.error(createStringResource("ImportReportPopupPanel.message.error.fileNameCharacters").getString());
+            FeedbackAlerts feedback = getFeedbackAlertsPanel();
+            feedback.error(createStringResource("ImportReportPopupPanel.message.error.fileNameCharacters").getString());
+            target.add(feedback);
+            return;
         }
 
         // Create new file
@@ -199,7 +209,18 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
                 return;
             }
         } else {
-            newFilePath = new File(importDir, dataName + CSV_SUFFIX).getAbsolutePath();
+            Path importDirPath = Paths.get(importDir.getAbsolutePath()).toAbsolutePath().normalize();
+            Path targetPath = importDirPath.resolve(dataName + CSV_SUFFIX).normalize();
+
+            if (!targetPath.startsWith(importDirPath)) {
+                LOGGER.error("Couldn't create new file " + dataName);
+                FeedbackAlerts feedback = getFeedbackAlertsPanel();
+                feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportFile", dataName).getString());
+                target.add(feedback);
+                return;
+            }
+
+            newFilePath = targetPath.toString();
             try {
                 Files.write(Paths.get(newFilePath), fileStringImport.getObject().getBytes());
             } catch (IOException e) {
