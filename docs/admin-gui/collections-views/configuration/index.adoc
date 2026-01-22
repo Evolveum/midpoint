@@ -79,7 +79,7 @@ Therefore, if one definition changes, all the collections take notice.
 
 === Collection with events from audit log
 
-Use collections to gather audit log events in order to, for example, display them in a dashboard.
+Use collections to gather audit log events in order to, for example, display them in a xref:/midpoint/reference/admin-gui/dashboards/configuration/#audit-log-events-as-widget-data-source[dashboard].
 
 .Collection querying audit log records of modifications made on user focal objects in the past week.
 [source,xml]
