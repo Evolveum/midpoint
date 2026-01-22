@@ -91,7 +91,7 @@ Use collections to gather audit log events in order to, for example, display the
     oid="e45dc8a1-5782-4fd0-a4b4-952749030a9f"
     >
     <name>Audit log - modified users - last 7 days</name>
-    <description>Counts users modified directly in GUI and in raw edit mode</description>
+    <description>Counts modified users.</description>
     <type>audit:AuditEventRecordType</type>
     <filter>
         <q:text>
@@ -106,7 +106,7 @@ Use collections to gather audit log events in order to, for example, display the
     </filter>
 </objectCollection>
 ----
-<1> Query filtering events by type; in this case, object modification using the GUI—both the form and raw XML editor.
+<1> Query filtering events by type; in this case, object modification.
     See the event types in the audit log for other possible values (you need to convert them to `camelCase` before use in the query; e.g., `deleteObject`).
 <2> Limit the list only to users.
 <3> Query only events from the past week.
