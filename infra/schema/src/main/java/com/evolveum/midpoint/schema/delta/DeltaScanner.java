@@ -20,6 +20,17 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 public class DeltaScanner {
 
+    /**
+     * If true, then partial matches are allowed. I.e. if the template path is "extension" and the delta contains
+     * modification of "extension/stringProperty", then it will be reported as a match.
+     */
+    private boolean allowPartialMatches = false;
+
+    public DeltaScanner allowPartialMatches(boolean allowPartialMatches) {
+        this.allowPartialMatches = allowPartialMatches;
+        return this;
+    }
+
     public List<DeltaScannerResult> searchDelta(@NotNull ObjectDelta<?> delta, @NotNull ItemPath templatePath) {
         List<DeltaScannerResult> result = new ArrayList<>();
 
@@ -51,6 +62,8 @@ public class DeltaScanner {
             ItemPath namedOnly = path.namedSegmentsOnly();
 
             if (namedOnly.equivalent(templatePath)) {
+                // e.g. template path = "extension/stringProperty" and delta path = "extension/stringProperty"
+                // we've matched delta exactly, no need do anything
                 result.add(new DeltaScannerResult(
                         (Class) delta.getObjectTypeClass(),
                         itemDelta,
@@ -59,44 +72,60 @@ public class DeltaScanner {
                         itemDelta.getEstimatedOldValues()));
 
             } else if (namedOnly.isSubPath(templatePath)) {
-                ItemPath remainder = templatePath.remainder(namedOnly);
+                // e.g. template path = "extension/stringProperty" and delta path = "extension" and
+                // we'll go deeper into delta prism values
+                handleDeltaSubPath(delta, itemDelta, templatePath, namedOnly, result);
+            } else if (namedOnly.isSuperPath(templatePath) && allowPartialMatches) {
+                // w.g. template path = "extension" and delta path = "extension/stringProperty"
+                result.add(new DeltaScannerResult(
+                        (Class) delta.getObjectTypeClass(),
+                        itemDelta,
+                        path,
+                        createModificationMap(itemDelta),
+                        itemDelta.getEstimatedOldValues()));
+            }
+        }
 
-                Collection<? extends PrismValue> deltaEstimatedOldValues = itemDelta.getEstimatedOldValues();
-                Collection<? extends PrismValue> estimatedOldValues = new ArrayList<>();
-                if (deltaEstimatedOldValues != null) {
-                    for (PrismValue value : deltaEstimatedOldValues) {
-                        Collection<Item<?, ?>> items = value.getAllItems(remainder);
-                        if (!items.isEmpty()) {
-                            for (Item<? extends PrismValue, ?> item : items) {
-                                estimatedOldValues.addAll((List) item.getValues());
-                            }
-                        }
-                    }
-                }
+        return result;
+    }
 
-                // we have to go deeper into delta values
-                for (ModificationType type : ModificationType.values()) {
-                    Collection<? extends PrismValue> values = itemDelta.getValues(type);
-                    if (values != null) {
-                        for (PrismValue value : values) {
-                            Collection<Item<?, ?>> items = value.getAllItems(remainder);
+    private void handleDeltaSubPath(
+            ObjectDelta<?> delta, ItemDelta<?, ?> itemDelta, ItemPath templatePath, ItemPath namedOnly, List<DeltaScannerResult> result) {
 
-                            for (Item<?, ?> item : items) {
-                                result.add(
-                                        new DeltaScannerResult(
-                                                (Class) delta.getObjectTypeClass(),
-                                                itemDelta,
-                                                item.getPath(),
-                                                Map.of(type, item.getValues()),
-                                                estimatedOldValues));
-                            }
-                        }
+        ItemPath remainder = templatePath.remainder(namedOnly);
+
+        Collection<? extends PrismValue> deltaEstimatedOldValues = itemDelta.getEstimatedOldValues();
+        Collection<? extends PrismValue> estimatedOldValues = new ArrayList<>();
+        if (deltaEstimatedOldValues != null) {
+            for (PrismValue value : deltaEstimatedOldValues) {
+                Collection<Item<?, ?>> items = value.getAllItems(remainder);
+                if (!items.isEmpty()) {
+                    for (Item<? extends PrismValue, ?> item : items) {
+                        estimatedOldValues.addAll((List) item.getValues());
                     }
                 }
             }
         }
 
-        return result;
+        // we have to go deeper into delta values
+        for (ModificationType type : ModificationType.values()) {
+            Collection<? extends PrismValue> values = itemDelta.getValues(type);
+            if (values != null) {
+                for (PrismValue value : values) {
+                    Collection<Item<?, ?>> items = value.getAllItems(remainder);
+
+                    for (Item<?, ?> item : items) {
+                        result.add(
+                                new DeltaScannerResult(
+                                        (Class) delta.getObjectTypeClass(),
+                                        itemDelta,
+                                        item.getPath(),
+                                        Map.of(type, item.getValues()),
+                                        estimatedOldValues));
+                    }
+                }
+            }
+        }
     }
 
     private Map<ModificationType, List<? extends PrismValue>> createModificationMap(ItemDelta<?, ?> delta) {

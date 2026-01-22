@@ -695,7 +695,8 @@ public class ReportUtils {
 
         List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
 
-        DeltaScanner scanner = new DeltaScanner();
+        DeltaScanner scanner = new DeltaScanner()
+                .allowPartialMatches(showPartialDeltas);
         List<DeltaScannerResult> results = scanner.searchDelta(delta, path);
         for (DeltaScannerResult result : results) {
             if (!showPartialDeltas && result.isPartial()) {
@@ -718,6 +719,9 @@ public class ReportUtils {
         return findItemDelta(delta.getObjectDelta(), path);
     }
 
+    /**
+     * Used primarily in audit list table for custom delta columns and reports.
+     */
     @SuppressWarnings("unused")
     public static List<String> printDelta(ObjectDeltaOperationType deltaOperation, ItemPath itemPath, DeltaPrinterOptions options)
             throws SchemaException {
@@ -747,7 +751,8 @@ public class ReportUtils {
             return List.of(printer.prettyPrintObjectDelta(objectDelta, useEstimatedOld, 0));
         }
 
-        DeltaScanner scanner = new DeltaScanner();
+        DeltaScanner scanner = new DeltaScanner()
+                .allowPartialMatches(options.showPartialDeltas());
         List<DeltaScannerResult> results = scanner.searchDelta(objectDelta, itemPath);
 
         if (results.isEmpty()) {
