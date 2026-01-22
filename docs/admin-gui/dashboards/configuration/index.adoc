@@ -164,25 +164,25 @@ You need to use the `auditSearch` option as the `sourceType` of the widget inste
 [source,xml]
 ----
 <widget>
-	<identifier>removed-users</identifier>
-	<data>
-		<sourceType>auditSearch</sourceType> <1>
-		<collection>
-			<collectionRef oid="0a22293e-5b0a-4e86-83b5-68319edcfb74" relation="org:default" type="c:ObjectCollectionType"> <2>
-				<!-- Removed users -->
-			</collectionRef>
-		</collection>
-	</data>
-	<presentation>
-		<dataField>
-			<fieldType>value</fieldType>
-			<expression>
-				<proportional>
-					<style>value-only</style>
-				</proportional>
-			</expression>
-		</dataField>
-	</presentation>
+    <identifier>removed-users</identifier>
+    <data>
+        <sourceType>auditSearch</sourceType> <1>
+        <collection>
+            <collectionRef oid="0a22293e-5b0a-4e86-83b5-68319edcfb74" relation="org:default" type="c:ObjectCollectionType"> <2>
+                <!-- Removed users -->
+            </collectionRef>
+        </collection>
+    </data>
+    <presentation>
+        <dataField>
+            <fieldType>value</fieldType>
+            <expression>
+                <proportional>
+                    <style>value-only</style>
+                </proportional>
+            </expression>
+        </dataField>
+    </presentation>
 </widget>
 ----
 <1> The `auditSearch` source type signifies that the collection contains audit log events instead of the "usual" midPoint objects.
