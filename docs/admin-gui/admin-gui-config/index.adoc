@@ -1590,4 +1590,4 @@ The list of roles which affect the GUI is updated.
 
 * xref:/midpoint/reference/security/authorization/[]
 
-* xref:/midpoint/reference/admin-gui/collections-views/show-only-active-users/[]
+* xref:/midpoint/reference/admin-gui/collections-views/use-cases/[]
