@@ -158,7 +158,7 @@ image::object.png["Dashboard widget showing the execution status of task"]
 === Audit log events as widget data source
 
 To create a dashboard widget that uses audit log entries as a source, you need to create a xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-with-events-from-audit-log[collection for the audit log records].
-Unlike in other collection-based widgets that use `objectCollection` as their source type, in a widget for displaying audit log records, you need to specify the `auditSearch` option as its `sourceType`.
+You need to use the `auditSearch` option as the `sourceType` of the widget instead of `objectCollection`.
 
 .Dashboard widget enumerating audit log entries filtered by a collection
 [source,xml]
@@ -188,8 +188,8 @@ Unlike in other collection-based widgets that use `objectCollection` as their so
 <1> The `auditSearch` source type signifies that the collection contains audit log events instead of the "usual" midPoint objects.
 <2> A reference to a xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-with-events-from-audit-log[collection that filters the audit log events] for the widget to display.
 
-Should you create object collections for `deleteObject`, `addObject`, and `modifyObject` audit log events, such as the one in xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-with-events-from-audit-log[], you can create a dashboard for quick overview of new, retired, and modified users.
-Such a dashboard can then serve as a simplified overview of the joiner-leaver-mover process.
+You can create a simple user statistics dashboard like the one below when you create object collections for various events happening to user objects and connect them to one dashboard.
+See xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-with-events-from-audit-log[the guide on audit log collection configuration] for details.
 
 .Dashboard with widgets for users who were added, modified, and deleted recently
 image::audit-log-users-join-move-leave.webp["Dashboard with widgets for users who were added, modified, and deleted"]
