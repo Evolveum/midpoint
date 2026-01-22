@@ -6,13 +6,13 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -32,15 +32,15 @@ import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressi
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.prism.ModificationType;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.delta.ItemTreeDelta;
-import com.evolveum.midpoint.schema.delta.ObjectTreeDelta;
+import com.evolveum.midpoint.schema.delta.DeltaScanner;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -162,14 +162,31 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
         }
 
         RepeatingView listItems = new RepeatingView(componentId);
-        for (ItemDelta<?, ?> delta : createChangedItems(rowModel)) {
-            DeltaColumnPanel panel = new DeltaColumnPanel(listItems.newChildId(), () -> delta);
-            panel.setShowOldValues(getDisplayValueType() == DisplayValueType.ESTIMATED_OLD || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
-            panel.setShowNewValues(getDisplayValueType() == DisplayValueType.CHANGES || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
-
-            listItems.add(panel);
-        }
         item.add(listItems);
+
+        Changes changes = createChangedItems(rowModel);
+        if (changes.deltas != null) {
+            for (ItemDelta<?, ?> delta : changes.deltas) {
+                DeltaColumnPanel panel = new DeltaColumnPanel(listItems.newChildId(), () -> delta);
+                panel.setShowOldValues(getDisplayValueType() == DisplayValueType.ESTIMATED_OLD || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
+                panel.setShowNewValues(getDisplayValueType() == DisplayValueType.CHANGES || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
+
+                listItems.add(panel);
+            }
+        } else if (changes.addObject != null) {
+            listItems.add(new MultiLineLabel(listItems.newChildId(), () -> prettyPrintObjectSimple(changes.addObject)));
+        }
+    }
+
+    private String prettyPrintObjectSimple(PrismObject<?> object) {
+        UserFriendlyPrettyPrinterOptions opts = new UserFriendlyPrettyPrinterOptions()
+                .locale(MidPointAuthWebSession.get().getLocale())
+                .localizationService(getPageBase().getLocalizationService())
+                .defaultUIIndentation();
+
+        UserFriendlyPrettyPrinter printer = new UserFriendlyPrettyPrinter(opts);
+
+        return printer.prettyPrintObjectSimple(object, 0);
     }
 
     private DisplayValueType getDisplayValueType() {
@@ -181,49 +198,36 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
         return display;
     }
 
-    private List<ItemDelta<?, ?>> createChangedItems(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
-        ItemPath path = getPath();
+    private Changes createChangedItems(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+        ItemPath path = getPath() != null ? getPath() : ItemPath.EMPTY_PATH;
 
-        // noinspection unchecked
-        return (List) rowModel.getObject().getValue().getDelta().stream()
+        return rowModel.getObject().getValue().getDelta().stream()
                 .map(d -> d.getObjectDelta())
                 .filter(Objects::nonNull)
                 .map(d -> {
                     try {
                         ObjectDelta<? extends ObjectType> objectDelta = DeltaConvertor.createObjectDelta(d);
-                        if (objectDelta.getObjectToAdd() != null) {
-                            if (path == null) {
-                                // This may be improved later - when path is null, it can't be object delta currently
-                                //  as it fails on DeltaColumn.populateItem(DeltaColumn.java:166) - we can't create
-                                //  ItemDelta for whole PrismObject.
-                                return null;
-                            }
-                            PrismObject<?> object = objectDelta.getObjectToAdd();
-                            com.evolveum.midpoint.prism.Item<?,?> item = object.findItem(path);
-                            if (item == null) {
-                                return null;
-                            }
 
-                            ItemDelta fakeAddDelta = item.createDelta();
-                            fakeAddDelta.addValuesToAdd(item.getValues().stream().map(v -> v.clone()).toList());
-
-                            return fakeAddDelta;
+                        PrismObject add = objectDelta.getObjectToAdd();
+                        List deltas = null;
+                        if (add == null) {
+                            DeltaScanner scanner = new DeltaScanner();
+                            deltas = scanner.searchDelta(objectDelta, path).stream()
+                                    .map(r -> r.toDelta())
+                                    .toList();
                         }
 
-                        ObjectTreeDelta<? extends ObjectType> delta = ObjectTreeDelta.fromItemDelta(objectDelta);
-                        ItemTreeDelta partial = delta.findItemDelta(path, ItemTreeDelta.class);
-                        if (partial == null || partial instanceof ObjectTreeDelta<?>) {
-                            return null;
-                        }
-                        return partial.toDelta();
+                        return new Changes(deltas, add);
                     } catch (SchemaException ex) {
                         LOGGER.debug("Cannot convert delta to object delta: {}", ex.getMessage(), ex);
-                        return null;
+                        return new Changes(null, null);
                     }
                 })
-                .filter(Objects::nonNull)
-//                .flatMap(List::stream)
-                .toList();
+                .findFirst()
+                .orElse(new Changes(null, null));
+    }
+
+    private record Changes(List<ItemDelta<?, ?>> deltas, PrismObject<?> addObject) implements Serializable {
     }
 
     @Override
@@ -236,50 +240,54 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
 
             @Override
             protected String load() {
-                List<ItemDelta<?, ?>> deltas = createChangedItems(rowModel);
-                return deltas.stream()
-                        .map(item -> {
-                            if (item instanceof ObjectTreeDelta<?> od) {
-                                try {
-                                    return PrettyPrinter.prettyPrint(od.toObjectDelta());
-                                } catch (SchemaException ex) {
-                                    LOGGER.trace("Cannot convert delta to object delta: {}", ex.getMessage(), ex);
-                                    return "";
+                Changes computedChanges = createChangedItems(rowModel);
+
+                if (computedChanges.addObject != null) {
+                    return prettyPrintObjectSimple(computedChanges.addObject);
+                } else if (computedChanges.deltas != null) {
+                    return computedChanges.deltas.stream()
+                            .map(item -> {
+                                String oldValues = "";
+                                if (item.getEstimatedOldValues() != null) {
+                                    oldValues = item.getEstimatedOldValues().stream()
+                                            .map(v ->
+                                                    createPrinterForData()
+                                                            .prettyPrintValue(v, 0)
+                                            )
+                                            .collect(Collectors.joining(", "));
                                 }
-                            }
 
-                            String oldValues = "";
-                            if (item.getEstimatedOldValues() != null) {
-                                oldValues = item.getEstimatedOldValues().stream()
-                                        .map(v ->
-                                                new UserFriendlyPrettyPrinter(
-                                                        new UserFriendlyPrettyPrinterOptions()
-                                                                .indentation("\t"))
-                                                        .prettyPrintValue(v, 0)
-                                        )
-                                        .collect(Collectors.joining(", "));
-                            }
+                                List<String> changes = new ArrayList<>();
+                                // noinspection unchecked
+                                addChanges(ModificationType.ADD, (List<PrismValue>) item.getValuesToAdd(), changes);
+                                // noinspection unchecked
+                                addChanges(ModificationType.DELETE, (List<PrismValue>) item.getValuesToDelete(), changes);
+                                // noinspection unchecked
+                                addChanges(ModificationType.REPLACE, (List<PrismValue>) item.getValuesToReplace(), changes);
 
-                            List<String> changes = new ArrayList<>();
-                            // noinspection unchecked
-                            addChanges(ModificationType.ADD, (List<PrismValue>) item.getValuesToAdd(), changes);
-                            // noinspection unchecked
-                            addChanges(ModificationType.DELETE, (List<PrismValue>) item.getValuesToDelete(), changes);
-                            // noinspection unchecked
-                            addChanges(ModificationType.REPLACE, (List<PrismValue>) item.getValuesToReplace(), changes);
+                                String newValues = StringUtils.joinWith(", ", changes);
 
-                            String newValues = StringUtils.joinWith(", ", changes);
+                                if (StringUtils.isEmpty(oldValues)) {
+                                    return newValues;
+                                }
 
-                            if (StringUtils.isEmpty(oldValues)) {
-                                return newValues;
-                            }
+                                return oldValues + " -> " + newValues;
+                            })
+                            .filter(StringUtils::isNotBlank)
+                            .collect(Collectors.joining(getStringValueDelimiter()));
+                }
 
-                            return oldValues + " -> " + newValues;
-                        })
-                        .filter(StringUtils::isNotBlank)
-                        .collect(Collectors.joining(getStringValueDelimiter()));
+                return "";
             }
         };
+    }
+
+    private UserFriendlyPrettyPrinter createPrinterForData() {
+        return new UserFriendlyPrettyPrinter(
+                new UserFriendlyPrettyPrinterOptions()
+                        .locale(MidPointAuthWebSession.get().getLocale())
+                        .localizationService(getPageBase().getLocalizationService())
+                        .indentation("\t"));
     }
 
     private void addChanges(ModificationType modificationType, List<PrismValue> values, List<String> changes) {
@@ -295,7 +303,7 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
 
         changes.add(operation +
                 values.stream()
-                        .map(v -> new UserFriendlyPrettyPrinter().prettyPrintValue(v, 0))
+                        .map(v -> createPrinterForData().prettyPrintValue(v, 0))
                         .collect(Collectors.joining(", ")));
     }
 }

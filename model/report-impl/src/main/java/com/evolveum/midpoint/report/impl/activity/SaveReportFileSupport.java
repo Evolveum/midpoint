@@ -211,7 +211,7 @@ class SaveReportFileSupport {
     }
 
     private static String getRandomString() {
-        return RandomStringUtils.insecure().nextAlphabetic(3).toLowerCase(Locale.ROOT);
+        return RandomStringUtils.insecure().nextAlphabetic(6).toLowerCase(Locale.ROOT);
     }
 
     private void writeToReportFile(String contextOfFile, String aggregatedFilePath, @NotNull Charset encoding) {

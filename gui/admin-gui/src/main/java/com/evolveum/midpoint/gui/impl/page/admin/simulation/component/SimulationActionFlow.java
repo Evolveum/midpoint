@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -45,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -52,15 +55,22 @@ public class SimulationActionFlow<T> implements Serializable {
 
     private static final String DOT_CLASS = SimulationActionFlow.class.getName() + ".";
     private static final String OP_CREATE_TASK = DOT_CLASS + "createTask";
+    private static final String OP_LOAD_TASK = DOT_CLASS + "loadTask";
 
     private static final Trace LOGGER = TraceManager.getTrace(SimulationActionFlow.class);
 
     private final SimulationParams<T> context;
     boolean isSamplingEnabled = false;
     boolean showProgressPopup = true;
+    boolean isCorrelationFastSimulation = false;
 
     public SimulationActionFlow(@NotNull SimulationParams<T> context) {
         this.context = context;
+
+        T workDefinitionConfig = context.workDefinitionConfiguration();
+        if (workDefinitionConfig != null && workDefinitionConfig.getClass().equals(CorrelatorsDefinitionType.class)) {
+            this.isCorrelationFastSimulation = true;
+        }
     }
 
     /**
@@ -158,8 +168,7 @@ public class SimulationActionFlow<T> implements Serializable {
 
             @Override
             protected List<IModel<String>> getInfoMessagesModels() {
-                T workDefinitionConfig = context.workDefinitionConfiguration();
-                if (workDefinitionConfig != null && !workDefinitionConfig.getClass().equals(CorrelatorsDefinitionType.class)) {
+                if (!isCorrelationFastSimulation) {
                     return List.of(
                             createStringResource("SimulationDataSamplingPanel.simulation.mode.mapping.info"),
                             createStringResource("SimulationDataSamplingPanel.approximateCount.mapping.info")
@@ -287,7 +296,8 @@ public class SimulationActionFlow<T> implements Serializable {
     }
 
     /**
-     * Persists the newly created task immediately.
+     * Persists the newly created task immediately and optionally
+     * shows the simulation progress popup.
      */
     private void saveAndPerformSimulation(
             AjaxRequestTarget target,
@@ -301,50 +311,78 @@ public class SimulationActionFlow<T> implements Serializable {
         Task task = pageBase.createSimpleTask(OP_CREATE_TASK);
         OperationResult result = task.getResult();
 
-        PrismObject<TaskType> object = newTask.asPrismObject();
-        PrismObjectWrapperFactory<TaskType> factory =
-                pageBase.findObjectWrapperFactory(object.getDefinition());
-        WrapperContext ctx = new WrapperContext(task, result);
-        ctx.setCreateIfEmpty(true);
+        PrismObject<TaskType> prismTask = newTask.asPrismObject();
+        PrismObjectWrapperFactory<TaskType> wrapperFactory = pageBase.findObjectWrapperFactory(prismTask.getDefinition());
+
+        WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
+
+        String taskOid = null;
 
         try {
-            PrismObjectWrapper<TaskType> wrapper =
-                    factory.createObjectWrapper(object, ItemStatus.ADDED, ctx);
+            PrismObjectWrapper<TaskType> wrapper = wrapperFactory.createObjectWrapper(prismTask, ItemStatus.ADDED, context);
+
             WebComponentUtil.setTaskStateBeforeSave(wrapper, true, pageBase, target);
 
-            ObjectDelta<TaskType> objectDelta = wrapper.getObjectDelta();
-            ObjectChangeExecutor changeExecutor = new ObjectChangesExecutorImpl();
-            changeExecutor.executeChanges(Collections.singleton(objectDelta), false, task, result, target);
+            ObjectDelta<TaskType> delta = wrapper.getObjectDelta();
+            ObjectChangeExecutor executor = new ObjectChangesExecutorImpl();
+
+            Collection<ObjectDeltaOperation<? extends ObjectType>> operations = executor.executeChanges(
+                    Collections.singleton(delta),
+                    false,
+                    task,
+                    result,
+                    target);
+
+            taskOid = ObjectDeltaOperation.findAddDeltaOidRequired(operations, TaskType.class);
+
         } catch (CommonException e) {
             LOGGER.error("Couldn't create task wrapper", e);
             pageBase.error("Couldn't create task wrapper: " + e.getMessage());
             target.add(pageBase.getFeedbackPanel().getParent());
+
         } finally {
             result.computeStatusIfUnknown();
-            pageBase.showResult(result);
-            target.add(pageBase.getFeedbackPanel().getParent());
-//            if (showProgressPopup() && !result.isError()) {
-//                SimulationProgressPanel simulationProgressPanel = new SimulationProgressPanel(
-//                        pageBase.getMainPopupBodyId(),
-//                        Model.of(pageBase.getString("SimulationProgressPanel.simulationInProgress.title")),
-//                        Model.of(pageBase.getString("SimulationProgressPanel.simulationInProgress.subTitle")),
-//                        Model.of(newTask)) {
-//                    @Override
-//                    protected void onStop(AjaxRequestTarget target) {
-//
-//                    }
-//
-//                    @Override
-//                    protected void onShowResults(AjaxRequestTarget target) {
-//
-//                    }
-//                };
-//                pageBase.showMainPopup(simulationProgressPanel, target);
-//            } else {
-//                pageBase.showResult(result);
-//                target.add(pageBase.getFeedbackPanel().getParent());
-//            }
+
+            if (!result.isError() && showProgressPopup) {
+                showSimulationProgressPopup(pageBase, target, taskOid);
+            } else {
+                pageBase.showResult(result);
+                target.add(pageBase.getFeedbackPanel().getParent());
+            }
         }
+    }
+
+    private void showSimulationProgressPopup(
+            @NotNull PageBase pageBase,
+            AjaxRequestTarget target,
+            String taskOid) {
+
+        IModel<String> titleModel = isCorrelationFastSimulation
+                ? pageBase.createStringResource(
+                "SimulationProgressPanel.correlation.simulation.title")
+                : pageBase.createStringResource(
+                "SimulationProgressPanel.mapping.simulation.title");
+
+        IModel<String> subTitleModel = isCorrelationFastSimulation
+                ? pageBase.createStringResource(
+                "SimulationProgressPanel.correlation.simulation.subTitle")
+                : pageBase.createStringResource(
+                "SimulationProgressPanel.mapping.simulation.subTitle");
+
+        SimulationProgressPanel panel = new SimulationProgressPanel(pageBase.getMainPopupBodyId(), titleModel, subTitleModel,
+                () -> loadTask(pageBase, taskOid));
+
+        pageBase.showMainPopup(panel, target);
+    }
+
+    private @Nullable TaskType loadTask(@NotNull PageBase pageBase, String taskOid) {
+        Task task = pageBase.createSimpleTask(OP_LOAD_TASK);
+
+        PrismObject<TaskType> taskObject = WebModelServiceUtils.loadObject(
+                TaskType.class, taskOid, null, true, pageBase, task, task.getResult());
+
+        return taskObject != null ? taskObject.asObjectable() : null;
     }
 
     public void enableSampling() {
