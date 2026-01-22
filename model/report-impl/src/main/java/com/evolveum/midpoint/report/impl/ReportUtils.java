@@ -37,8 +37,8 @@ import com.evolveum.midpoint.report.impl.controller.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.delta.ItemTreeDelta;
-import com.evolveum.midpoint.schema.delta.ObjectTreeDelta;
+import com.evolveum.midpoint.schema.delta.DeltaScanner;
+import com.evolveum.midpoint.schema.delta.DeltaScannerResult;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -693,37 +693,20 @@ public class ReportUtils {
             return null;
         }
 
-        ObjectTreeDelta<? extends ObjectType> treeDelta = ObjectTreeDelta.fromItemDelta(delta);
-        ItemTreeDelta<?, ?, ?, ?> itemTreeDelta = treeDelta.findItemDelta(path);
-        if (itemTreeDelta == null) {
-            return null;
-        }
+        List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
 
-        if (itemTreeDelta instanceof ObjectTreeDelta<?> && !showPartialDeltas) {
-            return null;
-        }
-
-        if (itemTreeDelta instanceof ObjectTreeDelta<?>) {
-            return null;
-        }
-
-        ItemDelta<?,?> mainDelta = itemTreeDelta.toDelta();
-        if (!showPartialDeltas) {
-            if (mainDelta == null || mainDelta.isEmpty()) {
-                return null;
+        DeltaScanner scanner = new DeltaScanner()
+                .allowPartialMatches(showPartialDeltas);
+        List<DeltaScannerResult> results = scanner.searchDelta(delta, path);
+        for (DeltaScannerResult result : results) {
+            if (!showPartialDeltas && result.isPartial()) {
+                continue;
             }
 
-            return List.of(mainDelta);
+            itemDeltas.add(result.toDelta());
         }
 
-        List<ItemDelta<?,?>> result = new ArrayList<>();
-        if (mainDelta != null && !mainDelta.isEmpty()) {
-            result.add(mainDelta);
-        }
-
-        result.addAll(itemTreeDelta.toChildDeltas());
-
-        return result;
+        return itemDeltas;
     }
 
     @SuppressWarnings("unused")
@@ -736,6 +719,9 @@ public class ReportUtils {
         return findItemDelta(delta.getObjectDelta(), path);
     }
 
+    /**
+     * Used primarily in audit list table for custom delta columns and reports.
+     */
     @SuppressWarnings("unused")
     public static List<String> printDelta(ObjectDeltaOperationType deltaOperation, ItemPath itemPath, DeltaPrinterOptions options)
             throws SchemaException {
@@ -765,32 +751,24 @@ public class ReportUtils {
             return List.of(printer.prettyPrintObjectDelta(objectDelta, useEstimatedOld, 0));
         }
 
-        if (objectDelta.getObjectToAdd() != null) {
-            PrismObject<?> object = objectDelta.getObjectToAdd();
-            Item<?,?> item = object.findItem(itemPath);
-            if (item == null) {
-                return List.of();
-            }
+        DeltaScanner scanner = new DeltaScanner()
+                .allowPartialMatches(options.showPartialDeltas());
+        List<DeltaScannerResult> results = scanner.searchDelta(objectDelta, itemPath);
 
-            ItemDelta fakeAddDelta = item.createDelta();
-            fakeAddDelta.addValuesToAdd(item.getValues().stream().map(v -> v.clone()).toList());
-
-            options.prettyPrinterOptions().showDeltaItemPath(false);
-            return List.of(printer.prettyPrintItemDelta(fakeAddDelta, useEstimatedOld, 0));
-        }
-
-        List<ItemDelta<?, ?>> deltas = findItemDelta(objectDelta, itemPath, options.showPartialDeltas());
-        if (deltas == null || deltas.isEmpty()) {
+        if (results.isEmpty()) {
             return List.of();
         }
 
-        if (deltas.size() == 1) {
+        if (results.size() == 1) {
             options.prettyPrinterOptions().showDeltaItemPath(false);
         }
 
-        return deltas.stream()
-                .map(d -> printer.prettyPrintItemDelta(d, useEstimatedOld, 0))
-                .toList();
+        List<String> output = new ArrayList<>();
+        for (DeltaScannerResult result : results) {
+            output.add(printer.prettyPrintItemDelta(result.toDelta(), useEstimatedOld, 0));
+        }
+
+        return output;
     }
 
     public static <O extends ObjectType> String printDelta(ObjectDeltaOperation<O> deltaOp) {
