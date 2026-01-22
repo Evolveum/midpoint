@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationTaskObjectRef;
+
 import static java.util.Collections.singletonList;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
@@ -86,7 +88,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
     private static final String ID_TASK_BUTTONS_CONTAINER = "taskButtonsContainer";
     private static final String ID_REFRESHING_BUTTONS = "refreshingButtons";
     private static final String ID_REFRESHING_BUTTONS_CONTAINER = "refreshingButtonsContainer";
-    private static final String ID_ACTIVITY_POLICIES_DROPDOWN ="activityPoliciesDropdown";
+    private static final String ID_ACTIVITY_POLICIES_DROPDOWN = "activityPoliciesDropdown";
 
     private static final int REFRESH_INTERVAL = 4000;
     private Boolean refreshEnabled;
@@ -335,20 +337,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
     private ObjectReferenceType getSimulationResultReference() {
         TaskType task = getModelObject().getObjectOld().asObjectable();
-        TaskActivityStateType activityState = task.getActivityState();
-        if (activityState == null || activityState.getActivity() == null) {
-            return null;
-        }
-
-        ActivitySimulationStateType simulation = activityState.getActivity().getSimulation();
-        if (simulation == null || simulation.getResultRef() == null) {
-            return null;
-        }
-
-        ObjectReferenceType ref = simulation.getResultRef();
-        // this extra check is there because model object (task) can contain empty reference because of
-        // prism wrappers preparing it for editing (a lot of empty prism items with null values).
-        return ref.getOid() != null ? ref : null;
+        return getSimulationTaskObjectRef(task);
     }
 
     private void showSimulationResultPerformed(AjaxRequestTarget target) {

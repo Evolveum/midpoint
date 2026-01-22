@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -47,6 +48,8 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
+import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.markContainerProvenance;
 
 /**
  * Utility methods for smart integration features in resource object type handling.
@@ -133,6 +136,10 @@ public class SmartIntegrationUtils {
     }
 
     public static @NotNull String formatElapsedTime(Long startMillis, Long endMillis) {
+        return formatElapsedTime(startMillis, endMillis, null);
+    }
+
+    public static @NotNull String formatElapsedTime(Long startMillis, Long endMillis, String prefix) {
         if (endMillis == null) {
             endMillis = System.currentTimeMillis();
         }
@@ -161,6 +168,10 @@ public class SmartIntegrationUtils {
             timeDisplay = String.format("%ds %03dms", seconds, millis);
         } else {
             timeDisplay = millis + "ms";
+        }
+
+        if (prefix != null && !prefix.isEmpty()) {
+            return prefix + ": " + timeDisplay;
         }
 
         return "Elapsed time: " + timeDisplay;
@@ -285,7 +296,9 @@ public class SmartIntegrationUtils {
                 "SuggestionUiStyle.inProgress"),
         NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
-        DEFAULT("bg-light-purple", "info-badge purple", "border border-purple",
+        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-purple",
+                "SuggestionUiStyle.default"),
+        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-primary",
                 "SuggestionUiStyle.default");
 
         public final String tileClass;
@@ -301,14 +314,14 @@ public class SmartIntegrationUtils {
         }
 
         public static SuggestionUiStyle from(StatusInfo<?> s) {
-            if (s == null) {return DEFAULT;}
+            if (s == null) {return DEFAULT_AI;}
 
             OperationResultStatusType status = s.getStatus();
             boolean executing = s.isExecuting();
             boolean isFatalError = status == OperationResultStatusType.FATAL_ERROR;
             boolean isSuccess = status == OperationResultStatusType.SUCCESS;
             if (isSuccess) {
-                return DEFAULT;
+                return DEFAULT_AI;
             } else if (executing) {
                 return IN_PROGRESS;
             } else if (isFatalError) {
@@ -318,14 +331,28 @@ public class SmartIntegrationUtils {
             }
         }
 
+        public static SuggestionUiStyle from(StatusInfo<?> s, @Nullable PrismValue value) {
+            SuggestionUiStyle from = from(s);
+            if (from != DEFAULT_AI) {
+                return from;
+            }
+
+            boolean markedAsSystemProvided = isMarkedAsSystemProvided(value);
+            if (markedAsSystemProvided) {
+                return DEFAULT_SYSTEM;
+            } else {
+                return DEFAULT_AI;
+            }
+        }
+
         public static SuggestionUiStyle from(OperationResultStatusType s) {
-            if (s == null) {return DEFAULT;}
+            if (s == null) {return DEFAULT_AI;}
             return switch (s) {
                 case FATAL_ERROR -> FATAL;
                 case IN_PROGRESS -> IN_PROGRESS;
                 case UNKNOWN -> UNKNOWN;
                 case NOT_APPLICABLE -> NOT_APPLICABLE;
-                default -> DEFAULT;
+                default -> DEFAULT_AI;
             };
         }
     }

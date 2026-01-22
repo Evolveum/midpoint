@@ -44,6 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.jetbrains.annotations.NotNull;
+
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/tasks", matchUrlForSecurity = "/admin/tasks")
@@ -81,7 +83,7 @@ public class PageTasks extends PageAdmin {
         TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE) {
 
             @Override
-            protected ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {
+            protected @NotNull ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {
                 return createSelectableBeanObjectDataProvider(() -> getTaskQuery(predefinedQuery), null, createOperationOptions());
             }
 
@@ -111,8 +113,13 @@ public class PageTasks extends PageAdmin {
         return query;
     }
 
-    private void addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
-        columns.add(0, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
+    private void addCustomColumns(@NotNull List<IColumn<SelectableBean<TaskType>, String>> columns) {
+        columns.add(0, createObjectRefColumn((PageBase) getPage()));
+    }
+
+    public static @NotNull ObjectReferenceColumn<SelectableBean<TaskType>> createObjectRefColumn(@NotNull PageBase pageBase) {
+        return new ObjectReferenceColumn<>(pageBase.createStringResource("pageTasks.task.objectRef"),
+                SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -132,10 +139,10 @@ public class PageTasks extends PageAdmin {
                 }
                 return null;
             }
-        });
+        };
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
+    private @NotNull Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
         List<QName> propertiesToGet = new ArrayList<>();
         propertiesToGet.add(TaskType.F_NODE_AS_OBSERVED);
         propertiesToGet.add(TaskType.F_NEXT_RUN_START_TIMESTAMP);

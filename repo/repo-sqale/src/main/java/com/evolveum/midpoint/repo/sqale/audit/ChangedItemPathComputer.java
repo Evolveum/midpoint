@@ -185,7 +185,9 @@ public class ChangedItemPathComputer {
 
         ItemPath path = additionalPath.path();
 
-        changedItemPaths.add(createCanonicalItemPath(path, type));
+        if (!path.isEmpty()) {
+            changedItemPaths.add(createCanonicalItemPath(path, type));
+        }
 
         if (!additionalPath.all()) {
             return;

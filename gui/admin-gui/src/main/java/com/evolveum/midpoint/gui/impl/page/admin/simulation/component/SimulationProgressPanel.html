@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+
+    <div  wicket:id="container" class="gap-2">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="m-0 font-weight-semibold" wicket:id="title"></h5>
+            <div class="text-center" style="font-size: 20px">
+            <span wicket:id="statusBox"></span>
+            </div>
+        </div>
+        <div wicket:id="subtitle"></div>
+
+        <div class="d-flex w-100 justify-content-between text-muted mt-2">
+            <span wicket:id="timeLabel"></span>
+            <span wicket:id="progressLabel"></span>
+        </div>
+
+        <div class="progress w-100 rounded mt-1">
+            <div wicket:id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                    role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+            </div>
+        </div>
+
+    </div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex justify-content-between align-items-center flex-wrap w-100 gap-2">
+            <a class="btn btn-link" wicket:id="stop"></a>
+            <div class="btn btn-primary" wicket:id="showResult"></div>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+
+
