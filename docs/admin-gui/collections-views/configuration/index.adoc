@@ -20,25 +20,6 @@ doc-type: config
 Group related objects in collections and configure object collection views to customize the midPoint user interface.
 Use the views to show relevant object lists dynamically to different groups of users based on what they need to know.
 
-Collections and views are two concepts that are related, yet distinct:
-
-* *Object collection* is a core midPoint concept.
-There is a special object type (ObjectCollectionType) that is used to define a collection.
-It is first-class midPoint object.
-Collection defines which objects belong to the collection.
-The plan is that collections can be used in the entire midPoint system, e.g., in xref:/midpoint/reference/security/authorization/[authorizations], xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] may be applied to them, and so on.
-Some midPoint objects can act as an implicit collections, especially xref:/midpoint/reference/schema/archetypes/[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units]. Object collections are designed to be solid and stable.
-Something that midPoint policies can rely on.
-
-* *View* is a user interface concept.
-View specifies how a particular collection should be displayed.
-It defines the columns that should be displayed, default sorting, pre-defined filter properties, and so on.
-Views are designed to be flexible, customizable.
-Views can be adjusted and overridden in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration].
-
-Although collections and view have different purposes, and they are based on different mechanisms, they are almost always used together.
-
-
 == Object collection
 
 Object collection is a special midPoint object.
