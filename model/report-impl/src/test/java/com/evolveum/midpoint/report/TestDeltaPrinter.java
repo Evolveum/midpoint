@@ -62,6 +62,31 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                 DELTA,
                 ItemPath.create(UserType.F_ASSIGNMENT),
                 createDefaultOptions(),
+                List.of(
+                        "assignment: \n"
+                                + " Add: \n"
+                                + "  1:\n"
+                                + "   description: Default\n"
+                                + "   targetRef: 456a49bc-6f5b-4746-8461-2e1a63307456 (RoleType)\n"
+                                + " Delete: \n"
+                                + "  null:\n"
+                                + "   description: Approved\n"
+                                + "   targetRef: 123a49bc-6f5b-4746-8461-2e1a63307123 (RoleType)\n"
+                                + "  2:\n"
+                                + "   description: Approved Two\n"
+                                + "   targetRef: 123a49bc-6f5b-4746-8461-2e1a63307777 (RoleType)",
+                        "assignment/[25]/description: \n"
+                                + " Add: simple assignment description"
+                ));
+    }
+
+    @Test
+    public void test020MultivalueAssignmentPartialFalse() throws Exception {
+        assertDeltaOutput(
+                DELTA,
+                ItemPath.create(UserType.F_ASSIGNMENT),
+                createDefaultOptions()
+                        .showPartialDeltas(false),
                 List.of(" Add: \n"
                         + "  1:\n"
                         + "   description: Default\n"
@@ -244,8 +269,8 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
         DeltaPrinterOptions opts = new DeltaPrinterOptions()
                 // whether to show delta if search bar doesn't contain "Changed item path" value
                 .showFullObjectDelta(true)
-                // whether to show also change in subitems of the "Changed item path", e.g. if changed item path is assignment
-                // whether to display deltas that contain changes for assignment/activation
+                // whether to show also change in subitems of the "Changed item path", e.g. if changed item path is "assignment"
+                // whether to display deltas that contain changes for "assignment/activation"
                 .showPartialDeltas(true);
 
         opts.prettyPrinterOptions()
