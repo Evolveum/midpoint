@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -56,16 +57,11 @@ public class ReportDownloadHelper implements Serializable {
     }
 
     public static String getReportFileName(ReportDataType currentReport) {
-        try {
-            String filePath = currentReport.getFilePath();
-            if (filePath != null) {
-                var fileName = new File(filePath).getName();
-                if (StringUtils.isNotEmpty(fileName)) {
-                    return fileName;
-                }
-            }
-        } catch (RuntimeException ex) {
-            // ignored
+        String name = WebComponentUtil.getName(currentReport);
+        if (StringUtils.isNotEmpty(name)) {
+            // Sanitize to remove any path components for defense in depth
+            // (browsers also ignore path components, but better to be safe)
+            return FilenameUtils.getName(name);
         }
         return "report"; // A fallback - this should not really occur
     }
