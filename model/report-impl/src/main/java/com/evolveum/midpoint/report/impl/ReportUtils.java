@@ -768,7 +768,9 @@ public class ReportUtils {
             output.add(printer.prettyPrintItemDelta(result.toDelta(), useEstimatedOld, 0));
         }
 
-        return output;
+        return output.stream()
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public static <O extends ObjectType> String printDelta(ObjectDeltaOperation<O> deltaOp) {

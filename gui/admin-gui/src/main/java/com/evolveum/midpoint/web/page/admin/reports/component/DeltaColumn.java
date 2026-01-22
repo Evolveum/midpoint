@@ -166,10 +166,12 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
 
         Changes changes = createChangedItems(rowModel);
         if (changes.deltas != null) {
+            boolean showPath = changes.deltas.size() > 1;
             for (ItemDelta<?, ?> delta : changes.deltas) {
                 DeltaColumnPanel panel = new DeltaColumnPanel(listItems.newChildId(), () -> delta);
                 panel.setShowOldValues(getDisplayValueType() == DisplayValueType.ESTIMATED_OLD || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
                 panel.setShowNewValues(getDisplayValueType() == DisplayValueType.CHANGES || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
+                panel.setShowPath(showPath);
 
                 listItems.add(panel);
             }
@@ -208,12 +210,13 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
                     try {
                         ObjectDelta<? extends ObjectType> objectDelta = DeltaConvertor.createObjectDelta(d);
 
-                        PrismObject add = objectDelta.getObjectToAdd();
+                        PrismObject<?> add = objectDelta.getObjectToAdd();
                         List deltas = null;
-                        if (add == null) {
+                        if (add == null || !ItemPath.EMPTY_PATH.equals(path)) {
                             DeltaScanner scanner = createDeltaScanner();
                             deltas = scanner.searchDelta(objectDelta, path).stream()
                                     .map(r -> r.toDelta())
+                                    .filter(id -> !id.isOperational())
                                     .toList();
                         }
 

@@ -69,4 +69,12 @@
         <value xsi:type="xsd:string">simple assignment description</value>
         <estimatedOldValue xsi:type="xsd:string">old simple assignment description</estimatedOldValue>
     </itemDelta>
+    <itemDelta>
+        <modificationType>add</modificationType>
+        <path>credentials/password/lastFailedLogin</path>
+        <value xsi:type="c:LoginEventType">
+            <c:from>1.1.1.1</c:from>
+            <c:timestamp>2013-05-21T14:57:50.759+02:00</c:timestamp>
+        </value>
+    </itemDelta>
 </objectDelta>
