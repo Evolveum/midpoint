@@ -1503,10 +1503,10 @@ The list of roles which affect the GUI is updated.
 
 == See Also
 
-* xref:./admin-gui-config-examples.adoc[Admin GUI Configuration - Examples]
+* xref:/midpoint/reference/admin-gui/admin-gui-config/admin-gui-config-examples/[]
 
-* xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object]
+* xref:/midpoint/reference/concepts/system-configuration-object/[]
 
-* xref:/midpoint/reference/security/authorization/[Authorization]
+* xref:/midpoint/reference/security/authorization/[]
 
-* xref:/midpoint/reference/admin-gui/collections-views/show-only-active-users/[Show Only Active Users HOWTO]
+* xref:/midpoint/reference/admin-gui/collections-views/use-cases/[]
