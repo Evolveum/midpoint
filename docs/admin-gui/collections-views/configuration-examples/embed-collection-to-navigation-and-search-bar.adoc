@@ -28,7 +28,7 @@ Add this configuration to the midPoint system configuration.
 .Admin GUI configuration adding a navigation menu item to display only users who are managers of an organization
 [source,xml]
 ----
-<systemConfiguration ...>
+<systemConfiguration>
     <adminGuiConfiguration>
         <objectCollectionViews>
             <objectCollectionView>
