@@ -72,7 +72,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     private static final String ID_CHOSE_FILE = "choseFile";
     private static final String ID_NAME_FOR_DATA = "reportDataName";
     private static final String ID_FILE_AS_NAME = "fileAsString";
-    private static final Pattern FILENAME_PATTERN = Pattern.compile("^[^.][a-zA-Z0-9._-]{1,100}$");
+    private static final Pattern FILENAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._-]{1,100}$");
     private static final String CSV_SUFFIX = ".csv"; //Import report now support only csv format, so we use it
 
 
