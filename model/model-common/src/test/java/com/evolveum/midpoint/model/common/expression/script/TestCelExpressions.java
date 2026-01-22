@@ -6,17 +6,18 @@
 
 package com.evolveum.midpoint.model.common.expression.script;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-
 import java.io.File;
+import java.util.List;
 
 import com.evolveum.midpoint.model.common.expression.script.cel.CelScriptEvaluator;
 
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 
-import org.apache.commons.lang3.SystemUtils;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -27,6 +28,10 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import javax.xml.namespace.QName;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author Radovan Semancik
@@ -432,7 +437,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionStringMixString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-mix.xml",
-                "testExpressionStringMixString",
                 createVariables(
                         "foo", "Foo", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -444,7 +448,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionStringMixPolyString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-mix.xml",
-                "testExpressionStringMixPolyString",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -456,7 +459,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionStringConcatNameString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-concatname.xml",
-                "testExpressionStringConcatNameString",
                 createVariables(
                         "foo", "Foo", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -468,7 +470,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionStringConcatNamePolyString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-concatname.xml",
-                "testExpressionStringConcatNamePolyString",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
                         "bar", PrismTestUtil.createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
@@ -480,7 +481,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionStringConcatNamePolyStringMix() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-concatname.xml",
-                "testExpressionStringConcatNamePolyStringMix",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -492,7 +492,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionStringConcatString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-concat.xml",
-                "testExpressionStringConcatString",
                 createVariables(
                         "foo", "Foo", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -504,7 +503,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionStringConcatPolyString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-concat.xml",
-                "testExpressionStringConcatPolyString",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrismTestUtil.createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
@@ -516,7 +514,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionStringConcatPolyStringMix() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-concat.xml",
-                "testExpressionStringConcatPolyStringMix",
                 createVariables(
                         PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -528,16 +525,41 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testUserAssignmentFirst() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-assignment-first.xml",
-                "testUserAssignmentFirst",
                 createUserScriptVariables(),
                 "First assignment");
+    }
+
+    @Test
+    public void testUserAssignmentFirstRelation() throws Exception {
+        VariablesMap variables = createUserScriptVariables();
+        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-user-assignment-first-relation.xml");
+        OperationResult opResult = createOperationResult();
+        List<PrismPropertyValue<QName>> expressionResultList = evaluateExpression(scriptType, DOMUtil.XSD_QNAME, true, variables, getTestName(), opResult);
+        PrismPropertyValue<QName> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        assertEquals("Expression " + getTestName() + " resulted in wrong value", SchemaConstants.ORG_OWNER, expressionResult.getValue());
+    }
+
+    @Test
+    public void testUserAssignmentFirstRelationLocalPart() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-assignment-first-relation-local-part.xml",
+                createUserScriptVariables(),
+                SchemaConstants.ORG_OWNER.getLocalPart());
+    }
+
+    @Test
+    public void testUserAssignmentFirstRelationNamespace() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-assignment-first-relation-namespace.xml",
+                createUserScriptVariables(),
+                SchemaConstants.ORG_OWNER.getNamespaceURI());
     }
 
     @Test
     public void testUserAssignmentSecond() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-assignment-second.xml",
-                "testUserAssignmentSecond",
                 createUserScriptVariables(),
                 "Second assignment");
     }
@@ -546,16 +568,23 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testUserAssignmentSecondMapping() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-assignment-second-mapping.xml",
-                "testUserAssignmentSecondMapping",
                 createUserScriptVariables(),
                 "Second focus mapping");
     }
 
     @Test
+    public void testUserLinkRefFirstOid() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-linkref-first-oid.xml",
+                createUserScriptVariables(),
+                "c0c010c0-d34d-b33f-f00d-ff1111111111");
+    }
+
+
+    @Test
     public void testExpressionNull() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-null.xml",
-                "testExpressionNull",
                 createVariables(
                         "foo", null, String.class
                 ),
@@ -566,7 +595,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionNotNull() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-null.xml",
-                "testExpressionNotNull",
                 createVariables(
                         "foo", "BAR", String.class
                 ),
@@ -581,7 +609,6 @@ public class TestCelExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-look.xml",
-                "testLookAtPoison",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -599,7 +626,6 @@ public class TestCelExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell.xml",
-                "testSmellPoison",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -617,7 +643,6 @@ public class TestCelExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-tricky.xml",
-                "testSmellPoisonTricky",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -636,7 +661,6 @@ public class TestCelExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-dynamic.xml",
-                "testSmellPoisonDynamic",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -655,7 +679,6 @@ public class TestCelExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-very-dynamic.xml",
-                "testSmellPoisonVeryDynamic",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -674,7 +697,6 @@ public class TestCelExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-reflection.xml",
-                "testSmellPoisonReflection",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -695,7 +717,6 @@ public class TestCelExpressions extends AbstractScriptTest {
         try {
             evaluateAndAssertStringScalarExpression(
                     "expression-poison-drink.xml",
-                    "testDrinkPoison",
                     createPoisonVariables(poison),
                     "");
 
@@ -727,7 +748,6 @@ public class TestCelExpressions extends AbstractScriptTest {
         try {
             evaluateAndAssertStringScalarExpression(
                     "expression-syntax-error.xml",
-                    "testSyntaxError",
                     createPoisonVariables(poison),
                     RESULT_POISON_OK);
 

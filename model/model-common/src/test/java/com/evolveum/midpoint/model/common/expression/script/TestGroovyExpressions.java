@@ -335,7 +335,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-look.xml",
-                "testLookAtPoison",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -353,7 +352,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell.xml",
-                "testSmellPoison",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -371,7 +369,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-tricky.xml",
-                "testSmellPoisonTricky",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -390,7 +387,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-dynamic.xml",
-                "testSmellPoisonDynamic",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -409,7 +405,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-very-dynamic.xml",
-                "testSmellPoisonVeryDynamic",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -428,7 +423,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-reflection.xml",
-                "testSmellPoisonReflection",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
 
@@ -449,7 +443,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         try {
             evaluateAndAssertStringScalarExpression(
                     "expression-poison-drink.xml",
-                    "testDrinkPoison",
                     createPoisonVariables(poison),
                     "");
 
@@ -481,7 +474,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         try {
             evaluateAndAssertStringScalarExpression(
                     "expression-syntax-error.xml",
-                    "testSyntaxError",
                     createPoisonVariables(poison),
                     RESULT_POISON_OK);
 
@@ -502,7 +494,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-string-exec.xml",
-                "testStringExec",
                 null,
                 RESULT_STRING_EXEC);
 
@@ -520,7 +511,6 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         evaluateAndAssertStringScalarExpression(
                 "expression-list-exec.xml",
-                "testListExec",
                 null,
                 RESULT_STRING_EXEC);
 

@@ -10,12 +10,9 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.util.exception.*;
@@ -24,7 +21,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import dev.cel.common.*;
-import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelValue;
@@ -35,7 +31,6 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.*;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,12 +49,6 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
 
     public static final String LANGUAGE_NAME = "CEL";
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
-    private static final String FUNCTION_STRING_EQUALS_OPAQUE_ID = "string-equals-opaque";
-    private static final String FUNCTION_OPAQUE_EQUALS_STRING_ID = "opaque-equals-string";
-    private static final String FUNCTION_POLYSTRING_ORIG_NAME = "orig";
-    private static final String FUNCTION_POLYSTRING_ORIG_ID = "polystring-orig";
-    private static final String FUNCTION_POLYSTRING_NORM_NAME = "norm";
-    private static final String FUNCTION_POLYSTRING_NORM_ID = "polystring-norm";
 
     private CelTypeProvider typeProvider = null;
 
@@ -121,7 +110,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
         CelCompilerBuilder builder = CelCompilerFactory.standardCelCompilerBuilder();
         builder.setStandardMacros(CelStandardMacro.HAS);
         builder.setTypeProvider(getTypeProvider());
-        compilerAddPolyStringDeclarations(builder, context);
+        PolyStringCelValue.addCompilerDeclarations(builder, context);
         // TODO: Further compiler config
         new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
         for (var varEntry : prepareScriptVariablesTypedValueMap(context).entrySet()) {
@@ -186,7 +175,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
 //        builder.setTypeFactory(typeFactory);
 //        builder.setValueProvider(CelScriptEvaluator::valueProvider);
         new CelFunctionLibraryMapper(context).runtimeAddFunctionLibraryDeclarations(builder);
-        runtimeAddPolyStringDeclarations(builder, context);
+        PolyStringCelValue.addRuntimeDeclarations(builder, context);
         return builder.build();
     }
 
@@ -199,70 +188,6 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
         final Map<String, Object> scriptVariableMap = new HashMap<>();
         prepareScriptVariablesMap(context, scriptVariableMap, CelTypeMapper::convertVariableValue);
         return scriptVariableMap;
-    }
-
-    private void compilerAddPolyStringDeclarations(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) {
-        builder.addFunctionDeclarations(
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.EQUALS.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                FUNCTION_STRING_EQUALS_OPAQUE_ID,
-                                SimpleType.BOOL,
-                                SimpleType.STRING,
-                                MidPointTypeProvider.POLYSTRING_TYPE
-                        )
-                ),
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.EQUALS.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                FUNCTION_OPAQUE_EQUALS_STRING_ID,
-                                SimpleType.BOOL,
-                                MidPointTypeProvider.POLYSTRING_TYPE,
-                                SimpleType.STRING
-                        )
-                ),
-                CelFunctionDecl.newFunctionDeclaration(
-                        FUNCTION_POLYSTRING_ORIG_NAME,
-                        CelOverloadDecl.newMemberOverload(
-                                FUNCTION_POLYSTRING_ORIG_ID,
-                                SimpleType.STRING,
-                                MidPointTypeProvider.POLYSTRING_TYPE
-                        )
-                ),
-                CelFunctionDecl.newFunctionDeclaration(
-                        FUNCTION_POLYSTRING_NORM_NAME,
-                        CelOverloadDecl.newMemberOverload(
-                                FUNCTION_POLYSTRING_NORM_ID,
-                                SimpleType.STRING,
-                                MidPointTypeProvider.POLYSTRING_TYPE
-                        )
-                )
-        );
-    }
-
-    private void runtimeAddPolyStringDeclarations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) {
-        builder.addFunctionBindings(
-                CelFunctionBinding.from(
-                        FUNCTION_STRING_EQUALS_OPAQUE_ID,
-                        String.class, PolyStringCelValue.class,
-                        CelTypeMapper::stringEqualsPolyString
-                ),
-                CelFunctionBinding.from(
-                        FUNCTION_OPAQUE_EQUALS_STRING_ID,
-                        PolyStringCelValue.class, String.class,
-                        CelTypeMapper::polystringEqualsString
-                ),
-                CelFunctionBinding.from(
-                        FUNCTION_POLYSTRING_ORIG_ID,
-                        PolyStringCelValue.class,
-                        CelTypeMapper::funcPolystringOrig
-                ),
-                CelFunctionBinding.from(
-                        FUNCTION_POLYSTRING_NORM_ID,
-                        PolyStringCelValue.class,
-                        CelTypeMapper::funcPolystringNorm
-                )
-        );
     }
 
     private static Throwable serializationSafeThrowable(Throwable e) {

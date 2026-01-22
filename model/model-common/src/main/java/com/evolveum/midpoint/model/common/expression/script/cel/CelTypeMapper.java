@@ -6,10 +6,7 @@
 
 package com.evolveum.midpoint.model.common.expression.script.cel;
 
-import com.evolveum.midpoint.model.common.expression.script.cel.value.ContainerValueCelValue;
-import com.evolveum.midpoint.model.common.expression.script.cel.value.MultivalueCelValue;
-import com.evolveum.midpoint.model.common.expression.script.cel.value.ObjectCelValue;
-import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
+import com.evolveum.midpoint.model.common.expression.script.cel.value.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -26,7 +23,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelValue;
-import dev.cel.common.values.ListValue;
 import dev.cel.common.values.NullValue;
 import dev.cel.common.values.OpaqueValue;
 import org.apache.commons.lang3.NotImplementedException;
@@ -71,9 +67,9 @@ public class CelTypeMapper {
 //        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
 //        addMapping(UniformItemPath.class, ItemPathType.COMPLEX_TYPE, false);
 //        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
-//        addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
-        addXsdMapping(MidPointTypeProvider.POLYSTRING_TYPE, PrismConstants.POLYSTRING_TYPE_QNAME, true);
+        addXsdMapping(QNameCelValue.CEL_TYPE, DOMUtil.XSD_QNAME, true);
+        addXsdMapping(PolyStringCelValue.CEL_TYPE, PrismConstants.POLYSTRING_TYPE_QNAME, true);
 
 //        addXsdToCelMapping(DOMUtil.XSD_ANYURI, String.class);
     }
@@ -123,8 +119,9 @@ public class CelTypeMapper {
 //        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
 //        addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
-        addJavaMapping(MidPointTypeProvider.POLYSTRING_TYPE, PolyString.class, true);
-        addJavaMapping(MidPointTypeProvider.POLYSTRING_TYPE, PolyStringType.class, false);
+        addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyString.class, true);
+        addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyStringType.class, false);
+        addJavaMapping(QNameCelValue.CEL_TYPE, QName.class, true);
 
 //        addXsdToCelMapping(DOMUtil.XSD_ANYURI, String.class);
     }
@@ -272,8 +269,8 @@ public class CelTypeMapper {
         if (celValue == null) {
             return null;
         }
-        if (celValue instanceof PolyStringCelValue) {
-            return ((PolyStringCelValue) celValue).getPolystring();
+        if (celValue instanceof MidPointCelValue<?> mpCelValue) {
+            return mpCelValue.getJavaValue();
         } else if (celValue instanceof OpaqueValue) {
             return ((OpaqueValue) celValue).value();
         } else if (celValue instanceof List) {
@@ -287,13 +284,16 @@ public class CelTypeMapper {
 
     public static Object toCelValue(Object javaValue) {
         if (javaValue == null) {
-            return null;
+            return NullValue.NULL_VALUE;
         }
         if (javaValue instanceof CelValue) {
             return javaValue;
         }
-        if (javaValue instanceof PolyString) {
-            return PolyStringCelValue.create((PolyString) javaValue);
+        if (javaValue instanceof PolyString polyString) {
+            return PolyStringCelValue.create(polyString);
+        }
+        if (javaValue instanceof QName qname) {
+            return QNameCelValue.create(qname);
         }
         if (javaValue instanceof Item) {
             //noinspection unchecked,rawtypes
@@ -312,6 +312,9 @@ public class CelTypeMapper {
             }
             if (item instanceof PrismContainer<?> container) {
                 return ContainerValueCelValue.create(container.getValue());
+            }
+            if (item instanceof PrismReference reference) {
+                return ObjectReferenceCelValue.create(reference.getValue());
             }
         }
         // TODO
@@ -352,34 +355,6 @@ public class CelTypeMapper {
             }
         }
         return typedValue.getValue();
-    }
-
-    public static boolean stringEqualsPolyString(String s, PolyStringCelValue polystringValue) {
-        if (s == null && polystringValue == null) {
-            return true;
-        }
-        if (s == null || polystringValue == null) {
-            return false;
-        }
-        return s.equals(polystringValue.getOrig());
-    }
-
-    public static boolean polystringEqualsString(PolyStringCelValue polystringValue, String s) {
-        return stringEqualsPolyString(s,polystringValue);
-    }
-
-    public static String funcPolystringOrig(PolyStringCelValue polystringValue) {
-        if (polystringValue == null || polystringValue.value() == null) {
-            return null;
-        }
-        return polystringValue.getOrig();
-    }
-
-    public static String funcPolystringNorm(PolyStringCelValue polystringValue) {
-        if (polystringValue == null || polystringValue.value() == null) {
-            return null;
-        }
-        return polystringValue.getNorm();
     }
 
     static {

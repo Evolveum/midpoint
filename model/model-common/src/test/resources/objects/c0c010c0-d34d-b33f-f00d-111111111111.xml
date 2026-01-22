@@ -9,6 +9,7 @@
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:xsd='http://www.w3.org/2001/XMLSchema'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:ext='http://midpoint.evolveum.com/xml/ns/test/extension'>
     <name>jack</name>
@@ -40,7 +41,7 @@
     <assignment>
         <identifier>alfa</identifier>
         <description>First assignment</description>
-        <targetRef oid="c0c010c0-d34d-b33f-f00d-111111111112" relation="owner"/>
+        <targetRef oid="c0c010c0-d34d-b33f-f00d-001111111111" relation="org:owner" type="RoleType"/>
     </assignment>
 
     <assignment>
@@ -56,6 +57,12 @@
         </focusMappings>
     </assignment>
 
+    <assignment>
+        <identifier>charlie</identifier>
+        <description>Third assignment</description>
+        <targetRef oid="c0c010c0-d34d-b33f-f00d-001111111112" type="RoleType"/>
+    </assignment>
+
     <credentials>
         <password>
             <value>
@@ -63,4 +70,7 @@
             </value>
         </password>
     </credentials>
+
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-ff1111111111"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-ff1111111112"/>
 </user>

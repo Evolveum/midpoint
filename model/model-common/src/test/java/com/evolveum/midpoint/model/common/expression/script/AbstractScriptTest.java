@@ -113,14 +113,13 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     @Test
     public void testExpressionSimple() throws Exception {
         evaluateAndAssertStringScalarExpression("expression-simple.xml",
-                "testExpressionSimple", null, "foobar");
+                null, "foobar");
     }
 
     @Test
     public void testExpressionStringVariables() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-variables.xml",
-                "testExpressionStringVariables",
                 createVariables(
                         "foo", "FOO", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -144,7 +143,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
                     evaluateAndAssertStringScalarExpression(
                             "expression-string-variables.xml",
-                            "testExpressionStringVariablesParallel-" + threadIndex,
                             createVariables(
                                     "foo", foo, PrimitiveType.STRING,
                                     "bar", bar, PrimitiveType.STRING
@@ -162,7 +160,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testExpressionObjectRefVariables() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-objectref-variables.xml",
-                "testExpressionObjectRefVariables",
                 createVariables(
                         "foo", "Captain", String.class,
                         "jack",
@@ -178,7 +175,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testExpressionObjectRefVariablesNonExistingObject() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-objectref-variables.xml",
-                "testExpressionObjectRefVariablesNonExistingObject",
                 createVariables(
                         "foo", "Captain", String.class,
                         "jack",
@@ -198,7 +194,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             // TODO adapt to the correct behavior after MID-10296 is decided about
             evaluateAndAssertStringScalarExpression(
                     "expression-objectref-variables-explicit.xml",
-                    "testExpressionObjectRefVariables",
                     createVariables(
                             "foo", "Captain", String.class,
                             "jack",
@@ -217,7 +212,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testExpressionObjectRefVariablesPolyString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-objectref-variables-polystring.xml",
-                "testExpressionObjectRefVariablesPolyString",
                 createVariables(
                         "foo", "Captain", PrimitiveType.STRING,
                         "jack",
@@ -234,7 +228,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testUserGivenName() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-given-name.xml",
-                "testUserGivenName",
                 createUserScriptVariables(),
                 "Jack");
     }
@@ -243,7 +236,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testUserAdministrativeStatus() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-administrative-status.xml",
-                "testUserAdministrativeStatus",
                 createUserScriptVariables(),
                 "enabled");
     }
@@ -252,7 +244,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testUserExtensionShip() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-extension-ship.xml",
-                "testUserExtensionShip",
                 createUserScriptVariables(),
                 "Black Pearl");
     }
@@ -261,7 +252,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testUserExtensionShipPath() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-extension-ship-path.xml",
-                "testUserExtensionShipPath",
                 createUserScriptVariables(),
                 "Black Pearl");
     }
@@ -270,7 +260,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testUserExtensionStringifyFullName() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-stringify-full-name.xml",
-                "testUserExtensionStringifyFullName",
                 createUserScriptVariables(),
                 "Jack Sparrow");
     }
@@ -302,7 +291,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
         evaluateAndAssertStringScalarExpression(
                 "expression-root-node.xml",
-                "testRootNode",
                 createVariables(
                         null, // root node
                         MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
@@ -336,16 +324,16 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     @Test
     public void testExpressionFunc() throws Exception {
         evaluateAndAssertStringScalarExpression("expression-func.xml",
-                "testExpressionFunc", null, "gulocka v jamocke");
+                null, "gulocka v jamocke");
     }
 
     @Test
     public void testExpressionFuncConcatName() throws Exception {
         evaluateAndAssertStringScalarExpression("expression-func-concatname.xml",
-                "testExpressionFuncConcatName", null, "Horatio Torquemada Marley");
+                null, "Horatio Torquemada Marley");
     }
 
-    private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException {
+    protected ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException {
         return PrismTestUtil.parseAtomicValue(
                 new File(getTestDir(), fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
     }
@@ -411,7 +399,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         return null;
     }
 
-    private <T> List<PrismPropertyValue<T>> evaluateExpression(
+    protected <T> List<PrismPropertyValue<T>> evaluateExpression(
             ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar,
             VariablesMap variables, String shortDesc, OperationResult opResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
@@ -424,7 +412,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         return evaluateExpression(scriptType, outputDefinition, variables, shortDesc, opResult);
     }
 
-    private <T> PrismPropertyValue<T> asScalar(
+    protected <T> PrismPropertyValue<T> asScalar(
             List<PrismPropertyValue<T>> expressionResultList, String shortDesc) {
         if (expressionResultList.size() > 1) {
             AssertJUnit.fail(
@@ -438,14 +426,14 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     protected void evaluateAndAssertStringScalarExpression(
-            String fileName, String testName, VariablesMap variables, String expectedValue)
+            String fileName, VariablesMap variables, String expectedValue)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
-        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, testName, variables);
-        PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, testName);
+        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, getTestName(), variables);
+        PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
-        assertNotNull("Expression " + testName + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
-        assertEquals("Expression " + testName + " resulted in wrong value", expectedValue, expressionResult.getValue());
+        assertNotNull("Expression " + getTestName() + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
+        assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult.getValue());
     }
 
     protected void evaluateAndAssertStringScalarExpressionRestricted(
@@ -482,7 +470,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         assertEquals("Expression " + testName + " resulted in wrong value", expectedValue, expressionResult.getValue());
     }
 
-    private List<PrismPropertyValue<String>> evaluateStringExpression(
+    protected List<PrismPropertyValue<String>> evaluateStringExpression(
             String fileName, String testName, VariablesMap variables)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {

@@ -7,11 +7,22 @@ package com.evolveum.midpoint.model.common.expression.script.cel.value;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
-import com.evolveum.midpoint.model.common.expression.script.cel.MidPointTypeProvider;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.cel.CelTypeMapper;
+
+import com.google.common.collect.ImmutableSet;
+import dev.cel.common.CelFunctionDecl;
+import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.CelType;
-import dev.cel.common.values.CelValue;
+import dev.cel.common.types.SimpleType;
+import dev.cel.common.types.StructType;
+import dev.cel.compiler.CelCompilerBuilder;
+import dev.cel.parser.Operator;
+import dev.cel.runtime.CelFunctionBinding;
+import dev.cel.runtime.CelRuntimeBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -21,7 +32,19 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Radovan Semancik
  */
-public class PolyStringCelValue extends CelValue implements Map<String,String> {
+public class PolyStringCelValue extends MidPointCelValue<PolyString> implements Map<String,String> {
+
+    public static final String POLYSTRING_PACKAGE_NAME = PolyString.class.getTypeName();
+    private static final String F_ORIG = PolyString.F_ORIG.getLocalPart();
+    private static final String F_NORM = PolyString.F_NORM.getLocalPart();
+    public static final CelType CEL_TYPE = createPolystringType();
+
+    private static final String FUNCTION_STRING_EQUALS_POLYSTRING_ID = "string-equals-polystring";
+    private static final String FUNCTION_POLYSTRING_EQUALS_STRING_ID = "polystring-equals-string";
+    private static final String FUNCTION_POLYSTRING_ORIG_NAME = "orig";
+    private static final String FUNCTION_POLYSTRING_ORIG_ID = "polystring-orig";
+    private static final String FUNCTION_POLYSTRING_NORM_NAME = "norm";
+    private static final String FUNCTION_POLYSTRING_NORM_ID = "polystring-norm";
 
     private final PolyString polystring;
 
@@ -34,8 +57,13 @@ public class PolyStringCelValue extends CelValue implements Map<String,String> {
     }
 
     public Map<String, String> value() {
-        return Map.of(PolyString.F_ORIG.getLocalPart(), polystring.getOrig(),
-                PolyString.F_NORM.getLocalPart(), polystring.getNorm());
+        return Map.of(F_ORIG, polystring.getOrig(),
+                F_NORM, polystring.getNorm());
+    }
+
+    @Override
+    public PolyString getJavaValue() {
+        return polystring;
     }
 
     @Override
@@ -45,7 +73,7 @@ public class PolyStringCelValue extends CelValue implements Map<String,String> {
 
     @Override
     public CelType celType() {
-        return MidPointTypeProvider.POLYSTRING_TYPE;
+        return CEL_TYPE;
     }
 
     public PolyString getPolystring() {
@@ -119,4 +147,112 @@ public class PolyStringCelValue extends CelValue implements Map<String,String> {
     public @NotNull Set<Entry<String, String>> entrySet() {
         return value().entrySet();
     }
+
+    private static CelType createPolystringType() {
+        ImmutableSet<String> fieldNames = ImmutableSet.of(F_ORIG, F_NORM);
+        StructType.FieldResolver fieldResolver = fieldName -> {
+            if (F_ORIG.equals(fieldName) || F_NORM.equals(fieldName)) {
+                return Optional.of(SimpleType.STRING);
+            } else {
+                throw new IllegalStateException("Illegal request for polystring field " + fieldName);
+            }
+        };
+        return StructType.create(POLYSTRING_PACKAGE_NAME, fieldNames, fieldResolver);
+    }
+
+    public static void addCompilerDeclarations(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) {
+        builder.addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                        Operator.EQUALS.getFunction(),
+                        CelOverloadDecl.newGlobalOverload(
+                                FUNCTION_STRING_EQUALS_POLYSTRING_ID,
+                                SimpleType.BOOL,
+                                SimpleType.STRING,
+                                PolyStringCelValue.CEL_TYPE
+                        )
+                ),
+                CelFunctionDecl.newFunctionDeclaration(
+                        Operator.EQUALS.getFunction(),
+                        CelOverloadDecl.newGlobalOverload(
+                                FUNCTION_POLYSTRING_EQUALS_STRING_ID,
+                                SimpleType.BOOL,
+                                PolyStringCelValue.CEL_TYPE,
+                                SimpleType.STRING
+                        )
+                ),
+                CelFunctionDecl.newFunctionDeclaration(
+                        FUNCTION_POLYSTRING_ORIG_NAME,
+                        CelOverloadDecl.newMemberOverload(
+                                FUNCTION_POLYSTRING_ORIG_ID,
+                                SimpleType.STRING,
+                                PolyStringCelValue.CEL_TYPE
+                        )
+                ),
+                CelFunctionDecl.newFunctionDeclaration(
+                        FUNCTION_POLYSTRING_NORM_NAME,
+                        CelOverloadDecl.newMemberOverload(
+                                FUNCTION_POLYSTRING_NORM_ID,
+                                SimpleType.STRING,
+                                PolyStringCelValue.CEL_TYPE
+                        )
+                )
+        );
+    }
+
+
+    public static void addRuntimeDeclarations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) {
+        builder.addFunctionBindings(
+                CelFunctionBinding.from(
+                        FUNCTION_STRING_EQUALS_POLYSTRING_ID,
+                        String.class, PolyStringCelValue.class,
+                        PolyStringCelValue::stringEqualsPolyString
+                ),
+                CelFunctionBinding.from(
+                        FUNCTION_POLYSTRING_EQUALS_STRING_ID,
+                        PolyStringCelValue.class, String.class,
+                        PolyStringCelValue::polystringEqualsString
+                ),
+                CelFunctionBinding.from(
+                        FUNCTION_POLYSTRING_ORIG_ID,
+                        PolyStringCelValue.class,
+                        PolyStringCelValue::funcPolystringOrig
+                ),
+                CelFunctionBinding.from(
+                        FUNCTION_POLYSTRING_NORM_ID,
+                        PolyStringCelValue.class,
+                        PolyStringCelValue::funcPolystringNorm
+                )
+        );
+    }
+
+    public static boolean stringEqualsPolyString(String s, PolyStringCelValue polystringValue) {
+        if (s == null && polystringValue == null) {
+            return true;
+        }
+        if (s == null || polystringValue == null) {
+            return false;
+        }
+        return s.equals(polystringValue.getOrig());
+    }
+
+    public static boolean polystringEqualsString(PolyStringCelValue polystringValue, String s) {
+        return stringEqualsPolyString(s,polystringValue);
+    }
+
+    public static String funcPolystringOrig(PolyStringCelValue polystringValue) {
+        if (polystringValue == null || polystringValue.value() == null) {
+            return null;
+        }
+        return polystringValue.getOrig();
+    }
+
+    public static String funcPolystringNorm(PolyStringCelValue polystringValue) {
+        if (polystringValue == null || polystringValue.value() == null) {
+            return null;
+        }
+        return polystringValue.getNorm();
+    }
+
+
 }
+

@@ -38,7 +38,6 @@ public class TestVelocityExpressions extends AbstractScriptTest {
     public void testExpressionList() throws Exception {
         evaluateAndAssertStringScalarExpression(        // velocity has no support for output other than String
                 "expression-list.xml",
-                "testExpressionList",
                 createVariables(
                         "jack",
                         MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
