@@ -194,6 +194,11 @@ Such a dashboard can then serve as a simplified overview of the joiner-leaver-mo
 .Dashboard with widgets for users who were added, modified, and deleted recently
 image::audit-log-users-join-move-leave.webp["Dashboard with widgets for users who were added, modified, and deleted"]
 
+When you click the [.nowrap]#btn:[More info] icon:arrow-circle-right[]# button, you get redirected to the filtered audit log where you can inspect the records in more detail.
+
+.Audit log filtered by collection query
+image::audit-log-users-modified-list.webp["Audit log filtered by collection query"]
+
 == Define widget visual and presentation attributes
 
 There are two elements for visual configuration of widgets:
