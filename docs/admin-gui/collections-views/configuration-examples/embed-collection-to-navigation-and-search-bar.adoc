@@ -1,3 +1,7 @@
+---
+midpoint-feature: object-collection-and-view
+doc-type: example
+---
 = Add custom quick search filters
 :page-nav-title: Custom quick search filters
 :page-toc: top
