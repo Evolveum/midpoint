@@ -1,3 +1,7 @@
+---
+midpoint-feature: object-collection-and-view
+doc-type: example
+---
 = Customize user lists visibility in GUI
 :page-nav-title: Customize user lists visibility
 :page-wiki-name: Show Only Active Users HOWTO
