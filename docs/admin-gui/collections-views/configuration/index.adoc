@@ -2,7 +2,7 @@
 midpoint-feature: object-collection-and-view
 doc-type: config
 ---
-= Object Collections and Views Configuration
+= Object collections and views configuration
 :page-nav-title: Configuration
 :page-display-order: 50
 :page-wiki-name: Object Collections and Views Configuration
@@ -14,39 +14,12 @@ doc-type: config
 :page-toc: top
 :page-upkeep-status: yellow
 :page-upkeep-note: Collection domain is no longer experimental. The page is probably old, we need to review this page.
+:page-description: Group objects in collections and reuse the collections in views across midPoint to customize the GUI.
 
+Group related objects in collections and configure object collection views to customize the midPoint user interface.
+Use the views to show relevant object lists dynamically to different groups of users based on what they need to know.
 
-
-== Introduction
-
-MidPoint objects are quite a social animals.
-They like to be grouped together.
-There is often need to show collections of objects, such as employees, active users, new proposed roles and so on.
-MidPoint has a flexible search and filter functionality that can be used for this purpose.
-However, those collections are used so often that they deserve a special place in the system.
-Those collections deserve its own definition, its own name and its own form of presentation.
-That is the reason why midPoint supports functionality for object collections and views.
-
-Collections and views are two concepts that are very related, but still somehow distinct:
-
-* *Object collection* is a core midPoint concept.
-There is a special object type (ObjectCollectionType) that is used to define a collection.
-It is first-class midPoint object.
-Collection defines which objects belong to the collection.
-The plan is that collections can be used in the entire midPoint system, e.g. collections can be used in xref:/midpoint/reference/security/authorization/[authorizations], xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] may be applied to them and so on.
-Some midPoint objects can act as an implicit collections, especially xref:/midpoint/reference/schema/archetypes/[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units]. Object collections are designed to be solid and stable.
-Something that midPoint policies can rely on.
-
-* *View* is a user interface concept.
-View specifies how a particular collection should be displayed.
-It defines the columns that should be displayed, default sorting, pre-defined filter properties and so on.
-Views are designed to be flexible, customizable.
-E.g. views can be adjusted and overridden in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration].
-
-Although collections and view have different purposes, and they are based on different mechanisms, they are almost always used together.
-
-
-== Object Collection
+== Object collection
 
 Object collection is a special midPoint object.
 The collection usually specifies a search filter that is used to find all the objects that belong to the collection:
@@ -62,7 +35,8 @@ The collection usually specifies a search filter that is used to find all the ob
 </objectCollection>
 ----
 
-Simply speaking this is effectively a _named object filter_. The filter is specified in a single place in the object collection definition.
+This is effectively a _named object filter_.
+The filter is specified in a single place in the object collection definition.
 Then the definition is reused in all other places.
 
 It may seem that this is a very little functionality to justify its own object.
@@ -80,7 +54,7 @@ These metrics are critical for compliance reporting, as they quantify risks or d
 Based on the calculated ratios, policy rules can also trigger further actions, such as notifying managers about the need for remediation.
 
 
-=== Derived Object Collection
+=== Derived object collection
 
 Some collections are often based on other collections.
 For example _active employees_ collection may be based on _employee_ archetype:
@@ -103,19 +77,52 @@ This makes it easy to maintain the collections, as the definitions do not need t
 The collections can refer to each other.
 Therefore, if one definition changes, all the collections take notice.
 
+=== Collection with events from audit log
 
-=== Configuration Consistency
+Use collections to gather audit log events in order to, for example, display them in a xref:/midpoint/reference/admin-gui/dashboards/configuration/#audit-log-events-as-widget-data-source[dashboard].
+
+.Collection querying audit log records of modifications made on user focal objects in the past week.
+[source,xml]
+----
+<objectCollection
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:audit="http://midpoint.evolveum.com/xml/ns/public/common/audit-3"
+    oid="e45dc8a1-5782-4fd0-a4b4-952749030a9f"
+    >
+    <name>Audit log - modified users - last 7 days</name>
+    <description>Counts modified users.</description>
+    <type>audit:AuditEventRecordType</type>
+    <filter>
+        <q:text>
+            (
+                eventType = 'modifyObject' or
+                eventType = 'executeChangesRaw' <1>
+            ) and
+            outcome = 'success' and
+            targetRef matches (targetType = UserType) and <2>
+            timestamp &gt; `basic.fromNow("-P7D")` <3>
+        </q:text>
+    </filter>
+</objectCollection>
+----
+<1> Query filtering events by type; in this case, object modification.
+    See the event types in the audit log for other possible values (you need to convert them to `camelCase` before use in the query; e.g., `deleteObject`).
+<2> Limit the list only to users.
+<3> Query only events from the past week.
+
+=== Configuration consistency
 
 The use of collections in midPoint 4.0 is somehow limited.
 In future midPoint releases, Collections may be reused in authorizations and policy rules.
-E.g. It would be nice to use just "employees" as a criterion in xref:/midpoint/reference/security/authorization/[authorizations] instead of copying the search filter everywhere.
+e.g., It would be nice to use just "employees" as a criterion in xref:/midpoint/reference/security/authorization/[authorizations] instead of copying the search filter everywhere.
 Similarly, this collection may be reused in policy rule specifications.
 In the future there may be scanner tasks that scan just the objects that belong to the collections, actions for the collections and similar improvements.
 
 Reusing the definition on many places is not just convenience.
 It is important for consistency of configuration.
 Nothing in the IDM world is really constant.
-E.g. the definition what is an _employee_ may change in time.
+For example, the definition what is an _employee_ may change in time.
 If object collection is used properly, then that definition needs to be updated in just one place.
 All the authorizations, views and dashboards should adapt automatically.
 
@@ -151,12 +158,12 @@ Once the view is defined it will be used by the user interface in all the approp
 One of the view representation in GUI is a left-side menu item which midPoint creates for each configured collection view.
 This menu item will lead then a user to the page with objects collection defined by view.
 Admin GUI configuration merging mechanism allows to hide the defined object collection view for different users.
-E.g. in order to hide a view in GUI, the corresponding _visibility_ setting should be set to _hidden_ value.
-Be aware that the view visibility also influences the _Object collection_ search item options on the default objects list page (e.g. on All users, All roles page etc.).
-E.g. if Person view is hidden, then _Object collection_ search item will not contain _Person_ option for filtering.
+For example, in order to hide a view in GUI, the corresponding _visibility_ setting should be set to _hidden_ value.
+Be aware that the view visibility also influences the _Object collection_ search item options on the default objects list page (e.g., on All users, All roles page etc.).
+E.g., if Person view is hidden, then _Object collection_ search item will not contain _Person_ option for filtering.
 
 
-Views drive user experience with details such as labels, icons, colors, columns and so on.
+Views drive user experience with details such as labels, icons, colors, columns, and so on.
 Views specify presentation details, while collections define the "policies".
 Concerns are neatly separated.
 The motivation to have presentation properties separate from the collection is the fact, that the same collection is often displayed in a different ways to different people.
@@ -168,7 +175,7 @@ Placing definition of view in xref:/midpoint/reference/admin-gui/admin-gui-confi
 Therefore, all the roles will have they own customized presentation of the data.
 
 
-=== Views And Implicit Collections
+=== Views and implicit collections
 
 Some midPoint objects can be considered collections of their own, especially xref:/midpoint/reference/schema/archetypes/[archetypes]. We want to make things simple and elegant whenever possible.
 Therefore, archetypes can be used instead of a collection in the view definition:
@@ -211,7 +218,7 @@ There is also experimental functionality allowing to hide and show the collectio
 </adminGuiConfiguration>
 ----
 
-=== Default Collection Views
+=== Default collection views
 
 MidPoint comes with default collections defined for most of objects.
 These default collections are based on object type, e.g., there is a default collection for all users in midPoint available in the main application left-side menu.
@@ -269,10 +276,10 @@ To be able to correctly merge configurations for one collection view from differ
 
 
 The list below shows main menu tabs that have expandable submenu options.
-You can add new, dynamically populated menu items to the main navigation bar. 
+You can add new, dynamically populated menu items to the main navigation bar.
 These menu items function as expandable submenus, with contents determined by an `ObjectCollection`.
 
-* Dashboards 
+* Dashboards
 * Users
 * Org. structure
 * Roles
@@ -298,9 +305,9 @@ The configuration is a two-step process:
 .Example objectCollection definition
 [source,xml]
 ----
-<objectCollection> 
-    ... 
-    oid="0f79ac96-0173-4575-a286-2395648abc01" 
+<objectCollection>
+    ...
+    oid="0f79ac96-0173-4575-a286-2395648abc01"
     version="1">
     <name>Test Organization</name>
     <type>c:OrgType</type>
@@ -379,7 +386,7 @@ All search mode are allowed by default.
 oneLevel
 | The scope of the search box.
 Scope may not be applicable to all types of lists/views.
-E.g. it does not make sense for flat searches.
+E.g., it does not make sense for flat searches.
 Therefore, some views may not even display scope selection at all.
 One level search will only traverse flat, one-level part of the hierarchy.
 This is ordinary search scope for non-hierarchical data.
@@ -391,11 +398,11 @@ But when used in organizational hierarchies, then this search scope will be span
 
 
 | defaultObjectType
-| E.g. UserType or RoleType.
+| E.g., UserType or RoleType.
 | Default type of object for search boxes that support object type selection.
 Setting it to ObjectType should display all objects.
 Type selection may not be applicable to all types of lists/views.
-E.g. it does not make sense for lists that only contain objects of a single type.
+E.g., it does not make sense for lists that only contain objects of a single type.
 Therefore, some views may not even display object type selection at all.
 | *true* (use _objectTypeConfiguration_ instead)
 
@@ -420,7 +427,7 @@ Search item is presented with a SearchItemType type, there is a possibility to c
 | ScopeSearchItemConfigurationType
 | Configuration for the scope of the search box.
 Scope may not be applicable to all types of lists/views.
-E.g. it does not make sense for flat searches.
+E.g., it does not make sense for flat searches.
 Therefore, some views may not even display scope selection at all.
 |
 
@@ -429,10 +436,10 @@ Therefore, some views may not even display scope selection at all.
 | objectTypeConfiguration
 | ObjectTypeSearchItemConfigurationType
 | Configuration for default type of object for search boxes that support object type selection.
-E.g. UserType or RoleType.
+E.g., UserType or RoleType.
 Setting it to ObjectType should display all objects.
 Type selection may not be applicable to all types of lists/views.
-E.g. it does not make sense for lists that only contain objects of a single type.
+E.g., it does not make sense for lists that only contain objects of a single type.
 Therefore, some views may not even display object type selection at all.
 |
 
@@ -442,7 +449,7 @@ Therefore, some views may not even display object type selection at all.
 | RelationSearchItemConfigurationType
 | Configuration for the relation of the search box.
 Relation may not be applicable to all types of lists/views.
-E.g. it does not make sense for flat searches.
+E.g., it does not make sense for flat searches.
 Therefore, some views may not even display relation selection at all.
 |
 
@@ -452,7 +459,7 @@ Therefore, some views may not even display relation selection at all.
 | IndirectSearchItemConfigurationType
 | Configuration for the indirect of the search box.
 Relation may not be applicable to all types of lists/views.
-E.g. it does not make sense for flat searches.
+E.g., it does not make sense for flat searches.
 Therefore, some views may not even display indirect selection at all.
 |
 
@@ -569,7 +576,7 @@ Use case for such search configuration is described more detailed xref:/midpoint
             </searchItems>
         </searchBoxConfiguration>
 ----
-== Default List View Panel Configuration
+== Default list view panel configuration
 include::../../admin-gui-config/default-list-view-panel-configuration.adoc[]
 
 == Limitations
@@ -591,7 +598,7 @@ Therefore, the use of collections and views has some quite significant limitatio
 * No support for policy rules yet.
 
 * Customization of view presentation properties is very limited yet.
-E.g. support for search bar configuration is not fully supported yet.
+For example, support for search bar configuration is not fully supported yet.
 
 * Support for collection domain is experimental.
 
@@ -605,7 +612,7 @@ Therefore, *link:https://evolveum.com/services/professional-support/[midPoint Pl
 ++++
 
 
-== See Also
+== See also
 
 * xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements]
 
