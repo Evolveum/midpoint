@@ -211,7 +211,7 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
                         PrismObject add = objectDelta.getObjectToAdd();
                         List deltas = null;
                         if (add == null) {
-                            DeltaScanner scanner = new DeltaScanner();
+                            DeltaScanner scanner = createDeltaScanner();
                             deltas = scanner.searchDelta(objectDelta, path).stream()
                                     .map(r -> r.toDelta())
                                     .toList();
@@ -280,6 +280,11 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
                 return "";
             }
         };
+    }
+
+    private DeltaScanner createDeltaScanner() {
+        return new DeltaScanner()
+                .allowPartialMatches(true);
     }
 
     private UserFriendlyPrettyPrinter createPrinterForData() {
