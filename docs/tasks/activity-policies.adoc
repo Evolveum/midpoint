@@ -97,7 +97,7 @@ If error categories are not specified, any error matches.
 If not present, we rely solely on the status.
 +
 NOTE: Some errors are not propagated to the level where they can be recognized by this selector.
-See xref:#_limitations[] for more details.
+See xref:#_limitations[Limitations] for more details.
 
 .Example of an item processing result constraint
 [source,xml]
@@ -229,6 +229,7 @@ The task details UI also allows users to clear all activity policy triggers and 
 .Activity policies options in task details
 image::activity-policies/activity-policies-gui.png[Activity policies in task details UI, width=600]
 
+[#_limitations]
 == Limitations
 
 * Activity policies are evaluated only for iterative (plain iterative or search based) activities.
