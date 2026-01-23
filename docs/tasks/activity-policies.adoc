@@ -97,6 +97,7 @@ If error categories are not specified, any error matches.
 If not present, we rely solely on the status.
 +
 NOTE: Some errors are not propagated to the level where they can be recognized by this selector.
+See xref:#_limitations[] for more details.
 
 .Example of an item processing result constraint
 [source,xml]
@@ -240,6 +241,13 @@ Activity policies are not supported in:
     ** Custom composite activities
 * Focus policy constraints currently cannot be used in activity policies.
 * User interface support is limited to XML configuration only.
+* Current architecture and ConnId Connector Framework API doesn't allow handling a number of situations (exceptions) via activity policies.
++
+Such exceptions are reported from ConnId as usual and can be seen in midPoint (GUI, task errors).
++
+** Exceptions thrown during search operation when executing the search query or creating connector object.
+*** Error handling for these situations happens outside of midPoint control, directly in ConnId framework and search operation is interrupted.
+** When shadow object is being initialized after connector object was returned from the connector.
 
 == Examples
 
