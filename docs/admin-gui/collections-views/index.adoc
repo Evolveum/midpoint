@@ -25,23 +25,24 @@ However, those collections are used so often that they deserve a special place i
 Those collections deserve its own definition, its own name and its own form of presentation.
 That is the reason why midPoint supports functionality for object collections and views.
 
-Collections and views are two concepts that are very related, but still somehow distinct:
+Collections and views are two concepts that are related, yet distinct:
 
 * *Object collection* is a core midPoint concept.
-There is a special object type (ObjectCollectionType) that is used to define a collection.
-It is first-class midPoint object.
-Collection defines which objects belong to the collection.
-The plan is that collections can be used in the entire midPoint system, e.g. collections can be used in xref:/midpoint/reference/security/authorization/[authorizations], xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] may be applied to them and so on.
-Some midPoint objects can act as an implicit collections, especially xref:/midpoint/reference/schema/archetypes/[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units]. Object collections are designed to be solid and stable.
+There is a special object type (`ObjectCollectionType`) that is used to define a collection.
+It is a first-class midPoint object.
+Collections define which objects belong together.
+The plan is that collections could be used in the entire midPoint system, e.g., in xref:/midpoint/reference/security/authorization/[authorizations], that xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] may be applied to them, and so on.
+Some midPoint objects can act as an implicit collections, especially xref:/midpoint/reference/schema/archetypes/[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units].
+Object collections are designed to be solid and stable.
 Something that midPoint policies can rely on.
 
 * *View* is a user interface concept.
 View specifies how a particular collection should be displayed.
-It defines the columns that should be displayed, default sorting, pre-defined filter properties and so on.
-Views are designed to be flexible, customizable.
-E.g. views can adjusted and overridden in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration].
+It defines the columns that should be displayed, default sorting, pre-defined filter properties, and so on.
+Views are designed to be flexible and customizable.
+Views can be adjusted and overridden in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin GUI configuration].
 
-Although collections and view have different purposes and they are based on different mechanisms, they are almost always used together.
+Although collections and views have different purposes and are based on different mechanisms, they are almost always used together.
 
 
 == Configuration
