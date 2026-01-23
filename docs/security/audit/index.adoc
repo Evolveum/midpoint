@@ -399,6 +399,7 @@ Content of the column in simple configuration will display the following values:
 * Object oid/name/type in case of object delta that contains add object operation and there's no changed item path defined in search.
 * Operational attributes are not displayed.
 * Partial deltas are displayed.
+For example, when delta contains change with path `extension/ex:stringProperty` ands searched path is `extension`.
 
 .Code example for the simple delta column configuration
 [source,xml]

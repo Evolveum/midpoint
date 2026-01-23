@@ -97,6 +97,7 @@ If error categories are not specified, any error matches.
 If not present, we rely solely on the status.
 +
 NOTE: Some errors are not propagated to the level where they can be recognized by this selector.
+See xref:#_limitations[] for more details.
 
 .Example of an item processing result constraint
 [source,xml]
