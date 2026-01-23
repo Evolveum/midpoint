@@ -302,7 +302,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testExpressionList() throws Exception {
         evaluateAndAssertStringListExpression(
                 "expression-list.xml",
-                "testExpressionList",
                 createVariables(
                         "jack",
                         MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
@@ -316,7 +315,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testExpressionListLiteral() throws Exception {
         evaluateAndAssertStringListExpression(
                 "expression-list-literal.xml",
-                "testExpressionListLiteral",
                 null,
                 "alfa", "bravo", "charlie");
     }
@@ -448,26 +446,26 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         }
     }
 
-    private void evaluateAndAssertStringListExpression(
-            String fileName, String testName, VariablesMap variables, String... expectedValues)
+    protected void evaluateAndAssertStringListExpression(
+            String fileName, VariablesMap variables, String... expectedValues)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         List<PrismPropertyValue<String>> expressionResultList =
-                evaluateStringExpression(fileName, testName, variables);
+                evaluateStringExpression(fileName, getTestName(), variables);
         displayValue("Expression result", expressionResultList);
-        TestUtil.assertSetEquals("Expression " + testName + " resulted in wrong values",
+        TestUtil.assertSetEquals("Expression " + getTestName() + " resulted in wrong values",
                 PrismValueCollectionsUtil.getValues(expressionResultList), expectedValues);
     }
 
     protected void evaluateAndAssertBooleanScalarExpression(String fileName,
-            String testName, VariablesMap variables, Boolean expectedValue)
+            VariablesMap variables, Boolean expectedValue)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
-        List<PrismPropertyValue<Boolean>> expressionResultList = evaluateBooleanExpression(fileName, testName, variables);
-        PrismPropertyValue<Boolean> expressionResult = asScalar(expressionResultList, testName);
+        List<PrismPropertyValue<Boolean>> expressionResultList = evaluateBooleanExpression(fileName, getTestName(), variables);
+        PrismPropertyValue<Boolean> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
-        assertNotNull("Expression " + testName + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
-        assertEquals("Expression " + testName + " resulted in wrong value", expectedValue, expressionResult.getValue());
+        assertNotNull("Expression " + getTestName() + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
+        assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult.getValue());
     }
 
     protected List<PrismPropertyValue<String>> evaluateStringExpression(

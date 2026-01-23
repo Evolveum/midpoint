@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.script.cel;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.cel.extension.CelPolyStringExtensions;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -51,9 +52,10 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
     public static final String LANGUAGE_NAME = "CEL";
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
-    private CelTypeProvider typeProvider = null;
+    private final CelOptions celOptions = CelOptions.current().
+            enableRegexPartialMatch(true).build();
 
-    private CelOptions celOptions = CelOptions.DEFAULT;
+    private CelTypeProvider typeProvider = null;
 
     /** Called by Spring but also by lower-level tests */
     public CelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
@@ -123,7 +125,8 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
                 CelExtensions.lists(),
                 CelExtensions.regex(),
                 CelExtensions.comprehensions(),
-                CelExtensions.optional());
+                CelExtensions.optional(),
+                CelPolyStringExtensions.library(celOptions).latest());
         PolyStringCelValue.addCompilerDeclarations(builder, context);
         // TODO: Further compiler config
         new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
@@ -193,7 +196,8 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
                 CelExtensions.lists(),
                 CelExtensions.regex(),
                 CelExtensions.comprehensions(),
-                CelExtensions.optional());
+                CelExtensions.optional(),
+                CelPolyStringExtensions.library(celOptions).latest());
         new CelFunctionLibraryMapper(context).runtimeAddFunctionLibraryDeclarations(builder);
         PolyStringCelValue.addRuntimeDeclarations(builder, context);
         return builder.build();
