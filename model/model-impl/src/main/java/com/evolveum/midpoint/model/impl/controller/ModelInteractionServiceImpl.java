@@ -2523,19 +2523,25 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                         .collect(Collectors.toSet());
 
         Task taskToClean = taskManager.getTaskPlain(object.getOid(), result);
-        clearAllActivityPolicyStates(taskToClean, identifiers, task, result);
+        boolean changed = false;
+
+        if (clearAllActivityPolicyStates(taskToClean, identifiers, task, result)) {
+            changed = true;
+        }
 
         List<? extends Task> tasks = taskToClean.listSubtasksDeeply(true, result);
         if (tasks != null) {
             for (Task t : tasks) {
-                clearAllActivityPolicyStates(t, identifiers, task, result);
+                if (clearAllActivityPolicyStates(t, identifiers, task, result)) {
+                    changed = true;
+                }
             }
         }
 
-        return false;
+        return changed;
     }
 
-    private void clearAllActivityPolicyStates(
+    private boolean clearAllActivityPolicyStates(
             @NotNull Task taskToClean,
             @NotNull Collection<String> policyIdentifiers,
             @NotNull Task task,
@@ -2545,7 +2551,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         TaskActivityStateType taskActivityState = taskToClean.getActivitiesStateOrClone();
         if (taskActivityState == null) {
-            return;
+            return false;
         }
 
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class).asObjectDelta(taskToClean.getOid());
@@ -2554,11 +2560,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         if (delta.isEmpty()) {
             LOGGER.trace("No activity policy state to clear in task {}", taskToClean.getOid());
-            return;
+            return false;
         }
 
         LOGGER.debug("Clearing activity policy states for task {}", taskToClean.getOid());
         modelService.executeChanges(List.of(delta), ModelExecuteOptions.create(), task, result);
+
+        return true;
     }
 
     private void clearAllActivityPolicyState(
@@ -2608,7 +2616,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 // noinspection unchecked
                 PrismContainerValue<ActivityCounterType> value = counter.asPrismContainerValue();
                 // noinspection unchecked
-                delta.addModificationDeleteContainer(value.getPath(), value.clone());
+                delta.addModificationDeleteContainer(value.getParent().getPath(), value.clone());
             }
         }
     }
