@@ -593,6 +593,7 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
 
             if (!changed) {
                 getPageBase().info(getString("TaskOperationalButtonsPanel.clearActivityPoliciesStates.noChanges"));
+                target.add(getPageBase().getFeedbackPanel());
                 return;
             }
         } catch (CommonException ex) {
