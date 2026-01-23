@@ -135,7 +135,7 @@ Or there may be a more complex case that includes translation parameters:
 </case>
 ----
 
-==== Implementation
+=== Implementation
 
 The algorithm is supposed to work like this:
 
