@@ -27,6 +27,7 @@ import dev.cel.common.values.CelValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
+import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.*;
@@ -51,6 +52,8 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
     private CelTypeProvider typeProvider = null;
+
+    private CelOptions celOptions = CelOptions.DEFAULT;
 
     /** Called by Spring but also by lower-level tests */
     public CelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
@@ -108,8 +111,19 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
 
     private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         CelCompilerBuilder builder = CelCompilerFactory.standardCelCompilerBuilder();
+        builder.setOptions(celOptions);
         builder.setStandardMacros(CelStandardMacro.HAS);
         builder.setTypeProvider(getTypeProvider());
+        builder.addLibraries(
+                CelExtensions.strings(),
+                CelExtensions.bindings(),
+                CelExtensions.math(celOptions),
+                CelExtensions.encoders(celOptions),
+                CelExtensions.sets(celOptions),
+                CelExtensions.lists(),
+                CelExtensions.regex(),
+                CelExtensions.comprehensions(),
+                CelExtensions.optional());
         PolyStringCelValue.addCompilerDeclarations(builder, context);
         // TODO: Further compiler config
         new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
@@ -170,19 +184,20 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
         // TODO: consider expression profiles?
         // TODO: caching
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
-        builder.setOptions(CelOptions.current().enableUnknownTracking(true).build());
-//        builder.setOptions(CelOptions.current().enableCelValue(true).build());
-//        builder.setTypeFactory(typeFactory);
-//        builder.setValueProvider(CelScriptEvaluator::valueProvider);
+        builder.setOptions(celOptions);
+        builder.addLibraries(
+                CelExtensions.strings(),
+                CelExtensions.math(celOptions),
+                CelExtensions.encoders(celOptions),
+                CelExtensions.sets(celOptions),
+                CelExtensions.lists(),
+                CelExtensions.regex(),
+                CelExtensions.comprehensions(),
+                CelExtensions.optional());
         new CelFunctionLibraryMapper(context).runtimeAddFunctionLibraryDeclarations(builder);
         PolyStringCelValue.addRuntimeDeclarations(builder, context);
         return builder.build();
     }
-
-//    private static Optional<CelValue> valueProvider(String structType, Map<String, Object> fields) {
-//        LOGGER.info("VVVVVVVVVVV valueProvider: {}, {}", structType, fields.toString());
-//        return null;
-//    }
 
     private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         final Map<String, Object> scriptVariableMap = new HashMap<>();

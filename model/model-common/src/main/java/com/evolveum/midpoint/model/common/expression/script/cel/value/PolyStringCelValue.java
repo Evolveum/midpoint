@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.script.cel.CelTypeMapper;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelFunctionDecl;
@@ -45,6 +44,9 @@ public class PolyStringCelValue extends MidPointCelValue<PolyString> implements 
     private static final String FUNCTION_POLYSTRING_ORIG_ID = "polystring-orig";
     private static final String FUNCTION_POLYSTRING_NORM_NAME = "norm";
     private static final String FUNCTION_POLYSTRING_NORM_ID = "polystring-norm";
+    private static final String FUNCTION_STRING_ADD_POLYSTRING_ID = "string-add-polystring";
+    private static final String FUNCTION_POLYSTRING_ADD_STRING_ID = "polystring-add-string";
+    private static final String FUNCTION_POLYSTRING_ADD_POLYSTRING_ID = "polystring-add-polystring";
 
     private final PolyString polystring;
 
@@ -161,25 +163,10 @@ public class PolyStringCelValue extends MidPointCelValue<PolyString> implements 
     }
 
     public static void addCompilerDeclarations(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) {
+        addCompilerDeclarationsEquals(builder, context);
+        addCompilerDeclarationsAdd(builder, context);
+        // TODO: remove
         builder.addFunctionDeclarations(
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.EQUALS.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                FUNCTION_STRING_EQUALS_POLYSTRING_ID,
-                                SimpleType.BOOL,
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE
-                        )
-                ),
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.EQUALS.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                FUNCTION_POLYSTRING_EQUALS_STRING_ID,
-                                SimpleType.BOOL,
-                                PolyStringCelValue.CEL_TYPE,
-                                SimpleType.STRING
-                        )
-                ),
                 CelFunctionDecl.newFunctionDeclaration(
                         FUNCTION_POLYSTRING_ORIG_NAME,
                         CelOverloadDecl.newMemberOverload(
@@ -199,8 +186,64 @@ public class PolyStringCelValue extends MidPointCelValue<PolyString> implements 
         );
     }
 
+    private static void addCompilerDeclarationsEquals(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) {
+        builder.addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                        Operator.EQUALS.getFunction(),
+                        CelOverloadDecl.newGlobalOverload(
+                                FUNCTION_STRING_EQUALS_POLYSTRING_ID,
+                                SimpleType.BOOL,
+                                SimpleType.STRING,
+                                PolyStringCelValue.CEL_TYPE
+                        )
+                ),
+                CelFunctionDecl.newFunctionDeclaration(
+                        Operator.EQUALS.getFunction(),
+                        CelOverloadDecl.newGlobalOverload(
+                                FUNCTION_POLYSTRING_EQUALS_STRING_ID,
+                                SimpleType.BOOL,
+                                PolyStringCelValue.CEL_TYPE,
+                                SimpleType.STRING
+                        )
+                )
+        );
+    }
+
+    private static void addCompilerDeclarationsAdd(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) {
+        builder.addFunctionDeclarations(
+                CelFunctionDecl.newFunctionDeclaration(
+                        Operator.ADD.getFunction(),
+                        CelOverloadDecl.newGlobalOverload(
+                                FUNCTION_STRING_ADD_POLYSTRING_ID,
+                                SimpleType.STRING,
+                                SimpleType.STRING,
+                                PolyStringCelValue.CEL_TYPE
+                        )
+                ),
+                CelFunctionDecl.newFunctionDeclaration(
+                        Operator.ADD.getFunction(),
+                        CelOverloadDecl.newGlobalOverload(
+                                FUNCTION_POLYSTRING_ADD_STRING_ID,
+                                SimpleType.STRING,
+                                PolyStringCelValue.CEL_TYPE,
+                                SimpleType.STRING
+                        )
+                ),
+                CelFunctionDecl.newFunctionDeclaration(
+                        Operator.ADD.getFunction(),
+                        CelOverloadDecl.newGlobalOverload(
+                                FUNCTION_POLYSTRING_ADD_POLYSTRING_ID,
+                                SimpleType.STRING,
+                                PolyStringCelValue.CEL_TYPE,
+                                PolyStringCelValue.CEL_TYPE
+                        )
+                )
+        );
+    }
 
     public static void addRuntimeDeclarations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) {
+        addRuntimeDeclarationsEquals(builder, context);
+        addRuntimeDeclarationsAdd(builder, context);
         builder.addFunctionBindings(
                 CelFunctionBinding.from(
                         FUNCTION_STRING_EQUALS_POLYSTRING_ID,
@@ -225,6 +268,21 @@ public class PolyStringCelValue extends MidPointCelValue<PolyString> implements 
         );
     }
 
+    private static void addRuntimeDeclarationsEquals(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) {
+        builder.addFunctionBindings(
+                CelFunctionBinding.from(
+                        FUNCTION_STRING_EQUALS_POLYSTRING_ID,
+                        String.class, PolyStringCelValue.class,
+                        PolyStringCelValue::stringEqualsPolyString
+                ),
+                CelFunctionBinding.from(
+                        FUNCTION_POLYSTRING_EQUALS_STRING_ID,
+                        PolyStringCelValue.class, String.class,
+                        PolyStringCelValue::polystringEqualsString
+                )
+        );
+    }
+
     public static boolean stringEqualsPolyString(String s, PolyStringCelValue polystringValue) {
         if (s == null && polystringValue == null) {
             return true;
@@ -237,6 +295,66 @@ public class PolyStringCelValue extends MidPointCelValue<PolyString> implements 
 
     public static boolean polystringEqualsString(PolyStringCelValue polystringValue, String s) {
         return stringEqualsPolyString(s,polystringValue);
+    }
+
+
+    private static void addRuntimeDeclarationsAdd(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) {
+        builder.addFunctionBindings(
+                CelFunctionBinding.from(
+                        FUNCTION_STRING_ADD_POLYSTRING_ID,
+                        String.class, PolyStringCelValue.class,
+                        PolyStringCelValue::stringAddPolyString
+                ),
+                CelFunctionBinding.from(
+                        FUNCTION_POLYSTRING_ADD_STRING_ID,
+                        PolyStringCelValue.class, String.class,
+                        PolyStringCelValue::polystringAddString
+                ),
+                CelFunctionBinding.from(
+                        FUNCTION_POLYSTRING_ADD_POLYSTRING_ID,
+                        PolyStringCelValue.class, PolyStringCelValue.class,
+                        PolyStringCelValue::polystringAddPolystring
+                )
+        );
+    }
+
+    public static String stringAddPolyString(String s, PolyStringCelValue polystringValue) {
+        if (s == null && polystringValue == null) {
+            return null;
+        }
+        if (s == null) {
+            return polystringValue.getOrig();
+        }
+        if (polystringValue == null) {
+            return s;
+        }
+        return s + polystringValue.getOrig();
+    }
+
+    public static String polystringAddString(PolyStringCelValue polystringValue, String s) {
+        if (s == null && polystringValue == null) {
+            return null;
+        }
+        if (s == null) {
+            return polystringValue.getOrig();
+        }
+        if (polystringValue == null) {
+            return s;
+        }
+        return polystringValue.getOrig() + s;
+    }
+
+    public static String polystringAddPolystring(PolyStringCelValue polystringValue1, PolyStringCelValue polystringValue2) {
+        if (polystringValue2 == null && polystringValue1 == null) {
+            return null;
+        }
+        if (polystringValue2 == null) {
+            return polystringValue1.getOrig();
+        }
+        if (polystringValue1 == null) {
+            return polystringValue2.getOrig();
+        }
+        return polystringValue1.getOrig() + polystringValue2.getOrig();
     }
 
     public static String funcPolystringOrig(PolyStringCelValue polystringValue) {

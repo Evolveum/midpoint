@@ -505,7 +505,7 @@ public class TestCelExpressions extends AbstractScriptTest {
                 "expression-string-concat.xml",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
-                        "bar", "BAR", PrismTestUtil.createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
+                        "bar", PrismTestUtil.createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
                 ),
                 "FooBAR");
     }
@@ -515,7 +515,7 @@ public class TestCelExpressions extends AbstractScriptTest {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-concat.xml",
                 createVariables(
-                        PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
                 ),
                 "FooBAR");
