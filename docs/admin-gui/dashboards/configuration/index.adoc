@@ -164,12 +164,19 @@ You need to use the `auditSearch` option as the `sourceType` of the widget inste
 [source,xml]
 ----
 <widget>
-    <identifier>removed-users</identifier>
+    <identifier>modified-users</identifier>
+    <display>
+        <label>during the past week</label>
+        <color>#265DA6</color>
+        <icon>
+            <cssClass>fa fa-user-pen</cssClass>
+        </icon>
+    </display>
     <data>
         <sourceType>auditSearch</sourceType> <1>
         <collection>
-            <collectionRef oid="0a22293e-5b0a-4e86-83b5-68319edcfb74" relation="org:default" type="c:ObjectCollectionType"> <2>
-                <!-- Removed users -->
+            <collectionRef oid="e45dc8a1-5782-4fd0-a4b4-952749030a9f" relation="org:default" type="c:ObjectCollectionType"> <2>
+                <!-- Audit log - modified users - last 7 days -->
             </collectionRef>
         </collection>
     </data>
@@ -182,13 +189,19 @@ You need to use the `auditSearch` option as the `sourceType` of the widget inste
                 </proportional>
             </expression>
         </dataField>
+        <dataField>
+            <fieldType>unit</fieldType>
+            <expression>
+                <value>users modified</value>
+            </expression>
+        </dataField>
     </presentation>
 </widget>
 ----
 <1> The `auditSearch` source type signifies that the collection contains audit log events instead of the "usual" midPoint objects.
 <2> A reference to a xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-with-events-from-audit-log[collection that filters the audit log events] for the widget to display.
 
-You can create a simple user statistics dashboard like the one below when you create object collections for various events happening to user objects and connect them to one dashboard.
+You can create a simple user statistics dashboard like the one below by creating object collections for various events happening to user objects and connecting them to one dashboard.
 See xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-with-events-from-audit-log[the guide on audit log collection configuration] for details.
 
 .Dashboard with widgets for users who were added, modified, and deleted recently
