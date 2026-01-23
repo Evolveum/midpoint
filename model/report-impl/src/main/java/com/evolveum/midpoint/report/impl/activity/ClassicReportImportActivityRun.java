@@ -10,7 +10,6 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ER
 import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +22,8 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -38,13 +39,15 @@ final class ClassicReportImportActivityRun
                 ClassicReportImportActivityHandler,
                 AbstractActivityWorkStateType> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ClassicReportImportActivityRun.class);
+
     @NotNull private final ImportActivitySupport support;
 
     /** The report service Spring bean. */
     @NotNull private final ReportServiceImpl reportService;
 
-    /** Parsed VariablesMap for lines of file. */
-    private List<VariablesMap> variables;
+    /** MID-11009: Total record count for progress reporting (streaming processing). */
+    private int recordCount;
 
     private ImportController controller;
 
@@ -73,7 +76,8 @@ final class ClassicReportImportActivityRun
                 report, reportService, support.existCollectionConfiguration() ? support.getCompiledCollectionView(result) : null);
         controller.initialize();
         try {
-            variables = controller.parseColumnsAsVariablesFromFile(support.getReportData());
+            controller.initializeCsvParser(support.getReportData());
+            recordCount = controller.getRecordCount();
         } catch (IOException e) {
             String message = "Couldn't read content of imported file: " + e.getMessage();
             result.recordFatalError(message, e);
@@ -88,13 +92,14 @@ final class ClassicReportImportActivityRun
 
     @Override
     public Integer determineOverallSize(OperationResult result) {
-        return variables.size();
+        return recordCount;
     }
 
     @Override
     public void iterateOverItemsInBucket(OperationResult result) {
         AtomicInteger sequence = new AtomicInteger(1);
-        for (VariablesMap variablesMap : variables) {
+        VariablesMap variablesMap;
+        while ((variablesMap = controller.getNextVariablesMap()) != null) {
             int lineNumber = sequence.getAndIncrement();
             InputReportLine line = new InputReportLine(lineNumber, variablesMap);
             boolean canContinue = coordinator.submit(
@@ -118,5 +123,15 @@ final class ClassicReportImportActivityRun
     @Override
     public @NotNull ErrorHandlingStrategyExecutor.FollowUpAction getDefaultErrorAction() {
         return ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
+    }
+
+    @Override
+    public void afterRun(OperationResult result) throws CommonException, ActivityRunException {
+        super.afterRun(result);
+        try {
+            controller.close();
+        } catch (IOException e) {
+            LOGGER.warn("Failed to close CSV parser", e);
+        }
     }
 }
