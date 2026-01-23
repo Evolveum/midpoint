@@ -257,6 +257,7 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
                                                     createPrinterForData()
                                                             .prettyPrintValue(v, 0)
                                             )
+                                            .filter(StringUtils::isNotBlank)
                                             .collect(Collectors.joining(", "));
                                 }
 
@@ -269,6 +270,10 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
                                 addChanges(ModificationType.REPLACE, (List<PrismValue>) item.getValuesToReplace(), changes);
 
                                 String newValues = StringUtils.joinWith(", ", changes);
+
+                                if (StringUtils.isBlank(oldValues) && StringUtils.isBlank(newValues)) {
+                                    return "";
+                                }
 
                                 if (StringUtils.isEmpty(oldValues)) {
                                     return newValues;
@@ -293,6 +298,7 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
     private UserFriendlyPrettyPrinter createPrinterForData() {
         return new UserFriendlyPrettyPrinter(
                 new UserFriendlyPrettyPrinterOptions()
+                        .showOperational(false)
                         .locale(MidPointAuthWebSession.get().getLocale())
                         .localizationService(getPageBase().getLocalizationService())
                         .indentation("\t"));
@@ -309,9 +315,13 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
             case REPLACE -> "(=)";
         };
 
-        changes.add(operation +
-                values.stream()
-                        .map(v -> createPrinterForData().prettyPrintValue(v, 0))
-                        .collect(Collectors.joining(", ")));
+        String valuesStr = values.stream()
+                .map(v -> createPrinterForData().prettyPrintValue(v, 0))
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.joining(", "));
+
+        if (StringUtils.isNotBlank(valuesStr)) {
+            changes.add(operation + valuesStr);
+        }
     }
 }
