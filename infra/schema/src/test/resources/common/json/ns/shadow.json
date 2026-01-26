@@ -1,0 +1,19 @@
+{
+  "shadow":
+  {
+    "attributes":
+    {
+      "@ns": "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3",
+      "userName":
+      {
+        "@type": "xsd:string",
+        "@value": "username"
+      },
+      "id":
+      {
+        "@type": "xsd:string",
+        "@value": "username"
+      }
+    }
+  }
+}
