@@ -30,17 +30,18 @@ import com.evolveum.midpoint.model.impl.correlator.CorrelatorUtil;
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicyFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
@@ -109,11 +110,13 @@ public class CorrelationServiceImpl implements CorrelationService {
     public @NotNull CompleteCorrelationResult correlate(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull CorrelationDefinitionType correlationDefinition,
+            List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        final CompleteContext ctx = getCompleteContext(shadowedResourceObject, correlationDefinition, task, result);
+        final CompleteContext ctx = getCompleteContext(shadowedResourceObject, correlationDefinition,
+                additionalCorrelationMappings, task, result);
         return correlate(ctx.correlatorContext, ctx.correlationContext, result);
     }
 
@@ -400,6 +403,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     private @NotNull CompleteContext getCompleteContext(
             @NotNull ShadowType shadow,
             @NotNull CorrelationDefinitionType correlationDefinition,
+            @NotNull List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -409,9 +413,10 @@ public class CorrelationServiceImpl implements CorrelationService {
                 shadow.getIntent());
 
         final ResourceType resource = getResource(shadow, task, result);
+
         final ResourceObjectTypeIdentification objectTypeId = getKindAndIntent(shadow);
-        final ResourceObjectTypeDefinition objectTypeDefinition = Resource.of(resource)
-                .getCompleteSchemaRequired().getObjectTypeDefinitionRequired(objectTypeId);
+        final ResourceObjectTypeDefinition objectTypeDefinition = getObjectTypeDefinition(resource, objectTypeId,
+                additionalCorrelationMappings);
 
         final Class<? extends FocusType> focusClass = PrismContext.get().getSchemaRegistry()
                 .determineClassForTypeRequired(objectTypeDefinition.getFocusTypeName());
@@ -585,7 +590,6 @@ public class CorrelationServiceImpl implements CorrelationService {
         }
     }
 
-    //TODO to many parameters, refactor to some context object.
     @Override
     public PathSet determineCorrelatorConfiguration(
             @NotNull CorrelatorDiscriminator discriminator,
@@ -617,9 +621,43 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     private static @NotNull ResourceObjectTypeIdentification getKindAndIntent(@NotNull ShadowType shadow) {
-        final ShadowKindType kind = shadow.getKind();
-        final String intent = shadow.getIntent();
-        return ResourceObjectTypeIdentification.of(kind, intent);
+        return ResourceObjectTypeIdentification.of(shadow.getKind(), shadow.getIntent());
+    }
+
+    private static @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition(@NotNull ResourceType resource,
+            @NotNull ResourceObjectTypeIdentification objectTypeId,
+            @NotNull List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings)
+            throws ConfigurationException, SchemaException {
+
+        if (additionalCorrelationMappings.isEmpty()) {
+            return ResourceSchemaFactory.getCompleteSchemaRequired(resource)
+                    .getObjectTypeDefinitionRequired(objectTypeId);
+        } else {
+            final SchemaHandlingType additionalSchemaHandling = wrapMappingsToSchemaHandling(objectTypeId,
+                    additionalCorrelationMappings);
+            return  ResourceSchemaFactory.parseCompleteSchemaWithAdditions(resource,
+                    additionalSchemaHandling).getObjectTypeDefinitionRequired(objectTypeId);
+        }
+    }
+
+    private static SchemaHandlingType wrapMappingsToSchemaHandling(ResourceObjectTypeIdentification objectTypeId,
+            @NotNull List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings) {
+        final List<ResourceAttributeDefinitionType> additionalDefinitions = additionalCorrelationMappings.stream()
+                .map(mapping -> {
+                    final ResourceAttributeDefinitionType attrDef = new ResourceAttributeDefinitionType().ref(
+                            mapping.getRef());
+                    // Without the cloning it throws exception about resetting parent of a value.
+                    CloneUtil.cloneMembersToCollection(attrDef.getInbound(), mapping.getInbound());
+                    return attrDef;
+                })
+                .toList();
+
+        final ResourceObjectTypeDefinitionType additionalObjectTypeDef = new ResourceObjectTypeDefinitionType()
+                .kind(objectTypeId.getKind())
+                .intent(objectTypeId.getIntent());
+        additionalObjectTypeDef.getAttribute().addAll(additionalDefinitions);
+
+        return new SchemaHandlingType().objectType(additionalObjectTypeDef);
     }
 
 }

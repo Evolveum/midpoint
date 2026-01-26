@@ -90,7 +90,7 @@ public class CorrelationUtil {
 
         CorrelationDefinitionType definition = new CorrelationDefinitionType();
 
-        CorrelatorsDefinitionType correlators = correlationWorkDefinition.getCorrelators();
+        SimulatedCorrelatorsType correlators = correlationWorkDefinition.getCorrelators();
         if (correlators == null) {
             return definition;
         }

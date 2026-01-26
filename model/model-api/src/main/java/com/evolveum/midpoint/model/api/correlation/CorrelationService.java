@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api.correlation;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +44,7 @@ public interface CorrelationService {
     @NotNull CompleteCorrelationResult correlate(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull CorrelationDefinitionType correlationDefinition,
+            List<AdditionalCorrelationItemMappingType> additionalAttributeMappings,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,

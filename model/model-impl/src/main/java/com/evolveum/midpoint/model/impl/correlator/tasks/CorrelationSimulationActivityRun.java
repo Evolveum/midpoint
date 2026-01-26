@@ -43,15 +43,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class CorrelationActivityRun
-        extends SearchBasedActivityRun<ShadowType, CorrelationWorkDefinition, CorrelationActivityHandler, AbstractActivityWorkStateType> {
+public class CorrelationSimulationActivityRun
+        extends SearchBasedActivityRun<ShadowType, CorrelationWorkDefinition, CorrelationSimulationActivityHandler, AbstractActivityWorkStateType> {
 
     private final CorrelationService correlationService;
     private final PrismContext prismContext;
     private CorrelationDefinitionType correlationDefinition;
+    private List<AdditionalCorrelationItemMappingType> additionalMappings;
 
-    public CorrelationActivityRun(
-            ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationActivityHandler> ctx,
+    public CorrelationSimulationActivityRun(
+            ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> ctx,
             CorrelationService correlationService, PrismContext prismContext) {
         super(ctx, "Correlation");
         this.correlationService = correlationService;
@@ -69,6 +70,7 @@ public class CorrelationActivityRun
                     OperationResultStatus.FATAL_ERROR, ActivityRunResultStatus.PERMANENT_ERROR);
         }
         this.correlationDefinition = getWorkDefinition().provideCorrelators(result);
+        this.additionalMappings = getWorkDefinition().getAdditionalCorrelationMappings();
         return true;
     }
 
@@ -78,7 +80,7 @@ public class CorrelationActivityRun
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(shadow,
-                this.correlationDefinition, task, result);
+                this.correlationDefinition, this.additionalMappings, task, result);
 
         final SimulationTransaction simulationTransaction = getSimulationTransaction();
         if (simulationTransaction != null) {

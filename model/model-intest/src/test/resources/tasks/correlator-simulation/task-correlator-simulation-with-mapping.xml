@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  ~
+  -->
+
+<task oid="c0caf95e-93ad-445c-bcf8-bc0a9fc7ddec"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+>
+
+    <name>Correlator Simulation with additional mapping</name>
+
+    <taskIdentifier>10000000-0000-0000-5656-56560000a206</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>runnable</executionState>
+
+    <activity>
+        <identifier>correlator-simulation</identifier>
+        <work>
+            <correlation>
+                <resourceObjects>
+                    <resourceRef oid="8582b8d8-7f29-4dbd-85f6-d674ca40df96" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+                <correlators>
+                    <inlineCorrelators>
+                        <correlators>
+                            <items>
+                                <name>by-personal-number</name>
+                                <description>Match using the personal number.</description>
+                                <item>
+                                    <ref>personalNumber</ref>
+                                </item>
+                            </items>
+                        </correlators>
+                    </inlineCorrelators>
+                    <additionalItemsMappings>
+                        <ref>ri:employeeNumber</ref>
+                        <inbound>
+                            <name>emp number to personal number</name>
+                            <target>
+                                <path>personalNumber</path>
+                            </target>
+                        </inbound>
+                    </additionalItemsMappings>
+                </correlators>
+            </correlation>
+        </work>
+        <execution>
+            <mode>preview</mode>
+        </execution>
+    </activity>
+</task>
