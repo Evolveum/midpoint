@@ -15,11 +15,15 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.TestConstants.SHADOW_FILE_BASENAME;
 import static org.testng.AssertJUnit.*;
@@ -29,6 +33,8 @@ import static org.testng.AssertJUnit.*;
  *
  */
 public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
+
+    private static final File SHADOW = new File(COMMON_DIR, "/json/ns/shadow.json");
 
     @Override
     protected File getFile() {
@@ -148,5 +154,48 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
                 fail("Wrong start of serialized value, was:\n" + serialized);
             }
         }
+    }
+
+    @Test
+    public void test500parseShadow() throws Exception {
+        PrismContext ctx = PrismTestUtil.getPrismContext();
+        ParsingContext pc = ctx.createParsingContextForCompatibilityMode();
+
+        PrismObject<ShadowType> shadow =
+                ctx.parserFor(
+                                new File("/Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/_bugs/MID-10944/shadow.json"))
+                        .context(pc).parse();
+
+        Assertions.assertThat(shadow).isNotNull();
+    }
+
+    /**
+     * Test for MID-10944
+     */
+    @Test
+    public void testParseShadow() throws Exception {
+        PrismContext ctx = PrismTestUtil.getPrismContext();
+        ParsingContext pc = ctx.createParsingContextForCompatibilityMode();
+
+        PrismObject<ShadowType> shadow =
+                ctx.parserFor(SHADOW)
+                        .context(pc).parse();
+
+        Assertions.assertThat(shadow).isNotNull();
+
+        ShadowAttributesType attributes = shadow.asObjectable().getAttributes();
+        Assertions.assertThat(attributes).isNotNull();
+
+        // noinspection unchecked
+        Collection<Item<?,?>> items = attributes.asPrismContainerValue().getItems();
+        Assertions.assertThat(items).hasSize(2);
+
+        List<QName> itemNames = items.stream()
+                .map(i -> i.getElementName().firstToQName())
+                .toList();
+
+        Assertions.assertThat(itemNames).containsExactlyInAnyOrder(
+                new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", "userName"),
+                new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", "id"));
     }
 }
