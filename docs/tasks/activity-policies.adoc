@@ -240,6 +240,13 @@ Activity policies are not supported in:
     ** Custom composite activities
 * Focus policy constraints currently cannot be used in activity policies.
 * User interface support is limited to XML configuration only.
+* Activity policies are not able to catch and evaluate and process following exceptions:
+** Exceptions thrown in connector implementation during search operation when executing the search query or creating connector object.
+** When shadow object is being initialized after connector object was returned from the connector.
++
+NOTE: Current architecture and ConnId Connector Framework API doesn't allow handling for these situations.
+Error handling happens outside of midPoint control, directly in ConnId framework and search operation is interrupted.
+Such exceptions are reported from ConnId as usual and can be seen in midPoint (GUI, task errors).
 
 == Examples
 
