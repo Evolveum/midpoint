@@ -156,19 +156,6 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
         }
     }
 
-    @Test
-    public void test500parseShadow() throws Exception {
-        PrismContext ctx = PrismTestUtil.getPrismContext();
-        ParsingContext pc = ctx.createParsingContextForCompatibilityMode();
-
-        PrismObject<ShadowType> shadow =
-                ctx.parserFor(
-                                new File("/Users/lazyman/Work/monoted/git/evolveum/midpoint/_mess/_bugs/MID-10944/shadow.json"))
-                        .context(pc).parse();
-
-        Assertions.assertThat(shadow).isNotNull();
-    }
-
     /**
      * Test for MID-10944
      */
