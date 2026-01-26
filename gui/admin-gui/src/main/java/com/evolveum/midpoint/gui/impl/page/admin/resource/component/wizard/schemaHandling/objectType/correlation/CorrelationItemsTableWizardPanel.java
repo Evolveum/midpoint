@@ -483,10 +483,10 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         buttons.add(simulationActionTaskButton);
     }
 
-    private @NotNull SimulationActionTaskButton<CorrelatorsDefinitionType> createSimulationMenuButton(
+    private @NotNull SimulationActionTaskButton<SimulatedCorrelatorsType> createSimulationMenuButton(
             @NotNull RepeatingView buttons) {
 
-        SimulationActionTaskButton<CorrelatorsDefinitionType> simulationActionTaskButton =
+        SimulationActionTaskButton<SimulatedCorrelatorsType> simulationActionTaskButton =
                 new SimulationActionTaskButton<>(buttons.newChildId(), this::getResourceObjectDefinition,
                         () -> getAssignmentHolderDetailsModel().getObjectType()) {
                     @Override
@@ -500,13 +500,13 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     }
 
                     @Override
-                    protected @NotNull ResourceTaskFlavor<CorrelatorsDefinitionType> getTaskFlavor() {
+                    protected @NotNull ResourceTaskFlavor<SimulatedCorrelatorsType> getTaskFlavor() {
                         return ResourceTaskFlavors.CORRELATION_PREVIEW_ACIVITY;
                     }
 
                     @Override
-                    protected CorrelatorsDefinitionType getWorkDefinitionConfiguration() {
-                        return new CorrelatorsDefinitionType()
+                    protected SimulatedCorrelatorsType getWorkDefinitionConfiguration() {
+                        return new SimulatedCorrelatorsType()
                                 .includeExistingCorrelators(true);
                     }
                 };

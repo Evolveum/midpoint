@@ -3,5 +3,5 @@
 # Search: given name
 # local confidences using default algorithms
 
-uid  | givenName | familyName | expCandidates | expResult   | _note
-1    | John      | Smith      | smith1:1.0    | smith1      | Exact match
+uid  | givenName | familyName | employeeNumber | expCandidates | expResult   | _note
+1    | John      | Smith      | 1234           | smith1:1.0    | smith1      | Exact match

@@ -1275,6 +1275,41 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="AdditionalCorrelationItemMapping">
+        <xsd:annotation>
+            <xsd:documentation>
+                Additional, not yet stored inbound mapping, which can be used in item correlators during correlation
+                simulation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.12</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item that this additional mapping uses. It must point to an attribute in the
+                        resource schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how the attribute values are used (assigned) in case of information flow from
+                        resource to IDM. It is meant to be used purely for correlation purposes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceItemDefinitionType.inbound</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="additionalCorrelationItemMapping" type="tns:AdditionalCorrelationItemMapping"/>
+
     <xsd:complexType name="MultiSourceItemDefinitionType">
         <xsd:annotation>
             <xsd:documentation>

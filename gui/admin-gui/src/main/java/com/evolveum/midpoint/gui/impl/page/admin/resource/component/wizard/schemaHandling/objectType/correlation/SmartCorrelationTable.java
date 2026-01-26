@@ -409,7 +409,7 @@ public abstract class SmartCorrelationTable
                                 getResourceType(),
                                 findResourceObjectTypeDefinition().getRealValue(),
                                 ResourceTaskFlavors.CORRELATION_PREVIEW_ACIVITY,
-                                new CorrelatorsDefinitionType()
+                                new SimulatedCorrelatorsType()
                                         .inlineCorrelators(correlationDefinition) //TODO add mappings from suggestions
                                         .includeExistingCorrelators(false),
                                 ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
