@@ -1473,22 +1473,31 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
      *
      * MID-10979
      */
-    @Test(enabled = false)
+    @Test (enabled = false)
     public void test970metadataImmutabilityAfterDuplicateAssignmentRequest() throws Exception {
         login(userAdministrator);
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
+        var userName = getTestNameShort();
 
-        when();
+        given("a user");
+        var userOid = UUID.randomUUID().toString();
+        var user = new UserType()
+                .oid(userOid)
+                .name(userName);
+        ObjectDelta<UserType> addUserDelta = user.asPrismObject().createAddDelta();
+        executeChanges(addUserDelta, null, task, result);
+
+        when("request for an assignment");
         ObjectDelta<UserType> delta = prismContext
                 .deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(new AssignmentType()
                         .targetRef(ROLE_BEING_ENABLED.oid, RoleType.COMPLEX_TYPE, null))
-                .asObjectDelta(USER_HOLDER_OF_ROLE_BEING_DISABLED.oid);
+                .asObjectDelta(userOid);
         executeChanges(delta, executeOptions().executeImmediatelyAfterApproval(), task, result);
 
-        then();
+        then("approval case is created");
         String ref = result.findAsynchronousOperationReference();
         assertNotNull("No async operation reference", ref);
         String rootCaseOid = OperationResult.referenceToCaseOid(ref);
@@ -1500,18 +1509,21 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         approveCase(openCase, task, result);
         waitForCaseClose(openCase);
 
-        UserType userWithAssignment = getUserFromRepo(USER_HOLDER_OF_ROLE_BEING_DISABLED.oid).asObjectable();
+        then("createTimestamp is written down into metadata");
+        UserType userWithAssignment = getUserFromRepo(userOid).asObjectable();
         AssignmentType assignment = findAssignmentByTargetRequired(userWithAssignment.asPrismObject(), ROLE_BEING_ENABLED.oid);
         XMLGregorianCalendar assignmentCreated1 = ValueMetadataTypeUtil.getCreateTimestamp(assignment);
 
         assertAssignmentMetadata(userWithAssignment.asPrismObject(), ROLE_BEING_ENABLED.oid, singleton(USER_ADMINISTRATOR_OID),
                 emptySet(), emptySet(), emptySet());
 
+        when("the same role is requested again");
         executeChanges(delta, executeOptions().executeImmediatelyAfterApproval(), task, result);
-        userWithAssignment = getUserFromRepo(USER_HOLDER_OF_ROLE_BEING_DISABLED.oid).asObjectable();
+        userWithAssignment = getUserFromRepo(userOid).asObjectable();
         assignment = findAssignmentByTargetRequired(userWithAssignment.asPrismObject(), ROLE_BEING_ENABLED.oid);
         XMLGregorianCalendar assignmentCreated2 = ValueMetadataTypeUtil.getCreateTimestamp(assignment);
-        //create timestamp should not be changed
+
+        then("createTimestamp should not be changed");
         assertEquals("The assignment create timestamp is changed though it shoudn't be.",
                 assignmentCreated1, assignmentCreated2);
     }
