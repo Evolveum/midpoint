@@ -1275,7 +1275,7 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="AdditionalCorrelationItemMapping">
+    <xsd:complexType name="AdditionalCorrelationItemMappingType">
         <xsd:annotation>
             <xsd:documentation>
                 Additional, not yet stored inbound mapping, which can be used in item correlators during correlation
@@ -1308,7 +1308,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="additionalCorrelationItemMapping" type="tns:AdditionalCorrelationItemMapping"/>
+    <xsd:element name="additionalCorrelationItemMapping" type="tns:AdditionalCorrelationItemMappingType"/>
 
     <xsd:complexType name="MultiSourceItemDefinitionType">
         <xsd:annotation>

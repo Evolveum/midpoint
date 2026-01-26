@@ -49,7 +49,7 @@ public class CorrelationSimulationActivityRun
     private final CorrelationService correlationService;
     private final PrismContext prismContext;
     private CorrelationDefinitionType correlationDefinition;
-    private List<AdditionalCorrelationItemMapping> additionalMappings;
+    private List<AdditionalCorrelationItemMappingType> additionalMappings;
 
     public CorrelationSimulationActivityRun(
             ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> ctx,
