@@ -469,6 +469,17 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionPolyStringEqualsStringNative() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-polystring-equals-string-native.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
     public void testExpressionStringMixBasicString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-mix-basic.xml",
@@ -545,7 +556,7 @@ public class TestCelExpressions extends AbstractScriptTest {
                         "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
                         "bar", PrismTestUtil.createPolyStringType("FooBar"), PolyStringType.COMPLEX_TYPE
                 ),
-                "true/false : true/false");
+                "true/false : true/false : true/false : true/false");
     }
 
     /**
@@ -559,7 +570,7 @@ public class TestCelExpressions extends AbstractScriptTest {
                         "foo", "Foo", PrimitiveType.STRING,
                         "bar", "FooBar", PrimitiveType.STRING
                 ),
-                "true/false : true/false");
+                "true/false : true/false : true/false : true/false");
     }
 
     @Test
@@ -870,7 +881,8 @@ public class TestCelExpressions extends AbstractScriptTest {
 
         } catch (ExpressionEvaluationException e) {
             // THEN
-            assertTrue("Unexpected exception message" + e.getMessage(), e.getMessage().contains("Unexpected input"));
+            displayValue("Exception", e);
+            assertTrue("Unexpected exception message" + e.getMessage(), e.getMessage().contains("token recognition error"));
         }
 
     }

@@ -22,6 +22,10 @@ import com.evolveum.midpoint.schema.expression.*;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
+import com.evolveum.midpoint.tools.testng.MidpointTestContext;
+
+import com.evolveum.midpoint.tools.testng.SimpleMidpointTestContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.testng.SkipException;
@@ -135,8 +139,12 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testExpressionStringVariablesParallel() throws Exception {
         // WHEN
 
+        MidpointTestContext testContext = getTestContext();
+
         ParallelTestThread[] threads = TestUtil.multithread(
                 (threadIndex) -> {
+
+                    SimpleMidpointTestContext.create(((SimpleMidpointTestContext)testContext).getTestResult());
 
                     String foo = "FOO" + threadIndex;
                     String bar = "BAR" + threadIndex;

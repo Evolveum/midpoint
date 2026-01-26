@@ -9,6 +9,9 @@
     <description>Mix of string functions, mostly using CEL-native functions</description>
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#CEL</language>
     <code>
-        string(bar.contains('a')) + '/' + string(bar.contains('x')) + ' : ' + string(bar.matches('F.*B')) + '/' + string(bar.matches('X.*Y'))
+        string(bar.contains('a')) + '/' + string(bar.contains('x')) + ' : ' +
+        string(bar.matches('F.*B')) + '/' + string(bar.matches('X.*Y')) + ' : ' +
+        string(bar.startsWith('F')) + '/' + string(bar.startsWith('X')) + ' : ' +
+        string(bar.endsWith('r')) + '/' + string(bar.endsWith('Z'))
     </code>
 </script>
