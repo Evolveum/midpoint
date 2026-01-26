@@ -92,13 +92,16 @@ public class CelTypeMapper {
         addJavaMapping(SimpleType.DURATION, Duration.class, true);
         addJavaMapping(SimpleType.DYN, Object.class, true);
         addJavaMapping(SimpleType.NULL_TYPE, void.class, true);
+
+        addJavaMapping(ContainerValueCelValue.CEL_TYPE, Containerable.class, true);
+        addJavaMapping(ObjectCelValue.CEL_TYPE, Objectable.class, true);
+
         // TODO: temporary
         addJavaMapping(SimpleType.DYN, PrismContext.class, false);
         addJavaMapping(SimpleType.DYN, ProtectedStringType.class, false);
         addJavaMapping(SimpleType.DYN, Collection.class, false);
         addJavaMapping(SimpleType.DYN, Map.class, false);
         addJavaMapping(SimpleType.DYN, Referencable.class, false);
-        addJavaMapping(SimpleType.DYN, Containerable.class, false);
         addJavaMapping(SimpleType.DYN, ByteBuffer.class, false);
         addJavaMapping(SimpleType.DYN, Class.class, false);
         addJavaMapping(SimpleType.DYN, ItemPathType.class, false);
@@ -122,8 +125,6 @@ public class CelTypeMapper {
         addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyString.class, true);
         addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyStringType.class, false);
         addJavaMapping(QNameCelValue.CEL_TYPE, QName.class, true);
-
-//        addXsdToCelMapping(DOMUtil.XSD_ANYURI, String.class);
     }
 
 
@@ -201,7 +202,10 @@ public class CelTypeMapper {
                 return CelTypeMapper.toCelType(propDef.getTypeName());
             } else if (def instanceof PrismObjectDefinition<?>) {
                 // TODO: something more sophisticated? Maybe handled by TypeMapper?
-                return SimpleType.DYN;
+                return ObjectCelValue.CEL_TYPE;
+            } else if (def instanceof PrismContainerDefinition<?>) {
+                // TODO: something more sophisticated? Maybe handled by TypeMapper?
+                return ContainerValueCelValue.CEL_TYPE;
             }
             throw new NotImplementedException("Cannot convert "+def+" to CEL");
         }
@@ -267,6 +271,9 @@ public class CelTypeMapper {
     @Nullable
     public static Object toJavaValue(@Nullable  CelValue celValue) {
         if (celValue == null) {
+            return null;
+        }
+        if (celValue == NullValue.NULL_VALUE) {
             return null;
         }
         if (celValue instanceof MidPointCelValue<?> mpCelValue) {

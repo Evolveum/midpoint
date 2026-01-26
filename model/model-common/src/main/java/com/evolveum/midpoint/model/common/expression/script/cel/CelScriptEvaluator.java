@@ -10,6 +10,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.cel.extension.CelPolyStringExtensions;
+import com.evolveum.midpoint.model.common.expression.script.cel.extension.CelPrismItemsExtensions;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -126,7 +127,8 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
                 CelExtensions.regex(),
                 CelExtensions.comprehensions(),
                 CelExtensions.optional(),
-                CelPolyStringExtensions.library(celOptions).latest());
+                CelPolyStringExtensions.library(celOptions).latest(),
+                CelPrismItemsExtensions.library().latest());
         PolyStringCelValue.addCompilerDeclarations(builder, context);
         // TODO: Further compiler config
         new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
@@ -197,7 +199,8 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
                 CelExtensions.regex(),
                 CelExtensions.comprehensions(),
                 CelExtensions.optional(),
-                CelPolyStringExtensions.library(celOptions).latest());
+                CelPolyStringExtensions.library(celOptions).latest(),
+                CelPrismItemsExtensions.library().latest());
         new CelFunctionLibraryMapper(context).runtimeAddFunctionLibraryDeclarations(builder);
         PolyStringCelValue.addRuntimeDeclarations(builder, context);
         return builder.build();

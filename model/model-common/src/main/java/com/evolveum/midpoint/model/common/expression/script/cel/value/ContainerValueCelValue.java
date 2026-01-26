@@ -6,12 +6,14 @@
 package com.evolveum.midpoint.model.common.expression.script.cel.value;
 
 import com.evolveum.midpoint.model.common.expression.script.cel.CelTypeMapper;
+import com.evolveum.midpoint.model.common.expression.script.cel.DynType;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelValue;
@@ -29,7 +31,8 @@ import java.util.stream.Collectors;
  */
 public class ContainerValueCelValue<C extends Containerable> extends CelValue implements Map<String,Object> {
 
-    public static final CelType CEL_TYPE = SimpleType.DYN;
+    public static final String CEL_TYPE_NAME = PrismContainerValue.class.getName();
+    public static final CelType CEL_TYPE = new DynType(CEL_TYPE_NAME);
 
     private final PrismContainerValue<C> containerValue;
 

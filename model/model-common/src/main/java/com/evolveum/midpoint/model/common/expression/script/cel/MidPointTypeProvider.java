@@ -5,6 +5,8 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.cel;
 
+import com.evolveum.midpoint.model.common.expression.script.cel.value.ContainerValueCelValue;
+import com.evolveum.midpoint.model.common.expression.script.cel.value.ObjectCelValue;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.ObjectReferenceCelValue;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -27,7 +29,9 @@ public class MidPointTypeProvider implements CelTypeProvider {
         this.prismContext = prismContext;
         types = ImmutableList.of(
                 PolyStringCelValue.CEL_TYPE,
-                ObjectReferenceCelValue.CEL_TYPE
+                ObjectReferenceCelValue.CEL_TYPE,
+                ObjectCelValue.CEL_TYPE,
+                ContainerValueCelValue.CEL_TYPE
         );
     }
 

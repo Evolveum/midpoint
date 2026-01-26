@@ -7,13 +7,20 @@
 package com.evolveum.midpoint.model.common.expression.script.cel;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.script.cel.value.ContainerValueCelValue;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import dev.cel.common.types.CelType;
 import dev.cel.common.values.CelValue;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
 public class CelBasicExpressionFunctions {
@@ -83,4 +90,20 @@ public class CelBasicExpressionFunctions {
         LOGGER.info("SSSSSS: stringify {}", whatever);
         return implementation.stringify(whatever);
     }
+
+    public <T> @NotNull Collection<T> getExtensionPropertyValues(
+            Containerable containerable, String namespace, @NotNull String localPart) {
+        return implementation.getExtensionPropertyValues(containerable, namespace, localPart);
+    }
+
+//    public <T> @NotNull Collection<T> getExtensionPropertyValues(
+//            ContainerValueCelValue containerCelValue, @NotNull groovy.namespace.QName propertyQname) {
+////        TODO
+//    }
+
+    public <T> @Nullable T getExtensionPropertyValue(
+            Containerable containerable, String namespace, @NotNull String localPart) throws SchemaException {
+        return implementation.getExtensionPropertyValue(containerable, namespace, localPart);
+    }
+
 }

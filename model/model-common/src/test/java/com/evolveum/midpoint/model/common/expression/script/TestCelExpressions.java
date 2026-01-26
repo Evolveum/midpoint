@@ -49,6 +49,15 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testUserExtensionShipBasicFunc() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-extension-ship-basic-func.xml",
+                createUserScriptVariables(),
+                "Black Pearl");
+    }
+
+
+    @Test
     public void testExpressionPolyStringEquals101() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",

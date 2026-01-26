@@ -360,7 +360,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
         List<PrismPropertyValue<T>> resultValues = scriptExpression.evaluate(context);
         for (PrismPropertyValue<T> resultVal : resultValues) {
-            if (resultVal.getParent() != null) {
+            if (resultVal != null && resultVal.getParent() != null) {
                 AssertJUnit.fail("Result value " + resultVal + " from expression " + scriptExpression + " has parent");
             }
         }
