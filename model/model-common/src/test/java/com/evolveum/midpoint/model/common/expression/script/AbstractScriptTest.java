@@ -95,7 +95,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
         localizationService = LocalizationTestUtil.getLocalizationService();
-        evaluator = createEvaluator(prismContext, protector);
+        evaluator = createEvaluator(prismContext, protector, clock);
         if (!evaluator.isInitialized()) {
             display("Script engine for " + evaluator.getLanguageName() + " missing, skipping the tests.");
             throw new SkipException("Script engine not available");
@@ -106,7 +106,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         scriptExpressionfactory.registerEvaluator(evaluator);
     }
 
-    protected abstract ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector);
+    protected abstract ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock);
 
     protected abstract File getTestDir();
 
@@ -279,14 +279,21 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
     protected VariablesMap createUserScriptVariables() {
         return createVariables(
+                // Deprecated
                 ExpressionConstants.VAR_USER,
                 MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
                 // We want 'user' variable to contain user object, not the reference. We want the reference resolved.
                 prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class),
+
                 ExpressionConstants.VAR_FOCUS,
                 MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
-                // We want 'user' variable to contain user object, not the reference. We want the reference resolved.
-                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class));
+                // We want 'focus' variable to contain user object, not the reference. We want the reference resolved.
+                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class),
+
+                ExpressionConstants.VAR_ITERATION_TOKEN,
+                "",
+                PrimitiveType.STRING
+        );
     }
 
     // TODO: shadow + attributes

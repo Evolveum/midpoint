@@ -307,7 +307,12 @@ public class BasicExpressionFunctions {
         return norm(polyString);
     }
 
+    @Deprecated // use ascii() instead
     public String toAscii(Object input) {
+        return ascii(input);
+    }
+
+    public String ascii(Object input) {
         if (input == null) {
             return null;
         }

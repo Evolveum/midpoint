@@ -6,8 +6,9 @@
   -->
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <description>Mix of string functions, mostly using CEL-native functions</description>
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#CEL</language>
     <code>
-        foo.norm() == 'foo'
+        ascii(foo)
     </code>
 </script>

@@ -9,6 +9,10 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.cel.CelScriptEvaluator;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -39,13 +43,22 @@ import static org.testng.AssertJUnit.*;
 public class TestCelExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
-        return new CelScriptEvaluator(prismContext, protector, localizationService);
+    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
+        FunctionLibraryBinding basicFunctionLibraryBinding = FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock);
+        return new CelScriptEvaluator(prismContext, protector, localizationService, (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation());
     }
 
     @Override
     protected File getTestDir() {
         return new File(BASE_TEST_DIR, "cel");
+    }
+
+    @Test
+    public void testUserGivenNameMap() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-given-name-map.xml",
+                createUserScriptVariables(),
+                "Jack");
     }
 
     @Test
@@ -258,28 +271,6 @@ public class TestCelExpressions extends AbstractScriptTest {
 
 
     @Test
-    public void testExpressionPolyStringEqualsOrigFuncTrue() throws Exception {
-        evaluateAndAssertBooleanScalarExpression(
-                "expression-polystring-equals-orig-func.xml",
-                createVariables(
-                        "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
-                        "bar", "BAR", PrimitiveType.STRING
-                ),
-                Boolean.TRUE);
-    }
-
-    @Test
-    public void testExpressionPolyStringEqualsOrigFuncFalse() throws Exception {
-        evaluateAndAssertBooleanScalarExpression(
-                "expression-polystring-equals-orig-func.xml",
-                createVariables(
-                        "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
-                        "bar", "BAR", PrimitiveType.STRING
-                ),
-                Boolean.FALSE);
-    }
-
-    @Test
     public void testExpressionPolyStringEqualsOrigFieldTrue() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-orig-field.xml",
@@ -316,28 +307,6 @@ public class TestCelExpressions extends AbstractScriptTest {
     public void testExpressionPolyStringEqualsNormFieldFalse() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-norm-field.xml",
-                createVariables(
-                        "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
-                        "bar", "BAR", PrimitiveType.STRING
-                ),
-                Boolean.FALSE);
-    }
-
-    @Test
-    public void testExpressionPolyStringEqualsNormFuncTrue() throws Exception {
-        evaluateAndAssertBooleanScalarExpression(
-                "expression-polystring-equals-norm-func.xml",
-                createVariables(
-                        "foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
-                        "bar", "BAR", PrimitiveType.STRING
-                ),
-                Boolean.TRUE);
-    }
-
-    @Test
-    public void testExpressionPolyStringEqualsNormFuncFalse() throws Exception {
-        evaluateAndAssertBooleanScalarExpression(
-                "expression-polystring-equals-norm-func.xml",
                 createVariables(
                         "foo", PrismTestUtil.createPolyString("FOOBAR"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -489,6 +458,53 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionStringNormPolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-norm.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType(" FoôBÁR"), PolyStringType.COMPLEX_TYPE
+                ),
+                "foobar");
+    }
+
+    /**
+     * Control test, making sure stock CEL interprets the expression in the same way using plain strings.
+     */
+    @Test
+    public void testExpressionStringNormString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-norm.xml",
+                createVariables(
+                        "foo", " FoôBÁR", PrimitiveType.STRING
+                ),
+                "foobar");
+    }
+
+    @Test
+    public void testExpressionStringAsciiPolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-ascii.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType(" FoôBÁR"), PolyStringType.COMPLEX_TYPE
+                ),
+                " FooBAR");
+    }
+
+    /**
+     * Control test, making sure stock CEL interprets the expression in the same way using plain strings.
+     */
+    @Test
+    public void testExpressionStringAsciiString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-ascii.xml",
+                createVariables(
+                        "foo", " FoôBÁR", PrimitiveType.STRING
+                ),
+                " FooBAR");
+    }
+
+
+    @Test
     public void testExpressionStringMixBasicString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-mix-basic.xml",
@@ -583,6 +599,31 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionStringContainsPolyString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-contains.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", PrismTestUtil.createPolyStringType("FooBar"), PolyStringType.COMPLEX_TYPE
+                ),
+                "true/false : false/false : true/false : true/false");
+    }
+
+    /**
+     * Control test, making sure stock CEL interprets the expression in the same way using plain strings.
+     */
+    @Test
+    public void testExpressionStringContainsString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-contains.xml",
+                createVariables(
+                        "foo", "Foo", PrimitiveType.STRING,
+                        "bar", "FooBar", PrimitiveType.STRING
+                ),
+                "true/false : false/false : true/false : true/false");
+    }
+
+    @Test
     public void testExpressionStringSplit() throws Exception {
         evaluateAndAssertStringListExpression(
                 "expression-string-split.xml",
@@ -659,6 +700,14 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testUsername() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-username.xml",
+                createUserScriptVariables(),
+                "jsparrow");
+    }
+
+    @Test
     public void testUserAssignmentFirst() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-assignment-first.xml",
@@ -708,6 +757,15 @@ public class TestCelExpressions extends AbstractScriptTest {
                 createUserScriptVariables(),
                 "Second focus mapping");
     }
+
+    @Test
+    public void testUserAssignmentTargetRefOids() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-user-assignment-targetref-oids.xml",
+                createUserScriptVariables(),
+                "c0c010c0-d34d-b33f-f00d-001111111112", "c0c010c0-d34d-b33f-f00d-001111111111");
+    }
+
 
     @Test
     public void testUserLinkRefFirstOid() throws Exception {

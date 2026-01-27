@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.common.expression.script;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -18,7 +19,7 @@ import java.io.File;
 public class TestJavaScriptExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
+    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
         return new Jsr223ScriptEvaluator("JavaScript", prismContext, protector, localizationService);
     }
 

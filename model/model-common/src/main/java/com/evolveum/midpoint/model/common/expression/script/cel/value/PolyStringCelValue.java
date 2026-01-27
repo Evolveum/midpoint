@@ -160,57 +160,6 @@ public class PolyStringCelValue extends MidPointCelValue<PolyString> implements 
         return StructType.create(POLYSTRING_PACKAGE_NAME, fieldNames, fieldResolver);
     }
 
-    public static void addCompilerDeclarations(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) {
-        // TODO: remove
-        builder.addFunctionDeclarations(
-                CelFunctionDecl.newFunctionDeclaration(
-                        FUNCTION_POLYSTRING_ORIG_NAME,
-                        CelOverloadDecl.newMemberOverload(
-                                FUNCTION_POLYSTRING_ORIG_ID,
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE
-                        )
-                ),
-                CelFunctionDecl.newFunctionDeclaration(
-                        FUNCTION_POLYSTRING_NORM_NAME,
-                        CelOverloadDecl.newMemberOverload(
-                                FUNCTION_POLYSTRING_NORM_ID,
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE
-                        )
-                )
-        );
-    }
-
-    public static void addRuntimeDeclarations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) {
-        builder.addFunctionBindings(
-                CelFunctionBinding.from(
-                        FUNCTION_POLYSTRING_ORIG_ID,
-                        PolyStringCelValue.class,
-                        PolyStringCelValue::funcPolystringOrig
-                ),
-                CelFunctionBinding.from(
-                        FUNCTION_POLYSTRING_NORM_ID,
-                        PolyStringCelValue.class,
-                        PolyStringCelValue::funcPolystringNorm
-                )
-        );
-    }
-
-    public static String funcPolystringOrig(PolyStringCelValue polystringValue) {
-        if (polystringValue == null || polystringValue.value() == null) {
-            return null;
-        }
-        return polystringValue.getOrig();
-    }
-
-    public static String funcPolystringNorm(PolyStringCelValue polystringValue) {
-        if (polystringValue == null || polystringValue.value() == null) {
-            return null;
-        }
-        return polystringValue.getNorm();
-    }
-
 
 }
 

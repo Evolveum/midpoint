@@ -8,6 +8,6 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#CEL</language>
     <code>
-        'FOO' == stringify(foo)
+        focus.givenName.norm.substring(0,1) + focus.familyName.norm.substring(0,7) + iterationToken
     </code>
 </script>

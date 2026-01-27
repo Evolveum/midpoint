@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.common.expression.script;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -25,7 +26,7 @@ import java.io.File;
 public class TestVelocityExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
+    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
         return new VelocityScriptEvaluator(prismContext, protector, localizationService);
     }
 

@@ -11,6 +11,8 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
+import com.evolveum.midpoint.common.Clock;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -30,7 +32,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
+    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
         return new GroovyScriptEvaluator(prismContext, protector, localizationService);
     }
 

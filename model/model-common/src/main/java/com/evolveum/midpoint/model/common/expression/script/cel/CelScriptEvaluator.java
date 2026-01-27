@@ -7,10 +7,13 @@
 package com.evolveum.midpoint.model.common.expression.script.cel;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.cel.extension.CelMelExtensions;
 import com.evolveum.midpoint.model.common.expression.script.cel.extension.CelPolyStringExtensions;
 import com.evolveum.midpoint.model.common.expression.script.cel.extension.CelPrismItemsExtensions;
+import com.evolveum.midpoint.model.common.expression.script.cel.extension.MidPointCelExtensionManager;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -58,11 +61,16 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
 
     private CelTypeProvider typeProvider = null;
 
-    /** Called by Spring but also by lower-level tests */
-    public CelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
-        super(prismContext, protector, localizationService);
+    private final BasicExpressionFunctions basicExpressionFunctions;
+    private final MidPointCelExtensionManager midPointCelExtensionManager;
 
-        // No initialization here. Compilers/interpreters are initialized on demand.
+    /** Called by Spring but also by lower-level tests */
+    public CelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService, BasicExpressionFunctions basicExpressionFunctions) {
+        super(prismContext, protector, localizationService);
+        this.basicExpressionFunctions = basicExpressionFunctions;
+        midPointCelExtensionManager = new MidPointCelExtensionManager(basicExpressionFunctions, celOptions);
+
+        // No compiler/interpreter initialization here. Compilers/interpreters are initialized on demand.
     }
 
     @Override
@@ -115,7 +123,8 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
     private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         CelCompilerBuilder builder = CelCompilerFactory.standardCelCompilerBuilder();
         builder.setOptions(celOptions);
-        builder.setStandardMacros(CelStandardMacro.HAS);
+        builder.setStandardMacros(CelStandardMacro.STANDARD_MACROS);
+//        builder.setStandardMacros(CelStandardMacro.HAS);
         builder.setTypeProvider(getTypeProvider());
         builder.addLibraries(
                 CelExtensions.strings(),
@@ -127,11 +136,11 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
                 CelExtensions.regex(),
                 CelExtensions.comprehensions(),
                 CelExtensions.optional(),
-                CelPolyStringExtensions.library(celOptions).latest(),
+                midPointCelExtensionManager.celMel(),
+                midPointCelExtensionManager.polystring(),
                 CelPrismItemsExtensions.library().latest());
-        PolyStringCelValue.addCompilerDeclarations(builder, context);
         // TODO: Further compiler config
-        new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
+//        new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
         for (var varEntry : prepareScriptVariablesTypedValueMap(context).entrySet()) {
             builder.addVar(varEntry.getKey(), CelTypeMapper.toCelType(varEntry.getValue()));
         }
@@ -199,10 +208,10 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
                 CelExtensions.regex(),
                 CelExtensions.comprehensions(),
                 CelExtensions.optional(),
-                CelPolyStringExtensions.library(celOptions).latest(),
+                midPointCelExtensionManager.celMel(),
+                midPointCelExtensionManager.polystring(),
                 CelPrismItemsExtensions.library().latest());
-        new CelFunctionLibraryMapper(context).runtimeAddFunctionLibraryDeclarations(builder);
-        PolyStringCelValue.addRuntimeDeclarations(builder, context);
+//        new CelFunctionLibraryMapper(context).runtimeAddFunctionLibraryDeclarations(builder);
         return builder.build();
     }
 

@@ -5,6 +5,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.cel.extension;
 
+import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
 
 import com.google.common.base.Ascii;
@@ -48,393 +49,397 @@ import static java.lang.Math.min;
 public class CelPolyStringExtensions
         implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet{
 
-    public enum Function {
-
-        STRING_EQUALS_POLYSTRING(
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.EQUALS.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                "string-equals-polystring",
-                                "Equality operator string = polystring",
-                                SimpleType.BOOL,
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE)),
-                CelFunctionBinding.from("string-equals-polystring", String.class, PolyStringCelValue.class,
-                        CelPolyStringExtensions::stringEqualsPolyString)
-        ),
-
-        POLYSTRING_EQUALS_STRING(
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.EQUALS.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                "polystring-equals-string",
-                                "Equality operator polystring = string",
-                                SimpleType.BOOL,
-                                PolyStringCelValue.CEL_TYPE,
-                                SimpleType.STRING)),
-                CelFunctionBinding.from("polystring-equals-string", PolyStringCelValue.class, String.class,
-                        (polystring, string) -> stringEqualsPolyString(string,polystring))
-        ),
-
-        STRING_ADD_POLYSTRING(
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.ADD.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                "string-add-polystring",
-                                "String concatenation of string and polystring",
-                                SimpleType.STRING,
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE)),
-                CelFunctionBinding.from("string-add-polystring", String.class, PolyStringCelValue.class,
-                        CelPolyStringExtensions::stringAddPolyString)
-        ),
-
-        POLYSTRING_ADD_STRING(
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.ADD.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                "polystring-add-string",
-                                "String concatenation of polystring and string",
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE,
-                                SimpleType.STRING)),
-                CelFunctionBinding.from("polystring-add-string", PolyStringCelValue.class, String.class,
-                        CelPolyStringExtensions::polystringAddString)
-        ),
-
-        POLYSTRING_ADD_POLYSTRING(
-                CelFunctionDecl.newFunctionDeclaration(
-                        Operator.ADD.getFunction(),
-                        CelOverloadDecl.newGlobalOverload(
-                                "polystring-add-polystring",
-                                "String concatenation of polystring and polystring",
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE,
-                                PolyStringCelValue.CEL_TYPE)),
-                CelFunctionBinding.from("polystring-add-polystring", PolyStringCelValue.class, PolyStringCelValue.class,
-                        CelPolyStringExtensions::polystringAddPolystring)
-        ),
-
-        CHAR_AT(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "charAt",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_char_at_int",
-                                "Returns the character at the given position of polystring orig value."
-                                        + " If the position is negative, or"
-                                        + " greater than the length of the string, the function will produce an error.",
-                                SimpleType.STRING,
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.INT))),
-                CelFunctionBinding.from(
-                        "polystring_char_at_int", PolyStringCelValue.class, Long.class,
-                        CelPolyStringExtensions::charAt)),
-
-        CONTAINS(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "contains",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_contains",
-                                "Returns true if orig part of polystring contains specified string.",
-                                SimpleType.BOOL,
-                                PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
-                CelFunctionBinding.from(
-                        "polystring_contains", PolyStringCelValue.class, String.class,
-                        (polystring, s) -> polystring.getOrig().contains(s))),
-
-        ENDS_WITH(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "endsWith",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_endswith",
-                                "Returns true if orig part of polystring ends with specified string.",
-                                SimpleType.BOOL,
-                                PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
-                CelFunctionBinding.from(
-                        "polystring_endswith", PolyStringCelValue.class, String.class,
-                        (polystring, s) -> polystring.getOrig().endsWith(s))),
-
-        INDEX_OF(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "indexOf",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_index_of_string",
-                                "Returns the integer index of the first occurrence of the search string of orig value of polystring."
-                                        + " If the"
-                                        + " search string is not found the function returns -1.",
-                                SimpleType.INT,
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_index_of_string_int",
-                                "Returns the integer index of the first occurrence of the search string of orig value of polystring from the"
-                                        + " given offset. If the search string is not found the function returns"
-                                        + " -1. If the substring is the empty string, the index where the search starts"
-                                        + " is returned (zero or custom).",
-                                SimpleType.INT,
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.INT))),
-                setOf(
-                    CelFunctionBinding.from(
-                            "polystring_index_of_string", PolyStringCelValue.class, String.class, CelPolyStringExtensions::indexOf),
-                    CelFunctionBinding.from(
-                            "polystring_index_of_string_int",
-                            ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
-                            CelPolyStringExtensions::indexOf))),
-
-        // TODO: JOIN? Does it make sense?
-
-        LAST_INDEX_OF(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "lastIndexOf",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_last_index_of_string",
-                                "Returns the integer index of the last occurrence of the search string in orig part of polystring. "
-                                        + "If the"
-                                        + " search string is not found the function returns -1.",
-                                SimpleType.INT,
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_last_index_of_string_int",
-                                "Returns the integer index of the last occurrence of the search string in orig part of polystring from the"
-                                        + " given offset. If the search string is not found the function returns -1. If"
-                                        + " the substring is the empty string, the index where the search starts is"
-                                        + " returned (string length or custom).",
-                                SimpleType.INT,
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.INT))),
-                setOf(
-                    CelFunctionBinding.from(
-                            "polystring_last_index_of_string",
-                            PolyStringCelValue.class,
-                            String.class,
-                            CelPolyStringExtensions::lastIndexOf),
-                    CelFunctionBinding.from(
-                            "polystring_last_index_of_string_int",
-                            ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
-                            CelPolyStringExtensions::lastIndexOf))),
-
-        LOWER_ASCII(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "lowerAscii",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_lower_ascii",
-                                "Returns a new string where all ASCII characters of orig represantation of polystring are lower-cased."
-                                        + " This function does not perform Unicode case-mapping for characters outside the ASCII"
-                                        + " range.",
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE)),
-                CelFunctionBinding.from("polystring_lower_ascii", PolyStringCelValue.class,
-                        polystring -> Ascii.toLowerCase(polystring.getOrig()))
-        ),
-
-        MATCHES(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "matches",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_matches",
-                                "Returns true if orig part of polystring matches the specified RE2 regular expression",
-                                SimpleType.BOOL,
-                                PolyStringCelValue.CEL_TYPE, SimpleType.STRING),
-                        CelOverloadDecl.newGlobalOverload(
-                                "polystring_matches",
-                                "Returns size of the orig part of polystring.",
-                                SimpleType.BOOL,
-                                PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
-                setOf(),
-                CelFunctionBinding.from(
-                        "polystring_matches", PolyStringCelValue.class, String.class,
-                        (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s,
-                                CelOptions.current().enableRegexPartialMatch(true).build())),
-                CelFunctionBinding.from(
-                        "polystring_matches", PolyStringCelValue.class, String.class,
-                        (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s,
-                                CelOptions.current().enableRegexPartialMatch(false).build()))
-                ),
-
-        REPLACE(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "replace",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_replace_string_string",
-                                "Returns a new string based on the target, which replaces the occurrences of a"
-                                        + " search string with a replacement string in orig represantation of polystring if present.",
-                                SimpleType.STRING,
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING)),
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_replace_string_string_int",
-                                "Returns a new string based on the target, which replaces the occurrences of a"
-                                        + " search string with a replacement string in orig represantation of polystring if present. The function accepts a"
-                                        + " limit on the number of substring replacements to be made. When the"
-                                        + " replacement limit is 0, the result is the original string. When the limit"
-                                        + " is a negative number, the function behaves the same as replace all.",
-                                SimpleType.STRING,
-                                ImmutableList.of(
-                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING, SimpleType.INT))),
-                setOf(
-                        CelFunctionBinding.from(
-                        "polystring_replace_string_string",
-                        ImmutableList.of(PolyStringCelValue.class, String.class, String.class),
-                        CelPolyStringExtensions::replaceAll),
-                CelFunctionBinding.from(
-                        "polystring_replace_string_string_int",
-                        ImmutableList.of(PolyStringCelValue.class, String.class, String.class, Long.class),
-                        CelPolyStringExtensions::replace))),
-
-        SIZE(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "size",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_size",
-                                "Returns size of the orig part of polystring.",
-                                SimpleType.INT,
-                                PolyStringCelValue.CEL_TYPE),
-                        CelOverloadDecl.newGlobalOverload(
-                                "polystring_size",
-                                "Returns size of the orig part of polystring.",
-                                SimpleType.INT,
-                                PolyStringCelValue.CEL_TYPE)),
-                CelFunctionBinding.from(
-                        "polystring_size",
-                        PolyStringCelValue.class,
-                        polystring -> ((Integer)polystring.getOrig().length()).longValue())),
-
-        SPLIT(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "split",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_split_string",
-                                "Returns a mutable list of strings split from the orig part of input by the given separator.",
-                                ListType.create(SimpleType.STRING),
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_split_string_int",
-                                "Returns a mutable list of strings split from the orig part of input by the given separator with"
-                                        + " the specified limit on the number of substrings produced by the split.",
-                                ListType.create(SimpleType.STRING),
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.INT))),
-                setOf(
-                    CelFunctionBinding.from(
-                            "polystring_split_string", PolyStringCelValue.class, String.class,
-                            CelPolyStringExtensions::split),
-                    CelFunctionBinding.from(
-                            "polystring_split_string_int",
-                            ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
-                            CelPolyStringExtensions::split))),
-
-        STARTS_WITH(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "startsWith",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_startswith",
-                                "Returns true if orig part of polystring starts with specified string.",
-                                SimpleType.BOOL,
-                                PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
-                CelFunctionBinding.from(
-                        "polystring_startswith", PolyStringCelValue.class, String.class,
-                        (polystring, s) -> polystring.getOrig().startsWith(s))),
-
-        SUBSTRING(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "substring",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_substring_int",
-                                "returns a string that is a substring of orig part of this polystring. The substring begins with the"
-                                        + " character at the specified index and extends to the end of this string.",
-                                SimpleType.STRING,
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.INT)),
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_substring_int_int",
-                                "returns a string that is a substring of orig part of this polystring. The substring begins at the"
-                                        + " specified beginIndex and extends to the character at index endIndex - 1."
-                                        + " Thus the length of the substring is {@code endIndex-beginIndex}.",
-                                SimpleType.STRING,
-                                ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.INT, SimpleType.INT))),
-                setOf(
-                    CelFunctionBinding.from(
-                            "polystring_substring_int", PolyStringCelValue.class, Long.class,
-                            CelPolyStringExtensions::substring),
-                    CelFunctionBinding.from(
-                            "polystring_substring_int_int",
-                            ImmutableList.of(PolyStringCelValue.class, Long.class, Long.class),
-                            CelPolyStringExtensions::substring))),
-
-        TRIM(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "trim",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_trim",
-                                "Returns a new string which removes the leading and trailing whitespace in the"
-                                        + " orig part of target polystring. The trim function uses the Unicode definition of whitespace"
-                                        + " which does not include the zero-width spaces. ",
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE)),
-                CelFunctionBinding.from("polystring_trim", PolyStringCelValue.class,
-                        CelPolyStringExtensions::trim)),
-
-        UPPER_ASCII(
-                CelFunctionDecl.newFunctionDeclaration(
-                        "upperAscii",
-                        CelOverloadDecl.newMemberOverload(
-                                "polystring_upper_ascii",
-                                "Returns a new string where all ASCII characters of orig represantation of polystring are upper-cased."
-                                        + " This function does not perform Unicode case-mapping for characters outside the ASCII"
-                                        + " range.",
-                                SimpleType.STRING,
-                                PolyStringCelValue.CEL_TYPE)),
-                CelFunctionBinding.from("polystring_upper_ascii", PolyStringCelValue.class,
-                        polystring -> Ascii.toUpperCase(polystring.getOrig()))
-        );
+    public class Function {
 
         private final CelFunctionDecl functionDecl;
         private final ImmutableSet<CelFunctionBinding> commonFunctionBindings;
-        private final CelFunctionBinding regexPartialMatchEnabledFunctionBinding;
-        private final CelFunctionBinding regexPartialMatchDisabledFunctionBinding;
 
         String getFunction() {
             return functionDecl.name();
         }
 
-        Function(CelFunctionDecl functionDecl, CelFunctionBinding commonFunctionBinding) {
+        Function(CelFunctionDecl functionDecl, CelFunctionBinding... commonFunctionBindings) {
             this.functionDecl = functionDecl;
-            this.commonFunctionBindings = ImmutableSet.of(commonFunctionBinding);
-            regexPartialMatchEnabledFunctionBinding = null;
-            regexPartialMatchDisabledFunctionBinding = null;
-        }
-
-        Function(CelFunctionDecl functionDecl, ImmutableSet<CelFunctionBinding> commonFunctionBindings) {
-            this.functionDecl = functionDecl;
-            this.commonFunctionBindings = commonFunctionBindings;
-            regexPartialMatchEnabledFunctionBinding = null;
-            regexPartialMatchDisabledFunctionBinding = null;
-        }
-
-        Function(CelFunctionDecl functionDecl, ImmutableSet<CelFunctionBinding> commonFunctionBindings,
-                CelFunctionBinding regexPartialMatchEnabledFunctionBinding, CelFunctionBinding regexPartialMatchDisabledFunctionBinding) {
-            this.functionDecl = functionDecl;
-            this.commonFunctionBindings = commonFunctionBindings;
-            this.regexPartialMatchEnabledFunctionBinding = regexPartialMatchEnabledFunctionBinding;
-            this.regexPartialMatchDisabledFunctionBinding = regexPartialMatchDisabledFunctionBinding;
-        }
-
-        private static ImmutableSet<CelFunctionBinding> setOf(CelFunctionBinding... functionBindings) {
-            return ImmutableSet.copyOf(functionBindings);
+            this.commonFunctionBindings = ImmutableSet.copyOf(commonFunctionBindings);
         }
     };
 
+    private final CelOptions celOptions;
+    private final BasicExpressionFunctions basicExpressionFunctions;
     private final ImmutableSet<CelPolyStringExtensions.Function> functions;
-    private final boolean enableRegexPartialMatch;
 
-    public CelPolyStringExtensions(boolean enableRegexPartialMatch) {
-        this(enableRegexPartialMatch, ImmutableSet.copyOf(CelPolyStringExtensions.Function.values()));
+    public CelPolyStringExtensions(CelOptions celOptions, BasicExpressionFunctions basicExpressionFunctions) {
+        this.celOptions = celOptions;
+        this.basicExpressionFunctions = basicExpressionFunctions;
+        functions = initializeFunctions();
     }
 
-    CelPolyStringExtensions(boolean enableRegexPartialMatch, Set<CelPolyStringExtensions.Function> functions) {
-        this.enableRegexPartialMatch = enableRegexPartialMatch;
-        this.functions = ImmutableSet.copyOf(functions);
+    private ImmutableSet<Function> initializeFunctions() {
+        return ImmutableSet.of(
+
+                // _==_
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                Operator.EQUALS.getFunction(),
+                                CelOverloadDecl.newGlobalOverload(
+                                        "string-equals-polystring",
+                                        "Equality operator string = polystring",
+                                        SimpleType.BOOL,
+                                        SimpleType.STRING,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from("string-equals-polystring", String.class, PolyStringCelValue.class,
+                                CelPolyStringExtensions::stringEqualsPolyString)
+                ),
+
+                // _==_
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                Operator.EQUALS.getFunction(),
+                                CelOverloadDecl.newGlobalOverload(
+                                        "polystring-equals-string",
+                                        "Equality operator polystring = string",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE,
+                                        SimpleType.STRING)),
+                        CelFunctionBinding.from("polystring-equals-string", PolyStringCelValue.class, String.class,
+                                (polystring, string) -> stringEqualsPolyString(string,polystring))
+                ),
+
+                // _+_
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                Operator.ADD.getFunction(),
+                                CelOverloadDecl.newGlobalOverload(
+                                        "string-add-polystring",
+                                        "String concatenation of string and polystring",
+                                        SimpleType.STRING,
+                                        SimpleType.STRING,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from("string-add-polystring", String.class, PolyStringCelValue.class,
+                                CelPolyStringExtensions::stringAddPolyString)
+                ),
+
+                // _+_
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                Operator.ADD.getFunction(),
+                                CelOverloadDecl.newGlobalOverload(
+                                        "polystring-add-string",
+                                        "String concatenation of polystring and string",
+                                        SimpleType.STRING,
+                                        PolyStringCelValue.CEL_TYPE,
+                                        SimpleType.STRING)),
+                        CelFunctionBinding.from("polystring-add-string", PolyStringCelValue.class, String.class,
+                                CelPolyStringExtensions::polystringAddString)
+                ),
+
+                // _+_
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                Operator.ADD.getFunction(),
+                                CelOverloadDecl.newGlobalOverload(
+                                        "polystring-add-polystring",
+                                        "String concatenation of polystring and polystring",
+                                        SimpleType.STRING,
+                                        PolyStringCelValue.CEL_TYPE,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from("polystring-add-polystring", PolyStringCelValue.class, PolyStringCelValue.class,
+                                CelPolyStringExtensions::polystringAddPolystring)
+                ),
+
+                // charAt
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "charAt",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_char_at_int",
+                                        "Returns the character at the given position of polystring orig value."
+                                                + " If the position is negative, or"
+                                                + " greater than the length of the string, the function will produce an error.",
+                                        SimpleType.STRING,
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.INT))),
+                        CelFunctionBinding.from(
+                                "polystring_char_at_int", PolyStringCelValue.class, Long.class,
+                                CelPolyStringExtensions::charAt)),
+
+                // contains
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "contains",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_contains",
+                                        "Returns true if orig part of polystring contains specified string.",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                        CelFunctionBinding.from(
+                                "polystring_contains", PolyStringCelValue.class, String.class,
+                                (polystring, s) -> polystring.getOrig().contains(s))),
+
+                // containsIgnoreCase
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                CelMelExtensions.FUNC_CONTAINS_IGNORE_CASE_NAME,
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_"+CelMelExtensions.FUNC_CONTAINS_IGNORE_CASE_NAME,
+                                        "Returns true if string contains specified string without regard to case.",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                        CelFunctionBinding.from(
+                                "polystring_"+CelMelExtensions.FUNC_CONTAINS_IGNORE_CASE_NAME, PolyStringCelValue.class, String.class,
+                                (polystring, s) ->basicExpressionFunctions.containsIgnoreCase(polystring.getOrig(), s))
+                ),
+
+                // endsWith
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "endsWith",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_endswith",
+                                        "Returns true if orig part of polystring ends with specified string.",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                        CelFunctionBinding.from(
+                                "polystring_endswith", PolyStringCelValue.class, String.class,
+                                (polystring, s) -> polystring.getOrig().endsWith(s))),
+
+                // indexOf
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "indexOf",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_index_of_string",
+                                        "Returns the integer index of the first occurrence of the search string of orig value of polystring."
+                                                + " If the"
+                                                + " search string is not found the function returns -1.",
+                                        SimpleType.INT,
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_index_of_string_int",
+                                        "Returns the integer index of the first occurrence of the search string of orig value of polystring from the"
+                                                + " given offset. If the search string is not found the function returns"
+                                                + " -1. If the substring is the empty string, the index where the search starts"
+                                                + " is returned (zero or custom).",
+                                        SimpleType.INT,
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.INT))),
+                                CelFunctionBinding.from(
+                                        "polystring_index_of_string", PolyStringCelValue.class, String.class, CelPolyStringExtensions::indexOf),
+                                CelFunctionBinding.from(
+                                        "polystring_index_of_string_int",
+                                        ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
+                                        CelPolyStringExtensions::indexOf)),
+
+                // TODO: JOIN? Does it make sense?
+
+                // lastIndexOf
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "lastIndexOf",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_last_index_of_string",
+                                        "Returns the integer index of the last occurrence of the search string in orig part of polystring. "
+                                                + "If the"
+                                                + " search string is not found the function returns -1.",
+                                        SimpleType.INT,
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_last_index_of_string_int",
+                                        "Returns the integer index of the last occurrence of the search string in orig part of polystring from the"
+                                                + " given offset. If the search string is not found the function returns -1. If"
+                                                + " the substring is the empty string, the index where the search starts is"
+                                                + " returned (string length or custom).",
+                                        SimpleType.INT,
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.INT))),
+                                CelFunctionBinding.from(
+                                        "polystring_last_index_of_string",
+                                        PolyStringCelValue.class,
+                                        String.class,
+                                        CelPolyStringExtensions::lastIndexOf),
+                                CelFunctionBinding.from(
+                                        "polystring_last_index_of_string_int",
+                                        ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
+                                        CelPolyStringExtensions::lastIndexOf)),
+
+                // lowerAscii
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "lowerAscii",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_lower_ascii",
+                                        "Returns a new string where all ASCII characters of orig represantation of polystring are lower-cased."
+                                                + " This function does not perform Unicode case-mapping for characters outside the ASCII"
+                                                + " range.",
+                                        SimpleType.STRING,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from("polystring_lower_ascii", PolyStringCelValue.class,
+                                polystring -> Ascii.toLowerCase(polystring.getOrig()))
+                ),
+
+                // matches
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "matches",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_matches",
+                                        "Returns true if orig part of polystring matches the specified RE2 regular expression",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING),
+                                CelOverloadDecl.newGlobalOverload(
+                                        "polystring_matches",
+                                        "Returns size of the orig part of polystring.",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                        CelFunctionBinding.from(
+                                "polystring_matches", PolyStringCelValue.class, String.class,
+                                (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s, celOptions))
+                ),
+
+                // replace
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "replace",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_replace_string_string",
+                                        "Returns a new string based on the target, which replaces the occurrences of a"
+                                                + " search string with a replacement string in orig represantation of polystring if present.",
+                                        SimpleType.STRING,
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING)),
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_replace_string_string_int",
+                                        "Returns a new string based on the target, which replaces the occurrences of a"
+                                                + " search string with a replacement string in orig represantation of polystring if present. The function accepts a"
+                                                + " limit on the number of substring replacements to be made. When the"
+                                                + " replacement limit is 0, the result is the original string. When the limit"
+                                                + " is a negative number, the function behaves the same as replace all.",
+                                        SimpleType.STRING,
+                                        ImmutableList.of(
+                                                PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING, SimpleType.INT))),
+                                CelFunctionBinding.from(
+                                        "polystring_replace_string_string",
+                                        ImmutableList.of(PolyStringCelValue.class, String.class, String.class),
+                                        CelPolyStringExtensions::replaceAll),
+                                CelFunctionBinding.from(
+                                        "polystring_replace_string_string_int",
+                                        ImmutableList.of(PolyStringCelValue.class, String.class, String.class, Long.class),
+                                        CelPolyStringExtensions::replace)),
+
+                // size
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "size",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_size",
+                                        "Returns size of the orig part of polystring.",
+                                        SimpleType.INT,
+                                        PolyStringCelValue.CEL_TYPE),
+                                CelOverloadDecl.newGlobalOverload(
+                                        "polystring_size",
+                                        "Returns size of the orig part of polystring.",
+                                        SimpleType.INT,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from(
+                                "polystring_size",
+                                PolyStringCelValue.class,
+                                polystring -> ((Integer)polystring.getOrig().length()).longValue())),
+
+                // split
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "split",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_split_string",
+                                        "Returns a mutable list of strings split from the orig part of input by the given separator.",
+                                        ListType.create(SimpleType.STRING),
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_split_string_int",
+                                        "Returns a mutable list of strings split from the orig part of input by the given separator with"
+                                                + " the specified limit on the number of substrings produced by the split.",
+                                        ListType.create(SimpleType.STRING),
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.INT))),
+                                CelFunctionBinding.from(
+                                        "polystring_split_string", PolyStringCelValue.class, String.class,
+                                        CelPolyStringExtensions::split),
+                                CelFunctionBinding.from(
+                                        "polystring_split_string_int",
+                                        ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
+                                        CelPolyStringExtensions::split)),
+
+                // startsWith
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "startsWith",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_startswith",
+                                        "Returns true if orig part of polystring starts with specified string.",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE, SimpleType.STRING)),
+                        CelFunctionBinding.from(
+                                "polystring_startswith", PolyStringCelValue.class, String.class,
+                                (polystring, s) -> polystring.getOrig().startsWith(s))),
+
+                // substring
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "substring",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_substring_int",
+                                        "returns a string that is a substring of orig part of this polystring. The substring begins with the"
+                                                + " character at the specified index and extends to the end of this string.",
+                                        SimpleType.STRING,
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.INT)),
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_substring_int_int",
+                                        "returns a string that is a substring of orig part of this polystring. The substring begins at the"
+                                                + " specified beginIndex and extends to the character at index endIndex - 1."
+                                                + " Thus the length of the substring is {@code endIndex-beginIndex}.",
+                                        SimpleType.STRING,
+                                        ImmutableList.of(PolyStringCelValue.CEL_TYPE, SimpleType.INT, SimpleType.INT))),
+                                CelFunctionBinding.from(
+                                        "polystring_substring_int", PolyStringCelValue.class, Long.class,
+                                        CelPolyStringExtensions::substring),
+                                CelFunctionBinding.from(
+                                        "polystring_substring_int_int",
+                                        ImmutableList.of(PolyStringCelValue.class, Long.class, Long.class),
+                                        CelPolyStringExtensions::substring)),
+
+                // trim
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "trim",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_trim",
+                                        "Returns a new string which removes the leading and trailing whitespace in the"
+                                                + " orig part of target polystring. The trim function uses the Unicode definition of whitespace"
+                                                + " which does not include the zero-width spaces. ",
+                                        SimpleType.STRING,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from("polystring_trim", PolyStringCelValue.class,
+                                CelPolyStringExtensions::trim)),
+
+                // upperAscii
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "upperAscii",
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_upper_ascii",
+                                        "Returns a new string where all ASCII characters of orig represantation of polystring are upper-cased."
+                                                + " This function does not perform Unicode case-mapping for characters outside the ASCII"
+                                                + " range.",
+                                        SimpleType.STRING,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from("polystring_upper_ascii", PolyStringCelValue.class,
+                                polystring -> Ascii.toUpperCase(polystring.getOrig()))
+
+                )
+        );
     }
+
 
     private static final class Library implements CelExtensionLibrary<CelPolyStringExtensions> {
         private final CelPolyStringExtensions version0;
 
-        private Library(boolean enableRegexPartialMatch) {
-            version0 = new CelPolyStringExtensions(enableRegexPartialMatch);
+        private Library(CelOptions celOptions, BasicExpressionFunctions basicExpressionFunctions) {
+            version0 = new CelPolyStringExtensions(celOptions, basicExpressionFunctions);
         }
 
         @Override
@@ -448,13 +453,8 @@ public class CelPolyStringExtensions
         }
     }
 
-    private static final Library LIBRARY_REGEX_PARTIAL_MATCH_ENABLED = new Library(true);
-    private static final Library LIBRARY_REGEX_PARTIAL_MATCH_DISABLED = new Library(false);
-
-    public static CelExtensionLibrary<CelPolyStringExtensions> library(CelOptions celOptions) {
-        return celOptions.enableRegexPartialMatch()
-                ? LIBRARY_REGEX_PARTIAL_MATCH_ENABLED
-                : LIBRARY_REGEX_PARTIAL_MATCH_DISABLED;
+    public static CelExtensionLibrary<CelPolyStringExtensions> library(CelOptions celOptions, BasicExpressionFunctions basicExpressionFunctions) {
+        return new Library(celOptions, basicExpressionFunctions);
     }
 
     @Override
@@ -476,12 +476,6 @@ public class CelPolyStringExtensions
     public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
         functions.forEach(function -> {
             runtimeBuilder.addFunctionBindings(function.commonFunctionBindings);
-            if (function.regexPartialMatchEnabledFunctionBinding != null && enableRegexPartialMatch) {
-                runtimeBuilder.addFunctionBindings(function.regexPartialMatchEnabledFunctionBinding);
-            }
-            if (function.regexPartialMatchDisabledFunctionBinding != null && !enableRegexPartialMatch) {
-                runtimeBuilder.addFunctionBindings(function.regexPartialMatchDisabledFunctionBinding);
-            }
         });
     }
 
