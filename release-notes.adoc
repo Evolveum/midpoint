@@ -38,6 +38,15 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 == Changes with Respect To Version 4.9.5
 
 * Fixed displaying some approved and executed changes as "Waiting to be applied". See bug:MID-10828[].
+* Fixed displaying of the non-necessary warning messages on the shopping cart page. See bug:MID-10924[].
+* Fixed member panel above user-permission table headers within Role mining GUI. See bug:MID-10526[].
+* Fixed NPE while admin GUI configuration merging. See bug:MID-10970[].
+* Fixed Duplicate action for certification definitions. See bug:MID-10456[].
+* Fixed validation check for mandatory items in GUI forms. See bug:MID-10974[].
+* Improved error logging in SqaleTableMapping. See bug:MID-11018[].
+* Fixed visibility of the create report button.
+* Fixed shadow attributes/id parsing exception. See bug:MID-10944[].
+* Updated spring boot to 3.5.8.
 
 == Changes with Respect To Version 4.9.4
 
