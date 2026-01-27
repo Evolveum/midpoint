@@ -6,8 +6,10 @@
 
 package com.evolveum.midpoint.repo.sqlbase;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -89,6 +91,13 @@ public class SqlQueryExecutor {
     }
 
     /**
+     * Batch size for mini-batch processing in streaming mode.
+     * This allows beforeTransformation to fetch child data (assignments, references)
+     * in batches instead of one-by-one, avoiding N+1 query problem while still streaming.
+     */
+    private static final int STREAMING_BATCH_SIZE = 100;
+
+    /**
      * Streaming iterative search that processes rows one by one without loading all into memory.
      * Uses JDBC cursor-based streaming with configurable fetch size.
      *
@@ -120,30 +129,73 @@ public class SqlQueryExecutor {
         // PostgreSQL streaming requires autoCommit=false, use read-only transaction for optimization
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
             try (Stream<Tuple> stream = context.executeQueryStreaming(jdbcSession, fetchSize)) {
-                ResultListRowTransformer<S, Q, R> rowTransformer =
-                        context.mapping().createRowTransformer(context, jdbcSession, options);
-
-                // Note: beforeTransformation with empty list - streaming doesn't support bulk pre-processing
-                rowTransformer.beforeTransformation(java.util.Collections.emptyList(), context.path());
-
                 Q entityPath = context.path();
                 Iterator<Tuple> iterator = stream.iterator();
 
-                while (iterator.hasNext()) {
-                    Tuple tuple = iterator.next();
-                    S transformed = rowTransformer.transform(tuple, entityPath);
+                // Process in mini-batches to allow beforeTransformation to fetch child data
+                List<Tuple> batch = new ArrayList<>(STREAMING_BATCH_SIZE);
 
-                    if (!handler.handle(transformed, operationResult)) {
-                        break;
+                while (iterator.hasNext()) {
+                    batch.add(iterator.next());
+
+                    if (batch.size() >= STREAMING_BATCH_SIZE) {
+                        count += processBatch(context, jdbcSession, options, entityPath, batch, handler, operationResult);
+                        if (count < 0) {
+                            // Handler returned false, stop processing
+                            count = -count;
+                            break;
+                        }
+                        batch.clear();
                     }
-                    count++;
                 }
 
-                rowTransformer.finishTransformation();
+                // Process remaining items in the last batch
+                if (!batch.isEmpty()) {
+                    int lastBatchCount = processBatch(context, jdbcSession, options, entityPath, batch, handler, operationResult);
+                    if (lastBatchCount < 0) {
+                        count += -lastBatchCount;
+                    } else {
+                        count += lastBatchCount;
+                    }
+                }
             }
 
             jdbcSession.commit();
             return count;
         }
+    }
+
+    /**
+     * Process a batch of tuples: call beforeTransformation, then transform and handle each.
+     * Returns positive count if all processed, negative count if handler returned false.
+     */
+    private <S, Q extends FlexibleRelationalPathBase<R>, R> int processBatch(
+            SqlQueryContext<S, Q, R> context,
+            JdbcSession jdbcSession,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Q entityPath,
+            List<Tuple> batch,
+            ObjectHandler<S> handler,
+            OperationResult operationResult) throws SchemaException {
+
+        ResultListRowTransformer<S, Q, R> rowTransformer =
+                context.mapping().createRowTransformer(context, jdbcSession, options);
+
+        // Call beforeTransformation with the batch - this fetches child data (assignments, etc.)
+        rowTransformer.beforeTransformation(batch, entityPath);
+
+        int count = 0;
+        for (Tuple tuple : batch) {
+            S transformed = rowTransformer.transform(tuple, entityPath);
+
+            if (!handler.handle(transformed, operationResult)) {
+                // Return negative to signal early termination
+                return -(count + 1);
+            }
+            count++;
+        }
+
+        rowTransformer.finishTransformation();
+        return count;
     }
 }
