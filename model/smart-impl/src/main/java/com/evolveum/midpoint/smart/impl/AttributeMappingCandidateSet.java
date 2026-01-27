@@ -20,7 +20,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * and quality-based selection. Encapsulates the logic for proposing new candidates
  * and keeping only the best ones based on their target paths and quality metrics.
  */
-class AttributeMappingCandidate {
+class AttributeMappingCandidateSet {
 
     private final List<Candidate> candidates = new ArrayList<>();
 
@@ -32,8 +32,7 @@ class AttributeMappingCandidate {
     void propose(AttributeMappingsSuggestionType suggestion) {
         ItemPath targetPath = extractTargetPath(suggestion);
         if (targetPath == null) {
-            candidates.add(new Candidate(targetPath, suggestion));
-            return;
+            throw new IllegalArgumentException("Target path must not be null for suggestion: " + suggestion);
         }
 
         float newQuality = getQuality(suggestion);

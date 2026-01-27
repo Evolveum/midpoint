@@ -873,21 +873,23 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 .as("LDAP system mappings should be present")
                 .isNotEmpty();
 
-        var cnMapping = suggestion.getAttributeMappings().stream()
+        var cnMappings = suggestion.getAttributeMappings().stream()
                 .filter(m -> m.getDefinition() != null
                         && m.getDefinition().getRef() != null
                         && m.getDefinition().getRef().toString().endsWith("cn"))
-                .findFirst();
+                .toList();
 
-        assertThat(cnMapping).isPresent();
+        assertThat(cnMappings)
+                .as("Should have exactly one cn mapping")
+                .hasSize(1);
 
-        var cnRef = cnMapping.get().asPrismContainerValue().findProperty(ItemPath.create("definition", "ref"));
-        assertThat(cnRef).isNotNull();
-        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(cnRef.getAnyValue()))
-                .as("CN mapping should be marked as system-provided")
+        var cnMapping = cnMappings.get(0);
+
+        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(cnMapping.asPrismContainerValue()))
+                .as("System-provided should be preferred when quality is similar")
                 .isTrue();
 
-        assertThat(cnMapping.get().getExpectedQuality())
+        assertThat(cnMapping.getExpectedQuality())
                 .as("System mapping with partial match should have lower quality (~0.33)")
                 .isLessThan(1.0f)
                 .isGreaterThan(0.0f);

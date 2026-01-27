@@ -9,7 +9,6 @@ package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPING;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -130,7 +129,7 @@ class MappingsSuggestionOperation {
         mappingsSuggestionState.setExpectedProgress(schemaMatch.getSchemaMatchResult().size());
         try {
             var suggestion = new MappingsSuggestionType();
-            var mappingCandidates = new AttributeMappingCandidate();
+            var mappingCandidates = new AttributeMappingCandidateSet();
             var direction = resolveDirection();
 
             collectSystemMappings(knownSchemaProvider, ownedList, result)
