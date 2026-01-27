@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -171,6 +172,14 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return AuditLogViewerPanel.this.getCustomizeContentQuery();
+            }
+
+            @Override
+            protected void searchObjectsIterative(Class<AuditEventRecordType> type, ObjectQuery query,
+                    ObjectHandler<AuditEventRecordType> handler,
+                    Collection<SelectorOptions<GetOperationOptions>> options,
+                    Task task, OperationResult result) throws CommonException {
+                getPageBase().getModelAuditService().searchObjectsIterative(query, options, handler::handle, task, result);
             }
         };
         provider.setSort(AuditEventRecordType.F_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
