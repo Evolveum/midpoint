@@ -242,13 +242,14 @@ Activity policies are not supported in:
     ** Custom composite activities
 * Focus policy constraints currently cannot be used in activity policies.
 * User interface support is limited to XML configuration only.
-* Activity policies are not able to catch and evaluate and process following exceptions:
-** Exceptions thrown in connector implementation during search operation when executing the search query or creating connector object.
-** When shadow object is being initialized after connector object was returned from the connector.
-+
-NOTE: Current architecture and ConnId Connector Framework API doesn't allow handling for these situations.
-Error handling happens outside of midPoint control, directly in ConnId framework and search operation is interrupted.
-Such exceptions are reported from ConnId as usual and can be seen in midPoint (GUI, task errors).
+* Activity policies are not able to catch, evaluate, and process the following exceptions:
+** Exceptions thrown _in the connector implementation_ during search operation when executing the search query, e.g., because the resource is unreachable or the query cannot be interpreted.
+This is by design, because the current implementation of `itemProcessingResult` constraint deals with errors connected to individual items, not the search operation as a whole.
+** Exceptions thrown _in the connector implementation_ when processing objects found on the resource, e.g., because the object content is not understandable by the connector or due to a connector bug.
+This is a real limitation, steming from the current architecture and ConnId Connector Framework API, which is not completely under our (Evolveum's) control.
+Such exceptions are reported from ConnId as failures of the whole search operation, and can be seen in midPoint as such.
+They usually cause halting the whole activity.
+//** When shadow object is being initialized after connector object was returned from the connector.
 
 == Examples
 

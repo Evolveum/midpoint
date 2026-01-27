@@ -10745,7 +10745,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="additionalItemsMappings" type="c:AdditionalCorrelationItemMapping" minOccurs="0"
+            <xsd:element name="additionalItemsMappings" type="c:AdditionalCorrelationItemMappingType" minOccurs="0"
                          maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>

@@ -110,7 +110,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     public @NotNull CompleteCorrelationResult correlate(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull CorrelationDefinitionType correlationDefinition,
-            List<AdditionalCorrelationItemMapping> additionalCorrelationMappings,
+            List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -403,7 +403,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     private @NotNull CompleteContext getCompleteContext(
             @NotNull ShadowType shadow,
             @NotNull CorrelationDefinitionType correlationDefinition,
-            @NotNull List<AdditionalCorrelationItemMapping> additionalCorrelationMappings,
+            @NotNull List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -626,7 +626,7 @@ public class CorrelationServiceImpl implements CorrelationService {
 
     private static @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition(@NotNull ResourceType resource,
             @NotNull ResourceObjectTypeIdentification objectTypeId,
-            @NotNull List<AdditionalCorrelationItemMapping> additionalCorrelationMappings)
+            @NotNull List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings)
             throws ConfigurationException, SchemaException {
 
         if (additionalCorrelationMappings.isEmpty()) {
@@ -641,7 +641,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     private static SchemaHandlingType wrapMappingsToSchemaHandling(ResourceObjectTypeIdentification objectTypeId,
-            @NotNull List<AdditionalCorrelationItemMapping> additionalCorrelationMappings) {
+            @NotNull List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings) {
         final List<ResourceAttributeDefinitionType> additionalDefinitions = additionalCorrelationMappings.stream()
                 .map(mapping -> {
                     final ResourceAttributeDefinitionType attrDef = new ResourceAttributeDefinitionType().ref(

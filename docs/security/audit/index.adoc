@@ -389,7 +389,7 @@ There are two ways how to configure the delta column.
 * Simple
 * Advanced, using script expression
 
-=== Simple delta column
+==== Simple delta column
 
 Simple configuration of the delta column can display estimated old values, changes or both.
 By default, it displays changes only.
@@ -417,7 +417,7 @@ For example, when delta contains change with path `extension/ex:stringProperty` 
 </objectCollectionView>
 ----
 
-=== Advanced delta column
+==== Advanced delta column
 
 For more complex configuration as well as for columns used in reports, script expression can be used.
 New `UserFriendlyPrettyPrinter` with multiple options was created to help with the delta column configuration.

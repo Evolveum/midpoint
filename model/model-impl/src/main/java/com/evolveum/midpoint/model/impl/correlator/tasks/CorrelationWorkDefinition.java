@@ -52,7 +52,7 @@ public class CorrelationWorkDefinition extends ResourceSetTaskWorkDefinition {
         return this.correlationDefProviderFactory.providerFor(this.correlatorsToUse, resourceWithObjectType).get(result);
     }
 
-    public List<AdditionalCorrelationItemMapping> getAdditionalCorrelationMappings() {
+    public List<AdditionalCorrelationItemMappingType> getAdditionalCorrelationMappings() {
         return this.correlatorsToUse.getAdditionalItemsMappings();
     }
 

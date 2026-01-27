@@ -112,7 +112,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
 
         when("Correlation with particular definition and additional mapping is run on the account's shadow.");
         final CorrelationDefinitionType correlationDefinition = createCorrelationDefinition(FAMILY_NAME_CORRELATOR);
-        final AdditionalCorrelationItemMapping additionalMapping = fromAttribute("familyName").toItem("familyName");
+        final AdditionalCorrelationItemMappingType additionalMapping = fromAttribute("familyName").toItem("familyName");
 
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(
                 allAccounts.get(0).getShadow(), correlationDefinition, List.of(additionalMapping), task, result);
@@ -146,7 +146,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
 
         when("Correlation with particular definition and additional mapping is run on the account's shadow.");
         final CorrelationDefinitionType correlationDefinition = createCorrelationDefinition(PERSONAL_NUMBER_CORRELATOR);
-        final AdditionalCorrelationItemMapping additionalMapping = fromAttribute("employeeNumber")
+        final AdditionalCorrelationItemMappingType additionalMapping = fromAttribute("employeeNumber")
                 .toItem("personalNumber");
 
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(
@@ -167,7 +167,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
     }
 
     private static AdditionalMappingFrom fromAttribute(String attributeName) {
-        return itemName -> new AdditionalCorrelationItemMapping()
+        return itemName -> new AdditionalCorrelationItemMappingType()
                 .ref(ItemPath.fromString(attributeName).toBean())
                 .inbound(new InboundMappingType()
                         .target(new VariableBindingDefinitionType()
@@ -175,7 +175,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
     }
 
     private interface AdditionalMappingFrom {
-        AdditionalCorrelationItemMapping toItem(String itemName);
+        AdditionalCorrelationItemMappingType toItem(String itemName);
     }
 
 }

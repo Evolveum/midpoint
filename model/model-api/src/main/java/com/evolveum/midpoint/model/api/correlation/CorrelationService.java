@@ -44,7 +44,7 @@ public interface CorrelationService {
     @NotNull CompleteCorrelationResult correlate(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull CorrelationDefinitionType correlationDefinition,
-            List<AdditionalCorrelationItemMapping> additionalAttributeMappings,
+            List<AdditionalCorrelationItemMappingType> additionalAttributeMappings,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
