@@ -69,9 +69,9 @@ class AttributeMappingCandidateSet {
     }
 
     /**
-     * Extracts the target path from a mapping suggestion.
-     * For inbound mappings, this is the target path.
-     * For outbound mappings, this is the source path (which becomes the target on the resource).
+     * Extracts the target path from a mapping suggestion for duplicate detection.
+     * For inbound mappings, this is the focus property (target path).
+     * For outbound mappings, this is the resource attribute (ref).
      */
     private static ItemPath extractTargetPath(AttributeMappingsSuggestionType suggestion) {
         var definition = suggestion.getDefinition();
@@ -91,13 +91,10 @@ class AttributeMappingCandidateSet {
         }
 
         var outbound = definition.getOutbound();
-        if (outbound != null && outbound.getSource() != null && !outbound.getSource().isEmpty()) {
-            var source = outbound.getSource().get(0);
-            if (source.getPath() != null) {
-                Object path = source.getPath();
-                if (path instanceof ItemPathType itemPath) {
-                    return itemPath.getItemPath();
-                }
+        if (outbound != null) {
+            var ref = definition.getRef();
+            if (ref != null) {
+                return ref.getItemPath();
             }
         }
 
