@@ -9,13 +9,11 @@
 package com.evolveum.midpoint.smart.impl.wellknownschemas;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeMappingsSuggestionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutboundMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -39,52 +37,12 @@ public interface WellKnownSchemaProvider {
     Map<ItemPath, ItemPath> suggestSchemaMatches();
 
     /**
-     * Returns all predefined inbound mappings as ready-to-use AttributeMappingsSuggestionType instances.
-     * These are directly added to the mappings suggestion without further processing.
+     * Returns all predefined inbound mappings with their paths for quality assessment.
      */
-    List<AttributeMappingsSuggestionType> suggestInboundMappings();
+    List<SystemMappingSuggestion> suggestInboundMappings();
 
     /**
-     * Returns all predefined outbound mappings as ready-to-use AttributeMappingsSuggestionType instances.
-     * These are directly added to the mappings suggestion without further processing.
+     * Returns all predefined outbound mappings with their paths for quality assessment.
      */
-    List<AttributeMappingsSuggestionType> suggestOutboundMappings();
-
-    static AttributeMappingsSuggestionType createInboundMapping(
-            String shadowAttrName,
-            ItemPath focusPropertyPath,
-            String description,
-            @Nullable ExpressionType expression) {
-        var inboundMapping = new InboundMappingType()
-                .name(shadowAttrName + "-into-" + focusPropertyPath.lastName())
-                .description(description)
-                .strength(MappingStrengthType.STRONG)
-                .expression(expression)
-                .target(new VariableBindingDefinitionType().path(focusPropertyPath.toBean()));
-
-        return new AttributeMappingsSuggestionType()
-                .expectedQuality(null)
-                .definition(new ResourceAttributeDefinitionType()
-                        .ref(ItemPath.create(shadowAttrName).toBean())
-                        .inbound(inboundMapping));
-    }
-
-    static AttributeMappingsSuggestionType createOutboundMapping(
-            String shadowAttrName,
-            ItemPath focusPropertyPath,
-            String description,
-            @Nullable ExpressionType expression) {
-        var outboundMapping = new OutboundMappingType()
-                .name(focusPropertyPath.lastName() + "-to-" + shadowAttrName)
-                .description(description)
-                .strength(MappingStrengthType.STRONG)
-                .expression(expression)
-                .source(new VariableBindingDefinitionType().path(focusPropertyPath.toBean()));
-
-        return new AttributeMappingsSuggestionType()
-                .expectedQuality(null)
-                .definition(new ResourceAttributeDefinitionType()
-                        .ref(ItemPath.create(shadowAttrName).toBean())
-                        .outbound(outboundMapping));
-    }
+    List<SystemMappingSuggestion> suggestOutboundMappings();
 }
