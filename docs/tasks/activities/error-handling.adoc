@@ -82,6 +82,7 @@ If error categories are not specified, any error matches.
 | `errorCategory`
 | Error category (`network`, `security`, `policy`, ...) to match.
 Note that some errors are not propagated to the level where they can be recognized by this selector.
+See xref:#_limitations[Limitations] for more details.
 So be careful and consider this feature to be *highly experimental*.
 
 | If not present, we decide solely on the status.
@@ -399,7 +400,15 @@ Only the retry strategy has to be set up  in the main task.
 
 |===
 
+[#_limitations]
 == Limitations
 
-. Trigger-based re-processing is available only for synchronization activities (import, reconciliation, live synchronization).
-. Selection based on error category is highly experimental.
+* Trigger-based re-processing is available only for synchronization activities (import, reconciliation, live synchronization).
+* Selection based on error category is highly experimental.
+* Activity policies are not able to catch and evaluate and process following exceptions:
+** Exceptions thrown in connector implementation during search operation when executing the search query or creating connector object.
+** When shadow object is being initialized after connector object was returned from the connector.
++
+NOTE: Current architecture and ConnId Connector Framework API doesn't allow handling for these situations.
+Error handling happens outside of midPoint control, directly in ConnId framework and search operation is interrupted.
+Such exceptions are reported from ConnId as usual and can be seen in midPoint (GUI, task errors).

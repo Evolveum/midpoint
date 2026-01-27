@@ -23,7 +23,7 @@ public final class CorrelationDefinitionProviderFactory {
         this.repository = repository;
     }
 
-    public CorrelationDefinitionProvider providerFor(CorrelatorsDefinitionType correlatorSpecification,
+    public CorrelationDefinitionProvider providerFor(SimulatedCorrelatorsType correlatorSpecification,
             ResourceWithObjectTypeId resourceWithObjectTypeId) {
         if (Boolean.TRUE == correlatorSpecification.isIncludeExistingCorrelators()
                 && correlatorSpecification.getInlineCorrelators() != null) {
@@ -41,7 +41,7 @@ public final class CorrelationDefinitionProviderFactory {
     }
 
     private static CorrelationDefinitionProvider inlineCorrelationProvider(
-            CorrelatorsDefinitionType correlatorDefinition) {
+            SimulatedCorrelatorsType correlatorDefinition) {
         return result -> correlatorDefinition.getInlineCorrelators();
     }
 

@@ -25,7 +25,7 @@ public class CorrelationDefinitionProviderFactoryTest {
     void inlineCorrelatorIsDefined_providerIsCreated_providerShouldProvideInlinedCorrelator()
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         final CorrelationDefinitionType correlationDefinition = new CorrelationDefinitionType();
-        final CorrelatorsDefinitionType correlatorsSpecification = new CorrelatorsDefinitionType().inlineCorrelators(
+        final SimulatedCorrelatorsType correlatorsSpecification = new SimulatedCorrelatorsType().inlineCorrelators(
                 correlationDefinition);
 
         final CorrelationDefinitionType resolvedDefinition = new CorrelationDefinitionProviderFactory(null)
@@ -36,7 +36,7 @@ public class CorrelationDefinitionProviderFactoryTest {
 
     @Test
     void inclusionOfExistingCorrelationIsEnabled_providerIsCreated_correctProviderImplementationShouldBeCreated() {
-        final CorrelatorsDefinitionType correlatorsSpecification = new CorrelatorsDefinitionType()
+        final SimulatedCorrelatorsType correlatorsSpecification = new SimulatedCorrelatorsType()
                 .includeExistingCorrelators(true);
 
         final CorrelationDefinitionProvider provider = new CorrelationDefinitionProviderFactory(null)
@@ -48,7 +48,7 @@ public class CorrelationDefinitionProviderFactoryTest {
     @Test
     void noSourceOfCorrelationIsDefined_providerCreationIsCalled_exceptionShouldBeThrown() {
         // In practice, at least one source needs to be specified in the specification, but here we create an empty one.
-        final CorrelatorsDefinitionType correlatorsSpecification = new CorrelatorsDefinitionType();
+        final SimulatedCorrelatorsType correlatorsSpecification = new SimulatedCorrelatorsType();
 
         final CorrelationDefinitionProviderFactory providerFactory = new CorrelationDefinitionProviderFactory(null);
 
@@ -58,7 +58,7 @@ public class CorrelationDefinitionProviderFactoryTest {
     @Test
     void inlineCorrelatorIsDefinedAsWellAsInclusionFromResource_providerIsCreated_noExceptionShouldBeThrown() {
         final CorrelationDefinitionType correlationDefinition = new CorrelationDefinitionType();
-        final CorrelatorsDefinitionType correlatorsSpecification = new CorrelatorsDefinitionType()
+        final SimulatedCorrelatorsType correlatorsSpecification = new SimulatedCorrelatorsType()
                 .includeExistingCorrelators(true)
                 .inlineCorrelators(correlationDefinition);
 

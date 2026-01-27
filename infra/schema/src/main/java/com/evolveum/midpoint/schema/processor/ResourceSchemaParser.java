@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 
+import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 
 import org.jetbrains.annotations.NotNull;
@@ -112,42 +113,40 @@ class ResourceSchemaParser {
         this.resourceSchema = resourceSchema;
     }
 
-    /** Creates {@link CompleteResourceSchema} for the given resource. This is the main functionality of this parser. */
-    static @NotNull CompleteResourceSchema parseComplete(
-            @NotNull ResourceType resource, @NotNull NativeResourceSchema nativeSchema)
+    static @NotNull CompleteResourceSchema parseSchemaWithAdditionalSchemaHandling(@NotNull ResourceType resource,
+            @NotNull NativeResourceSchema nativeSchema, @NotNull SchemaHandlingType additionalSchemaHandling)
             throws SchemaException, ConfigurationException {
-        var schemaHandlingBean = resource.getSchemaHandling();
-        var schemaHandling =
-                schemaHandlingBean != null ?
-                        configItem(
-                                schemaHandlingBean,
-                                ConfigurationItemOrigin.inResourceOrAncestor(resource, ResourceType.F_SCHEMA_HANDLING),
-                                SchemaHandlingConfigItem.class) :
-                        emptySchemaHandlingConfigItem();
-        var associationCapabilityBean = CapabilityUtil.getCapability(resource, ReferencesCapabilityType.class);
-        var associationsCapabilityCI = configItemNullable(
-                associationCapabilityBean,
-                inResourceOrAncestor(
-                        resource,
-                        ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CONFIGURED, CapabilityCollectionType.F_REFERENCES)),
-                ReferencesCapabilityConfigItem.class);
-        var completeResourceSchema = new CompleteResourceSchemaImpl(
+
+        final SchemaHandlingType originalSchemaHandling = resource.getSchemaHandling();
+        final SchemaHandlingType mergedSchemaHandling = BaseMergeOperation.merge(additionalSchemaHandling,
+                originalSchemaHandling);
+
+        final var completeResourceSchema = new CompleteResourceSchemaImpl(
                 nativeSchema,
                 BasicResourceInformation.of(resource),
                 ResourceTypeUtil.isCaseIgnoreAttributeNames(resource));
-        var parser = new ResourceSchemaParser(
-                resource,
-                schemaHandling,
+        createInstance(resource, nativeSchema, mergedSchemaHandling, completeResourceSchema)
+                .parse();
+
+        return completeResourceSchema;
+    }
+
+    /** Creates {@link CompleteResourceSchema} for the given resource. This is the main functionality of this parser. */
+    static @NotNull CompleteResourceSchema parseSchema(
+            @NotNull ResourceType resource, @NotNull NativeResourceSchema nativeSchema)
+            throws SchemaException, ConfigurationException {
+        final var completeResourceSchema = new CompleteResourceSchemaImpl(
                 nativeSchema,
-                associationsCapabilityCI,
-                "definition of " + resource,
-                completeResourceSchema);
-        parser.parse();
+                BasicResourceInformation.of(resource),
+                ResourceTypeUtil.isCaseIgnoreAttributeNames(resource));
+        createInstance(resource, nativeSchema, resource.getSchemaHandling(), completeResourceSchema)
+                .parse();
+
         return completeResourceSchema;
     }
 
     /** Creates a resource schema based solely on the native one. For tests and some very special occasions. */
-    static BareResourceSchema parseBare(@NotNull NativeResourceSchema nativeSchema) throws SchemaException {
+    static BareResourceSchema parseNativeOnly(@NotNull NativeResourceSchema nativeSchema) throws SchemaException {
         var bareSchema = new BareResourceSchemaImpl(nativeSchema);
         var parser = new ResourceSchemaParser(
                 new ResourceType(),
@@ -162,6 +161,34 @@ class ResourceSchemaParser {
             throw SystemException.unexpected(e);
         }
         return bareSchema;
+    }
+
+    private static ResourceSchemaParser createInstance(ResourceType resource, NativeResourceSchema nativeSchema,
+            SchemaHandlingType schemaHandling, ResourceSchemaImpl schemaToFill) {
+        final var schemaHandlingCI =
+                schemaHandling != null ?
+                        configItem(
+                                schemaHandling,
+                                inResourceOrAncestor(resource, ResourceType.F_SCHEMA_HANDLING),
+                                SchemaHandlingConfigItem.class) :
+                        emptySchemaHandlingConfigItem();
+
+        final var associationCapabilityBean = getCapability(resource, ReferencesCapabilityType.class);
+        final var associationsCapabilityCI = configItemNullable(
+                associationCapabilityBean,
+                inResourceOrAncestor(
+                        resource,
+                        ItemPath.create(ResourceType.F_CAPABILITIES, CapabilitiesType.F_CONFIGURED,
+                                CapabilityCollectionType.F_REFERENCES)),
+                ReferencesCapabilityConfigItem.class);
+
+        return new ResourceSchemaParser(
+                resource,
+                schemaHandlingCI,
+                nativeSchema,
+                associationsCapabilityCI,
+                "definition of " + resource,
+                schemaToFill);
     }
 
     private static @NotNull SchemaHandlingConfigItem emptySchemaHandlingConfigItem() {

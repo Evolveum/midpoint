@@ -32,6 +32,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
     private static final String OPERATION_SUGGEST_CORRELATIONS = CLASS_DOT + "suggestCorrelations";
     private static final String OPERATION_SUGGEST_MAPPINGS = CLASS_DOT + "suggestMappings";
     private static final String OPERATION_SUGGEST_FOCUS_TYPE = CLASS_DOT + "suggestFocusType";
+    private static final String OPERATION_SUGGEST_ASSOCIATION_TYPE = CLASS_DOT + "suggestAssociations";
 
     private static final int TIMEOUT = 1000;
 
@@ -133,6 +134,36 @@ public class SmartIntegrationRestController extends AbstractRestController {
             do {
                 Thread.sleep(TIMEOUT);
                 suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);
+            } while (suggestionOperationStatus.isExecuting());
+
+            return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+        } catch (Throwable t) {
+            return handleException(result, t);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    /**
+     * Suggests association type for the given resource
+     *
+     * Returned body contains the serialized form of {@link AssociationSuggestionType}.
+     */
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_ASSOCIATION_TYPE)
+    public ResponseEntity<?> suggestAssociations(
+            @RequestParam("resourceOid") String resourceOid) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_SUGGEST_ASSOCIATION_TYPE);
+
+        try {
+            var oid = smartIntegrationService.submitSuggestAssociationsOperation(resourceOid, task, result);
+            result.setBackgroundTaskOid(oid);
+
+            var suggestionOperationStatus = smartIntegrationService.getSuggestAssociationsOperationStatus(oid, task, result);
+
+            do {
+                Thread.sleep(TIMEOUT);
+                suggestionOperationStatus = smartIntegrationService.getSuggestAssociationsOperationStatus(oid, task, result);
             } while (suggestionOperationStatus.isExecuting());
 
             return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);

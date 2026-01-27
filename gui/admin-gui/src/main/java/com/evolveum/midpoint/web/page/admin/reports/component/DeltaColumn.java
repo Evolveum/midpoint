@@ -166,10 +166,12 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
 
         Changes changes = createChangedItems(rowModel);
         if (changes.deltas != null) {
+            boolean showPath = changes.deltas.size() > 1;
             for (ItemDelta<?, ?> delta : changes.deltas) {
                 DeltaColumnPanel panel = new DeltaColumnPanel(listItems.newChildId(), () -> delta);
                 panel.setShowOldValues(getDisplayValueType() == DisplayValueType.ESTIMATED_OLD || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
                 panel.setShowNewValues(getDisplayValueType() == DisplayValueType.CHANGES || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
+                panel.setShowPath(showPath);
 
                 listItems.add(panel);
             }
@@ -208,12 +210,13 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
                     try {
                         ObjectDelta<? extends ObjectType> objectDelta = DeltaConvertor.createObjectDelta(d);
 
-                        PrismObject add = objectDelta.getObjectToAdd();
+                        PrismObject<?> add = objectDelta.getObjectToAdd();
                         List deltas = null;
-                        if (add == null) {
-                            DeltaScanner scanner = new DeltaScanner();
+                        if (add == null || !ItemPath.EMPTY_PATH.equals(path)) {
+                            DeltaScanner scanner = createDeltaScanner();
                             deltas = scanner.searchDelta(objectDelta, path).stream()
                                     .map(r -> r.toDelta())
+                                    .filter(id -> !id.isOperational())
                                     .toList();
                         }
 
@@ -254,6 +257,7 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
                                                     createPrinterForData()
                                                             .prettyPrintValue(v, 0)
                                             )
+                                            .filter(StringUtils::isNotBlank)
                                             .collect(Collectors.joining(", "));
                                 }
 
@@ -266,6 +270,10 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
                                 addChanges(ModificationType.REPLACE, (List<PrismValue>) item.getValuesToReplace(), changes);
 
                                 String newValues = StringUtils.joinWith(", ", changes);
+
+                                if (StringUtils.isBlank(oldValues) && StringUtils.isBlank(newValues)) {
+                                    return "";
+                                }
 
                                 if (StringUtils.isEmpty(oldValues)) {
                                     return newValues;
@@ -282,9 +290,15 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
         };
     }
 
+    private DeltaScanner createDeltaScanner() {
+        return new DeltaScanner()
+                .allowPartialMatches(true);
+    }
+
     private UserFriendlyPrettyPrinter createPrinterForData() {
         return new UserFriendlyPrettyPrinter(
                 new UserFriendlyPrettyPrinterOptions()
+                        .showOperational(false)
                         .locale(MidPointAuthWebSession.get().getLocale())
                         .localizationService(getPageBase().getLocalizationService())
                         .indentation("\t"));
@@ -301,9 +315,13 @@ public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<Aud
             case REPLACE -> "(=)";
         };
 
-        changes.add(operation +
-                values.stream()
-                        .map(v -> createPrinterForData().prettyPrintValue(v, 0))
-                        .collect(Collectors.joining(", ")));
+        String valuesStr = values.stream()
+                .map(v -> createPrinterForData().prettyPrintValue(v, 0))
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.joining(", "));
+
+        if (StringUtils.isNotBlank(valuesStr)) {
+            changes.add(operation + valuesStr);
+        }
     }
 }

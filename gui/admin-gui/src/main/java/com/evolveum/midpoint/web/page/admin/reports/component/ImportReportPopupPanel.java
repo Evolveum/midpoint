@@ -9,11 +9,9 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 import java.io.IOException;
 import java.io.Serial;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,7 +27,6 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -72,7 +69,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     private static final String ID_CHOSE_FILE = "choseFile";
     private static final String ID_NAME_FOR_DATA = "reportDataName";
     private static final String ID_FILE_AS_NAME = "fileAsString";
-    private static final Pattern FILENAME_PATTERN = Pattern.compile("^[^.][a-zA-Z0-9._-]{1,100}$");
+
     private static final String CSV_SUFFIX = ".csv"; //Import report now support only csv format, so we use it
 
 
@@ -107,6 +104,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
 
         AjaxSubmitButton importButton = new AjaxSubmitButton(ID_IMPORT_BUTTON,
                 createStringResource("PageReports.button.import")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -153,14 +151,6 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
             dataName = nameModel.getObject();
         }
 
-        if (!FILENAME_PATTERN.matcher(dataName).matches()) {
-            LOGGER.error(createStringResource("ImportReportPopupPanel.message.error.fileNameCharacters").getString());
-            FeedbackAlerts feedback = getFeedbackAlertsPanel();
-            feedback.error(createStringResource("ImportReportPopupPanel.message.error.fileNameCharacters").getString());
-            target.add(feedback);
-            return;
-        }
-
         // Create new file
         MidPointApplication application = getPageBase().getMidpointApplication();
         WebApplicationConfiguration config = application.getWebApplicationConfiguration();
@@ -170,7 +160,8 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
             if (!importDir.mkdir()) {
                 LOGGER.error("Couldn't create import dir {}", importDir);
                 FeedbackAlerts feedback = getFeedbackAlertsPanel();
-                feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportDir", importDir).getString());
+                feedback.error(createStringResource("ImportReportPopupPanel.message.error.createImportDir", importDir)
+                        .getString());
                 target.add(feedback);
                 return;
             }
@@ -181,65 +172,41 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
         if (uploadedFile == null && StringUtils.isEmpty(fileStringImport.getObject())) {
             LOGGER.error("Please upload file for import");
             FeedbackAlerts feedback = getFeedbackAlertsPanel();
-            feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.uploadFile", importDir).getString());
+            feedback.error(createStringResource("ImportReportPopupPanel.message.error.uploadFile", importDir)
+                    .getString());
             target.add(feedback);
             return;
         }
 
-        String newFilePath;
-        if (uploadedFile != null) {
-            String fileName = FilenameUtils.removeExtension(uploadedFile.getClientFileName()) + " " + getDataTime()
-                    + CSV_SUFFIX;
-            File newFile = new File(importDir, fileName);
-            // Check new file, delete if it already exists
-            if (newFile.exists()) {
-                newFile.delete();
-            }
-            // Save file
-
-            try {
-                newFile.createNewFile();
+        String storedFileName = UUID.randomUUID() + CSV_SUFFIX;
+        File newFile = new File(importDir, storedFileName);
+        String newFilePath = newFile.getAbsolutePath();
+        // Save file
+        try {
+            if (uploadedFile != null) {
                 FileUtils.copyInputStreamToFile(uploadedFile.getInputStream(), newFile);
-                newFilePath = newFile.getAbsolutePath();
-            } catch (IOException e) {
-                LOGGER.error("Couldn't create new file " + newFile.getAbsolutePath(), e);
-                FeedbackAlerts feedback = getFeedbackAlertsPanel();
-                feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportFile", newFile.getAbsolutePath()).getString());
-                target.add(feedback);
-                return;
-            }
-        } else {
-            Path importDirPath = Paths.get(importDir.getAbsolutePath()).toAbsolutePath().normalize();
-            Path targetPath = importDirPath.resolve(dataName + CSV_SUFFIX).normalize();
-
-            if (!targetPath.startsWith(importDirPath)) {
-                LOGGER.error("Couldn't create new file " + dataName);
-                FeedbackAlerts feedback = getFeedbackAlertsPanel();
-                feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportFile", dataName).getString());
-                target.add(feedback);
-                return;
-            }
-
-            newFilePath = targetPath.toString();
-            try {
+            } else {
                 Files.write(Paths.get(newFilePath), fileStringImport.getObject().getBytes());
-            } catch (IOException e) {
-                LOGGER.error("Couldn't create new file " + newFilePath, e);
-                FeedbackAlerts feedback = getFeedbackAlertsPanel();
-                feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportFile", newFilePath).getString());
-                target.add(feedback);
-                return;
             }
+        } catch (IOException e) {
+            LOGGER.error("Couldn't create new file " + newFile.getAbsolutePath(), e);
+            FeedbackAlerts feedback = getFeedbackAlertsPanel();
+            feedback.error(createStringResource("ImportReportPopupPanel.message.error.createImportFile",
+                    newFilePath).getString());
+            target.add(feedback);
+            return;
         }
 
         ReportDataType reportImportData = null;
         try {
-            @NotNull PrismObject<ReportDataType> prismObject = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ReportDataType.class).instantiate();
+            @NotNull PrismObject<ReportDataType> prismObject = getPrismContext().getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(ReportDataType.class).instantiate();
             reportImportData = prismObject.asObjectable();
         } catch (SchemaException e) {
             LOGGER.error("Couldn't instantiate new Report Data from definition", e);
             FeedbackAlerts feedback = getFeedbackAlertsPanel();
-            feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createInstantiateReportData").getString());
+            feedback.error(createStringResource("ImportReportPopupPanel.message.error.createInstantiateReportData")
+                    .getString());
             target.add(feedback);
             return;
         }
@@ -252,18 +219,23 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
         Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.singleton(reportImportData.asPrismObject().createAddDelta());
         Task task = getPageBase().createSimpleTask(OPERATION_CREATE_REPORT_DATA);
         try {
-            Collection<ObjectDeltaOperation<? extends ObjectType>> retDeltas = getPageBase().getModelService().executeChanges(deltas, null, task, task.getResult());
+            Collection<ObjectDeltaOperation<? extends ObjectType>> retDeltas = getPageBase().getModelService()
+                    .executeChanges(deltas, null, task, task.getResult());
             reportImportData = (ReportDataType) retDeltas.iterator().next().getObjectDelta().getObjectToAdd().asObjectable();
         } catch (ObjectAlreadyExistsException e) {
             LOGGER.error("Report Data with name " + dataName + " already exists", e);
             FeedbackAlerts feedback = getFeedbackAlertsPanel();
-            feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.importReportDataAlreadyExists", dataName).getString());
+            feedback.error(
+                    createStringResource("ImportReportPopupPanel.message.error.importReportDataAlreadyExists", dataName)
+                            .getString());
             target.add(feedback);
             return;
         } catch (Exception e) {
             LOGGER.error("Couldn't create new Report Data with name " + dataName, e);
             FeedbackAlerts feedback = getFeedbackAlertsPanel();
-            feedback.error(getPageBase().createStringResource("ImportReportPopupPanel.message.error.createImportReportData", dataName).getString());
+            feedback.error(
+                    createStringResource("ImportReportPopupPanel.message.error.createImportReportData", dataName)
+                            .getString());
             target.add(feedback);
             return;
         }

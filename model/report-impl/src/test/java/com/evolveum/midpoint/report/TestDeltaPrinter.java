@@ -22,10 +22,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.report.impl.DeltaPrinterOptions;
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
@@ -62,6 +59,31 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                 DELTA,
                 ItemPath.create(UserType.F_ASSIGNMENT),
                 createDefaultOptions(),
+                List.of(
+                        "assignment: \n"
+                                + " Add: \n"
+                                + "  1:\n"
+                                + "   description: Default\n"
+                                + "   targetRef: 456a49bc-6f5b-4746-8461-2e1a63307456 (RoleType)\n"
+                                + " Delete: \n"
+                                + "  null:\n"
+                                + "   description: Approved\n"
+                                + "   targetRef: 123a49bc-6f5b-4746-8461-2e1a63307123 (RoleType)\n"
+                                + "  2:\n"
+                                + "   description: Approved Two\n"
+                                + "   targetRef: 123a49bc-6f5b-4746-8461-2e1a63307777 (RoleType)",
+                        "assignment/[25]/description: \n"
+                                + " Add: simple assignment description"
+                ));
+    }
+
+    @Test
+    public void test020MultivalueAssignmentPartialFalse() throws Exception {
+        assertDeltaOutput(
+                DELTA,
+                ItemPath.create(UserType.F_ASSIGNMENT),
+                createDefaultOptions()
+                        .showPartialDeltas(false),
                 List.of(" Add: \n"
                         + "  1:\n"
                         + "   description: Default\n"
@@ -221,6 +243,29 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                 List.of(" Add: value1, value2"));
     }
 
+    @Test
+    public void test080OperationalItemOnly() throws Exception {
+        assertDeltaOutput(
+                DELTA,
+                ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_LAST_FAILED_LOGIN),
+                createDefaultOptions(),
+                List.of());
+    }
+
+    @Test
+    public void test082OperationalItemOnlyAndVisible() throws Exception {
+        DeltaPrinterOptions opts = createDefaultOptions();
+        opts.prettyPrinterOptions()
+                .showOperational(true);
+
+        assertDeltaOutput(
+                DELTA,
+                ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_LAST_FAILED_LOGIN),
+                opts,
+                List.of(" Add: \n"
+                        + "  LoginEventType[from=1.1.1.1,timestamp=2013-05-21T14:57:50.759+02:00]"));
+    }
+
     private ObjectDeltaType parseDeltaFromFile(File file) throws SchemaException, IOException {
         PrismContext pc = PrismTestUtil.getPrismContext();
 
@@ -244,8 +289,8 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
         DeltaPrinterOptions opts = new DeltaPrinterOptions()
                 // whether to show delta if search bar doesn't contain "Changed item path" value
                 .showFullObjectDelta(true)
-                // whether to show also change in subitems of the "Changed item path", e.g. if changed item path is assignment
-                // whether to display deltas that contain changes for assignment/activation
+                // whether to show also change in subitems of the "Changed item path", e.g. if changed item path is "assignment"
+                // whether to display deltas that contain changes for "assignment/activation"
                 .showPartialDeltas(true);
 
         opts.prettyPrinterOptions()

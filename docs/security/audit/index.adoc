@@ -377,22 +377,29 @@ If the header contains more values (separated by commas), the first i.e. leftmos
 
 === Delta column (changed items)
 
-Delta column is a column in the audit table that contains information about the changes made to the target object.
-This column will show the delta or part of the delta based on the changed item path defined in search.
+Delta column is a column in the audit table that displays information about the changes made to the target object.
+Data displayed show the delta or part of the delta based on the changed item path defined in search.
 
 Default visibility of the column can be configured via `visiblity` attribute.
 If not set or set to `automatic`, the column will be visible only if the changed item path is defined in search.
 If set to `visible`, the column will always be visible.
+
+There are two ways how to configure the delta column.
+
+* Simple
+* Advanced, using script expression
+
+==== Simple delta column
 
 Simple configuration of the delta column can display estimated old values, changes or both.
 By default, it displays changes only.
 
 Content of the column in simple configuration will display the following values:
 
-* Object oid/name/type in case of object delta that contains add object operation
-* Item deltas without operational attributes that match the whole item path, no partial deltas
-+
-For example, item delta for `assignment/1/activation/effectiveStatus` will not be displayed if searched the item path is for `assignment`.
+* Object oid/name/type in case of object delta that contains add object operation and there's no changed item path defined in search.
+* Operational attributes are not displayed.
+* Partial deltas are displayed.
+For example, when delta contains change with path `extension/ex:stringProperty` ands searched path is `extension`.
 
 .Code example for the simple delta column configuration
 [source,xml]
@@ -409,6 +416,8 @@ For example, item delta for `assignment/1/activation/effectiveStatus` will not b
     <type>AuditEventRecordType</type>
 </objectCollectionView>
 ----
+
+==== Advanced delta column
 
 For more complex configuration as well as for columns used in reports, script expression can be used.
 New `UserFriendlyPrettyPrinter` with multiple options was created to help with the delta column configuration.
@@ -463,7 +472,7 @@ If set to `true`, the printer will show the concrete item path for each item del
                         ItemPath path = changedItem != null ? changedItem.getItemPath() : ItemPath.EMPTY_PATH
 
                         DeltaPrinterOptions opts = new DeltaPrinterOptions()
-                                // whether to show delta if search bar doesn't contain "Changed item path" value
+                                // whether to show whole delta as is if search bar doesn't contain "Changed item path" value
                                 .showFullObjectDelta(true)
                                 // whether to show also change in subitems of the "Changed item path", e.g. if changed item path is assignment
                                 // whether to display deltas that contain changes for assignment/activation
@@ -472,7 +481,9 @@ If set to `true`, the printer will show the concrete item path for each item del
                         opts.prettyPrinterOptions()
                                 // whether to show full object (with all attributes) or just the high level info (type, oid, name, etc.)
                                 .showFullAddObjectDelta(false)
+                                // whether to show operational attributes
                                 .showOperational(false)
+                                // used to make proper indentation in web GUI
                                 .defaultUIIndentation()
                                 // use localized names for items and types when available
                                 .locale(locale)
@@ -492,6 +503,40 @@ If set to `true`, the printer will show the concrete item path for each item del
     <includeDefaultColumns>true</includeDefaultColumns>
     <type>AuditEventRecordType</type>
 </objectCollectionView>
+----
+
+.Configuration expression example for advanced delta colum, displaying data in similar way as simple column.
+[source, groovy]
+----
+import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions
+import com.evolveum.midpoint.prism.path.ItemPath
+import com.evolveum.midpoint.report.impl.DeltaPrinterOptions
+import com.evolveum.midpoint.report.impl.ReportUtils
+
+ItemPath path = changedItem != null ? changedItem.getItemPath() : ItemPath.EMPTY_PATH
+
+DeltaPrinterOptions opts = new DeltaPrinterOptions()
+    // whether to show delta if search bar doesn't contain "Changed item path" value
+    .showFullObjectDelta(true)
+    // whether to show also change in subitems of the "Changed item path", e.g. if changed item path is assignment
+    // whether to display deltas that contain changes for assignment/activation
+    .showPartialDeltas(true)
+
+opts.prettyPrinterOptions()
+    // whether to show full object (with all attributes) or just the high level info (type, oid, name, etc.)
+    .showFullAddObjectDelta(false)
+    .showOperational(false)
+    .defaultUIIndentation()
+    // use localized names for items and types when available
+    .locale(locale)
+    .localizationService(localizationService)
+
+result = []
+for (var delta : input) {
+    result.addAll(ReportUtils.printDelta(delta, path, opts))
+}
+
+return result
 ----
 
 === Resource oid column

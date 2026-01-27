@@ -39,6 +39,9 @@ public class TestCorrelatorSimulationTask extends AbstractEmptyModelIntegrationT
     private static final File ACCOUNTS = new File(TEST_DIR, "accounts.csv");
     private static final File CORRELATOR_SIMULATION_TASK = new File(TEST_DIR, "task-correlator-simulation.xml");
     private static final String CORRELATOR_SIMULATION_TASK_OID = "04b4b768-3d56-48fd-b339-0586f76e264e";
+    private static final File CORRELATOR_SIMULATION_WITH_MAPPING_TASK = new File(TEST_DIR,
+            "task-correlator-simulation-with-mapping.xml");
+    private static final String CORRELATOR_SIMULATION_WITH_MAPPING_TASK_OID = "c0caf95e-93ad-445c-bcf8-bc0a9fc7ddec";
 
     private TestTask correlationTask;
 
@@ -117,6 +120,32 @@ public class TestCorrelatorSimulationTask extends AbstractEmptyModelIntegrationT
         then("Task should fail, because it supports only PREVIEW execution mode.");
         correlationTask.doAssert("Correlation task is supported only in PREVIEW mode, thus it should fail.")
                 .assertFatalError();
+    }
+
+    @Test
+    void accountsAndUsersExists_runCorrelationTaskWithAdditionalMapping_simulationShouldFoundCandidateOwners()
+            throws Exception {
+        final OperationResult result = getTestOperationResult();
+
+        given("Correlation task with additional mapping is used");
+        final TestTask correlationTask = TestTask.fromFile(CORRELATOR_SIMULATION_WITH_MAPPING_TASK,
+                CORRELATOR_SIMULATION_WITH_MAPPING_TASK_OID);
+        correlationTask.initWithOverwrite(this, getTestTask(), result);
+
+        when("Correlation simulation task is run on the resource.");
+        correlationTask.rerun(result);
+
+        then("Some users should be correlated as shadow's candidate owner.");
+        assertSimulationResult(correlationTask.oid, "Assert correlator simulation result.")
+                .assertObjectsProcessed(6)
+                .assertMetricValueByEventMark(SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value(),
+                        BigDecimal.valueOf(6))
+                .assertMetricValueByEventMark(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value(),
+                        BigDecimal.valueOf(5))
+                .assertMetricValueByEventMark(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN.value(),
+                        BigDecimal.valueOf(0))
+                .assertMetricValueByEventMark(SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value(),
+                        BigDecimal.valueOf(1));
     }
 
     private void setResourceLifeCycleState(String lifecycleState) throws Exception {

@@ -16,6 +16,7 @@
         </extension>
         <givenName>John</givenName>
         <familyName>Smith</familyName>
+        <personalNumber>1234</personalNumber>
     </user>
     <user xsi:type="UserType">
         <name>smith2</name>

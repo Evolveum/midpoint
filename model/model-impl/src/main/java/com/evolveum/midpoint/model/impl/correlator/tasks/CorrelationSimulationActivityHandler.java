@@ -29,14 +29,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * **Supports only simulation (preview) mode.**
  */
 @Component
-public class CorrelationActivityHandler
-        implements ActivityHandler<CorrelationWorkDefinition, CorrelationActivityHandler> {
+public class CorrelationSimulationActivityHandler
+        implements ActivityHandler<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> {
 
     private final ActivityHandlerRegistry activityHandlerRegistry;
     private final CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory;
     private final CorrelationService correlationService;
 
-    public CorrelationActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
+    public CorrelationSimulationActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
             CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory,
             CorrelationService correlationService) {
         this.activityHandlerRegistry = activityHandlerRegistry;
@@ -52,10 +52,10 @@ public class CorrelationActivityHandler
         );
     }
 
-    public CorrelationActivityRun createActivityRun(
-            @NotNull ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationActivityHandler> ctx,
+    public CorrelationSimulationActivityRun createActivityRun(
+            @NotNull ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> ctx,
             @NotNull OperationResult result) {
-        return new CorrelationActivityRun(ctx, this.correlationService, PrismContext.get());
+        return new CorrelationSimulationActivityRun(ctx, this.correlationService, PrismContext.get());
     }
 
     private CorrelationWorkDefinition workDefFactory(WorkDefinitionFactory.WorkDefinitionInfo info) {

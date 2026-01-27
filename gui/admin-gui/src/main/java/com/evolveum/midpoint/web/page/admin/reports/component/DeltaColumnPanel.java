@@ -16,9 +16,13 @@ import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
 
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -39,12 +43,15 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
 
     private static final Pattern ESCAPE_PATTERN = Pattern.compile("(?m)^(&amp;emsp;)+");
 
+    private static final String ID_PATH = "path";
     private static final String ID_OLD_VALUES = "oldValues";
     private static final String ID_OLD_VALUE = "oldValue";
     private static final String ID_NEW_VALUES = "newValues";
     private static final String ID_MODIFICATION_TYPE = "modificationType";
     private static final String ID_NEW_VALUE = "newValue";
     private static final String ID_ARROW = "arrow";
+
+    private boolean showPath = false;
 
     private boolean showOldValues = true;
 
@@ -57,6 +64,10 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
     }
 
     private void initLayout() {
+        Label path = new Label(ID_PATH, () -> createPath());
+        path.add(new VisibleBehaviour(() -> showPath));
+        add(path);
+
         IModel<List<PrismValue>> oldValuesModel = new LoadableDetachableModel<>() {
 
             @Override
@@ -124,6 +135,33 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
         };
         newValues.add(new VisibleBehaviour(() -> showNewValues));
         add(newValues);
+
+        add(new VisibleBehaviour(() -> hasSomethingToShow(oldValuesModel, newValuesModel)));
+    }
+
+    private boolean hasSomethingToShow(
+            IModel<List<PrismValue>> oldValuesModel, IModel<List<Pair<ModificationType, PrismValue>>> newValuesModel) {
+
+        long oldValues = oldValuesModel.getObject().stream()
+                .map(v -> prettyPrint(v))
+                .filter(StringUtils::isNotEmpty)
+                .count();
+
+        long newValues = newValuesModel.getObject().stream()
+                .map(Pair::getRight)
+                .map(v -> prettyPrint(v))
+                .filter(StringUtils::isNotEmpty)
+                .count();
+
+        if (showOldValues && oldValues > 0) {
+            return true;
+        }
+
+        if (showNewValues && newValues > 0) {
+            return true;
+        }
+
+        return false;
     }
 
     private void addModifications(ModificationType type, Collection<? extends PrismValue> values, List<Pair<ModificationType, PrismValue>> result) {
@@ -155,6 +193,11 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
         return escapePrettyPrintedValue(sb.toString());
     }
 
+    private String createPath() {
+        ItemPath path = getModelObject().getPath();
+        return !path.isEmpty() ? path + ":" : "";
+    }
+
     private UserFriendlyPrettyPrinter createPrettyPrinter() {
         UserFriendlyPrettyPrinterOptions options = new UserFriendlyPrettyPrinterOptions()
                 .defaultUIIndentation()
@@ -168,14 +211,16 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
 
     }
 
-    public DeltaColumnPanel setShowNewValues(boolean showNewValues) {
+    public void setShowNewValues(boolean showNewValues) {
         this.showNewValues = showNewValues;
-        return this;
     }
 
-    public DeltaColumnPanel setShowOldValues(boolean showOldValues) {
+    public void setShowOldValues(boolean showOldValues) {
         this.showOldValues = showOldValues;
-        return this;
+    }
+
+    public void setShowPath(boolean showPath) {
+        this.showPath = showPath;
     }
 
     /**

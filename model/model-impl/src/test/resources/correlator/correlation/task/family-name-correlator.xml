@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (C) 2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  ~
+  -->
+
+<itemsCorrelator
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ItemsSubCorrelatorType">
+    <name>by-family-name</name>
+    <description>Match using the familyName</description>
+    <item>
+        <ref>familyName</ref>
+    </item>
+</itemsCorrelator>

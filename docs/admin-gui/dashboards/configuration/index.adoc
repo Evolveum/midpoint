@@ -15,10 +15,10 @@ doc-type: config
 :page-display-order: 30
 :page-keywords: [ 'dashboard', 'dashboards', 'configuration' ]
 :search-alias: "dashboard configuration"
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :experimental:
 
-This article contains advanced configuration options for dashboards and dashboard widgets in particular.
+Use the configuration options described here to customize your dashboards and dashboard widgets in particular.
 You can use the options to select the data sources for your widgets or adjust the appearance of your dashboard widgets,
 including conditioning the appearance so that you get a visual warning when there are, for example, users with too many high-privilege roles.
 
@@ -29,21 +29,6 @@ include::../use-idea-for-midpoint-engineering.adoc[]
 == Define data sources for widgets
 
 The `data` element defines the source of the data that the widget displays.
-
-To take off lightly, here is the simplest possible example of a widget with an object collection as its data source:
-
-[source,xml]
-----
-<widget>
-    ...
-    <data>
-        <sourceType>objectCollection</sourceType>
-        <collection>
-            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/>
-        </collection>
-    </data>
-</widget>
-----
 
 The table below contains more details about the configuration options you have regarding the data sources.
 
@@ -93,6 +78,28 @@ a| Specify the type of input data for generating a message shown in the widget.
 
 |===
 
+=== Synchronous widget using object collection
+
+Here is the simplest possible example of a widget with an object collection as its data source:
+
+[source,xml]
+----
+<widget>
+    ...
+    <data>
+        <sourceType>objectCollection</sourceType>
+        <collection>
+            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="ObjectCollectionType"/>
+        </collection>
+    </data>
+</widget>
+----
+
+=== Asynchronous widget using object collection
+
+Below is a bare-bones asynchronous widget that uses an object collection as its data source.
+See xref:/midpoint/reference/admin-gui/dashboards/dashboard-configuration-intro/#async-widget[Create asynchronous widget to reduce system load] for the required configuration regarding asynchronous widgets.
+
 .An example of a simple asynchronous widget
 [source,xml]
 ----
@@ -102,7 +109,7 @@ a| Specify the type of input data for generating a message shown in the widget.
         <sourceType>objectCollection</sourceType> <!--1-->
         <displaySourceType>widgetData</displaySourceType> <!--2-->
         <collection>
-            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="c:ObjectCollectionType"/> <!--3-->
+            <collectionRef oid="15de186e-1d8c-11e9-a469-8f5d9cfc0259" type="ObjectCollectionType"/> <!--3-->
         </collection>
         <storedData>25/25 runnable</storedData> <!--4-->
     </data>
@@ -117,7 +124,7 @@ a| Specify the type of input data for generating a message shown in the widget.
 You can use an `objectCollection`, `auditSearch` or `object` as a data source for asynchronous widgets.
 Regardless the widget data source, for asynchronous widgets, you need to use the `displaySourceType` element with the `widgetData` value.
 
-=== Use specific object as a widget data source
+=== Specific object as widget data source
 
 Another option is to define a specific `object` as a source.
 In this case, a part of the configuration is a reference to the object which is used as the source.
@@ -147,6 +154,63 @@ The widget may render as follows:
 
 .Dashboard widget showing the execution status of an explicitly selected task.
 image::object.png["Dashboard widget showing the execution status of task"]
+
+=== Audit log events as widget data source
+
+To create a dashboard widget that uses audit log entries as a source, you need to create a xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-with-events-from-audit-log[collection for the audit log records].
+You need to use the `auditSearch` option as the `sourceType` of the widget instead of `objectCollection`.
+
+.Dashboard widget enumerating audit log entries filtered by a collection
+[source,xml]
+----
+<widget>
+    <identifier>modified-users</identifier>
+    <display>
+        <label>during the past week</label>
+        <color>#265DA6</color>
+        <icon>
+            <cssClass>fa fa-user-pen</cssClass>
+        </icon>
+    </display>
+    <data>
+        <sourceType>auditSearch</sourceType> <1>
+        <collection>
+            <collectionRef oid="e45dc8a1-5782-4fd0-a4b4-952749030a9f" relation="org:default" type="c:ObjectCollectionType"> <2>
+                <!-- Audit log - modified users - last 7 days -->
+            </collectionRef>
+        </collection>
+    </data>
+    <presentation>
+        <dataField>
+            <fieldType>value</fieldType>
+            <expression>
+                <proportional>
+                    <style>value-only</style>
+                </proportional>
+            </expression>
+        </dataField>
+        <dataField>
+            <fieldType>unit</fieldType>
+            <expression>
+                <value>users modified</value>
+            </expression>
+        </dataField>
+    </presentation>
+</widget>
+----
+<1> The `auditSearch` source type signifies that the collection contains audit log events instead of the "usual" midPoint objects.
+<2> A reference to a xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-with-events-from-audit-log[collection that filters the audit log events] for the widget to display.
+
+You can create a simple user statistics dashboard like the one below by creating object collections for various events happening to user objects and connecting them to one dashboard.
+See xref:/midpoint/reference/admin-gui/collections-views/configuration/#collection-with-events-from-audit-log[the guide on audit log collection configuration] for details.
+
+.Dashboard with widgets for users who were added, modified, and deleted recently
+image::audit-log-users-join-move-leave.webp["Dashboard with widgets for users who were added, modified, and deleted"]
+
+When you click the [.nowrap]#btn:[More info] icon:arrow-circle-right[]# button, you get redirected to the filtered audit log where you can inspect the records in more detail.
+
+.Audit log filtered by collection query
+image::audit-log-users-modified-list.webp["Audit log filtered by collection query"]
 
 == Define widget visual and presentation attributes
 
