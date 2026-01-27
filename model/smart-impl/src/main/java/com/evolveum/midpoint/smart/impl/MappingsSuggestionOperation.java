@@ -130,10 +130,11 @@ class MappingsSuggestionOperation {
         mappingsSuggestionState.setExpectedProgress(schemaMatch.getSchemaMatchResult().size());
         try {
             var suggestion = new MappingsSuggestionType();
-            List<AttributeMappingCandidate> mappingSuggestions = new ArrayList<>();
+            var mappingCandidates = new AttributeMappingCandidate();
             var direction = resolveDirection();
 
-            mappingSuggestions.addAll(collectSystemMappings(knownSchemaProvider, ownedList, result));
+            collectSystemMappings(knownSchemaProvider, ownedList, result)
+                    .forEach(mappingCandidates::propose);
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
@@ -146,14 +147,7 @@ class MappingsSuggestionOperation {
                         .from(shadowsForValidation);
                 try {
                     var aiMapping = suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, result);
-
-                    Integer duplicateIndex = findDuplicateIndex(mappingSuggestions, aiMapping);
-                    if (duplicateIndex != null) {
-                        handleDuplicate(mappingSuggestions, duplicateIndex, aiMapping);
-                    } else {
-                        mappingSuggestions.add(aiMapping);
-                    }
-
+                    mappingCandidates.propose(aiMapping);
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (LowQualityMappingException e) {
                     LOGGER.debug("Skipping mapping due to low quality: {}", e.getMessage());
@@ -174,8 +168,7 @@ class MappingsSuggestionOperation {
                 ctx.checkIfCanRun();
             }
 
-            mappingSuggestions.stream()
-                    .map(AttributeMappingCandidate::suggestion)
+            mappingCandidates.best()
                     .forEach(suggestion.getAttributeMappings()::add);
 
             return suggestion;
@@ -187,7 +180,7 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private List<AttributeMappingCandidate> collectSystemMappings(
+    private List<AttributeMappingsSuggestionType> collectSystemMappings(
             WellKnownSchemaProvider knownSchemaProvider,
             List<OwnedShadow> ownedList,
             OperationResult result) {
@@ -206,7 +199,7 @@ class MappingsSuggestionOperation {
                 .toList();
     }
 
-    private Optional<AttributeMappingCandidate> assessAndBuildSystemMapping(
+    private Optional<AttributeMappingsSuggestionType> assessAndBuildSystemMapping(
             SystemMappingSuggestion systemMapping,
             List<OwnedShadow> shadowsForValidation,
             OperationResult result) {
@@ -226,8 +219,10 @@ class MappingsSuggestionOperation {
             }
 
             var mappingSuggestion = buildAttributeMappingSuggestion(valuePairs, quality, systemMapping.expression());
-            SmartMetadataUtil.markAsSystemProvided(mappingSuggestion);
-            return Optional.of(new AttributeMappingCandidate(mappingSuggestion));
+            SmartMetadataUtil.markContainerProvenance(
+                    mappingSuggestion.asPrismContainerValue(),
+                    SmartMetadataUtil.ProvenanceKind.SYSTEM);
+            return Optional.of(mappingSuggestion);
         } catch (Exception e) {
             LOGGER.debug("Failed to assess system mapping quality for {}: {}", systemMapping.shadowAttributePath(), e.getMessage());
             return Optional.empty();
@@ -250,7 +245,7 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private AttributeMappingCandidate suggestMapping(
+    private AttributeMappingsSuggestionType suggestMapping(
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuePairsForLLM,
             ValuesPairSample<?, ?> valuePairsForValidation,
@@ -313,11 +308,15 @@ class MappingsSuggestionOperation {
                 valuePairsForValidation, assessment != null ? assessment.quality() : null, expression);
 
         if (isSystemProvided) {
-            SmartMetadataUtil.markAsSystemProvided(suggestion);
+            SmartMetadataUtil.markContainerProvenance(
+                    suggestion.asPrismContainerValue(),
+                    SmartMetadataUtil.ProvenanceKind.SYSTEM);
         } else {
-            SmartMetadataUtil.markAsAiProvided(suggestion);
+            SmartMetadataUtil.markContainerProvenance(
+                    suggestion.asPrismContainerValue(),
+                    SmartMetadataUtil.ProvenanceKind.AI);
         }
-        return new AttributeMappingCandidate(suggestion);
+        return suggestion;
     }
 
     /** Builds the final suggestion structure for the given direction while encapsulating path handling quirks. */
@@ -395,27 +394,5 @@ class MappingsSuggestionOperation {
                 .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
     }
 
-    private Integer findDuplicateIndex(List<AttributeMappingCandidate> mappings, AttributeMappingCandidate newMapping) {
-        for (int i = 0; i < mappings.size(); i++) {
-            if (newMapping.isDuplicateOf(mappings.get(i))) {
-                return i;
-            }
-        }
-        return null;
-    }
-
-    private void handleDuplicate(List<AttributeMappingCandidate> mappings, int index, AttributeMappingCandidate aiMapping) {
-        var existingMapping = mappings.get(index);
-        if (aiMapping.isPreferredOver(existingMapping)) {
-            LOGGER.debug("Replacing mapping for shadow={}, focus={}: quality {} -> {}",
-                    aiMapping.getShadowAttributePath(), aiMapping.getFocusPropertyPath(),
-                    existingMapping.getQuality(), aiMapping.getQuality());
-            mappings.set(index, aiMapping);
-        } else {
-            LOGGER.info("Keeping existing mapping for shadow={}, focus={}: quality {} (skipping AI quality {})",
-                    existingMapping.getShadowAttributePath(), existingMapping.getFocusPropertyPath(),
-                    existingMapping.getQuality(), aiMapping.getQuality());
-        }
-    }
 
 }

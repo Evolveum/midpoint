@@ -16,25 +16,70 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
- * Wrapper record around {@link AttributeMappingsSuggestionType} providing utility methods
- * for comparison, duplicate detection, and path extraction.
+ * Manages a collection of attribute mapping candidates, handling duplicate detection
+ * and quality-based selection. Encapsulates the logic for proposing new candidates
+ * and keeping only the best ones based on their target paths and quality metrics.
  */
-record AttributeMappingCandidate(AttributeMappingsSuggestionType suggestion) {
+class AttributeMappingCandidate {
 
-    ItemPath getShadowAttributePath() {
-        var definition = suggestion.getDefinition();
-        if (definition == null || definition.getRef() == null) {
-            return null;
+    private final List<Candidate> candidates = new ArrayList<>();
+
+    /**
+     * Proposes a new mapping candidate. If a duplicate (based on target path) already exists,
+     * the candidate with better quality is kept. System-provided mappings are preferred over
+     * AI-provided ones when quality is equal.
+     */
+    void propose(AttributeMappingsSuggestionType suggestion) {
+        ItemPath targetPath = extractTargetPath(suggestion);
+        if (targetPath == null) {
+            candidates.add(new Candidate(targetPath, suggestion));
+            return;
         }
-        Object ref = definition.getRef();
-        return ref instanceof ItemPathType path ? path.getItemPath() : null;
+
+        float newQuality = getQuality(suggestion);
+        boolean newIsSystemProvided = SmartMetadataUtil.isMarkedAsSystemProvided(suggestion.asPrismContainerValue());
+
+        var iterator = candidates.iterator();
+        while (iterator.hasNext()) {
+            Candidate existing = iterator.next();
+            if (targetPath.equivalent(existing.targetPath())) {
+                float existingQuality = getQuality(existing.suggestion());
+                boolean existingIsSystemProvided = SmartMetadataUtil.isMarkedAsSystemProvided(
+                        existing.suggestion().asPrismContainerValue());
+
+                if (shouldReplaceWith(newQuality, newIsSystemProvided, existingQuality, existingIsSystemProvided)) {
+                    iterator.remove();
+                    break;
+                } else {
+                    return;
+                }
+            }
+        }
+
+        candidates.add(new Candidate(targetPath, suggestion));
     }
 
-    ItemPath getFocusPropertyPath() {
+    /**
+     * Returns an immutable list of the best mapping suggestions.
+     * Each suggestion contains exactly one inbound or outbound mapping.
+     */
+    List<AttributeMappingsSuggestionType> best() {
+        return candidates.stream()
+                .map(Candidate::suggestion)
+                .toList();
+    }
+
+    /**
+     * Extracts the target path from a mapping suggestion.
+     * For inbound mappings, this is the target path.
+     * For outbound mappings, this is the source path (which becomes the target on the resource).
+     */
+    private static ItemPath extractTargetPath(AttributeMappingsSuggestionType suggestion) {
         var definition = suggestion.getDefinition();
         if (definition == null) {
             return null;
         }
+
         List<InboundMappingType> inbounds = definition.getInbound();
         if (inbounds != null && !inbounds.isEmpty()) {
             var inbound = inbounds.get(0);
@@ -45,45 +90,44 @@ record AttributeMappingCandidate(AttributeMappingsSuggestionType suggestion) {
                 }
             }
         }
+
         var outbound = definition.getOutbound();
         if (outbound != null && outbound.getSource() != null && !outbound.getSource().isEmpty()) {
             var source = outbound.getSource().get(0);
             if (source.getPath() != null) {
                 Object path = source.getPath();
-                if (path instanceof ItemPath itemPath) {
-                    return itemPath;
+                if (path instanceof ItemPathType itemPath) {
+                    return itemPath.getItemPath();
                 }
             }
         }
+
         return null;
     }
 
-    float getQuality() {
+    private static float getQuality(AttributeMappingsSuggestionType suggestion) {
         Float quality = suggestion.getExpectedQuality();
         return quality != null ? quality : 0.0f;
     }
 
-    boolean isDuplicateOf(AttributeMappingCandidate other) {
-        ItemPath thisShadowPath = getShadowAttributePath();
-        ItemPath thisFocusPath = getFocusPropertyPath();
-        ItemPath otherShadowPath = other.getShadowAttributePath();
-        ItemPath otherFocusPath = other.getFocusPropertyPath();
-        if (thisShadowPath == null || thisFocusPath == null || otherShadowPath == null || otherFocusPath == null) {
-            return false;
-        }
-        return thisShadowPath.equivalent(otherShadowPath) && thisFocusPath.equivalent(otherFocusPath);
-    }
-
-    boolean isPreferredOver(AttributeMappingCandidate other) {
-        float thisQuality = getQuality();
-        float otherQuality = other.getQuality();
-        if (thisQuality > otherQuality) {
+    private static boolean shouldReplaceWith(
+            float newQuality, boolean newIsSystemProvided,
+            float existingQuality, boolean existingIsSystemProvided) {
+        if (newQuality > existingQuality) {
             return true;
         }
-        if (thisQuality < otherQuality) {
+        if (newQuality < existingQuality) {
             return false;
         }
-        return SmartMetadataUtil.isMarkedAsSystemProvided(suggestion.asPrismContainerValue());
+        return newIsSystemProvided && !existingIsSystemProvided;
+    }
+
+    /**
+     * Internal record holding a mapping candidate with its target path.
+     * The target path is used for duplicate detection - mappings with the same target
+     * are considered duplicates.
+     */
+    private record Candidate(ItemPath targetPath, AttributeMappingsSuggestionType suggestion) {
     }
 
 }

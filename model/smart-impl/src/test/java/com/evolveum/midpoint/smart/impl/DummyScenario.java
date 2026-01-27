@@ -35,6 +35,7 @@ public class DummyScenario extends AbstractDummyScenario {
 
     public final Account account = new Account();
     public final OrganizationalUnit organizationalUnit = new OrganizationalUnit();
+    public final InetOrgPerson inetOrgPerson = new InetOrgPerson();
 
     public static DummyScenario on(DummyResourceContoller controller) {
         return new DummyScenario(controller);
@@ -43,6 +44,7 @@ public class DummyScenario extends AbstractDummyScenario {
     public DummyScenario initialize() {
         account.initialize();
         organizationalUnit.initialize();
+        inetOrgPerson.initialize();
         return this;
     }
 
@@ -109,6 +111,69 @@ public class DummyScenario extends AbstractDummyScenario {
             controller.addAttrDef(oc, AttributeNames.MANAGER.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.LOCATION.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.PARENT_UNIT.local(), String.class, false, false);
+        }
+
+        @Override
+        public @NotNull ObjectClassName getObjectClassName() {
+            return OBJECT_CLASS_NAME;
+        }
+    }
+
+    public class InetOrgPerson extends ScenarioObjectClass {
+
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("inetOrgPerson");
+
+        public static class AttributeNames {
+            public static final AttrName UID = AttrName.ri("uid");
+            public static final AttrName CN = AttrName.ri("cn");
+            public static final AttrName SN = AttrName.ri("sn");
+            public static final AttrName GIVEN_NAME = AttrName.ri("givenName");
+            public static final AttrName MAIL = AttrName.ri("mail");
+            public static final AttrName TELEPHONE_NUMBER = AttrName.ri("telephoneNumber");
+
+            public static final AttrName DISPLAY_NAME = AttrName.ri("displayName");
+            public static final AttrName EMPLOYEE_NUMBER = AttrName.ri("employeeNumber");
+            public static final AttrName EMPLOYEE_TYPE = AttrName.ri("employeeType");
+            public static final AttrName TITLE = AttrName.ri("title");
+            public static final AttrName DEPARTMENT_NUMBER = AttrName.ri("departmentNumber");
+            public static final AttrName ORGANIZATIONAL_UNIT = AttrName.ri("ou");
+            public static final AttrName POSTAL_ADDRESS = AttrName.ri("postalAddress");
+            public static final AttrName LOCALITY = AttrName.ri("l");
+            public static final AttrName STATE = AttrName.ri("st");
+            public static final AttrName POSTAL_CODE = AttrName.ri("postalCode");
+            public static final AttrName MOBILE = AttrName.ri("mobile");
+            public static final AttrName HOME_PHONE = AttrName.ri("homePhone");
+            public static final AttrName FAX_NUMBER = AttrName.ri("facsimileTelephoneNumber");
+            public static final AttrName MANAGER = AttrName.ri("manager");
+            public static final AttrName DISTINGUISHED_NAME = AttrName.ri("dn");
+        }
+
+        void initialize() {
+            var oc = DummyObjectClass.standard();
+            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
+
+            controller.addAttrDef(oc, AttributeNames.UID.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.CN.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.SN.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.GIVEN_NAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.MAIL.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.TELEPHONE_NUMBER.local(), String.class, false, false);
+
+            controller.addAttrDef(oc, AttributeNames.DISPLAY_NAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.EMPLOYEE_NUMBER.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.EMPLOYEE_TYPE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.TITLE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.DEPARTMENT_NUMBER.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.ORGANIZATIONAL_UNIT.local(), String.class, true, false);
+            controller.addAttrDef(oc, AttributeNames.POSTAL_ADDRESS.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.LOCALITY.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.STATE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.POSTAL_CODE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.MOBILE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.HOME_PHONE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.FAX_NUMBER.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.MANAGER.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.DISTINGUISHED_NAME.local(), String.class, false, false);
         }
 
         @Override
