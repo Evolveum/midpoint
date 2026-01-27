@@ -31,6 +31,20 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 == Changes with Respect To Version 4.8.10
 
 * Added Slovenian language
+* Fixed shopping cart icon number while resolving conflicts in Request access wizard. See bug:MID-10925[].
+* Fixed report preview. See bug:MID-10929[].
+* Fixed container duplication while adding new container value in GUI. See bug:MID-10926[].
+* Fixed marking of the propagated pending delete operations as completed. See bug:MID-10870[].
+* Fixed displaying and creating of the enforcement policy action. See bug:MID-10928[].
+* Fixed Unassignment action on the Governance panel. See bug:MID-10955[].
+* Fixed object types configuration on the members panel. See bug:MID-10896[].
+* Fixed search item expression filter configuration. See bug:MID-10977[].
+* Fixed translation of the orig value of the poly string in case it is defined in the DisplayType label, help, tooltip etc. See bug:MID-10996[].
+* Extended the list of the searchable items in GUI for focus type objects. See bug:MID-11012[].
+* Fixed translation of the left menu items for collection views. See bug:MID-10998[].
+* Fixed visibility of the create report button.
+* Fixed the import report file name to be a generated UUID. See bug:MID-11014[].
+* Updated spring boot to 3.5.8.
 
 == Changes with Respect To Version 4.8.9
 
