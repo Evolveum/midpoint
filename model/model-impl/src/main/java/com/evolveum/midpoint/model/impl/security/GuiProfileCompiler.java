@@ -766,7 +766,7 @@ public class GuiProfileCompiler {
             }
         });
         if (!merged.get()) {
-            objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
+            objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.cloneWithoutId());
         }
     }
 
