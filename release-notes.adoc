@@ -32,6 +32,29 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.10
+
+* Fixed multiple issues connected to WCAG 2.2 requirements.
+* Further fix for the Comment column behavior in the Certification items table. See bug:MID-10912[].
+* Fixed session storage for Task Errors panel. See bug:MID-10975[].
+* Fixed conflicts resolving in Request Access flow. See bug:MID-11001[].
+* Fixed Duplicate action for certification definitions. See bug:MID-10456[].
+* Fixed translation of the orig value of the poly string in case it is defined in the DisplayType label, help, tooltip etc. See bug:MID-10996[].
+* Fixed export of the object/taget display name columns in the Certification items table. See bug:MID-10873[].
+* Fixed translation of the left menu items for collection views. See bug:MID-10998[].
+* Fixed SchemaType objects loading to prism context. See bug:MID-10983[].
+* Fixed visibility of the create report button.
+* Fixed report data object name and export file name to be unique. See bug:MID-10978[].
+* Fixed searching by stage deadline in the Certification cases table. See bug:MID-11023[].
+* Fixed ConcurrentModificationException in RelationUtil. See bug:MID-10940[].
+* Fixed an issue where submitting a certification decision was possible after the stage deadline had passed. See bug:MID-11028[].
+* Fixed the import report file name to be a generated UUID. See bug:MID-11014[].
+* Fixed certification case stage outcome information. See bug:MID-11026[].
+* Fixed searching for changed item path. See bug:MID-10985[].
+* Fixed rendering of the delta when changed item is a container. See bug:MID-10984[].
+* Fixed shadow attributes/id parsing exception. See bug:MID-10944[].
+* Updated spring boot to 3.5.8.
+
 == Changes With Respect To Version 4.9
 
 === New Features and Major Improvements
