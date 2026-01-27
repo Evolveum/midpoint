@@ -347,8 +347,12 @@ public class GuiProfileCompiler {
         if (adminGuiConfiguration == null) {
             return;
         }
-        adminGuiConfiguration.getAdditionalMenuLink().forEach(additionalMenuLink -> composite.getAdditionalMenuLink().add(additionalMenuLink.clone()));
-        adminGuiConfiguration.getUserDashboardLink().forEach(userDashboardLink -> composite.getUserDashboardLink().add(userDashboardLink.clone()));
+        adminGuiConfiguration.getAdditionalMenuLink()
+                .forEach(additionalMenuLink ->
+                        composite.getAdditionalMenuLink().add(additionalMenuLink.cloneWithoutId()));
+        adminGuiConfiguration.getUserDashboardLink()
+                .forEach(userDashboardLink ->
+                        composite.getUserDashboardLink().add(userDashboardLink.cloneWithoutId()));
         if (adminGuiConfiguration.getDefaultTimezone() != null) {
             composite.setDefaultTimezone(adminGuiConfiguration.getDefaultTimezone());
         }
@@ -362,17 +366,17 @@ public class GuiProfileCompiler {
             composite.setUseNewDesign(adminGuiConfiguration.isUseNewDesign());
         }
         if (adminGuiConfiguration.getDefaultExportSettings() != null) {
-            composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
+            composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().cloneWithoutId());
         }
         if (adminGuiConfiguration.getDisplayFormats() != null) {
-            composite.setDisplayFormats(adminGuiConfiguration.getDisplayFormats().clone());
+            composite.setDisplayFormats(adminGuiConfiguration.getDisplayFormats().cloneWithoutId());
         }
 
         applyViews(composite, adminGuiConfiguration.getObjectCollectionViews(), task, result);
 
         if (adminGuiConfiguration.getObjectDetails() != null) {
             if (composite.getObjectDetails() == null) {
-                composite.setObjectDetails(adminGuiConfiguration.getObjectDetails().clone());
+                composite.setObjectDetails(adminGuiConfiguration.getObjectDetails().cloneWithoutId());
             } else {
                 DefaultGuiObjectListPanelConfigurationType objectDetailsDefaultSettings =
                         adminGuiConfiguration.getObjectDetails().getDefaultSettings();
@@ -408,7 +412,7 @@ public class GuiProfileCompiler {
         }
 
         for (UserInterfaceFeatureType feature : adminGuiConfiguration.getFeature()) {
-            mergeFeature(composite, feature.clone());
+            mergeFeature(composite, feature.cloneWithoutId());
         }
 
         if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
@@ -483,7 +487,7 @@ public class GuiProfileCompiler {
 
     private void mergeFeedbackMessagesHook(CompiledGuiProfile composite, FeedbackMessagesHookType feedbackMessagesHook) {
         if (composite.getFeedbackMessagesHook() == null) {
-            composite.setFeedbackMessagesHook(feedbackMessagesHook.clone());
+            composite.setFeedbackMessagesHook(feedbackMessagesHook.cloneWithoutId());
             return;
         }
         if (feedbackMessagesHook.getOperationResultHook() != null) {
@@ -575,24 +579,24 @@ public class GuiProfileCompiler {
 
     private void mergeAccessRequestConfiguration(CompiledGuiProfile composite, AccessRequestType accessRequest) {
         if (composite.getAccessRequest() == null) {
-            composite.setAccessRequest(accessRequest.clone());
+            composite.setAccessRequest(accessRequest.cloneWithoutId());
         }
 
         AccessRequestType ar = composite.getAccessRequest();
         if (accessRequest.getTargetSelection() != null) {
-            ar.setTargetSelection(accessRequest.getTargetSelection().clone());
+            ar.setTargetSelection(accessRequest.getTargetSelection().cloneWithoutId());
         }
 
         if (accessRequest.getRelationSelection() != null) {
-            ar.setRelationSelection(accessRequest.getRelationSelection().clone());
+            ar.setRelationSelection(accessRequest.getRelationSelection().cloneWithoutId());
         }
 
         if (accessRequest.getRoleCatalog() != null) {
-            ar.setRoleCatalog(accessRequest.getRoleCatalog().clone());
+            ar.setRoleCatalog(accessRequest.getRoleCatalog().cloneWithoutId());
         }
 
         if (accessRequest.getCheckout() != null) {
-            ar.setCheckout(accessRequest.getCheckout().clone());
+            ar.setCheckout(accessRequest.getCheckout().cloneWithoutId());
         }
     }
 
@@ -728,7 +732,7 @@ public class GuiProfileCompiler {
 
     private void joinShadowDetails(GuiObjectDetailsSetType objectDetailsSet, GuiShadowDetailsPageType newObjectDetails) {
         objectDetailsSet.getShadowDetailsPage().removeIf(currentDetails -> isTheSameShadowDiscriminatorType(currentDetails, newObjectDetails));
-        objectDetailsSet.getShadowDetailsPage().add(newObjectDetails.clone());
+        objectDetailsSet.getShadowDetailsPage().add(newObjectDetails.cloneWithoutId());
     }
 
     private void joinResourceDetails(GuiObjectDetailsSetType objectDetailsSet, GuiResourceDetailsPageType newObjectDetails, Optional<GuiResourceDetailsPageType> detailForAllResources, OperationResult result) {
@@ -741,12 +745,12 @@ public class GuiProfileCompiler {
             merged.setConnectorRef(newObjectDetails.getConnectorRef().clone());
             added = merged;
         } else {
-            added = newObjectDetails.clone();
+            added = newObjectDetails.cloneWithoutId();
         }
         if (added.getConnectorRef() != null && StringUtils.isEmpty(added.getConnectorRef().getOid())) {
             @NotNull List<String> refsOid = resolveReferenceIfNeeded(added.getConnectorRef(), result);
             refsOid.forEach(oid -> {
-                GuiResourceDetailsPageType clone = added.clone();
+                GuiResourceDetailsPageType clone = added.cloneWithoutId();
                 clone.getConnectorRef().setOid(oid);
                 objectDetailsSet.getResourceDetailsPage().add(clone);
             });
@@ -798,7 +802,7 @@ public class GuiProfileCompiler {
         if (oldConnectorOids.isEmpty() || newConnectorOids.isEmpty()) {
             return false;
         }
-        return newConnectorOids.stream().anyMatch(newConnectorOid -> oldConnectorOids.contains(newConnectorOid));
+        return newConnectorOids.stream().anyMatch(oldConnectorOids::contains);
     }
 
     private @NotNull List<String> resolveReferenceIfNeeded(ObjectReferenceType reference, OperationResult result) {
@@ -825,7 +829,7 @@ public class GuiProfileCompiler {
         String newIdentifier = newFeature.getIdentifier();
         UserInterfaceFeatureType compositeFeature = composite.findFeature(newIdentifier);
         if (compositeFeature == null) {
-            composite.getFeatures().add(newFeature.clone());
+            composite.getFeatures().add(newFeature.cloneWithoutId());
         } else {
             mergeFeature(compositeFeature, newFeature, UserInterfaceElementVisibilityType.AUTOMATIC);
         }
