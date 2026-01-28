@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.action;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.ActionConfigurationPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -108,7 +109,7 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
         DisplayType pageDisplay = null;
         if (display != null) {
             pageDisplay = new DisplayType()
-                    .label(display.label())
+                    .label(GuiDisplayTypeUtil.createPolyStringType(display.label()))
                     .icon(new IconType()
                             .cssClass(display.icon()));
         }

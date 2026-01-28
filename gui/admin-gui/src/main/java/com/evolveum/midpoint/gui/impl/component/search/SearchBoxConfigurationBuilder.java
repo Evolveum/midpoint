@@ -366,7 +366,7 @@ public class SearchBoxConfigurationBuilder {
             return null;
         }
         UserInterfaceFeatureType parameterSearchItem = new UserInterfaceFeatureType();
-        DisplayType tenantDisplay = GuiDisplayTypeUtil.createDisplayTypeWith(label, labelKey, null);
+        DisplayType tenantDisplay = GuiDisplayTypeUtil.createDisplayTypeWithLabel(label, labelKey);
         parameterSearchItem.setDisplay(tenantDisplay);
         return parameterSearchItem;
     }

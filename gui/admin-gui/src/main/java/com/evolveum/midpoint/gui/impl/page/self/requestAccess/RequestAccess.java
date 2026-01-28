@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -82,16 +83,16 @@ public class RequestAccess implements Serializable {
     public static final List<ValidityPredefinedValueType> DEFAULT_VALIDITY_PERIODS = Arrays.asList(
             new ValidityPredefinedValueType()
                     .duration(XmlTypeConverter.createDuration("P1D"))
-                    .display(new DisplayType().label("RequestAccess.validity1Day")),
+                    .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("RequestAccess.validity1Day")),
             new ValidityPredefinedValueType()
                     .duration(XmlTypeConverter.createDuration("P7D"))
-                    .display(new DisplayType().label("RequestAccess.validity1Week")),
+                    .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("RequestAccess.validity1Week")),
             new ValidityPredefinedValueType()
                     .duration(XmlTypeConverter.createDuration("P1M"))
-                    .display(new DisplayType().label("RequestAccess.validity1Month")),
+                    .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("RequestAccess.validity1Month")),
             new ValidityPredefinedValueType()
                     .duration(XmlTypeConverter.createDuration("P1Y"))
-                    .display(new DisplayType().label("RequestAccess.validity1Year"))
+                    .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("RequestAccess.validity1Year"))
     );
 
     public static final String VALIDITY_CUSTOM_LENGTH = "validityCustomLength";

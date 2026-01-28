@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -73,8 +74,7 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
                                 .visibility(UserInterfaceElementVisibilityType.VISIBLE)))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-archetype-display")
-                        .display(new DisplayType()
-                                .label("ArchetypePolicyType.display"))
+                        .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("ArchetypePolicyType.display"))
                         .expanded(false)
                         .item(new VirtualContainerItemSpecificationType()
                                 .path(new ItemPathType(

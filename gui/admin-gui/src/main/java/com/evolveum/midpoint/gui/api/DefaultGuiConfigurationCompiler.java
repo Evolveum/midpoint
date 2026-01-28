@@ -10,6 +10,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 import com.evolveum.midpoint.web.application.ActionType;
 
@@ -671,18 +672,9 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
 
     private DisplayType createDisplayType(PanelDisplay display) {
         DisplayType displayType = new DisplayType();
-        displayType.setLabel(createPolyStringType(display.label()));
-        displayType.setSingularLabel(createPolyStringType(display.singularLabel()));
+        displayType.setLabel(GuiDisplayTypeUtil.createPolyStringType(display.label()));
+        displayType.setSingularLabel(GuiDisplayTypeUtil.createPolyStringType(display.singularLabel()));
         displayType.setIcon(new IconType().cssClass(display.icon()));
         return displayType;
-    }
-
-    private PolyStringType createPolyStringType(String key) {
-        PolyStringTranslationType translation = new PolyStringTranslationType();
-        translation.setKey(key);
-        translation.setFallback(key);
-        PolyString poly = new PolyString(null, null, translation);
-
-        return new PolyStringType(poly);
     }
 }
