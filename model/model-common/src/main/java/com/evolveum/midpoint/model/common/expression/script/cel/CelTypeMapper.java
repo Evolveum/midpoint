@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.script.cel;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -20,6 +21,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import com.google.protobuf.Timestamp;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelValue;
@@ -33,6 +36,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -265,17 +269,33 @@ public class CelTypeMapper {
     private static List<?> toJavaValueList(@NotNull List<?> celArgs) {
         List<Object> javaValues = new ArrayList<Object>(celArgs.size());
         for (Object celArg : celArgs) {
-            if (celArg instanceof CelValue) {
-                javaValues.add(toJavaValue((CelValue) celArg));
-            } else {
-                javaValues.add(celArg);
-            }
+            javaValues.add(toJavaValue(celArg));
         }
         return javaValues;
     }
 
     @Nullable
-    public static Object toJavaValue(@Nullable  CelValue celValue) {
+    public static Object toJavaValue(@Nullable Object celValue) {
+        if (celValue == null || celValue instanceof NullValue) {
+            return null;
+        }
+        if (celValue instanceof CelValue) {
+            return toJavaValue((CelValue) celValue);
+        } else if (celValue instanceof Timestamp ts) {
+            Instant instant = Instant.ofEpochSecond(ts.getSeconds(), ts.getNanos());
+            // Protobuf/CEL timestamps are always rooted in UTC ("Google epoch").
+            GregorianCalendar gregorianCalendar = GregorianCalendar.from(instant.atZone(java.time.ZoneId.of("UTC")));
+            return XmlTypeConverter.createXMLGregorianCalendar(gregorianCalendar);
+        } else if (celValue instanceof com.google.protobuf.Duration gDurantion) {
+            long millis = (gDurantion.getSeconds() * 1000) + (gDurantion.getNanos() / 1_000_000);
+            return XmlTypeConverter.createDuration(millis);
+        } else {
+            return celValue;
+        }
+    }
+
+    @Nullable
+    public static Object toJavaValue(@Nullable CelValue celValue) {
         if (celValue == null) {
             return null;
         }
@@ -312,6 +332,20 @@ public class CelTypeMapper {
             //noinspection unchecked,rawtypes
             return toCelValue((Item)javaValue);
         }
+        if (javaValue instanceof XMLGregorianCalendar xmlCal) {
+            Instant instant = xmlCal.toGregorianCalendar().toInstant();
+            return Timestamp.newBuilder()
+                    .setSeconds(instant.getEpochSecond())
+                    .setNanos(instant.getNano())
+                    .build();
+        }
+        if (javaValue instanceof Duration xmlDuration) {
+            long totalMillis = xmlDuration.getTimeInMillis(new GregorianCalendar(1970, Calendar.JANUARY, 1));
+            return com.google.protobuf.Duration.newBuilder()
+                    .setSeconds(totalMillis / 1000)
+                    .setNanos((int) (totalMillis % 1000) * 1000000)
+                    .build();
+        }
         return javaValue;
     }
 
@@ -342,7 +376,7 @@ public class CelTypeMapper {
         }
         ItemDefinition def = typedValue.getDefinition();
         if (def == null) {
-            return typedValue.getValue();
+            return CelTypeMapper.toCelValue(typedValue.getValue());
         }
         if (def instanceof PrismPropertyDefinition<?>) {
             if (QNameUtil.match(((PrismPropertyDefinition<?>)def).getTypeName(), PrismConstants.POLYSTRING_TYPE_QNAME)) {
@@ -367,7 +401,7 @@ public class CelTypeMapper {
                 return ObjectCelValue.create(((Objectable) typedValue.getValue()).asPrismObject());
             }
         }
-        return typedValue.getValue();
+        return CelTypeMapper.toCelValue(typedValue.getValue());
     }
 
     static {

@@ -184,10 +184,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
             // This means error
             throw new ExpressionEvaluationException("CEL expression evaluation error: "+resultObject);
         }
-        if (resultObject instanceof CelValue) {
-            resultObject = CelTypeMapper.toJavaValue((CelValue) resultObject);
-        }
-        return resultObject;
+        return CelTypeMapper.toJavaValue(resultObject);
     }
 
     private CelRuntime getRuntime(ScriptExpressionEvaluationContext context) {

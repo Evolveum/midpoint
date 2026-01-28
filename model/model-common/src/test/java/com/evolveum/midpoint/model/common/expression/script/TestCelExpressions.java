@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.common.expression.script.cel.CelScriptEvaluat
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.*;
@@ -941,6 +943,29 @@ public class TestCelExpressions extends AbstractScriptTest {
         } catch (ExpressionEvaluationException e) {
             assertTrue("Bad exception message: "+e.getMessage(), e.getMessage().contains("Attempt to get single value from a multi-valued property") );
         }
+    }
+
+    @Test
+    public void testTimestamp() throws Exception {
+
+        // WHEN
+        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-timestamp.xml");
+        List<PrismPropertyValue<XMLGregorianCalendar>> expressionResultList =
+                evaluateExpression(scriptType, DOMUtil.XSD_DATETIME, true,
+                        createVariables(
+                                "eta", XmlTypeConverter.createXMLGregorianCalendarFromIso8601("2023-12-25T12:34:56.000Z"), PrimitiveType.DATETIME,
+                                "diff", XmlTypeConverter.createDuration("PT1H15M"), PrimitiveType.DURATION
+                        ),
+                        getTestName(), createOperationResult());
+
+        // THEN
+        PrismPropertyValue<XMLGregorianCalendar> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        assertNotNull("Expression " + getTestName() + " resulted in null value)", expressionResult);
+        assertEquals("Expression " + getTestName() + " resulted in wrong value",
+                XmlTypeConverter.createXMLGregorianCalendarFromIso8601("2023-12-25T13:49:56.000Z"), expressionResult.getValue());
+
+        // THEN
     }
 
 

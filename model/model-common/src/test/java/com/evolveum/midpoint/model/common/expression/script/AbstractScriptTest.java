@@ -416,12 +416,12 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     protected <T> List<PrismPropertyValue<T>> evaluateExpression(
-            ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar,
+            ScriptExpressionEvaluatorType scriptType, QName outputTypeName, boolean scalar,
             VariablesMap variables, String shortDesc, OperationResult opResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ItemDefinition<?> outputDefinition =
-                PrismTestUtil.getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, typeName);
+                PrismTestUtil.getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, outputTypeName);
         if (!scalar) {
             outputDefinition.mutator().setMaxOccurs(-1);
         }
