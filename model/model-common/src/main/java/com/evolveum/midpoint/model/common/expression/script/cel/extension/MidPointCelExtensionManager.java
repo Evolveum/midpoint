@@ -7,15 +7,23 @@ package com.evolveum.midpoint.model.common.expression.script.cel.extension;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 
+import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelOptions;
+import dev.cel.compiler.CelCompilerLibrary;
+import dev.cel.extensions.CelExtensions;
+import dev.cel.runtime.CelRuntimeLibrary;
 
 public class MidPointCelExtensionManager {
 
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final CelOptions celOptions;
 
-    private CelMelExtensions extCelMel;
+    private CelMelExtensions extMel;
     private CelPolyStringExtensions extPolyString;
+    private CelPrismItemsExtensions extPrismItems;
+
+    private ImmutableList<? extends CelCompilerLibrary> allCompilerLibraries;
+    private ImmutableList<? extends CelRuntimeLibrary> allRuntimeLibraries;
 
     public MidPointCelExtensionManager(BasicExpressionFunctions basicExpressionFunctions, CelOptions celOptions) {
         this.basicExpressionFunctions = basicExpressionFunctions;
@@ -24,15 +32,57 @@ public class MidPointCelExtensionManager {
     }
 
     private void initializeExtensions() {
-        extCelMel = CelMelExtensions.library(basicExpressionFunctions).latest();
+        extMel = CelMelExtensions.library(basicExpressionFunctions).latest();
         extPolyString = CelPolyStringExtensions.library(celOptions, basicExpressionFunctions).latest();
+        extPrismItems = CelPrismItemsExtensions.library().latest();
+
+        allCompilerLibraries = ImmutableList.of(
+                CelExtensions.strings(),
+                CelExtensions.bindings(),
+                CelExtensions.math(celOptions),
+                CelExtensions.encoders(celOptions),
+                CelExtensions.sets(celOptions),
+                CelExtensions.lists(),
+                CelExtensions.regex(),
+                CelExtensions.comprehensions(),
+                CelExtensions.optional(),
+                mel(),
+                polystring(),
+                prismItems()
+        );
+
+        allRuntimeLibraries = ImmutableList.of(
+                CelExtensions.strings(),
+                CelExtensions.math(celOptions),
+                CelExtensions.encoders(celOptions),
+                CelExtensions.sets(celOptions),
+                CelExtensions.lists(),
+                CelExtensions.regex(),
+                CelExtensions.comprehensions(),
+                CelExtensions.optional(),
+                mel(),
+                polystring(),
+                prismItems()
+        );
     }
 
-    public CelMelExtensions celMel() {
-        return extCelMel;
+    public CelMelExtensions mel() {
+        return extMel;
     }
 
     public CelPolyStringExtensions polystring() {
         return extPolyString;
+    }
+
+    public CelPrismItemsExtensions prismItems() {
+        return extPrismItems;
+    }
+
+    public Iterable<? extends CelCompilerLibrary> allCompilerLibraries() {
+        return allCompilerLibraries;
+    }
+
+    public Iterable<? extends CelRuntimeLibrary> allRuntimeLibraries() {
+        return allRuntimeLibraries;
     }
 }

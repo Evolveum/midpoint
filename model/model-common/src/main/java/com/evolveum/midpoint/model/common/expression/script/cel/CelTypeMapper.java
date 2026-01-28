@@ -187,7 +187,21 @@ public class CelTypeMapper {
     }
 
     @NotNull
-    public static CelType toCelType(TypedValue<?> typedValue) {
+    public static CelType toCelType(@NotNull ItemDefinition<?> def) {
+        if (def instanceof PrismPropertyDefinition<?> propDef) {
+            return CelTypeMapper.toCelType(propDef.getTypeName());
+        } else if (def instanceof PrismObjectDefinition<?>) {
+            // TODO: something more sophisticated? Maybe handled by TypeMapper?
+            return ObjectCelValue.CEL_TYPE;
+        } else if (def instanceof PrismContainerDefinition<?>) {
+            // TODO: something more sophisticated? Maybe handled by TypeMapper?
+            return ContainerValueCelValue.CEL_TYPE;
+        }
+        throw new NotImplementedException("Cannot convert "+def+" to CEL");
+    }
+
+    @NotNull
+    public static CelType toCelType(@NotNull TypedValue<?> typedValue) {
         ItemDefinition<?> def = typedValue.getDefinition();
         if (def == null) {
             Class<?> typeClass = typedValue.getTypeClass();
@@ -198,18 +212,10 @@ public class CelTypeMapper {
 //            throw new NotImplementedException("Cannot convert class "+typeClass.getSimpleName()+" to CEL");
             // TODO: convert based on class
         } else {
-            if (def instanceof PrismPropertyDefinition<?> propDef) {
-                return CelTypeMapper.toCelType(propDef.getTypeName());
-            } else if (def instanceof PrismObjectDefinition<?>) {
-                // TODO: something more sophisticated? Maybe handled by TypeMapper?
-                return ObjectCelValue.CEL_TYPE;
-            } else if (def instanceof PrismContainerDefinition<?>) {
-                // TODO: something more sophisticated? Maybe handled by TypeMapper?
-                return ContainerValueCelValue.CEL_TYPE;
-            }
-            throw new NotImplementedException("Cannot convert "+def+" to CEL");
+            return toCelType(def);
         }
     }
+
 
     @Nullable
     public static CelType getCelType(@NotNull QName xsdType) {

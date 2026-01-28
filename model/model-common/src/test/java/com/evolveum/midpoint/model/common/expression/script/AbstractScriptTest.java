@@ -465,8 +465,11 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             String fileName, VariablesMap variables, String... expectedValues)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        String testName = getTestName();
+        ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
+        OperationResult opResult = createOperationResult();
         List<PrismPropertyValue<String>> expressionResultList =
-                evaluateStringExpression(fileName, getTestName(), variables);
+                evaluateExpression(scriptType, DOMUtil.XSD_STRING, false, variables, testName, opResult);
         displayValue("Expression result", expressionResultList);
         TestUtil.assertSetEquals("Expression " + getTestName() + " resulted in wrong values",
                 PrismValueCollectionsUtil.getValues(expressionResultList), expectedValues);

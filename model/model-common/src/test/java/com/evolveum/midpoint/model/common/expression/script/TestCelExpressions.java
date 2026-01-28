@@ -505,31 +505,9 @@ public class TestCelExpressions extends AbstractScriptTest {
 
 
     @Test
-    public void testExpressionStringMixBasicString() throws Exception {
+    public void testExpressionStringMix1String() throws Exception {
         evaluateAndAssertStringScalarExpression(
-                "expression-string-mix-basic.xml",
-                createVariables(
-                        "foo", "Foo", PrimitiveType.STRING,
-                        "bar", "BAR", PrimitiveType.STRING
-                ),
-                "FOO foo!");
-    }
-
-    @Test
-    public void testExpressionStringMixBasicPolyString() throws Exception {
-        evaluateAndAssertStringScalarExpression(
-                "expression-string-mix-basic.xml",
-                createVariables(
-                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
-                        "bar", "BAR", PrimitiveType.STRING
-                ),
-                "FOO foo!");
-    }
-
-    @Test
-    public void testExpressionStringMixNativeString() throws Exception {
-        evaluateAndAssertStringScalarExpression(
-                "expression-string-mix-native.xml",
+                "expression-string-mix-1.xml",
                 createVariables(
                         "foo", "Foo", PrimitiveType.STRING,
                         "bar", "BAR", PrimitiveType.STRING
@@ -538,9 +516,9 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
-    public void testExpressionStringMixNativePolyString() throws Exception {
+    public void testExpressionStringMix1PolyString() throws Exception {
         evaluateAndAssertStringScalarExpression(
-                "expression-string-mix-native.xml",
+                "expression-string-mix-1.xml",
                 createVariables(
                         "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
                         "bar", "BAR", PrimitiveType.STRING
@@ -778,22 +756,22 @@ public class TestCelExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionNull() throws Exception {
-        evaluateAndAssertStringScalarExpression(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-null.xml",
                 createVariables(
                         "foo", null, String.class
                 ),
-                "true");
+                Boolean.TRUE);
     }
 
     @Test
     public void testExpressionNotNull() throws Exception {
-        evaluateAndAssertStringScalarExpression(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-null.xml",
                 createVariables(
                         "foo", "BAR", String.class
                 ),
-                "false");
+                Boolean.FALSE);
     }
 
 
