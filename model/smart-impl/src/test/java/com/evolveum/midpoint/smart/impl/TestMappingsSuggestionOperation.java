@@ -4,13 +4,16 @@ import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AttrName;
@@ -830,6 +833,66 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getExpectedQuality())
                 .as("With no target data, expected quality should be null")
                 .isNull();
+    }
+
+    @Test
+    public void test100SystemMappingsFromLdapWithPerfectMatch() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        modifyUserReplace(USER1.oid, UserType.F_FULL_NAME, PolyString.fromOrig("John Doe"));
+        modifyUserReplace(USER2.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Jane Smith"));
+        modifyUserReplace(USER3.oid, UserType.F_FULL_NAME, PolyString.fromOrig("Bob Johnson"));
+
+        modifyShadowReplace("user1", CN, "John Doe");
+        modifyShadowReplace("user2", CN, "Different Name");
+        modifyShadowReplace("user3", CN, "Another Name");
+
+        refreshShadows();
+
+        var mockClient = createClient(List.of(), List.of());
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+
+        var op = MappingsSuggestionOperation.init(
+                mockClient,
+                RESOURCE_DUMMY.oid,
+                ACCOUNT_DEFAULT,
+                null,
+                new MappingsQualityAssessor(expressionFactory),
+                new OwnedShadowsProviderFromResource(),
+                wellKnownSchemaService,
+                true,
+                task,
+                result);
+
+        var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
+        match.setWellKnownSchemaType(WellKnownSchemaType.LDAP_INETORGPERSON.name());
+        MappingsSuggestionType suggestion = op.suggestMappings(result, match);
+
+        assertThat(suggestion.getAttributeMappings())
+                .as("LDAP system mappings should be present")
+                .isNotEmpty();
+
+        var cnMappings = suggestion.getAttributeMappings().stream()
+                .filter(m -> m.getDefinition() != null
+                        && m.getDefinition().getRef() != null
+                        && m.getDefinition().getRef().toString().endsWith("cn"))
+                .toList();
+
+        assertThat(cnMappings)
+                .as("Should have exactly one cn mapping")
+                .hasSize(1);
+
+        var cnMapping = cnMappings.get(0);
+
+        assertThat(SmartMetadataUtil.isMarkedAsSystemProvided(cnMapping.asPrismContainerValue()))
+                .as("System-provided should be preferred when quality is similar")
+                .isTrue();
+
+        assertThat(cnMapping.getExpectedQuality())
+                .as("System mapping with partial match should have lower quality (~0.33)")
+                .isLessThan(1.0f)
+                .isGreaterThan(0.0f);
     }
 
 }

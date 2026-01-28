@@ -10,6 +10,7 @@ package com.evolveum.midpoint.smart.impl;
 import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPING;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
@@ -113,11 +115,6 @@ class MappingsSuggestionOperation {
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         ctx.checkIfCanRun();
 
-        if (schemaMatch.getSchemaMatchResult().isEmpty()) {
-            LOGGER.warn("No schema match found for {}. Returning empty suggestion.", this);
-            return new MappingsSuggestionType();
-        }
-
         var knownSchemaProvider = wellKnownSchemaService.getProviderFromSchemaMatch(schemaMatch).orElse(null);
 
         var ownedList = collectOwnedShadows(result);
@@ -132,9 +129,11 @@ class MappingsSuggestionOperation {
         mappingsSuggestionState.setExpectedProgress(schemaMatch.getSchemaMatchResult().size());
         try {
             var suggestion = new MappingsSuggestionType();
+            var mappingCandidates = new AttributeMappingCandidateSet();
             var direction = resolveDirection();
 
-            addSystemMappings(suggestion, knownSchemaProvider);
+            collectSystemMappings(knownSchemaProvider, ownedList, result)
+                    .forEach(mappingCandidates::propose);
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 var op = mappingsSuggestionState.recordProcessingStart(matchPair.getShadowAttribute().getName());
@@ -146,12 +145,8 @@ class MappingsSuggestionOperation {
                 var valuePairsForValidation = ValuesPairSample.of(focusPropPath, shadowAttrPath, direction)
                         .from(shadowsForValidation);
                 try {
-                    suggestion.getAttributeMappings().add(
-                            suggestMapping(
-                                    matchPair,
-                                    valuePairsForLLM,
-                                    valuePairsForValidation,
-                                    result));
+                    var aiMapping = suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, result);
+                    mappingCandidates.propose(aiMapping);
                     mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SUCCESS);
                 } catch (LowQualityMappingException e) {
                     LOGGER.debug("Skipping mapping due to low quality: {}", e.getMessage());
@@ -171,6 +166,10 @@ class MappingsSuggestionOperation {
                 }
                 ctx.checkIfCanRun();
             }
+
+            mappingCandidates.best()
+                    .forEach(suggestion.getAttributeMappings()::add);
+
             return suggestion;
         } catch (Exception e) {
             mappingsSuggestionState.recordException(e);
@@ -180,21 +179,52 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private void addSystemMappings(MappingsSuggestionType suggestion, WellKnownSchemaProvider knownSchemaProvider) {
+    private List<AttributeMappingsSuggestionType> collectSystemMappings(
+            WellKnownSchemaProvider knownSchemaProvider,
+            List<OwnedShadow> ownedList,
+            OperationResult result) {
         if (knownSchemaProvider == null) {
-            return;
+            return List.of();
         }
-        LOGGER.info("Adding predefined mappings from known schema provider: {}", knownSchemaProvider.getSupportedSchemaType());
-        if (isInbound) {
-            for (AttributeMappingsSuggestionType predefinedSuggestion : knownSchemaProvider.suggestInboundMappings()) {
-                SmartMetadataUtil.markAsSystemProvided(predefinedSuggestion);
-                suggestion.getAttributeMappings().add(predefinedSuggestion);
+        var shadowsForValidation = ownedList.subList(
+                Math.max(0, ownedList.size() - Math.min(VALIDATION_EXAMPLES_COUNT, ownedList.size())),
+                ownedList.size());
+
+        var mappings = isInbound ? knownSchemaProvider.suggestInboundMappings() : knownSchemaProvider.suggestOutboundMappings();
+
+        return mappings.stream()
+                .map(systemMapping -> assessAndBuildSystemMapping(systemMapping, shadowsForValidation, result))
+                .flatMap(opt -> opt.stream())
+                .toList();
+    }
+
+    private Optional<AttributeMappingsSuggestionType> assessAndBuildSystemMapping(
+            SystemMappingSuggestion systemMapping,
+            List<OwnedShadow> shadowsForValidation,
+            OperationResult result) {
+        try {
+            var direction = resolveDirection();
+            var valuePairs = ValuesPairSample.of(
+                    systemMapping.focusPropertyPath(),
+                    systemMapping.shadowAttributePath(),
+                    direction).from(shadowsForValidation);
+
+            Float quality = null;
+            if (!valuePairs.pairs().isEmpty()) {
+                var assessment = qualityAssessor.assessMappingsQuality(valuePairs, systemMapping.expression(), ctx.task, result);
+                if (assessment != null && assessment.status() == MappingsQualityAssessor.AssessmentStatus.OK) {
+                    quality = assessment.quality();
+                }
             }
-        } else {
-            for (AttributeMappingsSuggestionType predefinedSuggestion : knownSchemaProvider.suggestOutboundMappings()) {
-                SmartMetadataUtil.markAsSystemProvided(predefinedSuggestion);
-                suggestion.getAttributeMappings().add(predefinedSuggestion);
-            }
+
+            var mappingSuggestion = buildAttributeMappingSuggestion(valuePairs, quality, systemMapping.expression());
+            SmartMetadataUtil.markContainerProvenance(
+                    mappingSuggestion.asPrismContainerValue(),
+                    SmartMetadataUtil.ProvenanceKind.SYSTEM);
+            return Optional.of(mappingSuggestion);
+        } catch (Exception e) {
+            LOGGER.debug("Failed to assess system mapping quality for {}: {}", systemMapping.shadowAttributePath(), e.getMessage());
+            return Optional.empty();
         }
     }
 
@@ -227,6 +257,7 @@ class MappingsSuggestionOperation {
 
         ExpressionType expression = null;
         MappingsQualityAssessor.AssessmentResult assessment = null;
+        boolean isSystemProvided = Boolean.TRUE.equals(matchPair.getIsSystemProvided());
 
         if (valuePairsForLLM.pairs().isEmpty() || valuePairsForValidation.pairs().isEmpty()) {
             LOGGER.trace("No data pairs. We'll use 'asIs' mapping (no LLM call).");
@@ -261,6 +292,7 @@ class MappingsSuggestionOperation {
                     }
                 }
             }
+            isSystemProvided = false;
         }
 
         if (assessment != null && assessment.quality() < MINIMUM_QUALITY_THRESHOLD) {
@@ -273,7 +305,16 @@ class MappingsSuggestionOperation {
 
         AttributeMappingsSuggestionType suggestion = buildAttributeMappingSuggestion(
                 valuePairsForValidation, assessment != null ? assessment.quality() : null, expression);
-        SmartMetadataUtil.markAsAiProvided(suggestion); // everything is AI-provided now
+
+        if (isSystemProvided) {
+            SmartMetadataUtil.markContainerProvenance(
+                    suggestion.asPrismContainerValue(),
+                    SmartMetadataUtil.ProvenanceKind.SYSTEM);
+        } else {
+            SmartMetadataUtil.markContainerProvenance(
+                    suggestion.asPrismContainerValue(),
+                    SmartMetadataUtil.ProvenanceKind.AI);
+        }
         return suggestion;
     }
 
@@ -351,5 +392,6 @@ class MappingsSuggestionOperation {
         return ctx.serviceClient
                 .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
     }
+
 
 }

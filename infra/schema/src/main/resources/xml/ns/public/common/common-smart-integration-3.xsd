@@ -1227,6 +1227,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="isSystemProvided" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether this match was provided by a well-known schema detection (LDAP, AD, SCIM, etc.)
+                        rather than by AI service. Defaults to false if not specified.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO inbound/outbound signalization -->
             <!-- TODO outbound attributes with multiple sources? -->
         </xsd:sequence>
@@ -1308,6 +1316,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of the midPoint focus property.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="isSystemProvided" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether this match was provided by a well-known schema detection (LDAP, AD, SCIM, etc.)
+                        rather than by AI service. Defaults to false if not specified.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
