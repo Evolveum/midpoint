@@ -116,10 +116,16 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
             }
 
             public String getFileName() {
+                String fileName;
                 if (StringUtils.isEmpty(name.getObject())) {
-                    return CsvDownloadButtonPanel.this.getFilename();
+                    fileName = CsvDownloadButtonPanel.this.getFilename();
+                } else {
+                    fileName = name.getObject();
                 }
-                return name.getObject();
+                if (!fileName.toLowerCase().endsWith(".csv")) {
+                    fileName += ".csv";
+                }
+                return fileName;
             }
         };
 
