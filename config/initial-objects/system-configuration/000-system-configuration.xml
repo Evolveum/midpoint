@@ -212,7 +212,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to the all assignments panel on the user's profile page.</orig>
+                            <orig>View all accesses.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.myAccesses.viewAll.help</key>
                             </translation>
@@ -236,7 +236,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to the Request access wizard.</orig>
+                            <orig>Initiate access request.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.requestAccess.wizard.help</key>
                             </translation>
@@ -277,7 +277,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to the approval cases table with a requestor set to the logged in user.</orig>
+                            <orig>View all requests.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.myRequests.viewAll.help</key>
                             </translation>
@@ -319,7 +319,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to work items table where assignee is set to the logged in user.</orig>
+                            <orig>View all work items.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.myWorkItems.viewAll.help</key>
                             </translation>
@@ -360,7 +360,7 @@
                             </translation>
                         </label>
                         <help>
-                            <orig>Redirects to the Projections panel on the user's profile page.</orig>
+                            <orig>View all accounts.</orig>
                             <translation>
                                 <key>PageSelfDashboard.widget.myAccounts.viewAll.help</key>
                             </translation>
@@ -494,6 +494,12 @@
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>
                         </label>
+                        <help>
+                            <orig>View all certification items.</orig>
+                            <translation>
+                                <key>PageSelfDashboard.widget.myCertificationItems.viewAll.help</key>
+                            </translation>
+                        </help>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
                         </icon>
