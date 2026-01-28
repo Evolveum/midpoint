@@ -482,7 +482,7 @@ public class BasicExpressionFunctions {
     public <T> @Nullable T getExtensionPropertyValue(
             Containerable containerable, @NotNull javax.xml.namespace.QName propertyQname)
             throws SchemaException {
-        return toSingle(
+        return single(
                 ObjectTypeUtil.getExtensionPropertyValues(containerable, propertyQname),
                 lazy(() -> "a multi-valued extension property " + propertyQname));
     }
@@ -514,7 +514,7 @@ public class BasicExpressionFunctions {
     public @Nullable Referencable getExtensionReferenceValue(
             Containerable containerable, @NotNull javax.xml.namespace.QName itemQName)
             throws SchemaException {
-        return toSingle(
+        return single(
                 ObjectTypeUtil.getExtensionReferenceValues(containerable, itemQName),
                 lazy(() -> "a multi-valued extension property " + itemQName));
     }
@@ -581,7 +581,7 @@ public class BasicExpressionFunctions {
 
     public <T> T getPropertyValue(PrismContainerValue<?> pcv, ItemPathType path) throws SchemaException {
         Collection<T> values = getPropertyValues(pcv, path);
-        return toSingle(values, "a multi-valued property " + path);
+        return single(values, "a multi-valued property " + path);
     }
 
     public <T> Collection<T> getPropertyValues(PrismContainerValue<?> pcv, String path) {
@@ -846,7 +846,17 @@ public class BasicExpressionFunctions {
         return Collections.min(stringValues);
     }
 
+    @Deprecated // Use 'single' instead. Changed to match with MEL.
     public <T> T toSingle(Collection<T> values) throws SchemaException {
+        return single(values);
+    }
+
+    @Deprecated // Use 'single' instead. Changed to match with MEL.
+    private <T> T toSingle(Collection<T> values, Object contextDesc) throws SchemaException {
+        return single(values, contextDesc);
+    }
+
+    public <T> T single(Collection<T> values) throws SchemaException {
         if (values == null || values.isEmpty()) {
             return null;
         } else if (values.size() > 1) {
@@ -856,7 +866,7 @@ public class BasicExpressionFunctions {
         }
     }
 
-    private <T> T toSingle(Collection<T> values, Object contextDesc) throws SchemaException {
+    private <T> T single(Collection<T> values, Object contextDesc) throws SchemaException {
         if (values == null || values.isEmpty()) {
             return null;
         } else if (values.size() > 1) {

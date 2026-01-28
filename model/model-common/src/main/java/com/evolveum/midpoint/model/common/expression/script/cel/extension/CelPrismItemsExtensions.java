@@ -5,10 +5,6 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.cel.extension;
 
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-
-import java.util.Set;
-
 import com.evolveum.midpoint.model.common.expression.script.cel.value.ObjectCelValue;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -16,12 +12,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.google.common.collect.ImmutableSet;
-import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.NullValue;
-import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.runtime.*;
 
@@ -31,61 +25,30 @@ import dev.cel.runtime.*;
  *
  * @author Radovan Semancik
  */
-public class CelPrismItemsExtensions
-        implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet{
+public class CelPrismItemsExtensions extends AbstractMidPointCelExtensions {
 
     public static final Trace LOGGER = TraceManager.getTrace(CelPrismItemsExtensions.class);
 
-    public enum Function {
-
-//        PRISM_INDEX_STRING(
-//                CelFunctionDecl.newFunctionDeclaration(
-//                        Operator.INDEX.getFunction(),
-////                        "index_map",
-//                        CelOverloadDecl.newGlobalOverload(
-//                                "prism-index-string",
-//                                "TODO",
-//                                SimpleType.ANY,
-//                                ObjectCelValue.CEL_TYPE,
-//                                SimpleType.STRING)),
-//                CelFunctionBinding.from("prism-index-string", ObjectCelValue.class, String.class,
-//                        CelPrismItemsExtensions::prismIndexString)),
-
-                PRISM_OBJECT_FIND(
-                        CelFunctionDecl.newFunctionDeclaration(
-                                "find",
-                                CelOverloadDecl.newMemberOverload(
-                                        "prism-object-find-string",
-                                        "TODO",
-                                        SimpleType.ANY,
-                                        ObjectCelValue.CEL_TYPE,
-                                        SimpleType.STRING)),
-                        CelFunctionBinding.from("prism-object-find-string", ObjectCelValue.class, String.class,
-                                CelPrismItemsExtensions::prismIndexString)
-        );
-
-        private final CelFunctionDecl functionDecl;
-        private final ImmutableSet<CelFunctionBinding> commonFunctionBindings;
-
-        String getFunction() {
-            return functionDecl.name();
-        }
-
-        Function(CelFunctionDecl functionDecl, CelFunctionBinding... commonFunctionBindings) {
-            this.functionDecl = functionDecl;
-            this.commonFunctionBindings = ImmutableSet.copyOf(commonFunctionBindings);
-        }
-    };
-
-    private final ImmutableSet<CelPrismItemsExtensions.Function> functions;
-
     public CelPrismItemsExtensions() {
-        this(ImmutableSet.copyOf(CelPrismItemsExtensions.Function.values()));
+        super();
+        initialize();
     }
 
-    CelPrismItemsExtensions(Set<CelPrismItemsExtensions.Function> functions) {
-        this.functions = ImmutableSet.copyOf(functions);
-    }
+    protected ImmutableSet<Function> initializeFunctions() {
+        return ImmutableSet.of(
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "find",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-object-find-string",
+                                    "TODO",
+                                    SimpleType.ANY,
+                                    ObjectCelValue.CEL_TYPE,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from("prism-object-find-string", ObjectCelValue.class, String.class,
+                            CelPrismItemsExtensions::prismFind))
+        );
+    };
 
     private static final class Library implements CelExtensionLibrary<CelPrismItemsExtensions> {
         private final CelPrismItemsExtensions version0;
@@ -116,24 +79,7 @@ public class CelPrismItemsExtensions
         return 0;
     }
 
-    @Override
-    public ImmutableSet<CelFunctionDecl> functions() {
-        return functions.stream().map(f -> f.functionDecl).collect(toImmutableSet());
-    }
-
-    @Override
-    public void setCheckerOptions(CelCheckerBuilder checkerBuilder) {
-        functions.forEach(function -> checkerBuilder.addFunctionDeclarations(function.functionDecl));
-    }
-
-    @Override
-    public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
-        functions.forEach(function -> {
-            runtimeBuilder.addFunctionBindings(function.commonFunctionBindings);
-        });
-    }
-
-    public static Object prismIndexString(ObjectCelValue<?> objectCelValue, String stringPath) {
+    public static Object prismFind(ObjectCelValue<?> objectCelValue, String stringPath) {
 //        LOGGER.info("EEEEEEEX prismIndexString({},{})", objectCelValue, stringPath);
         Object o = objectCelValue.getObject().find(PrismContext.get().itemPathParser().asItemPath(stringPath));
 //        LOGGER.info("EEEEEEEY prismIndexString({},{}): {}", objectCelValue, stringPath, o);

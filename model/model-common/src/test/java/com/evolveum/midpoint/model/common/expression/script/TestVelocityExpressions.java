@@ -41,7 +41,7 @@ public class TestVelocityExpressions extends AbstractScriptTest {
                 "expression-list.xml",
                 createVariables(
                         "jack",
-                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
                         prismContext.definitionFactory()
                             .newReferenceDefinition(UserType.F_PERSONA_REF, UserType.COMPLEX_TYPE)
                 ),

@@ -9,6 +9,7 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.script.cel.value.MidPointCelValue;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -26,6 +27,7 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 
+import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -35,37 +37,20 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
  *
  * @author Radovan Semancik
  */
-public class CelMelExtensions
-        implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet {
-
-    public static final String FUNC_CONTAINS_IGNORE_CASE_NAME = "containsIgnoreCase";
+public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private static final Trace LOGGER = TraceManager.getTrace(CelMelExtensions.class);
 
-    public class Function {
-
-        private final CelFunctionDecl functionDecl;
-        private final ImmutableSet<CelFunctionBinding> commonFunctionBindings;
-
-        String getFunction() {
-            return functionDecl.name();
-        }
-
-        Function(CelFunctionDecl functionDecl, CelFunctionBinding... commonFunctionBindings) {
-            this.functionDecl = functionDecl;
-            this.commonFunctionBindings = ImmutableSet.copyOf(commonFunctionBindings);
-        }
-    };
 
     private final BasicExpressionFunctions basicExpressionFunctions;
-    private final ImmutableSet<CelMelExtensions.Function> functions;
 
     public CelMelExtensions(BasicExpressionFunctions basicExpressionFunctions) {
         this.basicExpressionFunctions = basicExpressionFunctions;
-        functions = initializeFunctions();
+        initialize();
     }
 
-    private ImmutableSet<Function> initializeFunctions() {
+    @Override
+    protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
 
             // ascii
@@ -95,7 +80,59 @@ public class CelMelExtensions
                         "string_"+FUNC_CONTAINS_IGNORE_CASE_NAME, String.class, String.class,
                         basicExpressionFunctions::containsIgnoreCase)),
 
-            // list
+                // str.isBlank
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNC_IS_BLANK_NAME,
+                                CelOverloadDecl.newMemberOverload(
+                                        "string_"+FUNC_IS_BLANK_NAME,
+                                        "Returns true if string is blank (has zero length or contains only white characters).",
+                                        SimpleType.BOOL,
+                                        SimpleType.STRING)),
+                        CelFunctionBinding.from(
+                                "string_"+FUNC_IS_BLANK_NAME, String.class,
+                                CelMelExtensions::stringIsBlank)),
+
+                // isBlank(string)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNC_IS_BLANK_NAME,
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNC_IS_BLANK_NAME+"_string",
+                                        "Returns true if string is blank (has zero length or contains only white characters) or it is null.",
+                                        SimpleType.BOOL,
+                                        SimpleType.STRING)),
+                        CelFunctionBinding.from(
+                                FUNC_IS_BLANK_NAME+"_string", String.class,
+                                CelMelExtensions::stringIsBlank)),
+
+                // str.isEmpty
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNC_IS_EMPTY_NAME,
+                                CelOverloadDecl.newMemberOverload(
+                                        "string_"+FUNC_IS_EMPTY_NAME,
+                                        "Returns true if string is empty (has zero length).",
+                                        SimpleType.BOOL,
+                                        SimpleType.STRING)),
+                        CelFunctionBinding.from(
+                                "string_"+FUNC_IS_EMPTY_NAME, String.class,
+                                CelMelExtensions::stringIsEmpty)),
+
+                // isEmpty(string)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNC_IS_EMPTY_NAME,
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNC_IS_EMPTY_NAME+"_string",
+                                        "Returns true if string is empty (has zero length) or it is null.",
+                                        SimpleType.BOOL,
+                                        SimpleType.STRING)),
+                        CelFunctionBinding.from(
+                                FUNC_IS_EMPTY_NAME+"_string", String.class,
+                                CelMelExtensions::stringIsEmpty)),
+
+                // list
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "list",
@@ -123,6 +160,20 @@ public class CelMelExtensions
 
             ),
 
+            // single
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "single",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-single",
+                                    "TODO",
+                                    SimpleType.ANY,
+                                    SimpleType.ANY)),
+                    CelFunctionBinding.from("mel-single", Object.class,
+                            this::single)
+
+            ),
+
             // stringify
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -141,6 +192,7 @@ public class CelMelExtensions
                 // TODO: toSingle()? single()? scalar()?
         );
     }
+
 
     private static final class Library implements CelExtensionLibrary<CelMelExtensions> {
         private final CelMelExtensions version0;
@@ -169,27 +221,25 @@ public class CelMelExtensions
         return 0;
     }
 
-    @Override
-    public ImmutableSet<CelFunctionDecl> functions() {
-        return functions.stream().map(f -> f.functionDecl).collect(toImmutableSet());
-    }
-
-    @Override
-    public void setCheckerOptions(CelCheckerBuilder checkerBuilder) {
-        functions.forEach(function -> checkerBuilder.addFunctionDeclarations(function.functionDecl));
-    }
-
-    @Override
-    public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
-        functions.forEach(function -> {
-            runtimeBuilder.addFunctionBindings(function.commonFunctionBindings);
-        });
-    }
-
     private String ascii(Object o) {
         return basicExpressionFunctions.ascii(toJava(o));
     }
 
+    public static boolean stringIsEmpty(String str) {
+        if (isCellNull(str)) {
+            return true;
+        }
+        return str.isEmpty();
+    }
+
+    public static boolean stringIsBlank(String str) {
+        if (isCellNull(str)) {
+            return true;
+        }
+        return str.isBlank();
+    }
+
+    // TODO: do we need this?
     public static List<Object> melList(Object input) {
         LOGGER.info("MMMMMMMMMMMM: melList({})", input);
         if (input instanceof List) {
@@ -199,15 +249,29 @@ public class CelMelExtensions
         }
     }
 
+    private Object single(Object o) {
+        if (isCellNull(o)) {
+            return o;
+        }
+        if (o instanceof Collection<?> col) {
+            if (col.isEmpty()) {
+                return NullValue.NULL_VALUE;
+            } else if (col.size() == 1) {
+                return col.iterator().next();
+            } else {
+                throw new RuntimeException("Attempt to get single value from a multi-valued property");
+            }
+        } else {
+            return o;
+        }
+    }
+
     private String stringify(Object o) {
         return basicExpressionFunctions.stringify(toJava(o));
     }
 
     private String norm(Object o) {
-        if (o == null) {
-            return "";
-        }
-        if (o instanceof NullValue) {
+        if (isCellNull(o)) {
             return "";
         }
         if (o instanceof MidPointCelValue<?> mpCelVal) {
@@ -220,19 +284,6 @@ public class CelMelExtensions
             return basicExpressionFunctions.norm(ps);
         }
         return basicExpressionFunctions.norm(stringify(o));
-    }
-
-    private Object toJava(Object o) {
-        if (o == null) {
-            return null;
-        }
-        if (o instanceof NullValue) {
-            return null;
-        }
-        if (o instanceof MidPointCelValue<?> mpCelVal) {
-            return mpCelVal.getJavaValue();
-        }
-        return o;
     }
 
 }

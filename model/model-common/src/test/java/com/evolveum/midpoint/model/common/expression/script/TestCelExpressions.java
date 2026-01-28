@@ -15,18 +15,19 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBi
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.cel.CelScriptEvaluator;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import com.google.common.collect.ImmutableList;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrimitiveType;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -503,6 +504,73 @@ public class TestCelExpressions extends AbstractScriptTest {
                 " FooBAR");
     }
 
+    @Test
+    public void testExpressionStringEmptyBlankGlobalPolyStringFull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-empty-blank-global.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foobar"), PolyStringType.COMPLEX_TYPE
+                ),
+                "false/false");
+    }
+
+    @Test
+    public void testExpressionStringEmptyBlankGlobalStringBlank() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-empty-blank-global.xml",
+                createVariables(
+                        "foo", "  ", PrimitiveType.STRING
+                ),
+                "false/true");
+    }
+
+    @Test
+    public void testExpressionStringEmptyBlankMemberPolyStringBlank() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-empty-blank-member.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("  "), PolyStringType.COMPLEX_TYPE
+                ),
+                "false/true");
+    }
+
+
+    /**
+     * Control test, making sure stock CEL interprets the expression in the same way using plain strings.
+     */
+    @Test
+    public void testExpressionStringEmptyBlankGlobalStringFull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-empty-blank-global.xml",
+                createVariables(
+                        "foo", "Foobar", PrimitiveType.STRING
+                ),
+                "false/false");
+    }
+
+    @Test
+    public void testExpressionStringEmptyBlankMemberPolyStringFull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-empty-blank-member.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foobar"), PolyStringType.COMPLEX_TYPE
+                ),
+                "false/false");
+    }
+
+    /**
+     * Control test, making sure stock CEL interprets the expression in the same way using plain strings.
+     */
+    @Test
+    public void testExpressionStringEmptyBlankMemberStringFull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-string-empty-blank-member.xml",
+                createVariables(
+                        "foo", "Foobar", PrimitiveType.STRING
+                ),
+                "false/false");
+    }
+
 
     @Test
     public void testExpressionStringMix1String() throws Exception {
@@ -772,6 +840,107 @@ public class TestCelExpressions extends AbstractScriptTest {
                         "foo", "BAR", String.class
                 ),
                 Boolean.FALSE);
+    }
+
+    @Test
+    public void testSingleString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-single.xml",
+                createVariables(
+                        "foo", "Bar", String.class
+                ),
+                "Bar");
+    }
+
+    @Test
+    public void testSingleNull() throws Exception {
+        VariablesMap variables = createVariables(
+                "foo", null, String.class
+        );
+        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression("expression-single.xml", getTestName(), variables);
+        PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        assertNull("Expression " + getTestName() + " resulted in NON-null value", expressionResult);
+    }
+
+    @Test
+    public void testSingleOrgunitListEmpty() throws Exception {
+        VariablesMap variables = createVariables(
+                "foo", ImmutableList.of(), List.class
+        );
+        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression("expression-single.xml", getTestName(), variables);
+        PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        assertNull("Expression " + getTestName() + " resulted in NON-null value", expressionResult);
+    }
+
+    @Test
+    public void testSingleOrgunitPropEmpty() throws Exception {
+        PrismObject<UserType> userEmpty = prismContext.createObject(UserType.class);
+        PrismProperty<Object> orgProp = userEmpty.findOrCreateProperty(UserType.F_ORGANIZATIONAL_UNIT);
+        VariablesMap variables = createVariables(
+                "foo", orgProp, orgProp.getDefinition()
+        );
+        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression("expression-single.xml", getTestName(), variables);
+        PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        assertNull("Expression " + getTestName() + " resulted in NON-null value", expressionResult);
+    }
+
+    @Test
+    public void testSingleOrgunitListSingle() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        evaluateAndAssertStringScalarExpression(
+                "expression-single.xml",
+                createVariables(
+                        "foo", userBarbossa.asObjectable().getOrganizationalUnit(), List.class
+                ),
+                "Ministry of Piracy");
+    }
+
+    @Test
+    public void testSingleOrgunitPropertySingle() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        PrismProperty<PolyStringType> orgProp = userBarbossa.findProperty(UserType.F_ORGANIZATIONAL_UNIT);
+        evaluateAndAssertStringScalarExpression(
+                "expression-single.xml",
+                createVariables(
+                        "foo", orgProp, orgProp.getDefinition()
+                ),
+                "Ministry of Piracy");
+    }
+
+    @Test
+    public void testSingleOrgunitListMulti() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        try {
+            evaluateAndAssertStringScalarExpression(
+                    "expression-single.xml",
+                    createVariables(
+                            "foo", userJack.asObjectable().getOrganizationalUnit(), List.class
+                    ),
+                    "Ministry of Piracy");
+            throw new RuntimeException("Unexpected success");
+        } catch (ExpressionEvaluationException e) {
+            assertTrue("Bad exception message: "+e.getMessage(), e.getMessage().contains("Attempt to get single value from a multi-valued property") );
+        }
+    }
+
+    @Test
+    public void testSingleOrgunitPropertyMulti() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismProperty<PolyStringType> orgProp = userJack.findProperty(UserType.F_ORGANIZATIONAL_UNIT);
+        try {
+            evaluateAndAssertStringScalarExpression(
+                    "expression-single.xml",
+                    createVariables(
+                            "foo", orgProp, orgProp.getDefinition()
+                    ),
+                    "Ministry of Piracy");
+            throw new RuntimeException("Unexpected success");
+        } catch (ExpressionEvaluationException e) {
+            assertTrue("Bad exception message: "+e.getMessage(), e.getMessage().contains("Attempt to get single value from a multi-valued property") );
+        }
     }
 
 

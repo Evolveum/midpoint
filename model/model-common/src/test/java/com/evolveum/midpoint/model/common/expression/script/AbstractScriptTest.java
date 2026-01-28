@@ -66,7 +66,10 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
     protected static final File BASE_TEST_DIR = new File("src/test/resources/expression");
     protected static final File OBJECTS_DIR = new File("src/test/resources/objects");
-    protected static final String USER_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+    protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+    protected static final File USER_JACK_FILE = new File(OBJECTS_DIR, USER_JACK_OID + ".xml");
+    protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
+    protected static final File USER_BARBOSSA_FILE = new File(OBJECTS_DIR, USER_BARBOSSA_OID + ".xml");
     protected static final String NON_EXISTENT_USER_OID = "608ccca5-5268-44d0-85b8-38f531df56b4";
 
     public static final String VAR_POISON = "poison";
@@ -171,7 +174,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 createVariables(
                         "foo", "Captain", String.class,
                         "jack",
-                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
                         // We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
                         prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
                 ),
@@ -223,7 +226,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 createVariables(
                         "foo", "Captain", PrimitiveType.STRING,
                         "jack",
-                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
                         // We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
                         prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
                 ),
@@ -281,12 +284,12 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         return createVariables(
                 // Deprecated
                 ExpressionConstants.VAR_USER,
-                MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
                 // We want 'user' variable to contain user object, not the reference. We want the reference resolved.
                 prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class),
 
                 ExpressionConstants.VAR_FOCUS,
-                MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
                 // We want 'focus' variable to contain user object, not the reference. We want the reference resolved.
                 prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class),
 
@@ -308,7 +311,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 "expression-root-node.xml",
                 createVariables(
                         null, // root node
-                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
                         prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)),
                 "Black Pearl");
     }
@@ -319,7 +322,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 "expression-list.xml",
                 createVariables(
                         "jack",
-                        MiscSchemaUtil.createObjectReference(USER_OID, UserType.COMPLEX_TYPE),
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
                         // We want 'jack' variable to contain user object, not the reference. We want the reference resolved.
                         prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
                 ),

@@ -20,14 +20,12 @@ import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
-import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.lang.Math.max;
@@ -46,35 +44,19 @@ import static java.lang.Math.min;
  * @author Radovan Semancik
  * Base on CelStringExtensions
  */
-public class CelPolyStringExtensions
-        implements CelCompilerLibrary, CelRuntimeLibrary, CelExtensionLibrary.FeatureSet{
-
-    public class Function {
-
-        private final CelFunctionDecl functionDecl;
-        private final ImmutableSet<CelFunctionBinding> commonFunctionBindings;
-
-        String getFunction() {
-            return functionDecl.name();
-        }
-
-        Function(CelFunctionDecl functionDecl, CelFunctionBinding... commonFunctionBindings) {
-            this.functionDecl = functionDecl;
-            this.commonFunctionBindings = ImmutableSet.copyOf(commonFunctionBindings);
-        }
-    };
+public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
 
     private final CelOptions celOptions;
     private final BasicExpressionFunctions basicExpressionFunctions;
-    private final ImmutableSet<CelPolyStringExtensions.Function> functions;
 
     public CelPolyStringExtensions(CelOptions celOptions, BasicExpressionFunctions basicExpressionFunctions) {
+        super();
         this.celOptions = celOptions;
         this.basicExpressionFunctions = basicExpressionFunctions;
-        functions = initializeFunctions();
+        initialize();
     }
 
-    private ImmutableSet<Function> initializeFunctions() {
+    protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
 
                 // _==_
@@ -227,6 +209,59 @@ public class CelPolyStringExtensions
                                         "polystring_index_of_string_int",
                                         ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
                                         CelPolyStringExtensions::indexOf)),
+
+                // str.isBlank
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                CelMelExtensions.FUNC_IS_BLANK_NAME,
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_"+CelMelExtensions.FUNC_IS_BLANK_NAME,
+                                        "Returns true if string is blank (has zero length or contains only white characters).",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from(
+                                "polystring_"+CelMelExtensions.FUNC_IS_BLANK_NAME, PolyStringCelValue.class,
+                                CelPolyStringExtensions::polystringIsBlank)),
+
+                // isBlank(string)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                CelMelExtensions.FUNC_IS_BLANK_NAME,
+                                CelOverloadDecl.newGlobalOverload(
+                                        CelMelExtensions.FUNC_IS_BLANK_NAME+"_polystring",
+                                        "Returns true if string is blank (has zero length or contains only white characters) or it is null.",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from(
+                                CelMelExtensions.FUNC_IS_BLANK_NAME+"_polystring", PolyStringCelValue.class,
+                                CelPolyStringExtensions::polystringIsBlank)),
+
+                // str.isEmpty
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                CelMelExtensions.FUNC_IS_EMPTY_NAME,
+                                CelOverloadDecl.newMemberOverload(
+                                        "polystring_"+CelMelExtensions.FUNC_IS_EMPTY_NAME,
+                                        "Returns true if string is empty (has zero length).",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from(
+                                "polystring_"+CelMelExtensions.FUNC_IS_EMPTY_NAME, PolyStringCelValue.class,
+                                CelPolyStringExtensions::polystringIsEmpty)),
+
+                // isEmpty(string)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                CelMelExtensions.FUNC_IS_EMPTY_NAME,
+                                CelOverloadDecl.newGlobalOverload(
+                                        CelMelExtensions.FUNC_IS_EMPTY_NAME+"_polystring",
+                                        "Returns true if string is empty (has zero length) or it is null.",
+                                        SimpleType.BOOL,
+                                        PolyStringCelValue.CEL_TYPE)),
+                        CelFunctionBinding.from(
+                                CelMelExtensions.FUNC_IS_EMPTY_NAME+"_polystring", PolyStringCelValue.class,
+                                CelPolyStringExtensions::polystringIsEmpty)),
+
 
                 // TODO: JOIN? Does it make sense?
 
@@ -434,7 +469,6 @@ public class CelPolyStringExtensions
         );
     }
 
-
     private static final class Library implements CelExtensionLibrary<CelPolyStringExtensions> {
         private final CelPolyStringExtensions version0;
 
@@ -460,23 +494,6 @@ public class CelPolyStringExtensions
     @Override
     public int version() {
         return 0;
-    }
-
-    @Override
-    public ImmutableSet<CelFunctionDecl> functions() {
-        return functions.stream().map(f -> f.functionDecl).collect(toImmutableSet());
-    }
-
-    @Override
-    public void setCheckerOptions(CelCheckerBuilder checkerBuilder) {
-        functions.forEach(function -> checkerBuilder.addFunctionDeclarations(function.functionDecl));
-    }
-
-    @Override
-    public void setRuntimeOptions(CelRuntimeBuilder runtimeBuilder) {
-        functions.forEach(function -> {
-            runtimeBuilder.addFunctionBindings(function.commonFunctionBindings);
-        });
     }
 
     public static boolean stringEqualsPolyString(String s, PolyStringCelValue polystringValue) {
@@ -527,6 +544,21 @@ public class CelPolyStringExtensions
         }
         return polystringValue1.getOrig() + polystringValue2.getOrig();
     }
+
+    private static boolean polystringIsBlank(PolyStringCelValue celPolystring) {
+        if (isCellNull(celPolystring)) {
+            return true;
+        }
+        return celPolystring.getOrig().isBlank();
+    }
+
+    private static boolean polystringIsEmpty(PolyStringCelValue celPolystring) {
+        if (isCellNull(celPolystring)) {
+            return true;
+        }
+        return celPolystring.getOrig().isEmpty();
+    }
+
 
     // Taken from CelStringExtensions, modified for Polystring
 
