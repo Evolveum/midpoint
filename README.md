@@ -1,5 +1,5 @@
-MidPoint 4.9 Support Branch
----------------------------
+MidPoint 4.8 "Curie" Update 11
+------------------------------
 
 General information:
 

@@ -1,9 +1,9 @@
 ---
-release-version: '4.8.10'
+release-version: '4.8.11'
 ---
-= Installing MidPoint 4.8 "Curie" - Update 10 From Binary Distribution
+= Installing MidPoint 4.8 "Curie" - Update 11 From Binary Distribution
 :page-layout: release-install-configurable-password
-:release-version: 4.8.10
+:release-version: 4.8.11
 :page-nav-title: Installation Instructions
 :page-liquid:
 

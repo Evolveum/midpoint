@@ -1,15 +1,13 @@
 ---
 layout: release
-release-version: '4.8.10'
-visibility: hidden
+release-version: '4.8.11'
 ---
-= MidPoint 4.8 "Curie" - Update 10
-:release-version: 4.8.10
-:page-visibility: hidden
+= MidPoint 4.8 "Curie" - Update 11
+:release-version: 4.8.11
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a seventy midPoint release, code-named _Curie_.
+Release {release-version} is a seventy-three midPoint release, code-named _Curie_.
 The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
