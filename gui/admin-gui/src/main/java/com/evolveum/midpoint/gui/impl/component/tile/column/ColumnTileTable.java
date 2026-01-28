@@ -17,7 +17,6 @@ import com.evolveum.midpoint.gui.impl.component.ButtonBar;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.panel.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -463,7 +462,9 @@ public abstract class ColumnTileTable<O extends Serializable>
         if (value instanceof PrismContainerValueWrapper<?>) {
             StatusInfo<T> statusInfo = getStatusInfoFn.apply(value);
             if (statusInfo != null && statusInfo.getStatus() != null) {
-                String styleClass = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).tileClass;
+                SmartIntegrationUtils.SuggestionUiStyle uiStyle = SmartIntegrationUtils.SuggestionUiStyle
+                        .from(statusInfo, ((PrismContainerValueWrapper<?>) value));
+                String styleClass = uiStyle.tileClass;
                 tile.add(AttributeModifier.append("class", baseCss + " border-large-left " + styleClass));
             }
         }
