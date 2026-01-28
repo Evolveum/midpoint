@@ -8,19 +8,15 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class SearchConfigurationMerger {
 
@@ -119,7 +115,7 @@ public class SearchConfigurationMerger {
         if (StringUtils.isNotEmpty(customFeature.getDocumentation())) {
             feature.documentation(customFeature.getDocumentation());
         }
-        feature.setDisplay(WebComponentUtil.combineDisplay(feature.getDisplay(), customFeature.getDisplay()));
+        feature.setDisplay(GuiDisplayTypeUtil.combineDisplay(feature.getDisplay(), customFeature.getDisplay()));
         if (customFeature.getVisibility() != null) {
             feature.setVisibility(customFeature.getVisibility());
         }

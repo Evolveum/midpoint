@@ -14,6 +14,7 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -279,8 +280,7 @@ public abstract class SimulationResultObjectPanel extends BasePanel<SimulationRe
         };
         footer.add(paging);
 
-        DisplayType displayType = new DisplayType()
-                .label(createStringResource("PageSimulationResultObject.details").getString())
+        DisplayType displayType = GuiDisplayTypeUtil.createDisplayTypeWithLabel("PageSimulationResultObject.details")
                 .icon(new IconType().cssClass("nav-icon fa-solid fa-flask"));
         DetailsTablePanel details = new DetailsTablePanel(ID_DETAILS,
                 Model.of(displayType),

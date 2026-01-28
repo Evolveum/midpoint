@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -60,8 +61,8 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
                                         MarkType.F_OBJECT_OPERATION_POLICY,
                                         ObjectOperationPolicyType.F_SYNCHRONIZE,
                                         SynchronizeOperationPolicyConfigurationType.F_INBOUND)))
-                        .display(new DisplayType()
-                                .label("SynchronizeOperationPolicyConfigurationType.inbound"))
+                        .display(GuiDisplayTypeUtil
+                                .createDisplayTypeWithLabel("SynchronizeOperationPolicyConfigurationType.inbound"))
                         .expanded(false))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-mark-synchronization-outbound")
@@ -70,8 +71,8 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
                                         MarkType.F_OBJECT_OPERATION_POLICY,
                                         ObjectOperationPolicyType.F_SYNCHRONIZE,
                                         SynchronizeOperationPolicyConfigurationType.F_OUTBOUND)))
-                        .display(new DisplayType()
-                                .label("SynchronizeOperationPolicyConfigurationType.outbound"))
+                        .display(GuiDisplayTypeUtil
+                                .createDisplayTypeWithLabel("SynchronizeOperationPolicyConfigurationType.outbound"))
                         .expanded(false))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-mark-synchronization-membership")
@@ -80,8 +81,8 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
                                         MarkType.F_OBJECT_OPERATION_POLICY,
                                         ObjectOperationPolicyType.F_SYNCHRONIZE,
                                         SynchronizeOperationPolicyConfigurationType.F_MEMBERSHIP)))
-                        .display(new DisplayType()
-                                .label("SynchronizeOperationPolicyConfigurationType.membership"))
+                        .display(GuiDisplayTypeUtil
+                                .createDisplayTypeWithLabel("SynchronizeOperationPolicyConfigurationType.membership"))
                         .expanded(false))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-mark-synchronization-membership-inbound")
@@ -91,8 +92,8 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
                                         ObjectOperationPolicyType.F_SYNCHRONIZE,
                                         SynchronizeOperationPolicyConfigurationType.F_MEMBERSHIP,
                                         SynchronizeMembershipOperationPolicyConfigurationType.F_INBOUND)))
-                        .display(new DisplayType()
-                                .label("SynchronizeMembershipOperationPolicyConfigurationType.inbound"))
+                        .display(GuiDisplayTypeUtil
+                                .createDisplayTypeWithLabel("SynchronizeMembershipOperationPolicyConfigurationType.inbound"))
                         .expanded(false))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-mark-synchronization-membership-outbound")
@@ -102,8 +103,8 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
                                         ObjectOperationPolicyType.F_SYNCHRONIZE,
                                         SynchronizeOperationPolicyConfigurationType.F_MEMBERSHIP,
                                         SynchronizeMembershipOperationPolicyConfigurationType.F_OUTBOUND)))
-                        .display(new DisplayType()
-                                .label("SynchronizeMembershipOperationPolicyConfigurationType.outbound"))
+                        .display(GuiDisplayTypeUtil
+                                .createDisplayTypeWithLabel("SynchronizeMembershipOperationPolicyConfigurationType.outbound"))
                         .expanded(false))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-mark-add")
@@ -111,8 +112,7 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
                                 ItemPath.create(
                                         MarkType.F_OBJECT_OPERATION_POLICY,
                                         ObjectOperationPolicyType.F_ADD)))
-                        .display(new DisplayType()
-                                .label("ObjectOperationPolicyType.add"))
+                        .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("ObjectOperationPolicyType.add"))
                         .expanded(false))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-mark-modify")
@@ -120,8 +120,7 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
                                 ItemPath.create(
                                         MarkType.F_OBJECT_OPERATION_POLICY,
                                         ObjectOperationPolicyType.F_MODIFY)))
-                        .display(new DisplayType()
-                                .label("ObjectOperationPolicyType.modify"))
+                        .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("ObjectOperationPolicyType.modify"))
                         .expanded(false))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-mark-delete")
@@ -129,8 +128,7 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
                                 ItemPath.create(
                                         MarkType.F_OBJECT_OPERATION_POLICY,
                                         ObjectOperationPolicyType.F_DELETE)))
-                        .display(new DisplayType()
-                                .label("ObjectOperationPolicyType.delete"))
+                        .display(GuiDisplayTypeUtil.createDisplayTypeWithLabel("ObjectOperationPolicyType.delete"))
                         .expanded(false));
     }
 
