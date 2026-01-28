@@ -1928,6 +1928,10 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
         </plugins>
 
         <pluginManagement>
@@ -2100,12 +2104,33 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <!--
+                     This plugin is used to parse current project version for later use with npm version which requires semantic versioning
+                     -->
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.4.0</version>
+                    <executions>
+                        <execution>
+                            <id>parse-version</id>
+                            <goals>
+                                <goal>parse-version</goal>
+                            </goals>
+                            <configuration>
+                                <propertyPrefix>parsedVersion</propertyPrefix>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
                     <groupId>io.github.pmckeown</groupId>
                     <artifactId>dependency-track-maven-plugin</artifactId>
-                    <version>1.7.0</version>
+                    <version>1.10.2</version>
                     <configuration>
                         <dependencyTrackBaseUrl>${env.DTRACK_URL}</dependencyTrackBaseUrl>
                         <apiKey>${env.DTRACK_TOKEN}</apiKey>
+                        <parentName>midPoint</parentName>
+                        <parentVersion>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}</parentVersion>
                     </configuration>
                 </plugin>
             </plugins>
