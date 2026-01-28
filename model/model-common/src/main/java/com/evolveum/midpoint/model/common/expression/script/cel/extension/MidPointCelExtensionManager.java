@@ -20,6 +20,7 @@ public class MidPointCelExtensionManager {
 
     private CelMelExtensions extMel;
     private CelPolyStringExtensions extPolyString;
+    private CelFormatExtensions extFormat;
     private CelPrismItemsExtensions extPrismItems;
 
     private ImmutableList<? extends CelCompilerLibrary> allCompilerLibraries;
@@ -34,6 +35,7 @@ public class MidPointCelExtensionManager {
     private void initializeExtensions() {
         extMel = CelMelExtensions.library(basicExpressionFunctions).latest();
         extPolyString = CelPolyStringExtensions.library(celOptions, basicExpressionFunctions).latest();
+        extFormat = CelFormatExtensions.library(basicExpressionFunctions).latest();
         extPrismItems = CelPrismItemsExtensions.library().latest();
 
         allCompilerLibraries = ImmutableList.of(
@@ -48,6 +50,7 @@ public class MidPointCelExtensionManager {
                 CelExtensions.optional(),
                 mel(),
                 polystring(),
+                format(),
                 prismItems()
         );
 
@@ -62,6 +65,7 @@ public class MidPointCelExtensionManager {
                 CelExtensions.optional(),
                 mel(),
                 polystring(),
+                format(),
                 prismItems()
         );
     }
@@ -72,6 +76,10 @@ public class MidPointCelExtensionManager {
 
     public CelPolyStringExtensions polystring() {
         return extPolyString;
+    }
+
+    public CelFormatExtensions format() {
+        return extFormat;
     }
 
     public CelPrismItemsExtensions prismItems() {

@@ -968,6 +968,45 @@ public class TestCelExpressions extends AbstractScriptTest {
         // THEN
     }
 
+    @Test
+    public void testTimestampFormatParse() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-timestamp-format-parse.xml",
+                createVariables(
+                        "input", "25.12.2025 12:34:56", PrimitiveType.STRING
+                ),
+                "12/25/25 12.34.56");
+    };
+
+    @Test
+    public void testTimestampFormatParseFunc() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-timestamp-format-parse-func.xml",
+                createVariables(
+                        "input", "25.12.2025 12:34:56", PrimitiveType.STRING
+                ),
+                "12/25/25 12.34.56");
+    };
+
+    @Test
+    public void testTimestampStrxtime() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-timestamp-strxtime.xml",
+                createVariables(
+                        "input", "25.12.2025 12:33:44", PrimitiveType.STRING
+                ),
+                "12/25/2025 12.33.44");
+    };
+
+    @Test
+    public void testTimestampStrxtimeFunc() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-timestamp-strxtime-func.xml",
+                createVariables(
+                        "input", "25.12.2025 12:33:44", PrimitiveType.STRING
+                ),
+                "12/25/2025 12.33.44");
+    };
 
     @Test
     public void testLookAtPoison() throws Exception {

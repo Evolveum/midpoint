@@ -17,6 +17,10 @@ import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.ResolverStyle;
 import java.util.*;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -33,6 +37,7 @@ import javax.naming.ldap.Rdn;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.time.format.DateTimeFormatter;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
@@ -905,6 +910,32 @@ public class BasicExpressionFunctions {
         Date date = DateUtils.parseDate(stringDate, formats);
         return XmlTypeConverter.createXMLGregorianCalendar(date);
     }
+
+    // POSIX-like function, compatible with the UNIX world
+    public String strftime(String posixFormat, XMLGregorianCalendar xmlCal) {
+        if (xmlCal == null || posixFormat == null) {
+            return null;
+        }
+        return TimestampFormatUtil.strftime(xmlCal.toGregorianCalendar().toZonedDateTime(), posixFormat);
+    }
+
+    // POSIX-like function, compatible with the UNIX world
+    public String strftime(String posixFormat, Long millis) {
+        if (millis == null || posixFormat == null) {
+            return null;
+        }
+        return TimestampFormatUtil.strftime(Instant.ofEpochMilli(millis), posixFormat);
+    }
+
+    // POSIX-like function, compatible with the UNIX world
+    public XMLGregorianCalendar strptime(String posixFormat, String stringDate) throws ParseException {
+        if (posixFormat == null || stringDate == null) {
+            return null;
+        }
+        ZonedDateTime zdt = TimestampFormatUtil.strptime(stringDate, posixFormat);
+        return XmlTypeConverter.createXMLGregorianCalendar(zdt);
+    }
+
 
     public XMLGregorianCalendar currentDateTime() {
         return clock.currentTimeXMLGregorianCalendar();

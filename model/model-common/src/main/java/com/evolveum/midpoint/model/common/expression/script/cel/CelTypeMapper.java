@@ -282,13 +282,9 @@ public class CelTypeMapper {
         if (celValue instanceof CelValue) {
             return toJavaValue((CelValue) celValue);
         } else if (celValue instanceof Timestamp ts) {
-            Instant instant = Instant.ofEpochSecond(ts.getSeconds(), ts.getNanos());
-            // Protobuf/CEL timestamps are always rooted in UTC ("Google epoch").
-            GregorianCalendar gregorianCalendar = GregorianCalendar.from(instant.atZone(java.time.ZoneId.of("UTC")));
-            return XmlTypeConverter.createXMLGregorianCalendar(gregorianCalendar);
+            return toXmlGregorianCalendar(ts);
         } else if (celValue instanceof com.google.protobuf.Duration gDurantion) {
-            long millis = (gDurantion.getSeconds() * 1000) + (gDurantion.getNanos() / 1_000_000);
-            return XmlTypeConverter.createDuration(millis);
+            return toXmlDuration(gDurantion);
         } else {
             return celValue;
         }
@@ -333,18 +329,10 @@ public class CelTypeMapper {
             return toCelValue((Item)javaValue);
         }
         if (javaValue instanceof XMLGregorianCalendar xmlCal) {
-            Instant instant = xmlCal.toGregorianCalendar().toInstant();
-            return Timestamp.newBuilder()
-                    .setSeconds(instant.getEpochSecond())
-                    .setNanos(instant.getNano())
-                    .build();
+            return toTimestamp(xmlCal);
         }
         if (javaValue instanceof Duration xmlDuration) {
-            long totalMillis = xmlDuration.getTimeInMillis(new GregorianCalendar(1970, Calendar.JANUARY, 1));
-            return com.google.protobuf.Duration.newBuilder()
-                    .setSeconds(totalMillis / 1000)
-                    .setNanos((int) (totalMillis % 1000) * 1000000)
-                    .build();
+            return toGoogleDuration(xmlDuration);
         }
         return javaValue;
     }
@@ -402,6 +390,38 @@ public class CelTypeMapper {
             }
         }
         return CelTypeMapper.toCelValue(typedValue.getValue());
+    }
+
+    public static long toMillis(@NotNull Timestamp timestamp) {
+        return (timestamp.getSeconds() * 1000) + (timestamp.getNanos() / 1_000_000);
+    }
+
+    public static com.google.protobuf.Duration toGoogleDuration(Duration xmlDuration) {
+        long totalMillis = xmlDuration.getTimeInMillis(new GregorianCalendar(1970, Calendar.JANUARY, 1));
+        return com.google.protobuf.Duration.newBuilder()
+                .setSeconds(totalMillis / 1000)
+                .setNanos((int) (totalMillis % 1000) * 1000000)
+                .build();
+    }
+
+    public static Timestamp toTimestamp(XMLGregorianCalendar xmlCal) {
+        Instant instant = xmlCal.toGregorianCalendar().toInstant();
+        return Timestamp.newBuilder()
+                .setSeconds(instant.getEpochSecond())
+                .setNanos(instant.getNano())
+                .build();
+    }
+
+    public static @NotNull Duration toXmlDuration(@NotNull com.google.protobuf.Duration gDurantion) {
+        long millis = (gDurantion.getSeconds() * 1000) + (gDurantion.getNanos() / 1_000_000);
+        return XmlTypeConverter.createDuration(millis);
+    }
+
+    public static @NotNull XMLGregorianCalendar toXmlGregorianCalendar(@NotNull Timestamp ts) {
+        Instant instant = Instant.ofEpochSecond(ts.getSeconds(), ts.getNanos());
+        // Protobuf/CEL timestamps are always rooted in UTC ("Google epoch").
+        GregorianCalendar gregorianCalendar = GregorianCalendar.from(instant.atZone(java.time.ZoneId.of("UTC")));
+        return XmlTypeConverter.createXMLGregorianCalendar(gregorianCalendar);
     }
 
     static {
