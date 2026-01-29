@@ -112,7 +112,10 @@ class MappingsSuggestionOperation {
         return isInbound ? MappingDirection.INBOUND : MappingDirection.OUTBOUND;
     }
 
-    MappingsSuggestionType suggestMappings(OperationResult result, SchemaMatchResultType schemaMatch)
+    MappingsSuggestionType suggestMappings(
+            OperationResult result,
+            SchemaMatchResultType schemaMatch,
+            @Nullable List<ItemPath> targetPathsToIgnore)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         ctx.checkIfCanRun();
@@ -133,7 +136,8 @@ class MappingsSuggestionOperation {
             var suggestion = new MappingsSuggestionType();
             var direction = resolveDirection();
             var existingMappingPaths = collectExistingMappingTargetPaths();
-            var mappingCandidates = new AttributeMappingCandidateSet(existingMappingPaths);
+            var excludedMappingPaths = mergeExcludedPaths(existingMappingPaths, targetPathsToIgnore);
+            var mappingCandidates = new AttributeMappingCandidateSet(excludedMappingPaths);
 
             collectSystemMappings(knownSchemaProvider, ownedList, result)
                     .forEach(mappingCandidates::propose);
@@ -205,6 +209,23 @@ class MappingsSuggestionOperation {
         }
         LOGGER.trace("Collected {} existing {} mapping target paths for deduplication.", existingPaths.size(), isInbound ? "inbound" : "outbound");
         return existingPaths;
+    }
+
+    /**
+     * Merges existing mapping paths and accepted suggestion paths into a single list of excluded paths.
+     * These paths should be excluded from new mapping suggestions.
+     */
+    private List<ItemPath> mergeExcludedPaths(
+            Collection<ItemPath> existingMappingPaths,
+            @Nullable List<ItemPath> acceptedSuggestionPaths) {
+        if (acceptedSuggestionPaths == null || acceptedSuggestionPaths.isEmpty()) {
+            return new ArrayList<>(existingMappingPaths);
+        }
+        var merged = new ArrayList<>(existingMappingPaths);
+        merged.addAll(acceptedSuggestionPaths);
+        LOGGER.trace("Merged {} existing mapping paths and {} accepted suggestion paths for exclusion.",
+                existingMappingPaths.size(), acceptedSuggestionPaths.size());
+        return merged;
     }
 
     private List<AttributeMappingsSuggestionType> collectSystemMappings(
