@@ -21034,7 +21034,7 @@
                         Experimental.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                        <a:since>4.10.1</a:since>
                         <a:experimental/>
                     </xsd:appinfo>
                 </xsd:annotation>
