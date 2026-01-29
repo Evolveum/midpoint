@@ -182,6 +182,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
                 true,
+                null,
                 task,
                 result);
 
@@ -240,6 +241,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
                 true,
+                null,
                 task,
                 result);
 
@@ -298,6 +300,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
                 true,
+                null,
                 task,
                 result);
 

@@ -73,18 +73,21 @@ class MappingsSuggestionOperation {
     private final OwnedShadowsProvider ownedShadowsProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final boolean isInbound;
+    @Nullable private final MappingsSuggestionInteractionMetadataType interactionMetadata;
 
     private MappingsSuggestionOperation(
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
-            boolean isInbound) {
+            boolean isInbound,
+            @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
         this.ownedShadowsProvider = ownedShadowsProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.isInbound = isInbound;
+        this.interactionMetadata = interactionMetadata;
     }
 
     static MappingsSuggestionOperation init(
@@ -96,6 +99,7 @@ class MappingsSuggestionOperation {
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
             boolean isInbound,
+            @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -105,7 +109,8 @@ class MappingsSuggestionOperation {
                 qualityAssessor,
                 ownedShadowsProvider,
                 wellKnownSchemaService,
-                isInbound);
+                isInbound,
+                interactionMetadata);
     }
 
     private MappingDirection resolveDirection() {
@@ -133,7 +138,8 @@ class MappingsSuggestionOperation {
             var suggestion = new MappingsSuggestionType();
             var direction = resolveDirection();
             var existingMappingPaths = collectExistingMappingTargetPaths();
-            var mappingCandidates = new AttributeMappingCandidateSet(existingMappingPaths);
+            var acceptedSuggestions = collectAcceptedSuggestions();
+            var mappingCandidates = new AttributeMappingCandidateSet(existingMappingPaths, acceptedSuggestions);
 
             collectSystemMappings(knownSchemaProvider, ownedList, result)
                     .forEach(mappingCandidates::propose);
@@ -205,6 +211,19 @@ class MappingsSuggestionOperation {
         }
         LOGGER.trace("Collected {} existing {} mapping target paths for deduplication.", existingPaths.size(), isInbound ? "inbound" : "outbound");
         return existingPaths;
+    }
+
+    /**
+     * Collects accepted suggestions from interaction metadata.
+     * These are suggestions that the user has accepted but not yet saved to the resource.
+     */
+    private List<AttributeMappingsSuggestionType> collectAcceptedSuggestions() {
+        if (interactionMetadata == null) {
+            return List.of();
+        }
+        var accepted = interactionMetadata.getAcceptedAttributeMappingsSuggestion();
+        LOGGER.trace("Collected {} accepted suggestions from interaction metadata for exclusion.", accepted.size());
+        return accepted;
     }
 
     private List<AttributeMappingsSuggestionType> collectSystemMappings(

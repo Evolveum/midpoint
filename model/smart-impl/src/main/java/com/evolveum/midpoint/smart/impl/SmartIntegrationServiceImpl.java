@@ -610,7 +610,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var mappings = this.mappingSuggestionOperationFactory.create(serviceClient, resourceOid,
-                    typeIdentification, activityState, isInbound, task, result)
+                    typeIdentification, activityState, isInbound, interactionMetadata, task, result)
                     .suggestMappings(result, schemaMatch);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;

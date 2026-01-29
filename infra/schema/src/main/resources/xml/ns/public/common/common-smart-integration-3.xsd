@@ -643,6 +643,15 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="acceptedAttributeMappingsSuggestion" type="tns:AttributeMappingsSuggestionType"
+                    minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Accepted suggestions of attribute mappings that are held in GUI's unsaved state (not yet saved to resource).
+                        These should be excluded from new suggestions to avoid duplicates.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="rejectedAttributeMappingsSuggestion" type="tns:AttributeMappingsSuggestionType"
                     minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>

@@ -21,7 +21,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * and keeping only the best ones based on their target paths and quality metrics.
  *
  * Supports deduplication against existing mappings configured on the resource
- * Target paths that already have mappings are ignored.
+ * and accepted suggestions that are held in GUI's unsaved state.
+ * Target paths that already have mappings or accepted suggestions are ignored.
  */
 class AttributeMappingCandidateSet {
 
@@ -30,12 +31,27 @@ class AttributeMappingCandidateSet {
     /** Target paths that already have mappings configured; proposals for these are skipped. */
     private final List<ItemPath> existingMappingPaths;
 
+    /** Target paths from accepted suggestions not yet saved; proposals for these are skipped. */
+    private final List<ItemPath> acceptedSuggestionPaths;
+
     AttributeMappingCandidateSet() {
         this.existingMappingPaths = List.of();
+        this.acceptedSuggestionPaths = List.of();
     }
 
     AttributeMappingCandidateSet(Collection<ItemPath> existingMappingPaths) {
         this.existingMappingPaths = List.copyOf(existingMappingPaths);
+        this.acceptedSuggestionPaths = List.of();
+    }
+
+    AttributeMappingCandidateSet(
+            Collection<ItemPath> existingMappingPaths,
+            List<AttributeMappingsSuggestionType> acceptedSuggestions) {
+        this.existingMappingPaths = List.copyOf(existingMappingPaths);
+        this.acceptedSuggestionPaths = acceptedSuggestions.stream()
+                .map(AttributeMappingCandidateSet::extractTargetPath)
+                .filter(path -> path != null)
+                .toList();
     }
 
     /**
@@ -137,8 +153,8 @@ class AttributeMappingCandidateSet {
     }
 
     private boolean isAlreadyMapped(ItemPath targetPath) {
-        return existingMappingPaths.stream()
-                .anyMatch(targetPath::equivalent);
+        return existingMappingPaths.stream().anyMatch(targetPath::equivalent)
+                || acceptedSuggestionPaths.stream().anyMatch(targetPath::equivalent);
     }
 
     /**

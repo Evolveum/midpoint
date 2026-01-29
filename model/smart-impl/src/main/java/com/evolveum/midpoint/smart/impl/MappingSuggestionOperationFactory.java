@@ -15,6 +15,9 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionInteractionMetadataType;
+
+import org.jetbrains.annotations.Nullable;
 
 @Component
 public class MappingSuggestionOperationFactory {
@@ -33,10 +36,12 @@ public class MappingSuggestionOperationFactory {
 
     public MappingsSuggestionOperation create(ServiceClient client, String resourceOid,
             ResourceObjectTypeIdentification typeIdentification, CurrentActivityState<?> activityState,
-            boolean isInbound, Task task, OperationResult parentResult)
+            boolean isInbound, @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
+            Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return MappingsSuggestionOperation.init(client, resourceOid, typeIdentification, activityState,
-                this.mappingsQualityAssessor, this.ownedShadowsProvider, this.wellKnownSchemaService, isInbound, task, parentResult);
+                this.mappingsQualityAssessor, this.ownedShadowsProvider, this.wellKnownSchemaService, isInbound,
+                interactionMetadata, task, parentResult);
     }
 }
