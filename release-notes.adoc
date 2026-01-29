@@ -54,6 +54,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed rendering of the delta when changed item is a container. See bug:MID-10984[].
 * Fixed shadow attributes/id parsing exception. See bug:MID-10944[].
 * Updated spring boot to 3.5.8.
+* bug:MID-10997[] Added support for additional footer.
 
 == Changes With Respect To Version 4.9
 
