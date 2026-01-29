@@ -539,6 +539,67 @@ for (var delta : input) {
 return result
 ----
 
+==== Limitations
+
+* Simple delta column
+** If partial deltas are displayed, then old estimated values may repeat when using simple delta column if multivalue container is in changed item path.
++
+.Example of delta containing multivalue `assignment` container with multiple estimated old values.
+[source, xml]
+----
+<objectDelta xmlns="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ex="https://example.com"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <changeType>modify</changeType>
+    <objectType>UserType</objectType>
+    <itemDelta>
+        <modificationType>delete</t:modificationType>
+        <path>assignment</t:path>
+        <value xsi:type="c:AssignmentType">
+            <c:description>Approved</c:description>
+            <c:targetRef oid="123a49bc-6f5b-4746-8461-2e1a63307123" type="c:RoleType"/>
+        </value>
+        <value id="2" xsi:type="c:AssignmentType">
+            <c:description>Approved Two</c:description>
+            <c:targetRef oid="123a49bc-6f5b-4746-8461-2e1a63307777" type="c:RoleType"/>
+        </value>
+        <estimatedOldValue id="1001" xsi:type="c:AssignmentType">
+            <c:description>Oldvalue1</c:description>
+            <c:targetRef oid="123a49bc-6f5b-4746-8461-2e1a63307123" type="c:RoleType"/>
+        </estimatedOldValue>
+        <estimatedOldValue id="1000" xsi:type="c:AssignmentType">
+            <c:description>oldvalue2</c:description>
+            <c:targetRef oid="123a49bc-6f5b-4746-8461-2e1a63307888" type="c:RoleType"/>
+        </estimatedOldValue>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>add</modificationType>
+        <path>assignment</path>
+        <value id="100" xsi:type="c:AssignmentType">
+            <c:description>Default</c:description>
+            <c:targetRef oid="456a49bc-6f5b-4746-8461-2e1a63307888" type="c:RoleType"/>
+        </value>
+    </t:itemDelta>
+    <itemDelta>
+        <modificationType>add</modificationType>
+        <path>assignment[25]/description</path>
+        <value xsi:type="xsd:string">simple assignment description</value>
+        <estimatedOldValue xsi:type="xsd:string">old simple assignment description</estimatedOldValue>
+    </itemDelta>
+</objectDelta>
+----
++
+.Example output when searching for `assignment/description`
+image::delta-estimated-old-values.png[Example output when searching for `assignment/description`,100%]
+
+Image above displays same delta in two ways.
+On the left simple delta column was used.
+On the right advanced column with expression was used to display changes.
+For simple delta column `Oldvalue1` and `oldvalue2` repeat for each partial item found.
+
 === Resource oid column
 
 [WARNING]
