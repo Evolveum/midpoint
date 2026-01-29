@@ -3148,6 +3148,8 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.5</a:since>
+                        <a:displayName>AssignmentType.orderConstraint</a:displayName>
+                        <a:help>AssignmentType.orderConstraint.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
