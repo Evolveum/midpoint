@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskResultStatus;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
@@ -106,7 +107,8 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
                 super.onPostProcessTarget(target);
-                if (getTaskExecutionProgress().isComplete()) {
+                if (getTaskExecutionProgress().isComplete()
+                        || getTaskExecutionProgress().getTaskStatus() != OperationResultStatus.IN_PROGRESS) {
                     stop(target);
                 }
                 target.add(getFooter());

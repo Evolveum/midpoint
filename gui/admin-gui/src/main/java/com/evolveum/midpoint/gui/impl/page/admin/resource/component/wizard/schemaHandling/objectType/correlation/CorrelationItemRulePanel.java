@@ -9,11 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormCorrelationItemPanel;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -26,12 +30,15 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiEfficiencyBadgeModel;
 
 public class CorrelationItemRulePanel extends BasePanel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> implements Popupable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemRulePanel.class);
 
     private static final String ID_PANEL = "panel";
     private static final String ID_TABLE = "table";
@@ -68,7 +75,6 @@ public class CorrelationItemRulePanel extends BasePanel<PrismContainerValueWrapp
         initAlertInfoPanel();
         initLayout();
     }
-
 
     private void initAlertInfoPanel() {
         WebMarkupContainer infoPanel = new WebMarkupContainer(ID_ALERT_CONTAINER);
@@ -144,9 +150,25 @@ public class CorrelationItemRulePanel extends BasePanel<PrismContainerValueWrapp
             public @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefModel() {
                 return CorrelationItemRulePanel.this.getResourceObjectTypeDefinitionModel();
             }
+
+            @Override
+            protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings() {
+                return CorrelationItemRulePanel.this.getMappings();
+            }
         };
         table.setOutputMarkupId(true);
         return table;
+    }
+
+    protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings() {
+        PrismContainerWrapper<ResourceAttributeDefinitionType> mappings = null;
+        try {
+            mappings = getResourceObjectTypeDefinitionModel().getObject()
+                    .findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+        } catch (SchemaException e) {
+            LOGGER.warn("Couldn't find attribute container in resource object type definition.", e);
+        }
+        return mappings;
     }
 
     protected boolean isShowEmptyField() {
@@ -161,7 +183,7 @@ public class CorrelationItemRulePanel extends BasePanel<PrismContainerValueWrapp
         return getStatusInfo() != null;
     }
 
-    protected boolean isReadOnly(){
+    protected boolean isReadOnly() {
         return false;
     }
 

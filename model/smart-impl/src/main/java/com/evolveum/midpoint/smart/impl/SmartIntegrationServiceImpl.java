@@ -714,6 +714,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("typeIdentification", typeIdentification)
                 .build();
         try {
+
             var oid = modelInteractionService.submit(
                     new ActivityDefinitionType()
                             .work(new WorkDefinitionsType()
