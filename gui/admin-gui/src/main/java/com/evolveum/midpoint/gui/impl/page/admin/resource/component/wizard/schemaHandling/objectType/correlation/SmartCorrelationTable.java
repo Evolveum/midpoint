@@ -189,8 +189,13 @@ public abstract class SmartCorrelationTable
         };
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected MultivalueContainerListDataProvider<ItemsSubCorrelatorType> createDataProvider() {
+        if (findResourceObjectTypeDefinition() == null) {
+            return new MultivalueContainerListDataProvider(this, getSearchModel(), () -> getContainerModel().getObject());
+        }
+
         var dto = StatusAwareDataFactory.createCorrelationModel(
                 this,
                 getSwitchToggleModel(),
@@ -384,38 +389,55 @@ public abstract class SmartCorrelationTable
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        Set<AdditionalCorrelationItemMappingType> additionalMappings = new HashSet<>();
+
                         CorrelationDefinitionType correlationDefinition = new CorrelationDefinitionType();
                         correlationDefinition.setCorrelators(new CompositeCorrelatorType());
 
                         if (getRowModel() != null) {
                             PrismContainerValueWrapper<ItemsSubCorrelatorType> item = getRowModel().getObject();
                             correlationDefinition.getCorrelators().getItems().add(item.getRealValue().clone());
+
+                            additionalMappings.addAll(
+                                    collectAdditionalMappingsIfSuggestion(getPageBase(), target, Collections.singletonList(item)));
+
                         } else {
                             IModel<List<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> selectedItemsModel = getSelectedItemsModel();
-                            if (selectedItemsModel.getObject().isEmpty()) {
+                            List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> selected = selectedItemsModel.getObject();
+                            if (selected == null || selected.isEmpty()) {
                                 return;
                             }
 
                             CompositeCorrelatorType correlators = correlationDefinition.getCorrelators();
-                            for (PrismContainerValueWrapper<ItemsSubCorrelatorType> item : selectedItemsModel.getObject()) {
+                            for (PrismContainerValueWrapper<ItemsSubCorrelatorType> item : selected) {
                                 correlators.getItems().add(item.getRealValue().clone());
                             }
+
+                            additionalMappings.addAll(
+                                    collectAdditionalMappingsIfSuggestion(getPageBase(), target, selected));
                         }
 
                         //noinspection unchecked
                         WebPrismUtil.cleanupEmptyContainerValue(correlationDefinition.asPrismContainerValue());
+
+                        SimulatedCorrelatorsType simulatedCorrelatorsType = new SimulatedCorrelatorsType()
+                                .inlineCorrelators(correlationDefinition)
+                                .includeExistingCorrelators(false);
+
+                        for (AdditionalCorrelationItemMappingType additionalMapping : additionalMappings) {
+                            simulatedCorrelatorsType.getAdditionalItemsMappings().add(additionalMapping.clone());
+                        }
+
                         SimulationParams<?> params = new SimulationParams<>(
                                 getPageBase(),
                                 getResourceType(),
                                 findResourceObjectTypeDefinition().getRealValue(),
                                 ResourceTaskFlavors.CORRELATION_PREVIEW_ACIVITY,
-                                new SimulatedCorrelatorsType()
-                                        .inlineCorrelators(correlationDefinition) //TODO add mappings from suggestions
-                                        .includeExistingCorrelators(false),
+                                simulatedCorrelatorsType,
                                 ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
                         );
 
-                        SimulationActionFlow<?> flow = new SimulationActionFlow(params);
+                        SimulationActionFlow<?> flow = new SimulationActionFlow<>(params);
                         flow.enableSampling();
                         flow.showProgressPopup();
                         flow.start(target);

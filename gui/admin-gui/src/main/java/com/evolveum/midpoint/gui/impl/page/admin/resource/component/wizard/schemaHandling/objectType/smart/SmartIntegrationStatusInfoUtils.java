@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.StatusRowRecord;
 import com.evolveum.midpoint.prism.Containerable;
@@ -626,6 +627,74 @@ public class SmartIntegrationStatusInfoUtils {
             target.add(pageBase.getFeedbackPanel().getParent());
         }
         return attributes;
+    }
+
+    public static @NotNull Set<AdditionalCorrelationItemMappingType> collectAdditionalMappingsIfSuggestion(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @NotNull List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> itemsW) {
+
+        Map<String, AdditionalCorrelationItemMappingType> merged = new LinkedHashMap<>();
+
+        for (PrismContainerValueWrapper<ItemsSubCorrelatorType> itemW : itemsW) {
+            if (itemW == null) {
+                continue;
+            }
+
+            PrismContainerValueWrapper<CorrelationSuggestionType> suggestionW =
+                    itemW.getParentContainerValue(CorrelationSuggestionType.class);
+
+            if (suggestionW == null || suggestionW.getRealValue() == null) {
+                continue;
+            }
+
+            mergeAdditionalMappingsFromSuggestion(pageBase, target, suggestionW, merged);
+        }
+
+        //noinspection unchecked
+        merged.values().forEach(m ->
+                WebPrismUtil.cleanupEmptyContainerValue(m.asPrismContainerValue())
+        );
+
+        return new HashSet<>(merged.values());
+    }
+
+    private static void mergeAdditionalMappingsFromSuggestion(
+            @NotNull PageBase pageBase,
+            @NotNull AjaxRequestTarget target,
+            @NotNull PrismContainerValueWrapper<CorrelationSuggestionType> suggestionW,
+            @NotNull Map<String, AdditionalCorrelationItemMappingType> merged) {
+
+        List<ResourceAttributeDefinitionType> attributes =
+                collectRequiredResourceAttributeDefs(pageBase, target, suggestionW);
+
+        for (ResourceAttributeDefinitionType attrDef : attributes) {
+            if (attrDef == null || attrDef.getRef() == null) {
+                continue;
+            }
+
+            var ref = attrDef.getRef().clone();
+
+            String key = ref.getItemPath().toString();
+
+            AdditionalCorrelationItemMappingType acc = merged.computeIfAbsent(key, k -> {
+                AdditionalCorrelationItemMappingType m = new AdditionalCorrelationItemMappingType();
+                m.setRef(ref);
+                return m;
+            });
+
+            List<InboundMappingType> inbound = attrDef.getInbound();
+            if (inbound == null || inbound.isEmpty()) {
+                continue;
+            }
+
+            for (InboundMappingType inboundMapping : inbound) {
+                if (inboundMapping == null) {
+                    continue;
+                }
+                acc.getInbound().add(inboundMapping.clone());
+            }
+        }
     }
 
     private static @NotNull Set<ItemPath> collectMappingTargets(@Nullable List<ResourceAttributeDefinitionType> attributes) {

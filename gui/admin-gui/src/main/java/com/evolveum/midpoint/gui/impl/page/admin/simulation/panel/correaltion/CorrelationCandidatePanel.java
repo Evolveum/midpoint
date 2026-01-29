@@ -8,14 +8,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.correaltion;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRulePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -32,6 +32,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -220,6 +221,10 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                         getPageBase().getMainPopupBodyId(),
                         () -> correlatorWrapper,
                         () -> definitionWrapper) {
+                    @Override
+                    protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings() {
+                        return findCandidateMappingsAsWrapper(getPageBase(), getSimulationResultModel().getObject());
+                    }
 
                     @Override
                     protected boolean isReadOnly() {
