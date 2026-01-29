@@ -18,9 +18,7 @@ import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.ResolverStyle;
 import java.util.*;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -37,7 +35,6 @@ import javax.naming.ldap.Rdn;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.time.format.DateTimeFormatter;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
@@ -975,13 +972,23 @@ public class BasicExpressionFunctions {
         return XmlTypeConverter.addMillis(now, duration);
     }
 
+    @Deprecated // Use atStartOfDay instead
     public XMLGregorianCalendar roundDownToMidnight(XMLGregorianCalendar in) {
+        return atStartOfDay(in);
+    }
+
+    public XMLGregorianCalendar atStartOfDay(XMLGregorianCalendar in) {
         XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
         out.setTime(0, 0, 0, 0);
         return out;
     }
 
+    @Deprecated // Use atEndOfDay instead
     public XMLGregorianCalendar roundUpToEndOfDay(XMLGregorianCalendar in) {
+        return atEndOfDay(in);
+    }
+
+    public XMLGregorianCalendar atEndOfDay(XMLGregorianCalendar in) {
         XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
         out.setTime(23, 59, 59, 999);
         return out;

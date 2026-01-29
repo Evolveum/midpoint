@@ -337,6 +337,10 @@ public class CelTypeMapper {
         return javaValue;
     }
 
+    public static boolean isCellNull(Object object) {
+        return object == null || object instanceof NullValue;
+    }
+
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> Object toListMapValue(Item<IV, ID> item) {
         if (item.getDefinition().isMultiValue()) {
             return MultivalueCelValue.create(item);

@@ -111,6 +111,10 @@ public class ExpressionConstants {
     public static final ItemName VAR_ITERATION_TOKEN_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ITERATION_TOKEN);
 
     public static final String VAR_REFERENCE_TIME = "referenceTime";
+    /**
+     * Used to represent current time in expression environments that do not have native method to get current time (e.g. CEL).
+     */
+    public static final String VAR_NOW = "now";
 
     // Variables used in object merging expressions
     public static final String VAR_SIDE = "side";

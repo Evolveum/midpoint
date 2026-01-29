@@ -10,11 +10,12 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.script.cel.extension.CelPrismItemsExtensions;
 import com.evolveum.midpoint.model.common.expression.script.cel.extension.MidPointCelExtensionManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.util.exception.*;
@@ -28,11 +29,10 @@ import dev.cel.common.*;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.CelTypeProvider;
 import dev.cel.common.types.ListType;
-import dev.cel.common.values.CelValue;
+import dev.cel.common.types.SimpleType;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
-import dev.cel.extensions.CelExtensions;
 import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.*;
 
@@ -55,6 +55,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
     public static final String LANGUAGE_NAME = "CEL";
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
+    private final BasicExpressionFunctions basicExpressionFunctions;
     private final CelOptions celOptions = CelOptions.current().
             enableRegexPartialMatch(true).build();
 
@@ -65,6 +66,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
     /** Called by Spring but also by lower-level tests */
     public CelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService, BasicExpressionFunctions basicExpressionFunctions) {
         super(prismContext, protector, localizationService);
+        this.basicExpressionFunctions = basicExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(basicExpressionFunctions, celOptions);
 
         // No compiler/interpreter initialization here. Compilers/interpreters are initialized on demand.
@@ -125,11 +127,19 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
         builder.addLibraries(midPointCelExtensionManager.allCompilerLibraries());
         // TODO: Further compiler config
 //        new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
-        for (var varEntry : prepareScriptVariablesTypedValueMap(context).entrySet()) {
-            builder.addVar(varEntry.getKey(), CelTypeMapper.toCelType(varEntry.getValue()));
-        }
+        addCompilerVariables(builder, context);
         builder.setResultType(determineResultType(context));
         return builder.build();
+    }
+
+    private void addCompilerVariables(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        Map<String, TypedValue<?>> variables = prepareScriptVariablesTypedValueMap(context);
+        for (var varEntry : variables.entrySet()) {
+            builder.addVar(varEntry.getKey(), CelTypeMapper.toCelType(varEntry.getValue()));
+        }
+        if (!variables.containsKey(ExpressionConstants.VAR_NOW)) {
+            builder.addVar(ExpressionConstants.VAR_NOW, SimpleType.TIMESTAMP);
+        }
     }
 
     private CelTypeProvider getTypeProvider() {
@@ -204,6 +214,9 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
     private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         final Map<String, Object> scriptVariableMap = new HashMap<>();
         prepareScriptVariablesMap(context, scriptVariableMap, CelTypeMapper::convertVariableValue);
+        if (!scriptVariableMap.containsKey(ExpressionConstants.VAR_NOW)) {
+            scriptVariableMap.put(ExpressionConstants.VAR_NOW, CelTypeMapper.toTimestamp(basicExpressionFunctions.currentDateTime()));
+        }
         return scriptVariableMap;
     }
 

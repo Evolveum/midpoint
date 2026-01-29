@@ -6,6 +6,7 @@
 package com.evolveum.midpoint.model.common.expression.script.cel.extension;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.script.cel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.MidPointCelValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -88,17 +89,11 @@ public abstract class AbstractMidPointCelExtensions
     }
 
     protected static Object toJava(Object o) {
-        if (isCellNull(o)) {
-            return o;
-        }
-        if (o instanceof MidPointCelValue<?> mpCelVal) {
-            return mpCelVal.getJavaValue();
-        }
-        return o;
+        return CelTypeMapper.toJavaValue(o);
     }
 
     protected static boolean isCellNull(Object object) {
-        return object == null || object instanceof NullValue;
+        return CelTypeMapper.isCellNull(object);
     }
 
 }

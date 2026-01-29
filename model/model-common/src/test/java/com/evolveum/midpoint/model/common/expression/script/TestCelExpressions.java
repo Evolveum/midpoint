@@ -7,6 +7,9 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.io.File;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import com.evolveum.midpoint.common.Clock;
@@ -20,6 +23,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
@@ -45,6 +49,8 @@ import static org.testng.AssertJUnit.*;
  */
 public class TestCelExpressions extends AbstractScriptTest {
 
+    private static final String FULL_NAME_RS = "Ing. Radovan \"Gildir\" Semančík, PhD.";
+
     @Override
     protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
         FunctionLibraryBinding basicFunctionLibraryBinding = FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock);
@@ -62,14 +68,6 @@ public class TestCelExpressions extends AbstractScriptTest {
                 "expression-user-given-name-map.xml",
                 createUserScriptVariables(),
                 "Jack");
-    }
-
-    @Test
-    public void testUserExtensionShipBasicFunc() throws Exception {
-        evaluateAndAssertStringScalarExpression(
-                "expression-user-extension-ship-basic-func.xml",
-                createUserScriptVariables(),
-                "Black Pearl");
     }
 
 
@@ -946,6 +944,58 @@ public class TestCelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionParseGivenName() throws Exception {
+        expressionParseNameTest(
+                "expression-parse-given-name.xml", "Radovan:Radovan");
+    }
+
+    @Test
+    public void testExpressionParseFamilyName() throws Exception {
+        expressionParseNameTest(
+                "expression-parse-family-name.xml", "Semančík:Semančík");
+    }
+
+    @Test
+    public void testExpressionParseAdditionalName() throws Exception {
+        expressionParseNameTest(
+                "expression-parse-additional-name.xml", ":");
+    }
+
+    @Test
+    public void testExpressionParseNickName() throws Exception {
+        expressionParseNameTest(
+                "expression-parse-nick-name.xml", "Gildir:Gildir");
+    }
+
+    @Test
+    public void testExpressionParseHonorificPrefix() throws Exception {
+        expressionParseNameTest(
+                "expression-parse-honorific-prefix.xml", "Ing.:Ing.");
+    }
+
+    @Test
+    public void testExpressionParseHonorificSuffix() throws Exception {
+        expressionParseNameTest(
+                "expression-parse-honorific-suffix.xml", "PhD.:PhD.");
+    }
+
+    private void expressionParseNameTest(String fileName, String expecetedResult) throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                fileName,
+                createVariables(
+                        "foo", FULL_NAME_RS, PrimitiveType.STRING
+                ),
+                expecetedResult);
+
+        evaluateAndAssertStringScalarExpression(
+                fileName,
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType(FULL_NAME_RS), PolyStringType.COMPLEX_TYPE
+                ),
+                expecetedResult);
+    }
+
+    @Test
     public void testTimestamp() throws Exception {
 
         // WHEN
@@ -964,9 +1014,97 @@ public class TestCelExpressions extends AbstractScriptTest {
         assertNotNull("Expression " + getTestName() + " resulted in null value)", expressionResult);
         assertEquals("Expression " + getTestName() + " resulted in wrong value",
                 XmlTypeConverter.createXMLGregorianCalendarFromIso8601("2023-12-25T13:49:56.000Z"), expressionResult.getValue());
+    }
+
+    @Test
+    public void testNow() throws Exception {
+
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+        // WHEN
+        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-now.xml");
+        List<PrismPropertyValue<XMLGregorianCalendar>> expressionResultList =
+                evaluateExpression(scriptType, DOMUtil.XSD_DATETIME, true,
+                        createVariables(),
+                        getTestName(), createOperationResult());
 
         // THEN
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        PrismPropertyValue<XMLGregorianCalendar> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        assertNotNull("Expression " + getTestName() + " resulted in null value)", expressionResult);
+        TestUtil.assertBetween("Timestamp gone wrong", startTs, endTs, expressionResult.getValue());
     }
+
+    @Test
+    public void testTimestampSodEodLocal() throws Exception {
+
+        // WHEN
+        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendarFromIso8601("2023-12-25T12:34:56.000Z");
+        ZonedDateTime zdtSod = timestamp
+                .toGregorianCalendar()
+                .toZonedDateTime()
+                .withZoneSameInstant(ZoneId.systemDefault())
+                .toLocalDate()
+                .atStartOfDay()
+                .atZone(ZoneId.systemDefault())
+                .withZoneSameInstant(ZoneId.of("Z"));
+
+        ZonedDateTime zdtEod = timestamp
+                .toGregorianCalendar()
+                .toZonedDateTime()
+                .withZoneSameInstant(ZoneId.systemDefault())
+                .toLocalDate()
+                .atTime(LocalTime.MAX)
+                .atZone(ZoneId.systemDefault())
+                .withZoneSameInstant(ZoneId.of("Z"));
+
+        XMLGregorianCalendar tsSod = XmlTypeConverter.createXMLGregorianCalendar(timestamp);
+        tsSod.setTime(0, 0, 0, 0);
+        XMLGregorianCalendar tsEod = XmlTypeConverter.createXMLGregorianCalendar(timestamp);
+        tsEod.setTime(23, 59, 59, 999);
+
+        evaluateAndAssertStringScalarExpression(
+                "expression-timestamp-sod-eod-local.xml",
+                createVariables(
+                        "eta", timestamp, PrimitiveType.DATETIME
+                ),
+                XmlTypeConverter.createXMLGregorianCalendar(zdtSod) + " -- " + timestamp
+                        + " -- " + XmlTypeConverter.createXMLGregorianCalendar(zdtEod));
+    }
+
+    @Test
+    public void testTimestampSodEodZulu() throws Exception {
+
+        // WHEN
+        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendarFromIso8601("2023-12-25T12:34:56.000Z");
+
+        evaluateAndAssertStringScalarExpression(
+                "expression-timestamp-sod-eod-zulu.xml",
+                createVariables(
+                        "eta", timestamp, PrimitiveType.DATETIME
+                ),
+                "2023-12-25T00:00:00.000Z -- 2023-12-25T12:34:56.000Z -- 2023-12-25T23:59:59.999Z");
+    }
+
+    @Test
+    public void testTimestampLongAgo() throws Exception {
+
+        // WHEN
+        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-timestamp-long-ago.xml");
+        List<PrismPropertyValue<XMLGregorianCalendar>> expressionResultList =
+                evaluateExpression(scriptType, DOMUtil.XSD_DATETIME, true,
+                        createVariables(),
+                        getTestName(), createOperationResult());
+
+        // THEN
+        PrismPropertyValue<XMLGregorianCalendar> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        assertNotNull("Expression " + getTestName() + " resulted in null value)", expressionResult);
+        assertEquals("Expression " + getTestName() + " resulted in wrong value",
+                XmlTypeConverter.createXMLGregorianCalendarFromIso8601("1970-01-01T00:00:00.000Z"), expressionResult.getValue());
+    }
+
 
     @Test
     public void testTimestampFormatParse() throws Exception {

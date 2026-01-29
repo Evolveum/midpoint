@@ -328,6 +328,9 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                 (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s, celOptions))
                 ),
 
+
+
+
                 // replace
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(

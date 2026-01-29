@@ -458,6 +458,12 @@
                 <version>0.11.1</version>
             </dependency>
             <dependency>
+                <!-- Required by CEL -->
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>4.33.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-core</artifactId>
                 <!-- Version defined in Spring Boot parent/BOM. -->

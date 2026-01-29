@@ -81,6 +81,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected ScriptExpressionFactory scriptExpressionfactory;
     protected ScriptEvaluator evaluator;
     protected LocalizationService localizationService;
+    protected final Clock clock = new Clock();
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -93,7 +94,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         prismContext = PrismTestUtil.getPrismContext();
         ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
         Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
-        Clock clock = new Clock();
         Collection<FunctionLibraryBinding> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);

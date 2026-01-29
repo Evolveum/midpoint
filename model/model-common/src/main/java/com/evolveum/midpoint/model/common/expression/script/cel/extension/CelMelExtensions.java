@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.protobuf.Timestamp;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
@@ -27,6 +28,7 @@ import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
 
+import java.time.*;
 import java.util.Collection;
 import java.util.List;
 
@@ -80,59 +82,59 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                         "string_"+FUNC_CONTAINS_IGNORE_CASE_NAME, String.class, String.class,
                         basicExpressionFunctions::containsIgnoreCase)),
 
-                // str.isBlank
-                new Function(
-                        CelFunctionDecl.newFunctionDeclaration(
-                                FUNC_IS_BLANK_NAME,
-                                CelOverloadDecl.newMemberOverload(
-                                        "string_"+FUNC_IS_BLANK_NAME,
-                                        "Returns true if string is blank (has zero length or contains only white characters).",
-                                        SimpleType.BOOL,
-                                        SimpleType.STRING)),
-                        CelFunctionBinding.from(
-                                "string_"+FUNC_IS_BLANK_NAME, String.class,
-                                CelMelExtensions::stringIsBlank)),
+            // str.isBlank
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_IS_BLANK_NAME,
+                            CelOverloadDecl.newMemberOverload(
+                                    "string_"+FUNC_IS_BLANK_NAME,
+                                    "Returns true if string is blank (has zero length or contains only white characters).",
+                                    SimpleType.BOOL,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "string_"+FUNC_IS_BLANK_NAME, String.class,
+                            CelMelExtensions::stringIsBlank)),
 
-                // isBlank(string)
-                new Function(
-                        CelFunctionDecl.newFunctionDeclaration(
-                                FUNC_IS_BLANK_NAME,
-                                CelOverloadDecl.newGlobalOverload(
-                                        FUNC_IS_BLANK_NAME+"_string",
-                                        "Returns true if string is blank (has zero length or contains only white characters) or it is null.",
-                                        SimpleType.BOOL,
-                                        SimpleType.STRING)),
-                        CelFunctionBinding.from(
-                                FUNC_IS_BLANK_NAME+"_string", String.class,
-                                CelMelExtensions::stringIsBlank)),
+            // isBlank(string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_IS_BLANK_NAME,
+                            CelOverloadDecl.newGlobalOverload(
+                                    FUNC_IS_BLANK_NAME+"_string",
+                                    "Returns true if string is blank (has zero length or contains only white characters) or it is null.",
+                                    SimpleType.BOOL,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            FUNC_IS_BLANK_NAME+"_string", String.class,
+                            CelMelExtensions::stringIsBlank)),
 
-                // str.isEmpty
-                new Function(
-                        CelFunctionDecl.newFunctionDeclaration(
-                                FUNC_IS_EMPTY_NAME,
-                                CelOverloadDecl.newMemberOverload(
-                                        "string_"+FUNC_IS_EMPTY_NAME,
-                                        "Returns true if string is empty (has zero length).",
-                                        SimpleType.BOOL,
-                                        SimpleType.STRING)),
-                        CelFunctionBinding.from(
-                                "string_"+FUNC_IS_EMPTY_NAME, String.class,
-                                CelMelExtensions::stringIsEmpty)),
+            // str.isEmpty
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_IS_EMPTY_NAME,
+                            CelOverloadDecl.newMemberOverload(
+                                    "string_"+FUNC_IS_EMPTY_NAME,
+                                    "Returns true if string is empty (has zero length).",
+                                    SimpleType.BOOL,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "string_"+FUNC_IS_EMPTY_NAME, String.class,
+                            CelMelExtensions::stringIsEmpty)),
 
-                // isEmpty(string)
-                new Function(
-                        CelFunctionDecl.newFunctionDeclaration(
-                                FUNC_IS_EMPTY_NAME,
-                                CelOverloadDecl.newGlobalOverload(
-                                        FUNC_IS_EMPTY_NAME+"_string",
-                                        "Returns true if string is empty (has zero length) or it is null.",
-                                        SimpleType.BOOL,
-                                        SimpleType.STRING)),
-                        CelFunctionBinding.from(
-                                FUNC_IS_EMPTY_NAME+"_string", String.class,
-                                CelMelExtensions::stringIsEmpty)),
+            // isEmpty(string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_IS_EMPTY_NAME,
+                            CelOverloadDecl.newGlobalOverload(
+                                    FUNC_IS_EMPTY_NAME+"_string",
+                                    "Returns true if string is empty (has zero length) or it is null.",
+                                    SimpleType.BOOL,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            FUNC_IS_EMPTY_NAME+"_string", String.class,
+                            CelMelExtensions::stringIsEmpty)),
 
-                // list
+            // list
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "list",
@@ -158,6 +160,70 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("mel-norm", Object.class,
                             this::norm)
 
+            ),
+
+            // timestamp.atStartOfDay
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "atStartOfDay",
+                            CelOverloadDecl.newMemberOverload(
+                                    "timestamp_atStartOfDay",
+                                    "TODO",
+                                    SimpleType.TIMESTAMP,
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("timestamp_atStartOfDay",
+                            Timestamp.class, this::atStartOfDay)
+            ),
+
+            // timestamp.atStartOfDay(timezone)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "atStartOfDay",
+                            CelOverloadDecl.newMemberOverload(
+                                    "timestamp_atStartOfDay_string",
+                                    "TODO",
+                                    SimpleType.TIMESTAMP,
+                                    SimpleType.TIMESTAMP, SimpleType.STRING)),
+                    CelFunctionBinding.from("timestamp_atStartOfDay_string",
+                            Timestamp.class, String.class, this::atStartOfDay)
+            ),
+
+            // timestamp.atEndOfDay
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "atEndOfDay",
+                            CelOverloadDecl.newMemberOverload(
+                                    "timestamp_atEndOfDay",
+                                    "TODO",
+                                    SimpleType.TIMESTAMP,
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("timestamp_atEndOfDay",
+                            Timestamp.class, this::atEndOfDay)
+            ),
+
+            // timestamp.atEndOfDay(timezone)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "atEndOfDay",
+                            CelOverloadDecl.newMemberOverload(
+                                    "timestamp_atEndOfDay_string",
+                                    "TODO",
+                                    SimpleType.TIMESTAMP,
+                                    SimpleType.TIMESTAMP, SimpleType.STRING)),
+                    CelFunctionBinding.from("timestamp_atEndOfDay_string",
+                            Timestamp.class, String.class, this::atEndOfDay)
+            ),
+
+            // timestamp.longAgo()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "timestamp.longAgo",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-timestamp_longAgo",
+                                    "TODO",
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("mel-timestamp_longAgo", ImmutableList.of(),
+                            CelMelExtensions::longAgo)
             ),
 
             // single
@@ -193,6 +259,48 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         );
     }
 
+    private static Timestamp longAgo(Object[] args) {
+        return Timestamp.newBuilder()
+                .setSeconds(0)
+                .setNanos(0)
+                .build();
+    }
+
+    private Timestamp atStartOfDay(Timestamp timestamp) {
+        return atStartOfDay(timestamp, ZoneId.systemDefault());
+    }
+
+    private Timestamp atStartOfDay(Timestamp timestamp, String timezone) {
+        return atStartOfDay(timestamp, ZoneId.of(timezone));
+    }
+
+    private Timestamp atStartOfDay(Timestamp timestamp, ZoneId zoneId) {
+        Instant instant = Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
+        ZonedDateTime midnightZdt = LocalDate.ofInstant(instant, zoneId).atStartOfDay(zoneId);
+        Instant midnightInstant = midnightZdt.toInstant();
+        return Timestamp.newBuilder()
+                .setSeconds(midnightInstant.getEpochSecond())
+                .setNanos(midnightInstant.getNano())
+                .build();
+    }
+
+    private Timestamp atEndOfDay(Timestamp timestamp) {
+        return atEndOfDay(timestamp, ZoneId.systemDefault());
+    }
+
+    private Timestamp atEndOfDay(Timestamp timestamp, String timezone) {
+        return atEndOfDay(timestamp, ZoneId.of(timezone));
+    }
+
+    private Timestamp atEndOfDay(Timestamp timestamp, ZoneId zoneId) {
+        Instant instant = Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
+        ZonedDateTime eodZdt = LocalDate.ofInstant(instant, zoneId).atTime(LocalTime.MAX).atZone(zoneId);
+        Instant eodInstant = eodZdt.toInstant();
+        return Timestamp.newBuilder()
+                .setSeconds(eodInstant.getEpochSecond())
+                .setNanos(eodInstant.getNano())
+                .build();
+    }
 
     private static final class Library implements CelExtensionLibrary<CelMelExtensions> {
         private final CelMelExtensions version0;
