@@ -240,7 +240,7 @@
         <!-- security fix for CVE-2025-48976 -->
         <commons.fileupload2.version>2.0.0-M4</commons.fileupload2.version>
 
-        <wicket.version>10.5.0</wicket.version>
+        <wicket.version>10.8.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6</wicket.chartjs.version>
 
