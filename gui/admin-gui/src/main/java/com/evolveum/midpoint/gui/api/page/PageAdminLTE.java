@@ -10,13 +10,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
-import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,6 +51,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -137,6 +139,10 @@ import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -156,13 +162,29 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     private static final String ID_DUMP_PAGE_TREE = "dumpPageTree";
     private static final String ID_DEBUG_PANEL = "debugPanel";
 
-    private static final String ID_FOOTER_CONTAINER = "footerContainer";
+    protected static final String ID_FOOTER_CONTAINER = "footerContainer";
+    private static final String ID_LEGAL_FOOTER = "legalFooter";
     private static final String ID_VERSION = "version";
     private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
     private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
 
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
+
+    /**
+     * See https://www.javadoc.io/doc/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer/20191001.1/org/owasp/html/HtmlPolicyBuilder.html
+     */
+    private static final PolicyFactory HTML_SANITIZER_POLICY =
+            Sanitizers.FORMATTING
+                    .and(Sanitizers.LINKS)
+                    .and(Sanitizers.BLOCKS)
+                    .and(Sanitizers.STYLES)
+                    .and(Sanitizers.IMAGES)
+                    .and(Sanitizers.TABLES)
+                    .and(new HtmlPolicyBuilder()
+                            .allowAttributes("style")
+                            .globally()
+                            .toFactory());
 
     // Strictly speaking following fields should be transient.
     // But making them transient is causing problems on some
@@ -338,10 +360,39 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     }
 
+    /**
+     * Whether to show default footer (with version, copyright message, etc.) on the bottom of the page.
+     *
+     * @return True for all pages by default. False mostly for login/registration pages that
+     * doesn't have footer at the bottom of the page.
+     */
+    protected boolean hasDefaultFooter() {
+        return true;
+    }
+
+    private boolean isFooterVisible() {
+        if (!hasDefaultFooter()) {
+            // for all pages without footer on the bottom (registration, login, etc.)
+            return !isErrorPage() && isLegalFooterVisible();
+        }
+
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        if (info != null && info.getAdditionalFooter() != null) {
+            // don't show footer on error page
+            return !isErrorPage();
+        }
+
+        return !isErrorPage() && isLegalFooterVisible();
+    }
+
     private void addFooter() {
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage() && isFooterVisible()));
+        footerContainer.add(new VisibleBehaviour(() -> isFooterVisible()));
         add(footerContainer);
+
+        WebMarkupContainer legalFooter = new WebMarkupContainer(ID_LEGAL_FOOTER);
+        legalFooter.add(new VisibleBehaviour(() -> !isErrorPage() && isLegalFooterVisible()));
+        footerContainer.add(legalFooter);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 
@@ -353,12 +404,12 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
             }
         };
         version.add(new VisibleBehaviour(() ->
-                isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
-        footerContainer.add(version);
+                isLegalFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
+        legalFooter.add(version);
 
         WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
         copyrightMessage.add(getFooterVisibleBehaviour());
-        footerContainer.add(copyrightMessage);
+        legalFooter.add(copyrightMessage);
 
         Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
                 new IModel<String>() {
@@ -387,7 +438,42 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
                 });
         subscriptionMessage.setOutputMarkupId(true);
         subscriptionMessage.add(getFooterVisibleBehaviour());
-        footerContainer.add(subscriptionMessage);
+        legalFooter.add(subscriptionMessage);
+    }
+
+    protected void addAdditionalFooter(MarkupContainer parent, String id) {
+        IModel<String> model = new LoadableDetachableModel<>() {
+
+            @Override
+            protected String load() {
+                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+                if (info == null) {
+                    return null;
+                }
+
+                byte[] additionalFooter = info.getAdditionalFooter();
+                if (additionalFooter == null) {
+                    return null;
+                }
+
+                try {
+                    String html = new String(additionalFooter, StandardCharsets.UTF_8);
+//                    return HTML_SANITIZER_POLICY.sanitize(html);
+                    return html;
+                } catch (Exception e) {
+                    LOGGER.debug("Couldn't sanitize additional data for id {}: {}", id, e.getMessage());
+
+                    return null;
+                }
+            }
+        };
+
+        Label additionalFooter = new Label(id, model);
+        additionalFooter.setRenderBodyOnly(true);
+        additionalFooter.setEscapeModelStrings(false);
+        additionalFooter.add(new VisibleBehaviour(() -> model.getObject() != null));
+
+        parent.add(additionalFooter);
     }
 
     public SubscriptionState getSubscriptionState() {
@@ -400,12 +486,12 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
             @Override
             public boolean isVisible() {
-                return isFooterVisible();
+                return isLegalFooterVisible();
             }
         };
     }
 
-    private boolean isFooterVisible() {
+    private boolean isLegalFooterVisible() {
         SubscriptionState subscription = getSubscriptionState();
         return subscription.isFooterVisible();
     }

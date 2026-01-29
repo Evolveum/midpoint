@@ -125,6 +125,7 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_CART_ITEM = "cartItem";
     private static final String ID_CART_LINK = "cartLink";
     private static final String ID_CART_COUNT = "cartCount";
+    private static final String ID_ADDITIONAL_FOOTER = "additionalFooter";
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
     public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
@@ -474,6 +475,8 @@ public abstract class PageBase extends PageAdminLTE {
 
         WebMarkupContainer accessibilityLogo = new WebMarkupContainer(ID_ACCESSIBILITY_LOGO);
         mainHeader.add(accessibilityLogo);
+
+        addAdditionalFooter((MarkupContainer) get(ID_FOOTER_CONTAINER), ID_ADDITIONAL_FOOTER);
     }
 
     private void updateAccessibilityLogo(String logoId) {
