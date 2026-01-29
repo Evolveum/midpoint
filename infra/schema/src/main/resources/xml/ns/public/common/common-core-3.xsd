@@ -21187,6 +21187,23 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="additionalFooter" type="xsd:base64Binary" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Base64 encoded string containing HTML fragment that will be rendered as additional header.
+
+                        WARNING:
+                        Content of this field will be not be escaped and rendered on page AS IS.
+                        Make sure to avoid XSS and other security issues.
+
+                        Experimental.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:experimental/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
