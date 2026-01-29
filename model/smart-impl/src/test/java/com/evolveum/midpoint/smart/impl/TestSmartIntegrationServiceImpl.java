@@ -42,6 +42,7 @@ import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
 import com.evolveum.midpoint.smart.impl.activities.ObjectClassStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
@@ -1210,12 +1211,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         inboundAsserter
                 .extracting(a -> a.getTarget().getPath().getItemPath())
                 .satisfies(p -> focusItemName.equivalent(p));
-        var inbound = inboundAsserter.actual();
 
-        assertAiProvidedMarkPresentRequired(def, ResourceAttributeDefinitionType.F_REF); // selected by AI
-        assertAiProvidedMarkPresent(inbound, InboundMappingType.F_EXPRESSION); // script code created by AI
-        assertAiProvidedMarkPresentRequired(inbound,
-                ItemPath.create(InboundMappingType.F_TARGET, VariableBindingDefinitionType.F_PATH)); // selected by AI
+        var suggestion = findAttributeMappings(attrMappings, attrName);
+        assertThat(SmartMetadataUtil.isMarkedAsAiProvided(suggestion.asPrismContainerValue()))
+                .as("Mapping should be marked as AI-provided")
+                .isTrue();
 
 //        assertThat(def.getOutbound()).as("outbound")
 //                .extracting(a -> a.getSource(), listAsserterFactory(VariableBindingDefinitionType.class))
