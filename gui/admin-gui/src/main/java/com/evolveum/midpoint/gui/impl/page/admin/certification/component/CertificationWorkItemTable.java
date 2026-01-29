@@ -13,6 +13,9 @@ import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.impl.component.action.CertItemResolveAction;
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
@@ -37,8 +40,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.Available
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -219,8 +226,25 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
                 return getOpenCertWorkItemsQuery();
             }
 
+            @Override
+            protected @NotNull List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+                if (sortParam != null && sortParam.getProperty() != null) {
+                    return super.createObjectOrderings(sortParam);
+                }
+                // Default sort: match PK order (ownerOid, accessCertCaseCid, cid) for index utilization
+                PrismContext prismContext = PrismContext.get();
+                ItemPath casePath = ItemPath.create(PrismConstants.T_PARENT);
+                ItemPath campaignPath = casePath.append(PrismConstants.T_PARENT);
+                return List.of(
+                        prismContext.queryFactory().createOrdering(
+                                campaignPath.append(PrismConstants.T_ID), OrderDirection.ASCENDING),
+                        prismContext.queryFactory().createOrdering(
+                                casePath.append(PrismConstants.T_ID), OrderDirection.ASCENDING),
+                        prismContext.queryFactory().createOrdering(
+                                PrismConstants.T_ID, OrderDirection.ASCENDING)
+                );
+            }
         };
-//        provider.setSort(CaseWorkItemType.F_DEADLINE.getLocalPart(), SortOrder.DESCENDING);
         return provider;
     }
 
