@@ -47,6 +47,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Added support for Slovenian (sl), Latvian (lv) language.
 * Multiple libraries updated, including spring boot.
 * Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
+* bug:MID-10997[] Added support for additional footer.
 
 === Major Bugfixes
 
