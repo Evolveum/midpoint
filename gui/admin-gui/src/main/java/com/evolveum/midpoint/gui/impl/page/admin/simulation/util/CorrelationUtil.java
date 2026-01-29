@@ -9,8 +9,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.util;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -18,6 +23,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -73,20 +80,25 @@ public class CorrelationUtil {
         }
     }
 
+    /**
+     * Builds the correlation definition that was effectively used for the given simulation result.
+     *
+     * <p>Correlation simulation can combine correlators from two places:
+     * <ul>
+     *   <li>the existing correlation definition on the resource object type (optional), and</li>
+     *   <li>inline correlators provided by the simulation task (always applied on top).</li>
+     * </ul>
+     *
+     * <p>We clone/merge definitions to avoid modifying the original resource configuration while showing
+     * the "effective" configuration used by the simulation run.
+     *
+     * @return effective correlation definition (maybe empty), or {@code null} if the simulation task/work definition is missing
+     */
     public static @Nullable CorrelationDefinitionType findUsedCorrelationDefinition(
             @NotNull PageBase page, @NotNull SimulationResultType result) {
 
-        PrismObject<TaskType> task = WebModelServiceUtils.loadObject(result.getRootTaskRef(), page);
-        if (task == null) {
-            LOGGER.warn("Task not found for simulation result {}", result.getOid());
-            return null;
-        }
-
-        CorrelationWorkDefinitionType correlationWorkDefinition = findCorrelationWorkDefinition(task);
-        if (correlationWorkDefinition == null) {
-            LOGGER.debug("No correlation work definition found in task {}", task.getOid());
-            return null;
-        }
+        CorrelationWorkDefinitionType correlationWorkDefinition = findCorrelationWorkDefinition(page, result);
+        if (correlationWorkDefinition == null) {return null;}
 
         CorrelationDefinitionType definition = new CorrelationDefinitionType();
 
@@ -119,11 +131,150 @@ public class CorrelationUtil {
         return definition;
     }
 
-    //TODO suggestion mappings (add when logic implemented on BE side)
+    private static @Nullable CorrelationWorkDefinitionType findCorrelationWorkDefinition(@NotNull PageBase page, @NotNull SimulationResultType result) {
+        PrismObject<TaskType> task = WebModelServiceUtils.loadObject(result.getRootTaskRef(), page);
+        if (task == null) {
+            LOGGER.warn("Simulation task not found for simulation result {}", result.getOid());
+            return null;
+        }
+
+        CorrelationWorkDefinitionType correlationWorkDefinition = findCorrelationWorkDefinition(task);
+        if (correlationWorkDefinition == null) {
+            LOGGER.debug("No correlation work definition found in task {}", task.getOid());
+            return null;
+        }
+        return correlationWorkDefinition;
+    }
+
+    /**
+     * Returns candidate attribute mappings for correlation simulation.
+     *
+     * <p>The simulation task can provide additional (not yet stored in resource object) inbound mappings as suggestions.
+     * These mappings may not exist in the resource schema handling configuration, but they should be
+     * visible to the UI during simulation (e.g. in correlation candidate tables).
+     *
+     * <p>The result is a merged view:
+     * <ul>
+     *   <li>existing resource attribute definitions (if present), plus</li>
+     *   <li>additional suggested mappings from the simulation task, matched/merged by {@code ref}.</li>
+     * </ul>
+     *
+     * <p>We clone incoming data to keep the returned list isolated from the underlying task/resource objects.
+     *
+     * @return merged list of attribute definitions (may include suggestions), or {@code null} if nothing can be resolved
+     */
     public static @Nullable List<ResourceAttributeDefinitionType> findCandidateMappings(
             PageBase pageBase, @NotNull SimulationResultType result) {
+
+        CorrelationWorkDefinitionType correlationWorkDefinition = findCorrelationWorkDefinition(pageBase, result);
+        if (correlationWorkDefinition == null) {return null;}
+
+        SimulatedCorrelatorsType correlators = correlationWorkDefinition.getCorrelators();
+        if (correlators == null) {
+            return null;
+        }
+
+        List<AdditionalCorrelationItemMappingType> additionalItemsMappings =
+                CloneUtil.cloneCollectionMembers(correlators.getAdditionalItemsMappings());
+
+        // Convert additional mappings -> ResourceAttributeDefinitionType list
+        List<ResourceAttributeDefinitionType> additionalMappings = new ArrayList<>();
+        if (additionalItemsMappings != null) {
+            for (AdditionalCorrelationItemMappingType additionalMapping : additionalItemsMappings) {
+                if (additionalMapping == null || additionalMapping.getRef() == null) {
+                    continue;
+                }
+                ResourceAttributeDefinitionType attributeDef = new ResourceAttributeDefinitionType();
+                attributeDef.setRef(additionalMapping.getRef());
+                if (additionalMapping.getInbound() != null) {
+                    attributeDef.getInbound().addAll(CloneUtil.cloneCollectionMembers(additionalMapping.getInbound()));
+                }
+                additionalMappings.add(attributeDef.clone());
+            }
+        }
+
         var resourceObjectTypeDef = findResourceObjectTypeDefinitionType(pageBase, result);
-        return resourceObjectTypeDef != null ? resourceObjectTypeDef.getAttribute() : null;
+        if (resourceObjectTypeDef == null
+                || resourceObjectTypeDef.getAttribute() == null
+                || resourceObjectTypeDef.getAttribute().isEmpty()) {
+            return additionalMappings.isEmpty() ? null : additionalMappings;
+        }
+
+        List<ResourceAttributeDefinitionType> attributes = resourceObjectTypeDef.getAttribute();
+        if (additionalMappings.isEmpty()) {
+            return attributes;
+        }
+
+        // Merge by ref
+        for (ResourceAttributeDefinitionType additional : additionalMappings) {
+            ItemPathType addRef = additional.getRef();
+
+            ResourceAttributeDefinitionType existing = attributes.stream()
+                    .filter(Objects::nonNull)
+                    .filter(a -> a.getRef() != null)
+                    .filter(a -> addRef.getItemPath().equivalent(a.getRef().getItemPath()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existing != null) {
+                if (additional.getInbound() != null && !additional.getInbound().isEmpty()) {
+                    existing.getInbound().addAll(CloneUtil.cloneCollectionMembers(additional.getInbound()));
+                }
+            } else {
+                attributes.add(additional.clone());
+            }
+        }
+
+        return attributes;
+    }
+
+    /**
+     * Creates a virtual container wrapper for candidate mappings returned by {@link #findCandidateMappings(PageBase, SimulationResultType)}.
+     *
+     * <p>This is used by UI components that expect {@link PrismContainerWrapper} instead of plain beans.
+     * The wrapper is created as "simulation-only": it represents a preview/merged view (including suggested
+     * additional mappings) and is not meant to be persisted. Therefore, it should not produce deltas.
+     *
+     * @return container wrapper for displaying candidate mappings in UI, or {@code null} if there are no candidates
+     */
+    public static @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> findCandidateMappingsAsWrapper(
+            PageBase page, SimulationResultType simulationResult) {
+        List<ResourceAttributeDefinitionType> candidateMappings =
+                findCandidateMappings(page, simulationResult);
+
+        if (candidateMappings == null || candidateMappings.isEmpty()) {
+            return null;
+        }
+
+        try {
+            PrismContainerDefinition<ResourceAttributeDefinitionType> def =
+                    PrismContext.get().getSchemaRegistry()
+                            .findContainerDefinitionByCompileTimeClass(ResourceAttributeDefinitionType.class);
+
+            if (def == null) {
+                return null;
+            }
+
+            PrismContainer<ResourceAttributeDefinitionType> container = def.instantiate();
+
+            PrismContainerWrapper<ResourceAttributeDefinitionType> wrapper =
+                    new PrismContainerWrapperImpl<>(null, container, ItemStatus.NOT_CHANGED);
+
+            for (ResourceAttributeDefinitionType attr : candidateMappings) {
+                PrismContainerValueWrapper<ResourceAttributeDefinitionType> newValueWrapper = WebPrismUtil
+                        .createNewValueWrapper(
+                                wrapper,
+                                attr.asPrismContainerValue(),
+                                page);
+                wrapper.getValues().add(newValueWrapper);
+            }
+
+            wrapper.setExpanded(true);
+            return wrapper;
+
+        } catch (SchemaException e) {
+            throw new RuntimeException("Cannot build mappings container wrapper", e);
+        }
     }
 
     //TODO how to properly identify ref?

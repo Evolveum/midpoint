@@ -449,6 +449,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+            <artifactId>owasp-java-html-sanitizer</artifactId>
+        </dependency>
+
+        <dependency>
             <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
                  As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
                  Therefore explicitly use the custom version. -->
@@ -779,25 +784,6 @@
                         </fileset>
                     </filesets>
                 </configuration>
-            </plugin>
-            <plugin>
-                <!--
-                 This plugin is used to parse current project version for later use with npm version which requires semantic versioning
-                 -->
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.4.0</version>
-                <executions>
-                    <execution>
-                        <id>parse-version</id>
-                        <goals>
-                            <goal>parse-version</goal>
-                        </goals>
-                        <configuration>
-                            <propertyPrefix>parsedVersion</propertyPrefix>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>com.github.eirslett</groupId>

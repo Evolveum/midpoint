@@ -9,6 +9,7 @@
 package com.evolveum.midpoint.smart.impl.wellknownschemas.ad;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -40,24 +41,24 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
     }
 
     @Override
-    public List<AttributeMappingsSuggestionType> suggestInboundMappings() {
-        List<AttributeMappingsSuggestionType> mappings = new ArrayList<>();
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("sAMAccountName", UserType.F_NAME, "AD sAMAccountName to midPoint name", null));
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("cn", UserType.F_FULL_NAME, "AD cn (common name) to midPoint fullName", null));
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("givenName", UserType.F_GIVEN_NAME, "AD givenName to midPoint givenName", null));
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("sn", UserType.F_FAMILY_NAME, "AD sn (surname) to midPoint familyName", null));
-        mappings.add(WellKnownSchemaProvider.createInboundMapping("mail", UserType.F_EMAIL_ADDRESS, "AD mail to midPoint emailAddress", null));
+    public List<SystemMappingSuggestion> suggestInboundMappings() {
+        List<SystemMappingSuggestion> mappings = new ArrayList<>();
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", UserType.F_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sn", UserType.F_FAMILY_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("mail", UserType.F_EMAIL_ADDRESS));
         return mappings;
     }
 
     @Override
-    public List<AttributeMappingsSuggestionType> suggestOutboundMappings() {
-        List<AttributeMappingsSuggestionType> mappings = new ArrayList<>();
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("sAMAccountName", UserType.F_NAME, "midPoint name to AD sAMAccountName", null));
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("cn", UserType.F_FULL_NAME, "midPoint fullName to AD cn (common name)", null));
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("givenName", UserType.F_GIVEN_NAME, "midPoint givenName to AD givenName", null));
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("sn", UserType.F_FAMILY_NAME, "midPoint familyName to AD sn (surname)", null));
-        mappings.add(WellKnownSchemaProvider.createOutboundMapping("mail", UserType.F_EMAIL_ADDRESS, "midPoint emailAddress to AD mail", null));
+    public List<SystemMappingSuggestion> suggestOutboundMappings() {
+        List<SystemMappingSuggestion> mappings = new ArrayList<>();
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", UserType.F_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("givenName", UserType.F_GIVEN_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sn", UserType.F_FAMILY_NAME));
+        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("mail", UserType.F_EMAIL_ADDRESS));
         return mappings;
     }
 }

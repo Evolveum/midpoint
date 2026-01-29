@@ -72,6 +72,7 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
     private static final String ID_ACTION_LINK = "actionLink";
     private static final String ID_ACTION_LINK_LABEL = "actionLinkLabel";
     private static final String ID_SYSTEM_NAME = "systemName";
+    private static final String ID_ADDITIONAL_FOOTER = "additionalFooter";
 
     private final List<String> errorMessages = new ArrayList<>();
 
@@ -189,6 +190,13 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
         backButton.setOutputMarkupId(true);
         backButton.add(new VisibleBehaviour(this::isBackButtonVisible));
         add(backButton);
+
+        addAdditionalFooter(this, ID_ADDITIONAL_FOOTER);
+    }
+
+    @Override
+    protected boolean hasDefaultFooter() {
+        return false;
     }
 
     protected abstract boolean isBackButtonVisible();

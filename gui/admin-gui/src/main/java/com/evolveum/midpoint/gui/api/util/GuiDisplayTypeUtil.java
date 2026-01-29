@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -314,20 +315,13 @@ public class GuiDisplayTypeUtil {
         return true;
     }
 
-    public static DisplayType createDisplayTypeWith(String labelOrg, String labelKey, String helpKey) {
+    public static DisplayType createDisplayTypeWithLabel(String labelKey) {
+        return createDisplayTypeWithLabel(null, labelKey);
+    }
+
+    public static DisplayType createDisplayTypeWithLabel(String labelOrig, String labelKey) {
         DisplayType display = new DisplayType();
-
-        PolyStringType label = new PolyStringType(labelOrg);
-        PolyStringTranslationType translationLabel = new PolyStringTranslationType();
-        translationLabel.setKey(labelKey);
-        label.setTranslation(translationLabel);
-        display.setLabel(label);
-
-        PolyStringType help = new PolyStringType("");
-        PolyStringTranslationType translationHelp = new PolyStringTranslationType();
-        translationHelp.setKey(helpKey);
-        help.setTranslation(translationHelp);
-        display.setHelp(help);
+        display.setLabel(createPolyStringType(labelOrig, labelKey));
         return display;
     }
 
@@ -367,5 +361,96 @@ public class GuiDisplayTypeUtil {
                 .beginIcon()
                 .cssClass(cssClass)
                 .end();
+    }
+
+    public static DisplayType combineDisplay(DisplayType display, DisplayType variationDisplay) {
+        DisplayType combinedDisplay = new DisplayType();
+        if (variationDisplay == null) {
+            return display;
+        }
+        if (display == null) {
+            return variationDisplay;
+        }
+        if (StringUtils.isBlank(variationDisplay.getColor())) {
+            combinedDisplay.setColor(display.getColor());
+        } else {
+            combinedDisplay.setColor(variationDisplay.getColor());
+        }
+        if (StringUtils.isBlank(variationDisplay.getCssClass())) {
+            combinedDisplay.setCssClass(display.getCssClass());
+        } else {
+            combinedDisplay.setCssClass(variationDisplay.getCssClass());
+        }
+        if (StringUtils.isBlank(variationDisplay.getCssStyle())) {
+            combinedDisplay.setCssStyle(display.getCssStyle());
+        } else {
+            combinedDisplay.setCssStyle(variationDisplay.getCssStyle());
+        }
+        if (variationDisplay.getHelp() == null) {
+            combinedDisplay.setHelp(display.getHelp());
+        } else {
+            combinedDisplay.setHelp(variationDisplay.getHelp());
+        }
+        if (variationDisplay.getLabel() == null) {
+            combinedDisplay.setLabel(display.getLabel());
+        } else {
+            combinedDisplay.setLabel(variationDisplay.getLabel());
+        }
+        if (variationDisplay.getSingularLabel() == null) {
+            combinedDisplay.setSingularLabel(display.getSingularLabel());
+        } else {
+            combinedDisplay.setSingularLabel(variationDisplay.getSingularLabel());
+        }
+        if (variationDisplay.getPluralLabel() == null) {
+            combinedDisplay.setPluralLabel(display.getPluralLabel());
+        } else {
+            combinedDisplay.setPluralLabel(variationDisplay.getPluralLabel());
+        }
+        if (variationDisplay.getTooltip() == null) {
+            combinedDisplay.setTooltip(display.getTooltip());
+        } else {
+            combinedDisplay.setTooltip(variationDisplay.getTooltip());
+        }
+        if (variationDisplay.getIcon() == null) {
+            combinedDisplay.setIcon(display.getIcon());
+        } else if (display.getIcon() != null) {
+            IconType icon = new IconType();
+            if (StringUtils.isBlank(variationDisplay.getIcon().getCssClass())) {
+                icon.setCssClass(display.getIcon().getCssClass());
+            } else {
+                icon.setCssClass(variationDisplay.getIcon().getCssClass());
+            }
+            if (StringUtils.isBlank(variationDisplay.getIcon().getColor())) {
+                icon.setColor(display.getIcon().getColor());
+            } else {
+                icon.setColor(variationDisplay.getIcon().getColor());
+            }
+            if (StringUtils.isBlank(variationDisplay.getIcon().getImageUrl())) {
+                icon.setImageUrl(display.getIcon().getImageUrl());
+            } else {
+                icon.setImageUrl(variationDisplay.getIcon().getImageUrl());
+            }
+            combinedDisplay.setIcon(icon);
+        }
+
+        return combinedDisplay;
+    }
+
+    /**
+     * TODO Unify with WebComponentUtil.createPolyFromOrigString
+     * @param key
+     * @return
+     */
+    public static @NotNull PolyStringType createPolyStringType(String key) {
+        return createPolyStringType(null, key);
+    }
+
+    private static @NotNull PolyStringType createPolyStringType(String orig, String key) {
+        PolyStringTranslationType translation = new PolyStringTranslationType();
+        translation.setKey(key);
+        translation.setFallback(key);
+        PolyString poly = new PolyString(orig, null, translation);
+
+        return new PolyStringType(poly);
     }
 }

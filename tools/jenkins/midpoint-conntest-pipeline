@@ -19,7 +19,7 @@ podTemplate(
                         resourceRequestCpu: '900m',
                         resourceRequestMemory: '1Gi'),
                 containerTemplate(name: 'postgres',
-                        image: params.POSTGRES_IMAGE ?: 'postgres:13-alpine',
+                        image: params.POSTGRES_IMAGE ?: 'postgres:16-alpine',
                         runAsUser: '0',
                         ttyEnabled: true,
                         resourceRequestCpu: '2',

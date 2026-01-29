@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
-import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -49,7 +48,6 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
-import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.markContainerProvenance;
 
 /**
  * Utility methods for smart integration features in resource object type handling.
@@ -298,7 +296,7 @@ public class SmartIntegrationUtils {
                 "SuggestionUiStyle.notApplicable"),
         DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-purple",
                 "SuggestionUiStyle.default"),
-        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-primary",
+        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system",
                 "SuggestionUiStyle.default");
 
         public final String tileClass;
@@ -331,13 +329,21 @@ public class SmartIntegrationUtils {
             }
         }
 
-        public static SuggestionUiStyle from(StatusInfo<?> s, @Nullable PrismValue value) {
+        public static SuggestionUiStyle from(StatusInfo<?> s, @NotNull PrismContainerValueWrapper<?> value) {
             SuggestionUiStyle from = from(s);
             if (from != DEFAULT_AI) {
                 return from;
             }
 
-            boolean markedAsSystemProvided = isMarkedAsSystemProvided(value);
+            PrismContainerValueWrapper<AttributeMappingsSuggestionType> parentContainerValue = value
+                    .getParentContainerValue(AttributeMappingsSuggestionType.class);
+
+            // should not happen
+            if (parentContainerValue == null) {
+                return DEFAULT_AI;
+            }
+
+            boolean markedAsSystemProvided = isMarkedAsSystemProvided(parentContainerValue.getOldValue());
             if (markedAsSystemProvided) {
                 return DEFAULT_SYSTEM;
             } else {
