@@ -9,6 +9,8 @@ package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_MAPPING;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,8 +131,9 @@ class MappingsSuggestionOperation {
         mappingsSuggestionState.setExpectedProgress(schemaMatch.getSchemaMatchResult().size());
         try {
             var suggestion = new MappingsSuggestionType();
-            var mappingCandidates = new AttributeMappingCandidateSet();
             var direction = resolveDirection();
+            var existingMappingPaths = collectExistingMappingTargetPaths();
+            var mappingCandidates = new AttributeMappingCandidateSet(existingMappingPaths);
 
             collectSystemMappings(knownSchemaProvider, ownedList, result)
                     .forEach(mappingCandidates::propose);
@@ -177,6 +180,31 @@ class MappingsSuggestionOperation {
         } finally {
             mappingsSuggestionState.close(result);
         }
+    }
+
+    /**
+     * Collects target paths of existing mappings configured on the resource type.
+     * For inbound direction, collects focus property paths from inbound mapping targets.
+     * For outbound direction, collects shadow attribute paths that have outbound mappings.
+     */
+    private Collection<ItemPath> collectExistingMappingTargetPaths() {
+        var existingPaths = new ArrayList<ItemPath>();
+        for (var attrDef : ctx.typeDefinition.getAttributeDefinitions()) {
+            if (isInbound) {
+                for (var inbound : attrDef.getInboundMappingBeans()) {
+                    var target = inbound.getTarget();
+                    if (target != null && target.getPath() != null) {
+                        existingPaths.add(target.getPath().getItemPath());
+                    }
+                }
+            } else {
+                if (attrDef.hasOutboundMapping()) {
+                    existingPaths.add(attrDef.getStandardPath());
+                }
+            }
+        }
+        LOGGER.trace("Collected {} existing {} mapping target paths for deduplication.", existingPaths.size(), isInbound ? "inbound" : "outbound");
+        return existingPaths;
     }
 
     private List<AttributeMappingsSuggestionType> collectSystemMappings(

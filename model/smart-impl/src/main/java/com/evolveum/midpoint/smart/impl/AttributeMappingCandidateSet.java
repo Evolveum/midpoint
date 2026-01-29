@@ -19,10 +19,24 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * Manages a collection of attribute mapping candidates, handling duplicate detection
  * and quality-based selection. Encapsulates the logic for proposing new candidates
  * and keeping only the best ones based on their target paths and quality metrics.
+ *
+ * Supports deduplication against existing mappings configured on the resource
+ * Target paths that already have mappings are ignored.
  */
 class AttributeMappingCandidateSet {
 
     private final List<Candidate> candidates = new ArrayList<>();
+
+    /** Target paths that already have mappings configured; proposals for these are skipped. */
+    private final List<ItemPath> existingMappingPaths;
+
+    AttributeMappingCandidateSet() {
+        this.existingMappingPaths = List.of();
+    }
+
+    AttributeMappingCandidateSet(Collection<ItemPath> existingMappingPaths) {
+        this.existingMappingPaths = List.copyOf(existingMappingPaths);
+    }
 
     /**
      * Proposes a new mapping candidate. If a duplicate (based on target path) already exists,
@@ -33,6 +47,10 @@ class AttributeMappingCandidateSet {
         ItemPath targetPath = extractTargetPath(suggestion);
         if (targetPath == null) {
             throw new IllegalArgumentException("Target path must not be null for suggestion: " + suggestion);
+        }
+
+        if (isAlreadyMapped(targetPath)) {
+            return;
         }
 
         float newQuality = getQuality(suggestion);
@@ -118,6 +136,11 @@ class AttributeMappingCandidateSet {
         return newIsSystemProvided && !existingIsSystemProvided;
     }
 
+    private boolean isAlreadyMapped(ItemPath targetPath) {
+        return existingMappingPaths.stream()
+                .anyMatch(targetPath::equivalent);
+    }
+
     /**
      * Internal record holding a mapping candidate with its target path.
      * The target path is used for duplicate detection - mappings with the same target
@@ -125,5 +148,4 @@ class AttributeMappingCandidateSet {
      */
     private record Candidate(ItemPath targetPath, AttributeMappingsSuggestionType suggestion) {
     }
-
 }
