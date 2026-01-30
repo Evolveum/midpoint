@@ -12,7 +12,7 @@
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint.testing</groupId>
-        <version>4.10.1</version>
+        <version>4.10.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>conntest</artifactId>
