@@ -793,6 +793,11 @@ public class BasicExpressionFunctions {
         return determineLdapSingleAttributeValue(dns.iterator().next(), attributeName, values);
     }
 
+    /**
+     * Selects single value from many LDAP values, based on object DN.
+     * E.g. value 'bar' is selected from list of values ['foo','bar','baz']
+     * because that value is present in DN 'uid=bar,o=example'.
+     */
     // We cannot have Collection<String> here. The generic type information will disappear at runtime and the scripts can pass
     // anything that they find suitable. E.g. XPath is passing elements
     public String determineLdapSingleAttributeValue(String dn, String attributeName, Collection<?> values) throws NamingException {
@@ -1228,10 +1233,10 @@ public class BasicExpressionFunctions {
      * Creates a valid LDAP distinguished name from the wide range of components assuming that
      * the last component is a suffix. The method can be invoked in many ways, e.g.:
      * <p>
-     * composeDn("cn","foo","o=bar")
-     * composeDn(new Rdn("cn","foo"),"ou=baz,o=bar")
-     * composeDn(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar"))
-     * composeDn("cn","foo",new LdapName("ou=baz,o=bar"))
+     * composeDnWithSuffix("cn","foo","o=bar")
+     * composeDnWithSuffix(new Rdn("cn","foo"),"ou=baz,o=bar")
+     * composeDnWithSuffix(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar"))
+     * composeDnWithSuffix("cn","foo",new LdapName("ou=baz,o=bar"))
      * <p>
      * The last element is a complete suffix represented either as String or LdapName.
      * <p>

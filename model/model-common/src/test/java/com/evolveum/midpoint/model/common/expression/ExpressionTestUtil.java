@@ -53,7 +53,7 @@ public class ExpressionTestUtil {
     private static final String CONST_FOO_NAME = "foo";
     public static final String CONST_FOO_VALUE = "foobar";
 
-    private static Protector createInitializedProtector(PrismContext prismContext) {
+    public static Protector createInitializedProtector(PrismContext prismContext) {
         return KeyStoreBasedProtectorBuilder.create(prismContext)
                 .keyStorePath(MidPointTestConstants.KEYSTORE_PATH)
                 .keyStorePassword(MidPointTestConstants.KEYSTORE_PASSWORD)

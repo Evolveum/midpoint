@@ -38,14 +38,6 @@ public class PolyStringCelValue extends MidPointCelValue<PolyString> implements 
     private static final String F_NORM = PolyString.F_NORM.getLocalPart();
     public static final CelType CEL_TYPE = createPolystringType();
 
-    private static final String FUNCTION_POLYSTRING_ORIG_NAME = "orig";
-    private static final String FUNCTION_POLYSTRING_ORIG_ID = "polystring-orig";
-    private static final String FUNCTION_POLYSTRING_NORM_NAME = "norm";
-    private static final String FUNCTION_POLYSTRING_NORM_ID = "polystring-norm";
-    private static final String FUNCTION_STRING_ADD_POLYSTRING_ID = "string-add-polystring";
-    private static final String FUNCTION_POLYSTRING_ADD_STRING_ID = "polystring-add-string";
-    private static final String FUNCTION_POLYSTRING_ADD_POLYSTRING_ID = "polystring-add-polystring";
-
     private final PolyString polystring;
 
     PolyStringCelValue(PolyString polystring) {

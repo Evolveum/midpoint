@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.expression.*;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -25,6 +27,8 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.tools.testng.MidpointTestContext;
 
 import com.evolveum.midpoint.tools.testng.SimpleMidpointTestContext;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
@@ -40,7 +44,6 @@ import com.evolveum.midpoint.common.LocalizationTestUtil;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
@@ -82,6 +85,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected ScriptEvaluator evaluator;
     protected LocalizationService localizationService;
     protected final Clock clock = new Clock();
+    protected Protector protector;
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -93,7 +97,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void setupFactory() {
         prismContext = PrismTestUtil.getPrismContext();
         ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
-        Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
+        protector = ExpressionTestUtil.createInitializedProtector(prismContext);
         Collection<FunctionLibraryBinding> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
@@ -445,11 +449,19 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             String fileName, VariablesMap variables, String expectedValue)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        String expressionResult = evaluateStringScalarExpression(fileName, variables);
+        assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult);
+    }
+
+    protected String evaluateStringScalarExpression(
+            String fileName, VariablesMap variables)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, getTestName(), variables);
         PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
-        assertNotNull("Expression " + getTestName() + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
-        assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult.getValue());
+        assertNotNull("Expression " + getTestName() + " resulted in null value", expressionResult);
+        return expressionResult.getValue();
     }
 
     protected void evaluateAndAssertStringScalarExpressionRestricted(
@@ -512,4 +524,10 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected VariablesMap createVariables(Object... params) {
         return VariablesMap.create(prismContext, params);
     }
+
+    @NotNull
+    protected ProtectedStringType createProtectedStringType(@NotNull String clearContent) throws EncryptionException {
+        return protector.encryptString(clearContent);
+    }
+
 }

@@ -6,33 +6,32 @@
 package com.evolveum.midpoint.model.common.expression.script.cel.extension;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.script.cel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.MidPointCelValue;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Timestamp;
-import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.NullValue;
-import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.CelRuntimeBuilder;
-import dev.cel.runtime.CelRuntimeLibrary;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.*;
 import java.util.Collection;
 import java.util.List;
-
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 /**
  * Extensions for CEL compiler and runtime implementing behavior of "MEL" language.
@@ -45,8 +44,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
 
     private final BasicExpressionFunctions basicExpressionFunctions;
+    private final Protector protector;
 
-    public CelMelExtensions(BasicExpressionFunctions basicExpressionFunctions) {
+    public CelMelExtensions(Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
+        this.protector = protector;
         this.basicExpressionFunctions = basicExpressionFunctions;
         initialize();
     }
@@ -82,7 +83,45 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                         "string_"+FUNC_CONTAINS_IGNORE_CASE_NAME, String.class, String.class,
                         basicExpressionFunctions::containsIgnoreCase)),
 
-            // str.isBlank
+            // protectedString.decrypt()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_DECRYPT_NAME,
+                            CelOverloadDecl.newMemberOverload(
+                                    "protectedstring_"+FUNC_DECRYPT_NAME,
+                                    "Decrypts value of protected string, returning cleartext value as string.",
+                                    SimpleType.STRING,
+                                    CelTypeMapper.PROTECTED_STRING_CEL_TYPE)),
+                    CelFunctionBinding.from(
+                            "protectedstring_"+FUNC_DECRYPT_NAME, ProtectedStringType.class, this::decrypt)),
+
+            // str.encrypt()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_ENCRYPT_NAME,
+                            CelOverloadDecl.newMemberOverload(
+                                    "string_"+FUNC_ENCRYPT_NAME,
+                                    "Encrypts a string value, creating protected string.",
+                                    CelTypeMapper.PROTECTED_STRING_CEL_TYPE,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "string_"+FUNC_ENCRYPT_NAME, String.class, this::encrypt)),
+
+                // polystring.encrypt()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_ENCRYPT_NAME,
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_"+FUNC_ENCRYPT_NAME,
+                                    "Encrypts a string value, creating protected string.",
+                                    CelTypeMapper.PROTECTED_STRING_CEL_TYPE,
+                                    PolyStringCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from(
+                            "polystring_"+FUNC_ENCRYPT_NAME, PolyStringCelValue.class, this::encrypt)),
+
+            // TODO: bytes.encrypt()? Should we encrypt to ProtectedString or ProtectedData?
+
+            // str.isBlank()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             FUNC_IS_BLANK_NAME,
@@ -305,8 +344,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     private static final class Library implements CelExtensionLibrary<CelMelExtensions> {
         private final CelMelExtensions version0;
 
-        private Library(BasicExpressionFunctions basicExpressionFunctions) {
-            version0 = new CelMelExtensions(basicExpressionFunctions);
+        private Library(Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
+            version0 = new CelMelExtensions(protector, basicExpressionFunctions);
         }
 
         @Override
@@ -320,8 +359,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    public static CelExtensionLibrary<CelMelExtensions> library(BasicExpressionFunctions basicExpressionFunctions) {
-        return new Library(basicExpressionFunctions);
+    public static CelExtensionLibrary<CelMelExtensions> library(Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
+        return new Library(protector, basicExpressionFunctions);
     }
 
     @Override
@@ -367,7 +406,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
             } else if (col.size() == 1) {
                 return col.iterator().next();
             } else {
-                throw new RuntimeException("Attempt to get single value from a multi-valued property");
+                throw createException("Attempt to get single value from a multi-valued property");
             }
         } else {
             return o;
@@ -392,6 +431,42 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
             return basicExpressionFunctions.norm(ps);
         }
         return basicExpressionFunctions.norm(stringify(o));
+    }
+
+    @Nullable
+    public ProtectedStringType encrypt(@Nullable String str) {
+        if (str == null) {
+            return null;
+        }
+        try {
+            return protector.encryptString(str);
+        } catch (EncryptionException e) {
+            throw createException(e);
+        }
+    }
+
+    @Nullable
+    public ProtectedStringType encrypt(@Nullable PolyStringCelValue pstr) {
+        if (pstr == null) {
+            return null;
+        }
+        try {
+            return protector.encryptString(pstr.getOrig());
+        } catch (EncryptionException e) {
+            throw createException(e);
+        }
+    }
+
+    @Nullable
+    public String decrypt(@Nullable ProtectedStringType protectedString) {
+        if (protectedString == null) {
+            return null;
+        }
+        try {
+            return protector.decryptString(protectedString);
+        } catch (EncryptionException e) {
+            throw createException(e);
+        }
     }
 
 }

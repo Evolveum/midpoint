@@ -22,8 +22,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Timestamp;
 import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.OpaqueType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelValue;
 import dev.cel.common.values.NullValue;
@@ -44,7 +48,9 @@ import java.util.*;
  *
  * @author Radovan Semancik
  */
-public class CelTypeMapper {
+public class CelTypeMapper implements CelTypeProvider  {
+
+    public static final CelType PROTECTED_STRING_CEL_TYPE = OpaqueType.create(ProtectedStringType.class.getName());
 
     private static final Map<CelType, QName> CEL_TO_XSD_TYPE_MAP = new HashMap<>();
     private static final Map<QName, CelType> XSD_TO_CEL_TYPE_MAP = new HashMap<>();
@@ -52,6 +58,30 @@ public class CelTypeMapper {
     private static final Map<Class<?>, CelType> JAVA_TO_CEL_TYPE_MAP = new HashMap<>();
 
     private static final Trace LOGGER = TraceManager.getTrace(CelTypeMapper.class);
+
+    private final PrismContext prismContext;
+    private final ImmutableList<CelType> types;
+
+    public CelTypeMapper(PrismContext prismContext) {
+        this.prismContext = prismContext;
+        types = ImmutableList.of(
+                PolyStringCelValue.CEL_TYPE,
+                ObjectReferenceCelValue.CEL_TYPE,
+                ObjectCelValue.CEL_TYPE,
+                ContainerValueCelValue.CEL_TYPE,
+                PROTECTED_STRING_CEL_TYPE
+        );
+    }
+
+    @Override
+    public ImmutableCollection<CelType> types() {
+        return types;
+    }
+
+    @Override
+    public Optional<CelType> findType(String typeName) {
+        return types.stream().filter(type -> type.name().equals(typeName)).findAny();
+    }
 
     private static void initXsdTypeMap() {
         addXsdMapping(SimpleType.STRING, DOMUtil.XSD_STRING, true);
@@ -74,6 +104,7 @@ public class CelTypeMapper {
 
         addXsdMapping(QNameCelValue.CEL_TYPE, DOMUtil.XSD_QNAME, true);
         addXsdMapping(PolyStringCelValue.CEL_TYPE, PrismConstants.POLYSTRING_TYPE_QNAME, true);
+        addXsdMapping(PROTECTED_STRING_CEL_TYPE, ProtectedStringType.COMPLEX_TYPE, true);
 
 //        addXsdToCelMapping(DOMUtil.XSD_ANYURI, String.class);
     }
@@ -100,9 +131,14 @@ public class CelTypeMapper {
         addJavaMapping(ContainerValueCelValue.CEL_TYPE, Containerable.class, true);
         addJavaMapping(ObjectCelValue.CEL_TYPE, Objectable.class, true);
 
+        addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyString.class, true);
+        addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyStringType.class, false);
+        addJavaMapping(QNameCelValue.CEL_TYPE, QName.class, true);
+        addJavaMapping(PROTECTED_STRING_CEL_TYPE, ProtectedStringType.class, false);
+
+
         // TODO: temporary
         addJavaMapping(SimpleType.DYN, PrismContext.class, false);
-        addJavaMapping(SimpleType.DYN, ProtectedStringType.class, false);
         addJavaMapping(SimpleType.DYN, Collection.class, false);
         addJavaMapping(SimpleType.DYN, Map.class, false);
         addJavaMapping(SimpleType.DYN, Referencable.class, false);
@@ -126,9 +162,6 @@ public class CelTypeMapper {
 //        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
 //        addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
-        addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyString.class, true);
-        addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyStringType.class, false);
-        addJavaMapping(QNameCelValue.CEL_TYPE, QName.class, true);
     }
 
 
@@ -337,7 +370,7 @@ public class CelTypeMapper {
         return javaValue;
     }
 
-    public static boolean isCellNull(Object object) {
+    public static boolean isCellNull(@Nullable Object object) {
         return object == null || object instanceof NullValue;
     }
 

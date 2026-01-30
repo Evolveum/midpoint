@@ -6,20 +6,10 @@
 package com.evolveum.midpoint.model.common.expression.script.cel.value;
 
 import com.evolveum.midpoint.model.common.expression.script.cel.DynType;
-import com.evolveum.midpoint.model.common.expression.script.cel.MidPointTypeProvider;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import dev.cel.common.types.CelType;
-import dev.cel.common.values.CelValue;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Radovan Semancik

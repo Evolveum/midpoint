@@ -7,6 +7,8 @@ package com.evolveum.midpoint.model.common.expression.script.cel.extension;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
+
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelOptions;
 import dev.cel.compiler.CelCompilerLibrary;
@@ -15,6 +17,7 @@ import dev.cel.runtime.CelRuntimeLibrary;
 
 public class MidPointCelExtensionManager {
 
+    private final Protector protector;
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final CelOptions celOptions;
 
@@ -22,21 +25,24 @@ public class MidPointCelExtensionManager {
     private CelPolyStringExtensions extPolyString;
     private CelFormatExtensions extFormat;
     private CelPrismItemsExtensions extPrismItems;
+    private CelLdapExtensions extLdap;
 
     private ImmutableList<? extends CelCompilerLibrary> allCompilerLibraries;
     private ImmutableList<? extends CelRuntimeLibrary> allRuntimeLibraries;
 
-    public MidPointCelExtensionManager(BasicExpressionFunctions basicExpressionFunctions, CelOptions celOptions) {
+    public MidPointCelExtensionManager(Protector protector, BasicExpressionFunctions basicExpressionFunctions, CelOptions celOptions) {
+        this.protector = protector;
         this.basicExpressionFunctions = basicExpressionFunctions;
         this.celOptions = celOptions;
         initializeExtensions();
     }
 
     private void initializeExtensions() {
-        extMel = CelMelExtensions.library(basicExpressionFunctions).latest();
+        extMel = CelMelExtensions.library(protector, basicExpressionFunctions).latest();
         extPolyString = CelPolyStringExtensions.library(celOptions, basicExpressionFunctions).latest();
         extFormat = CelFormatExtensions.library(basicExpressionFunctions).latest();
         extPrismItems = CelPrismItemsExtensions.library().latest();
+        extLdap = CelLdapExtensions.library(basicExpressionFunctions).latest();
 
         allCompilerLibraries = ImmutableList.of(
                 CelExtensions.strings(),
@@ -48,10 +54,11 @@ public class MidPointCelExtensionManager {
                 CelExtensions.regex(),
                 CelExtensions.comprehensions(),
                 CelExtensions.optional(),
-                mel(),
-                polystring(),
-                format(),
-                prismItems()
+                extMel,
+                extPolyString,
+                extFormat,
+                extPrismItems,
+                extLdap
         );
 
         allRuntimeLibraries = ImmutableList.of(
@@ -63,27 +70,12 @@ public class MidPointCelExtensionManager {
                 CelExtensions.regex(),
                 CelExtensions.comprehensions(),
                 CelExtensions.optional(),
-                mel(),
-                polystring(),
-                format(),
-                prismItems()
+                extMel,
+                extPolyString,
+                extFormat,
+                extPrismItems,
+                extLdap
         );
-    }
-
-    public CelMelExtensions mel() {
-        return extMel;
-    }
-
-    public CelPolyStringExtensions polystring() {
-        return extPolyString;
-    }
-
-    public CelFormatExtensions format() {
-        return extFormat;
-    }
-
-    public CelPrismItemsExtensions prismItems() {
-        return extPrismItems;
     }
 
     public Iterable<? extends CelCompilerLibrary> allCompilerLibraries() {

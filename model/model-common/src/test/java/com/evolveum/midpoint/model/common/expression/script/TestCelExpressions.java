@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import com.google.common.collect.ImmutableList;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -1145,6 +1147,113 @@ public class TestCelExpressions extends AbstractScriptTest {
                 ),
                 "12/25/2025 12.33.44");
     };
+
+    @Test
+    public void testLdapComposeDn() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-ldap-compose-dn.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "FooBar", PrimitiveType.STRING
+                ),
+                "cn=Foo,o=FooBar");
+    }
+
+    @Test
+    public void testLdapComposeDnWithSuffix() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-ldap-compose-dn-with-suffix.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "dc=example,dc=com", PrimitiveType.STRING
+                ),
+                "cn=Foo,dc=example,dc=com");
+    }
+
+    @Test
+    public void testLdapHashPasswordString() throws Exception {
+        String output = evaluateStringScalarExpression(
+                "expression-ldap-hash-password.xml",
+                createVariables(
+                        "password", "nbusr123", PrimitiveType.STRING,
+                        "alg", "SSHA", PrimitiveType.STRING
+                ));
+        assertTrue("Wrong password format: "+output, output.startsWith("{SSHA}"));
+    }
+
+    @Test
+    public void testLdapHashPasswordBytes() throws Exception {
+        String output = evaluateStringScalarExpression(
+                "expression-ldap-hash-password.xml",
+                createVariables(
+                        "password",  "nbusr123".getBytes(), PrimitiveType.BASE64BINARY,
+                        "alg", "SSHA", PrimitiveType.STRING
+                ));
+        assertTrue("Wrong password format: "+output, output.startsWith("{SSHA}"));
+    }
+
+    @Test
+    public void testLdapHashPasswordProtectedString() throws Exception {
+        String output = evaluateStringScalarExpression(
+                "expression-ldap-hash-password.xml",
+                createVariables(
+                        "password", createProtectedStringType("nbusr123"), ProtectedStringType.COMPLEX_TYPE,
+                        "alg", "SSHA", PrimitiveType.STRING
+                ));
+        assertTrue("Wrong password format: "+output, output.startsWith("{SSHA}"));
+    }
+
+    @Test
+    public void testLdapDetermineSingleAttributeValue() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-ldap-determine-single-attribute-value.xml",
+                createVariables(),
+                "bar");
+    }
+
+
+    @Test
+    public void testEncryptString() throws Exception {
+        encryptTest(
+            createVariables(
+                    "psswd", "nbusr123", PrimitiveType.STRING
+            ), "nbusr123");
+    }
+
+    @Test
+    public void testEncryptPolyString() throws Exception {
+        encryptTest(
+                createVariables(
+                        "psswd", PrismTestUtil.createPolyStringType("changeMe!"), PolyStringType.COMPLEX_TYPE
+                ), "changeMe!");
+    }
+
+    private void encryptTest(VariablesMap variables, String expectedResult) throws Exception {
+        encryptDecryptTest("expression-encrypt.xml", variables, expectedResult);
+    }
+
+    private void encryptDecryptTest(String filename, VariablesMap variables, String expectedResult) throws Exception {
+        OperationResult opResult = createOperationResult();
+        ScriptExpressionEvaluatorType scriptType = parseScriptType(filename);
+        List<PrismPropertyValue<ProtectedStringType>> expressionResultList =
+                evaluateExpression(scriptType, ProtectedStringType.COMPLEX_TYPE, true, variables, getTestName(), opResult);
+        PrismPropertyValue<ProtectedStringType> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        assertNotNull("Expression resulted in null value", expressionResult);
+        ProtectedStringType expressionResultValue = expressionResult.getValue();
+        String decryptedValue = protector.decryptString(expressionResultValue);
+        assertEquals("Expression resulted in wrong value", expectedResult, decryptedValue);
+    }
+
+    @Test
+    public void testEncryptDecryptString() throws Exception {
+        encryptDecryptTest(
+                "expression-encrypt-decrypt.xml",
+                createVariables(
+                        "psswd", createProtectedStringType("Alice"), ProtectedStringType.COMPLEX_TYPE
+                ),
+                "Alice2");
+    }
 
     @Test
     public void testLookAtPoison() throws Exception {

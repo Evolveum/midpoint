@@ -5,29 +5,20 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.cel.extension;
 
-import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.cel.CelTypeMapper;
-import com.evolveum.midpoint.model.common.expression.script.cel.value.MidPointCelValue;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import dev.cel.checker.CelCheckerBuilder;
 import dev.cel.common.CelFunctionDecl;
-import dev.cel.common.CelOverloadDecl;
-import dev.cel.common.types.ListType;
-import dev.cel.common.types.SimpleType;
-import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.runtime.CelFunctionBinding;
 import dev.cel.runtime.CelRuntimeBuilder;
 import dev.cel.runtime.CelRuntimeLibrary;
-
-import java.util.Collection;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
@@ -42,6 +33,8 @@ public abstract class AbstractMidPointCelExtensions
     public static final String FUNC_CONTAINS_IGNORE_CASE_NAME = "containsIgnoreCase";
     public static final String FUNC_IS_EMPTY_NAME = "isEmpty";
     public static final String FUNC_IS_BLANK_NAME = "isBlank";
+    public static final String FUNC_ENCRYPT_NAME = "encrypt";
+    public static final String FUNC_DECRYPT_NAME = "decrypt";
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractMidPointCelExtensions.class);
 
@@ -88,12 +81,32 @@ public abstract class AbstractMidPointCelExtensions
         });
     }
 
-    protected static Object toJava(Object o) {
+    @Nullable
+    protected static Object toJava(@Nullable Object o) {
         return CelTypeMapper.toJavaValue(o);
     }
 
-    protected static boolean isCellNull(Object object) {
+    protected static boolean isCellNull(@Nullable Object object) {
         return CelTypeMapper.isCellNull(object);
     }
+
+    @NotNull
+    protected RuntimeException createException(@NotNull Exception e) {
+        // TODO: better error handling
+        return new RuntimeException(e.getMessage(), e);
+    }
+
+    @NotNull
+    protected RuntimeException createException(@NotNull String message) {
+        // TODO: better error handling
+        return new RuntimeException(message);
+    }
+
+    @NotNull
+    protected RuntimeException createException(@NotNull String message, @NotNull Exception e) {
+        // TODO: better error handling
+        return new RuntimeException(message, e);
+    }
+
 
 }

@@ -67,7 +67,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
     public CelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService, BasicExpressionFunctions basicExpressionFunctions) {
         super(prismContext, protector, localizationService);
         this.basicExpressionFunctions = basicExpressionFunctions;
-        midPointCelExtensionManager = new MidPointCelExtensionManager(basicExpressionFunctions, celOptions);
+        midPointCelExtensionManager = new MidPointCelExtensionManager(protector, basicExpressionFunctions, celOptions);
 
         // No compiler/interpreter initialization here. Compilers/interpreters are initialized on demand.
     }
@@ -150,8 +150,7 @@ public class CelScriptEvaluator extends AbstractScriptEvaluator {
     }
 
     private CelTypeProvider createTypeProvider() {
-        MidPointTypeProvider midPointTypeProvider = new MidPointTypeProvider(getPrismContext());
-        return midPointTypeProvider;
+        return new CelTypeMapper(getPrismContext());
     }
 
     private CelType determineResultType(ScriptExpressionEvaluationContext context) {
