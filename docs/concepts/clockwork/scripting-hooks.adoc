@@ -7,8 +7,8 @@ doc-type: config
 :page-wiki-id: 13074820
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-12-06T14:38:30.238+01:00
-:page-wiki-metadata-modify-user: martin.lizner
-:page-wiki-metadata-modify-date: 2015-08-10T10:19:55.968+02:00
+:page-wiki-metadata-modify-user: atdhe.musliu
+:page-wiki-metadata-modify-date: 2023-05-22T11:51:55.968+02:00
 
 == Introduction
 
@@ -90,21 +90,21 @@ Following scripting hook removes all assignments from disabled users. Please not
     <state>secondary</state>
     <focusType>c:UserType</focusType>
     <script>
-       <code>
+        <code>
             import com.evolveum.midpoint.prism.delta.*;
             import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
             UserType user = (UserType) focus;
             ActivationStatusType administrativeStatus = user.getActivation().getAdministrativeStatus();
             if (administrativeStatus == ActivationStatusType.DISABLED) {
-				changed = false;
+                changed = false;
                 for (AssignmentType assign : user.getAssignment()) {
-                    assignmentDelta = ContainerDelta.createModificationDelete(UserType.F_ASSIGNMENT, UserType.class, prismContext, assign.clone());
+                    assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(UserType.F_ASSIGNMENT, UserType.class, assign.clone());
                     log.debug('Removing assignment ' + assignmentDelta + ' from disabled user ' + user.getName());
                     modelContext.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
-					changed = true;
+                    changed = true;
                 }
-				if (changed) {
+                if (changed) {
                     modelContext.rot(); // this makes Projector to recompute the model context
                 }
             }
