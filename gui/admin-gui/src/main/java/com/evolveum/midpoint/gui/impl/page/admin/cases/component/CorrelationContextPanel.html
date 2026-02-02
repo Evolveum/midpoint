@@ -7,8 +7,9 @@
 <!DOCTYPE html>
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="h5" wicket:id="noCorrelationContextMessage"></div>
     <div class="card card-info">
-        <table class="table table-bordered table-striped">
+        <table wicket:id="correlationContextPanel" class="table table-bordered table-striped">
             <tr>
                 <th></th>
                 <wicket:container wicket:id="headers">
