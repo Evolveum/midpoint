@@ -86,6 +86,12 @@ public class DummyTestResource extends TestResource {
         test.initDummyResource(this, task, result);
     }
 
+    public void initWithOverwrite(AbstractIntegrationTest test, Task task, OperationResult result) throws Exception {
+        test.deleteIfPresent(this, result);
+        reset();
+        test.initDummyResource(this, task, result);
+    }
+
     public String addAccount(DummyAccount account) throws ConflictException, FileNotFoundException, SchemaViolationException,
             ObjectAlreadyExistsException, InterruptedException, ConnectException, ObjectDoesNotExistException {
         return getDummyResource().addAccount(account);
