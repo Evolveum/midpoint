@@ -669,6 +669,7 @@ This command is useful only in non-container environments.
 
 To learn more about this command see xref:../command/upgrade-installation.adoc[].
 
+[#_initial_objects]
 === Initial objects
 
 This is the last step of upgrade procedure while midPoint is still down.

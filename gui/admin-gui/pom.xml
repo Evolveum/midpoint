@@ -449,6 +449,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+            <artifactId>owasp-java-html-sanitizer</artifactId>
+        </dependency>
+
+        <dependency>
             <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
                  As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
                  Therefore explicitly use the custom version. -->

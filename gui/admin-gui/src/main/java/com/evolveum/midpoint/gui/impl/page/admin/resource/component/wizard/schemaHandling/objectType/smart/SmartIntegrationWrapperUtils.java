@@ -161,7 +161,7 @@ public class SmartIntegrationWrapperUtils {
     public static @Nullable PrismContainerValueWrapper<MappingType> findRelatedInboundMapping(
             @NotNull PageBase pageBase,
             @NotNull PrismContainerValueWrapper<CorrelationItemType> correlationItemWrapper,
-            @NotNull PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceDefWrapper) {
+            @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> mappings) {
         ItemPathType correlationItemRef = correlationItemWrapper.getRealValue().getRef();
         List<PrismContainerValueWrapper<MappingType>> allInboundMappings = new ArrayList<>();
 
@@ -181,10 +181,10 @@ public class SmartIntegrationWrapperUtils {
 
             //If container is null or empty, that indicate existing mapping has been used.
             if (container == null || WebPrismUtil.isEmptyContainer(container.getItem())) {
-                container = resourceDefWrapper.findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+                container = mappings;
             }
 
-            if (container == null || WebPrismUtil.isEmptyContainer(container.getItem())) {
+            if (container == null || container.getValues() == null || container.getValues().isEmpty()) {
                 LOGGER.warn("Couldn't find related resource attribute definition.");
                 return null;
             }

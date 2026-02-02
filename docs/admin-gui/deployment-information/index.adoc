@@ -65,6 +65,13 @@ It will be used as a link target in case that the partner name is displayed as h
 | subscriptionIdentifier
 | Identifier of Evolveum subscription contract that applies to this deployment.
 
+| additionalFooter
+a| Base64 encoded string containing HTML fragment that will be rendered as additional header.
+
+WARNING: Content of this field will be not be escaped and rendered on page AS IS.
+Make sure that custom content is safe to be rendered on each page.
+This is an experimental feature and may be changed or removed in future versions.
+
 |===
 
 Here is a little example how midPoint look can be configured with deployment information type:

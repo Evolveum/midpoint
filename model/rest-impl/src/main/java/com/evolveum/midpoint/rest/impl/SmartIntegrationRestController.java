@@ -63,7 +63,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 suggestionOperationStatus = smartIntegrationService.getSuggestObjectTypesOperationStatus(oid, task, result);
             } while (suggestionOperationStatus.isExecuting());
 
-            return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
+                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            } else {
+                throw new IllegalStateException();
+            }
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {
@@ -99,7 +103,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 suggestionOperationStatus = smartIntegrationService.getSuggestCorrelationOperationStatus(oid, task, result);
             } while (suggestionOperationStatus.isExecuting());
 
-            return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
+                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            } else {
+                throw new IllegalStateException();
+            }
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {
@@ -136,7 +144,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);
             } while (suggestionOperationStatus.isExecuting());
 
-            return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
+                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            } else {
+                throw new IllegalStateException();
+            }
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {
@@ -166,7 +178,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 suggestionOperationStatus = smartIntegrationService.getSuggestAssociationsOperationStatus(oid, task, result);
             } while (suggestionOperationStatus.isExecuting());
 
-            return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            if (suggestionOperationStatus.getStatus().equals(OperationResultStatusType.SUCCESS)) {
+                return createResponse(HttpStatus.OK, suggestionOperationStatus.getResult(), result);
+            } else {
+                throw new IllegalStateException();
+            }
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {

@@ -143,6 +143,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             @Override
             protected StatusInfo<CorrelationSuggestionsType> load() {
                 var resourceObjectTypeIdentification = getResourceObjectTypeIdentification();
+                if (resourceObjectTypeIdentification == null) {
+                    return null;
+                }
                 return loadCorrelationTypeSuggestion(getPageBase(), resourceOid, resourceObjectTypeIdentification, task, result);
             }
         };

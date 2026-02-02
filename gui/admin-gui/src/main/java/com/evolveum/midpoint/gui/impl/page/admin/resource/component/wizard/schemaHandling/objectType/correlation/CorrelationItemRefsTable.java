@@ -57,6 +57,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -187,10 +188,12 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
                     return;
                 }
 
+                PrismContainerWrapper<ResourceAttributeDefinitionType> mappings = getMappings();
                 PrismContainerValueWrapper<MappingType> relatedInboundMapping = findRelatedInboundMapping(
                         getPageBase(),
                         row,
-                        getResourceObjectTypeDefWrapper());
+                        mappings);
+
                 if (relatedInboundMapping == null) {
                     LOGGER.warn("Cannot find related inbound mapping for correlation item: {}", row.getRealValue());
                     getPageBase().warn(getString("CorrelationItem.relatedMappingNotFound"));
@@ -260,6 +263,16 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
         };
     }
 
+    protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings() {
+        PrismContainerWrapper<ResourceAttributeDefinitionType> mappings = null;
+        try {
+             mappings = getResourceObjectTypeDefWrapper().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+        } catch (SchemaException e) {
+            LOGGER.warn("Couldn't find attribute container in resource object type definition.", e);
+        }
+        return mappings;
+    }
+
     @Override
     protected IModel<PrismContainerWrapper<CorrelationItemType>> getContainerModel() {
         return PrismContainerWrapperModel.fromContainerValueWrapper(
@@ -323,7 +336,7 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
                 var relatedInboundMapping = findRelatedInboundMapping(
                         getPageBase(),
                         iModel.getObject(),
-                        getResourceObjectTypeDefWrapper());
+                        getMappings());
                 if (relatedInboundMapping != null && relatedInboundMapping.getRealValue() != null) {
                     PrismPropertyWrapperColumnPanel<MappingType> panel = createColumnPanel(id, relatedInboundMapping);
                     item.add(panel);
