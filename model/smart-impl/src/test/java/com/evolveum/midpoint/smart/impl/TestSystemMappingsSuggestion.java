@@ -174,18 +174,15 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -232,18 +229,15 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 null, null, null, null, null, null, null
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -290,18 +284,15 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 null, null, null, null, null, null, null
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -342,18 +333,15 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, acceptedSuggestionPaths);

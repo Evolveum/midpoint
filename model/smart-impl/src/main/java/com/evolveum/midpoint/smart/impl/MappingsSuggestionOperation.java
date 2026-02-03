@@ -73,39 +73,39 @@ class MappingsSuggestionOperation {
     private final OwnedShadowsProvider ownedShadowsProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final boolean isInbound;
+    private final boolean useAiService;
 
     private MappingsSuggestionOperation(
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
-            boolean isInbound) {
+            boolean isInbound,
+            boolean useAiService) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
         this.ownedShadowsProvider = ownedShadowsProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.isInbound = isInbound;
+        this.useAiService = useAiService;
     }
 
     static MappingsSuggestionOperation init(
-            ServiceClient serviceClient,
-            String resourceOid,
-            ResourceObjectTypeIdentification typeIdentification,
-            @Nullable CurrentActivityState<?> activityState,
+            TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
             boolean isInbound,
-            Task task,
-            OperationResult result)
+            boolean useAiService)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return new MappingsSuggestionOperation(
-                TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result),
+                ctx,
                 qualityAssessor,
                 ownedShadowsProvider,
                 wellKnownSchemaService,
-                isInbound);
+                isInbound,
+                useAiService);
     }
 
     private MappingDirection resolveDirection() {
@@ -316,6 +316,10 @@ class MappingsSuggestionOperation {
             LOGGER.trace("Target data missing. We'll use 'asIs' mapping (no LLM call).");
         } else if (valuePairsForValidation.doAllConvertedSourcesMatchTargets(ctx.getFocusTypeDefinition(), ctx.typeDefinition, ctx.b.protector)) {
             LOGGER.trace("AsIs {} mapping suffice according to the data (no LLM call).", valuePairsForValidation.direction());
+            assessment = this.qualityAssessor.assessMappingsQuality(
+                    valuePairsForValidation, expression, this.ctx.task, parentResult);
+        } else if (!useAiService) {
+            LOGGER.trace("AI service is disabled. We'll use 'asIs' mapping (no LLM call).");
             assessment = this.qualityAssessor.assessMappingsQuality(
                     valuePairsForValidation, expression, this.ctx.task, parentResult);
         } else {
