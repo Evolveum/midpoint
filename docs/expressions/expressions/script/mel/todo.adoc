@@ -1,0 +1,25 @@
+---
+midpoint-feature: expression-mel
+doc-type: intro
+---
+= MidPoint Expression Language TODO
+:page-nav-title: TODO
+:page-upkeep-status: green
+:page-toc: top
+
+* MEL introduction
+* MEL lang spec
+* MEL security
+
+* MEL and CEL
+** reasons and motivation
+** Prism instead of protobuf
+** CEL extensions
+** why do we call it MEL?
+
+* MEL and Groovy, unsecure code in libraries, authorizations, etc.
+
+* Guide: migrating Groovy to MEL
+** What happened to `basic` library?
+** Rewriting loops to filter/map
+** Use Groovy in function libraries as a last resort

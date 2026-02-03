@@ -1,0 +1,45 @@
+---
+midpoint-feature: expression-mel
+doc-type: intro
+---
+= Script Expression in MidPoint Expression Language
+:page-nav-title: MEL
+:page-upkeep-status: green
+:page-toc: top
+
+MidPoint Expression Language (MEL) is a supported and recommended expression language for midPoint.
+Its language URL is:
+
+ http://midpoint.evolveum.com/xml/ns/public/expression/language#mel
+
+Since midPoint 4.11, MEL is a recommended expression language to create script expressions in midPoint.
+
+== MidPoint Expression Language
+
+MidPoint Expression Language (MEL) is based on link:https://cel.dev/[Common Expression Language], extended with midPoint-specific features, functions and libraries.
+
+MEL is designed to be _secure_ expression language, intended for common use in midPoint expressions.
+
+See xref:introduction[MidPoint Expression Language Introduction] for more details.
+
+== Examples
+
+=== User `name`
+
+Following code returns a `name` property of a user.
+
+[source,mel]
+----
+focus.name
+----
+
+=== Create `fullName`
+
+[source,mel]
+----
+focus.givenName + ' ' + focus.familyName
+----
+
+== See Also
+
+* xref:introduction[MidPoint Expression Language Introduction]

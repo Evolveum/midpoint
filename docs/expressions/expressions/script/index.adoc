@@ -15,7 +15,9 @@
 Script expressions can use a variety of scripting languages.
 Currently supported languages are:
 
-* xref:groovy.adoc[Groovy] (built-in)
+* xref:mel/[MidPoint Expression Language (MEL)] (built-in, recommended)
+
+* xref:groovy.adoc[Groovy] (built-in, default)
 
 * xref:javascript.adoc[JavaScript (ECMAScript)] (optional, depending on JDK)
 
@@ -46,9 +48,9 @@ The structure is illustrated in the following code snippet.
 ----
 <expression>
     <script>
-        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
         <code>
-            'Mr. ' + user.getFamilyName();
+            'Mr. ' + user.familyName
         </code>
     </script>
 </expression>

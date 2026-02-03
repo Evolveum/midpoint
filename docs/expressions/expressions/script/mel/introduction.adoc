@@ -1,0 +1,176 @@
+---
+midpoint-feature: expression-mel
+doc-type: intro
+---
+= MidPoint Expression Language Introduction
+:page-nav-title: Introduction
+:page-upkeep-status: green
+:page-toc: top
+
+MidPoint Expression Language (MEL) is an expression language, designed to support customization of midPoint functionality in an easy-to-use and secure way.
+MEL expressions are meant to be used in midpoint xref:/midpoint/reference/expressions/mappings/[mappings],
+xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[autoassignment expressions],
+xref:/midpoint/reference/roles-policies/roles/[roles], xref:/midpoint/reference/roles-policies/policies/[policies],
+xref:/midpoint/reference/admin-gui/admin-gui-config/[GUI customization] and similar places.
+
+MEL is designed for security, therefore it can be used at places where feature:delegated-administration[administration privileges are delegated], such as administration of roles, policies, configuration of reports and dashboards.
+
+== Synopsis
+
+Following code returns a `name` property of a user:
+
+[source,mel]
+----
+focus.name
+----
+
+Simple string concatenation to generate user's `fullName`:
+
+[source,mel]
+----
+focus.givenName + ' ' + focus.familyName
+----
+
+
+Username generator, combining first letter of (normalized) user's given name, eight letters of family name and an iteration token:
+
+[source,mel]
+----
+focus.givenName.norm.substring(0,1) + focus.familyName.norm.substring(0,7) + iterationToken
+----
+
+== The Basics
+
+MEL is an _expression_ language which allows easy access to midPoint data structures (xref:/midpoint/reference/schema/common-data-model/[midPoint objects]), transforming or combining their values.
+
+TODO: MEL is _expression_ language. It is not a Turing-complete imperative programming language such Python or Groovy.
+MEL is much more constrained - by design.
+TODO: secure by design.
+
+.MEL and CEL
+NOTE: MidPoint Expression Language (MEL) is based on link:https://cel.dev/[Common Expression Language (CEL)], which was extended with midPoint-specific features, functions and libraries.
+CEL is used by many software platforms mostly focused in IT infrastructure, therefore it is likely that users may be already familiar with it.
+CEL was extended with features that are essential for its efficient use in midPoint environment, thus creating MEL, a midPoint expression language.
+
+== Structured Data
+
+Object structure can be accessed in mel using the dot (`.`) convention.
+Following expression returns value of `name` property of the object stored in `focus` xref:/midpoint/reference/expressions/variables/[variable].
+
+[source,mel]
+----
+focus.name
+----
+
+MidPoint data structures are usually quite deep, therefore the access to structured data can be nested.
+Following code returns value of `administrativeStatus` property located inside `activation` container, located in user object stored in variable `focus`.
+
+[source,mel]
+----
+focus.activation.administrativeStatus
+----
+
+Structure of the data is dictated by xref:/midpoint/reference/schema/common-data-model/[midPoint schema].
+
+== Operators and Functions
+
+Simple computations can be executed on the data provided to the expression.
+
+[source,mel]
+----
+focus.activation.effectiveStatus == `enabled`            // true if focus is active
+has(focus.emailAddress) || has(focus.telephoneNumber)    // true if either one is set
+size(focus.assignment) > 0                               // true if there is at least one assignment
+matches(focus.telephoneNumber, '^[0-9]+$')               // true if number matches regexp
+focus.givenName + ' ' + focus.familyName                 // concatenation of values
+----
+
+Following _operators_ can be used in MEL expressions:
+
+|====
+| Operator | Meaning
+
+|`==`
+| Equality
+
+|`!=`
+| Inequality
+
+|`>`
+| Greater than
+
+|`>=`
+| Greater than or equal
+
+|`<`
+| Less than
+
+|`\<=`
+| Less than or equal
+
+|`+`
+| Addition, concatenation
+
+|`-`
+| Negation, subtraction
+
+|`*`
+| Multiplication
+
+|`/`
+| Division
+
+|`%`
+| Remainder
+
+|`!`
+| Logical NOT
+
+|`&&`
+| Logical AND
+
+|`\|\|`
+| Logical OR
+
+|`in`
+| Inclusion test
+
+|`?:`
+| Conditional
+
+|====
+
+_Functions_ can be used in addition to operators.
+
+TODO: Mention basic functions here, describe type-specific and library functions later
+
+.Macros
+NOTE: Some MEL functionality is implemented using _macros_ instead of functions.
+Macros are interpreted differently than functions on a deep technical level.
+However, to the common users, macros are functionally almost indistinguishable from functions for most practical cases.
+
+See xref:specification[full MEP specification] for list of all applicable functions.
+
+== Strings
+
+
+TODO: regexp (RE2 syntax)
+TODO: polystrings: work like strings, structured (orig,norm)
+
+== Conditions
+
+
+
+== TODO
+
+* Variables
+
+TODO: multivalued properties: size, [], map, filter
+
+TODO: has()
+
+* Libraries (format, ldap, log, midpoint, etc.)
+
+== See Also
+
+* xref:specification[MidPoint Expression Language Specification]

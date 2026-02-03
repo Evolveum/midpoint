@@ -1,0 +1,253 @@
+---
+midpoint-feature: expression-mel
+doc-type: intro
+---
+= MidPoint Expression Language Specification
+:page-nav-title: Introduction
+:page-upkeep-status: green
+:page-toc: top
+
+TODO
+
+MidPoint Expression Language (MEL) is a ...
+
+
+== Operators
+
+TODO: table of operators with precedence
+
+TODO: include indexing ([]) and 'in'
+
+== Functions and Macros
+
+=== all
+
+`list(A).all(A, predicate(A))` -> bool +
+`map(A, B).all(A, predicate(A))` -> bool
+
+Macro which tests whether all elements in the input list or all keys in a map satisfy the given predicate.
+
+.Example
+[source,mel]
+----
+// Returns true if all assignments in a focus have targetRef
+focus.assignment.all(a, has(a.targetRef))
+----
+
+=== contains
+
+`string.contains()` -> bool
+
+Function that tests whether the string contains the substring.
+Works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+// Checks whether the full name contains substring 'Mr.'
+focus.fullName.contains('Mr.')
+----
+
+=== endsWith
+
+`string.endsWith(suffix)` -> bool
+
+Function that tests whether the string ends with a specified suffix.
+Works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+// Checks whether the full name ends with 'PhD.' suffix
+focus.fullName.endsWith('PhD.')
+----
+
+=== exists
+
+`list(A).exists(A, predicate(A))` -> bool +
+`map(A,B).exists(A, predicate(A))` -> bool
+
+Macro which tests whether any value in the list or any key in the map satisfies the predicate expression.
+
+.Example
+[source,mel]
+----
+// Returns true if any assignment in a focus contains a policy rule
+focus.assignment.exists(a, has(a.policyRule))
+----
+
+=== exists_one
+
+`list(A).exists_one(A, predicate(A))` -> bool +
+`map(A,B).exists_one(A, predicate(A))` -> bool
+
+Macro which tests whether exactly one value in the list or any key in the map satisfies the predicate expression.
+
+.Example
+[source,mel]
+----
+// Returns true if exactly one assignment in a focus contains a policy rule
+focus.assignment.exists_one(a, has(a.policyRule))
+----
+
+=== filter
+
+`list(A).filter(A, predicate(A))` -> list(A) +
+`map(A,B).filter(A, predicate(A))` -> list(A)
+
+Macro which returns a list containing only the elements from the input list that satisfy the given predicate.
+
+.Example
+[source,mel]
+----
+// Returns lists of assignments that have targetRef specified
+focus.assignment.filter(a, has(a.targetRef))
+----
+
+=== has
+
+`has(variable.item)` -> bool
+
+Macro that checks whether the item exists within a data structure.
+
+.Example
+[source,mel]
+----
+has(focus.activation.administrativeStatus)
+----
+
+=== map
+
+`list(A).map(A, transform(A))` -> list(A) +
+`list(A).map(A, predicate(A), transform(A))` -> list(A) +
+`map(A,B).map(A, transform(A))` -> list(A) +
+`map(A,B).map(A, predicate(A), transform(A))` -> list(A)
+
+Macro returns a list where each element is the result of applying the _transform_ expression to the corresponding input list element or input map key.
+
+There are two forms of the map macro:
+
+* The two argument form transforms all elements.
+* The three argument form transforms only elements which satisfy the _predicate_.
+
+The three-argument form of the macro is equivalent to combined filter / map operations.
+
+.Examples
+[source,mel]
+----
+// Returns lists of descriptions retrieved from all the assignments
+focus.assignment.map(a, a.description)
+
+// Returns lists of target OIDs retrieved from assignments that have targetRefs
+focus.assignment.map(a, has(a.targetRef) a.targetRef.oid)
+----
+
+=== matches
+
+`string.matches(regex)` -> bool +
+`matches(string, regex)` -> bool
+
+Function that tests whether the string matches a specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression].
+Works on strings as well as polystrings.
+
+The `match` function tests for a _partial_ match of regular expression.
+I.e. the function returns true if any substring of the specified string matches specified regular expression.
+If a different behavior is needed, the regular expression needs to be _anchored_, e.g. by using `^` and `$` anchors.
+
+RE2 expressions are a subset of Perl/PCRE regular expressions.
+See also link:https://github.com/google/re2/wiki/Syntax[RE2 syntax definition].
+
+.Examples
+[source,mel]
+----
+// Checks whether the telephone number contains numbers only
+focus.telephoneNumber.matches('^[0-9]+$')
+
+// Checks whether the full name contains a number anywhere in the string
+focus.fullName.matches('[0-9]+')
+----
+
+=== size
+
+`string.size()` -> int +
+`size(string)` -> int +
+`bytes.size()` -> int +
+`size(bytes)` -> int +
+`list.size()` -> int +
+`size(list)` -> int +
+`map.size()` -> int +
+`size(map)` -> int
+
+Function that determines length of a string, number of bytes in a sequence or size of a list or map.
+
+.Examples
+[source,mel]
+----
+// Returns number of characters in a full name
+focus.fullName.size()
+
+// Returns number of assignments in a focus
+size(focus.assignment)
+----
+
+=== startsWith
+
+`string.startsWith(prefix)` -> bool
+
+Function that tests whether the string starts with a specified prefix.
+Works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+// Checks whether the full name ends with 'Ing.' prefix
+focus.fullName.startsWith('Ing.')
+----
+
+TODO: function from string CEL extension
+
+== Timestamps and Durations
+
+TODO: timestamp functions, e.g. getDate()
+TODO: timezones
+
+== Function Libraries
+
+format, ldap, log, etc.
+
+TODO: need to call them by some other name ... e.g. "extensions"?
+"extension libraries"?
+
+== Polystrings
+
+TODO
+
+== Protected Strings
+
+TODO: protecting the content, e.g. from unintentional recording in log file.
+
+TODO: Unlike polystrings, protected strings _do not_ behave like strings.
+This is intentional.
+Protected strings are all about protecting their content.
+We do not want string functions (such as substring) to unintentionally reveal content of a protected string.
+If you need to do string operations on a protected string, you have to explicitly decrypt it first.
+
+== MEL and CEL
+
+MidPoint Expression Language (MEL) is based on link:https://cel.dev/[Common Expression Language], extended with midPoint-specific features, functions and libraries.
+
+== MEL and Java
+
+TODO: MEL/CEL is not a Java world.
+Java classes and libraries are intentionally _not_ exposed to MEL expressions.
+
+== TODO
+
+* Literals
+
+* Types and Conversions
+
+== See Also
+
+* link:https://cel.dev/[Common Expression Language]
+* link:https://github.com/google/cel-spec/blob/master/doc/langdef.md[CEL Language Specification]
