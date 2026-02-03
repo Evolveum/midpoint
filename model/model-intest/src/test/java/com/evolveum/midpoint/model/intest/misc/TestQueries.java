@@ -99,7 +99,7 @@ public class TestQueries extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     *
+     * MID-11058 Using midPoint.queryFor() in multi-threaded iterativeScripting returns incorrect results
      */
     @Test
     public void testQueryForConcurrency() throws Exception {
