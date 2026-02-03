@@ -9,6 +9,7 @@ package com.evolveum.midpoint.smart.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -213,7 +214,7 @@ public interface SmartIntegrationService {
             ResourceObjectTypeIdentification typeIdentification,
             SchemaMatchResultType schemaMatch,
             Boolean isInbound,
-            @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
+            @Nullable List<ItemPath> targetPathsToIgnore,
             @Nullable CurrentActivityState<?> activityState,
             Task task,
             OperationResult result)
