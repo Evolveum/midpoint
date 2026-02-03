@@ -43,6 +43,10 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 public class NotificationsTest extends AbstractIntegrationTest {
 
     private static final String SYS_CONFIG_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+    private static final String OBJECTS_DIR_NAME = "src/test/resources/objects";
+    private static final String MESSAGE_TEMPLATE_FILE = OBJECTS_DIR_NAME + "/message-template.xml";
+    private static final String USER_JACK_FILE = OBJECTS_DIR_NAME + "/user-jack.xml";
+    private static final String USER_ADMINISTRATOR_FILE = OBJECTS_DIR_NAME + "/user-administrator.xml";
 
     @Autowired private TransportService transportService;
     @Autowired private NotificationManager notificationManager;
@@ -59,6 +63,10 @@ public class NotificationsTest extends AbstractIntegrationTest {
                 .oid(SYS_CONFIG_OID)
                 .name("sys-config")
                 .asPrismObject(), null, result);
+
+        repoAddObjectFromFile(USER_JACK_FILE, result);
+        repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, result);
+        repoAddObjectFromFile(MESSAGE_TEMPLATE_FILE, result);
     }
 
     @Test
@@ -609,6 +617,59 @@ public class NotificationsTest extends AbstractIntegrationTest {
         and("address is based on notifier/recipientExpression -> transport/recipientAddressExpression chain");
         assertThat(message.getTo()).containsExactlyInAnyOrder("xxxuser@example.com");
         assertThat(message.getBody()).startsWith(messageBody); // there can be subscription footer
+    }
+
+    //covers 11038
+    @Test (enabled = false)
+    public void test400MessageTransportToMultipleRecipientAddressesFromExpression() throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("configuration with transport using recipient address expression which returns 2 recipients");
+        final String RECIPIENT_EXPRESSION = "import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;"
+                + "import java.util.ArrayList;"
+                + "def recipients = new ArrayList();"
+                + "UserType manager = midpoint.getObject(UserType.class, 'c0c010c0-d34d-b33f-f00d-111111111111');"
+                + "UserType admin = midpoint.getObject(UserType.class, '00000000-0000-0000-0000-000000000002');"
+                + "recipients.add(manager);"
+                + "recipients.add(admin);"
+                + "return recipients";
+        Collection<? extends ItemDelta<?, ?>> modifications = prismContext.deltaFor(SystemConfigurationType.class)
+                .item(SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION)
+                .replace(new MessageTransportConfigurationType()
+                        .customTransport(new CustomTransportConfigurationType()
+                                .name("test")
+                                .type(TestMessageTransport.class.getName())))
+                .item(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION)
+                .replace(new NotificationConfigurationType()
+                        .handler(new EventHandlerType()
+                                .generalNotifier(new GeneralNotifierType()
+                                        .recipientExpression(groovyExpression(RECIPIENT_EXPRESSION))
+                                        .messageTemplateRef("2dfbfee0-3363-4310-ab53-f7a87534522d", MessageTemplateType.COMPLEX_TYPE)
+                                        .transport("test"))))
+                .asItemDeltas();
+        display(result);
+        repositoryService.modifyObject(
+                SystemConfigurationType.class, SYS_CONFIG_OID, modifications, result);
+
+        TestMessageTransport testTransport = (TestMessageTransport) transportService.getTransport("test");
+        assertThat(testTransport.getMessages()).isEmpty();
+
+        when("event with requestee is sent to notification manager");
+        CustomEventImpl event = createCustomEvent();
+        notificationManager.processEvent(event, getTestTask(), result);
+
+        then("transport sends the message");
+        assertThat(testTransport.getMessages()).hasSize(2);
+
+        Message message1 = testTransport.getMessages().get(0);
+        assertThat(message1).isNotNull();
+        and("address of the first message is based on notifier/recipientExpression");
+        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "administrator@evolveum.com");
+
+        Message message2 = testTransport.getMessages().get(1);
+        assertThat(message2).isNotNull();
+        and("address of the second message is based on notifier/recipientExpression");
+        assertThat(message1.getTo()).containsAnyOf("jack.sparrow@evolveum.com", "administrator@evolveum.com");
     }
 
     @Test
