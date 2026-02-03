@@ -426,12 +426,14 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     private void inheritAttachmentSetupFromDefaultContent(
             MessageTemplateContentType localizedContent, MessageTemplateContentType defaultContent) {
         List<NotificationMessageAttachmentType> localizedAttachments = localizedContent.getAttachment();
-        List<NotificationMessageAttachmentType> defaultAttachments = defaultContent.getAttachment();
+        List<NotificationMessageAttachmentType> defaultAttachments = defaultContent != null ?
+                defaultContent.getAttachment() : new ArrayList<>();
         if (localizedAttachments.isEmpty() && !defaultAttachments.isEmpty()) {
             defaultAttachments.forEach(n -> localizedAttachments.add(n.clone()));
         }
 
-        ExpressionType defaultAttachmentExpression = defaultContent.getAttachmentExpression();
+        ExpressionType defaultAttachmentExpression = defaultContent != null ?
+                defaultContent.getAttachmentExpression() : null;
         if (localizedContent.getAttachmentExpression() == null && defaultAttachmentExpression != null) {
             localizedContent.setAttachmentExpression(defaultAttachmentExpression);
         }

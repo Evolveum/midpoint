@@ -19,10 +19,21 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * Manages a collection of attribute mapping candidates, handling duplicate detection
  * and quality-based selection. Encapsulates the logic for proposing new candidates
  * and keeping only the best ones based on their target paths and quality metrics.
+ *
+ * Supports deduplication against existing mappings configured on the resource
+ * and accepted suggestions that are held in GUI's unsaved state.
+ * Target paths that already have mappings or accepted suggestions are ignored.
  */
 class AttributeMappingCandidateSet {
 
     private final List<Candidate> candidates = new ArrayList<>();
+
+    /** Target paths that already have mappings or are accepted as suggestions; proposals for these are skipped. */
+    private final List<ItemPath> excludedMappingPaths;
+
+    AttributeMappingCandidateSet(Collection<ItemPath> excludedMappingPaths) {
+        this.excludedMappingPaths = excludedMappingPaths == null ? List.of() : List.copyOf(excludedMappingPaths);
+    }
 
     /**
      * Proposes a new mapping candidate. If a duplicate (based on target path) already exists,
@@ -33,6 +44,10 @@ class AttributeMappingCandidateSet {
         ItemPath targetPath = extractTargetPath(suggestion);
         if (targetPath == null) {
             throw new IllegalArgumentException("Target path must not be null for suggestion: " + suggestion);
+        }
+
+        if (excludedMappingPaths.stream().anyMatch(targetPath::equivalent)) {
+            return;
         }
 
         float newQuality = getQuality(suggestion);
@@ -125,5 +140,4 @@ class AttributeMappingCandidateSet {
      */
     private record Candidate(ItemPath targetPath, AttributeMappingsSuggestionType suggestion) {
     }
-
 }
