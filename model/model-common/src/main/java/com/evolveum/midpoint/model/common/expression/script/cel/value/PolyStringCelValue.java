@@ -10,18 +10,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-
 import com.google.common.collect.ImmutableSet;
-import dev.cel.common.CelFunctionDecl;
-import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
-import dev.cel.compiler.CelCompilerBuilder;
-import dev.cel.parser.Operator;
-import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.CelRuntimeBuilder;
+import dev.cel.common.values.CelValue;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -31,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Radovan Semancik
  */
-public class PolyStringCelValue extends MidPointCelValue<PolyString> implements Map<String,String> {
+public class PolyStringCelValue extends CelValue implements Map<String,String>, MidPointValueProducer<PolyString> {
 
     public static final String POLYSTRING_PACKAGE_NAME = PolyString.class.getTypeName();
     private static final String F_ORIG = PolyString.F_ORIG.getLocalPart();

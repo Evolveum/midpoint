@@ -331,7 +331,7 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (celValue == NullValue.NULL_VALUE) {
             return null;
         }
-        if (celValue instanceof MidPointCelValue<?> mpCelValue) {
+        if (celValue instanceof MidPointValueProducer<?> mpCelValue) {
             return mpCelValue.getJavaValue();
         } else if (celValue instanceof OpaqueValue) {
             return ((OpaqueValue) celValue).value();

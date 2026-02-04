@@ -7,6 +7,7 @@ package com.evolveum.midpoint.model.common.expression.script.cel.value;
 
 import com.evolveum.midpoint.model.common.expression.script.cel.DynType;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import dev.cel.common.types.CelType;
@@ -14,7 +15,7 @@ import dev.cel.common.types.CelType;
 /**
  * @author Radovan Semancik
  */
-public class ObjectCelValue<O extends Objectable> extends ContainerValueCelValue<O> {
+public class ObjectCelValue<O extends Objectable> extends AbstractContainerValueCelValue<O> implements MidPointValueProducer<PrismObject<O>> {
 
     public static final String CEL_TYPE_NAME = PrismObject.class.getName();
     public static final CelType CEL_TYPE = new DynType(CEL_TYPE_NAME);
@@ -40,6 +41,11 @@ public class ObjectCelValue<O extends Objectable> extends ContainerValueCelValue
     }
 
     public PrismObject<O> getObject() {
+        return object;
+    }
+
+    @Override
+    public PrismObject<O> getJavaValue() {
         return object;
     }
 }

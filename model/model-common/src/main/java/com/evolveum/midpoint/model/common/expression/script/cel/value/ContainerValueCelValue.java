@@ -13,9 +13,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import dev.cel.common.types.CelKind;
 import dev.cel.common.types.CelType;
-import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.CelValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,15 +27,13 @@ import java.util.stream.Collectors;
 /**
  * @author Radovan Semancik
  */
-public class ContainerValueCelValue<C extends Containerable> extends CelValue implements Map<String,Object> {
+public class ContainerValueCelValue<C extends Containerable> extends AbstractContainerValueCelValue<C> implements MidPointValueProducer<PrismContainerValue<C>> {
 
     public static final String CEL_TYPE_NAME = PrismContainerValue.class.getName();
     public static final CelType CEL_TYPE = new DynType(CEL_TYPE_NAME);
 
-    private final PrismContainerValue<C> containerValue;
-
     ContainerValueCelValue(PrismContainerValue<C> containerValue) {
-        this.containerValue = containerValue;
+        super(containerValue);
     }
 
     public static <C extends Containerable> ContainerValueCelValue<C> create(PrismContainerValue<C> containerValue) {
@@ -45,90 +41,12 @@ public class ContainerValueCelValue<C extends Containerable> extends CelValue im
     }
 
     @Override
-    public Object value() {
-        return containerValue;
-    }
-
-    @Override
-    public boolean isZeroValue() {
-        return isEmpty();
-    }
-
-    @Override
     public CelType celType() {
         return CEL_TYPE;
     }
 
-    public PrismContainerValue<C> getContainerValue() {
-        return containerValue;
-    }
-
     @Override
-    public int size() { return containerValue.size(); }
-
-    @Override
-    public boolean isEmpty() {
-        return containerValue.isEmpty();
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        try {
-            return containerValue.containsItem(keyToPath(key),true);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return values().contains(value);
-    }
-
-    @Override
-    public Object get(Object key) {
-        Item<PrismValue, ItemDefinition<?>> item = containerValue.findItem(keyToPath(key));
-        return CelTypeMapper.toListMapValue(item);
-    }
-
-    protected ItemPath keyToPath(Object key) {
-        return PrismContext.get().path(key);
-    }
-
-    @Override
-    public @Nullable String put(String key, Object value) {
-        throw new UnsupportedOperationException("Mutation of prism objects is not supported in CEL");
-    }
-
-    @Override
-    public String remove(Object key) {
-        throw new UnsupportedOperationException("Mutation of prism objects is not supported in CEL");
-    }
-
-    @Override
-    public void putAll(@NotNull Map<? extends String, ?> m) {
-        throw new UnsupportedOperationException("Mutation of prism objects is not supported in CEL");
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException("Mutation of prism objects is not supported in CEL");
-    }
-
-    @Override
-    public @NotNull Set<String> keySet() {
-        return containerValue.getItemNames().stream().map(QName::getLocalPart).collect(Collectors.toSet());
-    }
-
-    @Override
-    public @NotNull Collection<Object> values() {
-        //noinspection SimplifyStreamApiCallChains
-        return entrySet().stream().map(Entry::getValue).collect(Collectors.toSet());
-    }
-
-    @Override
-    public @NotNull Set<Entry<String, Object>> entrySet() {
-        // TODO
-        throw new UnsupportedOperationException("entrySet");
+    public PrismContainerValue<C> getJavaValue() {
+        return getContainerValue();
     }
 }

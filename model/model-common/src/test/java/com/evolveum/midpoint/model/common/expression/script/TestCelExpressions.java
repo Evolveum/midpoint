@@ -21,8 +21,10 @@ import com.evolveum.midpoint.model.common.expression.script.cel.CelScriptEvaluat
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
@@ -1147,6 +1149,41 @@ public class TestCelExpressions extends AbstractScriptTest {
                 ),
                 "12/25/2025 12.33.44");
     };
+
+    /**
+     * Situation: name of variable (ldap) is the same as a function prefix (ldap.composeDn).
+     * This test is checking that the expression interprets this correctly.
+     */
+    @Test
+    public void testLdapVarMaskingString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-ldap-compose-dn-mask.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "FooBar", PrimitiveType.STRING,
+                        "ldap", "ouch", PrimitiveType.STRING
+                ),
+                "cn=Foo,o=FooBar - ouch");
+    }
+
+    /**
+     * Situation: name of variable (ldap) is the same as a function prefix (ldap.composeDn).
+     * This test is checking that the expression interprets this correctly.
+     */
+    @Test
+    public void testLdapVarMaskingUser() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-ldap-compose-dn-mask.xml",
+                createVariables(
+                        "foo", PrismTestUtil.createPolyStringType("Foo"), PolyStringType.COMPLEX_TYPE,
+                        "bar", "FooBar", PrimitiveType.STRING,
+                        "ldap",
+                        MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
+                        // We want 'focus' variable to contain user object, not the reference. We want the reference resolved.
+                        prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class)
+                ),
+                "cn=Foo,o=FooBar - user:c0c010c0-d34d-b33f-f00d-111111111111(jack)");
+    }
 
     @Test
     public void testLdapComposeDn() throws Exception {

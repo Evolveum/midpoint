@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
 /**
  * @author Radovan Semancik
  */
-public class ObjectReferenceCelValue extends MidPointCelValue<PrismReferenceValue> implements Map<String,Object> {
+public class ObjectReferenceCelValue extends CelValue implements Map<String,Object>, MidPointValueProducer<PrismReferenceValue> {
 
     public static final String OBJECT_REFERENCE_PACKAGE_NAME = ObjectReferenceType.class.getTypeName();
     private static final String F_OID = ObjectReferenceType.F_OID.getLocalPart();

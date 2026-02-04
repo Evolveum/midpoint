@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.script.cel.CelTypeMapper;
 
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.CelFunctionDecl;
@@ -19,6 +18,7 @@ import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
+import dev.cel.common.values.CelValue;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.CelFunctionBinding;
@@ -31,7 +31,7 @@ import javax.xml.namespace.QName;
 /**
  * @author Radovan Semancik
  */
-public class QNameCelValue extends MidPointCelValue<QName> implements Map<String,String> {
+public class QNameCelValue extends CelValue implements Map<String,String>, MidPointValueProducer<QName> {
 
     public static final String QNAME_PACKAGE_NAME = QName.class.getTypeName();
     private static final String F_LOCAL_PART = "localPart";

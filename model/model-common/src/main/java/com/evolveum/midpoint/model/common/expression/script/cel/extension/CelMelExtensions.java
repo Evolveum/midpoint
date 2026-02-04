@@ -7,7 +7,7 @@ package com.evolveum.midpoint.model.common.expression.script.cel.extension;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.cel.CelTypeMapper;
-import com.evolveum.midpoint.model.common.expression.script.cel.value.MidPointCelValue;
+import com.evolveum.midpoint.model.common.expression.script.cel.value.MidPointValueProducer;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -421,7 +421,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         if (isCellNull(o)) {
             return "";
         }
-        if (o instanceof MidPointCelValue<?> mpCelVal) {
+        if (o instanceof MidPointValueProducer<?> mpCelVal) {
             o = mpCelVal.getJavaValue();
         }
         if (o instanceof String s) {
