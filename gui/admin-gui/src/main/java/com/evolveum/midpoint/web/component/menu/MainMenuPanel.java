@@ -10,8 +10,8 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -95,16 +95,24 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         StringResourceModel labelModel = new StringResourceModel(
                 "${nameModel}",
                 getModel()).setDefaultValue(new PropertyModel<>(getModel(), "nameModel"));
-        AjaxLink<Void> link = new AjaxLink<>(ID_LINK) {
+        //todo use BookmarkablePageLink here
+        Link<Void> link = new Link<>(ID_LINK) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            public void onClick() {
                 mainMenuPerformed();
+            }
+        };
+        link.add(new AjaxEventBehavior("click") {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
                 target.appendJavaScript(String.format("MidPointTheme.updateStatusMessageForMenu('%s', %d, '%s', %d);",
                         item.getMarkupId(), 300, itemStatus.getMarkupId(), 100));
             }
-        };
+        });
         link.add(AttributeModifier.append("class", () -> {
             MainMenuItem mmi = getModelObject();
 
