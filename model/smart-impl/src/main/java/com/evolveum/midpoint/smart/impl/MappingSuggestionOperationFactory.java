@@ -7,6 +7,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicMappingManager;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -22,13 +23,16 @@ public class MappingSuggestionOperationFactory {
     private final MappingsQualityAssessor mappingsQualityAssessor;
     private final OwnedShadowsProvider ownedShadowsProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
+    private final HeuristicMappingManager heuristicMappingManager;
 
     public MappingSuggestionOperationFactory(MappingsQualityAssessor mappingsQualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
-            WellKnownSchemaService wellKnownSchemaService) {
+            WellKnownSchemaService wellKnownSchemaService,
+            HeuristicMappingManager heuristicMappingManager) {
         this.mappingsQualityAssessor = mappingsQualityAssessor;
         this.ownedShadowsProvider = ownedShadowsProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
+        this.heuristicMappingManager = heuristicMappingManager;
     }
 
     public MappingsSuggestionOperation create(ServiceClient client, String resourceOid,
@@ -41,6 +45,7 @@ public class MappingSuggestionOperationFactory {
                 this.mappingsQualityAssessor,
                 this.ownedShadowsProvider,
                 this.wellKnownSchemaService,
+                this.heuristicMappingManager,
                 isInbound,
                 useAiService);
     }

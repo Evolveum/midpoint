@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicMappingManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
@@ -72,6 +73,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
+    @Autowired private HeuristicMappingManager heuristicMappingManager;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -181,6 +183,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicMappingManager,
                 true,
                 true);
 
@@ -236,6 +239,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicMappingManager,
                 true,
                 true);
 
@@ -291,6 +295,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicMappingManager,
                 true,
                 true);
 
@@ -340,6 +345,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicMappingManager,
                 true,
                 true);
 

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicMappingManager;
 import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
 import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.MissingSourceDataException;
@@ -72,6 +73,7 @@ class MappingsSuggestionOperation {
     private final MappingsQualityAssessor qualityAssessor;
     private final OwnedShadowsProvider ownedShadowsProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
+    private final HeuristicMappingManager heuristicMappingManager;
     private final boolean isInbound;
     private final boolean useAiService;
 
@@ -80,12 +82,14 @@ class MappingsSuggestionOperation {
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
+            HeuristicMappingManager heuristicMappingManager,
             boolean isInbound,
             boolean useAiService) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
         this.ownedShadowsProvider = ownedShadowsProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
+        this.heuristicMappingManager = heuristicMappingManager;
         this.isInbound = isInbound;
         this.useAiService = useAiService;
     }
@@ -95,6 +99,7 @@ class MappingsSuggestionOperation {
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
+            HeuristicMappingManager heuristicMappingManager,
             boolean isInbound,
             boolean useAiService)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -104,6 +109,7 @@ class MappingsSuggestionOperation {
                 qualityAssessor,
                 ownedShadowsProvider,
                 wellKnownSchemaService,
+                heuristicMappingManager,
                 isInbound,
                 useAiService);
     }
@@ -318,34 +324,46 @@ class MappingsSuggestionOperation {
             LOGGER.trace("AsIs {} mapping suffice according to the data (no LLM call).", valuePairsForValidation.direction());
             assessment = this.qualityAssessor.assessMappingsQuality(
                     valuePairsForValidation, expression, this.ctx.task, parentResult);
-        } else if (!useAiService) {
-            LOGGER.trace("AI service is disabled. We'll use 'asIs' mapping (no LLM call).");
+        } else {
+            LOGGER.trace("Trying heuristic mappings...");
+            var heuristicResult = heuristicMappingManager.findBestMatch(valuePairsForValidation, this.ctx.task, parentResult);
+            if (heuristicResult.isPresent()) {
+                LOGGER.info("Found heuristic mapping '{}' with quality {}", heuristicResult.get().heuristicName(), heuristicResult.get().quality());
+                expression = heuristicResult.get().expression();
+            }
             assessment = this.qualityAssessor.assessMappingsQuality(
                     valuePairsForValidation, expression, this.ctx.task, parentResult);
-        } else {
-            LOGGER.trace("Going to ask LLM about mapping script");
-            String errorLog = null;
-            String retryScript = null;
 
-            for (int attempt = 1; attempt <= 2; attempt++) {
-                var mappingResponse = askMicroservice(matchPair, valuePairsForLLM, errorLog, retryScript);
-                retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
-                expression = buildScriptExpression(mappingResponse);
-                try {
-                    assessment = this.qualityAssessor.assessMappingsQuality(
-                            valuePairsForValidation, expression, this.ctx.task, parentResult);
-                    break;
-                } catch (ExpressionEvaluationException | SecurityViolationException e) {
-                    if (attempt == 1) {
-                        errorLog = e.getMessage();
-                        LOGGER.warn("Validation issues found on attempt 1; retrying.");
-                    } else {
-                        LOGGER.warn("Validation issues persist after retry; giving up.");
-                        throw e;
+            if (useAiService) {
+                LOGGER.trace("Going to ask LLM about mapping script");
+                String errorLog = null;
+                String retryScript = null;
+
+                for (int attempt = 1; attempt <= 2; attempt++) {
+                    var mappingResponse = askMicroservice(matchPair, valuePairsForLLM, errorLog, retryScript);
+                    retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
+                    var aiExpression = buildScriptExpression(mappingResponse);
+                    try {
+                        var aiAssessment = this.qualityAssessor.assessMappingsQuality(
+                                valuePairsForValidation, aiExpression, this.ctx.task, parentResult);
+                        float currentQuality = assessment != null ? assessment.quality() : Float.NEGATIVE_INFINITY;
+                        if (aiAssessment != null && aiAssessment.quality() > currentQuality) {
+                            expression = aiExpression;
+                            assessment = aiAssessment;
+                            isSystemProvided = false;
+                        }
+                        break;
+                    } catch (ExpressionEvaluationException | SecurityViolationException e) {
+                        if (attempt == 1) {
+                            errorLog = e.getMessage();
+                            LOGGER.warn("Validation issues found on attempt 1; retrying.");
+                        } else {
+                            LOGGER.warn("Validation issues persist after retry; giving up.");
+                            throw e;
+                        }
                     }
                 }
             }
-            isSystemProvided = false;
         }
 
         if (assessment != null && assessment.quality() < MINIMUM_QUALITY_THRESHOLD) {
