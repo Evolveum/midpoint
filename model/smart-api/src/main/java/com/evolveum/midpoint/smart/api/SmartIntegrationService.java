@@ -22,12 +22,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.
@@ -222,13 +222,29 @@ public interface SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException;
 
     /**
-     * Submits "suggest mappings" request.
-     * Returns a token used to query the status.
+     * Submits a "suggest mappings" request.
+     * <p>
+     * Returns a token that can be used to query operation status.
+     *
+     * @param targetPathsToIgnore
+     *         Item paths representing mapping targets that should be ignored
+     *         when generating suggestions. The interpretation of these paths
+     *         depends on the {@code isInbound} parameter:
+     *         <p>
+     *         <ul>
+     *             <li><b>Inbound mappings</b>: paths on the midpoint side
+     *                 (i.e. where inbound mapping results would be stored)</li>
+     *             <li><b>Outbound mappings</b>: paths of resource attributes
+     *                 (i.e. where outbound mapping results would be stored)</li>
+     *         </ul>
+     *         Any mapping whose target resolves to one of these paths will not
+     *         be suggested.
      */
     String submitSuggestMappingsOperation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             Boolean isInbound,
+            List<ItemPathType> targetPathsToIgnore,
             Task task,
             OperationResult result)
             throws CommonException;

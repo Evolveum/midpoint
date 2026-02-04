@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -134,7 +135,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
                     ShadowKindType.fromValue(kind),
                     intent
             );
-            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid, resourceObjectTypeIdentification, isInbound, task, result);
+            var oid = smartIntegrationService.submitSuggestMappingsOperation(resourceOid, resourceObjectTypeIdentification, isInbound, null, task, result);
             result.setBackgroundTaskOid(oid);
 
             var suggestionOperationStatus = smartIntegrationService.getSuggestMappingsOperationStatus(oid, task, result);

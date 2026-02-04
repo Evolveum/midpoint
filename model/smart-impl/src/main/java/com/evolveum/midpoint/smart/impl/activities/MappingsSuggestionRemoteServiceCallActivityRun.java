@@ -1,21 +1,15 @@
 package com.evolveum.midpoint.smart.impl.activities;
 
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionFiltersType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 
@@ -41,6 +35,7 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var kind = getWorkDefinition().getKind();
         var intent = getWorkDefinition().getIntent();
         var typeDef = getWorkDefinition().getTypeIdentification();
+        var targetPathsToIgnore = getWorkDefinition().getTargetPathsToIgnore();
         var state = getActivityState();
 
         LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}",
@@ -51,7 +46,7 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var isInbound = getWorkDefinition().isInbound();
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, typeDef, schemaMatch, isInbound, null, state, task, result);
+                resourceOid, typeDef, schemaMatch, isInbound, targetPathsToIgnore, state, task, result);
 
         parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
         parentState.flushPendingTaskModifications(result);
