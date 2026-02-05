@@ -32,11 +32,11 @@
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" />
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-connector-dev-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-connector-dev-3"/>
 
     <xsd:complexType name="TaskType">
         <xsd:annotation>
@@ -899,7 +899,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityProgress" type="tns:ActivityProgressType" />
+    <xsd:element name="activityProgress" type="tns:ActivityProgressType"/>
 
     <!-- If needed, please create subtypes of this for particular uses. -->
     <xsd:complexType name="OutcomeKeyedCounterType">
@@ -930,7 +930,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="outcomeKeyedCounter" type="tns:OutcomeKeyedCounterType" />
+    <xsd:element name="outcomeKeyedCounter" type="tns:OutcomeKeyedCounterType"/>
 
     <xsd:complexType name="OperationStatsType">
         <xsd:annotation>
@@ -1015,7 +1015,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="operationStats" type="tns:OperationStatsType" />
+    <xsd:element name="operationStats" type="tns:OperationStatsType"/>
 
     <xsd:complexType name="ActivityStatisticsType">
         <xsd:annotation>
@@ -1049,7 +1049,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityStatistics" type="tns:ActivityStatisticsType" />
+    <xsd:element name="activityStatistics" type="tns:ActivityStatisticsType"/>
 
     <xsd:complexType name="RepositoryPerformanceInformationType">
         <xsd:annotation>
@@ -1077,15 +1077,15 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="invocationCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="executionCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="invocationCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="executionCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minWastedTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1113,14 +1113,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="invocationCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="ownTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minOwnTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxOwnTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="invocationCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="ownTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minOwnTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxOwnTime" type="xsd:long" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1187,7 +1187,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="operation" type="tns:BucketManagementOperationStatisticsType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="operation" type="tns:BucketManagementOperationStatisticsType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1224,8 +1224,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
             <xsd:element name="conflictCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1242,8 +1242,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minWastedTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0"/>
             <xsd:element name="bucketWaitCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1267,8 +1267,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="minWaitTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxWaitTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minWaitTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxWaitTime" type="xsd:long" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1296,12 +1296,12 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="hitCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="weakHitCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="missCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="passCount" type="xsd:int" minOccurs="0" />
-            <xsd:element name="notAvailableCount" type="xsd:int" minOccurs="0" />
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="hitCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="weakHitCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="missCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="passCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="notAvailableCount" type="xsd:int" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -2273,7 +2273,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType" />
+            <xsd:extension base="tns:ActivityPolicyActionType"/>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="skipActivityPolicyAction" type="tns:SkipActivityPolicyActionType"/>
@@ -2347,7 +2347,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType" />
+            <xsd:extension base="tns:ActivityPolicyActionType"/>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="suspendTaskActivityPolicyAction" type="tns:SuspendTaskActivityPolicyActionType"/>
@@ -2758,7 +2758,7 @@
                 <xsd:element name="createConnector" type="tns:ConnDevCreateConnectorWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
-                        <a:since>4.11</a:since>
+                            <a:since>4.11</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2924,7 +2924,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityBeforeAfterType" />
+            <xsd:extension base="tns:ActivityBeforeAfterType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -2940,7 +2940,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityBeforeAfterType" />
+            <xsd:extension base="tns:ActivityBeforeAfterType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -5053,7 +5053,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="boundarySpecification" type="tns:BoundarySpecificationType" />
+    <xsd:element name="boundarySpecification" type="tns:BoundarySpecificationType"/>
 
     <xsd:complexType name="OidWorkSegmentationType">
         <xsd:annotation>
@@ -5926,11 +5926,11 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="provisioningStatistics" type="tns:ProvisioningStatisticsType" minOccurs="0" />
-            <xsd:element name="mappingsStatistics" type="tns:MappingsStatisticsType" minOccurs="0" />
-            <xsd:element name="notificationsStatistics" type="tns:NotificationsStatisticsType" minOccurs="0" />
-            <xsd:element name="lastMessageTimestamp" type="xsd:dateTime" minOccurs="0" />
-            <xsd:element name="lastMessage" type="xsd:string" minOccurs="0" />
+            <xsd:element name="provisioningStatistics" type="tns:ProvisioningStatisticsType" minOccurs="0"/>
+            <xsd:element name="mappingsStatistics" type="tns:MappingsStatisticsType" minOccurs="0"/>
+            <xsd:element name="notificationsStatistics" type="tns:NotificationsStatisticsType" minOccurs="0"/>
+            <xsd:element name="lastMessageTimestamp" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="lastMessage" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6077,7 +6077,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" />
+            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0"/>
             <xsd:element name="operation" type="tns:ProvisioningStatisticsOperationEntryType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6154,7 +6154,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="entry" type="tns:MappingsStatisticsEntryType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="entry" type="tns:MappingsStatisticsEntryType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6165,12 +6165,12 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="object" type="xsd:string" minOccurs="0" />
-            <xsd:element name="count" type="xsd:int" />
-            <xsd:element name="averageTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" />
+            <xsd:element name="object" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="count" type="xsd:int"/>
+            <xsd:element name="averageTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="totalTime" type="xsd:long"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6181,7 +6181,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="entry" type="tns:NotificationsStatisticsEntryType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="entry" type="tns:NotificationsStatisticsEntryType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6192,13 +6192,13 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="transport" type="xsd:string" minOccurs="0" />
-            <xsd:element name="countSuccess" type="xsd:int" />
-            <xsd:element name="countFailure" type="xsd:int" />
-            <xsd:element name="averageTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-            <xsd:element name="totalTime" type="xsd:long" />
+            <xsd:element name="transport" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="countSuccess" type="xsd:int"/>
+            <xsd:element name="countFailure" type="xsd:int"/>
+            <xsd:element name="averageTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="minTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="maxTime" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="totalTime" type="xsd:long"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6383,7 +6383,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="transition" type="tns:SynchronizationSituationTransitionType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="transition" type="tns:SynchronizationSituationTransitionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -6399,10 +6399,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="onProcessingStart" type="tns:SynchronizationSituationType" minOccurs="0" />
-            <xsd:element name="onSynchronizationStart" type="tns:SynchronizationSituationType" minOccurs="0" />
-            <xsd:element name="onSynchronizationEnd" type="tns:SynchronizationSituationType" minOccurs="0" />
-            <xsd:element name="exclusionReason" type="tns:SynchronizationExclusionReasonType" minOccurs="0" />
+            <xsd:element name="onProcessingStart" type="tns:SynchronizationSituationType" minOccurs="0"/>
+            <xsd:element name="onSynchronizationStart" type="tns:SynchronizationSituationType" minOccurs="0"/>
+            <xsd:element name="onSynchronizationEnd" type="tns:SynchronizationSituationType" minOccurs="0"/>
+            <xsd:element name="exclusionReason" type="tns:SynchronizationExclusionReasonType" minOccurs="0"/>
             <xsd:element name="counter" type="tns:OutcomeKeyedCounterType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -6452,20 +6452,20 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectType" type="xsd:QName" />
-            <xsd:element name="operation" type="t:ChangeTypeType" />
-            <xsd:element name="channel" type="xsd:string" minOccurs="0" />
-            <xsd:element name="totalSuccessCount" type="xsd:int" />
-            <xsd:element name="lastSuccessObjectName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastSuccessObjectDisplayName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastSuccessObjectOid" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastSuccessTimestamp" type="xsd:dateTime" minOccurs="0" />
-            <xsd:element name="totalFailureCount" type="xsd:int"  />
-            <xsd:element name="lastFailureObjectName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastFailureObjectDisplayName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastFailureObjectOid" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastFailureExceptionMessage" type="xsd:string" minOccurs="0" />
-            <xsd:element name="lastFailureTimestamp" type="xsd:dateTime" minOccurs="0" />
+            <xsd:element name="objectType" type="xsd:QName"/>
+            <xsd:element name="operation" type="t:ChangeTypeType"/>
+            <xsd:element name="channel" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="totalSuccessCount" type="xsd:int"/>
+            <xsd:element name="lastSuccessObjectName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastSuccessObjectDisplayName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastSuccessObjectOid" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastSuccessTimestamp" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="totalFailureCount" type="xsd:int"/>
+            <xsd:element name="lastFailureObjectName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastFailureObjectDisplayName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastFailureObjectOid" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastFailureExceptionMessage" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="lastFailureTimestamp" type="xsd:dateTime" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6866,7 +6866,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="qualifiedItemProcessingOutcome" type="tns:QualifiedItemProcessingOutcomeType" />
+    <xsd:element name="qualifiedItemProcessingOutcome" type="tns:QualifiedItemProcessingOutcomeType"/>
 
     <xsd:complexType name="ActivityReportingDefinitionType">
         <xsd:annotation>
@@ -6959,7 +6959,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityReportingDefinition" type="tns:ActivityReportingDefinitionType" />
+    <xsd:element name="activityReportingDefinition" type="tns:ActivityReportingDefinitionType"/>
 
     <xsd:complexType name="ActivityItemCountingDefinitionType">
         <xsd:annotation>
@@ -7323,7 +7323,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityReportsDefinition" type="tns:ActivityReportsDefinitionType" />
+    <xsd:element name="activityReportsDefinition" type="tns:ActivityReportsDefinitionType"/>
 
     <xsd:complexType name="AbstractActivityReportDefinitionType">
         <xsd:annotation>
@@ -7386,7 +7386,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="bucketsProcessingReportDefinition" type="tns:BucketsProcessingReportDefinitionType" />
+    <xsd:element name="bucketsProcessingReportDefinition" type="tns:BucketsProcessingReportDefinitionType"/>
 
     <xsd:complexType name="ItemsProcessingReportDefinitionType">
         <xsd:annotation>
@@ -7404,7 +7404,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="itemsProcessingReportDefinition" type="tns:ItemsProcessingReportDefinitionType" />
+    <xsd:element name="itemsProcessingReportDefinition" type="tns:ItemsProcessingReportDefinitionType"/>
 
     <xsd:complexType name="ConnIdOperationsReportDefinitionType">
         <xsd:annotation>
@@ -7436,7 +7436,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="connIdOperationsReportDefinition" type="tns:ConnIdOperationsReportDefinitionType" />
+    <xsd:element name="connIdOperationsReportDefinition" type="tns:ConnIdOperationsReportDefinitionType"/>
 
     <xsd:complexType name="InternalOperationsReportDefinitionType">
         <xsd:annotation>
@@ -7488,7 +7488,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="internalOperationsReportDefinition" type="tns:InternalOperationsReportDefinitionType" />
+    <xsd:element name="internalOperationsReportDefinition" type="tns:InternalOperationsReportDefinitionType"/>
 
     <xsd:complexType name="InternalOperationRecordFastFilterType">
         <xsd:annotation>
@@ -7647,7 +7647,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityLoggingOptions" type="tns:ActivityLoggingOptionsType" />
+    <xsd:element name="activityLoggingOptions" type="tns:ActivityLoggingOptionsType"/>
 
     <xsd:simpleType name="ActivityEventLoggingOptionType">
         <xsd:annotation>
@@ -7747,7 +7747,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0" >
+            <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Archetype of objects to be processed.
@@ -8074,7 +8074,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectSetBasedWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="queryStyle" type="tns:ValidityScanQueryStyleType" minOccurs="0" >
+                    <xsd:element name="queryStyle" type="tns:ValidityScanQueryStyleType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 How to execute validation scan queries.
@@ -8254,7 +8254,7 @@
                     <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Delta(s) to be processed. They must pertain to a single clockwork  operation;
+                                Delta(s) to be processed. They must pertain to a single clockwork operation;
                                 e.g. referring to a user and his accounts.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -8305,7 +8305,6 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="repartitioningWorkDefinition" type="tns:RepartitioningWorkDefinitionType"/>
-
 
 
     <xsd:complexType name="ObjectSetBasedWorkDefinitionType">
@@ -8586,7 +8585,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="classicReportExportWorkDefinition" type="tns:ClassicReportExportWorkDefinitionType" />
+    <xsd:element name="classicReportExportWorkDefinition" type="tns:ClassicReportExportWorkDefinitionType"/>
 
     <xsd:complexType name="DistributedReportExportWorkDefinitionType">
         <xsd:annotation>
@@ -8603,7 +8602,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="distributedReportExportWorkDefinition" type="tns:DistributedReportExportWorkDefinitionType" />
+    <xsd:element name="distributedReportExportWorkDefinition" type="tns:DistributedReportExportWorkDefinitionType"/>
 
     <xsd:complexType name="ClassicReportImportWorkDefinitionType">
         <xsd:annotation>
@@ -8633,7 +8632,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="classicReportImportWorkDefinition" type="tns:ClassicReportImportWorkDefinitionType" />
+    <xsd:element name="classicReportImportWorkDefinition" type="tns:ClassicReportImportWorkDefinitionType"/>
 
     <xsd:complexType name="AbstractWorkDefinitionType">
         <xsd:annotation>
@@ -8648,7 +8647,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="abstractWorkDefinition" type="tns:AbstractWorkDefinitionType" />
+    <xsd:element name="abstractWorkDefinition" type="tns:AbstractWorkDefinitionType"/>
 
     <xsd:complexType name="ResourceWorkDefinitionType">
         <xsd:annotation>
@@ -8668,7 +8667,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="resourceWorkDefinition" type="tns:ResourceWorkDefinitionType" />
+    <xsd:element name="resourceWorkDefinition" type="tns:ResourceWorkDefinitionType"/>
 
     <xsd:complexType name="PropagationWorkDefinitionType">
         <xsd:annotation>
@@ -8765,7 +8764,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="abstractActivityWorkState" type="tns:AbstractActivityWorkStateType" />
+    <xsd:element name="abstractActivityWorkState" type="tns:AbstractActivityWorkStateType"/>
 
     <xsd:complexType name="PureCompositeWorkStateType">
         <xsd:annotation>
@@ -8785,7 +8784,7 @@
             <xsd:extension base="tns:AbstractActivityWorkStateType"/>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="pureCompositeWorkState" type="tns:PureCompositeWorkStateType" />
+    <xsd:element name="pureCompositeWorkState" type="tns:PureCompositeWorkStateType"/>
 
     <xsd:complexType name="CustomCompositeWorkStateType">
         <xsd:annotation>
@@ -8802,7 +8801,7 @@
             <xsd:extension base="tns:AbstractActivityWorkStateType"/>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="customCompositeWorkState" type="tns:CustomCompositeWorkStateType" />
+    <xsd:element name="customCompositeWorkState" type="tns:CustomCompositeWorkStateType"/>
 
     <xsd:complexType name="ScanWorkStateType">
         <xsd:annotation>
@@ -8817,12 +8816,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="lastScanTimestamp" type="xsd:dateTime" minOccurs="0" />
+                    <xsd:element name="lastScanTimestamp" type="xsd:dateTime" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="scanWorkState" type="tns:ScanWorkStateType" />
+    <xsd:element name="scanWorkState" type="tns:ScanWorkStateType"/>
 
     <xsd:complexType name="ObjectIntegrityCheckWorkDefinitionType">
         <xsd:annotation>
@@ -8870,7 +8869,7 @@
                     <xsd:element name="diagnose" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="fix" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="checkDuplicatesOnPrimaryIdentifiersOnly" type="xsd:boolean" minOccurs="0" default="false"/>
-                    <xsd:element name="duplicateShadowsResolver" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="duplicateShadowsResolver" type="xsd:string" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8984,7 +8983,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="delegationWorkState" type="tns:DelegationWorkStateType" />
+    <xsd:element name="delegationWorkState" type="tns:DelegationWorkStateType"/>
 
     <xsd:complexType name="ReconciliationWorkStateType">
         <xsd:annotation>
@@ -9012,7 +9011,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="reconciliationWorkState" type="tns:ReconciliationWorkStateType" />
+    <xsd:element name="reconciliationWorkState" type="tns:ReconciliationWorkStateType"/>
 
     <xsd:complexType name="LiveSyncWorkStateType">
         <xsd:annotation>
@@ -9041,7 +9040,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="liveSyncWorkState" type="tns:LiveSyncWorkStateType" />
+    <xsd:element name="liveSyncWorkState" type="tns:LiveSyncWorkStateType"/>
 
     <xsd:complexType name="ReportExportWorkStateType">
         <xsd:annotation>
@@ -9070,7 +9069,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="reportExportWorkStateType" type="tns:ReportExportWorkStateType" />
+    <xsd:element name="reportExportWorkStateType" type="tns:ReportExportWorkStateType"/>
 
     <xsd:complexType name="WorkersReconciliationResultType">
         <xsd:annotation>
@@ -9173,10 +9172,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" />
+            <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="workersReconciliationResult" type="tns:WorkersReconciliationResultType" />
+    <xsd:element name="workersReconciliationResult" type="tns:WorkersReconciliationResultType"/>
 
     <xsd:complexType name="AutoScalingDefinitionType">
         <xsd:annotation>
@@ -9222,7 +9221,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="activityPoliciesState" type="tns:ActivityPoliciesStateType" />
+    <xsd:element name="activityPoliciesState" type="tns:ActivityPoliciesStateType"/>
 
     <xsd:complexType name="ActivityPolicyStateType">
         <xsd:annotation>
@@ -9258,7 +9257,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="activityPolicyState" type="tns:ActivityPolicyStateType" />
+    <xsd:element name="activityPolicyState" type="tns:ActivityPolicyStateType"/>
 
     <xsd:complexType name="EvaluatedActivityPolicyTriggerType">
         <xsd:annotation>
@@ -9275,7 +9274,7 @@
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="evaluatedActivityPolicyTrigger" type="tns:EvaluatedActivityPolicyTriggerType" />
+    <xsd:element name="evaluatedActivityPolicyTrigger" type="tns:EvaluatedActivityPolicyTriggerType"/>
 
     <xsd:complexType name="ActivityCounterGroupsType">
         <xsd:annotation>
@@ -9306,7 +9305,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityCounterGroups" type="tns:ActivityCounterGroupsType" />
+    <xsd:element name="activityCounterGroups" type="tns:ActivityCounterGroupsType"/>
 
     <xsd:complexType name="ActivityCounterGroupType">
         <xsd:annotation>
@@ -9330,7 +9329,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityCounterGroup" type="tns:ActivityCounterGroupType" />
+    <xsd:element name="activityCounterGroup" type="tns:ActivityCounterGroupType"/>
 
     <xsd:complexType name="ActivityCounterType">
         <xsd:annotation>
@@ -9362,7 +9361,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityCounter" type="tns:ActivityCounterType" />
+    <xsd:element name="activityCounter" type="tns:ActivityCounterType"/>
 
     <xsd:complexType name="TaskAutoScalingType">
         <xsd:annotation>
@@ -9573,7 +9572,7 @@
                 <xsd:sequence>
                     <xsd:element name="steps" type="xsd:int" minOccurs="0"/>
                     <xsd:element name="delay" type="xsd:int" minOccurs="0"/>
-                    <xsd:element name="stepInterruptibility" type="tns:NoOpActivityStepInterruptibilityType" minOccurs="0" default="none" />
+                    <xsd:element name="stepInterruptibility" type="tns:NoOpActivityStepInterruptibilityType" minOccurs="0" default="none"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -9941,7 +9940,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" />
+                    <xsd:element name="objectClass" type="xsd:QName" minOccurs="0"/>
                     <xsd:element name="operation" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -10582,17 +10581,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                If specified, the particular statistics file should be used for the operation.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>ObjectTypesRelatedSuggestionWorkDefinitionType.statisticsRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="schemaMatchRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -10746,7 +10734,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="additionalItemsMappings" type="c:AdditionalCorrelationItemMappingType" minOccurs="0"
-                         maxOccurs="unbounded">
+                    maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of additional item inbound mappings, which could be used from the explicitly
@@ -10782,6 +10770,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="targetPathsToIgnore" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Mapping target paths that should be ignored when generating suggestions.
+                                The meaning of a target path depends on the mapping direction.
+                                Inbound mappings: paths on the midpoint side where inbound mapping results would be stored.
+                                Outbound mappings: paths of resource attributes where outbound mapping results would be stored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -10812,7 +10810,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="focusTypeSuggestionWorkState" type="tns:FocusTypeSuggestionWorkStateType" />
+    <xsd:element name="focusTypeSuggestionWorkState" type="tns:FocusTypeSuggestionWorkStateType"/>
 
     <xsd:complexType name="ObjectTypesSuggestionWorkStateType">
         <xsd:annotation>
@@ -10849,7 +10847,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="objectTypesSuggestionWorkState" type="tns:ObjectTypesSuggestionWorkStateType" />
+    <xsd:element name="objectTypesSuggestionWorkState" type="tns:ObjectTypesSuggestionWorkStateType"/>
 
     <xsd:complexType name="CorrelationSuggestionWorkStateType">
         <xsd:annotation>
@@ -10864,17 +10862,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The statistics file to be used for the operation.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>CorrelationSuggestionWorkDefinitionType.statisticsRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="schemaMatchRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -10907,7 +10894,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="correlationSuggestionWorkState" type="tns:CorrelationSuggestionWorkStateType" />
+    <xsd:element name="correlationSuggestionWorkState" type="tns:CorrelationSuggestionWorkStateType"/>
 
     <xsd:complexType name="AssociationSuggestionWorkStateType">
         <xsd:annotation>
@@ -10948,17 +10935,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The statistics file to be used for the operation.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>MappingsSuggestionWorkDefinitionType.statisticsRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="schemaMatchRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -10991,7 +10967,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="mappingsSuggestionWorkState" type="tns:MappingsSuggestionWorkStateType" />
+    <xsd:element name="mappingsSuggestionWorkState" type="tns:MappingsSuggestionWorkStateType"/>
 
 
     <xsd:complexType name="ConnDevBaseWorkDefinitionType">
@@ -11001,17 +10977,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-        <xsd:extension base="tns:AbstractWorkDefinitionType">
-        <xsd:sequence>
-            <xsd:element name="connectorDevelopmentRef" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:ConnectorDevelopmentType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        </xsd:extension>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="connectorDevelopmentRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:ConnectorDevelopmentType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -11021,7 +10997,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                    <xsd:element name="baseTemplateUrl" type="xsd:string"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11031,7 +11007,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevCreateConnectorResultType" />
+                    <xsd:element name="result" type="tns:ConnDevCreateConnectorResultType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11054,7 +11030,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="connectorUrl" type="xsd:string" />
+                    <xsd:element name="connectorUrl" type="xsd:string"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11064,7 +11040,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevDownloadConnectorResultType" />
+                    <xsd:element name="result" type="tns:ConnDevDownloadConnectorResultType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11098,7 +11074,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevDiscoverDocumentationResultType" />
+                    <xsd:element name="result" type="tns:ConnDevDiscoverDocumentationResultType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11122,7 +11098,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                    <xsd:element name="baseTemplateUrl" type="xsd:string"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11132,7 +11108,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevProcessDocumentationResultType" />
+                    <xsd:element name="result" type="tns:ConnDevProcessDocumentationResultType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11156,7 +11132,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                    <xsd:element name="baseTemplateUrl" type="xsd:string"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11166,7 +11142,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevDiscoverGlobalInformationResultType" />
+                    <xsd:element name="result" type="tns:ConnDevDiscoverGlobalInformationResultType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11194,7 +11170,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="baseTemplateUrl" type="xsd:string" />
+                    <xsd:element name="baseTemplateUrl" type="xsd:string"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11204,7 +11180,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassInformationResultType" />
+                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassInformationResultType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11227,7 +11203,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="objectClass" type="xsd:string" />
+                    <xsd:element name="objectClass" type="xsd:string"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11237,7 +11213,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassDetailsResultType" />
+                    <xsd:element name="result" type="tns:ConnDevDiscoverObjectClassDetailsResultType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11266,9 +11242,9 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
-                    <xsd:element name="endpoint" type="tns:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded" />
-                    <xsd:element name="relation" type="tns:ConnDevRelationInfoType" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="artifact" type="tns:ConnDevArtifactType"/>
+                    <xsd:element name="endpoint" type="tns:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="relation" type="tns:ConnDevRelationInfoType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11278,7 +11254,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="tns:ConnDevGenerateArtifactResultType" />
+                    <xsd:element name="result" type="tns:ConnDevGenerateArtifactResultType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11298,7 +11274,7 @@
                     </xas:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="artifact" type="tns:ConnDevArtifactType" />
+            <xsd:element name="artifact" type="tns:ConnDevArtifactType"/>
         </xsd:sequence>
     </xsd:complexType>
 

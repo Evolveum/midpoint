@@ -266,7 +266,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                statistics, match, null, task, result);
+                match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -302,7 +302,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                statistics, match, null, task, result);
+                match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -339,7 +339,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                statistics, match, null, task, result);
+                match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores).hasSize(1);
@@ -379,7 +379,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                statistics, match, null, task, result);
+                match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -416,7 +416,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                statistics, match, null, task, result);
+                match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -457,7 +457,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                statistics, match, null, task, result);
+                match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -504,7 +504,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                statistics, match, null, task, result);
+                match, null, task, result);
         List<Double> scores = suggestions.getSuggestion().stream().map(CorrelationSuggestionType::getQuality).toList();
 
         assertThat(scores)
@@ -561,7 +561,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var suggestions = smartIntegrationService.suggestCorrelation(
                 RESOURCE_DUMMY.oid,
                 ACCOUNT_DEFAULT,
-                statistics, match, null, task, result);
+                match, null, task, result);
 
         List<CorrelationSuggestionType> suggestionList = suggestions.getSuggestion();
 

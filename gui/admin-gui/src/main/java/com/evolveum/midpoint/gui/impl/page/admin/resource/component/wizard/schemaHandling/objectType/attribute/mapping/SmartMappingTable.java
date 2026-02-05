@@ -263,7 +263,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     protected ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> createDataProvider() {
         var dto = StatusAwareDataFactory.createMappingModel(this, resourceOid, suggestionToggleModel,
                 () -> getContainerModel().getObject(), findResourceObjectTypeDefinition(), getMappingType(),
-                acceptedSuggestionsCache);
+                getAcceptedSuggestionsCache());
         return new StatusAwareDataProvider<>(
                 this,
                 (IModel<Search<MappingType>>) (IModel<?>) getTable().getSearchModel(),
@@ -703,7 +703,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     if (status != null) {
                         PrismContainerValueWrapper<MappingType> newValue = acceptSuggestionItemPerformed(
                                 () -> value, status, target);
-                        acceptedSuggestionsCache.add(newValue);
+                        getAcceptedSuggestionsCache().add(newValue);
                     }
                     refreshAndDetach(target);
                 }
@@ -775,6 +775,10 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     protected void addAdditionalNoValueToolbarButtons(List<Component> toolbarButtonsList, String idButton) {
         // empty implementation, can be overridden in subclasses
+    }
+
+    protected Set<PrismContainerValueWrapper<MappingType>> getAcceptedSuggestionsCache() {
+        return acceptedSuggestionsCache;
     }
 }
 
