@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  *
@@ -13,7 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ToLowerCaseHeuristic extends AbstractHeuristicMapping {
+public class ToLowerCaseHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
@@ -38,15 +38,15 @@ public class ToLowerCaseHeuristic extends AbstractHeuristicMapping {
     }
 
     @Override
-    public ExpressionType generateInboundExpression() {
-        return createScriptExpression(
+    public ExpressionType inboundExpression(MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 "input?.toLowerCase()",
                 "Convert to lowercase");
     }
 
     @Override
-    public ExpressionType generateOutboundExpression(String focusPropertyName) {
-        return createScriptExpression(
+    public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 focusPropertyName + "?.toLowerCase()",
                 "Convert to lowercase");
     }

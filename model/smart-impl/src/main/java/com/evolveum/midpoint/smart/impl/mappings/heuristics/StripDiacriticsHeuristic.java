@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  *
@@ -20,7 +20,7 @@ import java.text.Normalizer;
  * Example: "Michał" -> "Michal", "Müller" -> "Muller", "José" -> "Jose"
  */
 @Component
-public class StripDiacriticsHeuristic extends AbstractHeuristicMapping {
+public class StripDiacriticsHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
@@ -57,8 +57,8 @@ public class StripDiacriticsHeuristic extends AbstractHeuristicMapping {
     }
 
     @Override
-    public ExpressionType generateInboundExpression() {
-        return createScriptExpression(
+    public ExpressionType inboundExpression(MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 "input ? stripDiacritics(input) : null\n\n" +
                 "String stripDiacritics(String text) {\n" +
                 "    def normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)\n" +
@@ -79,8 +79,8 @@ public class StripDiacriticsHeuristic extends AbstractHeuristicMapping {
     }
 
     @Override
-    public ExpressionType generateOutboundExpression(String focusPropertyName) {
-        return createScriptExpression(
+    public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 focusPropertyName + " ? stripDiacritics(" + focusPropertyName + ") : null\n\n" +
                 "String stripDiacritics(String text) {\n" +
                 "    def normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)\n" +

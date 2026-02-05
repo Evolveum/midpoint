@@ -15,7 +15,7 @@ import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
-import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicMappingManager;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AttrName;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -62,7 +62,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
-    @Autowired private HeuristicMappingManager heuristicMappingManager;
+    @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -187,7 +187,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -230,7 +230,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -272,7 +272,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -313,7 +313,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -360,7 +360,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -392,7 +392,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 false,
                 true);
 
@@ -439,7 +439,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 false,
                 true);
 
@@ -486,7 +486,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 false,
                 true);
 
@@ -532,7 +532,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 false,
                 true);
 
@@ -578,7 +578,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 false,
                 true);
 
@@ -607,7 +607,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -645,7 +645,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -677,7 +677,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -715,7 +715,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -758,7 +758,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -798,7 +798,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 false,
                 true);
 
@@ -838,7 +838,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 false,
                 true);
 
@@ -878,7 +878,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -939,7 +939,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 false);
 
@@ -985,7 +985,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 false);
 
@@ -1031,7 +1031,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 false);
 
@@ -1077,7 +1077,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 false);
 
@@ -1125,7 +1125,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -1173,7 +1173,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -1219,7 +1219,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 false);
 
@@ -1265,7 +1265,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 false);
 
@@ -1309,7 +1309,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 false,
                 false);
 
@@ -1357,7 +1357,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -1399,7 +1399,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 false);
 
@@ -1445,7 +1445,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 false);
 
@@ -1491,7 +1491,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 false,
                 false);
 
@@ -1537,7 +1537,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 false);
 

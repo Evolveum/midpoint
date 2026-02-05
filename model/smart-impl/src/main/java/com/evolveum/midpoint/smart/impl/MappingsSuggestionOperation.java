@@ -19,22 +19,18 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
-import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
-import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
-import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicMappingManager;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
 import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.MissingSourceDataException;
 import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -73,7 +69,7 @@ class MappingsSuggestionOperation {
     private final MappingsQualityAssessor qualityAssessor;
     private final OwnedShadowsProvider ownedShadowsProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
-    private final HeuristicMappingManager heuristicMappingManager;
+    private final HeuristicRuleMatcher heuristicRuleMatcher;
     private final boolean isInbound;
     private final boolean useAiService;
 
@@ -82,14 +78,14 @@ class MappingsSuggestionOperation {
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
-            HeuristicMappingManager heuristicMappingManager,
+            HeuristicRuleMatcher heuristicRuleMatcher,
             boolean isInbound,
             boolean useAiService) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
         this.ownedShadowsProvider = ownedShadowsProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
-        this.heuristicMappingManager = heuristicMappingManager;
+        this.heuristicRuleMatcher = heuristicRuleMatcher;
         this.isInbound = isInbound;
         this.useAiService = useAiService;
     }
@@ -99,7 +95,7 @@ class MappingsSuggestionOperation {
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
-            HeuristicMappingManager heuristicMappingManager,
+            HeuristicRuleMatcher heuristicRuleMatcher,
             boolean isInbound,
             boolean useAiService)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -109,7 +105,7 @@ class MappingsSuggestionOperation {
                 qualityAssessor,
                 ownedShadowsProvider,
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 isInbound,
                 useAiService);
     }
@@ -440,10 +436,9 @@ class MappingsSuggestionOperation {
         }
 
         // Check if as-is mapping is sufficient
-        if (valuePairsForValidation.doAllConvertedSourcesMatchTargets(ctx.getFocusTypeDefinition(), ctx.typeDefinition, ctx.b.protector)) {
+        if (valuePairsForValidation.allSourcesMatchTargets(ctx.getFocusTypeDefinition(), ctx.typeDefinition, ctx.b.protector)) {
             LOGGER.trace("AsIs {} mapping suffice according to the data (no LLM call).", valuePairsForValidation.direction());
-            var assessment = qualityAssessor.assessMappingsQuality(valuePairsForValidation, null, ctx.task, parentResult);
-            return MappingEvaluationResult.of(null, assessment.quality(), isSystemProvided);
+            return MappingEvaluationResult.of(null, 1.0F, isSystemProvided);
         }
 
         // Find best mapping by comparing as-is, heuristic, and AI options
@@ -469,7 +464,7 @@ class MappingsSuggestionOperation {
         ExpressionType bestExpression = null;
 
         // Try heuristic mappings
-        var heuristicResult = heuristicMappingManager.findBestMatch(valuePairsForValidation, ctx.task, parentResult);
+        var heuristicResult = heuristicRuleMatcher.findBestMatch(valuePairsForValidation, ctx.task, parentResult);
         if (heuristicResult.isPresent()) {
             var hr = heuristicResult.get();
             if (hr.quality() > bestExpectedQuality) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  *
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * Useful for extracting given names from full names or first part of compound identifiers.
  */
 @Component
-public class FirstWordHeuristic extends AbstractHeuristicMapping {
+public class FirstWordHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
@@ -42,15 +42,15 @@ public class FirstWordHeuristic extends AbstractHeuristicMapping {
     }
 
     @Override
-    public ExpressionType generateInboundExpression() {
-        return createScriptExpression(
+    public ExpressionType inboundExpression(MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 "input?.split('\\\\s+')[0]",
                 "Extract first word");
     }
 
     @Override
-    public ExpressionType generateOutboundExpression(String focusPropertyName) {
-        return createScriptExpression(
+    public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 focusPropertyName + "?.split('\\\\s+')[0]",
                 "Extract first word");
     }

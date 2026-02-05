@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  *
@@ -13,7 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ToUpperCaseHeuristic extends AbstractHeuristicMapping {
+public class ToUpperCaseHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
@@ -38,15 +38,15 @@ public class ToUpperCaseHeuristic extends AbstractHeuristicMapping {
     }
 
     @Override
-    public ExpressionType generateInboundExpression() {
-        return createScriptExpression(
+    public ExpressionType inboundExpression(MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 "input?.toUpperCase()",
                 "Convert to uppercase");
     }
 
     @Override
-    public ExpressionType generateOutboundExpression(String focusPropertyName) {
-        return createScriptExpression(
+    public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 focusPropertyName + "?.toUpperCase()",
                 "Convert to uppercase");
     }

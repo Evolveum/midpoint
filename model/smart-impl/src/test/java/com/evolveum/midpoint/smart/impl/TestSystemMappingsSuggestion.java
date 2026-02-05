@@ -19,13 +19,12 @@ import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
-import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicMappingManager;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -73,7 +72,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
-    @Autowired private HeuristicMappingManager heuristicMappingManager;
+    @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -183,7 +182,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -239,7 +238,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -295,7 +294,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 
@@ -345,7 +344,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
-                heuristicMappingManager,
+                heuristicRuleMatcher,
                 true,
                 true);
 

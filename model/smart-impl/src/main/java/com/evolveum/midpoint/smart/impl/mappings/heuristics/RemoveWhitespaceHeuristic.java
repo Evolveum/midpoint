@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Evolveum and contributors
+ * Copyright (c) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  *
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * Useful for phone numbers, IDs, or when spaces need to be completely eliminated.
  */
 @Component
-public class RemoveWhitespaceHeuristic extends AbstractHeuristicMapping {
+public class RemoveWhitespaceHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
@@ -42,15 +42,15 @@ public class RemoveWhitespaceHeuristic extends AbstractHeuristicMapping {
     }
 
     @Override
-    public ExpressionType generateInboundExpression() {
-        return createScriptExpression(
+    public ExpressionType inboundExpression(MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 "input?.replaceAll('\\\\s+', '')",
                 "Remove all whitespace");
     }
 
     @Override
-    public ExpressionType generateOutboundExpression(String focusPropertyName) {
-        return createScriptExpression(
+    public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
+        return factory.createScriptExpression(
                 focusPropertyName + "?.replaceAll('\\\\s+', '')",
                 "Remove all whitespace");
     }
