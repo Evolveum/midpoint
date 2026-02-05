@@ -73,7 +73,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Improved ways to report audit delta in GUI and reports using xrefv:/midpoint/reference/master/security/audit/#improving-search-capabilities-for-changed-item-paths-in-audit-records[changed item paths].
 Improved indexing of audit records with "add object" deltas.
 See bug:MID-10413[].
-* Added `lastLoginTimestamp` xref:/midpoint/reference/resource-configuration/capabilities#_behavior[capability]. See bug:MID-10147[].
+* Added xrefv:/midpoint/reference/support-4.10/resources/resource-configuration/capabilities/#last-login-timestamp-capability[`lastLoginTimestamp` capability]. See bug:MID-10147[].
 * Implemented xrefv:/midpoint/reference/master/admin-gui/admin-gui-config/#_default_gui_object_list_panel_configuration/[Default List View Panel Configuration] which brings a possibility to set the common paging options for list panels. See bug:MID-10414[].
 
 === Other Improvements
