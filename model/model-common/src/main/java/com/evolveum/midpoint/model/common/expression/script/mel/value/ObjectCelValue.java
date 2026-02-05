@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+package com.evolveum.midpoint.model.common.expression.script.mel.value;
+
+import com.evolveum.midpoint.model.common.expression.script.mel.DynType;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+
+import dev.cel.common.types.CelType;
+
+/**
+ * @author Radovan Semancik
+ */
+public class ObjectCelValue<O extends Objectable> extends AbstractContainerValueCelValue<O> implements MidPointValueProducer<PrismObject<O>> {
+
+    public static final String CEL_TYPE_NAME = PrismObject.class.getName();
+    public static final CelType CEL_TYPE = new DynType(CEL_TYPE_NAME);
+
+    private final PrismObject<O> object;
+
+    ObjectCelValue(PrismObject<O> object) {
+        super(object.getValue());
+        this.object = object;
+    }
+
+    @Override
+    public CelType celType() {
+        return CEL_TYPE;
+    }
+
+    public static <O extends Objectable> ObjectCelValue<O> create(PrismObject<O> object) {
+        return new ObjectCelValue<>(object);
+    }
+
+    public Object value() {
+        return object;
+    }
+
+    public PrismObject<O> getObject() {
+        return object;
+    }
+
+    @Override
+    public PrismObject<O> getJavaValue() {
+        return object;
+    }
+}

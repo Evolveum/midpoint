@@ -75,8 +75,8 @@
         <constructor-arg name="localizationService" ref="localizationService"/>
     </bean>
 
-    <bean id="celScriptEvaluator"
-            class="com.evolveum.midpoint.model.common.expression.script.cel.CelScriptEvaluator">
+    <bean id="melScriptEvaluator"
+            class="com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluator">
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="localizationService" ref="localizationService"/>
@@ -100,7 +100,7 @@
                 <ref bean="groovyScriptEvaluator"/>
                 <ref bean="pythonScriptEvaluator"/>
                 <ref bean="velocityScriptEvaluator"/>
-                <ref bean="celScriptEvaluator"/>
+                <ref bean="melScriptEvaluator"/>
             </list>
         </constructor-arg>
         <constructor-arg name="objectResolver" ref="modelObjectResolver"/>
