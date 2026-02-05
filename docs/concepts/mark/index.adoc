@@ -355,6 +355,9 @@ Used in the same way as "Protected" when you have different reasons than for the
 |Shadow object that has bad data and should be ignored by synchronization. Used in the same way as "Protected" but with a different semantic meaning.
 |===
 
+When reconciliation repeatedly fails on a subset of resource objects because of invalid or corrupted data, you can quarantine the corresponding shadows by applying a shadow policy mark such as Invalid data. Once applied, the mark disables synchronization (inbound/outbound) and provisioning operations for that shadow, so subsequent reconciliation runs can skip the problematic shadow instead of repeatedly processing it until you unmark it.
+This can be automated using a link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/recon-task-csv-mark-invalid.xml[composite task (example)]where the first activity runs reconciliation and the second activity immediately processes only the failed objects (using failedObjectsSelector) and applies the mark. After you fix the source data, remove the mark from the shadow (GUI action Remove Marks in the resource Accounts/Entitlements list) and then reconcile the object manually.
+
 == Best practices
 
 * Use clear and descriptive names for marks, such as "inactive", "requires-approval", or "archived".
