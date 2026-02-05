@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.common.expression.script.cel.CelScriptEvaluat
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -825,6 +824,35 @@ public class TestCelExpressions extends AbstractScriptTest {
                 "c0c010c0-d34d-b33f-f00d-ff1111111111");
     }
 
+    @Test
+    public void testUserExtensionMapString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-extension-ship.xml",
+                createUserScriptVariables(
+                        "prop", "ship", PrimitiveType.STRING
+                ),
+                "Black Pearl");
+    }
+
+    @Test
+    public void testUserExtensionMapQnameNoNamespace() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-extension-ship.xml",
+                createUserScriptVariables(
+                        "prop", new QName(null, "ship"), PrimitiveType.QNAME
+                ),
+                "Black Pearl");
+    }
+
+    @Test
+    public void testUserExtensionMapQnameNamespace() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-extension-ship.xml",
+                createUserScriptVariables(
+                        "prop", new QName(NS_EXTENSION, "ship"), PrimitiveType.QNAME
+                ),
+                "Black Pearl");
+    }
 
     @Test
     public void testExpressionNull() throws Exception {
@@ -834,6 +862,33 @@ public class TestCelExpressions extends AbstractScriptTest {
                         "foo", null, String.class
                 ),
                 Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionQName() throws Exception {
+        evaluateAndAssertQNameScalarExpression(
+                "expression-qname.xml",
+                createVariables(),
+                new QName("foo"));
+    }
+
+    @Test
+    public void testExpressionQNameParts() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-qname-parts.xml",
+                createVariables(
+                        "q", new QName("http://example.com/q/ns", "foo"), PrimitiveType.QNAME
+                ),
+                "http://example.com/q/ns - foo");
+    }
+
+
+    @Test
+    public void testExpressionQNameNs() throws Exception {
+        evaluateAndAssertQNameScalarExpression(
+                "expression-qname-ns.xml",
+                createVariables(),
+                new QName(NS_EXTENSION,"foo"));
     }
 
     @Test
@@ -861,7 +916,7 @@ public class TestCelExpressions extends AbstractScriptTest {
         VariablesMap variables = createVariables(
                 "foo", null, String.class
         );
-        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression("expression-single.xml", getTestName(), variables);
+        List<PrismPropertyValue<String>> expressionResultList = evaluateExpression("expression-single.xml", DOMUtil.XSD_STRING, true, variables);
         PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
         assertNull("Expression " + getTestName() + " resulted in NON-null value", expressionResult);
@@ -872,7 +927,7 @@ public class TestCelExpressions extends AbstractScriptTest {
         VariablesMap variables = createVariables(
                 "foo", ImmutableList.of(), List.class
         );
-        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression("expression-single.xml", getTestName(), variables);
+        List<PrismPropertyValue<String>> expressionResultList = evaluateExpression("expression-single.xml", DOMUtil.XSD_STRING, true, variables);
         PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
         assertNull("Expression " + getTestName() + " resulted in NON-null value", expressionResult);
@@ -885,7 +940,7 @@ public class TestCelExpressions extends AbstractScriptTest {
         VariablesMap variables = createVariables(
                 "foo", orgProp, orgProp.getDefinition()
         );
-        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression("expression-single.xml", getTestName(), variables);
+        List<PrismPropertyValue<String>> expressionResultList = evaluateExpression("expression-single.xml", DOMUtil.XSD_STRING, true, variables);
         PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
         assertNull("Expression " + getTestName() + " resulted in NON-null value", expressionResult);

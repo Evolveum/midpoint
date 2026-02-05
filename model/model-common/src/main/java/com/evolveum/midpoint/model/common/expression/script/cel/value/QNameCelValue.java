@@ -51,6 +51,14 @@ public class QNameCelValue extends CelValue implements Map<String,String>, MidPo
         return new QNameCelValue(qname);
     }
 
+    public static QNameCelValue create(String namespace, String localPart) {
+        return new QNameCelValue(new QName(namespace, localPart));
+    }
+
+    public static QNameCelValue create(String localPart) {
+        return new QNameCelValue(new QName(localPart));
+    }
+
     public Map<String, String> value() {
         return Map.of(F_LOCAL_PART, qname.getLocalPart(),
                 F_NAMESPACE_URI, qname.getNamespaceURI());

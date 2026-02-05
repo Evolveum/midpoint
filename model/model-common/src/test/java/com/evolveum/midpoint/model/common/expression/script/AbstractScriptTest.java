@@ -12,10 +12,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
@@ -65,6 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class AbstractScriptTest extends AbstractUnitTest
         implements InfraTestMixin {
+
+    protected static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
 
     protected static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
     protected static final File BASE_TEST_DIR = new File("src/test/resources/expression");
@@ -284,8 +284,9 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     // TODO: user + numeric
     // TODO: user + no property value
 
-    protected VariablesMap createUserScriptVariables() {
-        return createVariables(
+    protected VariablesMap createUserScriptVariables(Object... args) {
+
+        Object[] userArgs = {
                 // Deprecated
                 ExpressionConstants.VAR_USER,
                 MiscSchemaUtil.createObjectReference(USER_JACK_OID, UserType.COMPLEX_TYPE),
@@ -300,7 +301,9 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 ExpressionConstants.VAR_ITERATION_TOKEN,
                 "",
                 PrimitiveType.STRING
-        );
+        };
+
+        return createVariables(Stream.concat(Arrays.stream(userArgs), Arrays.stream(args)).toArray(Object[]::new));
     }
 
     // TODO: shadow + attributes
@@ -420,6 +423,13 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     protected <T> List<PrismPropertyValue<T>> evaluateExpression(
+            String fileName, QName outputTypeName, boolean scalar, VariablesMap variables)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        return evaluateExpression(parseScriptType(fileName), outputTypeName, scalar, variables, getTestName(), createOperationResult());
+    }
+
+    protected <T> List<PrismPropertyValue<T>> evaluateExpression(
             ScriptExpressionEvaluatorType scriptType, QName outputTypeName, boolean scalar,
             VariablesMap variables, String shortDesc, OperationResult opResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
@@ -457,7 +467,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             String fileName, VariablesMap variables)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
-        List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, getTestName(), variables);
+        List<PrismPropertyValue<String>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_STRING, true, variables);
         PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
         assertNotNull("Expression " + getTestName() + " resulted in null value", expressionResult);
@@ -469,7 +479,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             throws ObjectNotFoundException, CommunicationException, SchemaException, IOException,
             ExpressionEvaluationException, ConfigurationException {
         try {
-            List<PrismPropertyValue<String>> expressionResultList = evaluateStringExpression(fileName, testName, variables);
+            List<PrismPropertyValue<String>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_STRING, true, variables);
             AssertJUnit.fail("Expression " + testName + ": unexpected success, result value: " + expressionResultList);
         } catch (SecurityViolationException e) {
             displayExpectedException(e);
@@ -494,31 +504,23 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             VariablesMap variables, Boolean expectedValue)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
-        List<PrismPropertyValue<Boolean>> expressionResultList = evaluateBooleanExpression(fileName, getTestName(), variables);
+        List<PrismPropertyValue<Boolean>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_BOOLEAN, true, variables);
         PrismPropertyValue<Boolean> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
         assertNotNull("Expression " + getTestName() + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
         assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult.getValue());
     }
 
-    protected List<PrismPropertyValue<String>> evaluateStringExpression(
-            String fileName, String testName, VariablesMap variables)
+    protected void evaluateAndAssertQNameScalarExpression(String fileName,
+            VariablesMap variables, QName expectedValue)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
-        ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
-        OperationResult opResult = createOperationResult();
-
-        return evaluateExpression(scriptType, DOMUtil.XSD_STRING, true, variables, testName, opResult);
-    }
-
-    private List<PrismPropertyValue<Boolean>> evaluateBooleanExpression(
-            String fileName, String testName, VariablesMap variables)
-            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
-        ScriptExpressionEvaluatorType scriptType = parseScriptType(fileName);
-        OperationResult opResult = createOperationResult();
-
-        return evaluateExpression(scriptType, DOMUtil.XSD_BOOLEAN, true, variables, testName, opResult);
+        List<PrismPropertyValue<QName>> expressionResultList =
+                evaluateExpression(fileName, DOMUtil.XSD_QNAME, true, variables);
+        PrismPropertyValue<QName> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        assertNotNull("Expression " + getTestName() + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
+        assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult.getValue());
     }
 
     protected VariablesMap createVariables(Object... params) {

@@ -69,6 +69,7 @@ public class CelTypeMapper implements CelTypeProvider  {
                 ObjectReferenceCelValue.CEL_TYPE,
                 ObjectCelValue.CEL_TYPE,
                 ContainerValueCelValue.CEL_TYPE,
+                QNameCelValue.CEL_TYPE,
                 PROTECTED_STRING_CEL_TYPE
         );
     }

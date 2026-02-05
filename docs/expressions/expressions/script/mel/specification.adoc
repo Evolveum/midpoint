@@ -211,7 +211,7 @@ TODO: function from string CEL extension
 TODO: timestamp functions, e.g. getDate()
 TODO: timezones
 
-== Function Libraries
+== Extension Libraries
 
 format, ldap, log, etc.
 
@@ -231,6 +231,20 @@ This is intentional.
 Protected strings are all about protecting their content.
 We do not want string functions (such as substring) to unintentionally reveal content of a protected string.
 If you need to do string operations on a protected string, you have to explicitly decrypt it first.
+
+== QNames
+
+qname(ns,local)
+qname(local)
+
+== Structured Data
+
+Prism objects and containers
+
+Extension:
+* focus.extension.ship
+* focus.extension['ship']
+* focus.extension[qname('http://example.com/ns', 'ship')]
 
 == MEL and CEL
 

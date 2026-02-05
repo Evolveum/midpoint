@@ -9,6 +9,7 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.script.cel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.MidPointValueProducer;
 import com.evolveum.midpoint.model.common.expression.script.cel.value.PolyStringCelValue;
+import com.evolveum.midpoint.model.common.expression.script.cel.value.QNameCelValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -201,6 +202,90 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             ),
 
+            // qname(local)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "qname",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-qname-local",
+                                    "TODO",
+                                    QNameCelValue.CEL_TYPE,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from("mel-qname-local", String.class,
+                            this::qname)
+
+            ),
+
+            // qname(ns, local)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "qname",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-qname-ns",
+                                    "TODO",
+                                    QNameCelValue.CEL_TYPE,
+                                    SimpleType.STRING, SimpleType.STRING)),
+                    CelFunctionBinding.from("mel-qname-ns", String.class, String.class,
+                            this::qname)
+
+            ),
+
+                // secret.resolveBinary(provider, key)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "secret.resolveBinary",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-secret-resolveBinary",
+                                    "TODO",
+                                    SimpleType.BYTES,
+                                    SimpleType.STRING, SimpleType.STRING)),
+                    CelFunctionBinding.from("mel-secret-resolveBinary", String.class, String.class,
+                            this::secretResolveBinary)
+
+            ),
+
+            // secret.resolveString(provider, key)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "secret.resolveString",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-secret-resolveString",
+                                    "TODO",
+                                    SimpleType.STRING,
+                                    SimpleType.STRING, SimpleType.STRING)),
+                    CelFunctionBinding.from("mel-secret-resolveString", String.class, String.class,
+                            this::secretResolveString)
+
+            ),
+
+            // single
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "single",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-single",
+                                    "TODO",
+                                    SimpleType.ANY,
+                                    SimpleType.ANY)),
+                    CelFunctionBinding.from("mel-single", Object.class,
+                            this::single)
+
+            ),
+
+            // stringify
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "stringify",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-stringify",
+                                    "TODO",
+                                    SimpleType.STRING,
+                                    SimpleType.ANY)),
+                    CelFunctionBinding.from("mel-stringify", Object.class,
+                            this::stringify)
+
+            ),
+
             // timestamp.atStartOfDay
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -263,39 +348,27 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.TIMESTAMP)),
                     CelFunctionBinding.from("mel-timestamp_longAgo", ImmutableList.of(),
                             CelMelExtensions::longAgo)
-            ),
-
-            // single
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            "single",
-                            CelOverloadDecl.newGlobalOverload(
-                                    "mel-single",
-                                    "TODO",
-                                    SimpleType.ANY,
-                                    SimpleType.ANY)),
-                    CelFunctionBinding.from("mel-single", Object.class,
-                            this::single)
-
-            ),
-
-            // stringify
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            "stringify",
-                            CelOverloadDecl.newGlobalOverload(
-                                    "mel-stringify",
-                                    "TODO",
-                                    SimpleType.STRING,
-                                    SimpleType.ANY)),
-                    CelFunctionBinding.from("mel-stringify", Object.class,
-                            this::stringify)
-
             )
 
 
                 // TODO: toSingle()? single()? scalar()?
         );
+    }
+
+    private QNameCelValue qname(String namespace, String localPart) {
+        return QNameCelValue.create(namespace, localPart);
+    }
+
+    private QNameCelValue qname(String localPart) {
+        return QNameCelValue.create(localPart);
+    }
+
+    private byte[] secretResolveBinary(String providerName, String key) {
+        return basicExpressionFunctions.resolveSecretBinary(providerName, key).array();
+    }
+
+    private String secretResolveString(String providerName, String key) {
+        return basicExpressionFunctions.resolveSecretString(providerName, key);
     }
 
     private static Timestamp longAgo(Object[] args) {
