@@ -10,9 +10,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 public class OtpAuthenticationToken extends UsernamePasswordAuthenticationToken {
 
-    public OtpAuthenticationToken(Object principal, Object credentials) {
-        super(principal, credentials);
+    public OtpAuthenticationToken(String username, Integer code) {
+        super(username, code);
     }
 
-    // todo implement
+    @Override
+    public Integer getCredentials() {
+        return (Integer) super.getCredentials();
+    }
 }

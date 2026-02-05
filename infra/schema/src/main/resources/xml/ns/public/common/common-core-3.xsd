@@ -2460,20 +2460,20 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsType" minOccurs="0" />
-            <xsd:element name="otp" type="tns:OtpCredentialsType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="otps" type="tns:OtpCredentialsType" minOccurs="0"/>
             <!-- More credential types may be here, such as OTP seeds, X.509 credentials, etc. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="credentials" type="tns:CredentialsType"/>
 
-    <xsd:complexType name="OtpCredentialsType">
+    <xsd:complexType name="OtpCredentialType">
         <xsd:annotation>
             <xsd:documentation>
                 <!-- todo -->
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.10</a:since>
+                <a:since>4.11</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2503,6 +2503,25 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OtpCredentialsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <!-- todo -->
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialType">
+                <xsd:sequence>
+                    <xsd:element name="otp" type="tns:OtpCredentialType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

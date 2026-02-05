@@ -6,39 +6,27 @@
 
 package com.evolveum.midpoint.authentication.impl.otp;
 
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.impl.filter.MidpointAnonymousAuthenticationFilter;
-
-import com.evolveum.midpoint.authentication.impl.filter.MidpointUsernamePasswordAuthenticationFilter;
-
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.filter.MidpointUsernamePasswordAuthenticationFilter;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class OtpAuthenticationFilter extends MidpointUsernamePasswordAuthenticationFilter {
 
-    private static final String OTP_VERIFIED = "OTP_VERIFIED";
+    private static final String SPRING_SECURITY_FORM_CODE_KEY = "code";
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         if (isPostOnly() && !request.getMethod().equals("POST")) {
-            throw new AuthenticationServiceException(
-                    "Authentication method not supported: " + request.getMethod());
+            throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
         }
 
         String username = getIdentifiedUsername();
@@ -46,7 +34,15 @@ public class OtpAuthenticationFilter extends MidpointUsernamePasswordAuthenticat
             throw new AuthenticationServiceException("Authentication failed: username not available.");
         }
 
-        UsernamePasswordAuthenticationToken authRequest = new OtpAuthenticationToken(username, null);
+        String codeStr = request.getParameter(SPRING_SECURITY_FORM_CODE_KEY);
+        Integer code;
+        try {
+            code = Integer.valueOf(codeStr);
+        } catch (NumberFormatException e) {
+            throw new AuthenticationServiceException("Authentication failed: invalid code format.");
+        }
+
+        UsernamePasswordAuthenticationToken authRequest = new OtpAuthenticationToken(username, code);
 
         setDetails(request, authRequest);
 
@@ -55,42 +51,11 @@ public class OtpAuthenticationFilter extends MidpointUsernamePasswordAuthenticat
 
     private String getIdentifiedUsername() {
         MidpointAuthentication midpointAuthentication = AuthUtil.getMidpointAuthentication();
-        Object principal = midpointAuthentication.getPrincipal();
-        if (!(principal instanceof MidPointPrincipal)) {
-            return "";
+        if (!(midpointAuthentication.getPrincipal() instanceof MidPointPrincipal principal)) {
+            return null;
         }
 
-        FocusType focus = ((MidPointPrincipal) principal).getFocus();
-        return focus.getName().getNorm();
-
+        FocusType focus = principal.getFocus();
+        return focus.getName() != null ? focus.getName().getOrig() : null;
     }
-
-    //    @Override
-//    protected boolean shouldNotFilter(HttpServletRequest request) {
-//        return !("/otpVerify".equals(request.getRequestURI()) && "POST".equalsIgnoreCase(request.getMethod()));
-//    }
-//
-//    @Override
-//    protected void doFilterInternal(HttpServletRequest request,
-//            HttpServletResponse response,
-//            FilterChain filterChain) throws ServletException, IOException {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication == null || !authentication.isAuthenticated()) {
-//            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthenticated");
-//            return;
-//        }
-//
-////        String username = authentication.getName();
-////        String code = request.getParameter("code");
-////        if (code == null || !otpService.verifyCode(secret, code)) {
-////            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid TOTP");
-////            return;
-////        }
-////
-////        // mark session as TOTP verified
-////        request.getSession(true).setAttribute(OTP_VERIFIED, Boolean.TRUE);
-////
-////        // redirect to desired protected resource (or respond 200)
-////        response.sendRedirect("/");
-//    }
 }

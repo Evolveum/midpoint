@@ -2373,6 +2373,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsPolicyType" minOccurs="0"/>
+            <xsd:element name="otp" type="tns:OtpCredentialsPolicyType" minOccurs="0"/>
             <!-- More credential types may come here in the future. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>

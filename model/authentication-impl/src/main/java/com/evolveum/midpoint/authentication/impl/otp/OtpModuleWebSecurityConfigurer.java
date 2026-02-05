@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.authentication.impl.otp;
 
-import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointFormLoginConfigurer;
-
 import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
@@ -18,6 +16,8 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.entry.point.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointExceptionHandlingConfigurer;
+import com.evolveum.midpoint.authentication.impl.filter.configurers.MidpointFormLoginConfigurer;
+import com.evolveum.midpoint.authentication.impl.handler.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.impl.module.configurer.ModuleWebSecurityConfigurer;
@@ -55,7 +55,7 @@ public class OtpModuleWebSecurityConfigurer
                 .loginProcessingUrl(AuthUtil.stripEndingSlashes(getPrefix()) + LOGIN_PROCESSING_URL)
                 .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
-                        new OtpAuthenticationSucessHandler())).permitAll();
+                        new MidPointAuthenticationSuccessHandler())).permitAll();
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint(LOGIN_PAGE_URL));
 

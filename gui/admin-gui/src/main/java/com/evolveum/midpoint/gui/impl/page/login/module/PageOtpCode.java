@@ -8,10 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
 
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-
+import org.apache.wicket.markup.html.form.NumberTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.validation.ValidatorAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
@@ -29,38 +30,43 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
         },
         permitAll = true,
         loginPage = true,
-authModule = AuthenticationModuleNameConstants.OTP)
-//TODO ModuleAuthentication because it might be either credentials or ldap module authentication
+        authModule = AuthenticationModuleNameConstants.OTP)
+@SuppressWarnings("unused")
 public class PageOtpCode extends PageAbstractAuthenticationModule<ModuleAuthentication> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_CODE = "code";
+    private static final String DEFAULT_FORM_URL = "./spring_security_login";
+    private static final String OTP_FORM_URL = "/otp_verify";
 
-    public PageOtpCode() {
-        super(null);
-    }
+    private static final String ID_CODE = "code";
 
     @Override
     protected void initModuleLayout(MidpointForm form) {
         TextField<String> code = new TextField<>(ID_CODE);
         code.add(new EnableBehaviour(() -> searchUser() != null));
+        // todo range validator
         form.add(code);
     }
 
     protected String getUrlProcessingLogin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof MidpointAuthentication mpa)) {
-            return "./spring_security_login";
+            return DEFAULT_FORM_URL;
         }
 
         ModuleAuthentication moduleAuthentication = mpa.getProcessingModuleAuthentication();
         if (isModuleApplicable(moduleAuthentication)) {
             String prefix = moduleAuthentication.getPrefix();
-            return AuthUtil.stripSlashes(prefix) + "/spring_security_login";
+            return AuthUtil.stripSlashes(prefix) + OTP_FORM_URL;
         }
 
-        return "./spring_security_login";
+        return DEFAULT_FORM_URL;
+    }
+
+    @Override
+    protected boolean isModuleApplicable(ModuleAuthentication moduleAuthentication) {
+        return AuthenticationModuleNameConstants.OTP.equals(moduleAuthentication.getModuleTypeName());
     }
 
     @Override
@@ -77,14 +83,14 @@ public class PageOtpCode extends PageAbstractAuthenticationModule<ModuleAuthenti
 
     private boolean severalLoginFormModulesExist() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof MidpointAuthentication mpAuthentication) {
-            int loginFormModulesCount = (int) mpAuthentication.getAuthModules()
-                    .stream()
-                    .filter(module -> module != null && isModuleApplicable(module.getBaseModuleAuthentication()))
-                    .count();
-            return loginFormModulesCount > 1;
+        if (!(authentication instanceof MidpointAuthentication ma)) {
+            return false;
         }
-        return false;
+
+        int loginFormModulesCount = (int) ma.getAuthModules().stream()
+                .filter(module -> module != null && isModuleApplicable(module.getBaseModuleAuthentication()))
+                .count();
+        return loginFormModulesCount > 1;
     }
 
     private String getProcessingModuleName() {

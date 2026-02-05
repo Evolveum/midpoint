@@ -1,0 +1,101 @@
+/*
+ * Copyright (c) 2010-2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
+package com.evolveum.midpoint.authentication.impl.otp;
+
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.authentication.impl.evaluator.CredentialsAuthenticationEvaluatorImpl;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+@Component
+public class OtpAuthenticationEvaluator
+        extends CredentialsAuthenticationEvaluatorImpl<OtpCredentialsType, OtpAuthenticationContext> {
+
+    @Override
+    protected void checkEnteredCredentials(ConnectionEnvironment env, OtpAuthenticationContext ctx) {
+        if (ctx.getEnteredCredential() == null) {
+            recordModuleAuthenticationFailure(ctx.getUsername(), null, env, null, "empty otp code provided");
+            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(SecurityContextHolder.getContext().getAuthentication()));
+        }
+    }
+
+    @Override
+    protected boolean supportsAuthzCheck() {
+        return true;
+    }
+
+    @Override
+    protected OtpCredentialsType getCredential(CredentialsType credentials) {
+        return credentials.getOtps();
+    }
+
+    @Override
+    protected void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, OtpCredentialsType credentials) {
+        List<OtpCredentialType> securityQuestionsAnswers = credentials.getOtp();
+
+        if (securityQuestionsAnswers == null || securityQuestionsAnswers.isEmpty()) {
+            recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no stored security questions");
+            throw new AuthenticationCredentialsNotFoundException("web.security.provider.securityQuestion.bad");
+        }
+    }
+
+    @Override
+    protected boolean passwordMatches(
+            ConnectionEnvironment env,
+            @NotNull MidPointPrincipal principal,
+            OtpCredentialsType otpCredentials,
+            OtpAuthenticationContext ctx) {
+
+        if (otpCredentials == null) {
+            return false;
+        }
+
+        final Integer code = ctx.getEnteredCredential();
+        if (code == null) {
+            return false;
+        }
+
+        OtpService service; // todo initialize service
+
+        for (OtpCredentialType otp : otpCredentials.getOtp()) {
+            ProtectedStringType secret = otp.getSecret();
+            if (secret == null) {
+                return false;
+            }
+
+//            service.verifyCode(secret, )
+        }
+
+        return false;
+    }
+
+    @Override
+    protected CredentialPolicyType getEffectiveCredentialPolicy(SecurityPolicyType securityPolicy, OtpAuthenticationContext ctx) {
+        OtpCredentialsPolicyType policy = ctx.getPolicy();
+        if (policy == null) {
+            policy = SecurityUtil.getEffectiveOtpCredentialsPolicy(securityPolicy);
+        }
+        ctx.setPolicy(policy);
+        return policy;
+    }
+
+    @Override
+    protected boolean supportsActivation() {
+        return true;
+    }
+}
