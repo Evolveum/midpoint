@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper> extends AbstractSearchItemPanel<S> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_SEARCH_ITEM_CONTAINER = "searchItemContainer";
     private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
@@ -122,7 +123,7 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
 
         CheckPanel checkPanel = new CheckPanel(ID_CHECK_DISABLE_FIELD, new PropertyModel<>(getModel(), FilterableSearchItemWrapper.F_APPLY_FILTER));
         (checkPanel).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
@@ -136,14 +137,14 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         searchItemContainer.add(checkPanel);
 
         AjaxSubmitButton removeButton = new AjaxSubmitButton(ID_REMOVE_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
                 deletePerformed(target);
             }
         };
-        removeButton.add(new VisibleBehaviour(() -> canRemoveSearchItem()));
+        removeButton.add(new VisibleBehaviour(this::canRemoveSearchItem));
         removeButton.setOutputMarkupId(true);
         removeButton.add(AttributeModifier.replace("title",
                 getParentPage().createStringResource("SingleSearchItemPanel.removeProperty", createLabelModel().getObject())));
@@ -152,10 +153,6 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
 
     protected boolean isFieldEnabled() {
         return getModelObject().isEnabled();
-    }
-
-    protected WebMarkupContainer getSearchItemContainer() {
-        return (WebMarkupContainer) get(ID_SEARCH_ITEM_CONTAINER);
     }
 
     private IModel<String> createHelpModel() {
@@ -214,7 +211,7 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         AutoCompleteTextPanel<String> autoCompletePanel = new AutoCompleteTextPanel<>(id, model, String.class,
                 true, lookupTableOid) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public Iterator<String> getIterator(String input) {
@@ -224,7 +221,7 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
 
         (autoCompletePanel).getBaseFormComponent().add(new Behavior() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void bind(Component component) {

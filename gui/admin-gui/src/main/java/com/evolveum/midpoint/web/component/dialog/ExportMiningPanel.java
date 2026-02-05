@@ -408,7 +408,7 @@ public class ExportMiningPanel extends BasePanel<String> implements Popupable {
         filterForm.setVisible(false);
 
         NonEmptyModel<AxiomQueryWrapper> filterModel = new NonEmptyWrapperModel<>(
-                new Model<>(new AxiomQueryWrapper(null)));
+                new Model<>(new AxiomQueryWrapper(null, objectType)));
 
         TextField<String> queryDslField = new TextField<>(formId + ID_SUFFIX_ACE_EDITOR,
                 new PropertyModel<>(filterModel, AxiomQueryWrapper.F_DSL_QUERY));
