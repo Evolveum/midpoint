@@ -166,7 +166,7 @@
             <xsd:element name="archetypeSelection" type="tns:ArchetypeSelectionModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="correlation" type="tns:CorrelationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="duo" type="tns:DuoAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="otp" type="tns:TOTPAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="totp" type="tns:TOtpAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -229,7 +229,26 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="TOTPAuthenticationModuleType">
+
+    <xsd:complexType name="OtpCredentialsPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Structure that specifies policy for OTP management.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CredentialPolicyType">
+                <xsd:sequence>
+                    <!-- Nothing special yet. Maybe in the future. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="TOtpAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 TOTP authentication module.
@@ -267,7 +286,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
                 <xsd:sequence>
                     <xsd:element name="issuer" type="xsd:string">
                         <xsd:annotation>

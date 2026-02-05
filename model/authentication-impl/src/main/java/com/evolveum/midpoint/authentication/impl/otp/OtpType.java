@@ -10,9 +10,9 @@ public enum OtpType {
 
     TOTP("totp");
 
-    public final String name;
+    public final String authUrlName;
 
-    OtpType(String name) {
-        this.name = name;
+    OtpType(String authUrlName) {
+        this.authUrlName = authUrlName;
     }
 }

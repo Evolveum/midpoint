@@ -222,4 +222,13 @@ public class ModuleWebSecurityConfigurer<C extends ModuleWebSecurityConfiguratio
         return existingConfigurer != null ? existingConfigurer : http.apply(configurer);
     }
 
+    protected void configureDefaultLogout(HttpSecurity http) throws Exception {
+        http.logout(
+                l -> l.clearAuthentication(true)
+                        .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() + "/logout"))
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .logoutSuccessHandler(createLogoutHandler())
+        );
+    }
 }
