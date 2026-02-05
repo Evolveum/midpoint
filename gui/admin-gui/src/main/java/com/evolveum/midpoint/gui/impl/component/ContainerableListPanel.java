@@ -797,10 +797,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     public PageStorage getPageStorage() {
-        if (isCollectionViewPanelForWidget()) {
-            return null;
-        }
-
         String storageKey = getStorageKey();
         if (StringUtils.isNotEmpty(storageKey)) {
             return getPageStorage(storageKey);
@@ -1299,7 +1295,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected String getStorageKey() {
-
         CompiledObjectCollectionView compiledView = getCompiledCollectionViewFromPanelConfiguration();
         if (compiledView != null) {
             return WebComponentUtil.getObjectListPageStorageKey(compiledView.getViewIdentifier());
@@ -1441,7 +1436,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return false;
     }
 
-    private String getWidgetNameOfCollection() {
+    protected String getWidgetNameOfCollection() {
         PageParameters parameters = getPageBase().getPageParameters();
         return parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME).toString();
     }
