@@ -1,20 +1,16 @@
 package com.evolveum.midpoint.smart.impl.activities;
 
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,24 +32,13 @@ public class CorrelationSuggestionRemoteServiceCallActivityRun extends LocalActi
         var task = getRunningTask();
         var parentState = Util.getParentState(this, result);
         var resourceOid = getWorkDefinition().getResourceOid();
-        var kind = getWorkDefinition().getKind();
-        var intent = getWorkDefinition().getIntent();
         var typeDef = getWorkDefinition().getTypeIdentification();
-        var state = getActivityState();
-        var statisticsOid = MiscUtil.stateNonNull(Referencable.getOid(parentState.getWorkStateReferenceRealValue(
-                        CorrelationSuggestionWorkStateType.F_STATISTICS_REF)),
-                "Statistics object reference is not set in the work state in %s", task);
 
-        LOGGER.debug("Going to suggest correlation for resource {}, kind {} and intent {}; statistics in: {}; schema match in: {}",
-                resourceOid, kind, intent, statisticsOid);
-
-        var statistics = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(
-                getBeans().repositoryService.getObject(GenericObjectType.class, statisticsOid, null, result));
         var schemaMatch = parentState.getWorkStateItemRealValueClone(
                 CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH, SchemaMatchResultType.class);
 
         var suggestedCorrelation = SmartIntegrationBeans.get().smartIntegrationService.suggestCorrelation(
-                resourceOid, typeDef, statistics, schemaMatch, null, task, result);
+                resourceOid, typeDef, schemaMatch, null, task, result);
 
         parentState.setWorkStateItemRealValues(CorrelationSuggestionWorkStateType.F_RESULT, suggestedCorrelation);
         parentState.flushPendingTaskModifications(result);

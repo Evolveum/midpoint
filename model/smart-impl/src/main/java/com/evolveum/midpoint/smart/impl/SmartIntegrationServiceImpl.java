@@ -272,21 +272,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
-            throws SchemaException {
-        return statisticsService.getLatestObjectTypeStatistics(resourceOid, kind, intent, parentResult);
-    }
-
-    @Override
     public void deleteStatisticsForResource(String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException {
         statisticsService.deleteStatisticsForResource(resourceOid, objectClassName, result);
-    }
-
-    @Override
-    public void deleteObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult result)
-            throws SchemaException {
-        statisticsService.deleteObjectTypeStatistics(resourceOid, kind, intent, result);
     }
 
     public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, Task task, OperationResult parentResult)
@@ -557,7 +545,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public CorrelationSuggestionsType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            ShadowObjectClassStatisticsType statistics,
             SchemaMatchResultType schemaMatch,
             @Nullable Object interactionMetadata,
             Task task,
@@ -572,7 +559,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var correlation = new CorrelationSuggestionOperation(
                     TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result))
-                    .suggestCorrelation(result, statistics, schemaMatch);
+                    .suggestCorrelation(result, schemaMatch);
             LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
             return correlation;
         } catch (Throwable t) {
