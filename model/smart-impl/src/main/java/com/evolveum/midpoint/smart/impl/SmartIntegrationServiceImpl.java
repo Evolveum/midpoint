@@ -700,7 +700,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .objectType(typeIdentification.asBean())
                     .inbound(isInbound);
 
-            mappingsSuggestionWorkDefinition.getTargetPathsToIgnore().addAll(targetPathsToIgnore);
+            if (targetPathsToIgnore != null) {
+                mappingsSuggestionWorkDefinition.getTargetPathsToIgnore().addAll(targetPathsToIgnore);
+            }
 
             var oid = modelInteractionService.submit(
                     new ActivityDefinitionType()
