@@ -107,57 +107,6 @@ public class StatisticsService {
         }
     }
 
-    /**
-     * Returns the object holding last known statistics for the given resource, kind and intent.
-     * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
-     */
-    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
-            throws SchemaException {
-        var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
-                .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind)
-                .addParam("intent", intent)
-                .build();
-        try {
-            var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                            .eq(kind)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                            .eq(intent)
-                            .build(),
-                    null,
-                    result);
-
-            var latestStatistics = objects.stream()
-                    .filter(o -> ObjectTypeUtil.getExtensionItemRealValue(
-                                    o.asObjectable().getExtension(), MODEL_EXTENSION_OBJECT_TYPE_STATISTICS) != null)
-                    .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(o).getTimestamp())))
-                    .orElse(null);
-
-            if (latestStatistics != null) {
-                var statistics = ShadowObjectTypeStatisticsTypeUtil.getObjectTypeStatisticsRequired(latestStatistics);
-                if (isStatisticsExpired(statistics.getTimestamp(), result)) {
-                    LOGGER.info("Object type statistics {} for resource {}/{}/{} expired, deleting",
-                            latestStatistics.getOid(), resourceOid, kind, intent);
-                    deleteStatistics(latestStatistics.getOid(), result);
-                    return null;
-                }
-            }
-
-            return latestStatistics != null ? latestStatistics.asObjectable() : null;
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
-        } finally {
-            result.close();
-        }
-    }
-
     public void deleteStatisticsForResource(
             String resourceOid,
             QName objectClassName,
@@ -184,45 +133,6 @@ public class StatisticsService {
 
             LOGGER.info("Manually deleted {} statistics objects for resource {} and class {}",
                     objects.size(), resourceOid, objectClassName);
-            result.recordSuccess();
-        } catch (Throwable t) {
-            result.recordException(t);
-            throw t;
-        } finally {
-            result.close();
-        }
-    }
-
-    public void deleteObjectTypeStatistics(
-            String resourceOid,
-            String kind,
-            String intent,
-            OperationResult parentResult) throws SchemaException {
-        var result = parentResult.subresult("deleteObjectTypeStatistics")
-                .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind)
-                .addParam("intent", intent)
-                .build();
-        try {
-            var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                            .eq(kind)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                            .eq(intent)
-                            .build(),
-                    null,
-                    result);
-
-            for (var obj : objects) {
-                deleteStatistics(obj.getOid(), result);
-            }
-
-            LOGGER.info("Manually deleted {} object type statistics for resource {}/{}/{}",
-                    objects.size(), resourceOid, kind, intent);
             result.recordSuccess();
         } catch (Throwable t) {
             result.recordException(t);

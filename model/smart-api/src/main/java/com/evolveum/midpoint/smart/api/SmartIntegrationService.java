@@ -66,20 +66,10 @@ public interface SmartIntegrationService {
             String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException;
 
-    /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
-    GenericObjectType getLatestObjectTypeStatistics(
-            String resourceOid, String kind, String intent, OperationResult parentResult)
-            throws SchemaException;
-
 
     /** Deletes all statistics objects for the given resource and object class. */
     void deleteStatisticsForResource(
             String resourceOid, QName objectClassName, OperationResult result)
-            throws SchemaException;
-
-    /** Deletes all object type statistics for the given resource, kind, and intent. */
-    void deleteObjectTypeStatistics(
-            String resourceOid, String kind, String intent, OperationResult result)
             throws SchemaException;
 
     /** Returns the object holding last known schema match for the given resource, kind and intent. */
@@ -167,7 +157,6 @@ public interface SmartIntegrationService {
     CorrelationSuggestionsType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            ShadowObjectClassStatisticsType statistics,
             SchemaMatchResultType schemaMatch,
             @Nullable Object interactionMetadata,
             Task task,
@@ -214,6 +203,7 @@ public interface SmartIntegrationService {
             ResourceObjectTypeIdentification typeIdentification,
             SchemaMatchResultType schemaMatch,
             Boolean isInbound,
+            Boolean useAiService,
             @Nullable List<ItemPath> targetPathsToIgnore,
             @Nullable CurrentActivityState<?> activityState,
             Task task,

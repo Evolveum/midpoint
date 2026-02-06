@@ -22,7 +22,6 @@ import java.util.ArrayList;
 public class CorrelationSuggestionActivityHandler
         extends ModelActivityHandler<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> {
 
-    private static final String ID_CORRELATION_STATISTICS_COMPUTATION = "correlationStatisticsComputation";
     private static final String ID_CORRELATION_SUGGESTION = "correlationSuggestion";
     private static final String ID_CORRELATION_SCHEMA_MATCHING = "schemaMatching";
 
@@ -58,13 +57,6 @@ public class CorrelationSuggestionActivityHandler
     public ArrayList<Activity<?, ?>> createChildActivities(
             Activity<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> parentActivity) {
         var children = new ArrayList<Activity<?, ?>>();
-        children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
-                (context, result) -> new CorrelationStatisticsComputationActivityRun(context, "Statistics computation"),
-                null,
-                (i) -> ID_CORRELATION_STATISTICS_COMPUTATION,
-                ActivityStateDefinition.normal(),
-                parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
                 (context, result) -> new CorrelationSchemaMatchingActivityRun(context),

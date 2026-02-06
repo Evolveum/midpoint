@@ -26,8 +26,9 @@ public class AxiomQueryWrapper extends AbstractQueryWrapper {
     private ItemDefinition<?> containerDefinitionOverride;
     private Class<?> typeClass;
 
-    public AxiomQueryWrapper(ItemDefinition<?> containerDefinitionOverride) {
+    public AxiomQueryWrapper(ItemDefinition<?> containerDefinitionOverride, Class<?> typeClass) {
         this.containerDefinitionOverride = containerDefinitionOverride;
+        this.typeClass = typeClass;
     }
 
     public <T> ObjectQuery createQuery(Class<T> typeClass, PageBase pageBase, VariablesMap variablesMap) throws SchemaException, ExpressionEvaluationException {

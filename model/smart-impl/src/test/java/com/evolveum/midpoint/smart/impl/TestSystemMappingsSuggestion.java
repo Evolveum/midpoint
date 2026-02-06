@@ -19,12 +19,12 @@ import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -72,6 +72,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
+    @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -174,18 +175,16 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -232,18 +231,16 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 null, null, null, null, null, null, null
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -290,18 +287,16 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 null, null, null, null, null, null, null
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
@@ -342,18 +337,16 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var mockClient = createClient(List.of(), List.of(), null, null, null, null, null, null, null);
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
+        var ctx = TypeOperationContext.init(mockClient, RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, null, task, result);
 
         var op = MappingsSuggestionOperation.init(
-                mockClient,
-                RESOURCE_LDAP.oid,
-                ACCOUNT_DEFAULT,
-                null,
+                ctx,
                 new MappingsQualityAssessor(expressionFactory),
                 new OwnedShadowsProviderFromResource(),
                 wellKnownSchemaService,
+                heuristicRuleMatcher,
                 true,
-                task,
-                result);
+                true);
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_LDAP.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, acceptedSuggestionPaths);

@@ -32,21 +32,19 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var task = getRunningTask();
         var parentState = Util.getParentState(this, result);
         var resourceOid = getWorkDefinition().getResourceOid();
-        var kind = getWorkDefinition().getKind();
-        var intent = getWorkDefinition().getIntent();
         var typeDef = getWorkDefinition().getTypeIdentification();
         var targetPathsToIgnore = getWorkDefinition().getTargetPathsToIgnore();
         var state = getActivityState();
 
         LOGGER.debug("Going to suggest mappings for resource {}, kind {} and intent {}",
-                resourceOid, kind, intent);
+                resourceOid, typeDef.getKind(), typeDef.getIntent());
 
         var schemaMatch = parentState.getWorkStateItemRealValueClone(
                 MappingsSuggestionWorkStateType.F_SCHEMA_MATCH, SchemaMatchResultType.class);
         var isInbound = getWorkDefinition().isInbound();
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, typeDef, schemaMatch, isInbound, targetPathsToIgnore, state, task, result);
+                resourceOid, typeDef, schemaMatch, isInbound, true, targetPathsToIgnore, state, task, result);
 
         parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
         parentState.flushPendingTaskModifications(result);

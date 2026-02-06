@@ -17,6 +17,8 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
@@ -34,7 +36,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
@@ -54,21 +62,45 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
     @Autowired
     private CorrelationService correlationService;
 
+    @DataProvider
+    public static Object[] mappingPhases() {
+        return new Object[] {
+                null, InboundMappingEvaluationPhaseType.BEFORE_CORRELATION
+        };
+    }
+
+    @DataProvider
+    public static Object[] defaultEvalPhases() {
+        return new Object[] {
+                null,
+                new ResourceMappingsEvaluationConfigurationType()
+                        .inbound(new InboundMappingsEvaluationConfigurationType()
+                        .defaultEvaluationPhases(new DefaultInboundMappingEvaluationPhasesType()
+                                .phase(InboundMappingEvaluationPhaseType.BEFORE_CORRELATION)))
+        };
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-
-        initDummyResource(DUMMY_RESOURCE, initTask, initResult);
     }
 
-    @Test
-    void ShadowHasOneFocusCounterpart_correlateShadow_focusShouldBeInCandidateOwners()
+    @BeforeMethod
+    public void initDummyResource() throws Exception {
+        DUMMY_RESOURCE.initWithOverwrite(this, getTestTask(), getTestOperationResult());
+    }
+
+    @Test(dataProvider = "defaultEvalPhases")
+    void ShadowHasOneFocusCounterpart_correlateShadow_focusShouldBeInCandidateOwners(
+            ResourceMappingsEvaluationConfigurationType defaultEvalPhaseConfig)
             throws ConflictException, ObjectDoesNotExistException, IOException, SchemaViolationException,
             InterruptedException, ObjectAlreadyExistsException, CommonException {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
-        given("Resource contains account.");
+        given("Default mappings evaluation phase is %s".formatted(describePhase(defaultEvalPhaseConfig)));
+        configureDefaultEvalPhase(defaultEvalPhaseConfig, task, result);
+        and("Resource contains account.");
         DUMMY_RESOURCE.controller.getDummyResource().clear();
         CorrelatorTestUtil.addAccountsFromCsvFile(this, ACCOUNT, DUMMY_RESOURCE);
         final List<TestingAccount> allAccounts = CorrelatorTestUtil.getAllAccounts(this, DUMMY_RESOURCE,
@@ -94,8 +126,9 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
      * correlation, is correctly added to the resource schema also in case, when the attribute itself, which is
      * referenced by the mapping, is not defined (check the familyName in dummy resource xml).
      */
-    @Test
-    void attributeMappedByCorrelationMappingIsUndefined_correlateShadowWithAdditionalMapping_candidateOwnersShouldBeFound()
+    @Test(dataProvider = "mappingPhases")
+    void attributeMappedByCorrelationMappingIsUndefined_correlateShadowWithAdditionalMapping_candidateOwnersShouldBeFound(
+            InboundMappingEvaluationPhaseType mappingPhase)
             throws ConflictException, ObjectDoesNotExistException, IOException, SchemaViolationException,
             InterruptedException, ObjectAlreadyExistsException, CommonException {
         final Task task = getTestTask();
@@ -112,7 +145,12 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
 
         when("Correlation with particular definition and additional mapping is run on the account's shadow.");
         final CorrelationDefinitionType correlationDefinition = createCorrelationDefinition(FAMILY_NAME_CORRELATOR);
-        final AdditionalCorrelationItemMappingType additionalMapping = fromAttribute("familyName").toItem("familyName");
+        and("The additional mapping has the evaluation phase %s".formatted(mappingPhase == null
+                ? "not set"
+                : mappingPhase));
+        final AdditionalCorrelationItemMappingType additionalMapping = mappingInPhase(mappingPhase)
+                .fromAttribute("familyName")
+                .toItem("familyName");
 
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(
                 allAccounts.get(0).getShadow(), correlationDefinition, List.of(additionalMapping), task, result);
@@ -146,7 +184,8 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
 
         when("Correlation with particular definition and additional mapping is run on the account's shadow.");
         final CorrelationDefinitionType correlationDefinition = createCorrelationDefinition(PERSONAL_NUMBER_CORRELATOR);
-        final AdditionalCorrelationItemMappingType additionalMapping = fromAttribute("employeeNumber")
+        final AdditionalCorrelationItemMappingType additionalMapping = mappingWithoutPhase()
+                .fromAttribute("employeeNumber")
                 .toItem("personalNumber");
 
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(
@@ -166,16 +205,50 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
         return new CorrelationDefinitionType().correlators(new CompositeCorrelatorType().items(correlator));
     }
 
-    private static AdditionalMappingFrom fromAttribute(String attributeName) {
-        return itemName -> new AdditionalCorrelationItemMappingType()
-                .ref(ItemPath.fromString(attributeName).toBean())
-                .inbound(new InboundMappingType()
-                        .target(new VariableBindingDefinitionType()
-                                .path(ItemPath.fromString(itemName).toBean())));
+    private void configureDefaultEvalPhase(ResourceMappingsEvaluationConfigurationType defaultEvalPhase, Task task,
+            OperationResult result)
+            throws com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException, ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            PolicyViolationException, SecurityViolationException {
+        final Long id = DUMMY_RESOURCE.get().asObjectable().getSchemaHandling().getObjectType().get(0).getId();
+        executeChanges(this.prismContext.deltaFor(ResourceType.class)
+                .item(ItemPath.create(ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_OBJECT_TYPE, id,
+                        ResourceObjectTypeDefinitionType.F_MAPPINGS_EVALUATION))
+                .add(defaultEvalPhase)
+                .asObjectDelta(DUMMY_RESOURCE.oid), null, task, result);
+    }
+
+    private static AdditionalMappingInPhase mappingWithoutPhase() {
+        return mappingInPhase(null);
+    }
+    private static AdditionalMappingInPhase mappingInPhase(InboundMappingEvaluationPhaseType phase) {
+        return attributeName -> itemName -> {
+
+            final InboundMappingEvaluationPhasesType evaluationPhase = phase == null
+                    ? null
+                    : new InboundMappingEvaluationPhasesType().include(phase);
+            return new AdditionalCorrelationItemMappingType()
+                    .ref(ItemPath.fromString(attributeName).toBean())
+                    .inbound(new InboundMappingType()
+                            .evaluationPhases(evaluationPhase)
+                            .target(new VariableBindingDefinitionType()
+                                    .path(ItemPath.fromString(itemName).toBean())));
+        };
+    }
+
+    private interface AdditionalMappingInPhase {
+        AdditionalMappingFrom fromAttribute(String attributeName);
     }
 
     private interface AdditionalMappingFrom {
         AdditionalCorrelationItemMappingType toItem(String itemName);
+    }
+
+    private static String describePhase(ResourceMappingsEvaluationConfigurationType defaultEvalPhaseConfig) {
+        return defaultEvalPhaseConfig == null
+                ? "not defined"
+                : defaultEvalPhaseConfig.getInbound().getDefaultEvaluationPhases().getPhase().toString();
     }
 
 }
