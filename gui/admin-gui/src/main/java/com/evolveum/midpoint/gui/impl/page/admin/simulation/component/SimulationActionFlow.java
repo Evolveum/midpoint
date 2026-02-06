@@ -19,6 +19,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceTaskCreator;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TileChoicePopup;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -42,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +54,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 
 public class SimulationActionFlow<T> implements Serializable {
 
@@ -360,20 +366,35 @@ public class SimulationActionFlow<T> implements Serializable {
 
         IModel<String> titleModel = isCorrelationFastSimulation
                 ? pageBase.createStringResource(
-                "SimulationProgressPanel.correlation.simulation.title")
+                "SmartTaskProgressPanel.correlation.simulation.title")
                 : pageBase.createStringResource(
-                "SimulationProgressPanel.mapping.simulation.title");
+                "SmartTaskProgressPanel.mapping.simulation.title");
 
         IModel<String> subTitleModel = isCorrelationFastSimulation
                 ? pageBase.createStringResource(
-                "SimulationProgressPanel.correlation.simulation.subTitle")
+                "SmartTaskProgressPanel.correlation.simulation.subTitle")
                 : pageBase.createStringResource(
-                "SimulationProgressPanel.mapping.simulation.subTitle");
+                "SmartTaskProgressPanel.mapping.simulation.subTitle");
 
-        SimulationProgressPanel panel = new SimulationProgressPanel(pageBase.getMainPopupBodyId(), titleModel, subTitleModel,
-                () -> loadTask(pageBase, taskOid));
+        SmartTaskProgressPanel panel = new SmartTaskProgressPanel(pageBase.getMainPopupBodyId(), titleModel, subTitleModel,
+                () -> loadTask(pageBase, taskOid)) {
+            @Override
+            protected IModel<String> getStopButtonLabel() {
+                return createStringResource("SmartTaskProgressPanel.button.stopSimulation");
+            }
 
-        pageBase.showMainPopup(panel, target);
+            @Override
+            protected void onShowResults(AjaxRequestTarget target) {
+                ObjectReferenceType simulationResultReference = getSimulationResultReference(getModelObject());
+                PageParameters params = new PageParameters();
+                if (simulationResultReference != null) {
+                    params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, simulationResultReference.getOid());
+                    getPageBase().navigateToNext(PageSimulationResult.class, params);
+                }
+            }
+        };
+
+        pageBase.replaceMainPopup(panel, target);
     }
 
     private @Nullable TaskType loadTask(@NotNull PageBase pageBase, String taskOid) {
@@ -389,7 +410,6 @@ public class SimulationActionFlow<T> implements Serializable {
         this.isSamplingEnabled = true;
     }
 
-    //TODO require BE implementation (simulation task not reporting progress yet)
     public void showProgressPopup() {
         this.showProgressPopup = true;
     }

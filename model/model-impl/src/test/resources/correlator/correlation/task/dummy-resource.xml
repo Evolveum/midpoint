@@ -115,13 +115,6 @@
                     </target>
                 </inbound>
             </attribute>
-            <mappingsEvaluation>
-                <inbound>
-                    <defaultEvaluationPhases>
-                        <phase>beforeCorrelation</phase>
-                    </defaultEvaluationPhases>
-                </inbound>
-            </mappingsEvaluation>
         </objectType>
     </schemaHandling>
 </resource>

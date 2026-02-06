@@ -72,9 +72,13 @@ public class CorrelatorContextCreator {
             @Nullable SystemConfigurationType systemConfiguration)
             throws ConfigurationException, SchemaException {
         CompositeCorrelatorType correlators;
-        CompositeCorrelatorType specificCorrelators = correlationDefinitionBean == null ? null : correlationDefinitionBean.getCorrelators();
+        CompositeCorrelatorType specificCorrelators = correlationDefinitionBean == null
+                ? null
+                : correlationDefinitionBean.getCorrelators();
         if (specificCorrelators != null) {
-            correlators = specificCorrelators;
+            correlators = specificCorrelators.asPrismContainerValue().isEmpty()
+                    ? null
+                    : specificCorrelators;
         } else {
             correlators = ObjectTemplateTypeUtil.getCorrelators(objectTemplate, correlatorDiscriminator);
         }

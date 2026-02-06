@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -59,7 +60,7 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
     }
 
     @Override
-    public IModel<String> getName() {
+    public @NotNull IModel<String> getName() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -71,7 +72,7 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
     }
 
     @Override
-    public IModel<String> getHelp() {
+    public @NotNull IModel<String> getHelp() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
@@ -84,7 +85,7 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
 
 
     @Override
-    public IModel<String> getTitle() {
+    public @NotNull IModel<String> getTitle() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
