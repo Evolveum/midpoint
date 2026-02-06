@@ -4,13 +4,11 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.simulation.component;
+package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
@@ -23,7 +21,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.TaskExecutionProgress;
 import com.evolveum.midpoint.web.page.admin.server.dto.GuiTaskResultStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.Component;
@@ -34,27 +31,24 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.Duration;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.formatElapsedTime;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 
 /**
- * Popup panel that displays progress of a running simulation task.
+ * Popup panel that displays progress of a running task.
  *
  * <p>Shows a title/subtitle, current task status, elapsed time, and progress information.
  * The panel periodically refreshes itself and updates footer buttons (stop / show results).
  * When the task is finished, the auto-refresh is stopped and the "Show results" action becomes enabled.</p>
  *
- * <p>The "Stop simulation" action requests cancellation of the underlying task via {@link SmartIntegrationService}.
- * The "See results" action navigates to {@link PageSimulationResult} using the simulation result reference
- * obtained from the task.</p>
+ * <p>The "Stop task" action requests cancellation of the underlying task via {@link SmartIntegrationService}.
+ * The "See results" action is abstract and should be implemented by concrete subclasses.
  */
-public class SimulationProgressPanel extends BasePanel<TaskType> implements Popupable {
+public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> implements Popupable {
 
     private static final String ID_CONTAINER = "container";
 
@@ -77,7 +71,7 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
 
     private Fragment footer;
 
-    public SimulationProgressPanel(
+    public SmartTaskProgressPanel(
             String id,
             IModel<String> titleModel,
             IModel<String> subtitleModel,
@@ -164,7 +158,7 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
                 : System.currentTimeMillis();
 
         return formatElapsedTime(startMillis, endMillis,
-                createStringResource("SimulationProgressPanel.runningFor").getString());
+                createStringResource("SmartTaskProgressPanel.runningFor").getString());
     }
 
     private @NotNull String getProgressText() {
@@ -174,7 +168,7 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
         }
 
         return createStringResource(
-                "SimulationProgressPanel.progressLabel",
+                "SmartTaskProgressPanel.progressLabel",
                 progressLabelValue).getString();
     }
 
@@ -184,7 +178,7 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
     }
 
     private @NotNull Component createProgressBar() {
-        WebMarkupContainer progressBar = new WebMarkupContainer(SimulationProgressPanel.ID_PROGRESS_BAR);
+        WebMarkupContainer progressBar = new WebMarkupContainer(SmartTaskProgressPanel.ID_PROGRESS_BAR);
         progressBar.setOutputMarkupId(true);
         return progressBar;
     }
@@ -194,7 +188,7 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
         footer.setOutputMarkupId(true);
 
         AjaxIconButton stopButton = new AjaxIconButton(ID_STOP, Model.of(""),
-                createStringResource("SimulationProgressPanel.button.stopSimulation")) {
+                getStopButtonLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onStop(target);
@@ -206,10 +200,10 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
         AjaxIconButton showButton = new AjaxIconButton(
                 ID_SHOW_RESULT,
                 Model.of(""),
-                createStringResource("SimulationProgressPanel.button.showResults")) {
+                createStringResource("SmartTaskProgressPanel.button.showResults")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onShowResults();
+                onShowResults(target);
             }
         };
         showButton.showTitleAsLabel(true);
@@ -217,6 +211,10 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
         footer.add(showButton);
 
         add(footer);
+    }
+
+    protected IModel<String> getStopButtonLabel() {
+        return createStringResource("SmartTaskProgressPanel.button.stop.task");
     }
 
     @Override
@@ -230,7 +228,7 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
 
     protected void onStop(AjaxRequestTarget target) {
         String token = getModelObject().getOid();
-        Task task = getPageBase().createSimpleTask("SimulationProgressPanel.onStop");
+        Task task = getPageBase().createSimpleTask("SmartTaskProgressPanel.onStop");
         OperationResult result = task.getResult();
         SmartIntegrationService smartIntegrationService = getPageBase().getSmartIntegrationService();
         try {
@@ -243,15 +241,10 @@ public class SimulationProgressPanel extends BasePanel<TaskType> implements Popu
 
         getPageBase().hideMainPopup(target);
     }
-
-    protected void onShowResults() {
-        ObjectReferenceType simulationResultReference = getSimulationResultReference(getModelObject());
-        PageParameters params = new PageParameters();
-        if (simulationResultReference != null) {
-            params.set(SimulationPage.PAGE_PARAMETER_RESULT_OID, simulationResultReference.getOid());
-            getPageBase().navigateToNext(PageSimulationResult.class, params);
-        }
-    }
+    /**
+     * Action performed when the "Show results" button is clicked. The button is enabled when the task is finished.
+     */
+    protected abstract void onShowResults(AjaxRequestTarget target);
 
     @Override
     public int getWidth() {

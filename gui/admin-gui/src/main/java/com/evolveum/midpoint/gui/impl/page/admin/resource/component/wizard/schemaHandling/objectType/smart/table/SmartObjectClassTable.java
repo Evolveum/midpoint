@@ -212,7 +212,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         ComplexTypeDefinitionType realValue = object.getRealValue();
 
         ObjectClassSizeEstimationType sizeEstimation = objectClassSizeEstimationCache.get(realValue.getName());
-        return new SmartObjectClassTileModel<>(object, sizeEstimation);
+        return new SmartObjectClassTileModel<>(object, resourceOid, sizeEstimation);
     }
 
     private @Nullable ObjectClassSizeEstimationType getObjectClassSizeEstimationType(
@@ -550,6 +550,5 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     public boolean displayNoValuePanel() {
         return getProvider().size() == 0;
     }
-
 
 }

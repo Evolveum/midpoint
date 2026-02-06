@@ -1,8 +1,7 @@
 <!--
-  ~ Copyright (c) 2010-2025 Evolveum
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
+  ~ Licensed under the EUPL-1.2 or later.
   -->
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
@@ -65,9 +64,10 @@
     </wicket:fragment>
 
     <wicket:fragment wicket:id="title">
-        <div class="d-flex justify-content-between align-items-center w-100">
+        <div class="d-flex align-items-center gap-2 w-100">
             <div class="h5 m-0" wicket:id="primaryTitle"></div>
-            <div class="text-muted small" wicket:id="secondaryTitle"></div>
+            <div class="text-muted small ml-auto" wicket:id="secondaryTitle"></div>
+            <div wicket:id="regenerateButton"></div>
         </div>
     </wicket:fragment>
 </wicket:panel>
