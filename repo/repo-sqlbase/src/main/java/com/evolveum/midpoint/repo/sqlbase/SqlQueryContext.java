@@ -6,9 +6,12 @@
 
 package com.evolveum.midpoint.repo.sqlbase;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.QueryMetadata;
@@ -456,6 +459,40 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
         return (int) sqlQuery.clone(jdbcSession.connection())
                 // select not needed here, it would only initialize projection unnecessarily
                 .fetchCount();
+    }
+
+    /**
+     * Executes query with JDBC streaming (cursor-based fetch).
+     * Unlike {@link #executeQuery}, this does NOT load all rows into memory.
+     * PostgreSQL requires autoCommit=false and fetchSize>0 for streaming.
+     *
+     * @param jdbcSession JDBC session (must be in transaction, i.e., autoCommit=false)
+     * @param fetchSize number of rows to fetch at a time from the database
+     * @return Stream of Tuple that must be consumed within the same transaction
+     */
+    public Stream<Tuple> executeQueryStreaming(JdbcSession jdbcSession, int fetchSize) throws QueryException {
+        Connection connection = jdbcSession.connection();
+
+        // PostgreSQL requires autoCommit=false for cursor-based streaming
+        try {
+            if (connection.getAutoCommit()) {
+                throw new QueryException("Streaming query requires autoCommit=false (transaction mode)");
+            }
+        } catch (SQLException e) {
+            throw new QueryException("Failed to check autoCommit status", e);
+        }
+
+        SQLQuery<?> query = sqlQuery.clone(connection);
+
+        // Set fetch size for JDBC cursor-based streaming
+        query.setStatementOptions(com.querydsl.sql.StatementOptions.builder()
+                .setFetchSize(fetchSize)
+                .build());
+
+        Q entity = root();
+        return query
+                .select(buildSelectExpressions(entity, query))
+                .stream();
     }
 
     /**
