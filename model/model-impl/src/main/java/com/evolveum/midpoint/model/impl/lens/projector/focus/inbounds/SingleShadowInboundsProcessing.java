@@ -55,7 +55,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
 
     @NotNull private final SingleShadowInboundsProcessingContext<T> ctx;
 
-    private SingleShadowInboundsProcessing(
+    public SingleShadowInboundsProcessing(
             @NotNull SingleShadowInboundsProcessingContext<T> ctx,
             @NotNull MappingEvaluationEnvironment env) {
         super(env);
@@ -70,8 +70,10 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
                 .build();
         try {
 
-            new SingleShadowInboundsProcessing<>(ctx, createEnv(ctx))
+            final Collection<ItemDelta<?, ?>> deltas = new SingleShadowInboundsProcessing<>(ctx, createEnv(ctx))
                     .executeToDeltas(result);
+            LOGGER.trace("Applying deltas to the pre-focus:\n{}", DebugUtil.debugDumpLazily(deltas, 1));
+            ItemDeltaCollectionsUtil.applyTo(deltas, ctx.getPreFocusAsPcv());
 
             var focus = ctx.getPreFocus();
             LOGGER.debug("Focus:\n{}", focus.debugDumpLazily(1));
@@ -187,13 +189,6 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
             return (PrismContainerDefinition<T>) beans.prismContext.getSchemaRegistry()
                     .findContainerDefinitionByCompileTimeClass(focus.asContainerable().getClass());
         }
-    }
-
-    @Override
-    void applyComputedDeltas(Collection<? extends ItemDelta<?, ?>> itemDeltas) throws SchemaException {
-        LOGGER.trace("Applying deltas to the pre-focus:\n{}", DebugUtil.debugDumpLazily(itemDeltas, 1));
-        ItemDeltaCollectionsUtil.applyTo(
-                itemDeltas, ctx.getPreFocusAsPcv());
     }
 
     @Override
