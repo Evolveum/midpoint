@@ -271,6 +271,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         return statisticsService.getLatestStatistics(resourceOid, objectClassName, parentResult);
     }
 
+
+    @Override
+    public String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
+            throws CommonException {
+        return statisticsService.regenerateObjectClassStatistics(resourceOid, objectClassName, task, parentResult);
+    }
+
     @Override
     public void deleteStatisticsForResource(String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException {

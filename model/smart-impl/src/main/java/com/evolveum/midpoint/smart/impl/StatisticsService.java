@@ -13,11 +13,22 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.util.Comparator;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -45,17 +56,24 @@ public class StatisticsService {
 
     private static final String OP_GET_LATEST_STATISTICS = "getLatestStatistics";
     private static final String OP_GET_LATEST_OBJECT_TYPE_STATISTICS = "getLatestObjectTypeStatistics";
+    private static final String OP_SUBMIT_OBJECT_CLASS_STATISTICS_COMPUTATION = "submitObjectClassStatisticsComputation";
 
     /** Default time-to-live for statistics objects if not configured. */
     private static final Duration DEFAULT_STATISTICS_TTL = XmlTypeConverter.createDuration("P1D");
 
     private final RepositoryService repositoryService;
+    private final ModelService modelService;
+    private final ModelInteractionServiceImpl modelInteractionService;
     private final SystemObjectCache systemObjectCache;
 
     public StatisticsService(
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
+            ModelService modelService,
+            ModelInteractionServiceImpl modelInteractionService,
             SystemObjectCache systemObjectCache) {
         this.repositoryService = repositoryService;
+        this.modelService = modelService;
+        this.modelInteractionService = modelInteractionService;
         this.systemObjectCache = systemObjectCache;
     }
 
@@ -105,6 +123,103 @@ public class StatisticsService {
         } finally {
             result.close();
         }
+    }
+
+    /**
+     * Starts regeneration of statistics for the given resource object class.
+     *
+     * <p>If a statistics computation task for the same resource and object class
+     * is already running, its task OID is returned and no new task is started.
+     * Otherwise, existing statistics are deleted and a new computation task
+     * is submitted.</p>
+     *
+     * @return OID of the running or newly created statistics computation task
+     */
+    public @NotNull String regenerateObjectClassStatistics(String resourceOid, QName objectClassName,
+            Task task, OperationResult parentResult) throws CommonException {
+        String runningTaskOid = findRunningStatisticsComputationTaskOid(resourceOid, objectClassName, parentResult, task);
+        if (runningTaskOid != null) {
+            LOGGER.debug("There is already a running statistics computation task (OID {}) for resourceOid {}, objectClassName {};"
+                            + " will not start another one",
+                    runningTaskOid, resourceOid, objectClassName);
+            return runningTaskOid;
+        }
+
+        var result = parentResult.subresult(OP_SUBMIT_OBJECT_CLASS_STATISTICS_COMPUTATION)
+                .addParam("resourceOid", resourceOid)
+                .addParam("objectClassName", objectClassName)
+                .build();
+
+        try {
+            deleteStatisticsForResource(resourceOid, objectClassName, parentResult);
+
+            var oid = modelInteractionService.submit(
+                    new ActivityDefinitionType()
+                            .work(new WorkDefinitionsType()
+                                    .objectClassStatisticsComputation(new ObjectClassStatisticsComputationWorkDefinitionType()
+                                            .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                            .objectClassName(objectClassName))),
+                    ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
+                            .name("Regenerate statistics for " + objectClassName.getLocalPart() + " on " + resourceOid)
+                            .cleanupAfterCompletion(DEFAULT_STATISTICS_TTL)),
+                    task, result);
+
+            LOGGER.debug("Submitted regenerate statistics operation for resourceOid {}, objectClassName {}: {}",
+                    resourceOid, objectClassName, oid);
+            return oid;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    /** Returns OID of running statistics computation task for given resource object class, or null if there is none. */
+    private @Nullable String findRunningStatisticsComputationTaskOid(String resourceOid, QName objectClassName,
+            OperationResult result, Task task) throws CommonException {
+
+        var query = PrismContext.get().queryFor(TaskType.class)
+                .item(ItemPath.create(
+                        TaskType.F_AFFECTED_OBJECTS,
+                        TaskAffectedObjectsType.F_ACTIVITY,
+                        ActivityAffectedObjectsType.F_RESOURCE_OBJECTS,
+                        BasicResourceObjectSetType.F_RESOURCE_REF))
+                .ref(resourceOid)
+                .and()
+                .item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.RUNNING)
+                .build();
+
+        var foundOidRef = new AtomicReference<String>();
+
+        ResultHandler<TaskType> handler = (taskPrism, lResult) -> {
+            if (foundOidRef.get() != null) {
+                return false; // stop iterating
+            }
+
+            TaskType taskBean = taskPrism.asObjectable();
+            ActivityDefinitionType activity = taskBean.getActivity();
+            if (activity == null || activity.getWork() == null) {
+                return true;
+            }
+
+            WorkDefinitionsType work = activity.getWork();
+            ObjectClassStatisticsComputationWorkDefinitionType def = work.getObjectClassStatisticsComputation();
+            if (def == null) {
+                return true;
+            }
+
+            if (objectClassName.equals(def.getObjectClassName())) {
+                foundOidRef.set(taskBean.getOid());
+                return false; // stop iterating, we found one
+            }
+
+            return true;
+        };
+
+        modelService.searchObjectsIterative(TaskType.class, query, handler, null, task, result);
+
+        return foundOidRef.get();
     }
 
     public void deleteStatisticsForResource(

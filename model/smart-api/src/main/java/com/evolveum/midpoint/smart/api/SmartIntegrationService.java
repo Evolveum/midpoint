@@ -66,6 +66,9 @@ public interface SmartIntegrationService {
             String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException;
 
+    /** Regenerates statistics for the given resource and object class. */
+    String regenerateObjectClassStatistics(String resourceOid, QName objectClassName, Task task, OperationResult result
+    ) throws CommonException;
 
     /** Deletes all statistics objects for the given resource and object class. */
     void deleteStatisticsForResource(
