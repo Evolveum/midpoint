@@ -9,9 +9,12 @@ package com.evolveum.midpoint.model.impl.mappings.tasks;
 
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -24,24 +27,24 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
-public class MappingActivityRun
-        extends SearchBasedActivityRun<
-                ShadowType,
-                MappingWorkDefinition,
-                MappingActivityHandler,
+public class MappingActivityRun extends SearchBasedActivityRun<ShadowType, MappingWorkDefinition, MappingActivityHandler,
                 AbstractActivityWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingActivityRun.class);
 
+    private final PrismContext prismContext;
+    private final ProvisioningService provisioningService;
+    private final List<InlineMappingDefinitionType> mappings;
+
     public MappingActivityRun(
-            ActivityRunInstantiationContext<MappingWorkDefinition, MappingActivityHandler> ctx) {
+            ActivityRunInstantiationContext<MappingWorkDefinition, MappingActivityHandler> ctx,
+            ProvisioningService provisioningService, PrismContext prismContext) {
         super(ctx, "Mapping Simulation");
+        this.prismContext = prismContext;
+        this.provisioningService = provisioningService;
+        this.mappings = ctx.getActivity().getWorkDefinition().provideMappings();
         setInstanceReady();
     }
 

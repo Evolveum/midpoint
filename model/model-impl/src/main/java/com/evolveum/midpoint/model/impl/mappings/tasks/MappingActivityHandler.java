@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.mappings.tasks;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
@@ -24,9 +26,12 @@ public class MappingActivityHandler
         implements ActivityHandler<MappingWorkDefinition, MappingActivityHandler> {
 
     private final ActivityHandlerRegistry activityHandlerRegistry;
+    private final ProvisioningService provisioningService;
 
-    public MappingActivityHandler(ActivityHandlerRegistry activityHandlerRegistry) {
+    public MappingActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
+            ProvisioningService provisioningService) {
         this.activityHandlerRegistry = activityHandlerRegistry;
+        this.provisioningService = provisioningService;
     }
 
     @PostConstruct
@@ -44,7 +49,7 @@ public class MappingActivityHandler
     public MappingActivityRun createActivityRun(
             @NotNull ActivityRunInstantiationContext<MappingWorkDefinition, MappingActivityHandler> ctx,
             @NotNull OperationResult result) {
-        return new MappingActivityRun(ctx);
+        return new MappingActivityRun(ctx, this.provisioningService, PrismContext.get());
     }
 
     private MappingWorkDefinition workDefFactory(WorkDefinitionFactory.WorkDefinitionInfo info) {
