@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -855,16 +856,6 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
-    public void testExpressionNull() throws Exception {
-        evaluateAndAssertBooleanScalarExpression(
-                "expression-null.xml",
-                createVariables(
-                        "foo", null, String.class
-                ),
-                Boolean.TRUE);
-    }
-
-    @Test
     public void testExpressionQName() throws Exception {
         evaluateAndAssertQNameScalarExpression(
                 "expression-qname.xml",
@@ -889,6 +880,16 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "expression-qname-ns.xml",
                 createVariables(),
                 new QName(NS_EXTENSION,"foo"));
+    }
+
+    @Test
+    public void testExpressionNull() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-null.xml",
+                createVariables(
+                        "foo", null, String.class
+                ),
+                Boolean.TRUE);
     }
 
     @Test
@@ -1001,6 +1002,56 @@ public class TestMelExpressions extends AbstractScriptTest {
             assertTrue("Bad exception message: "+e.getMessage(), e.getMessage().contains("Attempt to get single value from a multi-valued property") );
         }
     }
+
+    @Test
+    public void testHelloGivenName() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismProperty<PolyStringType> prop = userJack.findProperty(UserType.F_GIVEN_NAME);
+        evaluateAndAssertStringScalarExpression(
+                "expression-hello.xml",
+                createVariables(
+                        "foo", prop, prop.getDefinition()
+                ),
+                "Hello Jack!");
+    }
+
+    @Test
+    public void testHelloGivenNameValue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismProperty<PolyStringType> prop = userJack.findProperty(UserType.F_GIVEN_NAME);
+        evaluateAndAssertStringScalarExpression(
+                "expression-hello.xml",
+                createVariables(
+                        "foo", prop.getValue(), prop.getDefinition()
+                ),
+                "Hello Jack!");
+    }
+
+
+    @Test
+    public void testAssignmentDescription() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismContainer<AssignmentType> cont = userJack.findContainer(UserType.F_ASSIGNMENT);
+        evaluateAndAssertStringScalarExpression(
+                "expression-assignment-description.xml",
+                createVariables(
+                        "foo", cont.getValues().get(0), cont.getDefinition()
+                ),
+                "Hear and learn: First assignment");
+    }
+
+    @Test
+    public void testLinkRefOid() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismReference ref = userJack.findReference(UserType.F_LINK_REF);
+        evaluateAndAssertStringScalarExpression(
+                "expression-linkref-oid.xml",
+                createVariables(
+                        "foo", ref.getValues().get(0), ref.getDefinition()
+                ),
+                "The number of the beast is c0c010c0-d34d-b33f-f00d-ff1111111111");
+    }
+
 
     @Test
     public void testExpressionParseGivenName() throws Exception {

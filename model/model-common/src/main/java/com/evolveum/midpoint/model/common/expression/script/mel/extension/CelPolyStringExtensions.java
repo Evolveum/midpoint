@@ -6,6 +6,7 @@
 package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.PolyStringCelValue;
 
 import com.google.common.base.Ascii;
@@ -19,6 +20,7 @@ import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.internal.CelCodePointArray;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.parser.Operator;
 import dev.cel.runtime.*;
@@ -57,7 +59,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
     protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
 
-                // _==_
+                // _==_(string,polystring)
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(
                                 Operator.EQUALS.getFunction(),
@@ -67,11 +69,14 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         SimpleType.BOOL,
                                         SimpleType.STRING,
                                         PolyStringCelValue.CEL_TYPE)),
-                        CelFunctionBinding.from("string-equals-polystring", String.class, PolyStringCelValue.class,
+                        // The parameter has to be an Object instead of PolyStringCelValue.
+                        // When we define this overload, it starts to get all kinds of "null equality" checks,
+                        // not just those related to polystring.
+                        CelFunctionBinding.from("string-equals-polystring", Object.class, Object.class,
                                 CelPolyStringExtensions::stringEqualsPolyString)
                 ),
 
-                // _==_
+                // _==_(polystring,string)
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(
                                 Operator.EQUALS.getFunction(),
@@ -81,7 +86,10 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                         SimpleType.BOOL,
                                         PolyStringCelValue.CEL_TYPE,
                                         SimpleType.STRING)),
-                        CelFunctionBinding.from("polystring-equals-string", PolyStringCelValue.class, String.class,
+                        // The parameter has to be an Object instead of PolyStringCelValue.
+                        // When we define this overload, it starts to get all kinds of "null equality" checks,
+                        // not just those related to polystring.
+                        CelFunctionBinding.from("polystring-equals-string", Object.class, Object.class,
                                 (polystring, string) -> stringEqualsPolyString(string,polystring))
                 ),
 
@@ -497,14 +505,23 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
         return 0;
     }
 
-    public static boolean stringEqualsPolyString(String s, PolyStringCelValue polystringValue) {
-        if (s == null && polystringValue == null) {
+    // The parameter has to be an Object instead of PolyStringCelValue.
+    // When we define this overload, it starts to get all kinds of "null equality" checks,
+    // not just those related to polystring.
+    public static boolean stringEqualsPolyString(Object s1, Object s2) {
+        if (CelTypeMapper.isCellNull(s1) && CelTypeMapper.isCellNull(s2)) {
             return true;
         }
-        if (s == null || polystringValue == null) {
+        if (CelTypeMapper.isCellNull(s1) || CelTypeMapper.isCellNull(s2)) {
             return false;
         }
-        return s.equals(polystringValue.getOrig());
+        if (s1 instanceof PolyStringCelValue x) {
+            s1 = x.getOrig();
+        }
+        if (s2 instanceof PolyStringCelValue x) {
+            s2 = x.getOrig();
+        }
+        return s1.equals(s2);
     }
 
     public static String stringAddPolyString(String s, PolyStringCelValue polystringValue) {

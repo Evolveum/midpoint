@@ -48,7 +48,7 @@ public class MultivalueCelValue<I extends Item> extends CelValue implements List
             } else if (value instanceof PrismContainerValue<?> cval) {
                 processedValues.add(ContainerValueCelValue.create(cval));
             } else if (value instanceof PrismReferenceValue rval) {
-                processedValues.add(ObjectReferenceCelValue.create(rval));
+                processedValues.add(ReferenceCelValue.create(rval));
             } else {
                 throw new IllegalStateException("Unknown value "+value);
             }

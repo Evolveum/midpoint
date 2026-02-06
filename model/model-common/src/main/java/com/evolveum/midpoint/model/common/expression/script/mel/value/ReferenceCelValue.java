@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
 /**
  * @author Radovan Semancik
  */
-public class ObjectReferenceCelValue extends CelValue implements Map<String,Object>, MidPointValueProducer<PrismReferenceValue> {
+public class ReferenceCelValue extends CelValue implements Map<String,Object>, MidPointValueProducer<PrismReferenceValue> {
 
     public static final String OBJECT_REFERENCE_PACKAGE_NAME = ObjectReferenceType.class.getTypeName();
     private static final String F_OID = ObjectReferenceType.F_OID.getLocalPart();
@@ -37,12 +37,12 @@ public class ObjectReferenceCelValue extends CelValue implements Map<String,Obje
     public static final CelType CEL_TYPE = createObjectReferenceType();
     private final PrismReferenceValue objectReferenceValue;
 
-    ObjectReferenceCelValue(PrismReferenceValue objectReferenceValue) {
+    ReferenceCelValue(PrismReferenceValue objectReferenceValue) {
         this.objectReferenceValue = objectReferenceValue;
     }
 
-    public static ObjectReferenceCelValue create(PrismReferenceValue objectReference) {
-        return new ObjectReferenceCelValue(objectReference);
+    public static ReferenceCelValue create(PrismReferenceValue objectReference) {
+        return new ReferenceCelValue(objectReference);
     }
 
     public Map<String, Object> value() {

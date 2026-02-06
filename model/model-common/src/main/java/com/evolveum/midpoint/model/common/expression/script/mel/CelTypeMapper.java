@@ -66,7 +66,7 @@ public class CelTypeMapper implements CelTypeProvider  {
         this.prismContext = prismContext;
         types = ImmutableList.of(
                 PolyStringCelValue.CEL_TYPE,
-                ObjectReferenceCelValue.CEL_TYPE,
+                ReferenceCelValue.CEL_TYPE,
                 ObjectCelValue.CEL_TYPE,
                 ContainerValueCelValue.CEL_TYPE,
                 QNameCelValue.CEL_TYPE,
@@ -129,7 +129,8 @@ public class CelTypeMapper implements CelTypeProvider  {
         addJavaMapping(SimpleType.DYN, Object.class, true);
         addJavaMapping(SimpleType.NULL_TYPE, void.class, true);
 
-        addJavaMapping(ContainerValueCelValue.CEL_TYPE, Containerable.class, true);
+        addJavaMapping(ContainerValueCelValue.CEL_TYPE, Containerable.class, false);
+        addJavaMapping(ContainerValueCelValue.CEL_TYPE, PrismContainerValue.class, true);
         addJavaMapping(ObjectCelValue.CEL_TYPE, Objectable.class, true);
 
         addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyString.class, true);
@@ -146,7 +147,6 @@ public class CelTypeMapper implements CelTypeProvider  {
         addJavaMapping(SimpleType.DYN, ByteBuffer.class, false);
         addJavaMapping(SimpleType.DYN, Class.class, false);
         addJavaMapping(SimpleType.DYN, ItemPathType.class, false);
-        addJavaMapping(SimpleType.DYN, PrismContainerValue.class, false);
         addJavaMapping(SimpleType.DYN, PrismValue.class, false);
         addJavaMapping(SimpleType.DYN, PrismProperty.class, false);
         addJavaMapping(SimpleType.DYN, ObjectType.class, false);
@@ -154,8 +154,6 @@ public class CelTypeMapper implements CelTypeProvider  {
         addJavaMapping(SimpleType.DYN, ResourceType.class, false);
         addJavaMapping(SimpleType.DYN, ShadowType.class, false);
         addJavaMapping(SimpleType.DYN, TaskType.class, false);
-        addJavaMapping(SimpleType.DYN, QName.class, false);
-        addJavaMapping(SimpleType.DYN, groovy.namespace.QName.class, false);
         addJavaMapping(SimpleType.DYN, Object[].class, false);
 
 //        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
@@ -229,11 +227,11 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (def instanceof PrismPropertyDefinition<?> propDef) {
             return CelTypeMapper.toCelType(propDef.getTypeName());
         } else if (def instanceof PrismObjectDefinition<?>) {
-            // TODO: something more sophisticated? Maybe handled by TypeMapper?
             return ObjectCelValue.CEL_TYPE;
         } else if (def instanceof PrismContainerDefinition<?>) {
-            // TODO: something more sophisticated? Maybe handled by TypeMapper?
             return ContainerValueCelValue.CEL_TYPE;
+        } else if (def instanceof PrismReferenceDefinition) {
+            return ReferenceCelValue.CEL_TYPE;
         }
         throw new NotImplementedException("Cannot convert "+def+" to CEL");
     }
@@ -246,7 +244,7 @@ public class CelTypeMapper implements CelTypeProvider  {
             if (typeClass == null) {
                 throw new IllegalStateException("Typed value " + typedValue + " does not have neither definition nor class");
             }
-            return SimpleType.DYN;
+            return Objects.requireNonNullElse(getCelType(typeClass), SimpleType.DYN);
 //            throw new NotImplementedException("Cannot convert class "+typeClass.getSimpleName()+" to CEL");
             // TODO: convert based on class
         } else {
@@ -358,21 +356,26 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (javaValue instanceof QName qname) {
             return QNameCelValue.create(qname);
         }
-        if (javaValue instanceof Item) {
-            //noinspection unchecked,rawtypes
-            return toCelValue((Item)javaValue);
-        }
         if (javaValue instanceof XMLGregorianCalendar xmlCal) {
             return toTimestamp(xmlCal);
         }
         if (javaValue instanceof Duration xmlDuration) {
             return toGoogleDuration(xmlDuration);
         }
+        if (javaValue instanceof PrismObject<?> o) {
+            return ObjectCelValue.create(o);
+        }
+        if (javaValue instanceof PrismContainerValue<?> cval) {
+            return ContainerValueCelValue.create(cval);
+        }
+        if (javaValue instanceof PrismReferenceValue rval) {
+            return ReferenceCelValue.create(rval);
+        }
         return javaValue;
     }
 
     public static boolean isCellNull(@Nullable Object object) {
-        return object == null || object instanceof NullValue;
+        return object == null || object instanceof NullValue || object instanceof com.google.protobuf.NullValue;
     }
 
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> Object toListMapValue(Item<IV, ID> item) {
@@ -387,7 +390,7 @@ public class CelTypeMapper implements CelTypeProvider  {
                 return ContainerValueCelValue.create(container.getValue());
             }
             if (item instanceof PrismReference reference) {
-                return ObjectReferenceCelValue.create(reference.getValue());
+                return ReferenceCelValue.create(reference.getValue());
             }
         }
         // TODO
@@ -421,10 +424,24 @@ public class CelTypeMapper implements CelTypeProvider  {
             }
         }
         if (def instanceof PrismObjectDefinition<?>) {
-            if (typedValue.getValue() instanceof PrismObject<?>) {
-                return ObjectCelValue.create((PrismObject<?>) typedValue.getValue());
-            } else if (typedValue.getValue() instanceof Objectable) {
-                return ObjectCelValue.create(((Objectable) typedValue.getValue()).asPrismObject());
+            if (typedValue.getValue() instanceof PrismObject<?> o) {
+                return ObjectCelValue.create(o);
+            } else if (typedValue.getValue() instanceof Objectable o) {
+                return ObjectCelValue.create((PrismObject<?>)o.asPrismObject());
+            }
+        }
+        if (def instanceof PrismContainerDefinition<?>) {
+            if (typedValue.getValue() instanceof PrismContainerValue<?> cval) {
+                return ContainerValueCelValue.create(cval);
+            } else if (typedValue.getValue() instanceof Containerable c) {
+                return ContainerValueCelValue.create((PrismContainerValue<?>)c.asPrismContainerValue());
+            }
+        }
+        if (def instanceof PrismReferenceDefinition) {
+            if (typedValue.getValue() instanceof PrismReferenceValue rval) {
+                return ReferenceCelValue.create(rval);
+            } else if (typedValue.getValue() instanceof Referencable r) {
+                return ReferenceCelValue.create(r.asReferenceValue());
             }
         }
         return CelTypeMapper.toCelValue(typedValue.getValue());

@@ -27,6 +27,7 @@ import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
+import dev.cel.parser.Operator;
 import dev.cel.runtime.CelFunctionBinding;
 import org.jetbrains.annotations.Nullable;
 
