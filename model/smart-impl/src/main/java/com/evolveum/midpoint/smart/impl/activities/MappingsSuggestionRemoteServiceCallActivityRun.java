@@ -44,7 +44,7 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
         var isInbound = getWorkDefinition().isInbound();
 
         var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                resourceOid, typeDef, schemaMatch, isInbound, targetPathsToIgnore, state, task, result);
+                resourceOid, typeDef, schemaMatch, isInbound, true, targetPathsToIgnore, state, task, result);
 
         parentState.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
         parentState.flushPendingTaskModifications(result);

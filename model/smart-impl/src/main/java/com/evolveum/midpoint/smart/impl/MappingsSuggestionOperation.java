@@ -19,21 +19,18 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
-import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
-import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
+import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
 import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.MissingSourceDataException;
 import com.evolveum.midpoint.smart.impl.mappings.OwnedShadow;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -72,40 +69,45 @@ class MappingsSuggestionOperation {
     private final MappingsQualityAssessor qualityAssessor;
     private final OwnedShadowsProvider ownedShadowsProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
+    private final HeuristicRuleMatcher heuristicRuleMatcher;
     private final boolean isInbound;
+    private final boolean useAiService;
 
     private MappingsSuggestionOperation(
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
-            boolean isInbound) {
+            HeuristicRuleMatcher heuristicRuleMatcher,
+            boolean isInbound,
+            boolean useAiService) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
         this.ownedShadowsProvider = ownedShadowsProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
+        this.heuristicRuleMatcher = heuristicRuleMatcher;
         this.isInbound = isInbound;
+        this.useAiService = useAiService;
     }
 
     static MappingsSuggestionOperation init(
-            ServiceClient serviceClient,
-            String resourceOid,
-            ResourceObjectTypeIdentification typeIdentification,
-            @Nullable CurrentActivityState<?> activityState,
+            TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             OwnedShadowsProvider ownedShadowsProvider,
             WellKnownSchemaService wellKnownSchemaService,
+            HeuristicRuleMatcher heuristicRuleMatcher,
             boolean isInbound,
-            Task task,
-            OperationResult result)
+            boolean useAiService)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
         return new MappingsSuggestionOperation(
-                TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, activityState, task, result),
+                ctx,
                 qualityAssessor,
                 ownedShadowsProvider,
                 wellKnownSchemaService,
-                isInbound);
+                heuristicRuleMatcher,
+                isInbound,
+                useAiService);
     }
 
     private MappingDirection resolveDirection() {
@@ -301,69 +303,34 @@ class MappingsSuggestionOperation {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, LowQualityMappingException,
             MissingSourceDataException {
 
-        LOGGER.trace("Going to suggest {} mapping between shadow attribute: {} and focus property: {}.", valuePairsForValidation.direction(),
-                matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
+        LOGGER.trace("Going to suggest {} mapping between shadow attribute: {} and focus property: {}.",
+                valuePairsForValidation.direction(),
+                matchPair.getShadowAttributePath(),
+                matchPair.getFocusPropertyPath());
 
-        ExpressionType expression = null;
-        MappingsQualityAssessor.AssessmentResult assessment = null;
-        boolean isSystemProvided = Boolean.TRUE.equals(matchPair.getIsSystemProvided());
+        // 1. Evaluate mapping strategy (as-is, heuristic, or AI)
+        MappingEvaluationResult result = evaluateMappingStrategy(
+                matchPair,
+                valuePairsForLLM,
+                valuePairsForValidation,
+                parentResult);
 
-        if (valuePairsForLLM.pairs().isEmpty() || valuePairsForValidation.pairs().isEmpty()) {
-            LOGGER.trace("No data pairs. We'll use 'asIs' mapping (no LLM call).");
-        } else if (valuePairsForValidation.isSourceDataMissing(MISSING_DATA_THRESHOLD)) {
-            throw new MissingSourceDataException(matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
-        } else if (valuePairsForValidation.isTargetDataMissing(MISSING_DATA_THRESHOLD)) {
-            LOGGER.trace("Target data missing. We'll use 'asIs' mapping (no LLM call).");
-        } else if (valuePairsForValidation.doAllConvertedSourcesMatchTargets(ctx.getFocusTypeDefinition(), ctx.typeDefinition, ctx.b.protector)) {
-            LOGGER.trace("AsIs {} mapping suffice according to the data (no LLM call).", valuePairsForValidation.direction());
-            assessment = this.qualityAssessor.assessMappingsQuality(
-                    valuePairsForValidation, expression, this.ctx.task, parentResult);
-        } else {
-            LOGGER.trace("Going to ask LLM about mapping script");
-            String errorLog = null;
-            String retryScript = null;
+        // 2. Validate quality threshold
+        validateQualityThreshold(result, matchPair);
 
-            for (int attempt = 1; attempt <= 2; attempt++) {
-                var mappingResponse = askMicroservice(matchPair, valuePairsForLLM, errorLog, retryScript);
-                retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
-                expression = buildScriptExpression(mappingResponse);
-                try {
-                    assessment = this.qualityAssessor.assessMappingsQuality(
-                            valuePairsForValidation, expression, this.ctx.task, parentResult);
-                    break;
-                } catch (ExpressionEvaluationException | SecurityViolationException e) {
-                    if (attempt == 1) {
-                        errorLog = e.getMessage();
-                        LOGGER.warn("Validation issues found on attempt 1; retrying.");
-                    } else {
-                        LOGGER.warn("Validation issues persist after retry; giving up.");
-                        throw e;
-                    }
-                }
-            }
-            isSystemProvided = false;
-        }
-
-        if (assessment != null && assessment.quality() < MINIMUM_QUALITY_THRESHOLD) {
-            throw new LowQualityMappingException(
-                    assessment.quality(),
-                    MINIMUM_QUALITY_THRESHOLD,
-                    matchPair.getShadowAttributePath(),
-                    matchPair.getFocusPropertyPath());
-        }
-
+        // 3. Build and annotate suggestion
         AttributeMappingsSuggestionType suggestion = buildAttributeMappingSuggestion(
-                valuePairsForValidation, assessment != null ? assessment.quality() : null, expression);
+                valuePairsForValidation,
+                result.expectedQuality() != null ? result.expectedQuality() : null,
+                result.expression());
 
-        if (isSystemProvided) {
-            SmartMetadataUtil.markContainerProvenance(
-                    suggestion.asPrismContainerValue(),
-                    SmartMetadataUtil.ProvenanceKind.SYSTEM);
-        } else {
-            SmartMetadataUtil.markContainerProvenance(
-                    suggestion.asPrismContainerValue(),
-                    SmartMetadataUtil.ProvenanceKind.AI);
-        }
+        // 4. Mark provenance
+        SmartMetadataUtil.markContainerProvenance(
+                suggestion.asPrismContainerValue(),
+                result.isSystemProvided()
+                        ? SmartMetadataUtil.ProvenanceKind.SYSTEM
+                        : SmartMetadataUtil.ProvenanceKind.AI);
+
         return suggestion;
     }
 
@@ -442,5 +409,149 @@ class MappingsSuggestionOperation {
                 .invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
     }
 
+    private MappingEvaluationResult evaluateMappingStrategy(
+            SchemaMatchOneResultType matchPair,
+            ValuesPairSample<?, ?> valuePairsForLLM,
+            ValuesPairSample<?, ?> valuePairsForValidation,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, MissingSourceDataException {
+
+        boolean isSystemProvided = Boolean.TRUE.equals(matchPair.getIsSystemProvided());
+
+        // Check if data is sufficient for evaluation
+        if (valuePairsForLLM.pairs().isEmpty() || valuePairsForValidation.pairs().isEmpty()) {
+            LOGGER.trace("No data pairs. We'll use 'asIs' mapping (no LLM call).");
+            return MappingEvaluationResult.of(null, null, isSystemProvided);
+        }
+
+        // Check for missing source data. We don't want to suggest mapping if there is not enough data.
+        if (valuePairsForValidation.isSourceDataMissing(MISSING_DATA_THRESHOLD)) {
+            throw new MissingSourceDataException(matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
+        }
+
+        // Check for missing target data
+        if (valuePairsForValidation.isTargetDataMissing(MISSING_DATA_THRESHOLD)) {
+            LOGGER.trace("Target data missing. We'll use 'asIs' mapping (no LLM call).");
+            return MappingEvaluationResult.of(null, null, isSystemProvided);
+        }
+
+        // Check if as-is mapping is sufficient
+        if (valuePairsForValidation.allSourcesMatchTargets(ctx.getFocusTypeDefinition(), ctx.typeDefinition, ctx.b.protector)) {
+            LOGGER.trace("AsIs {} mapping suffice according to the data (no LLM call).", valuePairsForValidation.direction());
+            return MappingEvaluationResult.of(null, 1.0F, isSystemProvided);
+        }
+
+        // Find best mapping by comparing as-is, heuristic, and AI options
+        return findBestMappingExpression(
+                matchPair,
+                valuePairsForLLM,
+                valuePairsForValidation,
+                isSystemProvided,
+                parentResult);
+    }
+
+    private MappingEvaluationResult findBestMappingExpression(
+            SchemaMatchOneResultType matchPair,
+            ValuesPairSample<?, ?> valuePairsForLLM,
+            ValuesPairSample<?, ?> valuePairsForValidation,
+            boolean isSystemProvided,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
+
+        // Start with as-is mapping quality as baseline
+        float bestExpectedQuality = qualityAssessor.assessMappingsQuality(valuePairsForValidation, null, ctx.task, parentResult)
+                .quality();
+        ExpressionType bestExpression = null;
+
+        // Try heuristic mappings
+        var heuristicResult = heuristicRuleMatcher.findBestMatch(valuePairsForValidation, ctx.task, parentResult);
+        if (heuristicResult.isPresent()) {
+            var hr = heuristicResult.get();
+            if (hr.quality() > bestExpectedQuality) {
+                LOGGER.info("Found heuristic mapping '{}' with quality {}", hr.heuristicName(), hr.quality());
+                bestExpression = hr.expression();
+                bestExpectedQuality = hr.quality();
+            }
+        }
+
+        // Try AI service if enabled
+        if (useAiService) {
+            var aiExpression = evaluateAiMappingWithRetry(matchPair, valuePairsForLLM, valuePairsForValidation, parentResult);
+            if (aiExpression != null) {
+                var aiQuality = qualityAssessor.assessMappingsQuality(valuePairsForValidation, aiExpression, ctx.task, parentResult)
+                        .quality();
+                if (aiQuality > bestExpectedQuality) {
+                    LOGGER.info("AI mapping has better quality ({}) than current best ({})", aiQuality, bestExpectedQuality);
+                    bestExpression = aiExpression;
+                    bestExpectedQuality = aiQuality;
+                    isSystemProvided = false;
+                }
+            }
+        }
+
+        return MappingEvaluationResult.of(bestExpression, bestExpectedQuality, isSystemProvided);
+    }
+
+    private ExpressionType evaluateAiMappingWithRetry(
+            SchemaMatchOneResultType matchPair,
+            ValuesPairSample<?, ?> valuePairsForLLM,
+            ValuesPairSample<?, ?> valuePairsForValidation,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException {
+        LOGGER.trace("Going to ask LLM about mapping script");
+        String errorLog = null;
+        String retryScript = null;
+
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            var mappingResponse = askMicroservice(matchPair, valuePairsForLLM, errorLog, retryScript);
+            retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
+            var aiExpression = buildScriptExpression(mappingResponse);
+            try {
+                var aiAssessment = qualityAssessor.assessMappingsQuality(
+                        valuePairsForValidation, aiExpression, ctx.task, parentResult);
+                if (aiAssessment != null && aiAssessment.status() == MappingsQualityAssessor.AssessmentStatus.OK) {
+                    return aiExpression;
+                }
+                break;
+            } catch (ExpressionEvaluationException | SecurityViolationException e) {
+                if (attempt == 1) {
+                    errorLog = e.getMessage();
+                    LOGGER.warn("Validation issues found on attempt 1; retrying.");
+                } else {
+                    LOGGER.warn("Validation issues persist after retry; giving up.");
+                    throw e;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void validateQualityThreshold(
+            MappingEvaluationResult result,
+            SchemaMatchOneResultType matchPair) throws LowQualityMappingException {
+        if (result.expectedQuality() != null && result.expectedQuality() < MINIMUM_QUALITY_THRESHOLD) {
+            throw new LowQualityMappingException(
+                    result.expectedQuality(),
+                    MINIMUM_QUALITY_THRESHOLD,
+                    matchPair.getShadowAttributePath(),
+                    matchPair.getFocusPropertyPath());
+        }
+    }
+
+    /**
+     * Result of mapping evaluation containing the expression, quality assessment, and provenance information.
+     */
+    private record MappingEvaluationResult(
+            @Nullable ExpressionType expression,
+            @Nullable Float expectedQuality,
+            boolean isSystemProvided
+    ) {
+        static MappingEvaluationResult of(
+                @Nullable ExpressionType expression,
+                @Nullable Float expectedQuality,
+                boolean isSystemProvided) {
+            return new MappingEvaluationResult(expression, expectedQuality, isSystemProvided);
+        }
+    }
 
 }
