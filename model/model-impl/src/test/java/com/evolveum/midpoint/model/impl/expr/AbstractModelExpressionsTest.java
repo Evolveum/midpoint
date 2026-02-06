@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -19,16 +19,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,24 +29,30 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -63,9 +60,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
+public abstract class AbstractModelExpressionsTest extends AbstractInternalModelIntegrationTest {
 
-    private static final File TEST_DIR = new File("src/test/resources/expr");
+    protected static final File BASE_TEST_DIR = new File("src/test/resources/expr");
 
     private static final QName PROPERTY_NAME = new QName(SchemaConstants.NS_C, "foo");
 
@@ -83,9 +80,11 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
     @Autowired private ExpressionFactory expressionFactory;
 
-    private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(TEST_DIR, "orgstruct.xml");
+    private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(BASE_TEST_DIR, "orgstruct.xml");
     private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY =
-            TestObject.file(TEST_DIR, "function-library.xml", "42c6fef1-370c-466b-a52e-747b52aacf0d");
+            TestObject.file(BASE_TEST_DIR, "function-library.xml", "42c6fef1-370c-466b-a52e-747b52aacf0d");
+
+    protected abstract File getTestDir();
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -108,7 +107,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 
     private ScriptExpressionEvaluatorType parseScriptType(String fileName)
             throws SchemaException, IOException {
-        return PrismTestUtil.parseAtomicValue(new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
+        return PrismTestUtil.parseAtomicValue(new File(getTestDir(), fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
     }
 
     @Test
@@ -325,6 +324,35 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
                 "var2", null, PrimitiveType.STRING);
 
         assertExecuteScriptExpressionString(variables, "null-null");
+    }
+
+    /**
+     * Basic sanity, checking that the variables are present and sane.
+     */
+    @Test
+    public void testResourceVariables() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(),
+                "R:Dummy Resource F:guybrush P:guybrush");
+    }
+
+    @Test
+    public void testShadowPrimaryIdentifier() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(),
+                ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+    }
+
+    private VariablesMap createFocusProjectionResourceVariables() throws Exception {
+        PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
+        PrismObject<ResourceType> resource = getDummyResourceObject();
+        PrismObject<ShadowType> shadow = getShadowModel(ACCOUNT_SHADOW_GUYBRUSH_OID);
+
+        return VariablesMap.create(prismContext,
+                ExpressionConstants.VAR_FOCUS, user, user.getDefinition(),
+                ExpressionConstants.VAR_RESOURCE, resource, resource.getDefinition(),
+                ExpressionConstants.VAR_PROJECTION, shadow, shadow.getDefinition()
+        );
     }
 
     @NotNull

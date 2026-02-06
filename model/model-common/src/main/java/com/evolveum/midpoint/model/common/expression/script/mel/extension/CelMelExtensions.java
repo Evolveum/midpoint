@@ -231,7 +231,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             ),
 
-                // secret.resolveBinary(provider, key)
+            // secret.resolveBinary(provider, key)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "secret.resolveBinary",
@@ -356,6 +356,51 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         );
     }
 
+    private static final class Library implements CelExtensionLibrary<CelMelExtensions> {
+        private final CelMelExtensions version0;
+
+        private Library(Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
+            version0 = new CelMelExtensions(protector, basicExpressionFunctions);
+        }
+
+        @Override
+        public String name() {
+            return "mel";
+        }
+
+        @Override
+        public ImmutableSet<CelMelExtensions> versions() {
+            return ImmutableSet.of(version0);
+        }
+    }
+
+    public static CelExtensionLibrary<CelMelExtensions> library(Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
+        return new Library(protector, basicExpressionFunctions);
+    }
+
+    @Override
+    public int version() {
+        return 0;
+    }
+
+    private String ascii(Object o) {
+        return basicExpressionFunctions.ascii(toJava(o));
+    }
+
+    public static boolean stringIsEmpty(String str) {
+        if (isCellNull(str)) {
+            return true;
+        }
+        return str.isEmpty();
+    }
+
+    public static boolean stringIsBlank(String str) {
+        if (isCellNull(str)) {
+            return true;
+        }
+        return str.isBlank();
+    }
+
     private QNameCelValue qname(String namespace, String localPart) {
         return QNameCelValue.create(namespace, localPart);
     }
@@ -415,54 +460,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                 .build();
     }
 
-    private static final class Library implements CelExtensionLibrary<CelMelExtensions> {
-        private final CelMelExtensions version0;
-
-        private Library(Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
-            version0 = new CelMelExtensions(protector, basicExpressionFunctions);
-        }
-
-        @Override
-        public String name() {
-            return "mel";
-        }
-
-        @Override
-        public ImmutableSet<CelMelExtensions> versions() {
-            return ImmutableSet.of(version0);
-        }
-    }
-
-    public static CelExtensionLibrary<CelMelExtensions> library(Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
-        return new Library(protector, basicExpressionFunctions);
-    }
-
-    @Override
-    public int version() {
-        return 0;
-    }
-
-    private String ascii(Object o) {
-        return basicExpressionFunctions.ascii(toJava(o));
-    }
-
-    public static boolean stringIsEmpty(String str) {
-        if (isCellNull(str)) {
-            return true;
-        }
-        return str.isEmpty();
-    }
-
-    public static boolean stringIsBlank(String str) {
-        if (isCellNull(str)) {
-            return true;
-        }
-        return str.isBlank();
-    }
-
     // TODO: do we need this?
     public static List<Object> melList(Object input) {
-        LOGGER.info("MMMMMMMMMMMM: melList({})", input);
         if (input instanceof List) {
             return (List)input;
         } else {

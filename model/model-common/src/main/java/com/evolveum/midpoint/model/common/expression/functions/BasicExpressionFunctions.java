@@ -688,7 +688,12 @@ public class BasicExpressionFunctions {
         return getMetadataValues(value, ValueMetadataType.F_EXTENSION, itemLocalPart);
     }
 
+    @Deprecated // Use getPrimaryIdentifierValue instead
     public <T> T getIdentifierValue(ShadowType shadow) throws SchemaException {
+        return getPrimaryIdentifierValue(shadow);
+    }
+
+    public <T> T getPrimaryIdentifierValue(ShadowType shadow) throws SchemaException {
         if (shadow == null) {
             return null;
         }

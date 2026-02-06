@@ -816,7 +816,6 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "c0c010c0-d34d-b33f-f00d-001111111112", "c0c010c0-d34d-b33f-f00d-001111111111");
     }
 
-
     @Test
     public void testUserLinkRefFirstOid() throws Exception {
         evaluateAndAssertStringScalarExpression(
