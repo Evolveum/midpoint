@@ -20,9 +20,21 @@ public enum OtpAlgorithm {
 
     public final int secretLength;
 
-    OtpAlgorithm(String algorithm, String value, int secretLength) {
-        this.algorithm = algorithm;
+    OtpAlgorithm(String value, String algorithm, int secretLength) {
         this.value = value;
+        this.algorithm = algorithm;
         this.secretLength = secretLength;
+    }
+
+    public static OtpAlgorithm fromValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        for (OtpAlgorithm alg : values()) {
+            if (alg.value.equalsIgnoreCase(value)) {
+                return alg;
+            }
+        }
+        throw new IllegalArgumentException("Unsupported OTP algorithm: " + value);
     }
 }

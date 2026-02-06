@@ -11,45 +11,44 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Map;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base32;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TOtpAuthenticationModuleType;
 
-public class TotpServiceImpl extends OtpServiceImpl<TOtpAuthenticationModuleType> {
+public class TOtpServiceImpl extends OtpServiceImpl {
 
     public static final int DEFAULT_PERIOD = 30;
 
     private final int period;
 
-    public TotpServiceImpl(String issuer) {
-        this(issuer, DEFAULT_PERIOD);
-    }
+    public TOtpServiceImpl(
+            @NotNull Clock clock,
+            String issuer,
+            OtpAlgorithm algorithm,
+            Integer secretLength,
+            Integer digits,
+            Integer window,
+            Integer period) {
 
-    public TotpServiceImpl(String issuer, int period) {
-        super(issuer);
+        super(OtpType.TOTP, clock, issuer, algorithm, secretLength, digits, window);
 
-        this.period = period;
-    }
-
-    public TotpServiceImpl(String issuer, OtpAlgorithm algorithm, int digits, int secretLength, int period) {
-        super(issuer, algorithm, digits, secretLength);
-
-        this.period = period;
-    }
-
-    @Override
-    protected @NotNull OtpType getServiceType() {
-        return OtpType.TOTP;
+        this.period = period != null && period > 0 ? period : DEFAULT_PERIOD;
     }
 
     @Override
+    protected void updateAuthUrlParameters(Map<String, String> params) {
+        params.put("period", String.valueOf(period));
+    }
+
     protected int generateCode(String secret) {
-        Instant instant = Instant.now();
+        Instant instant = Instant.ofEpochMilli(clock.currentTimeMillis());
+
         long timeSlice = (instant.getEpochSecond() / period);
         ByteBuffer buffer = ByteBuffer.allocate(8);
         buffer.putLong(timeSlice);

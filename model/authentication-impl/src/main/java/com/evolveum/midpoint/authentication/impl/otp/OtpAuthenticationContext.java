@@ -12,9 +12,12 @@ import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OtpAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtpCredentialsPolicyType;
 
 public class OtpAuthenticationContext extends AbstractAuthenticationContext {
+
+    private final OtpAuthenticationModuleType otpAuthenticationModule;
 
     private final Integer code;
 
@@ -25,11 +28,13 @@ public class OtpAuthenticationContext extends AbstractAuthenticationContext {
             Class<? extends FocusType> principalType,
             Integer code,
             List<ObjectReferenceType> requireAssignment,
-            AuthenticationChannel channel) {
+            AuthenticationChannel channel,
+            OtpAuthenticationModuleType otpAuthenticationModule) {
 
         super(username, principalType, requireAssignment, channel);
 
         this.code = code;
+        this.otpAuthenticationModule = otpAuthenticationModule;
     }
 
     @Override
@@ -47,5 +52,9 @@ public class OtpAuthenticationContext extends AbstractAuthenticationContext {
 
     public void setPolicy(OtpCredentialsPolicyType policy) {
         this.policy = policy;
+    }
+
+    public OtpAuthenticationModuleType getOtpAuthenticationModule() {
+        return otpAuthenticationModule;
     }
 }

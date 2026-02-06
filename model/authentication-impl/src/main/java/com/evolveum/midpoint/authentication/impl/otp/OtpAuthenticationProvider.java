@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.impl.otp;
 import java.util.Collection;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,15 +29,18 @@ public class OtpAuthenticationProvider extends AbstractCredentialProvider<OtpAut
 
     private static final Trace LOGGER = TraceManager.getTrace(OtpAuthenticationProvider.class);
 
-    private final OtpAuthenticationModuleType module;
+    @NotNull private final OtpAuthenticationModuleType module;
 
-    public OtpAuthenticationProvider(OtpAuthenticationModuleType module) {
+    @Autowired
+    private OtpAuthenticationEvaluator otpAuthenticationEvaluator;
+
+    public OtpAuthenticationProvider(@NotNull OtpAuthenticationModuleType module) {
         this.module = module;
     }
 
     @Override
     protected AuthenticationEvaluator<OtpAuthenticationContext, UsernamePasswordAuthenticationToken> getEvaluator() {
-        return null;
+        return otpAuthenticationEvaluator;
     }
 
     @Override
@@ -57,7 +62,7 @@ public class OtpAuthenticationProvider extends AbstractCredentialProvider<OtpAut
 
         Integer code = otpAuthentication.getCredentials();
         OtpAuthenticationContext context =
-                new OtpAuthenticationContext(enteredUsername, focusType, code, requireAssignment, channel);
+                new OtpAuthenticationContext(enteredUsername, focusType, code, requireAssignment, channel, module);
 
         Authentication token = getEvaluator().authenticate(env, context);
 

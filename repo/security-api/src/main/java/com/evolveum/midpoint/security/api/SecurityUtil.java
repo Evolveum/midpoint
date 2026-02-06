@@ -157,7 +157,7 @@ public class SecurityUtil {
         return invitationSequence.getIdentifier();
     }
 
-    private static <T extends CredentialPolicyType> T getEffectiveCredentialsPolicy(
+    public static <T extends CredentialPolicyType> T getEffectiveCredentialsPolicy(
             SecurityPolicyType securityPolicy, Function<CredentialsPolicyType, T> policyGetter, T defaultValue) {
 
         if (securityPolicy == null) {
@@ -190,6 +190,10 @@ public class SecurityUtil {
         return getEffectiveCredentialsPolicy(securityPolicy, CredentialsPolicyType::getOtp, new OtpCredentialsPolicyType());
     }
 
+    /**
+     * Use @link #getEffectiveCredentialsPolicy(SecurityPolicyType, Function, CredentialPolicyType)} instead.
+     */
+    @Deprecated
     public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {
         if (securityPolicy == null) {
             return null;
@@ -211,6 +215,10 @@ public class SecurityUtil {
         return securityQuestionsPolicy;
     }
 
+    /**
+     * Use @link #getEffectiveCredentialsPolicy(SecurityPolicyType, Function, CredentialPolicyType)} instead.
+     */
+    @Deprecated
     public static AttributeVerificationCredentialsPolicyType getEffectiveAttributeVerificationCredentialsPolicy(SecurityPolicyType securityPolicy) {
         if (securityPolicy == null) {
             return null;

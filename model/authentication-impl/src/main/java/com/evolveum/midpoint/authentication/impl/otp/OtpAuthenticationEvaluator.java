@@ -9,22 +9,36 @@ package com.evolveum.midpoint.authentication.impl.otp;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.evaluator.CredentialsAuthenticationEvaluatorImpl;
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @Component
 public class OtpAuthenticationEvaluator
         extends CredentialsAuthenticationEvaluatorImpl<OtpCredentialsType, OtpAuthenticationContext> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(OtpAuthenticationEvaluator.class);
+
+    @Autowired private Protector protector;
+
+    @Autowired private Clock clock;
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment env, OtpAuthenticationContext ctx) {
@@ -70,15 +84,31 @@ public class OtpAuthenticationEvaluator
             return false;
         }
 
-        OtpService service; // todo initialize service
+        OtpServiceImpl service = OtpServiceFactory.create(clock, ctx.getOtpAuthenticationModule());
 
         for (OtpCredentialType otp : otpCredentials.getOtp()) {
             ProtectedStringType secret = otp.getSecret();
             if (secret == null) {
-                return false;
+                continue;
             }
 
-//            service.verifyCode(secret, )
+            try {
+                ProtectedStringType cloned = secret.clone();
+                protector.decrypt(cloned);
+
+                String clearValue = cloned.getClearValue();
+                if (clearValue == null) {
+                    continue;
+                }
+
+                if (service.verifyCode(clearValue, code)) {
+                    return true;
+                }
+            } catch (EncryptionException | SchemaException ex) {
+                LOGGER.error("Error dealing with credentials of user \"{}\" credentials: {}", principal.getUsername(), ex.getMessage());
+                recordModuleAuthenticationFailure(principal.getUsername(), principal, env, null, "error decrypting password: ");
+                throw new AuthenticationServiceException("web.security.provider.unavailable", ex);
+            }
         }
 
         return false;
@@ -91,6 +121,7 @@ public class OtpAuthenticationEvaluator
             policy = SecurityUtil.getEffectiveOtpCredentialsPolicy(securityPolicy);
         }
         ctx.setPolicy(policy);
+
         return policy;
     }
 

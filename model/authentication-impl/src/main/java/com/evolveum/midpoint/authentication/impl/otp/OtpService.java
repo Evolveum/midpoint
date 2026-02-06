@@ -6,13 +6,11 @@
 
 package com.evolveum.midpoint.authentication.impl.otp;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtpAuthenticationModuleType;
-
-public interface OtpService<T extends OtpAuthenticationModuleType> {
+public interface OtpService {
 
     String generateSecret();
 
-    String generateAuthUrl(String account);
+    String generateAuthUrl(String account, String secret);
 
     boolean verifyCode(String secret, int code);
 }

@@ -316,12 +316,33 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="secretLength" type="xsd:int" minOccurs="0" default="20">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The length of the secret key used to generate the TOTP code.
+
+                                Default value is 20 bytes (160 bits) for SHA1, 32 bytes (256 bits) for SHA256
+                                and 64 bytes (512 bits) for SHA512.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="digits" type="xsd:int" minOccurs="0" default="6">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The number of digits to be used in the TOTP code.
 
                                 Currently supported 6 (default) or 8 digits.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="window" type="xsd:int" minOccurs="0" default="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The number of time steps that are allowed for the TOTP code to be valid.
+                                This allows for some clock skew between the server and the client.
+
+                                Default value is 1, which means that the TOTP code is valid for the current time step,
+                                the previous time step and the next time step.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
