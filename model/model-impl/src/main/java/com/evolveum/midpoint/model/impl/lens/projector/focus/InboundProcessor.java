@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboun
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -51,8 +53,8 @@ public class InboundProcessor implements ProjectorProcessor {
 
         var env = new MappingEvaluationEnvironment(activityDescription, now, task);
 
-        new FullInboundsProcessing<>(context, env)
-                .executeToDeltas(result);
+        final Collection<ItemDelta<?, ?>> deltas = new FullInboundsProcessing<>(context, env).executeToDeltas(result);
+        context.getFocusContextRequired().swallowToSecondaryDelta(deltas);
 
         context.checkConsistenceIfNeeded();
         medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
