@@ -2714,7 +2714,7 @@
                             Correlates Shadows with Focuses using configured correlators. The 'shadows' container must specify a query to select shadows to process.
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.12</a:since>
+                            <a:since>4.11</a:since>
                             <a:displayName>WorkDefinitionsType.shadowCorrelation</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -2726,7 +2726,7 @@
                             Simulates a mapping on a selected sample of shadows.
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:since>4.12</a:since>
+                            <a:since>4.11</a:since>
                             <a:displayName>WorkDefinitionsType.mapping</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -10667,7 +10667,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.12</a:since>
+                <a:since>4.11</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10690,21 +10690,21 @@
         <xsd:annotation>
             <xsd:documentation>
                 Work definition for mapping simulation activity. Selects shadows to be processed and
-                specifies the inline mapping to be simulated on them. Please note, that activity
+                specifies the mappings to be simulated on them. Please note, that activity
                 implementing this work definition only supports PREVIEW execution mode.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.12</a:since>
+                <a:since>4.11</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:ResourceWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="inlineMapping" type="c:MappingType">
+                    <xsd:element name="mappings" type="tns:SimulatedMappingsType">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Inline definition of mapping to be simulated.
+                                Specify what mappings should be simulated.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -10714,16 +10714,95 @@
     </xsd:complexType>
     <xsd:element name="mappingWorkDefinition" type="tns:MappingWorkDefinitionType"/>
 
+    <xsd:complexType name="SimulatedMappingsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specify what mappings to simulate. Note that if the `includeExistingCorrelators` is set
+                to false (default), then at least one mapping has to be specified in the `inlineMappings`.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="includeExistingMappings" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Use mappings derived from the resource of given shadows.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <!-- If the value of `includeExistingMappings` is "false" then bellow element has to be present. -->
+
+            <xsd:element name="inlineMappings" type="tns:InlineMappingDefinitionType" minOccurs="0"
+                         maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Inline definition of correlators. It can be used to explicitly define the correlator, for
+                        example in case when we want to simulate suggested correlation (which is not stored yet).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="simulatedMappings" type="tns:SimulatedMappingsType"/>
+
+    <xsd:complexType name="InlineMappingDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the mapping (either inbound or outbound) of particular item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item that this additional mapping uses. It must point to an attribute in the
+                        resource schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inbound" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how the attribute values are used (assigned) in case of information flow from
+                        resource to IDM.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceItemDefinitionType.inbound</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outbound" type="tns:OutboundMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how the attribute values are used (assigned) in case of information flow from IDM to
+                        resource.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceItemDefinitionType.outbound</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="inlineMappings" type="tns:InlineMappingDefinitionType"/>
+
     <xsd:complexType name="SimulatedCorrelatorsType">
         <xsd:annotation>
             <xsd:documentation>
                 Specify what correlators to use for correlation. Note that if the `includeExistingCorrelators` is set
-                to false (default), then at least one of `inlineCorrelators` or `correlatorsRef` has to be
-                specified.
+                to false (default), then at least one correlator has to be specified in the `inlineCorrelators`.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.12</a:since>
+                <a:since>4.11</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
