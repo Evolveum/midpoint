@@ -1377,11 +1377,11 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Michal");
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Rene");
         modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Muller");
         modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Jose");
 
-        modifyShadowReplace("user1", PERSONAL_NUMBER, "Michał");
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "René");
         modifyShadowReplace("user2", PERSONAL_NUMBER, "Müller");
         modifyShadowReplace("user3", PERSONAL_NUMBER, "José");
 
@@ -1469,12 +1469,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Łukasz");
-        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Søren");
+        modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Štefan");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Niño");
         modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Tomáš");
 
-        modifyShadowReplace("user1", PERSONAL_NUMBER, "Lukasz");
-        modifyShadowReplace("user2", PERSONAL_NUMBER, "Soren");
+        modifyShadowReplace("user1", PERSONAL_NUMBER, "Stefan");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "Nino");
         modifyShadowReplace("user3", PERSONAL_NUMBER, "Tomas");
 
         refreshShadows();
@@ -1516,12 +1516,12 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER1.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Bjorn");
-        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Ake");
-        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Oslash");
+        modifyUserReplace(USER2.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Ines");
+        modifyUserReplace(USER3.oid, ItemPath.create(UserType.F_PERSONAL_NUMBER), "Helene");
 
         modifyShadowReplace("user1", PERSONAL_NUMBER, "Björn");
-        modifyShadowReplace("user2", PERSONAL_NUMBER, "Åke");
-        modifyShadowReplace("user3", PERSONAL_NUMBER, "Øslash");
+        modifyShadowReplace("user2", PERSONAL_NUMBER, "Inés");
+        modifyShadowReplace("user3", PERSONAL_NUMBER, "Hélène");
 
         refreshShadows();
 

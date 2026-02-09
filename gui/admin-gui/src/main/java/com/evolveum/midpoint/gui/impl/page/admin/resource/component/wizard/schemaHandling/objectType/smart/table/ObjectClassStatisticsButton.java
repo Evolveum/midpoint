@@ -155,6 +155,11 @@ public class ObjectClassStatisticsButton extends BasePanel<QName> {
                 () -> loadTask(pageBase, taskOid)) {
 
             @Override
+            protected boolean showResultAfterCompletion() {
+                return true;
+            }
+
+            @Override
             protected void onShowResults(AjaxRequestTarget target) {
                 onProgressFinished(target, pageBase, smartIntegrationService, objectClassName);
             }
