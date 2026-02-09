@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
@@ -23,6 +25,7 @@ import com.evolveum.midpoint.web.page.admin.server.TaskExecutionProgress;
 import com.evolveum.midpoint.web.page.admin.server.dto.GuiTaskResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
@@ -62,6 +65,7 @@ public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> impleme
 
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_STOP = "stop";
+    private static final String ID_NAVIGATE_TO_TASK = "navigateToTask";
     private static final String ID_SHOW_RESULT = "showResult";
 
     private static final Duration REFRESH_INTERVAL = Duration.ofSeconds(2);
@@ -94,26 +98,75 @@ public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> impleme
         initFooter();
     }
 
+    boolean isTaskOperationCompleted = false;
+
     private @NotNull WebMarkupContainer initContainer() {
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
+
         container.add(new AjaxSelfUpdatingTimerBehavior(REFRESH_INTERVAL) {
             @Override
             protected void onPostProcessTarget(AjaxRequestTarget target) {
                 super.onPostProcessTarget(target);
-                if (getTaskExecutionProgress().isComplete()
-                        || getTaskExecutionProgress().getTaskStatus() != OperationResultStatus.IN_PROGRESS) {
-                    stop(target);
+
+                if (isTaskOperationCompleted) {
+                    stop(target); // let the "completed" UI stay visible until next tick decides to stop
+                    if (showResultAfterCompletion()) {
+                        onShowResults(target);
+                    }
+                    return;
                 }
+
+                var progress = getTaskExecutionProgress();
+                var status = progress.getTaskStatus();
+
+                boolean finished = status != OperationResultStatus.FATAL_ERROR
+                        && (progress.isComplete() || status != OperationResultStatus.IN_PROGRESS);
+
+                if (finished) {
+                    isTaskOperationCompleted = true;
+                }
+
+                target.add(getIconWithLabel());
+                target.add(getProgressBarComponent());
                 target.add(getFooter());
             }
         });
+
         add(container);
         return container;
     }
 
+    protected boolean showResultAfterCompletion() {
+        return false;
+    }
+
     private void initHeader(@NotNull WebMarkupContainer container) {
-        container.add(new Label(ID_TITLE, titleModel));
+
+        IconWithLabel iconTitleLabel = new IconWithLabel(ID_TITLE, titleModel) {
+
+            @Override
+            protected @NotNull String getLabelComponentCssClass() {
+                return "";
+            }
+
+            @Override
+            protected @NotNull String getIconCssClass() {
+                OperationResultStatus taskStatus = getTaskExecutionProgress().getTaskStatus();
+                if (taskStatus == OperationResultStatus.SUCCESS) {
+                    return "fa-solid fa-check-circle text-success me-2 mr-1";
+                } else if (taskStatus == OperationResultStatus.FATAL_ERROR) {
+                    return "fa-solid fa-xmark-circle text-danger me-2 mr-1";
+                } else if (taskStatus == OperationResultStatus.WARNING || taskStatus == OperationResultStatus.PARTIAL_ERROR) {
+                    return "fa-solid fa-triangle-exclamation text-warning me-2 mr-1";
+                } else {
+                    return "";
+                }
+            }
+        };
+        iconTitleLabel.setOutputMarkupId(true);
+
+        container.add(iconTitleLabel);
         container.add(new Label(ID_SUBTITLE, subtitleModel));
     }
 
@@ -179,8 +232,25 @@ public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> impleme
 
     private @NotNull Component createProgressBar() {
         WebMarkupContainer progressBar = new WebMarkupContainer(SmartTaskProgressPanel.ID_PROGRESS_BAR);
+        progressBar.add(AttributeModifier.replace("class", () -> {
+            OperationResultStatus taskStatus = getTaskExecutionProgress().getTaskStatus();
+            return switch (taskStatus) {
+                case SUCCESS -> "progress-bar bg-success";
+                case FATAL_ERROR -> "progress-bar bg-danger";
+                case WARNING, PARTIAL_ERROR -> "progress-bar bg-warning progress-bar-animated";
+                default -> "progress-bar progress-bar-striped progress-bar-animated";
+            };
+        }));
         progressBar.setOutputMarkupId(true);
         return progressBar;
+    }
+
+    protected Component getProgressBarComponent() {
+        return get(createComponentPath(SmartTaskProgressPanel.ID_CONTAINER, SmartTaskProgressPanel.ID_PROGRESS_BAR));
+    }
+
+    protected IconWithLabel getIconWithLabel() {
+        return (IconWithLabel) get(createComponentPath(SmartTaskProgressPanel.ID_CONTAINER, ID_TITLE));
     }
 
     private void initFooter() {
@@ -197,6 +267,9 @@ public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> impleme
         stopButton.showTitleAsLabel(true);
         footer.add(stopButton);
 
+        AjaxIconButton navigateToTaskButton = buildViewTaskButton();
+        footer.add(navigateToTaskButton);
+
         AjaxIconButton showButton = new AjaxIconButton(
                 ID_SHOW_RESULT,
                 Model.of(""),
@@ -211,6 +284,20 @@ public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> impleme
         footer.add(showButton);
 
         add(footer);
+    }
+
+    private @NotNull AjaxIconButton buildViewTaskButton() {
+        AjaxIconButton navigateToTaskButton = new AjaxIconButton(ID_NAVIGATE_TO_TASK, Model.of(""),
+                createStringResource("SmartTaskProgressPanel.button.navigateToTask")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                TaskType modelObject = SmartTaskProgressPanel.this.getModelObject();
+                DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, modelObject.getOid(),
+                        this, false);
+            }
+        };
+        navigateToTaskButton.showTitleAsLabel(true);
+        return navigateToTaskButton;
     }
 
     protected IModel<String> getStopButtonLabel() {
@@ -241,6 +328,7 @@ public abstract class SmartTaskProgressPanel extends BasePanel<TaskType> impleme
 
         getPageBase().hideMainPopup(target);
     }
+
     /**
      * Action performed when the "Show results" button is clicked. The button is enabled when the task is finished.
      */
