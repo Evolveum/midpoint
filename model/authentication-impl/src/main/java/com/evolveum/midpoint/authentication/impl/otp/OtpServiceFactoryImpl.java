@@ -6,13 +6,35 @@
 
 package com.evolveum.midpoint.authentication.impl.otp;
 
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Service;
+
+import com.evolveum.midpoint.authentication.api.OtpService;
+import com.evolveum.midpoint.authentication.api.OtpServiceFactory;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtpAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TOtpAuthenticationModuleType;
 
-public class OtpServiceFactory {
+@Service
+public class OtpServiceFactoryImpl implements OtpServiceFactory {
 
-    public static OtpServiceImpl create(Clock clock, OtpAuthenticationModuleType config) {
+    private final Clock clock;
+
+    public OtpServiceFactoryImpl(Clock clock) {
+        this.clock = clock;
+    }
+
+    public OtpService create(@NotNull ModuleAuthentication moduleAuthentication) {
+        if (!(moduleAuthentication instanceof OtpModuleAuthenticationImpl otpModule)) {
+            throw new IllegalArgumentException("Authentication module not supported");
+        }
+
+        return create(otpModule.getModule());
+    }
+
+    @Override
+    public OtpService create(@NotNull OtpAuthenticationModuleType config) {
         String issuer = config.getIssuer();
         OtpAlgorithm algorithm = OtpAlgorithm.fromValue(config.getAlgorithm());
         Integer secretLength = config.getSecretLength();

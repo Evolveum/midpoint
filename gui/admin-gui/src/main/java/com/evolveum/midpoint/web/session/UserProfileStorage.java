@@ -176,6 +176,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_TASK_ERRORS,
         PANEL_CONNECTOR_GENERATION_DOCUMENTATION,
         PANEL_ASSOCIATION_SCHEMA_HANDLING,
+        PANEL_FOCUS_CREDENTIALS_OTP,
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

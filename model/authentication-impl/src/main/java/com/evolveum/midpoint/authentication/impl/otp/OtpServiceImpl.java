@@ -14,9 +14,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.codec.binary.Base32;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.authentication.api.OtpService;
 import com.evolveum.midpoint.common.Clock;
 
 public abstract class OtpServiceImpl implements OtpService {

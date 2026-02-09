@@ -16,9 +16,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.authentication.api.OtpService;
+import com.evolveum.midpoint.authentication.api.OtpServiceFactory;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.evaluator.CredentialsAuthenticationEvaluatorImpl;
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -38,7 +39,7 @@ public class OtpAuthenticationEvaluator
 
     @Autowired private Protector protector;
 
-    @Autowired private Clock clock;
+    @Autowired private OtpServiceFactory otpServiceFactory;
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment env, OtpAuthenticationContext ctx) {
@@ -84,7 +85,7 @@ public class OtpAuthenticationEvaluator
             return false;
         }
 
-        OtpServiceImpl service = OtpServiceFactory.create(clock, ctx.getOtpAuthenticationModule());
+        OtpService service = otpServiceFactory.create(ctx.getOtpAuthenticationModule());
 
         for (OtpCredentialType otp : otpCredentials.getOtp()) {
             ProtectedStringType secret = otp.getSecret();

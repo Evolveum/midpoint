@@ -62,6 +62,8 @@ public class OtpModuleFactory extends AbstractCredentialModuleFactory<
         auth.setCredentialType(supportedClass());
         auth.setNameOfModule(configuration.getModuleIdentifier());
 
+        auth.setModule(moduleType);
+
         return auth;
     }
 }

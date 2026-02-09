@@ -6,27 +6,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.self.PageSelf;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -35,10 +18,26 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.authentication.api.OtpManager;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.component.NewOtpPanel;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.self.PageSelf;
+import com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(
         urls = {
@@ -50,7 +49,7 @@ import java.util.List;
                         description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
                         label = "PageSelfCredentials.auth.credentials.label",
-                        description = "PageSelfCredentials.auth.credentials.description")})
+                        description = "PageSelfCredentials.auth.credentials.description") })
 public class PageSelfCredentials extends PageSelf {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -85,9 +84,17 @@ public class PageSelfCredentials extends PageSelf {
 
     }
 
-    private Collection<? extends ITab> createTabs(){
+    private Collection<? extends ITab> createTabs() {
         List<ITab> tabs = new ArrayList<>();
-        tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {
+        tabs.add(createPasswordTab());
+        tabs.add(createSecurityQuestionsTab());
+        tabs.add(createOtpTab());
+
+        return tabs;
+    }
+
+    private ITab createPasswordTab() {
+        return new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -114,9 +121,11 @@ public class PageSelfCredentials extends PageSelf {
                     }
                 });
             }
-        });
+        };
+    }
 
-        tabs.add(new PanelTab(createStringResource("PageSelfCredentials.tabs.securityQuestion"),
+    private ITab createSecurityQuestionsTab() {
+        return new PanelTab(createStringResource("PageSelfCredentials.tabs.securityQuestion"),
                 new VisibleBehaviour(this::showQuestions)) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -124,9 +133,7 @@ public class PageSelfCredentials extends PageSelf {
             public WebMarkupContainer createPanel(String panelId) {
                 return new SecurityQuestionsPanel(panelId, Model.of());
             }
-        });
-
-        return tabs;
+        };
     }
 
     private boolean showQuestions() {
@@ -148,4 +155,28 @@ public class PageSelfCredentials extends PageSelf {
         return secQuestAnsList != null && !secQuestAnsList.isEmpty();
     }
 
+    private ITab createOtpTab() {
+        return new PanelTab(
+                createStringResource("PageSelfCredentials.tabs.otp"),
+                new VisibleBehaviour(this::showOtp)) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new NewOtpPanel(panelId);
+            }
+        };
+    }
+
+    private boolean showOtp() {
+        GuiProfiledPrincipal principal = getPrincipal();
+        if (principal == null) {
+            return false;
+        }
+
+        // check otp credentials policy existence and parameters if needed
+        // via principal.getApplicableSecurityPolicy().getCredentials();
+
+        return OtpManager.isOtpAvailable();
+    }
 }

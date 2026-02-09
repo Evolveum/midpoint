@@ -4,8 +4,13 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.authentication.impl.otp;
+package com.evolveum.midpoint.authentication.api;
 
+/**
+ * todo docs
+ *
+ * @author Viliam Repan
+ */
 public interface OtpService {
 
     String generateSecret();
