@@ -392,6 +392,25 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
                 SOMEHOW_USEFUL);
     }
 
+    @Test
+    public void testProjectionAttributeLiteral() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(),
+                "projection-attribute-literal",
+                ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
+    }
+
+    @Test
+    public void testProjectionAttributeString() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "attrName", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, PrimitiveType.STRING
+                ),
+                "projection-attribute",
+                ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
+    }
+
+
     private VariablesMap createFocusProjectionResourceVariables(Object... args) throws Exception {
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         PrismObject<ResourceType> resource = getDummyResourceObject();
