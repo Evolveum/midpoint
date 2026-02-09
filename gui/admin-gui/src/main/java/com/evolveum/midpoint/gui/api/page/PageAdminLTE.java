@@ -8,11 +8,13 @@ package com.evolveum.midpoint.gui.api.page;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
@@ -37,12 +39,12 @@ import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.*;
+import org.apache.wicket.ajax.AjaxNewWindowNotifyingBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -137,7 +139,6 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -152,7 +153,7 @@ import org.owasp.html.Sanitizers;
  */
 public abstract class PageAdminLTE extends WebPage implements ModelServiceLocator {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageAdminLTE.class.getName() + ".";
 
@@ -174,6 +175,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
+
+    private String windowName = null;
 
     /**
      * See https://www.javadoc.io/doc/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer/20191001.1/org/owasp/html/HtmlPolicyBuilder.html
@@ -329,8 +332,25 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
         MidPointAuthWebSession.get().setClientCustomization();
 
-        add(new NewWindowNotifyingBehavior());
+        add(new AjaxNewWindowNotifyingBehavior() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void respond(AjaxRequestTarget target) {
+                super.respond(target);
+                windowName = getWindowName();
+            }
+
+            @Override
+            public void renderHead(Component component, IHeaderResponse response) {
+                super.renderHead(component, response);
+                getCallbackScript();
+                windowName = getWindowName();
+
+            }
+        });
     }
+
 
     @Override
     protected void onInitialize() {
@@ -347,7 +367,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     private void initLayout() {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
-        body.add(AttributeAppender.append("class", () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "dark-mode" : null));
+        body.add(AttributeAppender.append("class", () -> isDarkMode() ? "dark-mode" : null));
         // body.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getAccentCss()));
 
         addDefaultBodyStyle(body);
@@ -406,7 +426,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Deprecated
             public String getDescribe() {
@@ -423,7 +443,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
         Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
                 new IModel<String>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public String getObject() {
@@ -1197,9 +1217,27 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return get(ID_FEEDBACK_CONTAINER);
     }
 
+    /**
+     * @return the storage information which is common all over browser windows/tabs
+     * e.g. request access data, midPoint light/dark mode etc.
+     */
     public SessionStorage getSessionStorage() {
         MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
         return session.getSessionStorage();
+    }
+
+    /**
+     * @return the storage information which is browser windows/tab specific,
+     * e.g. object list page search data, specific details page navigation menu data etc.
+     */
+    public BrowserTabSessionStorage getBrowserTabSessionStorage() {
+        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
+//        var windowName = WebComponentUtil.getBrowserWindowNameParameter(PageAdminLTE.this);
+        //todo can it happen that window name == null?
+        if (windowName == null) {
+            return new BrowserTabSessionStorage();//windowName = UUID.randomUUID().toString();
+        }
+        return session.getBrowserTabSessionStorage(windowName);
     }
 
     public SecretsProviderManager getSecretsProviderManager() {
@@ -1220,6 +1258,13 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     public void changeLocal(AjaxRequestTarget target) {
+        getBrowserTabSessionStorage().getPageStorageMap().values()
+                .forEach(pageStorage -> {
+                    if (pageStorage.getSearch() == null) {
+                        return;
+                    }
+                    pageStorage.getSearch().detachSearchItemWrappersModels();
+                });
     }
 
     public IModel<String> getSystemNameModel() {
@@ -1227,6 +1272,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
             String customSystemName = WebComponentUtil.getMidpointCustomSystemName(PageAdminLTE.this, DEFAULT_SYSTEM_NAME);
             return StringUtils.isNotEmpty(customSystemName) ? customSystemName : DEFAULT_SYSTEM_NAME;
         };
+    }
+
+    protected boolean isDarkMode() {
+        return getSessionStorage().getMode() == SessionStorage.Mode.DARK;
     }
 
     @Override

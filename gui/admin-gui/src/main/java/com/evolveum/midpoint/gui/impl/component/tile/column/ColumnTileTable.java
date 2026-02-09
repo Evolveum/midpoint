@@ -541,8 +541,7 @@ public abstract class ColumnTileTable<O extends Serializable>
     }
 
     public void setDefaultPagingSize(Integer pageItemSize) {
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        UserProfileStorage userProfile = getBrowserTabSessionStorage().getUserProfile();
         userProfile.setPagingSize(getTableId(), pageItemSize);
     }
 

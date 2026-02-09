@@ -70,7 +70,7 @@ public class TablePanel<T> extends Panel implements Table {
             @Override
             protected void pageSizeChanged(AjaxRequestTarget target) {
                 PageBase page = (PageBase) getPage();
-                Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
+                Integer pageSize = page.getBrowserTabSessionStorage().getUserProfile().getPagingSize(tableId);
 
                 setItemsPerPage(pageSize);
                 target.add(getNavigatorPanel());

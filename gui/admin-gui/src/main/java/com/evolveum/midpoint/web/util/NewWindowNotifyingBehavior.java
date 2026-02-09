@@ -34,15 +34,15 @@ public class NewWindowNotifyingBehavior extends AjaxNewWindowNotifyingBehavior {
 
     private static final Trace LOG = TraceManager.getTrace(NewWindowNotifyingBehavior.class);
 
-    @Override
-    protected void onNewWindow(AjaxRequestTarget target) {
-        LOG.debug("Page version already used in different tab, refreshing page");
-        WebPage page = (WebPage) getComponent();
+//    @Override
+//    protected void onNewWindow(AjaxRequestTarget target) {
+//        LOG.debug("Page version already used in different tab, refreshing page");
+//        WebPage page = (WebPage) getComponent();
         //fix for MID-4649; windowName parameter causes recursive reloading of the page
-        PageParameters pageParameters = page.getPageParameters();
-        if (pageParameters != null && pageParameters.getPosition("windowName") > -1 ){
-            pageParameters = pageParameters.remove("windowName");
-        }
-        page.setResponsePage(page.getPageClass(), pageParameters);
-    }
+//        PageParameters pageParameters = page.getPageParameters();
+//        if (pageParameters != null && pageParameters.getPosition("windowName") > -1 ){
+//            pageParameters = pageParameters.remove("windowName");
+//        }
+//        page.setResponsePage(page.getPageClass(), pageParameters);
+//    }
 }

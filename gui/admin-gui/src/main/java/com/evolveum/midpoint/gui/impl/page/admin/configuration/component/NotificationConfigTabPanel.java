@@ -6,12 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
 
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -59,9 +62,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -70,7 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<NotificationConfigurationType>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = NotificationConfigTabPanel.class.getName() + ".";
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
@@ -105,12 +106,12 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     }
 
     private void initPaging() {
-        getPageBase().getSessionStorage().getNotificationConfigurationTabMailServerTableStorage().setPaging(
-                getPrismContext().queryFactory().createPaging(0, (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE)));
+        var maxSize = (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE);
+        var paging = getPrismContext().queryFactory().createPaging(0, maxSize);
+        getPageBase().getBrowserTabSessionStorage().getNotificationConfigurationTabMailServerTableStorage().setPaging(paging);
     }
 
     protected void initLayout() {
-
         PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig =
                 PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
 
@@ -153,7 +154,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         ListView<PrismPropertyValueWrapper<FileConfigurationType>> values = new ListView<>("values",
                 new PropertyModel<>(fileConfig, "values")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final ListItem<PrismPropertyValueWrapper<FileConfigurationType>> item) {
@@ -163,7 +164,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
                 item.add(createHeader(ID_VALUE_HEADER, fileConfigType == null || fileConfigType.getName() == null || fileConfigType.getName().isEmpty() ? (FileConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details") : fileConfigType.getName()));
 
                 AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -177,7 +178,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
                 TextFormGroup name = new TextFormGroup(ID_FILE_NAME, fileConfigType != null ? new PropertyModel<>(fileConfigType, "name") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".name")), "", getInputCssClass(), false, true);
                 name.getField().add(new OnChangeAjaxBehavior() {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
@@ -189,7 +190,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
                 TextFormGroup file = new TextFormGroup(ID_FILE_PATH, fileConfigType != null ? new PropertyModel<>(fileConfigType, "file") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".file")), "", getInputCssClass(), false, true);
                 file.getField().add(new OnChangeAjaxBehavior() {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
@@ -198,13 +199,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
                 });
                 item.add(file);
 
-                item.add(new VisibleEnableBehaviour() {
-
-                    @Override
-                    public boolean isVisible() {
-                        return fileConfigType != null;
-                    }
-                });
+                item.add(new VisibleBehaviour(() -> fileConfigType != null));
             }
         };
         values.add(new AttributeModifier("class", "col-md-6"));
@@ -212,7 +207,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         files.add(values);
 
         AjaxLink<Void> addButton = new AjaxLink<>(ID_ADD_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -234,11 +229,10 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     private BoxedTablePanel<MailServerConfiguration> initServersTable(PropertyModel<MailConfigurationType> mailConfigType) {
 
         List<MailServerConfiguration> mailServers = getListOfMailServerConfiguration(mailConfigType.getObject().getServer());
-        PageStorage pageStorage = getPageBase().getSessionStorage().getNotificationConfigurationTabMailServerTableStorage();
         ISortableDataProvider<MailServerConfiguration, String> provider = new ListDataProvider<>(this,
                 new ListModel<>(mailServers) {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void setObject(List<MailServerConfiguration> object) {
@@ -250,20 +244,16 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
                     }
 
-                }) {
-
-            private static final long serialVersionUID = 1L;
-
-        };
+                });
 
         UserProfileStorage.TableId tableId = UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE;
         BoxedTablePanel<MailServerConfiguration> table = new BoxedTablePanel<>(ID_MAIL_SERVERS_TABLE, provider, initMailServersColumns(), tableId) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public int getItemsPerPage() {
-                return getPageBase().getSessionStorage().getUserProfile().getTables()
+                return getPageBase().getBrowserTabSessionStorage().getUserProfile().getTables()
                         .get(getTableId());
             }
 
@@ -272,7 +262,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
                 AjaxIconButton newObjectIcon = new AjaxIconButton(id, new Model<>("fa fa-plus"),
                         createStringResource("MainObjectListPanel.newObject")) {
 
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -319,7 +309,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         columns.add(new IconColumn<>(Model.of("")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected DisplayType getIconDisplayType(IModel<MailServerConfiguration> rowModel) {
@@ -329,7 +319,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         });
 
         columns.add(new EditableAjaxLinkColumn<>(createStringResource("MailServerConfigurationType.host")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> createLinkModel(IModel<MailServerConfiguration> rowModel) {
@@ -352,7 +342,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         columns.add(new EditableColumn<>(createStringResource("MailServerConfigurationType.port")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createStaticPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
@@ -370,7 +360,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         columns.add(new EditableColumn<>(createStringResource("MailServerConfigurationType.username")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createStaticPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
@@ -388,7 +378,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         columns.add(new EditableColumn<>(createStringResource("MailServerConfigurationType.password")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createStaticPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
@@ -404,12 +394,12 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         columns.add(new EditableColumn<>(createStringResource("MailServerConfigurationType.transportSecurity")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createStaticPanel(String componentId, IModel<MailServerConfiguration> rowModel) {
                 IModel<String> retModel = WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getValue().getTransportSecurity(), null);
-                return new Label(componentId, retModel != null && retModel.getObject() != null ? retModel.getObject() : "");
+                return new Label(componentId, retModel.getObject() != null ? retModel.getObject() : "");
             }
 
             @Override
@@ -430,7 +420,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
     private List<InlineMenuItem> getMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();
         menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -444,7 +434,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
         });
 
         menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -461,7 +451,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
     private ColumnMenuAction<MailServerConfiguration> createDeleteColumnAction() {
         return new ColumnMenuAction<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -493,7 +483,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
     private ColumnMenuAction<MailServerConfiguration> createEditColumnAction() {
         return new ColumnMenuAction<>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -544,7 +534,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
     public class MailServerConfiguration extends Selectable<MailServerConfigurationType> implements Editable {
 
-        private static final long serialVersionUID = 1L;
+        @Serial private static final long serialVersionUID = 1L;
 
         private final MailServerConfigurationType mailServer;
 

@@ -15,6 +15,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.task.api.Task;
 
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -187,6 +190,31 @@ public class BasePanel<T> extends Panel {
     public WebApplicationConfiguration getWebApplicationConfiguration() {
         MidPointApplication application = MidPointApplication.get();
         return application.getWebApplicationConfiguration();
+    }
+
+    /**
+     * Should be used to get the storage information which is common all over browser windows/tabs
+     * e.g. request access data, midPoing light/dark mode etc.
+     * @return
+     */
+    public SessionStorage getSessionStorage() {
+        return WebComponentUtil.getPage(BasePanel.this, PageAdminLTE.class).getSessionStorage();
+    }
+
+    /**
+     * Should be used to get the storage information which is browser windows/tab specific,
+     * e.g. object list page search data, specific details page navigation menu data etc.
+     * @return
+     */
+    public BrowserTabSessionStorage getBrowserTabSessionStorage() {
+        PageAdminLTE pageBase = null;
+        if (BasePanel.this.findParent(PageAdminLTE.class) != null) {
+            pageBase = WebComponentUtil.getPage(BasePanel.this, PageAdminLTE.class);
+        }
+        if (pageBase != null) {
+            return WebComponentUtil.getPage(BasePanel.this, PageAdminLTE.class).getBrowserTabSessionStorage();
+        }
+        return new BrowserTabSessionStorage();
     }
 
     @Override

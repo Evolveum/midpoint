@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
 
@@ -109,7 +108,6 @@ public abstract class PageBase extends PageAdminLTE {
     public static final String ID_CONTENT_VISIBLE = "contentVisible";
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
-    private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
     private static final String ID_LOCALE = "locale";
     private static final String ID_MENU_TOGGLE = "menuToggle";
@@ -122,7 +120,6 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_DEPLOYMENT_NAME = "deploymentName";
     private static final String ID_LOGOUT_FORM = "logoutForm";
     private static final String ID_MODE = "mode";
-    private static final String ID_CART_ITEM = "cartItem";
     private static final String ID_CART_LINK = "cartLink";
     private static final String ID_CART_COUNT = "cartCount";
     private static final String ID_ADDITIONAL_FOOTER = "additionalFooter";
@@ -264,19 +261,18 @@ public abstract class PageBase extends PageAdminLTE {
         container.add(locale);
 
         AjaxIconButton mode = new AjaxIconButton(ID_MODE,
-                () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "fas fa-sun" : "fas fa-moon",
-                () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? getString("PageBase.switchToLight") : getString("PageBase.switchToDark")) {
+                () -> isDarkMode() ? "fas fa-sun" : "fas fa-moon",
+                () -> isDarkMode() ? getString("PageBase.switchToLight") : getString("PageBase.switchToDark")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                SessionStorage.Mode mode = getSessionStorage().getMode();
-                if (mode == SessionStorage.Mode.DARK) {
+                SessionStorage.Mode mode;
+                if (isDarkMode()) {
                     mode = SessionStorage.Mode.LIGHT;
                 } else {
                     mode = SessionStorage.Mode.DARK;
                 }
 
                 getSessionStorage().setMode(mode);
-
                 target.add(PageBase.this);
             }
         };
@@ -332,7 +328,7 @@ public abstract class PageBase extends PageAdminLTE {
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 
-        IModel<List<Breadcrumb>> breadcrumbsModel = () -> getBreadcrumbs();
+        IModel<List<Breadcrumb>> breadcrumbsModel = this::getBreadcrumbs;
 
         ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, breadcrumbsModel) {
 
@@ -395,7 +391,7 @@ public abstract class PageBase extends PageAdminLTE {
         cartLink.add(AttributeAppender.append("aria-label", createStringResource("PageBase.cartLinkExtended")));
 
         Label cartCount = new Label(ID_CART_COUNT, () -> {
-            List list = getSessionStorage().getRequestAccess().getShoppingCartAssignments();
+            List<AssignmentType> list = getSessionStorage().getRequestAccess().getShoppingCartAssignments();
             return list.isEmpty() ? null : list.size();
         });
         cartLink.add(cartCount);
@@ -444,10 +440,8 @@ public abstract class PageBase extends PageAdminLTE {
         LeftMenuPanel sidebarMenu = new LeftMenuPanel(ID_SIDEBAR_MENU);
         sidebarMenu.add(AttributeAppender.append("class",
                 () -> {
-                    boolean dark = getSessionStorage().getMode() == SessionStorage.Mode.DARK;
-
                     AdminLTESkin skin = WebComponentUtil.getMidPointSkin();
-                    return skin.getSidebarCss(dark);
+                    return skin.getSidebarCss(isDarkMode());
                 }));
         sidebarMenu.add(createUserStatusBehaviour());
         add(sidebarMenu);
@@ -809,7 +803,7 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     public long getItemsPerPage(String tableIdName) {
-        UserProfileStorage userProfile = getSessionStorage().getUserProfile();
+        UserProfileStorage userProfile = getBrowserTabSessionStorage().getUserProfile();
         return userProfile.getPagingSize(tableIdName);
     }
 
@@ -1105,23 +1099,5 @@ public abstract class PageBase extends PageAdminLTE {
 
     public TaskAwareExecutor taskAwareExecutor(@NotNull AjaxRequestTarget target, @NotNull String operationName) {
         return new TaskAwareExecutor(this, target, operationName);
-    }
-
-    @Override
-    public void changeLocal(AjaxRequestTarget target) {
-        super.changeLocal(target);
-        getSessionStorage().getPageStorageMap().values()
-                .forEach(pageStorage -> {
-                    if (pageStorage.getSearch() == null) {
-                        return;
-                    }
-                    pageStorage.getSearch().getItems().forEach(item -> {
-                        if (item instanceof AbstractSearchItemWrapper<?> searchItem) {
-                            searchItem.getTitle().detach();
-                            searchItem.getName().detach();
-                            searchItem.getHelp().detach();
-                        }
-                    });
-                });
     }
 }

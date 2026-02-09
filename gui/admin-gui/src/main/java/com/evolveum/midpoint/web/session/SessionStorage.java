@@ -9,19 +9,12 @@ package com.evolveum.midpoint.web.session;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
-import java.util.Map.Entry;
-import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.RequestAccess;
-import com.evolveum.midpoint.gui.impl.session.ContainerTabStorage;
-import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * @author lazyman
@@ -70,35 +63,20 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_CASE_EVENTS_TAB = "caseEventsTab";
     public static final String KEY_ORG_STRUCTURE_PANEL_STORAGE = "orgStructurePanelStorage";
 
-    private static final String KEY_TASKS = "tasks";
-    private static final String KEY_SUBTASKS = "subtasks";
-    private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
+    public static final String KEY_TASKS = "tasks";
+    public static final String KEY_SUBTASKS = "subtasks";
+    public static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
     public static final String KEY_CERT_DECISIONS = "certDecisions";
+
+    private Map<String, BrowserTabSessionStorage> storageByWindowName = new HashMap<>();
 
     public enum Mode {
 
         LIGHT, DARK;
     }
 
+    //todo mode stays the same all across the tabs?
     private Mode mode = Mode.LIGHT;
-
-    /**
-     * Store session information for user preferences about paging size in midPoint GUI
-     */
-    private UserProfileStorage userProfile;
-    private SuggestionsStorage suggestions;
-
-    /**
-     * place to store information in session for various pages
-     */
-    private Map<String, PageStorage> pageStorageMap = new HashMap<>();
-    private Map<String, ObjectDetailsStorage> detailsStorageMap = new HashMap<>();
-
-    /**
-     * Contains state for the first level menu items.
-     * Key is menu label text, value if true then menu is expanded, if false menu is minimized.
-     */
-    private Map<String, Boolean> mainMenuState = new HashMap<>();
 
     private RequestAccess requestAccess = new RequestAccess();
 
@@ -118,219 +96,18 @@ public class SessionStorage implements Serializable, DebugDumpable {
         this.mode = mode;
     }
 
-    public Map<String, PageStorage> getPageStorageMap() {
-        return pageStorageMap;
-    }
-
-    public Map<String, Boolean> getMainMenuState() {
-        return mainMenuState;
-    }
-
-    public <T extends PageStorage> T getPageStorage(@NotNull String key, @NotNull Class<T> type) {
-        PageStorage ps = pageStorageMap.get(key);
-        if (ps == null) {
-            return null;
+    public BrowserTabSessionStorage getBrowserTabSessionStorage(@NotNull String windowName) {
+        BrowserTabSessionStorage browserTabSessionStorage = storageByWindowName.get(windowName);
+        if (browserTabSessionStorage == null) {
+            browserTabSessionStorage = new BrowserTabSessionStorage();
+            storageByWindowName.put(windowName, browserTabSessionStorage);
         }
-
-        if (!type.isAssignableFrom(ps.getClass())) {
-            throw new IllegalStateException("Page storage map contains key '" + key + "' with different type of object ("
-                    + ps.getClass().getName() + ") that expected '" + type.getClass().getName() + "'");
-        }
-
-        return (T) ps;
+        return browserTabSessionStorage;
     }
 
-    public <T extends PageStorage> void setPageStorage(@NotNull String key, T value) {
-        if (value == null) {
-            pageStorageMap.remove(key);
-        } else {
-            pageStorageMap.put(key, value);
-        }
-    }
-
-    private <T extends PageStorage> T getPageStorage(@NotNull String key, @NotNull T defaultValue) {
-        T ps = getPageStorage(key, (Class<T>) defaultValue.getClass());
-        if (ps == null) {
-            ps = defaultValue;
-            setPageStorage(key, ps);
-        }
-        return ps;
-    }
-
-    public PageStorage getOrCreatePageStorage(@NotNull String key) {
-        PageStorage ps =  pageStorageMap.get(key);
-        if (ps == null) {
-            ps = initPageStorage(key);
-        }
-
-        return ps;
-    }
-
-    public GenericPageStorage getConfiguration() {
-        return getPageStorage(KEY_CONFIGURATION, new GenericPageStorage());
-    }
-
-    public OrgStructurePanelStorage getOrgStructurePanelStorage() {
-        return getPageStorage(KEY_ORG_STRUCTURE_PANEL_STORAGE, new OrgStructurePanelStorage());
-    }
-
-    public ObjectListStorage getObjectListStorage(String key) {
-        return getPageStorage(key, new ObjectListStorage());
-    }
-
-    public ObjectDetailsStorage getObjectDetailsStorage(String key) {
-        return detailsStorageMap.get(key);
-    }
-
-    public void setObjectDetailsStorage(String key, ContainerPanelConfigurationType config) {
-        ObjectDetailsStorage storage = new ObjectDetailsStorage();
-        storage.setDefaultConfiguration(config);
-        detailsStorageMap.put(key, storage);
-    }
-
-    public AuditLogStorage getAuditLog() {
-        return getPageStorage(KEY_AUDIT_LOG, new AuditLogStorage());
-    }
-
-    public AuditLogStorage getObjectHistoryAuditLog(QName objectType) {
-        String key = objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG;
-        return getPageStorage(key, new AuditLogStorage());
-    }
-
-    public void setObjectHistoryAuditLog(QName objectType, AuditLogStorage storage) {
-        setPageStorage(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, storage);
-    }
-
-    @Deprecated
-    public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
-        String key = getContentStorageKey(kind, searchMode);
-        return getPageStorage(key, new ResourceContentStorage(kind));
-
-    }
-
-    public ResourceContentStorage getResourceContentStorage(ShadowKindType kind) {
-        String key = getContentStorageKey(kind, KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        return getPageStorage(key, new ResourceContentStorage(kind));
-
-    }
-
-    private ContainerTabStorage getContainerTabStorage(String key) {
-        return getPageStorage(key, new ContainerTabStorage());
-    }
-
-    public ContainerTabStorage getNotificationConfigurationTabMailServerTableStorage() {
-        return getContainerTabStorage(KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE);
-    }
-
-    private String getContentStorageKey(ShadowKindType kind, String searchMode) {
-        if (kind == null) {
-            return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
-        }
-
-        switch (kind) {
-            case ACCOUNT:
-                return KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
-
-            case ENTITLEMENT:
-                return KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
-
-            case GENERIC:
-                return KEY_RESOURCE_GENERIC_CONTENT + searchMode;
-            default:
-                return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
-
-        }
-    }
-
-    public WorkItemsStorage getWorkItemStorage() {
-        return getPageStorage(KEY_WORK_ITEMS, new WorkItemsStorage());
-    }
-
-    public CertCampaignsStorage getCertCampaigns() {
-        return getPageStorage(KEY_CERT_CAMPAIGNS, new CertCampaignsStorage());
-    }
-
-    public CertDecisionsStorage getCertDecisions() {
-        return getPageStorage(KEY_CERT_DECISIONS, new CertDecisionsStorage());
-    }
-
-    public UserProfileStorage getUserProfile() {
-        if (userProfile == null) {
-            userProfile = new UserProfileStorage();
-        }
-        return userProfile;
-    }
-
-    public PageStorage initPageStorage(String key) {
-        if (key == null) {
-            return null;
-        }
-
-        PageStorage pageStorage = null;
-        if (key.startsWith(KEY_OBJECT_LIST)) {
-            pageStorage = new ObjectListStorage();
-        } else if (key.startsWith(KEY_ORG_MEMBER_PANEL)
-                || key.startsWith(KEY_ROLE_MEMBER_PANEL)
-                || key.startsWith(KEY_SERVICE_MEMBER_PANEL)
-                || key.startsWith(KEY_POLICY_MEMBER_PANEL)
-                || key.startsWith(KEY_ARCHETYPE_MEMBER_PANEL)
-                || key.startsWith(KEY_GOVERNANCE_CARDS_PANEL)) {
-            pageStorage = new MemberPanelStorage();
-        } else if (KEY_ASSIGNMENTS_TAB.equals(key)
-                || KEY_INDUCEMENTS_TAB.equals(key)
-                || KEY_CASE_EVENTS_TAB.equals(key)
-                || KEY_TRIGGERS_TAB.equals(key)
-                || KEY_INDUCED_ENTITLEMENTS_TAB.equals(key)
-                || KEY_CASE_WORKITEMS_TAB.equals(key)
-                || KEY_OBJECT_POLICIES_TAB.equals(key)
-                || KEY_GLOBAL_POLICY_RULES_TAB.equals(key)
-                || KEY_LOGGING_TAB_APPENDER_TABLE.equals(key)
-                || KEY_LOGGING_TAB_LOGGER_TABLE.equals(key)
-                || KEY_FOCUS_PROJECTION_TABLE.equals(key)) {
-            pageStorage = getContainerTabStorage(key);
-        } else if (KEY_AUDIT_LOG.equals(key)
-                || key.startsWith(KEY_OBJECT_HISTORY_AUDIT_LOG)) {
-            pageStorage = new AuditLogStorage();
-        } else if (key.startsWith(KEY_TASK_ERRORS_PANEL)) {
-            pageStorage = new GenericPageStorage();
-        }
-
-        if (pageStorage != null) {
-            pageStorageMap.put(key, pageStorage);
-        }
-        return pageStorage;
-        //TODO: fixme
-    }
-
-    public MemberPanelStorage initMemberStorage(String storageKey, SearchBoxConfigurationHelper searchBoxConfig) {
-        PageStorage pageStorage = initPageStorage(storageKey);
-        if (!(pageStorage instanceof MemberPanelStorage)) {
-            return null;
-        }
-        return (MemberPanelStorage) pageStorage;
-    }
-
-    public MemberPanelStorage initMemberStorage(String storageKey) {
-        PageStorage pageStorage = initPageStorage(storageKey);
-        if (!(pageStorage instanceof MemberPanelStorage)) {
-            return null;
-        }
-        return (MemberPanelStorage) pageStorage;
-    }
-
-    public void setUserProfile(UserProfileStorage profile) {
-        userProfile = profile;
-    }
-
-    public SuggestionsStorage getSuggestions() {
-        if (suggestions == null) {
-            suggestions = new SuggestionsStorage();
-        }
-        return suggestions;
-    }
-
-    public void setSuggestions(SuggestionsStorage suggestions) {
-        this.suggestions = suggestions;
+    public void clearAllBrowserTabsStorages() {
+        storageByWindowName.values()
+                .forEach(BrowserTabSessionStorage::clearPageStorage);
     }
 
     @Override
@@ -343,51 +120,24 @@ public class SessionStorage implements Serializable, DebugDumpable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("SessionStorage\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "userProfile", userProfile, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "pageStorageMap", pageStorageMap, indent + 1);
+        //todo fix
+//        DebugUtil.debugDumpWithLabelLn(sb, "userProfile", userProfile, indent + 1);
+//        DebugUtil.debugDumpWithLabel(sb, "pageStorageMap", pageStorageMap, indent + 1);
         return sb.toString();
     }
 
     public void dumpSizeEstimates(StringBuilder sb, int indent) {
-        DebugUtil.dumpObjectSizeEstimate(sb, "SessionStorage", this, indent);
-        if (userProfile != null) {
-            sb.append("\n");
-            DebugUtil.dumpObjectSizeEstimate(sb, "userProfile", userProfile, indent + 1);
-        }
-        sb.append("\n");
-        DebugUtil.dumpObjectSizeEstimate(sb, "pageStorageMap", (Serializable) pageStorageMap, indent + 1);
-        for (Entry<String, PageStorage> entry : pageStorageMap.entrySet()) {
-            sb.append("\n");
-            DebugUtil.dumpObjectSizeEstimate(sb, entry.getKey(), entry.getValue(), indent + 2);
-        }
-    }
-
-    public void clearResourceContentStorage() {
-        pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        pageStorageMap.remove(KEY_RESOURCE_ENTITLEMENT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        pageStorageMap.remove(KEY_RESOURCE_ENTITLEMENT_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        pageStorageMap.remove(KEY_RESOURCE_OBJECT_CLASS_CONTENT);
-    }
-
-    public void clearTaskErrorsStorage(String taskOidToExclude) {
-        List<String> keysToRemove = new ArrayList<>();
-        pageStorageMap.keySet()
-                .forEach(key -> {
-                    if (key.startsWith(KEY_TASK_ERRORS_PANEL) && !key.contains(taskOidToExclude)) {
-                        keysToRemove.add(key);
-                    }
-                });
-        keysToRemove.forEach(key -> pageStorageMap.remove(key));
-    }
-
-    public GenericPageStorage getSimulation() {
-        return getPageStorage(KEY_SIMULATION, new GenericPageStorage());
-    }
-
-    public void clearPageStorage() {
-        this.pageStorageMap.clear();
+        //todo fix
+//        DebugUtil.dumpObjectSizeEstimate(sb, "SessionStorage", this, indent);
+//        if (userProfile != null) {
+//            sb.append("\n");
+//            DebugUtil.dumpObjectSizeEstimate(sb, "userProfile", userProfile, indent + 1);
+//        }
+//        sb.append("\n");
+//        DebugUtil.dumpObjectSizeEstimate(sb, "pageStorageMap", (Serializable) pageStorageMap, indent + 1);
+//        for (Entry<String, PageStorage> entry : pageStorageMap.entrySet()) {
+//            sb.append("\n");
+//            DebugUtil.dumpObjectSizeEstimate(sb, entry.getKey(), entry.getValue(), indent + 2);
+//        }
     }
 }

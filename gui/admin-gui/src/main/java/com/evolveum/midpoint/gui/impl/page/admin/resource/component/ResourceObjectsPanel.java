@@ -768,7 +768,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private ResourceContentStorage getPageStorage() {
-        return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
+        return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(getKind());
     }
 
     @Override

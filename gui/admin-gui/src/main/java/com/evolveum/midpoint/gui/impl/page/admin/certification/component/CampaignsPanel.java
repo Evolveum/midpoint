@@ -28,7 +28,6 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
@@ -232,7 +231,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     }
 
     private CertCampaignsStorage getCampaignsStorage() {
-        return getPageBase().getSessionStorage().getCertCampaigns();
+        return getPageBase().getBrowserTabSessionStorage().getCertCampaigns();
     }
 
     private List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> initColumns(

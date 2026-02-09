@@ -697,7 +697,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
 
         if (getTableId() != null) {
-            return getSession().getSessionStorage().getUserProfile().getPagingSize(getTableId());
+            return getPageBase().getBrowserTabSessionStorage().getUserProfile().getPagingSize(getTableId());
         }
 
         return UserProfileStorage.DEFAULT_PAGING_SIZE;
@@ -806,11 +806,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected PageStorage getPageStorage(String storageKey) {
-        PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
-        if (storage == null) {
-            storage = getSession().getSessionStorage().initPageStorage(storageKey);
-        }
-        return storage;
+        return getPageBase().getBrowserTabSessionStorage().getOrCreatePageStorage(storageKey);
     }
 
     public PageStorage getPageStorage() {

@@ -79,7 +79,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        getPageBase().getSessionStorage().setObjectHistoryAuditLog(getObjectWrapper().getTypeName(), new AuditLogStorage());
+        getPageBase().getBrowserTabSessionStorage().setObjectHistoryAuditLog(getObjectWrapper().getTypeName(), new AuditLogStorage());
     }
 
     protected void initLayout() {
@@ -182,7 +182,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
 
     protected void currentStateButtonClicked(String oid, String eventIdentifier, Class<F> type, String date) {
         //TODO fix sessionStorage
-        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + type.getSimpleName(), null);
+        getPageBase().getBrowserTabSessionStorage().setObjectDetailsStorage("details" + type.getSimpleName(), null);
 
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OID_PARAMETER_LABEL, oid);

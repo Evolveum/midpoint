@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -518,7 +517,7 @@ public class PageResources extends PageAdmin {
     }
 
     private void clearSessionStorageForResourcePage() {
-        ((PageBase) getPage()).getSessionStorage().clearResourceContentStorage();
+        getBrowserTabSessionStorage().clearResourceContentStorage();
     }
 
     @Override

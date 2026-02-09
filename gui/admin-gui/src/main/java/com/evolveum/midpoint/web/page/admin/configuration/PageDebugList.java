@@ -122,7 +122,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected Search load() {
-                GenericPageStorage storage = getSessionStorage().getConfiguration();
+                GenericPageStorage storage = getBrowserTabSessionStorage().getConfiguration();
                 Search search = storage.getSearch();
 
                 if (search == null || search.isForceReload()) {
@@ -206,7 +206,7 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         table.setOutputMarkupId(true);
 
-        GenericPageStorage storage = getSessionStorage().getConfiguration();
+        GenericPageStorage storage = getBrowserTabSessionStorage().getConfiguration();
         table.setCurrentPageAndSort(storage.getPaging());
 
         mainForm.addOrReplace(table);
@@ -547,7 +547,7 @@ public class PageDebugList extends PageAdminConfiguration {
         }
 
         // save object type category to session storage, used by back button
-        GenericPageStorage storage = getSessionStorage().getConfiguration();
+        GenericPageStorage storage = getBrowserTabSessionStorage().getConfiguration();
         storage.setSearch(searchModel.getObject());
 
         target.add(table);

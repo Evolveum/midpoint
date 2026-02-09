@@ -154,7 +154,8 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
     }
 
     private ContainerPanelConfigurationType getConfigurationFromStorage() {
-        ObjectDetailsStorage storage = getPageBase().getSessionStorage().getObjectDetailsStorage("details" + objectDetailsModel.getObjectWrapperModel().getObject().getCompileTimeClass().getSimpleName());
+        ObjectDetailsStorage storage = getPageBase().getBrowserTabSessionStorage().getObjectDetailsStorage(
+                "details" + objectDetailsModel.getObjectWrapperModel().getObject().getCompileTimeClass().getSimpleName());
         return storage.getDefaultConfiguration();
     }
 

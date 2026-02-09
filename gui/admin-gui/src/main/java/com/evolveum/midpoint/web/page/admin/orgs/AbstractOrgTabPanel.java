@@ -25,11 +25,9 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -230,6 +228,6 @@ public abstract class AbstractOrgTabPanel extends BasePanel<OrgType> {
     }
 
     protected OrgStructurePanelStorage getOrgStructurePanelStorage() {
-        return getPageBase().getSessionStorage().getOrgStructurePanelStorage();
+        return getPageBase().getBrowserTabSessionStorage().getOrgStructurePanelStorage();
     }
 }

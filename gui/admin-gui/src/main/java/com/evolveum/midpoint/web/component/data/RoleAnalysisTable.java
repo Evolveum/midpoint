@@ -340,8 +340,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
         if (tableId == null) {
             return UserProfileStorage.DEFAULT_PAGING_SIZE;
         }
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        UserProfileStorage userProfile = getBrowserTabSessionStorage().getUserProfile();
         return userProfile.getPagingSize(tableId);
     }
 

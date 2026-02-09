@@ -184,7 +184,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     private void resetSearch(QName currentObjectClass) {
-        ResourceContentStorage storage = getPageBase().getSessionStorage().getResourceContentStorage(null);
+        ResourceContentStorage storage = getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
 
         QName storedObjectClass = storage.getContentSearch().getObjectClass();
         String storedResourceOid = storage.getContentSearch().getResourceOid();
@@ -200,7 +200,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     }
 
     protected QName getDefaultObjectClass() {
-        ResourceContentStorage storage = getPageBase().getSessionStorage().getResourceContentStorage(null);
+        ResourceContentStorage storage = getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
         if (getObjectWrapper().getOid() != null
                 && getObjectWrapper().getOid().equals(storage.getContentSearch().getResourceOid())
                 && storage.getContentSearch().getObjectClass() != null) {
@@ -224,7 +224,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
 
             @Override
             public PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getResourceContentStorage(null);
+                return getPageBase().getBrowserTabSessionStorage().getResourceContentStorage(null);
             }
 
             @Override

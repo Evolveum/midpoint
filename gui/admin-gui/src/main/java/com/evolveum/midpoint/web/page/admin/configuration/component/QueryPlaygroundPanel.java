@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.query.*;
 
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
+import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -484,10 +486,10 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                 return;
             }
 
-            SessionStorage sessionStorage = getSession().getSessionStorage();
-            PageStorage storage = sessionStorage.getPageStorageMap().get(storageKey);
+            BrowserTabSessionStorage browserTabSessionStorage = getBrowserTabSessionStorage();
+            PageStorage storage = browserTabSessionStorage.getPageStorageMap().get(storageKey);
             if (storage == null) {
-                storage = sessionStorage.initPageStorage(storageKey);
+                storage = browserTabSessionStorage.initPageStorage(storageKey);
             }
             Search<?> search = storage.getSearch() != null ? storage.getSearch()
                     : new SearchBuilder<>(request.getType()).modelServiceLocator(getPageBase()).build();

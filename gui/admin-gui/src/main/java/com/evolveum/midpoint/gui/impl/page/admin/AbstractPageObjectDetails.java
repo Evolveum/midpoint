@@ -12,8 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -788,7 +786,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             return;
         }
 
-        getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
+        getBrowserTabSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
         String panelType = panelConfig.getPanelType();
 
         if (panelType == null && LOGGER.isDebugEnabled()) {

@@ -131,6 +131,14 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         return basicQueryWrapper.getItemsList();
     }
 
+    public void detachSearchItemWrappersModels() {
+        getItems().forEach(searchItem -> {
+                searchItem.getTitle().detach();
+                searchItem.getName().detach();
+                searchItem.getHelp().detach();
+        });
+    }
+
     public SearchBoxModeType getSearchMode() {
         return defaultSearchBoxMode;
     }

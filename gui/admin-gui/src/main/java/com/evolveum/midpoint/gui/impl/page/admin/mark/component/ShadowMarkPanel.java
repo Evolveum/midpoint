@@ -76,7 +76,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
@@ -775,13 +774,13 @@ public class ShadowMarkPanel<O extends ObjectType> extends AbstractObjectMainPan
         }
         PageStorage storage = getPageStorage(storageKey);
         if (storage == null) {
-            storage = getSessionStorage().initMemberStorage(storageKey);
+            storage = getBrowserTabSessionStorage().initMemberStorage(storageKey);
         }
         return (MemberPanelStorage) storage;
     }
 
     private PageStorage getPageStorage(String storageKey) {
-        return getSessionStorage().getPageStorageMap().get(storageKey);
+        return getBrowserTabSessionStorage().getPageStorageMap().get(storageKey);
     }
 
     protected String getStorageKeyTabSuffix() {

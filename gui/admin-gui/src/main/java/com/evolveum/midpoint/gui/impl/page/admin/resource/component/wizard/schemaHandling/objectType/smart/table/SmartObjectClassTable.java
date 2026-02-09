@@ -346,8 +346,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     }
 
     protected void setDefaultPagingSize(UserProfileStorage.@NotNull TableId tableId) {
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        UserProfileStorage userProfile = getBrowserTabSessionStorage().getUserProfile();
         userProfile.setPagingSize(
                 tableId,
                 getMaxTileCount());

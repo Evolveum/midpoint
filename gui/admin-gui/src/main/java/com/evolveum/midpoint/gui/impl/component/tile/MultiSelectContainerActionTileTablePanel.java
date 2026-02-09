@@ -341,8 +341,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected void setDefaultPagingSize(UserProfileStorage.@NotNull TableId tableId, Integer pageItemSize) {
-        MidPointAuthWebSession session = getSession();
-        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        UserProfileStorage userProfile = getBrowserTabSessionStorage().getUserProfile();
         userProfile.setPagingSize(tableId, pageItemSize);
     }
 

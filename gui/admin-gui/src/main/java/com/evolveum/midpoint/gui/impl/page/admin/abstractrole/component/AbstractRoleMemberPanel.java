@@ -20,8 +20,6 @@ import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.dialog.*;
 
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -97,7 +95,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -1640,13 +1637,13 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         PageStorage storage = getPageStorage(storageKey);
         if (storage == null) {
-            storage = getSessionStorage().initMemberStorage(storageKey);
+            storage = getBrowserTabSessionStorage().initMemberStorage(storageKey);
         }
         return (MemberPanelStorage) storage;
     }
 
     private PageStorage getPageStorage(String storageKey) {
-        return getSessionStorage().getPageStorageMap().get(storageKey);
+        return getBrowserTabSessionStorage().getPageStorageMap().get(storageKey);
     }
 
     protected String getStorageKeyTabSuffix() {

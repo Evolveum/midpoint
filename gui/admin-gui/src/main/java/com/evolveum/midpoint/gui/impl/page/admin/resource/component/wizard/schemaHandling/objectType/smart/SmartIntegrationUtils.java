@@ -790,10 +790,10 @@ public class SmartIntegrationUtils {
             @NotNull SuggestionsStorage.SuggestionType type) {
 
         return LambdaModel.of(
-                () -> pageBase.getSessionStorage()
+                () -> pageBase.getBrowserTabSessionStorage()
                         .getSuggestions()
                         .isEnabled(type),
-                value -> pageBase.getSessionStorage()
+                value -> pageBase.getBrowserTabSessionStorage()
                         .getSuggestions()
                         .setEnabled(type, Boolean.TRUE.equals(value))
         );
