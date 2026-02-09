@@ -10,9 +10,17 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
 
+import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import com.google.common.collect.ImmutableList;
@@ -52,6 +60,19 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
     protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
 
+            // resource.connectorConfiguration(propertyName)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "connectorConfiguration",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mp-resource-connectorConfiguration",
+                                    "TODO",
+                                    ListType.create(SimpleType.DYN),
+                                    ObjectCelValue.CEL_TYPE,
+                                    SimpleType.ANY)),
+                    CelFunctionBinding.from("mp-resource-connectorConfiguration", Object.class, Object.class,
+                            this::connectorConfiguration)),
+
             // shadow.primaryIdentifiers()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -64,7 +85,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("mp-shadow-primaryIdentifiers", Object.class,
                             this::primaryIdentifiers)),
 
-            // shadow.secondaryIdentifiers()
+                // shadow.secondaryIdentifiers()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "secondaryIdentifiers",
@@ -76,6 +97,45 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("mp-shadow-secondaryIdentifiers", Object.class,
                             this::secondaryIdentifiers))
         );
+    }
+
+    @NotNull
+    private List<?> connectorConfiguration(@Nullable Object o, @Nullable Object propertyName) {
+        if (CelTypeMapper.isCellNull(o)) {
+            return ImmutableList.of();
+        }
+        if (CelTypeMapper.isCellNull(propertyName)) {
+            return ImmutableList.of();
+        }
+        if (o instanceof ObjectCelValue<?> mpCelObject) {
+            if (mpCelObject.getObject().isOfType(ResourceType.class)) {
+                //noinspection unchecked
+                PrismObject<ResourceType> resource = (PrismObject<ResourceType>)mpCelObject.getObject();
+                PrismContainer<?> connectorConfiguration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+                if (connectorConfiguration == null) {
+                    return ImmutableList.of();
+                }
+                PrismContainer<Containerable> icfConfiguration = connectorConfiguration.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
+                if (icfConfiguration == null) {
+                    return ImmutableList.of();
+                }
+                ItemPath itemPath;
+                if (propertyName instanceof QNameCelValue celQName) {
+                    itemPath = ItemName.fromQName(celQName.getQName());
+                } else if (propertyName instanceof String localPart) {
+                    itemPath = ItemName.from(null, localPart);
+                } else {
+                    throw createException("Function connectorConfiguration() invoked with unknown parameter " + propertyName.getClass());
+                }
+                PrismProperty<Object> configProperty = icfConfiguration.findProperty(itemPath);
+                if (configProperty == null) {
+                    return ImmutableList.of();
+                }
+                return CelTypeMapper.toJavaValues(configProperty.getRealValues());
+            }
+            throw createException("Function connectorConfiguration() invoked on non-resource object " + mpCelObject.getObject());
+        }
+        throw createException("Function connectorConfiguration() invoked on unknown object " + o);
     }
 
     @NotNull

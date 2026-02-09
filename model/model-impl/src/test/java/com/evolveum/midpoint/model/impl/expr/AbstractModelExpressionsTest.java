@@ -17,8 +17,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -76,6 +79,8 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     private static final ItemName CUSTOM = new ItemName(NS_PIRACY, "custom");
     private static final ItemName STRING_VALUE = new ItemName(NS_PIRACY, "stringValue");
     private static final ItemName INT_VALUE = new ItemName(NS_PIRACY, "intValue");
+
+    private static final String SOMEHOW_USEFUL = "somehow useful";
 
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
     @Autowired private ExpressionFactory expressionFactory;
@@ -294,7 +299,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
                 "var2", "123", PrimitiveType.STRING);
 
         try {
-            executeScriptExpressionString(variables);
+            executeScriptExpressionString(variables, getTestNameShort());
             fail("Unexpected success");
         } catch (ExpressionEvaluationException e) {
             displayExpectedException(e);
@@ -343,16 +348,63 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
                 ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
     }
 
-    private VariablesMap createFocusProjectionResourceVariables() throws Exception {
+    @Test
+    public void testResourceConfigurationStringNull() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "itemName", "noSUCHproperty", PrimitiveType.STRING
+                ),
+                "connector-configuration",
+                null);
+    }
+
+    @Test
+    public void testResourceConfigurationString() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "itemName", DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_NAME, PrimitiveType.STRING
+                ),
+                "connector-configuration",
+                SOMEHOW_USEFUL);
+    }
+
+    @Test
+    public void testResourceConfigurationQNameNoNs() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "itemName",
+                        new QName(null, DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_NAME),
+                        PrimitiveType.QNAME
+                ),
+                "connector-configuration",
+                SOMEHOW_USEFUL);
+    }
+
+    @Test
+    public void testResourceConfigurationQNameNs() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "itemName",
+                        new QName(DummyResourceContoller.CONNECTOR_DUMMY_NS, DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_NAME),
+                        PrimitiveType.QNAME
+                ),
+                "connector-configuration",
+                SOMEHOW_USEFUL);
+    }
+
+    private VariablesMap createFocusProjectionResourceVariables(Object... args) throws Exception {
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         PrismObject<ResourceType> resource = getDummyResourceObject();
         PrismObject<ShadowType> shadow = getShadowModel(ACCOUNT_SHADOW_GUYBRUSH_OID);
 
-        return VariablesMap.create(prismContext,
+        Object[] defaultVars = {
                 ExpressionConstants.VAR_FOCUS, user, user.getDefinition(),
                 ExpressionConstants.VAR_RESOURCE, resource, resource.getDefinition(),
                 ExpressionConstants.VAR_PROJECTION, shadow, shadow.getDefinition()
-        );
+        };
+
+        return VariablesMap.create(prismContext,
+                Stream.concat(Arrays.stream(defaultVars), Arrays.stream(args)).toArray(Object[]::new));
     }
 
     @NotNull
@@ -380,25 +432,31 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
             VariablesMap variables, String expectedOutput)
             throws ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
             IOException, CommunicationException, SchemaException, SecurityViolationException {
-        String output = executeScriptExpressionString(variables);
+        assertExecuteScriptExpressionString(variables, getTestNameShort(), expectedOutput);
+    }
+
+    private void assertExecuteScriptExpressionString(
+            VariablesMap variables, String scriptTag, String expectedOutput)
+            throws ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
+            IOException, CommunicationException, SchemaException, SecurityViolationException {
+        String output = executeScriptExpressionString(variables, scriptTag);
         assertEquals("Unexpected script output", expectedOutput, output);
     }
 
-    private String executeScriptExpressionString(VariablesMap variables)
+    private String executeScriptExpressionString(VariablesMap variables, String scriptTag)
             throws SecurityViolationException, ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        String shortTestName = getTestNameShort();
 
-        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + shortTestName + ".xml");
+        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + scriptTag + ".xml");
         ItemDefinition<?> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(
                         PROPERTY_NAME, DOMUtil.XSD_STRING);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                 scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
-                shortTestName, result);
+                getTestNameShort(), result);
         if (variables == null) {
             variables = new VariablesMap();
         }
@@ -406,7 +464,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         // WHEN
         when();
         List<PrismPropertyValue<String>> scriptOutputs =
-                evaluate(scriptExpression, variables, false, shortTestName, task, result);
+                evaluate(scriptExpression, variables, false, getTestNameShort(), task, result);
 
         // THEN
         then();

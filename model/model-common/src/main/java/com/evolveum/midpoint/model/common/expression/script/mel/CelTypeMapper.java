@@ -297,6 +297,27 @@ public class CelTypeMapper implements CelTypeProvider  {
         return javaArgs;
     }
 
+    public static List<?> toJavaValues(Collection<?> args) {
+        if (args.isEmpty()) {
+            return ImmutableList.of();
+        }
+        List<Object> javaArgs = new ArrayList<>(args.size());
+        for (Object next : args) {
+            Object nextJava;
+            if (next == null) {
+                nextJava = null;
+            } else if (next instanceof CelValue) {
+                nextJava = toJavaValue((CelValue) next);
+            } else if (next instanceof List) {
+                nextJava = toJavaValueList((List<?>)next);
+            } else {
+                nextJava = next;
+            }
+            javaArgs.add(nextJava);
+        }
+        return javaArgs;
+    }
+
     @NotNull
     private static List<?> toJavaValueList(@NotNull List<?> celArgs) {
         List<Object> javaValues = new ArrayList<Object>(celArgs.size());
