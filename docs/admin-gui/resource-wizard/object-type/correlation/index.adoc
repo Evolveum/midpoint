@@ -15,9 +15,8 @@ It determines how midPoint identifies the owner of a resource object, which is e
 
 In practice, correlation allows midPoint to automatically find the appropriate user for a given resource account based on account attributes and defined correlation rules.
 
-Before configuring correlation rules for a resource, it is recommended to define xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping[inbound mapping].
-While not strictly required, inbound mapping allows you to reuse mapped attributes as xref:/midpoint/reference/correlation/items-correlator[correlation items].
-More importantly, this step helps you identify which attributes are suitable for correlation—specifically those that are stable and sufficiently unique for reliable matching.
+Before configuring correlation rules for a resource, make sure you have configured xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping[inbound mapping].
+This step is a prerequisite for correlation, and it also helps you identify which attributes are suitable for correlation,i.e. attributes that are stable and sufficiently unique for reliable matching.
 
 The defined correlation rules are later used by xref:/midpoint/reference/admin-gui/resource-wizard/object-type/synchronization[synchronization processes] to actually link resource accounts to their corresponding focal objects.
 
