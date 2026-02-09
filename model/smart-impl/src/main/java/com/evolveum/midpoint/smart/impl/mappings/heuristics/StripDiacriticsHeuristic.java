@@ -59,44 +59,14 @@ public class StripDiacriticsHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input ? stripDiacritics(input) : null\n\n" +
-                "String stripDiacritics(String text) {\n" +
-                "    def normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)\n" +
-                "        .replaceAll('\\\\p{InCombiningDiacriticalMarks}+', '')\n" +
-                "    return normalized\n" +
-                "        .replace('Ł', 'L').replace('ł', 'l')\n" +
-                "        .replace('Ø', 'O').replace('ø', 'o')\n" +
-                "        .replace('Å', 'A').replace('å', 'a')\n" +
-                "        .replace('Æ', 'AE').replace('æ', 'ae')\n" +
-                "        .replace('Œ', 'OE').replace('œ', 'oe')\n" +
-                "        .replace('Đ', 'D').replace('đ', 'd')\n" +
-                "        .replace('Ħ', 'H').replace('ħ', 'h')\n" +
-                "        .replace('Ŋ', 'N').replace('ŋ', 'n')\n" +
-                "        .replace('Ŧ', 'T').replace('ŧ', 't')\n" +
-                "        .replace('ß', 'ss')\n" +
-                "}",
+                "basic.toAscii(input)",
                 "Strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + " ? stripDiacritics(" + focusPropertyName + ") : null\n\n" +
-                "String stripDiacritics(String text) {\n" +
-                "    def normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD)\n" +
-                "        .replaceAll('\\\\p{InCombiningDiacriticalMarks}+', '')\n" +
-                "    return normalized\n" +
-                "        .replace('Ł', 'L').replace('ł', 'l')\n" +
-                "        .replace('Ø', 'O').replace('ø', 'o')\n" +
-                "        .replace('Å', 'A').replace('å', 'a')\n" +
-                "        .replace('Æ', 'AE').replace('æ', 'ae')\n" +
-                "        .replace('Œ', 'OE').replace('œ', 'oe')\n" +
-                "        .replace('Đ', 'D').replace('đ', 'd')\n" +
-                "        .replace('Ħ', 'H').replace('ħ', 'h')\n" +
-                "        .replace('Ŋ', 'N').replace('ŋ', 'n')\n" +
-                "        .replace('Ŧ', 'T').replace('ŧ', 't')\n" +
-                "        .replace('ß', 'ss')\n" +
-                "}",
+                "basic.toAscii(" + focusPropertyName + ")",
                 "Strip diacritical marks");
     }
 }
