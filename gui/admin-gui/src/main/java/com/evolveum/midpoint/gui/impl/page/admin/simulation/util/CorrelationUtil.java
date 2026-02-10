@@ -495,8 +495,12 @@ public class CorrelationUtil {
                         ResourceObjectOwnerOptionsType options =
                                 pcv.asContainerable(ResourceObjectOwnerOptionsType.class);
                         if (options != null) {
-                            List<ResourceObjectOwnerOptionType> option = options.getOption();
-                            optionList.addAll(option);
+                            List<ResourceObjectOwnerOptionType> filteredOptions =
+                                    options.getOption().stream()
+                                            .filter(o -> o.getCandidateOwnerRef() != null)
+                                            .filter(o -> o.getCandidateOwnerRef().getOid() != null)
+                                            .toList();
+                            optionList.addAll(filteredOptions);
                         }
                     }
                 }
