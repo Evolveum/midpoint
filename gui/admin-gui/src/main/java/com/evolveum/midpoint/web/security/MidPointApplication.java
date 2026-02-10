@@ -11,10 +11,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
@@ -272,6 +269,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         mount(new MountedMapper(MOUNT_GONE_ERROR, PageError410.class, new PageParametersEncoder()));
 
         getRequestCycleListeners().add(new LoggingRequestCycleListener(this));
+        getRequestCycleListeners().add(new BrowserTabIdRequestCycleListener());
 
         getAjaxRequestTargetListeners().add(new AjaxRequestTarget.IListener() {
 

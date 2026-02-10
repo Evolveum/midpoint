@@ -14,7 +14,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
@@ -44,8 +43,9 @@ import com.evolveum.midpoint.web.session.BrowserTabSessionStorage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.*;
-import org.apache.wicket.ajax.AjaxNewWindowNotifyingBehavior;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
@@ -60,6 +60,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.jetbrains.annotations.Contract;
@@ -175,8 +176,6 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
-
-    private String windowName = null;
 
     /**
      * See https://www.javadoc.io/doc/com.googlecode.owasp-java-html-sanitizer/owasp-java-html-sanitizer/20191001.1/org/owasp/html/HtmlPolicyBuilder.html
@@ -332,25 +331,67 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
         MidPointAuthWebSession.get().setClientCustomization();
 
-        add(new AjaxNewWindowNotifyingBehavior() {
+        add(new AbstractDefaultAjaxBehavior() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected void respond(AjaxRequestTarget target) {
-                super.respond(target);
-                windowName = getWindowName();
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.getDynamicExtraParameters().add(
+                        "return { tabId: sessionStorage.getItem('tabId') };"
+                );
             }
 
             @Override
-            public void renderHead(Component component, IHeaderResponse response) {
+            public void renderHead(final Component component, final IHeaderResponse response) {
                 super.renderHead(component, response);
-                getCallbackScript();
-                windowName = getWindowName();
 
+                response.render(JavaScriptHeaderItem.forScript(
+                        "document.addEventListener('DOMContentLoaded', function() {\n" +
+                        "    // Initialize tabId in sessionStorage if not exists\n" +
+                        "    if (!sessionStorage.getItem('tabId')) {\n" +
+                        "        sessionStorage.setItem('tabId', crypto.randomUUID());\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    var tabId = sessionStorage.getItem('tabId');\n" +
+                        "    console.log('tabId initialized:', tabId);\n" +
+                        "\n" +
+                        "    // Subscribe to all Wicket Ajax calls before they are sent\n" +
+                        "    Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attrs, jqXHR, settings) {\n" +
+                        "        console.log('entered subscribe');\n" +
+                        "        if (!attrs) {\n" +
+                        "            console.warn('attrs is undefined!');\n" +
+                        "            return;\n" +
+                        "        }\n" +
+                        "        attrs.ep = attrs.ep || {};\n" +
+                        "        attrs.ep.tabId = sessionStorage.getItem('tabId');\n" +
+                        "        console.log('tabId added to Ajax request:', sessionStorage.getItem('tabId'));\n" +
+                        "    });\n" +
+                        "\n" +
+                        "    // Send tabId once on page load\n" +
+                        "    Wicket.Ajax.ajax({\n" +
+                        "        u: '" + getCallbackUrl().toString() + "',\n" +
+                        "        ep: { tabId: tabId }\n" +
+                        "    });\n" +
+                        "});\n",
+                        "tab-id-init"
+                ));
             }
+
+            @Override
+            protected void respond(AjaxRequestTarget target) {
+                String tabId = RequestCycle.get()
+                        .getRequest()
+                        .getRequestParameters()
+                        .getParameterValue("tabId")
+                        .toOptionalString();
+                if (tabId != null && !tabId.isEmpty()) {
+                    Session.get().setAttribute("tabId", tabId);
+                }
+            }
+
         });
     }
-
 
     @Override
     protected void onInitialize() {
@@ -1232,12 +1273,12 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
      */
     public BrowserTabSessionStorage getBrowserTabSessionStorage() {
         MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
-//        var windowName = WebComponentUtil.getBrowserWindowNameParameter(PageAdminLTE.this);
-        //todo can it happen that window name == null?
-        if (windowName == null) {
-            return new BrowserTabSessionStorage();//windowName = UUID.randomUUID().toString();
+        String browserTabId = Session.get().getAttribute("tabId") != null ?
+                Session.get().getAttribute("tabId").toString() : null;
+        if (browserTabId == null) {
+            return new BrowserTabSessionStorage();
         }
-        return session.getBrowserTabSessionStorage(windowName);
+        return session.getBrowserTabSessionStorage(browserTabId);
     }
 
     public SecretsProviderManager getSecretsProviderManager() {
