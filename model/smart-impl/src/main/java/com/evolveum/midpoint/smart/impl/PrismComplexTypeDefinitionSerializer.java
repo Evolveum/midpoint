@@ -94,6 +94,11 @@ class PrismComplexTypeDefinitionSerializer extends SchemaSerializer {
             if (ignoredPaths.contains(itemName)) {
                 continue;
             }
+            if (itemDef instanceof PrismContainerDefinition<?> && itemDef.isMultiValue() && !itemDef.getItemName().getLocalPart().equals("extension")) {
+                // ATTENTION - until we do not have complex attributes:
+                // Skip multivalue complex attributes except extension attributes
+                continue;
+            }
             var itemPath = prefix.append(itemName, itemDef.isMultiValue());
             var pathString = itemPath.asString();
             registerPathMapping(pathString, itemPath.getItemPath());
