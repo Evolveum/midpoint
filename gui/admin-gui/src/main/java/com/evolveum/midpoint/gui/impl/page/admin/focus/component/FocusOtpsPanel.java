@@ -10,6 +10,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -158,7 +160,8 @@ public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel
 
         @Override
         protected DisplayNamePanel<OtpCredentialType> createDisplayNamePanel(String displayNamePanelId) {
-            return new DisplayNamePanel<>(displayNamePanelId, () -> getModelObject().getRealValue()) {
+            DisplayNamePanel<OtpCredentialType> panel =
+                    new DisplayNamePanel<>(displayNamePanelId, () -> getModelObject().getRealValue()) {
 
                 @Override
                 protected IModel<String> createHeaderModel() {
@@ -170,6 +173,9 @@ public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel
                     return null;
                 }
             };
+            panel.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+
+            return panel;
         }
 
         @Override

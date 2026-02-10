@@ -66,6 +66,13 @@ public class OtpPanel extends InputPanel {
         IModel<String> nameModel = new PropertyModel<>(model, OtpCredentialType.F_NAME.getLocalPart());
 
         TextField<String> name = new TextField<>(ID_NAME, nameModel);
+        name.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                // intentionally left empty, we just want to update the model on blur, but we don't need to do anything else
+            }
+        });
         add(name);
 
         IModel<String> secretModel = new LoadableDetachableModel<>() {
@@ -135,7 +142,7 @@ public class OtpPanel extends InputPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-
+                // intentionally left empty, we just want to update the model on blur, but we don't need to do anything else
             }
         });
         code.setType(Integer.class);
