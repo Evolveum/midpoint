@@ -6,8 +6,11 @@
 
 package com.evolveum.midpoint.authentication.impl.otp;
 
+import java.util.regex.Pattern;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,24 +26,25 @@ public class OtpAuthenticationFilter extends MidpointUsernamePasswordAuthenticat
 
     private static final String SPRING_SECURITY_FORM_CODE_KEY = "code";
 
+    private static final Pattern CODE_PATTERN = Pattern.compile("^(?:\\d{6}|\\d{8})$");
+
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         if (isPostOnly() && !request.getMethod().equals("POST")) {
-            throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
+            throw new AuthenticationServiceException("Authentication failed, request method not supported.");
         }
 
         String username = getIdentifiedUsername();
         if (username == null) {
-            throw new AuthenticationServiceException("Authentication failed: username not available.");
+            throw new AuthenticationServiceException("Authentication failed, username not available.");
         }
 
         String codeStr = request.getParameter(SPRING_SECURITY_FORM_CODE_KEY);
-        Integer code;
-        try {
-            code = Integer.valueOf(codeStr);
-        } catch (NumberFormatException e) {
-            throw new AuthenticationServiceException("Authentication failed: invalid code format.");
+        if (StringUtils.isEmpty(codeStr) || !CODE_PATTERN.matcher(codeStr).matches()) {
+            throw new AuthenticationServiceException("Authentication failed, invalid code format.");
         }
+
+        Integer code = Integer.valueOf(codeStr);
 
         UsernamePasswordAuthenticationToken authRequest = new OtpAuthenticationToken(username, code);
 

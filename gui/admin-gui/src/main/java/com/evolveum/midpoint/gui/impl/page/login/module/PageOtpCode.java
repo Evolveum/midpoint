@@ -8,10 +8,10 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 
 import java.io.Serial;
 
-import org.apache.wicket.markup.html.form.NumberTextField;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.validation.ValidatorAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -44,9 +44,17 @@ public class PageOtpCode extends PageAbstractAuthenticationModule<ModuleAuthenti
     @Override
     protected void initModuleLayout(MidpointForm form) {
         TextField<String> code = new TextField<>(ID_CODE);
+        code.setOutputMarkupId(true);
         code.add(new EnableBehaviour(() -> searchUser() != null));
-        // todo range validator
         form.add(code);
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        String codeId = get(createComponentPath("form", ID_CODE)).getMarkupId();
+        response.render(OnDomReadyHeaderItem.forScript(String.format("$('#%s').focus();", codeId)));
     }
 
     protected String getUrlProcessingLogin() {
