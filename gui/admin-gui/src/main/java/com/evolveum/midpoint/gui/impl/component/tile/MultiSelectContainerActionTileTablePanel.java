@@ -124,7 +124,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         buttonsList.add(createTableActionToolbar(idButton));
         buttonsList.add(createSuggestObjectButton(idButton));
         ToggleCheckBoxPanel toggleSuggestionButton = createToggleSuggestionButton(idButton, switchToggleModel);
-        toggleSuggestionButton.add(new VisibleBehaviour(() -> !displayNoValuePanel()));
+        toggleSuggestionButton.add(new VisibleBehaviour(this::isToggleSuggestionVisible));
         buttonsList.add(toggleSuggestionButton);
 
         AjaxIconButton newObjectPerformButton = createNewObjectPerformButton(idButton, null);
@@ -629,7 +629,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
     }
 
     protected boolean isToggleSuggestionVisible() {
-        return getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel();
+        return !displayNoValuePanel();
     }
 
     protected IModel<Boolean> getSwitchToggleModel() {

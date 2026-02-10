@@ -12,7 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.AssociationTypeTableWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanelNew;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeTableWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -114,7 +114,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         return new AssociationTypeTableWizardPanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
-                ResourceAssociationTypeWizardPanel wizard = createAssociationTypeWizard(valueModel, false);
+                ResourceAssociationTypeWizardPanelNew wizard = createAssociationTypeWizard(valueModel, false);
                 wizard.setShowChoicePanel(true);
                 showChoiceFragment(target, wizard);
             }
@@ -142,7 +142,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         };
     }
 
-    protected ResourceAssociationTypeWizardPanel createAssociationTypeWizard(
+    protected ResourceAssociationTypeWizardPanelNew createAssociationTypeWizard(
             IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, boolean isDuplicate) {
 
         WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper =
@@ -163,7 +163,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
                         return valueModel;
                     }
                 };
-        ResourceAssociationTypeWizardPanel wizard = new ResourceAssociationTypeWizardPanel(getIdOfChoicePanel(), helper);
+        ResourceAssociationTypeWizardPanelNew wizard = new ResourceAssociationTypeWizardPanelNew(getIdOfChoicePanel(), helper);
         wizard.setPanelForDuplicate(isDuplicate);
         wizard.setOutputMarkupId(true);
         return wizard;

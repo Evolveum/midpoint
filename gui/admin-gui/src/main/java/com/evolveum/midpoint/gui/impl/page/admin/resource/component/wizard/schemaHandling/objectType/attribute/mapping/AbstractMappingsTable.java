@@ -133,7 +133,7 @@ public abstract class AbstractMappingsTable<P extends Containerable> extends Abs
 
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
 
-    protected static <IW extends ItemWrapper<?,?>> @NotNull IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(
+    public static <IW extends ItemWrapper<?,?>> @NotNull IModel<Collection<VariableBindingDefinitionType>> createSourceMultiselectModel(
             IModel<IW> rowModel, PageBase pageBase) {
         return new IModel<>() {
 

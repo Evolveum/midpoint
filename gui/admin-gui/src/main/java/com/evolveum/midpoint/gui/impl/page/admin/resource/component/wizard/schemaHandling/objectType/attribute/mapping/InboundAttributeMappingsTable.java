@@ -48,7 +48,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 /**
  * @author lskublik
  */
-public abstract class InboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P, ResourceAttributeDefinitionType>{
+public abstract class InboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P, ResourceAttributeDefinitionType> {
     public InboundAttributeMappingsTable(
             String id, IModel<PrismContainerValueWrapper<P>> valueModel,
             ContainerPanelConfigurationType config) {
@@ -193,12 +193,16 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
         return dropdown;
     }
 
+    protected IModel<List<PrismContainerValueWrapper<MappingType>>> getMappingValuesModel() {
+        return new PropertyModel<>(getContainerModel(), "values");
+    }
+
     @Override
     protected ISelectableDataProvider<PrismContainerValueWrapper<MappingType>> createProvider() {
         return new MultivalueContainerListDataProvider<>(
                 InboundAttributeMappingsTable.this,
                 getSearchModel(),
-                new PropertyModel<>(getContainerModel(), "values")) {
+                getMappingValuesModel()) {
 
             @Override
             protected List<PrismContainerValueWrapper<MappingType>> searchThroughList() {

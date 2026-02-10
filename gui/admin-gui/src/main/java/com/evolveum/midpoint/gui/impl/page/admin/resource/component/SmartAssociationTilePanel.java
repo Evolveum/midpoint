@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 import java.io.Serial;
 import java.util.Objects;
 
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
 import org.apache.wicket.AttributeModifier;
@@ -95,6 +97,11 @@ public abstract class SmartAssociationTilePanel
         add(new WebMarkupContainer(ID_DETAILS_PANEL).add(new VisibleBehaviour(() -> isDetailedView)));
     }
 
+    @Override
+    protected boolean isClickBehaviorEnabled() {
+        return false;
+    }
+
     private void initArrowText(@NotNull WebMarkupContainer tile) {
         String associationObjectObjectClass = getModelObject().getAssociationObjectObjectClass();
 
@@ -158,27 +165,11 @@ public abstract class SmartAssociationTilePanel
     }
 
     private void initLifecycleState(@NotNull WebMarkupContainer tile) {
-        PrismPropertyPanel<?> lifecycleStatePanel = new PrismPropertyPanel<>(
+
+        PrismPropertyWrapperModel<ShadowAssociationTypeDefinitionType, String> lifecycleWrapper = PrismPropertyWrapperModel.fromContainerValueWrapper(() -> getModelObject().getValue(), ObjectType.F_LIFECYCLE_STATE);
+        LifecycleStatePanel lifecycleStatePanel = new LifecycleStatePanel(
                 ID_LIFECYCLE_STATE,
-                PrismPropertyWrapperModel.fromContainerValueWrapper(
-                        () -> getModelObject().getValue(),
-                        ShadowAssociationTypeDefinitionType.F_LIFECYCLE_STATE),
-                null) {
-            @Override
-            protected void onInitialize() {
-                super.onInitialize();
-
-                Component valuesContainer = get("valuesContainer");
-                if (valuesContainer != null) {
-                    valuesContainer.add(AttributeModifier.replace("class", ""));
-                }
-
-                Component header = get("header");
-                if (header != null) {
-                    header.add(AttributeModifier.replace("class", ""));
-                }
-            }
-        };
+                lifecycleWrapper);
 
         lifecycleStatePanel.setOutputMarkupId(true);
         lifecycleStatePanel.add(new VisibleBehaviour(() -> !getModelObject().isSuggestion()));

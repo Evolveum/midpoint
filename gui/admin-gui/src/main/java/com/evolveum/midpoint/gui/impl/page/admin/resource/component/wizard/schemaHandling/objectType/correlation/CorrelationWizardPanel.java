@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.*;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -37,6 +38,11 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
         return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
 
             @Override
+            protected boolean isAssociationView() {
+                return CorrelationWizardPanel.this.isAssociationTypeWizardPanel();
+            }
+
+            @Override
             protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
                 SimulationWizardPanel<?> simulationWizardPanel = buildSimulationWizard();
                 showChoiceFragment(target, simulationWizardPanel);
@@ -54,9 +60,9 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
             }
 
             @Override
-            protected void showTableForItemRefs(
+            protected <C extends Containerable> void showTableForItemRefs(
                     @NotNull AjaxRequestTarget target,
-                    @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
+                    @NotNull IModel<PrismContainerValueWrapper<C>> parentContainerDefWrapper,
                     @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
                     @Nullable StatusInfo<CorrelationSuggestionsType> statusInfo) {
                 WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(
@@ -68,13 +74,24 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                     }
                 };
 
-                showChoiceFragment(target, new CorrelationItemRuleWizardPanel(getIdOfChoicePanel(),
-                        resourceObjectTypeDefinition, helper, () -> statusInfo) {
+                showChoiceFragment(target, new CorrelationItemRuleWizardPanel<>(getIdOfChoicePanel(),
+                        parentContainerDefWrapper, helper, () -> statusInfo) {
                     @Override
                     protected void acceptSuggestionPerformed(
                             @NotNull AjaxRequestTarget target,
                             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
-                        acceptSuggestionItemPerformed(getPageBase(), target, valueModel, resourceObjectTypeDefinition, statusInfo);
+                        PrismContainerValueWrapper<? extends Containerable> parent = parentContainerDefWrapper.getObject();
+                        if (parent == null || parent.getRealValue() == null) {
+                            return;
+                        }
+
+                        if (parent.getRealValue() instanceof ResourceObjectTypeDefinitionType) {
+                            @SuppressWarnings("unchecked")
+                            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> rotWrapper =
+                                    (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) parent;
+
+                            acceptSuggestionItemPerformed(getPageBase(), target, valueModel, () -> rotWrapper, statusInfo);
+                        }
                     }
 
                     @Override
@@ -103,6 +120,10 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                 showChoiceFragment(target, createTablePanel());
             }
         };
+    }
+
+    protected boolean isAssociationTypeWizardPanel() {
+        return false;
     }
 
     protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {

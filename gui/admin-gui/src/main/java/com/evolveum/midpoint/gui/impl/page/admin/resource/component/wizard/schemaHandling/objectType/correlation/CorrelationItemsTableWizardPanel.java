@@ -179,10 +179,14 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
             }
 
             @Override
+            protected boolean isToggleSuggestionVisible() {
+                return super.isToggleSuggestionVisible() && !isAssociationView();
+            }
+
+            @Override
             public boolean displayNoValuePanel() {
                 return super.displayNoValuePanel() && !switchToggleModel.getObject();
             }
-
 
             @Override
             protected @NotNull List<Component> createToolbarButtonsList(String idButton) {
@@ -206,7 +210,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                         refreshAndDetach(target);
                     }
                 };
-                generateButton.add(new VisibleBehaviour(this::displayNoValuePanel));
+                generateButton.add(new VisibleBehaviour(() -> displayNoValuePanel() && !isAssociationView()));
                 generateButton.add(AttributeModifier.append("class", "btn btn-default text-ai rounded"));
                 generateButton.setOutputMarkupId(true);
                 generateButton.showTitleAsLabel(true);
@@ -224,7 +228,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 if (rowModel == null) {
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(
                             getPageBase(), null, target);
-                    showTableForItemRefs(target, this::findResourceObjectTypeDefinition, () -> newValue, null);
+                    showTableForItemRefs(target, this::findAssociatedParentContainerWrapper, () -> newValue, null);
                     return;
                 }
 
@@ -232,10 +236,10 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> object = rowModel.getObject();
                     PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(
                             getPageBase(), object.getNewValue(), target);
-                    showTableForItemRefs(target, this::findResourceObjectTypeDefinition, () -> newValue, null);
+                    showTableForItemRefs(target, this::findAssociatedParentContainerWrapper, () -> newValue, null);
                 }
 
-                showTableForItemRefs(target, this::findResourceObjectTypeDefinition, rowModel, null);
+                showTableForItemRefs(target, this::findAssociatedParentContainerWrapper, rowModel, null);
             }
 
             @Override
@@ -245,17 +249,26 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                 if (rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
                     return;
                 }
-                showTableForItemRefs(target, this::findResourceObjectTypeDefinition, rowModel, statusInfo);
+                showTableForItemRefs(target, this::findAssociatedParentContainerWrapper, rowModel, statusInfo);
             }
 
             @Override
             public void acceptSuggestionItemPerformed(AjaxRequestTarget target,
                     @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
                     StatusInfo<CorrelationSuggestionsType> statusInfo) {
-                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> resourceObjectTypeDefinition =
-                        findResourceObjectTypeDefinition();
-                CorrelationItemsTableWizardPanel.this.acceptSuggestionItemPerformed(
-                        getPageBase(), target, rowModel, () -> resourceObjectTypeDefinition, statusInfo);
+
+                PrismContainerValueWrapper<? extends Containerable> parent = findAssociatedParentContainerWrapper();
+                if (parent == null || parent.getRealValue() == null) {
+                    return;
+                }
+
+                if (parent.getRealValue() instanceof ResourceObjectTypeDefinitionType) {
+                    @SuppressWarnings("unchecked")
+                    PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> rotWrapper =
+                            (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>) parent;
+                    CorrelationItemsTableWizardPanel.this.acceptSuggestionItemPerformed(
+                            getPageBase(), target, rowModel, () -> rotWrapper, statusInfo);
+                }
             }
 
             @Override
@@ -273,7 +286,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
                     StatusInfo<?> statusInfo) {
                 PrismContainerValueWrapper<ItemsSubCorrelatorType> newValue = createNewItemsSubCorrelatorValue(
                         getPageBase(), value, target);
-                showTableForItemRefs(target, this::findResourceObjectTypeDefinition,
+                showTableForItemRefs(target, this::findAssociatedParentContainerWrapper,
                         () -> newValue, (StatusInfo<CorrelationSuggestionsType>) statusInfo);
             }
         };
@@ -437,9 +450,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
         return false;
     }
 
-    protected abstract void showTableForItemRefs(
+    protected abstract <C extends Containerable> void showTableForItemRefs(
             @NotNull AjaxRequestTarget target,
-            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypeDefinition,
+            @NotNull IModel<PrismContainerValueWrapper<C>> parentContainerDefWrapper,
             @NotNull IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
             @Nullable StatusInfo<CorrelationSuggestionsType> statusInfo);
 
@@ -559,4 +572,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     protected String getPanelType() {
         return PANEL_TYPE;
     }
+
+    protected boolean isAssociationView() {
+        return false;
+    }
+
 }

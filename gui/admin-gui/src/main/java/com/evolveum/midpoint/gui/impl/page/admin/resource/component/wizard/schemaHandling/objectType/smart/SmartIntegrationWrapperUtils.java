@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.getPathBaseOnMappingType;
+
 public class SmartIntegrationWrapperUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationWrapperUtils.class);
@@ -158,10 +160,13 @@ public class SmartIntegrationWrapperUtils {
         return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
     }
 
-    public static @Nullable PrismContainerValueWrapper<MappingType> findRelatedInboundMapping(
+    //TODO association object/attribute path
+    public static @Nullable PrismContainerValueWrapper<MappingType> findRelatedMapping(
             @NotNull PageBase pageBase,
             @NotNull PrismContainerValueWrapper<CorrelationItemType> correlationItemWrapper,
-            @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> mappings) {
+            @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> mappings,
+            @NotNull ItemPath parentPath,
+            @NotNull MappingDirection mappingDirection) {
         ItemPathType correlationItemRef = correlationItemWrapper.getRealValue().getRef();
         List<PrismContainerValueWrapper<MappingType>> allInboundMappings = new ArrayList<>();
 
@@ -169,13 +174,18 @@ public class SmartIntegrationWrapperUtils {
             PrismContainerValueWrapper<CorrelationSuggestionType> suggestionWrapper = correlationItemWrapper
                     .getParentContainerValue(CorrelationSuggestionType.class);
 
-            PrismContainerWrapper<ResourceAttributeDefinitionType> container;
+            PrismContainerWrapper<?> container;
             if (suggestionWrapper != null) {
                 container = suggestionWrapper.findContainer(CorrelationSuggestionType.F_ATTRIBUTES);
             } else {
-                var parentContainerValue = correlationItemWrapper.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+                PrismContainerValueWrapper<?> parentContainerValue = correlationItemWrapper
+                        .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+                if (parentContainerValue == null) {
+                    parentContainerValue = correlationItemWrapper
+                            .getParentContainerValue(AssociationSynchronizationExpressionEvaluatorType.class);
+                }
                 container = parentContainerValue != null
-                        ? parentContainerValue.findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE)
+                        ? parentContainerValue.findContainer(parentPath)
                         : null;
             }
 
@@ -189,13 +199,9 @@ public class SmartIntegrationWrapperUtils {
                 return null;
             }
 
-            for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> value : container.getValues()) {
-                ResourceAttributeDefinitionType realValue = value.getRealValue();
-                List<InboundMappingType> inbound = realValue.getInbound();
-                if (inbound != null && !inbound.isEmpty()) {
-                    PrismContainerWrapper<MappingType> inboundContainer = value.findContainer(ResourceAttributeDefinitionType.F_INBOUND);
-                    allInboundMappings.addAll(inboundContainer.getValues());
-                }
+            for (PrismContainerValueWrapper<?> value : container.getValues()) {
+                PrismContainerWrapper<MappingType> inboundContainer = value.findContainer(getPathBaseOnMappingType(mappingDirection));
+                allInboundMappings.addAll(inboundContainer.getValues());
             }
         } catch (SchemaException e) {
             LOGGER.error("Couldn't find related resource attribute definition.", e);
@@ -205,13 +211,19 @@ public class SmartIntegrationWrapperUtils {
         return allInboundMappings.stream()
                 .filter(inboundMapping -> {
                     VariableBindingDefinitionType target = inboundMapping.getRealValue().getTarget();
-                    PrismContainerValueWrapper<ResourceAttributeDefinitionType> parentContainerValue = inboundMapping
+                    PrismContainerValueWrapper<?> parentContainerValue = inboundMapping
                             .getParentContainerValue(ResourceAttributeDefinitionType.class);
+                    if (parentContainerValue == null) {
+                        parentContainerValue = inboundMapping.getParentContainerValue(AttributeInboundMappingsDefinitionType.class);
+                    }
+                    if (parentContainerValue == null) {
+                        return false;
+                    }
 
                     PrismPropertyDefinition<Object> propertyRefDef = parentContainerValue.getDefinition()
-                            .findPropertyDefinition(ResourceAttributeDefinitionType.F_REF);
+                            .findPropertyDefinition(AbstractAttributeMappingsDefinitionType.F_REF);
                     MappingUtils.createVirtualItemInMapping(inboundMapping, parentContainerValue, propertyRefDef, pageBase,
-                            ResourceAttributeDefinitionType.F_REF, MappingDirection.INBOUND);
+                            AbstractAttributeMappingsDefinitionType.F_REF, mappingDirection);
 
                     return correlationItemRef.equals(target.getPath());
                 })

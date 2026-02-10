@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schema.ResourceSchemaWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardPanelNew;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundEvaluatorWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundMappingContainerWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundEvaluatorWizardPanel;
@@ -200,15 +200,15 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showResourceAssociationTypePreviewWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        ResourceAssociationTypeWizardPanel wizard = showAssociationTypeWizard(null, target, pathToValue);
+        ResourceAssociationTypeWizardPanelNew wizard = showAssociationTypeWizard(null, target, pathToValue);
         wizard.setShowChoicePanel(true);
     }
 
-    public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(
+    public ResourceAssociationTypeWizardPanelNew showAssociationTypeWizard(
             PrismContainerValue<ShadowAssociationTypeDefinitionType> value,
             AjaxRequestTarget target,
             ItemPath pathToValue) {
-        return showWizard(value, target, pathToValue, ResourceAssociationTypeWizardPanel.class);
+        return showWizard(value, target, pathToValue, ResourceAssociationTypeWizardPanelNew.class);
     }
 
     public void showAssociationTypeWizardForDuplicate(
@@ -216,16 +216,16 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             AjaxRequestTarget target,
             ItemPath pathToValue,
             @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
-        ResourceAssociationTypeWizardPanel panel = showWizard(
-                value, target, pathToValue, ResourceAssociationTypeWizardPanel.class, null, postSaveHandler);
+        ResourceAssociationTypeWizardPanelNew panel = showWizard(
+                value, target, pathToValue, ResourceAssociationTypeWizardPanelNew.class, null, postSaveHandler);
         panel.setPanelForDuplicate(true);
     }
 
-    public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(AjaxRequestTarget target, IModel<String> exitLabel) {
+    public ResourceAssociationTypeWizardPanelNew showAssociationTypeWizard(AjaxRequestTarget target, IModel<String> exitLabel) {
         return showWizard(
                 target,
                 ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE),
-                ResourceAssociationTypeWizardPanel.class,
+                ResourceAssociationTypeWizardPanelNew.class,
                 exitLabel);
     }
 

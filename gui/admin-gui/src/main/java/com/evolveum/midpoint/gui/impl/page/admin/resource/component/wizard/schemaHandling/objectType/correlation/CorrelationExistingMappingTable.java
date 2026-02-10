@@ -4,7 +4,9 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
@@ -35,6 +37,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createVirtualMappingContainerModel;
 
 public class CorrelationExistingMappingTable<P extends Containerable> extends BasePanel<PrismContainerValueWrapper<P>> implements Popupable {
 
@@ -74,6 +79,14 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
         initTable();
     }
 
+    protected ItemName getItemNameOfContainerWithMappings() {
+        return ResourceObjectTypeDefinitionType.F_ATTRIBUTE;
+    }
+
+    protected MappingDirection getMappingDirection() {
+        return MappingDirection.INBOUND;
+    }
+
     private void initTable() {
         InboundAttributeMappingsTable<P> table = new InboundAttributeMappingsTable<>(
                 ID_TABLE,
@@ -81,8 +94,55 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                 null) {
 
             @Override
+            protected MappingDirection getMappingType() {
+                return CorrelationExistingMappingTable.this.getMappingDirection();
+            }
+
+            @Override
             protected ItemName getItemNameOfContainerWithMappings() {
-                return ResourceObjectTypeDefinitionType.F_ATTRIBUTE;
+                return CorrelationExistingMappingTable.this.getItemNameOfContainerWithMappings();
+            }
+
+            @Override
+            protected IModel<List<PrismContainerValueWrapper<MappingType>>> getMappingValuesModel() {
+                if (!isAssociationView()) {
+                    return super.getMappingValuesModel();
+                }
+
+                return new LoadableDetachableModel<>() {
+                    @Override
+                    protected List<PrismContainerValueWrapper<MappingType>> load() {
+                        List<PrismContainerValueWrapper<MappingType>> result = new ArrayList<>();
+
+                        addVirtualMappings(result,
+                                AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF,
+                                MappingDirection.OBJECTS);
+
+                        addVirtualMappings(result,
+                                AssociationSynchronizationExpressionEvaluatorType.F_ATTRIBUTE,
+                                MappingDirection.ATTRIBUTE);
+
+                        return result;
+                    }
+
+                    private void addVirtualMappings(
+                            List<PrismContainerValueWrapper<MappingType>> target,
+                            ItemName sourceItem,
+                            MappingDirection direction) {
+
+                        IModel<PrismContainerWrapper<MappingType>> model = createVirtualMappingContainerModel(
+                                getPageBase(),
+                                getValueModel(),
+                                sourceItem,
+                                AbstractAttributeMappingsDefinitionType.F_REF,
+                                direction);
+
+                        PrismContainerWrapper<MappingType> container = model.getObject();
+                        if (container != null && container.getValues() != null) {
+                            target.addAll(container.getValues());
+                        }
+                    }
+                };
             }
 
             @Override
@@ -184,7 +244,7 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
 
                 columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
                         mappingTypeDef,
-                        ResourceAttributeDefinitionType.F_REF,
+                        AbstractAttributeMappingsDefinitionType.F_REF,
                         AbstractItemWrapperColumn.ColumnType.STRING,
                         getPageBase()) {
                     @Override
@@ -346,4 +406,7 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
         return this;
     }
 
+    protected boolean isAssociationView() {
+        return false;
+    }
 }

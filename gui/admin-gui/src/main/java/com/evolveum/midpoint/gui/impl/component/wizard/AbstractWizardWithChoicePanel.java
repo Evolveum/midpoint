@@ -91,6 +91,37 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
         };
     }
 
+    protected  <V extends Containerable> WizardPanelHelper<V, AHD> createHelper(IModel<PrismContainerValueWrapper<V>> valueModel, boolean isWizardFlow) {
+        return new WizardPanelHelper<>(getAssignmentHolderModel()) {
+            @Override
+            public void onExitPerformed(AjaxRequestTarget target) {
+                checkDeltasExitPerformed(target);
+            }
+
+            @Override
+            public void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+                getAssignmentHolderModel().reloadPrismObjectModel();
+                getHelper().refreshValueModel();
+                showTypePreviewFragment(target);
+            }
+
+            @Override
+            public IModel<PrismContainerValueWrapper<V>> getDefaultValueModel() {
+                return valueModel;
+            }
+
+            @Override
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                OperationResult result = AbstractWizardWithChoicePanel.this.onSavePerformed(target);
+                if (isWizardFlow && result != null && !result.isError()) {
+                    getHelper().refreshValueModel();
+                    showTypePreviewFragment(target);
+                }
+                return result;
+            }
+        };
+    }
+
     protected WizardPanelHelper<C, AHD> createHelper(boolean isWizardFlow) {
 
         return new WizardPanelHelper<>(getAssignmentHolderModel()) {

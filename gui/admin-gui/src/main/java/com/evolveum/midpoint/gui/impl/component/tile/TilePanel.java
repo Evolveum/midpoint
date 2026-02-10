@@ -19,6 +19,8 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -51,9 +53,7 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
     }
 
     protected void initLayout() {
-        add(AttributeAppender.append("class", () -> horizontal ?
-                "tile-panel d-flex flex-column align-items-center rounded p-3 justify-content-center" :
-                "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-left"));
+        appendTileDefaultCssClass();
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         add(AttributeAppender.append("aria-checked", () -> getModelObject().isSelected() ? "true" : "false"));
         setOutputMarkupId(true);
@@ -65,9 +65,7 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
             String str = getModelObject().getTitle();
             return str != null ? getString(str, null, str) : null;
         });
-        title.add(AttributeAppender.append("class", () ->  horizontal ?
-                "mt-4 text-center" :
-                "ml-2"));
+        appendTitleCssClass(title);
         add(title);
 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
@@ -76,13 +74,31 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
         description.add(getDescriptionBehaviour());
         add(description);
 
-        add(new AjaxEventBehavior("click") {
+        if(isClickBehaviorEnabled()) {
+            add(new AjaxEventBehavior("click") {
 
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                TilePanel.this.onClick(target);
-            }
-        });
+                @Override
+                protected void onEvent(AjaxRequestTarget target) {
+                    TilePanel.this.onClick(target);
+                }
+            });
+        }
+    }
+
+    protected boolean isClickBehaviorEnabled() {
+        return true;
+    }
+
+    protected void appendTileDefaultCssClass() {
+        add(AttributeAppender.append("class", () -> horizontal ?
+                "tile-panel d-flex flex-column align-items-center rounded p-3 justify-content-center" :
+                "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-left"));
+    }
+
+    protected void appendTitleCssClass(@NotNull Label title) {
+        title.add(AttributeAppender.append("class", () ->  horizontal ?
+                "mt-4 text-center" :
+                "ml-2"));
     }
 
     protected VisibleEnableBehaviour getDescriptionBehaviour() {

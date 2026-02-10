@@ -392,11 +392,17 @@ public class MappingUtils {
      * @param mappingDirection direction of the mapping (may be {@code null})
      * @return item name of the container for this direction, or {@code null} if direction is not provided
      */
-    private static ItemName getPathBaseOnMappingType(MappingDirection mappingDirection) {
-        if (mappingDirection != null) {
-            return mappingDirection.getContainerName();
+    public static ItemName getPathBaseOnMappingType(MappingDirection mappingDirection) {
+        if (mappingDirection == null) {
+            return null;
         }
-        return null;
+
+        if (mappingDirection == MappingDirection.ATTRIBUTE
+                || mappingDirection == MappingDirection.OBJECTS) {
+            return AttributeInboundMappingsDefinitionType.F_MAPPING;
+        }
+
+        return mappingDirection.getContainerName();
     }
 
     /**

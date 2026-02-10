@@ -69,7 +69,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 /**
  * @author lskublik
  */
-public abstract class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationItemType, ItemsSubCorrelatorType> {
+public abstract class CorrelationItemRefsTable<P extends Containerable> extends AbstractWizardTable<CorrelationItemType, ItemsSubCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemRefsTable.class);
 
@@ -189,10 +189,12 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
                 }
 
                 PrismContainerWrapper<ResourceAttributeDefinitionType> mappings = getMappings();
-                PrismContainerValueWrapper<MappingType> relatedInboundMapping = findRelatedInboundMapping(
+                PrismContainerValueWrapper<MappingType> relatedInboundMapping = findRelatedMapping(
                         getPageBase(),
                         row,
-                        mappings);
+                        mappings,
+                        getItemPathForMappingContainer().asSingleName(),
+                        getMappingDirection());
 
                 if (relatedInboundMapping == null) {
                     LOGGER.warn("Cannot find related inbound mapping for correlation item: {}", row.getRealValue());
@@ -263,10 +265,18 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
         };
     }
 
+    //TODO
     protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings() {
         PrismContainerWrapper<ResourceAttributeDefinitionType> mappings = null;
         try {
-             mappings = getResourceObjectTypeDefWrapper().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+            PrismContainerValueWrapper<P> parent = getMappingContainerParent().getObject();
+            P realValue = parent.getRealValue();
+            if (realValue instanceof ResourceObjectTypeDefinitionType) {
+                mappings = getMappingContainerParent().getObject().findContainer(getItemPathForMappingContainer());
+            } else {
+                return null; //TODO association
+            }
+
         } catch (SchemaException e) {
             LOGGER.warn("Couldn't find attribute container in resource object type definition.", e);
         }
@@ -333,10 +343,13 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
                     Item<ICellPopulator<PrismContainerValueWrapper<CorrelationItemType>>> item,
                     String id,
                     IModel<PrismContainerValueWrapper<CorrelationItemType>> iModel) {
-                var relatedInboundMapping = findRelatedInboundMapping(
+                var relatedInboundMapping = findRelatedMapping(
                         getPageBase(),
                         iModel.getObject(),
-                        getMappings());
+                        getMappings(),
+                        getItemPathForMappingContainer(),
+                        getMappingDirection());
+
                 if (relatedInboundMapping != null && relatedInboundMapping.getRealValue() != null) {
                     PrismPropertyWrapperColumnPanel<MappingType> panel = createColumnPanel(id, relatedInboundMapping);
                     item.add(panel);
@@ -351,7 +364,7 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
                 PrismPropertyWrapperColumnPanel<MappingType> panel = new PrismPropertyWrapperColumnPanel<>(id,
                         () -> {
                             try {
-                                return relatedInboundMapping.findProperty(ResourceAttributeDefinitionType.F_REF);
+                                return relatedInboundMapping.findProperty(AbstractAttributeMappingsDefinitionType.F_REF);
                             } catch (SchemaException e) {
                                 LOGGER.warn("Couldn't find property for target in {}", relatedInboundMapping, e);
                                 return null;
@@ -562,7 +575,6 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> buttons = new ArrayList<>();
         initAddExistingButton(idButton, buttons);
-//        initNewObjectButton(idButton, buttons);
         iniCreateMappingButton(idButton, buttons);
         return buttons;
     }
@@ -587,16 +599,32 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
     }
 
     protected void createMappingPerformed(AjaxRequestTarget target) {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentContainerValue = getValueModel().getObject()
-                .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+        var value = getValueModel().getObject();
+        if (value == null) {
+            LOGGER.warn("Couldn't get value model for creating new mapping.");
+            return;
+        }
 
+        PrismContainerValueWrapper<? extends Containerable> parent =
+                value.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+
+        if (parent == null) {
+            parent = value.getParentContainerValue(AssociationSynchronizationExpressionEvaluatorType.class);
+        }
+
+        if (parent == null) {
+            LOGGER.warn("Couldn't find parent container for mapping.");
+            return;
+        }
+
+        PrismContainerValueWrapper<? extends Containerable> finalParent = parent;
         PrismContainerValueWrapper<MappingType> newMappingValue =
                 MappingUtils.createNewVirtualMappingValue(
                         null,
-                        () -> parentContainerValue,
-                        MappingDirection.INBOUND,
-                        ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
-                        ResourceAttributeDefinitionType.F_REF,
+                        () -> finalParent,
+                        getMappingDirection(),
+                        getItemPathForMappingContainer().asSingleName(),
+                        AbstractAttributeMappingsDefinitionType.F_REF,
                         getPageBase(),
                         target
                 );
@@ -651,12 +679,23 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
     }
 
     protected void addExistingMappingPerformed(AjaxRequestTarget target) {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentContainerValue = getResourceObjectTypeDefModel()
+        PrismContainerValueWrapper<P> parentContainerValue = getMappingContainerParent()
                 .getObject();
 
         CorrelationExistingMappingTable<?> correlationExistingMappingTable = new CorrelationExistingMappingTable<>(
                 getPageBase().getMainPopupBodyId(),
                 () -> parentContainerValue) {
+
+            @Override
+            protected ItemName getItemNameOfContainerWithMappings() {
+                return getItemPathForMappingContainer().asSingleName();
+            }
+
+            @Override
+            protected MappingDirection getMappingDirection() {
+                return CorrelationItemRefsTable.this.getMappingDirection();
+            }
+
             @Override
             protected void onAddSelectedMappings(
                     AjaxRequestTarget target,
@@ -674,9 +713,23 @@ public abstract class CorrelationItemRefsTable extends AbstractWizardTable<Corre
         getPageBase().showMainPopup(correlationExistingMappingTable, target);
     }
 
-    private PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> getResourceObjectTypeDefWrapper() {
-        return getResourceObjectTypeDefModel().getObject();
+    protected ItemPath getItemPathForMappingContainer() {
+        if (getValueModel().getObject()
+                .getParentContainerValue(AssociationSynchronizationExpressionEvaluatorType.class) != null) {
+            return AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF;
+        } else {
+            return ResourceObjectTypeDefinitionType.F_ATTRIBUTE;
+        }
     }
 
-    public abstract @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeDefModel();
+    private MappingDirection getMappingDirection() {
+        if (getValueModel().getObject()
+                .getParentContainerValue(AssociationSynchronizationExpressionEvaluatorType.class) != null) {
+            return MappingDirection.OBJECTS;
+        } else {
+            return MappingDirection.INBOUND;
+        }
+    }
+
+    public abstract @NotNull IModel<PrismContainerValueWrapper<P>> getMappingContainerParent();
 }
