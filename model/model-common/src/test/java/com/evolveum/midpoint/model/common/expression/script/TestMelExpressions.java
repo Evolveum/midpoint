@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
+import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluator;
 
 import com.evolveum.midpoint.prism.*;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -1396,6 +1399,176 @@ public class TestMelExpressions extends AbstractScriptTest {
                 ),
                 "Alice2");
     }
+
+
+    @Test
+    public void testLogErrorSingle() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f00");
+        evaluateAndAssertStringScalarExpression(
+                "expression-log-error.xml",
+                createVariables(
+                        "foo", "f00", PrimitiveType.STRING
+                ),
+                "f00");
+        assertTailer(tailer);
+    }
+
+    @Test
+    public void testLogErrorMulti() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f11/b4r");
+        evaluateAndAssertStringListExpression(
+                "expression-log-error-multi.xml",
+                createVariables(
+                        "foo", "f11", PrimitiveType.STRING,
+                        "bar", "b4r", PrimitiveType.STRING
+                ),
+                "f11", "b4r");
+        assertTailer(tailer);
+    }
+
+    @Test
+    public void testLogWarnSingle() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f00");
+        evaluateAndAssertStringScalarExpression(
+                "expression-log-warn.xml",
+                createVariables(
+                        "foo", "f00", PrimitiveType.STRING
+                ),
+                "f00");
+        assertTailer(tailer);
+    }
+
+    @Test
+    public void testLogWarnMulti() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f11/b4r");
+        evaluateAndAssertStringListExpression(
+                "expression-log-warn-multi.xml",
+                createVariables(
+                        "foo", "f11", PrimitiveType.STRING,
+                        "bar", "b4r", PrimitiveType.STRING
+                ),
+                "f11", "b4r");
+        assertTailer(tailer);
+    }
+
+    @Test
+    public void testLogInfoSingle() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f00");
+        evaluateAndAssertStringScalarExpression(
+                "expression-log-info.xml",
+                createVariables(
+                        "foo", "f00", PrimitiveType.STRING
+                ),
+                "f00");
+        assertTailer(tailer);
+    }
+
+    @Test
+    public void testLogInfoMulti() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f11/b4r");
+        evaluateAndAssertStringListExpression(
+                "expression-log-info-multi.xml",
+                createVariables(
+                        "foo", "f11", PrimitiveType.STRING,
+                        "bar", "b4r", PrimitiveType.STRING
+                ),
+                "f11", "b4r");
+        assertTailer(tailer);
+    }
+
+    @Test
+    public void testLogDebugSingle() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f00");
+        evaluateAndAssertStringScalarExpression(
+                "expression-log-debug.xml",
+                createVariables(
+                        "foo", "f00", PrimitiveType.STRING
+                ),
+                "f00");
+        assertTailer(tailer);
+    }
+
+    @Test
+    public void testLogDebugMulti() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f11/b4r");
+        evaluateAndAssertStringListExpression(
+                "expression-log-debug-multi.xml",
+                createVariables(
+                        "foo", "f11", PrimitiveType.STRING,
+                        "bar", "b4r", PrimitiveType.STRING
+                ),
+                "f11", "b4r");
+        assertTailer(tailer);
+    }
+
+    @Test
+    public void testLogTraceSingle() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f00");
+        evaluateAndAssertStringScalarExpression(
+                "expression-log-trace.xml",
+                createVariables(
+                        "foo", "f00", PrimitiveType.STRING
+                ),
+                "f00");
+        assertTailer(tailer);
+    }
+
+    @Test
+    public void testLogTraceMulti() throws Exception {
+        LogfileTestTailer tailer = prepareTailer("f11/b4r");
+        evaluateAndAssertStringListExpression(
+                "expression-log-trace-multi.xml",
+                createVariables(
+                        "foo", "f11", PrimitiveType.STRING,
+                        "bar", "b4r", PrimitiveType.STRING
+                ),
+                "f11", "b4r");
+        assertTailer(tailer);
+    }
+
+
+    private LogfileTestTailer prepareTailer(String expected) throws IOException {
+        LogfileTestTailer tailer = new LogfileTestTailer(LogExpressionFunctions.EXPRESSION_LOGGER_NAME);
+        tailer.tail();
+        tailer.setExpecteMessage(String.format("EXPRESSion TeStLoG =%s=", expected));
+        return tailer;
+    }
+
+    private void assertTailer(LogfileTestTailer tailer) throws IOException {
+        tailer.tail();
+        tailer.assertExpectedMessage();
+    }
+
+    @Test
+    public void testDebugDumpObject() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        String expressionResult = evaluateStringScalarExpression(
+                "expression-debug-dump.xml",
+                createVariables(
+                        "foo", userJack, userJack.getDefinition()
+                )
+        );
+        assertTrue("Wrong result start",
+                expressionResult.startsWith("user: (c0c010c0-d34d-b33f-f00d-111111111111, UserType)"));
+        assertTrue("Result too short",
+                expressionResult.length() > 200);
+    }
+
+    @Test
+    public void testDebugDumpMulti() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismProperty<PolyStringType> orgProp = userJack.findProperty(UserType.F_ORGANIZATIONAL_UNIT);
+        String expressionResult = evaluateStringScalarExpression(
+                "expression-debug-dump.xml",
+                createVariables(
+                        "foo", orgProp, orgProp.getDefinition()
+                )
+        );
+        assertEquals("Expression " + getTestName() + " resulted in wrong values",
+                "[PolyString(Leaders,leaders)PolyString(Followers,followers)]",
+                expressionResult.replaceAll("[\\s]+", ""));
+    }
+
 
     @Test
     public void testLookAtPoison() throws Exception {

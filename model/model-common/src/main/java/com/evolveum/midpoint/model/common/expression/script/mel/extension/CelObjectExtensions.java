@@ -49,10 +49,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
     private static final Trace LOGGER = TraceManager.getTrace(CelObjectExtensions.class);
 
-    private final BasicExpressionFunctions basicExpressionFunctions;
-
-    public CelObjectExtensions(BasicExpressionFunctions basicExpressionFunctions) {
-        this.basicExpressionFunctions = basicExpressionFunctions;
+    public CelObjectExtensions() {
         initialize();
     }
 
@@ -183,8 +180,8 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
     private static final class Library implements CelExtensionLibrary<CelObjectExtensions> {
         private final CelObjectExtensions version0;
 
-        private Library(BasicExpressionFunctions basicExpressionFunctions) {
-            version0 = new CelObjectExtensions(basicExpressionFunctions);
+        private Library() {
+            version0 = new CelObjectExtensions();
         }
 
         @Override
@@ -198,8 +195,8 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    public static CelExtensionLibrary<CelObjectExtensions> library(BasicExpressionFunctions basicExpressionFunctions) {
-        return new Library(basicExpressionFunctions);
+    public static CelExtensionLibrary<CelObjectExtensions> library() {
+        return new Library();
     }
 
     @Override

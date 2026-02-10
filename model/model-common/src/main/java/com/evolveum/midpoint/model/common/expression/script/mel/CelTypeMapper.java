@@ -329,7 +329,7 @@ public class CelTypeMapper implements CelTypeProvider  {
 
     @Nullable
     public static Object toJavaValue(@Nullable Object celValue) {
-        if (celValue == null || celValue instanceof NullValue) {
+        if (isCellNull(celValue)) {
             return null;
         }
         if (celValue instanceof CelValue) {
@@ -345,10 +345,7 @@ public class CelTypeMapper implements CelTypeProvider  {
 
     @Nullable
     public static Object toJavaValue(@Nullable CelValue celValue) {
-        if (celValue == null) {
-            return null;
-        }
-        if (celValue == NullValue.NULL_VALUE) {
+        if (isCellNull(celValue)) {
             return null;
         }
         if (celValue instanceof MidPointValueProducer<?> mpCelValue) {

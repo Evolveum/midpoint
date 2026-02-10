@@ -27,6 +27,7 @@ public class MidPointCelExtensionManager {
     private CelPrismItemsExtensions extPrismItems;
     private CelLdapExtensions extLdap;
     private CelObjectExtensions extObject;
+    private CelLogExtensions extLog;
 
     private ImmutableList<? extends CelCompilerLibrary> allCompilerLibraries;
     private ImmutableList<? extends CelRuntimeLibrary> allRuntimeLibraries;
@@ -38,13 +39,15 @@ public class MidPointCelExtensionManager {
         initializeExtensions();
     }
 
+    @SuppressWarnings("DataFlowIssue")
     private void initializeExtensions() {
         extMel = CelMelExtensions.library(protector, basicExpressionFunctions).latest();
         extPolyString = CelPolyStringExtensions.library(celOptions, basicExpressionFunctions).latest();
         extFormat = CelFormatExtensions.library(basicExpressionFunctions).latest();
         extPrismItems = CelPrismItemsExtensions.library().latest();
         extLdap = CelLdapExtensions.library(basicExpressionFunctions).latest();
-        extObject = CelObjectExtensions.library(basicExpressionFunctions).latest();
+        extObject = CelObjectExtensions.library().latest();
+        extLog = CelLogExtensions.library().latest();
 
         allCompilerLibraries = ImmutableList.of(
                 CelExtensions.strings(),
@@ -61,7 +64,8 @@ public class MidPointCelExtensionManager {
                 extFormat,
                 extPrismItems,
                 extLdap,
-                extObject
+                extObject,
+                extLog
         );
 
         allRuntimeLibraries = ImmutableList.of(
@@ -78,7 +82,8 @@ public class MidPointCelExtensionManager {
                 extFormat,
                 extPrismItems,
                 extLdap,
-                extObject
+                extObject,
+                extLog
         );
     }
 
