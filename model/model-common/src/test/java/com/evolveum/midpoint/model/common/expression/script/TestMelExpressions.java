@@ -984,6 +984,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                     "Ministry of Piracy");
             throw new RuntimeException("Unexpected success");
         } catch (ExpressionEvaluationException e) {
+            displayException("Expected exception", e);
             assertTrue("Bad exception message: "+e.getMessage(), e.getMessage().contains("Attempt to get single value from a multi-valued property") );
         }
     }
@@ -1001,6 +1002,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                     "Ministry of Piracy");
             throw new RuntimeException("Unexpected success");
         } catch (ExpressionEvaluationException e) {
+            displayException("Expected exception", e);
             assertTrue("Bad exception message: "+e.getMessage(), e.getMessage().contains("Attempt to get single value from a multi-valued property") );
         }
     }

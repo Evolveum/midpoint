@@ -109,7 +109,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from(
                             "string_"+FUNC_ENCRYPT_NAME, String.class, this::encrypt)),
 
-                // polystring.encrypt()
+            // polystring.encrypt()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             FUNC_ENCRYPT_NAME,
@@ -123,7 +123,21 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             // TODO: bytes.encrypt()? Should we encrypt to ProtectedString or ProtectedData?
 
-            // str.isBlank()
+            // str.format([args])
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "format",
+                            CelOverloadDecl.newMemberOverload(
+                                    "pm-string-format",
+                                    "TODO",
+                                    SimpleType.STRING,
+                                    SimpleType.STRING,
+                                    SimpleType.ANY)),
+                    CelFunctionBinding.from(
+                            "pm-string-format", String.class, Object.class,
+                            CelMelExtensions::stringFormat)),
+
+                // str.isBlank()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             FUNC_IS_BLANK_NAME,
@@ -385,6 +399,18 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private String ascii(Object o) {
         return basicExpressionFunctions.ascii(toJava(o));
+    }
+
+    private static Object stringFormat(String format, Object o) {
+        Object[] javaArgs;
+        if (CelTypeMapper.isCellNull(o)) {
+            javaArgs = new Object[]{ null };
+        } else if (o instanceof List<?> l) {
+            javaArgs = CelTypeMapper.toJavaValues(l.toArray());
+        } else {
+            javaArgs = new Object[]{ CelTypeMapper.toJavaValue(o) };
+        }
+        return String.format(format, javaArgs);
     }
 
     public static boolean stringIsEmpty(String str) {

@@ -8,7 +8,6 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
-        'R:'+ resource.name + ' F:' + focus.name + ' P:' + projection.name
-        // 'R:%s F:%s P:%s'.format([resource.name, focus.name, 'XXX'])
+        'R:%s F:%s P:%s'.format([resource.name, focus.name, projection.name])
     </code>
 </script>

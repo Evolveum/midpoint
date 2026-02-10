@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -41,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Expression evaluator that is using MidPoint Expression Language (MEL).
@@ -49,7 +51,7 @@ import java.util.Map;
  */
 public class MelScriptEvaluator extends AbstractScriptEvaluator {
 // TODO: proper caching
-//    public class CelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree> {
+//    public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree> {
 
 
     private static final Trace LOGGER = TraceManager.getTrace(MelScriptEvaluator.class);
@@ -104,15 +106,25 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
 //    @Override
     protected CelAbstractSyntaxTree compileScript(String codeString, ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, SecurityViolationException {
+        CelValidationResult validationResult;
         try {
-            CelValidationResult validationResult = getCompiler(context).compile(codeString, context.getContextDescription());
-            // TODO: validationResult.hasError()
-            return validationResult.getAst();
-        } catch (Throwable e) { // TODO: CelValidationException
+            validationResult = getCompiler(context).compile(codeString, context.getContextDescription());
+        } catch (Throwable e) {
             throw new ExpressionEvaluationException(
                     "Unexpected error during compilation of script in %s: %s".formatted(
-                            context.getContextDescription(), e.getMessage()),
-                    serializationSafeThrowable(e));
+                            context.getContextDescription(), e.getMessage()), e);
+        }
+        if (validationResult.hasError()) {
+            throw new ExpressionEvaluationException(
+                    "Unexpected error during validation of script in %s: %s".formatted(
+                            context.getContextDescription(), validationResult.getErrorString()));
+        }
+        try {
+            return validationResult.getAst();
+        } catch (CelValidationException e) {
+            throw new ExpressionEvaluationException(
+                    "Unexpected error during validation of script in %s: %s".formatted(
+                            context.getContextDescription(), e.getMessage()), e);
         }
     }
 
@@ -190,7 +202,12 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         CelRuntime.Program program = runtime.createProgram(compiledScript);
 
         Map<String, ?> variables = prepareVariablesValueMap(context);
-        Object resultObject = program.eval(variables);
+        Object resultObject;
+        try {
+            resultObject = program.eval(variables);
+        } catch (CelException e) {
+            throw processCelException(e);
+        }
         if (resultObject instanceof CelUnknownSet) {
             // This means error
             throw new ExpressionEvaluationException("CEL expression evaluation error: "+resultObject);
@@ -221,15 +238,12 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         return scriptVariableMap;
     }
 
-    private static Throwable serializationSafeThrowable(Throwable e) {
-//        if (e instanceof GroovyRuntimeException) {
-//            Throwable cause = serializationSafeThrowable(e.getCause());
-//            // We reconstruct hierarchy with GroovyRuntimeExceptions only (some subclasses contains fields which
-//            // are not serializable)
-//            GroovyRuntimeException ret = new GroovyRuntimeException(e.getMessage(), cause);
-//            ret.setStackTrace(e.getStackTrace());
-//        }
-        // Let's assume other non-groovy exceptions are safe to serialize
-        return e;
+    private Exception processCelException(CelException e) {
+        LOGGER.trace("Original CEL exception: {}", e.getMessage(), e);
+        // We do NOT want to throw ExpressionEvaluationException here.
+        // AbstractScriptEvaluator is catching unknown exceptions and properly formatting them.
+        // However, it assumes that all ExpressionEvaluationExceptions are already formatted.
+        MelException melCause = ExceptionUtil.findCause(e, MelException.class);
+        return Objects.requireNonNullElse(melCause, e);
     }
 }

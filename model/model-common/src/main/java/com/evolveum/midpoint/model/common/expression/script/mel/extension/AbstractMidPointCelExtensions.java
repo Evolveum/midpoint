@@ -6,6 +6,7 @@
 package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
+import com.evolveum.midpoint.model.common.expression.script.mel.MelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -92,20 +93,17 @@ public abstract class AbstractMidPointCelExtensions
 
     @NotNull
     protected RuntimeException createException(@NotNull Exception e) {
-        // TODO: better error handling
-        return new RuntimeException(e.getMessage(), e);
+        return new MelException(e.getMessage(), e);
     }
 
     @NotNull
     protected RuntimeException createException(@NotNull String message) {
-        // TODO: better error handling
-        return new RuntimeException(message);
+        return new MelException(message);
     }
 
     @NotNull
     protected RuntimeException createException(@NotNull String message, @NotNull Exception e) {
-        // TODO: better error handling
-        return new RuntimeException(message, e);
+        return new MelException(message, e);
     }
 
 
