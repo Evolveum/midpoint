@@ -74,6 +74,12 @@ public abstract class AbstractContainerValueCelValue<C extends Containerable> ex
     }
 
     protected ItemPath keyToPath(Object key) {
+        if (CelTypeMapper.isCellNull(key)) {
+            return null;
+        }
+        if (key instanceof QNameCelValue celQname) {
+            key = celQname.getQName();
+        }
         return PrismContext.get().path(key);
     }
 

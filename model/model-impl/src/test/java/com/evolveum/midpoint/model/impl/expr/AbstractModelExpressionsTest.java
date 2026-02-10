@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -405,6 +406,26 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         assertExecuteScriptExpressionString(
                 createFocusProjectionResourceVariables(
                         "attrName", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, PrimitiveType.STRING
+                ),
+                "projection-attribute",
+                ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
+    }
+
+    @Test
+    public void testProjectionAttributeQNameNoNs() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "attrName", new QName(null, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), PrimitiveType.QNAME
+                ),
+                "projection-attribute",
+                ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
+    }
+
+    @Test
+    public void testProjectionAttributeQNameNs() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(
+                        "attrName", new QName(MidPointConstants.NS_RI, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), PrimitiveType.QNAME
                 ),
                 "projection-attribute",
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);

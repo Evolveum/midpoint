@@ -5,9 +5,14 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
+import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.AbstractContainerValueCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
 
+import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -36,6 +41,21 @@ public class CelPrismItemsExtensions extends AbstractMidPointCelExtensions {
 
     protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
+
+            // This is supposed to handle prismobject[qname] as well, as cel-java seem to handle both
+            // ContainerValueCelValue.CEL_TYPE and ObjectCelValue.CEL_TYPE as DYN.
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "index_map",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-container-index_map-qname",
+                                    "TODO",
+                                    SimpleType.ANY,
+                                    ContainerValueCelValue.CEL_TYPE,
+                                    QNameCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-container-index_map-qname", ContainerValueCelValue.class, QNameCelValue.class,
+                            CelPrismItemsExtensions::prismIndexMap)),
+
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "find",
@@ -48,7 +68,16 @@ public class CelPrismItemsExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("prism-object-find-string", ObjectCelValue.class, String.class,
                             CelPrismItemsExtensions::prismFind))
         );
-    };
+    }
+
+    private static Object prismIndexMap(AbstractContainerValueCelValue<?> celValue, QNameCelValue celQName) {
+        if (CelTypeMapper.isCellNull(celValue) || CelTypeMapper.isCellNull(celQName)) {
+            return NullValue.NULL_VALUE;
+        }
+        return CelTypeMapper.toCelValue(celValue.getContainerValue().find(ItemName.fromQName(celQName.getQName())));
+    }
+
+    ;
 
     private static final class Library implements CelExtensionLibrary<CelPrismItemsExtensions> {
         private final CelPrismItemsExtensions version0;
