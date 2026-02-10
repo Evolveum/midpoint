@@ -149,7 +149,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     protected List<ListViewRow> renderListViewRows(ShadowObjectClassStatisticsType statistics, boolean isAttributeTuple) {
         Stream<ListViewRow> rows = isAttributeTuple
                 ? statistics.getAttributeTuple().stream().map(this::toTupleRow)
-                : statistics.getAttribute().stream().map(this::toAttributeRow);
+                : statistics.getAttribute().stream().map(item -> toAttributeRow(item, statistics));
 
         return rows
                 .sorted(Comparator.comparingInt((ListViewRow r) -> extractCount(r.subText.getObject())).reversed())
@@ -167,11 +167,9 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         return new ListViewRow(Model.of(refStr), Model.of(combinations + " combinations"), item);
     }
 
-    private @NotNull ListViewRow toAttributeRow(@NotNull ShadowAttributeStatisticsType item) {
+    private @NotNull ListViewRow toAttributeRow(@NotNull ShadowAttributeStatisticsType item, @NotNull ShadowObjectClassStatisticsType statistics) {
         String refStr = item.getRef().getItemPath().lastName().toString();
-        int count = item.getValueCount() != null
-                ? item.getValueCount().stream().mapToInt(ShadowAttributeValueCountType::getCount).sum()
-                : 0;
+        int count = statistics.getSize() - item.getMissingValueCount();
         return new ListViewRow(Model.of(refStr), Model.of(count + " values"), item);
     }
 
@@ -325,7 +323,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         int total = 0, unique = 0, missing = 0;
         ShadowAttributeStatisticsType object = selectedAttribute.getObject();
         if (object != null && object.getValueCount() != null) {
-            total = object.getValueCount().stream().mapToInt(ShadowAttributeValueCountType::getCount).sum();
+            total = getModelObject().getSize() - object.getMissingValueCount();
             missing = object.getMissingValueCount();
             unique = object.getUniqueValueCount();
         }
