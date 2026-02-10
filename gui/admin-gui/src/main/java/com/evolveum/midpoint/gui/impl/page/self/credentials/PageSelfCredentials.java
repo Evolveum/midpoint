@@ -22,7 +22,6 @@ import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.api.component.NewOtpPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -37,7 +36,10 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.page.self.component.SecurityQuestionsPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 
 @PageDescriptor(
         urls = {
@@ -159,11 +161,13 @@ public class PageSelfCredentials extends PageSelf {
         return new PanelTab(
                 createStringResource("PageSelfCredentials.tabs.otp"),
                 new VisibleBehaviour(this::showOtp)) {
+
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new NewOtpPanel(panelId);
+//                return new FocusOtpsPanel(panelId);
+                return new WebMarkupContainer(panelId); // todo fix
             }
         };
     }

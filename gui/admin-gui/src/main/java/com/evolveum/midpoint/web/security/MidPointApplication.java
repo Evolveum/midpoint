@@ -18,6 +18,7 @@ import java.util.Map;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.gui.impl.converter.*;
 
 import jakarta.servlet.ServletContext;
@@ -137,6 +138,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         SchemaDebugUtil.initialize();
     }
 
+    @Autowired private OtpManager otpManager;
     @Autowired private ResourceUrlProvider resourceUrlProvider;
     @Autowired private ModelService model;
     @Autowired private ModelInteractionService modelInteractionService;
@@ -624,5 +626,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public Clock getClock() {
         return clock;
+    }
+
+    public OtpManager getOtpManager() {
+        return otpManager;
     }
 }

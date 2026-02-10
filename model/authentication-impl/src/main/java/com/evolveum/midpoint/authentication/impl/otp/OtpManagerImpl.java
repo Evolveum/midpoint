@@ -61,7 +61,7 @@ public class OtpManagerImpl implements OtpManager {
     }
 
     @Override
-    public String createOtpAuthUrl(ModuleAuthentication moduleAuthentication, OtpCredentialType credential) {
+    public String createOtpAuthUrl(OtpCredentialType credential) {
         if (!OtpManager.isOtpAvailable()) {
             throw new IllegalArgumentException("OTP configuration is not available for currently logged in user");
         }
@@ -84,7 +84,7 @@ public class OtpManagerImpl implements OtpManager {
     }
 
     @Override
-    public boolean verifyOtpCredential(ModuleAuthentication authentication, OtpCredentialType credential, int code) {
+    public boolean verifyOtpCredential(OtpCredentialType credential, int code) {
         if (!OtpManager.isOtpAvailable()) {
             throw new IllegalArgumentException("OTP configuration is not available for currently logged in user");
         }
@@ -118,8 +118,8 @@ public class OtpManagerImpl implements OtpManager {
         PrismObject<? extends FocusType> focus = principal.getFocusPrismObject();
         String defaultName = focus.getName().getOrig();
 
-        OtpModuleAuthenticationImpl moduleAuthentication =
-                (OtpModuleAuthenticationImpl) OtpManager.getCurrentUserOtpAuthenticationModule();
+        OtpModuleAuthentication moduleAuthentication =
+                (OtpModuleAuthentication) OtpManager.getCurrentUserOtpAuthenticationModule();
 
         ItemPathType pathType = moduleAuthentication.getModule().getLabel();
         ItemPath path = pathType != null ? pathType.getItemPath() : null;

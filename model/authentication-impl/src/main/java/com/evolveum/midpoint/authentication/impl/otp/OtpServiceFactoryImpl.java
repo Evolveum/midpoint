@@ -26,7 +26,7 @@ public class OtpServiceFactoryImpl implements OtpServiceFactory {
     }
 
     public OtpService create(@NotNull ModuleAuthentication moduleAuthentication) {
-        if (!(moduleAuthentication instanceof OtpModuleAuthenticationImpl otpModule)) {
+        if (!(moduleAuthentication instanceof OtpModuleAuthentication otpModule)) {
             throw new IllegalArgumentException("Authentication module not supported");
         }
 

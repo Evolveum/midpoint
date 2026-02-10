@@ -20,7 +20,7 @@ public class OtpModuleFactory extends AbstractCredentialModuleFactory<
         LoginFormModuleWebSecurityConfiguration,
         OtpModuleWebSecurityConfigurer,
         OtpAuthenticationModuleType,
-        OtpModuleAuthenticationImpl> {
+        OtpModuleAuthentication> {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType, AuthenticationChannel authenticationChannel) {
@@ -50,13 +50,13 @@ public class OtpModuleFactory extends AbstractCredentialModuleFactory<
     }
 
     @Override
-    protected OtpModuleAuthenticationImpl createEmptyModuleAuthentication(
+    protected OtpModuleAuthentication createEmptyModuleAuthentication(
             OtpAuthenticationModuleType moduleType,
             LoginFormModuleWebSecurityConfiguration configuration,
             AuthenticationSequenceModuleType sequenceModule,
             ServletRequest request) {
 
-        OtpModuleAuthenticationImpl auth = new OtpModuleAuthenticationImpl(sequenceModule);
+        OtpModuleAuthentication auth = new OtpModuleAuthentication(sequenceModule);
         auth.setPrefix(configuration.getPrefixOfModule());
         auth.setCredentialName(moduleType.getCredentialName());
         auth.setCredentialType(supportedClass());

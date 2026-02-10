@@ -69,7 +69,7 @@ public interface OtpManager {
 
     OtpCredentialType createOtpCredential();
 
-    String createOtpAuthUrl(ModuleAuthentication moduleAuthentication, OtpCredentialType credential);
+    String createOtpAuthUrl(OtpCredentialType credential);
 
-    boolean verifyOtpCredential(ModuleAuthentication authentication, OtpCredentialType credential, int code);
+    boolean verifyOtpCredential(OtpCredentialType credential, int code);
 }

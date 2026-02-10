@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="d-flex flex-column flex-fill gap-2">
+        <div>
+            <input class="" wicket:id="name"/>
+        </div>
+
+        <div style="width: 150px; height: 150px">
+            <span wicket:id="qr"/>
+        </div>
+
+        <a wicket:id="setupManually"/>
+
+        <span wicket:id="secret"/>
+
+        <input wicket:id="code"
+                required="required"
+                placeholder="XXXXXX"
+                pattern="[0-9]{6}"
+                autocomplete="off"
+                aria-label="Verify the code from the app"
+                type="text"/>
+
+        <a wicket:id="verify"/>
+    </div>
+</wicket:panel>
+</body>
+</html>
