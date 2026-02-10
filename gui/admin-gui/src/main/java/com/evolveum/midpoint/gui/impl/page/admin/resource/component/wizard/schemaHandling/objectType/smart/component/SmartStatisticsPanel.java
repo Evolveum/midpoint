@@ -1,8 +1,7 @@
 /*
- * Copyright (C) 2010-2025 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.\
+ * Licensed under the EUPL-1.2 or later.
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component;
 
@@ -13,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.ObjectClassStatisticsButton;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -60,6 +60,17 @@ import java.util.stream.Stream;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
+/**
+ * Popup panel that displays computed statistics for a resource object class.
+ *
+ * <p>The panel visualizes object class statistics such as attribute values,
+ * value patterns, frequencies, and basic summary metrics. Users can browse
+ * individual attributes, inspect their statistics, and trigger regeneration
+ * of statistics if needed.</p>
+ *
+ * <p>The panel is shown in a modal dialog and serves purely as a presentation
+ * layer for already computed statistics.</p>
+ */
 //TODO (this is initial implementation)
 public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsType> implements Popupable {
 
@@ -89,6 +100,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     private static final String ID_HEADER_FRAGMENT = "title";
     private static final String ID_HEADER_PRIMARY_TITLE = "primaryTitle";
     private static final String ID_HEADER_SECONDARY_TITLE = "secondaryTitle";
+    private static final String ID_HEADER_REGENERATE_BUTTON = "regenerateButton";
 
     private final String resourceOid;
     private final QName objectClassName;
@@ -196,7 +208,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     private @NotNull TogglePanel<String> buildToggle() {
         IModel<List<Toggle<String>>> toggleModel = () -> List.of(
-                createToggle("Tuples", isAttributeTuple),
+//                createToggle("Tuples", isAttributeTuple), // cross table disabled
                 createToggle("Attributes", !isAttributeTuple)
         );
 
@@ -323,7 +335,6 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         main.addOrReplace(buildFrequencyTable(selectedAttribute.getObject(), total));
         main.addOrReplace(buildTupleTable(selectedTuple.getObject()));
 
-
         return main;
     }
 
@@ -428,6 +439,17 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             @Override
             protected boolean hideFooterIfSinglePage() {
                 return true;
+            }
+
+            @Override
+            public boolean displayIsolatedNoValuePanel() {
+                return provider.size() == 0;
+            }
+
+
+            @Override
+            protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
+                return createStringResource("SmartStatisticsPanel.noValuePanel.customSubTitle");
             }
         };
         table.setItemsPerPage(5);
@@ -559,6 +581,22 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         Fragment header = new Fragment(SmartStatisticsPanel.ID_HEADER_FRAGMENT, ID_HEADER_FRAGMENT, this);
         header.add(new Label(ID_HEADER_PRIMARY_TITLE, getTitle()));
         header.add(new Label(ID_HEADER_SECONDARY_TITLE, secondaryTitle).setVisible(secondaryTitle != null));
+        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_HEADER_REGENERATE_BUTTON,
+                () -> objectClassName, resourceOid) {
+            @Override
+            protected boolean forceRegeneration() {
+                return true;
+            }
+
+            @Override
+            protected IModel<String> getMainButtonLabel() {
+                return createStringResource("SmartStatisticsPanel.regenerateStatistics");
+            }
+        };
+        header.add(statisticsButton);
+
+        statisticsButton.setOutputMarkupId(true);
+
         header.add(AttributeAppender.append(CLASS_CSS, "flex-grow-1 mt-1"));
         return header;
     }

@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.ObjectClassStatisticsButton;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -66,6 +68,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
     private static final String ID_TASKS = "tasks";
+    private static final String ID_STATISTICS = "statistics";
 
     public ResourceUncategorizedPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -137,7 +140,18 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         createPanelTitle();
         createObjectTypeChoice();
         createTasksButton(ID_TASKS);
+        createStatisticsButton();
         createShadowTable();
+    }
+
+    private void createStatisticsButton() {
+        ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
+        ResourceType resource = objectDetailsModels.getObjectType();
+
+        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_STATISTICS,
+                this::getObjectClass, resource.getOid());
+        statisticsButton.setOutputMarkupId(true);
+        add(statisticsButton);
     }
 
     private void createPanelTitle() {

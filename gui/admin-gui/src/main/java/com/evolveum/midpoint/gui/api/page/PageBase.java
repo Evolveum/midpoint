@@ -522,8 +522,12 @@ public abstract class PageBase extends PageAdminLTE {
         dialog.setContent(popupable.getContent());
         dialog.setFooter(popupable.getFooter());
 
-        if (popupable.getTitleComponent() != null) {
-            dialog.setTitleComponent(popupable.getTitleComponent());
+        Component titleComponent = popupable.getTitleComponent();
+        if (titleComponent != null) {
+            dialog.setTitleComponent(titleComponent);
+        } else {
+            // Reset to default title component so we don't keep stale Fragment from previous popup
+            dialog.setTitleComponent(dialog.createDefaultTitleComponent());
         }
 
         dialog.setTitle(popupable.getTitle());

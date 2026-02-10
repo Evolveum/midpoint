@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
@@ -17,12 +16,15 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+import static com.evolveum.midpoint.web.component.dialog.RequestDetailsRecordDto.initDummyObjectTypePermissionData;
 
 public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable> extends AbstractWizardPanel<P, ResourceDetailsModel> {
 
@@ -56,9 +59,22 @@ public class SmartObjectTypeSuggestionWizardPanel<C extends ResourceObjectTypeDe
                     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> model,
                     AjaxRequestTarget target) {
                 var complexTypeDef = model.getObject().getRealValue();
+                proceedToSuggestionConfirmationPanel(getPageBase(), target, complexTypeDef);
+            }
+        };
+    }
+
+    private void proceedToSuggestionConfirmationPanel(@NotNull PageBase pageBase, AjaxRequestTarget target, ComplexTypeDefinitionType complexTypeDef) {
+        RequestDetailsConfirmationPanel dialog = new RequestDetailsConfirmationPanel(
+                getPageBase().getMainPopupBodyId(),
+                Model.of(new RequestDetailsRecordDto(null, initDummyObjectTypePermissionData()))) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
                 processSuggestionActivity(target, complexTypeDef.getName(), false);
             }
         };
+        pageBase.showMainPopup(dialog, target);
     }
 
     /**

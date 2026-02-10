@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaExtender;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 import com.evolveum.midpoint.schema.processor.SynchronizationPolicyFactory;
@@ -416,7 +417,7 @@ public class CorrelationServiceImpl implements CorrelationService {
 
         final ResourceObjectTypeIdentification objectTypeId = getKindAndIntent(shadow);
         final ResourceObjectTypeDefinition objectTypeDefinition = getObjectTypeDefinition(resource, objectTypeId,
-                additionalCorrelationMappings);
+                additionalCorrelationMappings, correlationDefinition);
 
         final Class<? extends FocusType> focusClass = PrismContext.get().getSchemaRegistry()
                 .determineClassForTypeRequired(objectTypeDefinition.getFocusTypeName());
@@ -626,38 +627,20 @@ public class CorrelationServiceImpl implements CorrelationService {
 
     private static @NotNull ResourceObjectTypeDefinition getObjectTypeDefinition(@NotNull ResourceType resource,
             @NotNull ResourceObjectTypeIdentification objectTypeId,
-            @NotNull List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings)
+            @NotNull List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings,
+            @NotNull CorrelationDefinitionType correlationDefinition)
             throws ConfigurationException, SchemaException {
-
-        if (additionalCorrelationMappings.isEmpty()) {
-            return ResourceSchemaFactory.getCompleteSchemaRequired(resource)
-                    .getObjectTypeDefinitionRequired(objectTypeId);
-        } else {
-            final SchemaHandlingType additionalSchemaHandling = wrapMappingsToSchemaHandling(objectTypeId,
-                    additionalCorrelationMappings);
-            return  ResourceSchemaFactory.parseCompleteSchemaWithAdditions(resource,
-                    additionalSchemaHandling).getObjectTypeDefinitionRequired(objectTypeId);
+        final ResourceSchemaExtender schemaExtenders = ResourceSchemaFactory.schemaExtenderFor(resource);
+        for (AdditionalCorrelationItemMappingType additionalMapping : additionalCorrelationMappings) {
+            final ResourceAttributeDefinitionType attrDef = new ResourceAttributeDefinitionType().ref(
+                    additionalMapping.getRef());
+            // Without the cloning it throws exception about resetting parent of a value.
+            CloneUtil.cloneMembersToCollection(attrDef.getInbound(), additionalMapping.getInbound());
+            schemaExtenders.addAttributeDefinition(objectTypeId, attrDef);
         }
-    }
-
-    private static SchemaHandlingType wrapMappingsToSchemaHandling(ResourceObjectTypeIdentification objectTypeId,
-            @NotNull List<AdditionalCorrelationItemMappingType> additionalCorrelationMappings) {
-        final List<ResourceAttributeDefinitionType> additionalDefinitions = additionalCorrelationMappings.stream()
-                .map(mapping -> {
-                    final ResourceAttributeDefinitionType attrDef = new ResourceAttributeDefinitionType().ref(
-                            mapping.getRef());
-                    // Without the cloning it throws exception about resetting parent of a value.
-                    CloneUtil.cloneMembersToCollection(attrDef.getInbound(), mapping.getInbound());
-                    return attrDef;
-                })
-                .toList();
-
-        final ResourceObjectTypeDefinitionType additionalObjectTypeDef = new ResourceObjectTypeDefinitionType()
-                .kind(objectTypeId.getKind())
-                .intent(objectTypeId.getIntent());
-        additionalObjectTypeDef.getAttribute().addAll(additionalDefinitions);
-
-        return new SchemaHandlingType().objectType(additionalObjectTypeDef);
+        return schemaExtenders.addCorrelationDefinition(objectTypeId, correlationDefinition)
+                .extend()
+                .getObjectTypeDefinitionRequired(objectTypeId);
     }
 
 }
