@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -16,6 +17,8 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.authentication.api.OtpManager;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,7 +45,9 @@ public class OtpPanel extends InputPanel {
 
     private final IModel<OtpCredentialType> model;
 
-    private final IModel<Boolean> setupManuallyModel = Model.of(false);
+    private final IModel<Integer> codeModel = Model.of();
+
+    private final IModel<Boolean> showSecretModel = Model.of(false);
 
     public OtpPanel(String id, IModel<OtpCredentialType> model) {
         super(id);
@@ -74,12 +79,14 @@ public class OtpPanel extends InputPanel {
                 }
 
                 Protector protector = MidPointApplication.get().getProtector();
+                String secret = "";
                 try {
-                    return protector.decryptString(protectedString);
+                    secret = protector.decryptString(protectedString);
                 } catch (Exception e) {
                     LOGGER.error("Error decrypting OTP secret", e);
-                    return null;
                 }
+
+                return LocalizationUtil.translate("OtpPanel.setupManually.secret", secret);
             }
         };
 
@@ -99,7 +106,7 @@ public class OtpPanel extends InputPanel {
 
         Label secret = new Label(ID_SECRET, secretModel);
         secret.setOutputMarkupPlaceholderTag(true);
-        secret.add(new VisibleBehaviour(() -> secretModel.getObject() != null && setupManuallyModel.getObject()));
+        secret.add(new VisibleBehaviour(() -> secretModel.getObject() != null && showSecretModel.getObject()));
         add(secret);
 
         Label qr = new Label(ID_QR, qrModel);
@@ -109,7 +116,7 @@ public class OtpPanel extends InputPanel {
 
         IModel<String> setupManuallyLabelModel = () -> {
 
-            String key = setupManuallyModel.getObject() ? "OtpSetupPanel.setupManually.hide" : "OtpSetupPanel.setupManually.show";
+            String key = showSecretModel.getObject() ? "OtpPanel.setupManually.hide" : "OtpPanel.setupManually.show";
 
             return getString(key);
         };
@@ -123,11 +130,19 @@ public class OtpPanel extends InputPanel {
         };
         add(setupManually);
 
-        TextField<String> code = new TextField<>(ID_CODE, Model.of());  // todo fix model
+        TextField<Integer> code = new TextField<>(ID_CODE, codeModel);
+        code.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+
+            }
+        });
+        code.setType(Integer.class);
         code.setOutputMarkupId(true);
         add(code);
 
-        AjaxButton verify = new AjaxButton(ID_VERIFY, createStringResource("OtpSetupPanel.verify")) {
+        AjaxButton verify = new AjaxButton(ID_VERIFY, createStringResource("OtpPanel.verify")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -143,12 +158,29 @@ public class OtpPanel extends InputPanel {
     }
 
     private void onSetupManuallyClicked(AjaxRequestTarget target, Component secret) {
-        setupManuallyModel.setObject(true);
+        boolean showSecret = !showSecretModel.getObject();
+        showSecretModel.setObject(showSecret);
 
         target.add(secret);
+        target.add(get(ID_SETUP_MANUALLY));
     }
 
-    private void onVerifyClicked(AjaxRequestTarget target, String code) {
+    private void onVerifyClicked(AjaxRequestTarget target, Integer code) {
+        if (code == null) {
+            error(getString("OtpPanel.codeRequired"));
+            return;
+        }
+
+        OtpManager manager = MidPointApplication.get().getOtpManager();
+        boolean correct = manager.verifyOtpCredential(model.getObject(), code);
+        if (!correct) {
+            error(getString("OtpPanel.verifyFailed"));
+//            target.add(getFeedbackPanel());
+        } else {
+            info(getString("OtpPanel.verifySuccess"));
+//            target.add(getFeedbackPanel());
+        }
+
         // todo verify code
     }
 }

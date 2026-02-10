@@ -10,11 +10,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-
-import com.evolveum.midpoint.web.security.MidPointApplication;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -28,8 +23,6 @@ import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.OtpPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -37,6 +30,8 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.Counter;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -44,11 +39,9 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -132,7 +125,7 @@ public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel
     protected MultivalueContainerDetailsPanel<OtpCredentialType> getMultivalueContainerDetailsPanel(
             ListItem<PrismContainerValueWrapper<OtpCredentialType>> item) {
 
-        return new OtpDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel(), true);
+        return new OtpDetailsPanel(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel());
     }
 
     @Override
@@ -159,19 +152,8 @@ public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel
 
     private static class OtpDetailsPanel extends MultivalueContainerDetailsPanel<OtpCredentialType> {
 
-        public OtpDetailsPanel(
-                String id,
-                IModel<PrismContainerValueWrapper<OtpCredentialType>> model,
-                boolean addDefaultPanel) {
-            super(id, model, addDefaultPanel);
-        }
-
-        public OtpDetailsPanel(
-                String id,
-                IModel<PrismContainerValueWrapper<OtpCredentialType>> model,
-                boolean addDefaultPanel,
-                ContainerPanelConfigurationType config) {
-            super(id, model, addDefaultPanel, config);
+        public OtpDetailsPanel(String id, IModel<PrismContainerValueWrapper<OtpCredentialType>> model) {
+            super(id, model, false);
         }
 
         @Override
@@ -198,15 +180,9 @@ public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel
             return tabs;
         }
 
-        @Override
-        protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?> itemWrapper) {
-            return itemWrapper.getStatus() == ItemStatus.ADDED ? ItemVisibility.HIDDEN : ItemVisibility.AUTO;
-        }
-
         private ITab createEditNewValueTab() {
             return new PanelTab(
-                    createStringResource("FocusOtpsPanel.tab.basic"),
-                    new VisibleBehaviour(() -> getModelObject().getStatus() == ValueStatus.ADDED)) {
+                    createStringResource("FocusOtpsPanel.tab.basic")) {
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {

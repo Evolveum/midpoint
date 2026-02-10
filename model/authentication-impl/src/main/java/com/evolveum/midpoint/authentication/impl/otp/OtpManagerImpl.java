@@ -99,7 +99,12 @@ public class OtpManagerImpl implements OtpManager {
         try {
             String secretTxt = protector.decryptString(secret);
 
-            return service.verifyCode(secretTxt, code);
+            boolean correct = service.verifyCode(secretTxt, code);
+            if (correct) {
+                credential.setVerified(true);
+            }
+
+            return correct;
         } catch (EncryptionException ex) {
             throw new SystemException("Couldn't verify OTP credential", ex);
         }

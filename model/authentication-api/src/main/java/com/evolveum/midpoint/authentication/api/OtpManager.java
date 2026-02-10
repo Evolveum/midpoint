@@ -19,6 +19,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OtpCredentialType;
 
 public interface OtpManager {
 
+    /**
+     * Check if OTP module is available in currently authenticated user. Can be used to determine if we
+     * need to show OTP input form, but also to determine if we can create new OTP credentials for the user.
+     */
     static boolean isOtpAvailable() {
         return getCurrentUserOtpAuthenticationModule() != null;
     }
@@ -67,9 +71,24 @@ public interface OtpManager {
         return authentications.get(0);
     }
 
+    /**
+     * Create new OTP credential for the currently logged-in user. The credential is not persisted,
+     * it needs to be saved by the caller. The secret in the credential is not encrypted, it is
+     * caller's responsibility to encrypt it before saving.
+     */
     OtpCredentialType createOtpCredential();
 
+    /**
+     * Create OTP auth URL for the given credential. The URL can be used to generate QR code that can
+     * be scanned by authenticator app.
+     */
     String createOtpAuthUrl(OtpCredentialType credential);
 
+    /**
+     * Verify the provided OTP code against the secret in the credential.
+     * If the code is correct, the credential is marked as verified.
+     *
+     * return true if the code is correct, false otherwise.
+     */
     boolean verifyOtpCredential(OtpCredentialType credential, int code);
 }

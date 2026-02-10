@@ -8,28 +8,37 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="d-flex flex-column flex-fill gap-2">
-        <div>
-            <input class="" wicket:id="name"/>
+    <div class="d-flex flex-column gap-2" style="max-width: 600px;">
+        <div class="form-group">
+            <label class="col-form-label"><wicket:message key="OtpPanel.name.label"/></label>
+            <div>
+                <input class="form-control form-control-sm" wicket:id="name"/>
+                <small class="form-text text-muted"><wicket:message key="OtpPanel.name.help"/></small>
+            </div>
         </div>
 
-        <div style="width: 150px; height: 150px">
-            <span wicket:id="qr"/>
+        <div class="form-group">
+            <label for="qr"><wicket:message key="OtpPanel.qrCode.label"/></label>
+            <div id="qr" class="border p-1 rounded" style="width: 150px; height: 150px">
+                <span wicket:id="qr"/>
+            </div>
+            <small class="form-text text-muted">
+                <wicket:message key="OtpPanel.qrCode.help"/>
+                <span wicket:id="secret"/> <a wicket:id="setupManually"/>
+            </small>
         </div>
 
-        <a wicket:id="setupManually"/>
+        <div class="form-group">
+            <label class="col-form-label"><wicket:message key="OtpPanel.code.label"/></label>
+            <div>
+                <input wicket:id="code"
+                        class="form-control form-control-sm"
+                        autocomplete="off"
+                        type="text"/>
+            </div>
+        </div>
 
-        <span wicket:id="secret"/>
-
-        <input wicket:id="code"
-                required="required"
-                placeholder="XXXXXX"
-                pattern="[0-9]{6}"
-                autocomplete="off"
-                aria-label="Verify the code from the app"
-                type="text"/>
-
-        <a wicket:id="verify"/>
+        <a class="btn btn-sm btn-primary align-self-start" wicket:id="verify"/>
     </div>
 </wicket:panel>
 </body>
