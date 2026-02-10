@@ -6,9 +6,8 @@
   -->
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-    <trace>true</trace>
+    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
     <code>
-        functionLibrary.custom( { "customValue":var1, "extra":var2 } )
+        functionLibrary.execute("hello0", [:])
     </code>
 </script>

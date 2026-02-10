@@ -98,6 +98,7 @@ public class CelTypeMapper implements CelTypeProvider  {
         addXsdMapping(SimpleType.BYTES, DOMUtil.XSD_BASE64BINARY, true);
         addXsdMapping(SimpleType.TIMESTAMP, DOMUtil.XSD_DATETIME, true);
         addXsdMapping(SimpleType.DURATION, DOMUtil.XSD_DURATION, true);
+        addXsdMapping(SimpleType.ANY, DOMUtil.XSD_ANYTYPE, true);
 
 //        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
 //        addMapping(UniformItemPath.class, ItemPathType.COMPLEX_TYPE, false);
@@ -314,6 +315,14 @@ public class CelTypeMapper implements CelTypeProvider  {
                 nextJava = next;
             }
             javaArgs.add(nextJava);
+        }
+        return javaArgs;
+    }
+
+    public static <K> Map<K,Object> toJavaValueMap(Map<K,Object> celArgs) {
+        Map<K, Object> javaArgs = new HashMap<>();
+        for (var entry : celArgs.entrySet()) {
+            javaArgs.put(entry.getKey(), toJavaValue(entry.getValue()));
         }
         return javaArgs;
     }

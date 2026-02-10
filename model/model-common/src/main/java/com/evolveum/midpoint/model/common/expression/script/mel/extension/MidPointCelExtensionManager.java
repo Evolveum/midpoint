@@ -9,6 +9,9 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 
 import com.evolveum.midpoint.prism.crypto.Protector;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import com.google.common.collect.ImmutableList;
 import dev.cel.common.CelOptions;
 import dev.cel.compiler.CelCompilerLibrary;
@@ -16,6 +19,8 @@ import dev.cel.extensions.CelExtensions;
 import dev.cel.runtime.CelRuntimeLibrary;
 
 public class MidPointCelExtensionManager {
+
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointCelExtensionManager.class);
 
     private final Protector protector;
     private final BasicExpressionFunctions basicExpressionFunctions;
@@ -94,4 +99,5 @@ public class MidPointCelExtensionManager {
     public Iterable<? extends CelRuntimeLibrary> allRuntimeLibraries() {
         return allRuntimeLibraries;
     }
+
 }

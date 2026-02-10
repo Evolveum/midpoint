@@ -7,8 +7,7 @@
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-    <trace>true</trace>
     <code>
-        functionLibrary.custom( { "customValue":var1, "extra":var2 } )
+        functionLibrary.hello1(foo)
     </code>
 </script>

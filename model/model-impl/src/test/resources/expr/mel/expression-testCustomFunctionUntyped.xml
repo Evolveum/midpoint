@@ -8,10 +8,8 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
-        import com.evolveum.midpoint.prism.path.ItemPath
-
-        pcv = functionLibrary.execute("untyped", [container: var1, containerValue: var2])
-        pcv?.findProperty(ItemPath.create('stringValue'))?.getRealValue() + '-' +
-                pcv?.findProperty(ItemPath.create('intValue'))?.getRealValue()
+        cel.bind(x, functionLibrary.untyped({'container': var1, 'containerValue': var2}),
+            x.stringValue + '-' + stringify(x.intValue)
+        )
     </code>
 </script>

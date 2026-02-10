@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.common.expression.script.mel;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.mel.extension.MidPointCelExtensionManager;
@@ -44,6 +46,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 /**
  * Expression evaluator that is using MidPoint Expression Language (MEL).
  * MidPoint Expression Language (MEL) is based on Common Expression Language (CEL),
@@ -66,12 +70,14 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
     private CelTypeProvider typeProvider = null;
 
     private final MidPointCelExtensionManager midPointCelExtensionManager;
+    private final FunctionLibraryProcessor functionLibraryProcessor;
 
     /** Called by Spring but also by lower-level tests */
     public MelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService, BasicExpressionFunctions basicExpressionFunctions) {
         super(prismContext, protector, localizationService);
         this.basicExpressionFunctions = basicExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(protector, basicExpressionFunctions, celOptions);
+        functionLibraryProcessor = new FunctionLibraryProcessor();
 
         // No compiler/interpreter initialization here. Compilers/interpreters are initialized on demand.
     }
@@ -142,6 +148,7 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         // TODO: Further compiler config
 //        new CelFunctionLibraryMapper(context).compilerAddFunctionLibraryDeclarations(builder);
         addCompilerVariables(builder, context);
+        addFunctionLibraryDeclarations(builder, context);
         builder.setResultType(determineResultType(context));
         return builder.build();
     }
@@ -153,6 +160,15 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         }
         if (!variables.containsKey(ExpressionConstants.VAR_NOW)) {
             builder.addVar(ExpressionConstants.VAR_NOW, SimpleType.TIMESTAMP);
+        }
+    }
+
+    private void addFunctionLibraryDeclarations(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) throws ConfigurationException {
+        for (FunctionLibraryBinding funcLibBinding : emptyIfNull(context.getFunctionLibraryBindings())) {
+            if (funcLibBinding.getParsedLibrary() == null) {
+                continue;
+            }
+            functionLibraryProcessor.addCompilerCustomLibraryDeclarations(builder, context, funcLibBinding);
         }
     }
 
@@ -215,18 +231,29 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
         return CelTypeMapper.toJavaValue(resultObject);
     }
 
-    private CelRuntime getRuntime(ScriptExpressionEvaluationContext context) {
+    private CelRuntime getRuntime(ScriptExpressionEvaluationContext context) throws ConfigurationException {
         return createRuntime(context);
     }
 
-    private CelRuntime createRuntime(ScriptExpressionEvaluationContext context) {
+    private CelRuntime createRuntime(ScriptExpressionEvaluationContext context) throws ConfigurationException {
         // TODO: consider expression profiles?
         // TODO: caching
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
         builder.setOptions(celOptions);
         builder.addLibraries(midPointCelExtensionManager.allRuntimeLibraries());
+        addFunctionLibraryImplementations(builder, context);
 //        new CelFunctionLibraryMapper(context).runtimeAddFunctionLibraryDeclarations(builder);
         return builder.build();
+    }
+
+    private void addFunctionLibraryImplementations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context) throws ConfigurationException {
+        for (FunctionLibraryBinding funcLib : emptyIfNull(context.getFunctionLibraryBindings())) {
+            FunctionLibrary parsedLibrary = funcLib.getParsedLibrary();
+            if (parsedLibrary == null) {
+                continue;
+            }
+            functionLibraryProcessor.addRuntimeCustomLibraryImplementations(builder, context, funcLib, parsedLibrary);
+        }
     }
 
     private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {

@@ -107,7 +107,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     }
 
     @Test
-    public void testHello() throws Exception {
+    public void testMidPointHello() throws Exception {
         assertExecuteScriptExpressionString(null, "Hello swashbuckler");
     }
 
@@ -281,6 +281,23 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     }
 
     @Test
+    public void testLibHello0() throws Exception {
+        PrismContainerValue<Containerable> customPcv = createCustomValue();
+
+        assertExecuteScriptExpressionString(VariablesMap.create(prismContext), "Hello world!");
+    }
+
+    @Test
+    public void testLibHello1() throws Exception {
+        PrismContainerValue<Containerable> customPcv = createCustomValue();
+
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "foo", "Foobar", PrimitiveType.STRING);
+
+        assertExecuteScriptExpressionString(variables, "Hello Foobar");
+    }
+
+    @Test
     public void testCustomFunctionGood() throws Exception {
         PrismContainerValue<Containerable> customPcv = createCustomValue();
 
@@ -306,8 +323,8 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
             displayExpectedException(e);
             assertThat(e.getMessage()).
                     as("exception message")
-                    .isEqualTo("No parameter named 'customValueWrong' in function 'custom' found. "
-                            + "Known parameters are: 'customValue', 'extra'.");
+                    .startsWith("No parameter named 'customValueWrong' in function 'custom' found. "
+                            + "Known parameters are: 'customValue', 'extra'");
         }
     }
 
@@ -325,9 +342,11 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
     @Test
     public void testCustomFunctionUntypedNullValue() throws Exception {
+        PrismContainer<Containerable> customPc = createCustomContainer();
+        PrismContainerValue<Containerable> customPcv = createCustomValue();
         VariablesMap variables = VariablesMap.create(prismContext,
-                "var1", null, PrimitiveType.STRING,
-                "var2", null, PrimitiveType.STRING);
+                "var1", null, customPc.getDefinition(),
+                "var2", null, customPcv.getDefinition());
 
         assertExecuteScriptExpressionString(variables, "null-null");
     }
@@ -448,7 +467,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     }
 
     @NotNull
-    private PrismContainerValue<Containerable> createCustomValue() throws SchemaException {
+    protected PrismContainerValue<Containerable> createCustomValue() throws SchemaException {
         return createCustomContainer().getValue();
     }
 
@@ -468,7 +487,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         return customPc;
     }
 
-    private void assertExecuteScriptExpressionString(
+    protected void assertExecuteScriptExpressionString(
             VariablesMap variables, String expectedOutput)
             throws ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
             IOException, CommunicationException, SchemaException, SecurityViolationException {

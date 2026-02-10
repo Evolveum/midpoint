@@ -160,8 +160,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         final Map<String, TypedValue<?>> scriptVariableMap = new HashMap<>();
-        prepareScriptVariablesMap(context, scriptVariableMap,
-                variableTypedValue -> variableTypedValue);
+        prepareScriptVariablesMap(context, scriptVariableMap, variableTypedValue -> variableTypedValue);
         return scriptVariableMap;
     }
 
@@ -182,17 +181,11 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 
     /**
      * Process variables (name -> TypedValue) into a map, including a value conversion by lambda.
+     * This method is processing the variables ONLY, it does NOT contain functions and function libraries.
      */
     protected <T> void prepareScriptVariablesMap(ScriptExpressionEvaluationContext context, Map<String,T> map, Function<TypedValue<?>,T> converter)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-
-        // Functions
-        for (FunctionLibraryBinding funcLib : emptyIfNull(context.getFunctionLibraryBindings())) {
-            Object implementation = funcLib.getImplementation();
-            TypedValue<?> typedValue = new TypedValue<>(implementation, implementation.getClass());
-            map.put(funcLib.getVariableName(), converter.apply(typedValue));
-        }
 
         // Variables
         VariablesMap variables = context.getVariables();

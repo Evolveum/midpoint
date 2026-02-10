@@ -120,10 +120,15 @@ public class FunctionLibrary {
         }
     }
 
+    public Collection<FunctionConfigItem> getFunctions() {
+        return functionsByName.values();
+    }
+
     FunctionLibraryBinding createBinding(ExpressionFactory expressionFactory) {
         return new FunctionLibraryBinding(
                 getName(),
-                new LibraryFunctionExecutor(this, expressionFactory));
+                new LibraryFunctionExecutor(this, expressionFactory),
+                this);
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -133,5 +138,13 @@ public class FunctionLibrary {
 
     public @NotNull String getOid() {
         return oid;
+    }
+
+    @Override
+    public String toString() {
+        return "FunctionLibrary(" +
+                "oid='" + oid + "', " +
+                functionsByName.size() + " function names" +
+                ')';
     }
 }

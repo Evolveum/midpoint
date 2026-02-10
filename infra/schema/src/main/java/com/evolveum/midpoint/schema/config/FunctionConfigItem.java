@@ -9,8 +9,11 @@ package com.evolveum.midpoint.schema.config;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -86,6 +89,11 @@ public class FunctionConfigItem extends ExpressionConfigItem {
         return ExpressionParameterConfigItem.of(paramBean, origin());
     }
 
+    @NotNull
+    public List<ExpressionParameterType> getParameters() {
+        return value().getParameter();
+    }
+
     public @NotNull QName getReturnTypeName() {
         return defaultIfNull(value().getReturnType(), DOMUtil.XSD_STRING);
     }
@@ -99,5 +107,9 @@ public class FunctionConfigItem extends ExpressionConfigItem {
 
     public boolean isReturnSingleValue() {
         return value().getReturnMultiplicity() == ExpressionReturnMultiplicityType.SINGLE;
+    }
+
+    public String getDocumentation() {
+        return value().getDocumentation();
     }
 }

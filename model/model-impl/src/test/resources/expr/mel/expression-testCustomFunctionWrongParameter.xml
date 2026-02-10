@@ -8,6 +8,6 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
-        functionLibrary.execute("custom", [customValueWrong: var1, extra: var2])
+        functionLibrary.custom({'customValueWrong': var1, 'extra': var2})
     </code>
 </script>
