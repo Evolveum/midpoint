@@ -10,8 +10,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -42,6 +40,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -161,18 +160,7 @@ public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel
         @Override
         protected DisplayNamePanel<OtpCredentialType> createDisplayNamePanel(String displayNamePanelId) {
             DisplayNamePanel<OtpCredentialType> panel =
-                    new DisplayNamePanel<>(displayNamePanelId, () -> getModelObject().getRealValue()) {
-
-                @Override
-                protected IModel<String> createHeaderModel() {
-                    return createStringResource("OtpCredentialType.name");
-                }
-
-                @Override
-                protected IModel<String> getDescriptionLabelModel() {
-                    return null;
-                }
-            };
+                    new DisplayNamePanel<>(displayNamePanelId, () -> getModelObject().getRealValue());
             panel.add(VisibleBehaviour.ALWAYS_INVISIBLE);
 
             return panel;
@@ -180,10 +168,7 @@ public class FocusOtpsPanel extends MultivalueContainerListPanelWithDetailsPanel
 
         @Override
         protected @NotNull List<ITab> createTabs() {
-            List<ITab> tabs = new ArrayList<>();
-            tabs.add(createEditNewValueTab());
-
-            return tabs;
+            return List.of(createEditNewValueTab());
         }
 
         private ITab createEditNewValueTab() {

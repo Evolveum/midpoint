@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.component;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -23,6 +25,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.message.SimpleFeedbackPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -40,7 +43,9 @@ public class OtpPanel extends InputPanel {
     private static final String ID_QR = "qr";
     private static final String ID_SETUP_MANUALLY = "setupManually";
     private static final String ID_SECRET = "secret";
+    private static final String ID_CODE_GROUP = "codeGroup";
     private static final String ID_CODE = "code";
+    private static final String ID_CODE_FEEDBACK = "codeFeedback";
     private static final String ID_VERIFY = "verify";
 
     private final IModel<OtpCredentialType> model;
@@ -137,7 +142,12 @@ public class OtpPanel extends InputPanel {
         };
         add(setupManually);
 
+        WebMarkupContainer codeGroup = new WebMarkupContainer(ID_CODE_GROUP);
+        codeGroup.setOutputMarkupId(true);
+        add(codeGroup);
+
         TextField<Integer> code = new TextField<>(ID_CODE, codeModel);
+        code.setLabel(createStringResource("OtpPanel.codeText.label"));
         code.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
             @Override
@@ -147,7 +157,13 @@ public class OtpPanel extends InputPanel {
         });
         code.setType(Integer.class);
         code.setOutputMarkupId(true);
-        add(code);
+        code.setRequired(true);
+        SimpleFeedbackPanel.addSimpleFeedbackAppender(code);
+        codeGroup.add(code);
+
+        SimpleFeedbackPanel codeFeedback = new SimpleFeedbackPanel(ID_CODE_FEEDBACK, new ComponentFeedbackMessageFilter(code));
+        codeFeedback.setRenderBodyOnly(true);
+        codeGroup.add(codeFeedback);
 
         AjaxButton verify = new AjaxButton(ID_VERIFY, createStringResource("OtpPanel.verify")) {
 
@@ -172,22 +188,30 @@ public class OtpPanel extends InputPanel {
         target.add(get(ID_SETUP_MANUALLY));
     }
 
+    private TextField<Integer> getCode() {
+        return (TextField<Integer>) get(createComponentPath(ID_CODE_GROUP, ID_CODE));
+    }
+
+    private WebMarkupContainer getCodeGroup() {
+        return (WebMarkupContainer) get(ID_CODE_GROUP);
+    }
+
     private void onVerifyClicked(AjaxRequestTarget target, Integer code) {
         if (code == null) {
             error(getString("OtpPanel.codeRequired"));
             return;
         }
 
+        TextField<Integer> codeField = getCode();
+
         OtpManager manager = MidPointApplication.get().getOtpManager();
         boolean correct = manager.verifyOtpCredential(model.getObject(), code);
         if (!correct) {
-            error(getString("OtpPanel.verifyFailed"));
-//            target.add(getFeedbackPanel());
+            codeField.error(getString("OtpPanel.verifyFailed"));
         } else {
-            info(getString("OtpPanel.verifySuccess"));
-//            target.add(getFeedbackPanel());
+            codeField.success(getString("OtpPanel.verifySuccess"));
         }
 
-        // todo verify code
+        target.add(getCodeGroup());
     }
 }

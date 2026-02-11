@@ -28,14 +28,10 @@
             </small>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" wicket:id="codeGroup">
             <label class="col-form-label"><wicket:message key="OtpPanel.code.label"/></label>
-            <div>
-                <input wicket:id="code"
-                        class="form-control form-control-sm"
-                        autocomplete="off"
-                        type="text"/>
-            </div>
+            <input wicket:id="code" class="form-control form-control-sm" autocomplete="off" type="text"/>
+            <div wicket:id="codeFeedback"/>
         </div>
 
         <a class="btn btn-sm btn-primary align-self-start" wicket:id="verify"/>

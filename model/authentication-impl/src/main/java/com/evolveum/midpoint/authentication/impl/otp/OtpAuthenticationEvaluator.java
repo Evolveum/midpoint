@@ -88,6 +88,11 @@ public class OtpAuthenticationEvaluator
         OtpService service = otpServiceFactory.create(ctx.getOtpAuthenticationModule());
 
         for (OtpCredentialType otp : otpCredentials.getOtp()) {
+            if (!otp.isVerified()) {
+                // don't check unverified OTPs, they are not active yet
+                continue;
+            }
+
             ProtectedStringType secret = otp.getSecret();
             if (secret == null) {
                 continue;
