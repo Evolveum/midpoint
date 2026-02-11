@@ -40,7 +40,7 @@ import javax.xml.namespace.QName;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "SmartGeneratingSuggestionStep.wizard.step.generating.suggestion.action.title", icon = "fa fa-arrows-rotate"))
-public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable>
+public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<P extends Containerable>
         extends AbstractResourceWizardBasicPanel<P> {
 
     private static final String CLASS_DOT = ResourceGeneratingSuggestionObjectClassWizardPanel.class.getName() + ".";

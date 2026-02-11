@@ -22,11 +22,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lskublik
@@ -67,7 +69,8 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
             IModel<PrismContainerWrapper<C>> containerModel,
             WrapperContext context,
             AjaxRequestTarget target,
-            boolean isDeprecate) {
+            boolean isDeprecate,
+            @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler) {
         PageBase pageBase = getPageBase();
         PrismContainerWrapper<C> container = containerModel.getObject();
         PrismContainerValue<C> newValue = value;
@@ -83,7 +86,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
             LOGGER.error("Couldn't create new value for container " + container, e);
         }
         IModel<PrismContainerValueWrapper<C>> model = Model.of(newWrapper);
-        onCreateValue(model, target, isDeprecate);
+        onCreateValue(model, target, isDeprecate, postSaveHandler);
     }
 
     @SuppressWarnings("rawtypes")
@@ -101,7 +104,8 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target);
 
-    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target, boolean isDuplicate);
+    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target,
+            boolean isDuplicate, @Nullable SerializableConsumer<AjaxRequestTarget> postSaveHandler);
 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {

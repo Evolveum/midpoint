@@ -466,10 +466,13 @@ public class WebPrismUtil {
         return allAttributes;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static ItemPanel createVerticalPropertyPanel(String id, IModel<? extends ItemWrapper<?, ?>> model, ItemPanelSettings origSettings) {
         ItemPanel propertyPanel;
         ItemPanelSettings settings = origSettings != null ? origSettings.copy() : null;
-        if (model.getObject().getParent() != null && AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING.equivalent(model.getObject().getParent().getDefinition().getItemName())) {
+        PrismContainerValueWrapper<?> parent = model.getObject().getParent();
+        if (parent != null && parent.getDefinition() != null
+                && AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING.equivalent(parent.getDefinition().getItemName())) {
             propertyPanel = new VerticalFormRoleAnalysisAttributeSettingPanel(id, (IModel<PrismPropertyWrapper<ItemPathType>>) model, settings);
         } else if (model.getObject() instanceof ProtectedStringTypeWrapperImpl) {
             propertyPanel = new VerticalFormPasswordPropertyPanel(
