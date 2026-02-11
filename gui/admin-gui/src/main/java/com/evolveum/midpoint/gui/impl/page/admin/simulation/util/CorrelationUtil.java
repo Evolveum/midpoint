@@ -444,7 +444,6 @@ public class CorrelationUtil {
                 @Nullable ObjectDelta<?> delta = processedObject.getDelta();
                 List<ResourceObjectOwnerOptionType> optionList = parseResourceObjectOwnerOptionsFromDelta(delta);
                 if (optionList != null) {return optionList;}
-
                 return Collections.emptyList();
             }
         };
@@ -495,8 +494,12 @@ public class CorrelationUtil {
                         ResourceObjectOwnerOptionsType options =
                                 pcv.asContainerable(ResourceObjectOwnerOptionsType.class);
                         if (options != null) {
-                            List<ResourceObjectOwnerOptionType> option = options.getOption();
-                            optionList.addAll(option);
+                            List<ResourceObjectOwnerOptionType> filteredOptions =
+                                    options.getOption().stream()
+                                            .filter(o -> o.getCandidateOwnerRef() != null)
+                                            .filter(o -> o.getCandidateOwnerRef().getOid() != null)
+                                            .toList();
+                            optionList.addAll(filteredOptions);
                         }
                     }
                 }

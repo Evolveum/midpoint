@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.CorrelationUtil.*;
 
 public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
@@ -279,13 +280,26 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                         ResourceObjectOwnerOptionType option = item.getModelObject();
 
                         ObjectReferenceType ref = option.getCandidateOwnerRef();
+                        if (ref == null || ref.getOid() == null) {
+                            return;
+                        }
+
                         String candidateOid = ref.getOid();
 
                         String displayName = WebModelServiceUtils.resolveReferenceName(ref, getPageBase());
 
                         if (correlatedOwnersOid.contains(candidateOid)) {
                             candidateRow.add(AttributeModifier.append("class", "bg-success-light"));
-                            displayName += " (Correlated)";
+                            displayName += " (" + translate("CorrelationCandidatePanel.correlated") + ")";
+                        } else {
+                            candidateRow.add(AttributeModifier.append("class", "bg-warning-light"));
+                            Double confidence = option.getConfidence();
+                            if (confidence != null) {
+                                displayName += " (" + translate("CorrelationCandidatePanel.not.correlated.confidence",
+                                        String.format("%.2f", confidence)) + ")";
+                            } else {
+                                displayName += " (" + translate("CorrelationCandidatePanel.not.correlated") + ")";
+                            }
                         }
 
                         String identifier =
