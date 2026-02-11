@@ -64,7 +64,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "ascii",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-ascii",
-                                    "TODO",
+                                    "Converts the argument to plain ASCII (ASCII7), all non-ASCII characters and all "
+                                            + "non-printable characters are removed."
+                                            + "ASCII characters with diacritical marks are converted to their"
+                                            + " basic variants (removing the marks).",
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
                     CelFunctionBinding.from("mel-ascii", Object.class,
@@ -129,7 +132,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "format",
                             CelOverloadDecl.newMemberOverload(
                                     "pm-string-format",
-                                    "TODO",
+                                    "Format strings according to specified template, filling in data from the arguments."
+                                            + " Follow Java formatting conventions.",
                                     SimpleType.STRING,
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
@@ -137,7 +141,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "pm-string-format", String.class, Object.class,
                             CelMelExtensions::stringFormat)),
 
-                // str.isBlank()
+            // str.isBlank()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             FUNC_IS_BLANK_NAME,
@@ -195,7 +199,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "list",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-list",
-                                    "TODO",
+                                    "Returns list composed of specified argument.",
                                     ListType.create(SimpleType.DYN),
                                     SimpleType.ANY)),
                     CelFunctionBinding.from("mel-list", Object.class,
@@ -209,7 +213,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "norm",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-norm",
-                                    "TODO",
+                                    "Returns string in a normalized form.",
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
                     CelFunctionBinding.from("mel-norm", Object.class,
@@ -223,7 +227,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "qname",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-qname-local",
-                                    "TODO",
+                                    "Creates a qname value with null namespace.",
                                     QNameCelValue.CEL_TYPE,
                                     SimpleType.STRING)),
                     CelFunctionBinding.from("mel-qname-local", String.class,
@@ -237,7 +241,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "qname",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-qname-ns",
-                                    "TODO",
+                                    "Creates a qname value.",
                                     QNameCelValue.CEL_TYPE,
                                     SimpleType.STRING, SimpleType.STRING)),
                     CelFunctionBinding.from("mel-qname-ns", String.class, String.class,
@@ -251,7 +255,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "secret.resolveBinary",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-secret-resolveBinary",
-                                    "TODO",
+                                    "Resolves a secret specified by the key, using a provider specified by its name. "
+                                            + "Returns the secret in binary form (bytes).",
                                     SimpleType.BYTES,
                                     SimpleType.STRING, SimpleType.STRING)),
                     CelFunctionBinding.from("mel-secret-resolveBinary", String.class, String.class,
@@ -265,13 +270,16 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "secret.resolveString",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-secret-resolveString",
-                                    "TODO",
+                                    "Resolves a secret specified by the key, using a provider specified by its name. "
+                                            + "Returns the secret in string form.",
                                     SimpleType.STRING,
                                     SimpleType.STRING, SimpleType.STRING)),
                     CelFunctionBinding.from("mel-secret-resolveString", String.class, String.class,
                             this::secretResolveString)
 
             ),
+
+            // TODO: secret.resolveProtectedString(provider, key)?
 
             // single
             new Function(
@@ -293,7 +301,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "stringify",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-stringify",
-                                    "TODO",
+                                    "Converts provided value to string.",
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
                     CelFunctionBinding.from("mel-stringify", Object.class,
@@ -307,7 +315,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "atStartOfDay",
                             CelOverloadDecl.newMemberOverload(
                                     "timestamp_atStartOfDay",
-                                    "TODO",
+                                    "Modifies the timestamp to refer to the start of the day.",
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP)),
                     CelFunctionBinding.from("timestamp_atStartOfDay",
@@ -320,7 +328,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "atStartOfDay",
                             CelOverloadDecl.newMemberOverload(
                                     "timestamp_atStartOfDay_string",
-                                    "TODO",
+                                    "Modifies the timestamp to refer to the start of the day.",
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP, SimpleType.STRING)),
                     CelFunctionBinding.from("timestamp_atStartOfDay_string",
@@ -333,7 +341,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "atEndOfDay",
                             CelOverloadDecl.newMemberOverload(
                                     "timestamp_atEndOfDay",
-                                    "TODO",
+                                    "Modifies the timestamp to refer to the end of the day.",
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP)),
                     CelFunctionBinding.from("timestamp_atEndOfDay",
@@ -346,7 +354,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "atEndOfDay",
                             CelOverloadDecl.newMemberOverload(
                                     "timestamp_atEndOfDay_string",
-                                    "TODO",
+                                    "Modifies the timestamp to refer to the end of the day.",
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP, SimpleType.STRING)),
                     CelFunctionBinding.from("timestamp_atEndOfDay_string",
@@ -359,14 +367,12 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "timestamp.longAgo",
                             CelOverloadDecl.newGlobalOverload(
                                     "mel-timestamp_longAgo",
-                                    "TODO",
+                                    "Returns timestamp that is referring to a time long, long ago, too far in the past.",
                                     SimpleType.TIMESTAMP)),
                     CelFunctionBinding.from("mel-timestamp_longAgo", ImmutableList.of(),
                             CelMelExtensions::longAgo)
             )
 
-
-                // TODO: toSingle()? single()? scalar()?
         );
     }
 

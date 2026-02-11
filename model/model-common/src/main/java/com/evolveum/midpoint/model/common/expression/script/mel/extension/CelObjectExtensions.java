@@ -63,7 +63,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                             "connectorConfiguration",
                             CelOverloadDecl.newMemberOverload(
                                     "mp-resource-connectorConfiguration",
-                                    "TODO",
+                                    "Returns list of values of a resource connector configuration property specified by the argument.",
                                     ListType.create(SimpleType.DYN),
                                     ObjectCelValue.CEL_TYPE,
                                     SimpleType.ANY)),
@@ -76,7 +76,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                             "primaryIdentifiers",
                             CelOverloadDecl.newMemberOverload(
                                     "mp-shadow-primaryIdentifiers",
-                                    "TODO",
+                                    "Returns list of values of shadow primary identifier.",
                                     ListType.create(SimpleType.DYN),
                                     ObjectCelValue.CEL_TYPE)),
                     CelFunctionBinding.from("mp-shadow-primaryIdentifiers", Object.class,
@@ -88,7 +88,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                             "secondaryIdentifiers",
                             CelOverloadDecl.newMemberOverload(
                                     "mp-shadow-secondaryIdentifiers",
-                                    "TODO",
+                                    "Returns list of values of shadow secondary identifier.",
                                     ListType.create(SimpleType.DYN),
                                     ObjectCelValue.CEL_TYPE)),
                     CelFunctionBinding.from("mp-shadow-secondaryIdentifiers", Object.class,

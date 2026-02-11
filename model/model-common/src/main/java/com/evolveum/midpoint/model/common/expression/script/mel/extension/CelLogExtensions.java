@@ -42,19 +42,19 @@ public class CelLogExtensions extends AbstractMidPointCelExtensions {
                             "debugDump",
                             CelOverloadDecl.newGlobalOverload(
                                     "mp-debugDump",
-                                    "TODO",
+                                    "Returns formatted, human-friendly, multi-line dump of a complex data structure.",
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
                     CelFunctionBinding.from("mp-debugDump", Object.class,
                             this::debugDump)),
 
-                // log.error(format, param)
+            // log.error(format, param)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "log.error",
                             CelOverloadDecl.newGlobalOverload(
                                     "mp-log-error",
-                                    "TODO",
+                                    "Records formatted message in system logs at ERROR level.",
                                     SimpleType.ANY,
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
@@ -67,7 +67,7 @@ public class CelLogExtensions extends AbstractMidPointCelExtensions {
                             "log.warn",
                             CelOverloadDecl.newGlobalOverload(
                                     "mp-log-warn",
-                                    "TODO",
+                                    "Records formatted message in system logs at WARN level.",
                                     SimpleType.ANY,
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
@@ -80,7 +80,7 @@ public class CelLogExtensions extends AbstractMidPointCelExtensions {
                             "log.info",
                             CelOverloadDecl.newGlobalOverload(
                                     "mp-log-info",
-                                    "TODO",
+                                    "Records formatted message in system logs at INFO level.",
                                     SimpleType.ANY,
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
@@ -93,7 +93,7 @@ public class CelLogExtensions extends AbstractMidPointCelExtensions {
                             "log.debug",
                             CelOverloadDecl.newGlobalOverload(
                                     "mp-log-debug",
-                                    "TODO",
+                                    "Records formatted message in system logs at DEBUG level.",
                                     SimpleType.ANY,
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
@@ -106,7 +106,7 @@ public class CelLogExtensions extends AbstractMidPointCelExtensions {
                             "log.trace",
                             CelOverloadDecl.newGlobalOverload(
                                     "mp-log-trace",
-                                    "TODO",
+                                    "Records formatted message in system logs at TRACE level.",
                                     SimpleType.ANY,
                                     SimpleType.STRING,
                                     SimpleType.ANY)),

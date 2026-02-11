@@ -58,7 +58,7 @@ public class CelLdapExtensions extends AbstractMidPointCelExtensions {
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX + "_composeDn",
                                         "Creates a valid LDAP distinguished name from the wide range of components. E.g.: "
-                                                + "composeDnWithSuffix(['cn','foo','ou','baz','o','bar']). "
+                                                + "composeDn(['cn','foo','ou','baz','o','bar']). "
                                                 + "Note: the DN is not normalized. The case of the attribute names and white spaces are "
                                                 + "preserved.",
                                         SimpleType.STRING,

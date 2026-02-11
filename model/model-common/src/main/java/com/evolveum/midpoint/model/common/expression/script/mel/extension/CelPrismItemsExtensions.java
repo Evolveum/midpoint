@@ -28,6 +28,8 @@ import dev.cel.runtime.*;
  * Extensions for CEL compiler and runtime implementing behavior of Prism
  * objects, properties and other items and value.
  *
+ * TODO: merge with CelObjectExtensions
+ *
  * @author Radovan Semancik
  */
 public class CelPrismItemsExtensions extends AbstractMidPointCelExtensions {
@@ -49,7 +51,7 @@ public class CelPrismItemsExtensions extends AbstractMidPointCelExtensions {
                             "index_map",
                             CelOverloadDecl.newMemberOverload(
                                     "prism-container-index_map-qname",
-                                    "TODO",
+                                    "Resolves a structure using a QName",
                                     SimpleType.ANY,
                                     ContainerValueCelValue.CEL_TYPE,
                                     QNameCelValue.CEL_TYPE)),
@@ -61,7 +63,7 @@ public class CelPrismItemsExtensions extends AbstractMidPointCelExtensions {
                             "find",
                             CelOverloadDecl.newMemberOverload(
                                     "prism-object-find-string",
-                                    "TODO",
+                                    "Returns an item to which the specified item path refers.",
                                     SimpleType.ANY,
                                     ObjectCelValue.CEL_TYPE,
                                     SimpleType.STRING)),

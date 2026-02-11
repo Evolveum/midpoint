@@ -58,7 +58,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "concatName",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX + "_concatName",
-                                        "TODO",
+                                        "Concatenates a user-friendly name from the list of provided components.",
                                         SimpleType.STRING,
                                         ListType.create(SimpleType.ANY))),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_concatName", List.class,
@@ -76,7 +76,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "formatDateTime",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX + "_formatDateTime",
-                                        "TODO",
+                                        "Formats provided timestamp to string, using a format template specified in Java SimpleDateFormat notation.",
                                         SimpleType.STRING,
                                         SimpleType.TIMESTAMP, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_formatDateTime", Timestamp.class, String.class,
@@ -91,7 +91,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 "formatDateTime",
                                 CelOverloadDecl.newMemberOverload(
                                         "timestamp_" + FUNCTION_NAME_PREFIX + "_formatDateTime",
-                                        "TODO",
+                                        "Formats provided timestamp to string, using a format template specified in Java SimpleDateFormat notation.",
                                         SimpleType.STRING,
                                         SimpleType.TIMESTAMP, SimpleType.STRING)),
                         CelFunctionBinding.from("timestamp_" + FUNCTION_NAME_PREFIX + "_formatDateTime",
@@ -106,7 +106,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "parseDateTime",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX + "_parseDateTime",
-                                        "TODO",
+                                        "Parses provided string to timestamp, using a format template specified in Java SimpleDateFormat notation.",
                                         SimpleType.TIMESTAMP,
                                         SimpleType.STRING, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_parseDateTime", String.class, String.class,
@@ -121,7 +121,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 "parseDateTime",
                                 CelOverloadDecl.newMemberOverload(
                                         "string_" + FUNCTION_NAME_PREFIX + "_parseDateTime",
-                                        "TODO",
+                                        "Parses provided string to timestamp, using a format template specified in Java SimpleDateFormat notation.",
                                         SimpleType.TIMESTAMP,
                                         SimpleType.STRING, SimpleType.STRING)),
                         CelFunctionBinding.from("string_" + FUNCTION_NAME_PREFIX + "_parseDateTime",
@@ -136,7 +136,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "strftime",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX + "_strftime",
-                                        "TODO",
+                                        "Formats provided timestamp to string, using a format template specified in POSIX notation.",
                                         SimpleType.STRING,
                                         SimpleType.TIMESTAMP, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_strftime", Timestamp.class, String.class,
@@ -151,7 +151,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 "strftime",
                                 CelOverloadDecl.newMemberOverload(
                                         "timestamp_" + FUNCTION_NAME_PREFIX + "_strftime",
-                                        "TODO",
+                                        "Formats provided timestamp to string, using a format template specified in POSIX notation.",
                                         SimpleType.STRING,
                                         SimpleType.TIMESTAMP, SimpleType.STRING)),
                         CelFunctionBinding.from("timestamp_" + FUNCTION_NAME_PREFIX + "_strftime",
@@ -166,7 +166,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "strptime",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX + "_strptime",
-                                        "TODO",
+                                        "Parses provided string to timestamp, using a format template specified in POSIX notation.",
                                         SimpleType.TIMESTAMP,
                                         SimpleType.STRING, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_strptime", String.class, String.class,
@@ -181,7 +181,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 "strptime",
                                 CelOverloadDecl.newMemberOverload(
                                         "string_" + FUNCTION_NAME_PREFIX + "_strptime",
-                                        "TODO",
+                                        "Parses provided string to timestamp, using a format template specified in POSIX notation.",
                                         SimpleType.TIMESTAMP,
                                         SimpleType.STRING, SimpleType.STRING)),
                         CelFunctionBinding.from("string_" + FUNCTION_NAME_PREFIX + "_strptime",
@@ -209,7 +209,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + functionName,
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX + "_" + functionName,
-                                        "TODO",
+                                        "Parses a component of person's full name.",
                                         SimpleType.STRING,
                                         SimpleType.ANY)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX + "_" + functionName, Object.class,
@@ -223,7 +223,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 functionName,
                                 CelOverloadDecl.newMemberOverload(
                                         "string_" + FUNCTION_NAME_PREFIX + "_" + functionName,
-                                        "TODO",
+                                        "Parses a component of person's full name.",
                                         SimpleType.STRING,
                                         SimpleType.ANY)),
                         CelFunctionBinding.from("string_" + FUNCTION_NAME_PREFIX + "_" + functionName, String.class,
@@ -237,7 +237,7 @@ public class CelFormatExtensions extends AbstractMidPointCelExtensions {
                                 functionName,
                                 CelOverloadDecl.newMemberOverload(
                                         "polystring_" + FUNCTION_NAME_PREFIX + "_" + functionName,
-                                        "TODO",
+                                        "Parses a component of person's full name.",
                                         PolyStringCelValue.CEL_TYPE,
                                         SimpleType.ANY)),
                         CelFunctionBinding.from("polystring_" + FUNCTION_NAME_PREFIX + "_" + functionName, PolyStringCelValue.class,

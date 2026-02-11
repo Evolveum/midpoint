@@ -34,9 +34,37 @@ Macro which tests whether all elements in the input list or all keys in a map sa
 focus.assignment.all(a, has(a.targetRef))
 ----
 
+=== ascii
+
+`ascii(any)` -> string
+
+Converts the argument to plain ASCII (ASCII7), all non-ASCII characters and all non-printable characters are removed.
+ASCII characters with diacritical marks are converted to their basic variants (removing the marks).
+
+.Example
+[source,mel]
+----
+// Returns 'Cortuv hrad, tam Strasa!'
+ascii('Čórtův hrád, tam Strašá!')
+----
+
+
+=== charAt
+
+`string.charAt(int)` -> string
+
+Returns the character at the given position (starting at 0).
+If the position is negative, or greater than the length of the string, the function will produce an error.
+
+.Example
+[source,mel]
+----
+'midpoint'.charAt(1)   // Returns 'i'
+----
+
 === contains
 
-`string.contains()` -> bool
+`string.contains(substring)` -> bool
 
 Function that tests whether the string contains the substring.
 Works on strings as well as polystrings.
@@ -46,6 +74,43 @@ Works on strings as well as polystrings.
 ----
 // Checks whether the full name contains substring 'Mr.'
 focus.fullName.contains('Mr.')
+----
+
+
+=== containsIgnoreCase
+
+`string.containsIgnoreCase(substring)` -> bool
+
+Function that tests whether the string contains the substring without regard to character case.
+Works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+// Checks whether the full name contains substring 'Mr.'
+focus.fullName.contains('Mr.')
+----
+
+=== debugDump
+
+`debugDump(any)` -> string
+
+Returns formatted, human-friendly, multi-line dump of a complex data structure.
+
+.Example
+[source,mel]
+----
+// Returns formatted, multi-line dump of the data structure in focus variable
+debugDump(focus)
+----
+
+This function can be especially useful when combined with logging functions:
+
+.Example
+[source,mel]
+----
+// Returns formatted, multi-line dump of the data structure in focus variable
+log.trace('Focus object: {}', debugDump(focus))
 ----
 
 === endsWith
@@ -104,6 +169,21 @@ Macro which returns a list containing only the elements from the input list that
 focus.assignment.filter(a, has(a.targetRef))
 ----
 
+=== format
+
+`string.format(list)` -> string
+
+Format strings according to specified template, filling in data from the arguments.
+
+Format specification follows https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Formatter.html[Java formatter conventions].
+
+.Example
+[source,mel]
+----
+// Returns 'Jack has 3 apples'
+'%s has %d apples'.format(['Jack', 3])
+----
+
 === has
 
 `has(variable.item)` -> bool
@@ -114,6 +194,114 @@ Macro that checks whether the item exists within a data structure.
 [source,mel]
 ----
 has(focus.activation.administrativeStatus)
+----
+
+=== indexOf
+
+`string.indexOf(substring)` -> int +
+`string.indexOf(substring, offset)` -> int
+
+Returns the integer index of the first occurrence of the search string.
+If offset is specified, the search begins at the offset.
+If the search string is not found the function returns -1.
+
+.Example
+[source,mel]
+----
+'midpoint is in the middle'.indexOf('id')     // Returns 1
+'midpoint is in the middle'.indexOf('id', 5)  // Returns 20
+----
+
+=== isBlank
+
+`isBlank(string)` -> bool +
+`string.isBlank()` -> bool
+
+Returns true if string is blank (has zero length or contains only white characters).
+
+.Example
+[source,mel]
+----
+'foo'.isBlank()  // Returns false
+'   '.isBlank()  // Returns true
+''.isBlank()     // Returns true
+----
+
+=== isEmpty
+
+`isEmpty(string)` -> bool +
+`string.isEmpty()` -> bool
+
+Returns true if string is empty (has zero length) or it is null.
+
+.Example
+[source,mel]
+----
+'foo'.isEmpty()  // Returns false
+'   '.isEmpty()  // Returns false
+''.isEmpty()     // Returns true
+----
+
+=== join
+
+`list(string).join()` -> string +
+`list(string).join(separator)` -> string
+
+Returns a new string where the elements of string list are concatenated using the separator.
+If no separator is specified, empty string is used as separator.
+
+.Example
+[source,mel]
+----
+['foo','bar','baz'].join()     // Returns 'foobarbaz'
+['foo','bar','baz'].join(',')  // Returns 'foo,bar,baz'
+----
+
+=== lastIndexOf
+
+`string.lastIndexOf(substring)` -> int +
+`string.lastIndexOf(substring, offset)` -> int
+
+Returns the integer index of the last occurrence of the search string.
+If offset is specified, the search begins at the offset.
+If the search string is not found the function returns -1.
+
+.Example
+[source,mel]
+----
+'midpoint is in the middle'.lastIndexOf('id')     // Returns 20
+'midpoint is in the middle'.lastIndexOf('id', 5)  // Returns 1
+----
+
+=== lowerAscii
+
+`string.lowerAscii()` -> string
+
+Returns a new string where all ASCII characters are lower-cased.
+This function does not perform Unicode case-mapping for characters outside the ASCII range.
+
+.Example
+[source,mel]
+----
+----
+// TODO
+
+
+=== list
+
+`list(scalar)` -> list +
+`list(list)` -> list
+
+Returns list composed of specified argument.
+If a scalar argument is provided, it returns a single-element list containing that argument.
+If a list is provided as argument, the same list is returned.
+
+.Example
+[source,mel]
+----
+list('foo')          // Returns ['foo']
+list(['foo'])        // Returns ['foo']
+list(['foo','bar'])  // Returns ['foo','bar']
 ----
 
 === map
@@ -167,6 +355,61 @@ focus.telephoneNumber.matches('^[0-9]+$')
 focus.fullName.matches('[0-9]+')
 ----
 
+=== norm
+
+`norm(string)` -> string
+
+Returns string in a normalized form.
+It follows the default normalization algorithm, the same algorithm as used for PolyString values.
+This function works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+norm('  Semančík')    // Returns 'semancik'
+----
+
+=== replace
+
+`string.replace(search, replacement)` -> string +
+`string.replace(search, replacement, limit)` -> string
+
+Returns a new string based on the target, which replaces the occurrences of a search string with a replacement string if present.
+The function accepts an optional limit on the number of substring replacements to be made.
+When the replacement limit is 0, the result is the original string.
+When the limit is a negative number, the function behaves the same as replace all.
+
+.Example
+[source,mel]
+----
+'sailpoint'.replace('sail','mid')  // Returns 'midpoint'
+----
+
+
+=== single
+
+`single(scalar)` -> scalar +
+`single(list)` -> scalar
+
+Function that returns a single value from a list.
+If a list with a single element is provided as function argument, that element is returned.
+If empty list is provided to the function, it returns `null`.
+If a list with more than one element is provided, the function issues an error.
+If a simple scalar value is presented to the function, the same value is returned.
+
+.Examples
+[source,mel]
+----
+// Returns 'foo'
+single(['foo'])
+
+// Returns 'foo'
+single('foo')
+
+// Error
+single(['foo','bar'])
+----
+
 === size
 
 `string.size()` -> int +
@@ -190,6 +433,20 @@ focus.fullName.size()
 size(focus.assignment)
 ----
 
+=== split
+
+`string.split(separator)` -> list(string) +
+`string.split(separator, limit)` -> list(string)
+
+Returns a list of strings split from the input by the given separator.
+Limit on the number of substrings produced by the split can be specified.
+
+.Example
+[source,mel]
+----
+'foo,bar,baz'.split(',')  // Returns ['foo','bar','baz']
+----
+
 === startsWith
 
 `string.startsWith(prefix)` -> bool
@@ -204,47 +461,1115 @@ Works on strings as well as polystrings.
 focus.fullName.startsWith('Ing.')
 ----
 
-TODO: function from string CEL extension
+=== stringify
 
-== Timestamps and Durations
+`stringify(any)` -> string
 
-TODO: timestamp functions, e.g. getDate()
-TODO: timezones
+Converts any value provided as an argument to string.
+The value is converted to string in a sensitive way.
+E.g. the function tries to detect collections and returns the first element (if there is only one).
 
-== Extension Libraries
+This function is useful for diagnostics, as well as type unification (e.g. converting string, polystring and numbers to basic string).
+
+.Example
+[source,mel]
+----
+stringify(['foo','bar'])  // Returns '["foo","bar"]'
+stringify(3)              // Returns '3'
+----
+
+=== substring
+
+`string.substring(beginIndex)` -> string +
+`string.substring(beginIndex, endIndex)` -> string
+
+Returns a string that is a substring of this string.
+The substring begins at the specified `beginIndex` and extends to the character at index `endIndex - 1`.
+Thus the length of the substring is `endIndex - beginIndex`.
+If `endIndex` is not specified, the substring extends to the end of original string.
+
+.Example
+[source,mel]
+----
+'midpoint'.substring(0,3)   // Returns 'mid'
+----
+
+=== trim
+
+`string.trim()` -> string
+
+Returns a new string which removes the leading and trailing whitespace in the target string.
+The trim function uses the Unicode definition of whitespace which does not include the zero-width spaces.
+
+.Example
+[source,mel]
+----
+' midpoint  '.trim()   // Returns 'midpoint'
+----
+
+=== upperAscii
+
+`string.upperAscii()` -> string
+
+Returns a new string where all ASCII characters are upper-cased.
+This function does not perform Unicode case-mapping for characters outside the ASCII range.
+
+.Example
+[source,mel]
+----
+----
+// TODO
+
+
+== Language Extensions
+
+Common expression language (CEL) which was a foundation for MidPoint Expression Language (MEL) is quite limited.
+Therefore, MEL provides additional language extensions that implement functions commonly used in midPoint environment.
+Many MEL language extensions fit naturally into the language and are usually not noticed at all (e.g. see _polystrings_ below).
+However, other extensions are explicitly distinguished, to make their purpose clear and to avoid conflicts with native functionality of the language.
+Most of the extensions have explicit _prefix_ in function names.
+
+=== Format Extension
+
+Prefix: `format`.
+
+Format extension is used to format, parse and otherwise process string-formatted data.
+
+==== format.concatName
+
+`format.concatName(list)` -> string
+
+Concatenates a user-friendly name from the list of provided components.
+Each argument is converted to string (stringified), trimmed and the result is concatenated by spaces.
+
+.Example
+[source,mel]
+----
+// Returns 'Radovan Semančík'
+format.concatName(['Radovan', 'Semančík'])
+----
+
+==== format.strftime
+
+`format.strftime(timestamp, format)` -> string +
+`timestamp.strftime(format)` -> string
+
+Formats provided timestamp to string, using a format template specified in POSIX notation.
+
+This is POSIX-compatible function, using a POSIX time formatting conventions (TODO: ref).
+This format is used by other variants of Common expression language (CEL).
+Use of this function is generally *recommended* instead of Java-like variants below.
+
+.Example
+[source,mel]
+----
+// Returns formatted time, e.g. `11/02/26 09:32:15`
+format.strftime(ts, '%d/%m/%Y %H:%M:%S')
+----
+
+This function can also be invoked as a _member_ function on a timestamp:
+
+.Example
+[source,mel]
+----
+// Returns formatted time, e.g. '11/02/26 09:32:15'
+ts.strftime('%d/%m/%Y %H:%M:%S')
+----
+
+==== format.strptime
+
+`format.strptime(string, format)` -> timestamp +
+`string.strptime(format)` -> timestamp
+
+Parses provided string to timestamp, using a format template specified in POSIX notation.
+
+This is POSIX-compatible function, using a POSIX time formatting conventions (TODO: ref).
+This format is used by other variants of Common expression language (CEL).
+Use of this function is generally *recommended* instead of Java-like variants below.
+
+.Example
+[source,mel]
+----
+// Returns a timestamp
+format.strptime('11/02/26 09:32:15', '%d/%m/%Y %H:%M:%S')
+----
+
+This function can also be invoked as a _member_ function on a string:
+
+.Example
+[source,mel]
+----
+// Returns a timestamp
+'11/02/26 09:32:15'.strptime('%d/%m/%Y %H:%M:%S')
+----
+
+==== format.formatDateTime
+
+`format.formatDateTime(timestamp, format)` -> string +
+`timestamp.formatDateTime(format)` -> string
+
+Formats provided timestamp to string, using a format template specified in Java SimpleDateFormat notation.
+
+This is Java-like function, compatible with original midPoint 3.x _basic expression functions_ (TODO: ref).
+This function is mostly provided for users that are accustomed to Java conventions and for the purposed of easier migration of Groovy scripts to MEL.
+Use of this function is generally *not recommended*.
+Use `strftime` function instead.
+
+.Example
+[source,mel]
+----
+// Returns formatted time, e.g. `11/02/26 09:32:15`
+format.formatDateTime(ts, 'dd/MM/YY HH:mm:ss')
+----
+
+This function can also be invoked as a _member_ function on a timestamp:
+
+.Example
+[source,mel]
+----
+// Returns formatted time, e.g. '11/02/26 09:32:15'
+ts.formatDateTime('dd/MM/YY HH:mm:ss')
+----
+
+==== format.parseDateTime
+
+`format.parseDateTime(string, format)` -> timestamp +
+`string.parseDateTime(format)` -> timestamp
+
+Parses provided string to timestamp, using a format template specified in Java SimpleDateFormat notation.
+
+This is Java-like function, compatible with original midPoint 3.x _basic expression functions_ (TODO: ref).
+This function is mostly provided for users that are accustomed to Java conventions and for the purposed of easier migration of Groovy scripts to MEL.
+Use of this function is generally *not recommended*.
+Use `strptime` function instead.
+
+.Example
+[source,mel]
+----
+// Returns a timestamp
+format.parseDateTime('11/02/26 09:32:15', 'dd/MM/YY HH:mm:ss')
+----
+
+This function can also be invoked as a _member_ function on a string:
+
+.Example
+[source,mel]
+----
+// Returns a timestamp
+'11/02/26 09:32:15'.parseDateTime('dd/MM/YY HH:mm:ss')
+----
+
+==== format.parseGivenName
+
+`format.parseGivenName(string)` -> string +
+`string.parseGivenName()` -> string
+
+Parses provided string as a person's full name, returning the given name (first name) part.
+
+This functions makes some assumptions regarding common structure of full names (e.g. the given name comes first and family name comes last), trying to match individual name components.
+
+.Example
+[source,mel]
+----
+// Returns 'Radovan'
+format.parseGivenName('Ing. Radovan Semančík, PhD.')
+----
+
+This function can also be invoked as a _member_ function on a string or polystring:
+
+.Example
+[source,mel]
+----
+// Returns 'Radovan'
+'Ing. Radovan Semančík, PhD.'.parseGivenName()
+----
+
+==== format.parseFamilyName
+
+`format.parseFamilyName(string)` -> string +
+`string.parseFamilyName()` -> string
+
+Parses provided string as a person's full name, returning the family name (last name) part.
+
+This functions makes some assumptions regarding common structure of full names (e.g. the given name comes first and family name comes last), trying to match individual name components.
+
+.Example
+[source,mel]
+----
+// Returns 'Semančík'
+format.parseFamilyName('Ing. Radovan Semančík, PhD.')
+----
+
+This function can also be invoked as a _member_ function on a string or polystring:
+
+.Example
+[source,mel]
+----
+// Returns 'Semančík'
+'Ing. Radovan Semančík, PhD.'.parseFamilyName()
+----
+
+==== format.parseAdditionalName
+
+`format.parseAdditionalName(string)` -> string +
+`string.parseAdditionalName()` -> string
+
+Parses provided string as a person's full name, returning the additional name (middle name) part.
+
+This functions makes some assumptions regarding common structure of full names (e.g. the given name comes first and family name comes last), trying to match individual name components.
+
+.Example
+[source,mel]
+----
+// Returns 'Clerk'
+format.parseAdditionalName('James Clerk Maxwell')
+----
+
+This function can also be invoked as a _member_ function on a string or polystring:
+
+.Example
+[source,mel]
+----
+// Returns 'Clerk'
+'James Clerk Maxwell'.parseAdditionalName()
+----
+
+==== format.parseNickName
+
+`format.parseNickName(string)` -> string +
+`string.parseNickName()` -> string
+
+Parses provided string as a person's full name, returning the nickname part.
+
+This functions makes some assumptions regarding common structure of full names (e.g. the given name comes first and family name comes last), trying to match individual name components.
+
+.Example
+[source,mel]
+----
+// Returns 'The King'
+format.parseNickName('Elvis "The King" Presley')
+----
+
+This function can also be invoked as a _member_ function on a string or polystring:
+
+.Example
+[source,mel]
+----
+// Returns 'The King'
+'Elvis "The King" Presley'.parseNickName()
+----
+
+==== format.parseHonorificPrefix
+
+`format.parseHonorificPrefix(string)` -> string +
+`string.parseHonorificPrefix()` -> string
+
+Parses provided string as a person's full name, returning the honorific prefix (titles before the name) part.
+
+This functions makes some assumptions regarding common structure of full names (e.g. the given name comes first and family name comes last), trying to match individual name components.
+
+.Example
+[source,mel]
+----
+// Returns 'Ing.'
+format.parseHonorificPrefix('Ing. Radovan Semančík, PhD.')
+----
+
+This function can also be invoked as a _member_ function on a string or polystring:
+
+.Example
+[source,mel]
+----
+// Returns 'Ing.'
+'Ing. Radovan Semančík, PhD.'.parseHonorificPrefix()
+----
+
+==== format.parseHonorificSuffix
+
+`format.parseHonorificSuffix(string)` -> string +
+`string.parseHonorificSuffix()` -> string
+
+Parses provided string as a person's full name, returning the honorific suffix (titles after the name) part.
+
+This functions makes some assumptions regarding common structure of full names (e.g. the given name comes first and family name comes last), trying to match individual name components.
+
+.Example
+[source,mel]
+----
+// Returns 'PhD.'
+format.parseHonorificSuffix('Ing. Radovan Semančík, PhD.')
+----
+
+This function can also be invoked as a _member_ function on a string or polystring:
+
+.Example
+[source,mel]
+----
+// Returns 'PhD.'
+'Ing. Radovan Semančík, PhD.'.parseHonorificSuffix()
+----
+
+=== Log Extension
+
+Prefix: `log`.
+
+Log extension is used to record diagnostic information in system logs.
+Functions of the `log` extensions can be used to record errors, as well as troubleshoot the expressions.
+
+See also `debugDump` function, which can be useful when diagnosing content of a complex data structures.
+
+==== log.info
+
+`log.info(format, any)` -> any +
+`log.info(format, list)` -> list
+
+Records formatted message in system logs at `INFO` level.
+The arguments are formatted into a log message.
+Curly brackets (`{}`) act as placeholder for arguments in the message.
+
+The function returns its argument as its output,
+which enables placing of log functions into complex expression without breaking their flow.
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken', returns 'system' as its output
+log.info('The {} is broken', 'system')
+----
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken due to a bug', returns ['system', 'bug'] as its output
+log.info('The {} is broken due to a {}', [ 'system', 'bug' ])
+----
+
+==== log.error
+
+`log.error(format, any)` -> any +
+`log.error(format, list)` -> list
+
+Records formatted message in system logs at `ERROR` level.
+The arguments are formatted into a log message.
+Curly brackets (`{}`) act as placeholder for arguments in the message.
+
+The function returns its argument as its output,
+which enables placing of log functions into complex expression without breaking their flow.
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken', returns 'system' as its output
+log.error('The {} is broken', 'system')
+----
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken due to a bug', returns ['system', 'bug'] as its output
+log.error('The {} is broken due to a {}', [ 'system', 'bug' ])
+----
+
+==== log.warn
+
+`log.warn(format, any)` -> any +
+`log.warn(format, list)` -> list
+
+Records formatted message in system logs at `WARN` level.
+The arguments are formatted into a log message.
+Curly brackets (`{}`) act as placeholder for arguments in the message.
+
+The function returns its argument as its output,
+which enables placing of log functions into complex expression without breaking their flow.
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken', returns 'system' as its output
+log.warn('The {} is broken', 'system')
+----
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken due to a bug', returns ['system', 'bug'] as its output
+log.warn('The {} is broken due to a {}', [ 'system', 'bug' ])
+----
+
+==== log.debug
+
+`log.debug(format, any)` -> any +
+`log.debug(format, list)` -> list
+
+Records formatted message in system logs at `DEBUG` level.
+The arguments are formatted into a log message.
+Curly brackets (`{}`) act as placeholder for arguments in the message.
+
+The function returns its argument as its output,
+which enables placing of log functions into complex expression without breaking their flow.
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken', returns 'system' as its output
+log.debug('The {} is broken', 'system')
+----
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken due to a bug', returns ['system', 'bug'] as its output
+log.debug('The {} is broken due to a {}', [ 'system', 'bug' ])
+----
+
+==== log.trace
+
+`log.trace(format, any)` -> any +
+`log.trace(format, list)` -> list
+
+Records formatted message in system logs at `TRACE` level.
+The arguments are formatted into a log message.
+Curly brackets (`{}`) act as placeholder for arguments in the message.
+
+The function returns its argument as its output,
+which enables placing of log functions into complex expression without breaking their flow.
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken', returns 'system' as its output
+log.trace('The {} is broken', 'system')
+----
+
+.Example
+[source,mel]
+----
+// Logs message 'The system is broken due to a bug', returns ['system', 'bug'] as its output
+log.trace('The {} is broken due to a {}', [ 'system', 'bug' ])
+----
+
+
+=== LDAP Extension
+
+Prefix: `ldap`.
+
+LDAP extension is used to process LDAP-specific data formats, such _distinguished name_ (DN).
+
+==== ldap.composeDn
+
+`ldap.composeDn(list)` -> string
+
+Creates a valid LDAP distinguished name from the wide range of components.
+The resulting DN is well-formatted and properly escaped.
+Note: the DN is not normalized. The case of the attribute names and white spaces are preserved.
+
+.Example
+[source,mel]
+----
+// Returns 'cn=foo,ou=baz,o=bar'
+ldap.composeDn(['cn','foo','ou','baz','o','bar'])
+----
+
+==== ldap.composeDnWithSuffix
+
+`ldap.composeDnWithSuffix(list)` -> string
+
+Creates a valid LDAP distinguished name from the wide range of components, including a DN suffix at the end.
+The resulting DN is well-formatted and properly escaped.
+Note: the DN is not normalized. The case of the attribute names and white spaces are preserved.
+
+.Example
+[source,mel]
+----
+// Returns 'cn=foo,ou=baz,dc=example,dc=com'
+ldap.composeDnWithSuffix(['cn','foo','ou','baz','dc=example,dc=com'])
+----
+
+
+==== ldap.hashPassword
+
+`ldap.hashPassword(clearString, algorithm)` -> string +
+`ldap.hashPassword(clearBytes, algorithm)` -> string
+
+Hashes cleartext password in an (unofficial) LDAP password format.
+The cleartext password can be provided as a string, polystring, or as bytes.
+Supported algorithms: SSHA, SHA and MD5.
+
+.Example
+[source,mel]
+----
+// Returns '{SSHA}rxNYgQODi95h2bsjYXuBqvYz+I1gjgMkF9f0tA=='
+ldap.hashPassword('password','SSHA')
+----
+
+==== ldap.determineSingleAttributeValue
+
+`ldap.determineSingleAttributeValue(dn, attributeName, list(values))` -> string
+
+Selects single value from many LDAP values, based on object DN.
+E.g. value `bar` is selected from list of values `['foo','bar','baz']` because that value is present in DN `uid=bar,o=example`.
+
+.Example
+[source,mel]
+----
+// Returns 'bar'
+ldap.determineSingleAttributeValue('uid=bar,o=example','uid', ['foo','bar','baz'])
+----
+
+=== Secret Extension
+
+Prefix: `secret`.
+
+Secret extension is used to interact with secret providers.
+
+==== secret.resolveBinary
+
+`secret.resolveBinary(provider, key)` -> string
+
+Resolves a secret specified by the key, using a provider specified by its name.
+Returns the secret in binary form (bytes).
+
+.Example
+[source,mel]
+----
+secret.resolveBinary('prov1', 'midpoint-ldap-admin')
+----
+
+==== secret.resolveString
+
+`secret.resolveString(provider, key)` -> string
+
+Resolves a secret specified by the key, using a provider specified by its name.
+Returns the secret in string form.
+
+.Example
+[source,mel]
+----
+secret.resolveString('prov1', 'midpoint-ldap-admin')
+----
+
+// TODO: secret.resolveProtectedString(provider, key)?
+
+=== Object Extension
+
+Object extensions provide convenience functions that allow easier processing of midPoint objects,
+such as resources or shadows.
+
+Functions in this language extension does not have a prefix.
+They are invoked as a _member_ functions on appropriate value or variable containing midPoint object.
+
+==== find
+
+`object.find(path)` -> item
+
+Returns an item to which the specified item path refers.
+
+.Example
+[source,mel]
+----
+// Returns a value of administrativeStatus property
+focus.find('activation/administrativeStatus')
+----
+
+==== connectorConfiguration
+
+`resource.connectorConfiguration(propertyName)` -> list
+
+Returns list of values of a resource connector configuration property specified by the argument.
+The function is invoked as a member method on a variable containing midPoint resource.
+
+Following expression returns a list containing values that are configured in a connector configuration property `host` in resource that is stored in the `resource` variable.
+
+.Example
+[source,mel]
+----
+resource.connectorConfiguration('host')
+----
+
+As most connector configuration properties as single-valued, this function is often combined with `single()` function:
+
+.Example
+[source,mel]
+----
+// Returns configured hostname as string, e.g. 'localhost'
+single(resource.connectorConfiguration('host'))
+----
+
+==== primaryIdentifiers
+
+`shadow.primaryIdentifiers()` -> list
+
+Returns list of values of shadow primary identifier.
+The function is invoked as a member method on a variable containing a shadow.
+
+.Example
+[source,mel]
+----
+// Returns list of values, e.g. ['381870aa-0731-11f1-b8d0-1baca68e8763']
+shadow.primaryIdentifiers()
+----
+
+As most identifiers as single-valued, this function is often combined with `single()` function:
+
+.Example
+[source,mel]
+----
+// Returns string value, e.g. '381870aa-0731-11f1-b8d0-1baca68e8763'
+single(shadow.primaryIdentifiers())
+----
+
+==== secondaryIdentifiers
+
+`shadow.secondaryIdentifiers()` -> list
+
+Returns list of values of shadow secondary identifier.
+The function is invoked as a member method on a variable containing a shadow.
+
+.Example
+[source,mel]
+----
+// Returns list of values, e.g. ['uid=foo,ou=People,dc=example,dc=com']
+shadow.secondaryIdentifiers()
+----
+
+As most identifiers as single-valued, this function is often combined with `single()` function:
+
+.Example
+[source,mel]
+----
+// Returns string value, e.g. 'uid=foo,ou=People,dc=example,dc=com'
+single(shadow.secondaryIdentifiers())
+----
+
 
 format, ldap, log, etc.
 
 TODO: need to call them by some other name ... e.g. "extensions"?
 "extension libraries"?
 
+
+== Timestamps and Durations
+
+
+TODO: timestamp functions, e.g. getDate()
+TODO: timezones
+
+Note: CEL timestamps always reference time in UTC
+
+variable `now`
+
+=== atStartOfDay
+
+`timestamp.atStartOfDay()` -> timestamp +
+`timestamp.atStartOfDay(timezone)` -> timestamp
+
+Modifies the timestamp to refer to the start of the day.
+Resulting timestamp refers to the same day as the argument timestamp, however the time is reset to the earliest time at that day.
+
+Optional time zone can be specified.
+Timezone specification follows https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html[Java ZoneId conventions].
+If no timezone is specified, system default timezone is assumed.
+
+Following example assume that system default time zone is UTC.
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').atStartOfDay()    // Returns timestamp 2026-02-11T00:00:00Z
+timestamp('2026-02-11T12:34:56Z').atStartOfDay('Z') // Returns timestamp 2026-02-11T00:00:00Z
+----
+
+=== atEndOfDay
+
+`timestamp.atEndOfDay()` -> timestamp +
+`timestamp.atEndOfDay(timezone)` -> timestamp
+
+Modifies the timestamp to refer to the end of the day.
+Resulting timestamp refers to the same day as the argument timestamp, however the time is set to the latest time at that day.
+
+Optional time zone can be specified.
+Timezone specification follows https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html[Java ZoneId conventions].
+If no timezone is specified, system default timezone is assumed.
+
+Following example assume that system default time zone is UTC.
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').atEndOfDay()    // Returns timestamp 2026-02-11T23:59:59Z
+timestamp('2026-02-11T12:34:56Z').atEndOfDay('Z') // Returns timestamp 2026-02-11T23:59:59Z
+----
+
+=== getDate
+
+`timestamp.getDate()` -> int +
+`timestamp.getDate(timezone)` -> int
+
+Returns the day of the month (starting with 1) from a timestamp.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').getDate()       // Returns 11
+timestamp('2026-02-11T12:34:56Z').getDate('Z')    // Returns 11
+----
+
+=== getDayOfMonth
+
+`timestamp.getDayOfMonth()` -> int +
+`timestamp.getDayOfMonth(timezone)` -> int
+
+Returns the day of the month (starting with 0) from a timestamp.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').getDayOfMonth()     // Returns 10
+timestamp('2026-02-11T12:34:56Z').getDayOfMonth('Z')  // Returns 10
+----
+
+
+=== getDayOfWeek
+
+`timestamp.getDayOfWeek()` -> int +
+`timestamp.getDayOfWeek(timezone)` -> int
+
+Returns the day of the week (starting with 0 for Sunday) from a timestamp.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').getDayOfWeek()     // Returns 3
+timestamp('2026-02-11T12:34:56Z').getDayOfWeek('Z')  // Returns 3
+----
+
+=== getDayOfYear
+
+`timestamp.getDayOfYear()` -> int +
+`timestamp.getDayOfYear(timezone)` -> int
+
+Returns the day of the year (starting with 0) from a timestamp.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').getDayOfYear()     // Returns 40
+timestamp('2026-02-11T12:34:56Z').getDayOfYear('Z')  // Returns 40
+----
+
+=== getFullYear
+
+`timestamp.getFullYear()` -> int +
+`timestamp.getFullYear(timezone)` -> int
+
+Returns the year from a timestamp.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').getFullYear()     // Returns 2026
+timestamp('2026-02-11T12:34:56Z').getFullYear('Z')  // Returns 2026
+----
+
+=== getHours
+
+`timestamp.getHours()` -> int +
+`timestamp.getHours(timezone)` -> int +
+`duration.getHours()` -> int
+
+Returns hours from a timestamp or converts a duration to hours.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').getHours()     // Returns 12
+timestamp('2026-02-11T12:34:56Z').getHours('Z')  // Returns 12
+duration('2h').getHours()                        // Returns 2
+----
+
+=== getMilliseconds
+
+`timestamp.getMilliseconds()` -> int +
+`timestamp.getMilliseconds(timezone)` -> int +
+`duration.getMilliseconds()` -> int
+
+Returns milliseconds from a timestamp or duration.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56.789Z').getMilliseconds()     // Returns 789
+timestamp('2026-02-11T12:34:56.789Z').getMilliseconds('Z')  // Returns 789
+duration('1.234s').getMilliseconds()                        // Returns 234
+----
+
+=== getMinutes
+
+`timestamp.getMinutes()` -> int +
+`timestamp.getMinutes(timezone)` -> int +
+`duration.getMinutes()` -> int
+
+Returns minutes from a timestamp or converts a duration to minutes.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').getMinutes()     // Returns 34
+timestamp('2026-02-11T12:34:56Z').getMinutes('Z')  // Returns 34
+duration('2h').getMinutes()                        // Returns 120
+----
+
+=== getMonth
+
+`timestamp.getMonth()` -> int +
+`timestamp.getMonth(timezone)` -> int
+
+Returns the month (starting with 0 for January) from a timestamp.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').getMonth()     // Returns 1
+timestamp('2026-02-11T12:34:56Z').getMonth('Z')  // Returns 1
+----
+
+=== getSeconds
+
+`timestamp.getSeconds()` -> int +
+`timestamp.getSeconds(timezone)` -> int +
+`duration.getSeconds()` -> int
+
+Returns seconds from a timestamp or converts a duration to seconds.
+
+Optional time zone can be specified.
+If no timezone is specified, UTC is assumed (because CEL stores timestamps in UTC).
+
+.Example
+[source,mel]
+----
+timestamp('2026-02-11T12:34:56Z').getSeconds()     // Returns 56
+timestamp('2026-02-11T12:34:56Z').getSeconds('Z')  // Returns 56
+duration('2m').getSeconds()                        // Returns 120
+----
+
+=== timestamp.longAgo
+
+`timestamp.longAgo()` -> timestamp
+
+Returns timestamp that is referring to a time long, long ago, too far in the past.
+This timestamp can be used to make sure that no practical timestamp in the system is earlier that this moment in time.
+
+Current implementation returns the start of the epoch used by the CEL implementation, which is 1^st^ January 1970.
+However, as different time schemes are based on different mechanisms and epochs, the value returned by `timestamp.longAgo()` may change in the future, to be sure that the returned timestamp is always earlier than all other practical timestamps in the system.
+
+.Example
+[source,mel]
+----
+timestamp.longAgo()    // Returns timestamp 1970-01-01T00:00:00Z
+----
+
+
 == Polystrings
 
-TODO
+Polystrings (TODO: ref) are midPoint data structured used to store string values, together with their normalized and localized variants.
+
+TODO: polystring structure.
+Polystrings are represented as simple structured objects in MEL.
+Individual parts of polystring can be accessed by using the usual _dot notation_:
+
+[source,mel]
+----
+polystring.orig
+polystring.norm
+----
+
+In MEL, polystrings behave just like strings.
+E.g. polystrings can be easily compared or concatenated with strings:
+
+[source,mel]
+----
+polystring == 'foo'
+'Hello ' + polystring
+----
+
+In such cases, the `orig` part of the polystring is used in these string-like operations.
+If the normalized part of polystring is to be used, it must be explicitly referenced:
+
+[source,mel]
+----
+'X' + polystring.norm
+----
 
 == Protected Strings
 
-TODO: protecting the content, e.g. from unintentional recording in log file.
+Protected strings (TODO: ref) are midPoint data structure meant to provide extra protection to string data.
+They are usually used to contain passwords, API keys and similar sensitive data.
 
-TODO: Unlike polystrings, protected strings _do not_ behave like strings.
-This is intentional.
-Protected strings are all about protecting their content.
+Unlike polystrings, protected strings _do not_ behave like strings.
+This is an intentional behavior to provide additional protection against unintentional leakage of the data, e.g. in logfiles.
 We do not want string functions (such as substring) to unintentionally reveal content of a protected string.
 If you need to do string operations on a protected string, you have to explicitly decrypt it first.
 
+[source,mel]
+----
+protectedString.decrypt()
+----
+
+Ordinary string value can be encrypted, to gain additional protection of a _protected string_:
+
+[source,mel]
+----
+string.endecrypt()
+----
+
+See TODO:ref for more information about protected strings.
+
+=== decrypt
+
+`protectedString.decrypt()` -> string
+
+Decrypts value of protected string, returning cleartext value as string.
+
+=== encrypt
+
+`string.encrypt()` -> protectedString
+
+Encrypts a string value, creating protected string.
+Works with strings as well as polystrings.
+
+
 == QNames
 
-qname(ns,local)
-qname(local)
+MEL can work with QNames as simple structured objects.
+QNames can be constructed using `qname()` function:
+
+[source,mel]
+----
+qname(namespace, localPart)
+qname(localPart)
+----
+
+Parts of a qname can be accessed using the _dot notation_:
+
+[source,mel]
+----
+x.namespaceURI
+x.localPart
+----
+
+QNames can be used instead of strings to access structured midPoint data when using _index operator_ (`[]`):
+
+[source,mel]
+----
+focus.extension[qname('http://example.com/ns', 'ship')]
+----
+
+=== qname
+
+`qname(namespaceURI, localPart)` -> qname +
+`qname(localPart)` -> qname
+
+Creates a qname value.
+
+=== encrypt
+
+`string.encrypt()` -> protectedString
+
+Encrypts a string value, creating protected string.
+Works with strings as well as polystrings.
+
 
 == Structured Data
 
-Prism objects and containers
+Object structure can be accessed in mel using the dot (`.`) convention.
+Following expression returns value of `name` property of the object stored in `focus` xref:/midpoint/reference/expressions/variables/[variable].
 
-Extension:
-* focus.extension.ship
-* focus.extension['ship']
-* focus.extension[qname('http://example.com/ns', 'ship')]
+[source,mel]
+----
+focus.name
+----
+
+Access to structured data can be nested.
+Following code returns value of `administrativeStatus` property located inside `activation` container, located in user object stored in variable `focus`.
+
+[source,mel]
+----
+focus.activation.administrativeStatus
+----
+
+Alternativelly, _index operator_ (`[]`) can be used to access structured data:
+
+[source,mel]
+----
+focus['name']
+----
+
+Structure of the data is dictated by xref:/midpoint/reference/schema/common-data-model/[midPoint schema].
+
+Access to extension items of objects is facilitated by an `extension` container.
+E.g. extension attribute `ship` of the object stored in the `focus` variable can be accesed as follows:
+
+[source,mel]
+----
+focus.extension.ship
+focus.extension['ship']
+----
+
+=== Item QNames
+
+QNames can be used instead of strings to access the data when using _index operator_ (`[]`):
+
+[source,mel]
+----
+focus.extension[qname('http://example.com/ns', 'ship')]
+----
+
+Explicit use of QNames is usually not necessary.
+However, it may be required in some cases, e.g. when several schema extensions are using items with the same local name.
+
+=== Item Path
+
+Item path (TODO: ref) can be used to locate an item in an object by using the `find()` function:
+
+[source,mel]
+----
+focus.find('activation/administrativeStatus')
+----
+
+== Custom Function Libraries
+
+TODO
+
+== Expression Profiles
+
+TODO
 
 == MEL and CEL
 
