@@ -86,11 +86,6 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                         performDiscard(pageBase, target, valueModel, statusInfo);
                     }
 
-                    @Override
-                    protected boolean isShowEmptyField() {
-                        return true;
-                    }
-
                 });
             }
         };
