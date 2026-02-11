@@ -567,7 +567,8 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
         for (SimulationData simulationData : simulationDataList) {
             assertThat(simulationData).as("simulation data").isInstanceOf(ShadowSimulationData.class);
             ShadowSimulationData shadowData = (ShadowSimulationData) simulationData;
-            assertDelta(shadowData.getDelta(), "after")
+            assertThat(shadowData.getDelta().isPresent()).isTrue();
+            assertDelta(shadowData.getDelta().get(), "after")
                     .display()
                     .assertModify()
                     .assertModification(ShadowType.F_INTENT, expectedOld, expectedNew)

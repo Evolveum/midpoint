@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class MappingWorkDefinition extends ResourceSetTaskWorkDefinition {
 
-    private final SimulatedMappingsType mappingsToUse;
+    private final MappingWorkDefinitionType workDefinition;
 
     public MappingWorkDefinition(WorkDefinitionFactory.WorkDefinitionInfo info) {
         super(info);
@@ -35,16 +35,21 @@ public class MappingWorkDefinition extends ResourceSetTaskWorkDefinition {
 
         ResourceObjectSetUtil.setDefaultQueryApplicationMode(getResourceObjectSetSpecification(), APPEND);
 
-        this.mappingsToUse = workDef.getMappings();
+        this.workDefinition = workDef;
     }
 
     public List<InlineMappingDefinitionType> provideMappings() {
-        return this.mappingsToUse.getInlineMappings();
+        return this.workDefinition.getMappings().getInlineMappings();
+    }
+
+    public boolean excludeExistingMappings() {
+        return !Boolean.TRUE.equals(this.workDefinition.getMappings().isIncludeExistingMappings());
     }
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
         super.debugDumpContent(sb, indent);
-        DebugUtil.debugDumpWithLabel(sb, "mappings", this.mappingsToUse, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "mappings", provideMappings(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "excludeExistingMappings", excludeExistingMappings(), indent + 1);
     }
 }

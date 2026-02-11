@@ -320,9 +320,16 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             throws CommonException {
 
         ShadowType shadowBefore = data.getShadowBefore();
-        ObjectDelta<ShadowType> delta = data.getDelta();
         ShadowType shadowAfter = shadowBefore.clone();
-        delta.applyTo(shadowAfter.asPrismObject());
+
+        final ObjectProcessingStateType processingState;
+        final ObjectDelta<ShadowType> delta = data.getDelta().orElse(null);
+        if (delta != null) {
+            delta.applyTo(shadowAfter.asPrismObject());
+            processingState = ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType());
+        } else {
+            processingState = ObjectProcessingStateType.UNMODIFIED;
+        }
 
         List<String> marks = determineShadowEventMarks(shadowBefore, shadowAfter);
 
@@ -333,7 +340,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 null,
                 determineShadowDiscriminator(shadowAfter), // or from "before" state?
                 shadowAfter.getName(),
-                ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()),
+                processingState,
                 ParsedMetricValues.fromEventMarks(
                         marks,
                         List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value(),
@@ -345,6 +352,50 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 null,
                 shadowBefore,
                 shadowAfter,
+                delta,
+                InternalState.CREATING);
+
+        processedObject.addComputedMetricValues(List.of()); // Ignoring custom metrics in this mode
+
+        // TODO we should somehow record errors during low-level shadow management (classification, correlation)
+        processedObject.setResultAndStatus(null, OperationResultStatusType.SUCCESS);
+
+        return processedObject;
+    }
+
+    static @NotNull ProcessedObjectImpl<FocusType> createForFocus(@NotNull FocusSimulationData data,
+            @NotNull SimulationTransactionImpl simulationTransaction) throws SchemaException {
+        FocusType focusBefore = data.getFocusBefore();
+        FocusType focusAfter = focusBefore.clone();
+
+        final ObjectProcessingStateType processingState;
+        final ObjectDelta<FocusType> delta = data.getSimulationDelta().orElse(null);
+        if (delta != null) {
+            delta.applyTo((PrismObject<FocusType>) focusAfter.asPrismObject());
+            processingState = ProcessedObject.DELTA_TO_PROCESSING_STATE.get(delta.getChangeType());
+        } else {
+            processingState = ObjectProcessingStateType.UNMODIFIED;
+        }
+
+        var processedObject = new ProcessedObjectImpl<>(
+                simulationTransaction.getTransactionId(),
+                focusBefore.getOid(),
+                FocusType.class,
+                null,
+                null,
+                focusAfter.getName(),
+                processingState,
+                ParsedMetricValues.fromEventMarks(
+                        Collections.emptyList(),
+                        List.of(SystemObjectsType.MARK_SHADOW_CLASSIFICATION_CHANGED.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_STATE_CHANGED.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_FOUND.value(),
+                                SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_NOT_CERTAIN.value())),
+                true,
+                null,
+                focusBefore,
+                focusAfter,
                 delta,
                 InternalState.CREATING);
 

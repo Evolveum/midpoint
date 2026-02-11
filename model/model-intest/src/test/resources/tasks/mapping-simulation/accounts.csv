@@ -1,0 +1,4 @@
+uid  | correlator    | givenName | familyName | employeeNumber | _note
+1    | smith1        | John      | Smith      | 1234           | should be linked
+2    | incorrect     | John      | McClane    |                | not linked but user exists
+3    | travolta      | John      | Travolta   |                | user does not exist

@@ -14,20 +14,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /** TODO */
 public class ShadowSimulationData implements SimulationData {
 
     @NotNull private final ShadowType shadowBefore;
-    @NotNull private final ObjectDelta<ShadowType> delta;
+    private final ObjectDelta<ShadowType> delta;
 
     private ShadowSimulationData(
-            @NotNull ShadowType shadowBefore, @NotNull ObjectDelta<ShadowType> delta) {
+            @NotNull ShadowType shadowBefore, ObjectDelta<ShadowType> delta) {
         this.shadowBefore = shadowBefore;
         this.delta = delta;
     }
 
-    public static ShadowSimulationData of(@NotNull ShadowType shadow, @NotNull Collection<ItemDelta<?,?>> itemDeltas) {
+    // TODO I think that the second parameter should be ObjectDelta, not collection of ItemDelta, because here we can
+    //  not be sure, the item deltas are applicable to the shadow type. The caller, on the other hand should have
+    //  this knowledge.
+    public static ShadowSimulationData of(@NotNull ShadowType shadow, Collection<ItemDelta<?,?>> itemDeltas) {
+        if (itemDeltas == null || itemDeltas.isEmpty()) {
+            return new ShadowSimulationData(shadow, null);
+        }
+
         ObjectDelta<ShadowType> delta = shadow.asPrismObject().createModifyDelta();
         delta.addModifications(itemDeltas);
         return new ShadowSimulationData(shadow, delta);
@@ -37,8 +45,8 @@ public class ShadowSimulationData implements SimulationData {
         return shadowBefore;
     }
 
-    public @NotNull ObjectDelta<ShadowType> getDelta() {
-        return delta;
+    public Optional<ObjectDelta<ShadowType>> getDelta() {
+        return Optional.ofNullable(delta);
     }
 
     @Override
