@@ -207,7 +207,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
     }
 
     @Test
-    public void test110DuplicateDetectionSameTargetKeepsHigherQuality() throws Exception {
+    public void test110DuplicateDetectionSameTargetBoth() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -253,17 +253,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 .toList();
 
         assertThat(fullNameMappings)
-                .as("Should have exactly one fullName mapping (duplicate removed)")
-                .hasSize(1);
-
-        var fullNameMapping = fullNameMappings.get(0);
-        assertThat(fullNameMapping.getExpectedQuality())
-                .as("Should keep AI mapping with higher quality")
-                .isEqualTo(1.0f);
-
-        assertThat(SmartMetadataUtil.isMarkedAsAiProvided(fullNameMapping.asPrismContainerValue()))
-                .as("Should be AI-provided (higher quality wins)")
-                .isTrue();
+                .as("Should have two fullName mapping.s")
+                .hasSize(2);
     }
 
     @Test
