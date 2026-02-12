@@ -55,11 +55,15 @@ public class HeuristicRuleMatcher {
      * All rules are evaluated, and the one with the highest quality (higher than zero) is returned.
      */
     public Optional<HeuristicResult> findBestMatch(ValuesPairSample<?, ?> sample, Task task, OperationResult result) {
+        var sortedRules = rules.stream()
+                .sorted((r1, r2) -> Integer.compare(r1.getOrder(), r2.getOrder()))
+                .toList();
+
         HeuristicRule bestRule = null;
         ExpressionType bestExpression = null;
         float bestQuality = 0f;
 
-        for (HeuristicRule rule : rules) {
+        for (HeuristicRule rule : sortedRules) {
             if (!rule.isApplicable(sample)) {
                 continue;
             }

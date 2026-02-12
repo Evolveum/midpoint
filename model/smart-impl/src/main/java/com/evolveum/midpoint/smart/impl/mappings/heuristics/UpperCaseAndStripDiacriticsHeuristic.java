@@ -12,17 +12,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.springframework.stereotype.Component;
 
+import java.text.Normalizer;
+
 @Component
-public class TrimAndLowerCaseHeuristic implements HeuristicRule {
+public class UpperCaseAndStripDiacriticsHeuristic implements HeuristicRule {
 
     @Override
     public String getName() {
-        return "trimAndLowerCase";
+        return "upperCaseAndStripDiacritics";
     }
 
     @Override
     public String getDescription() {
-        return "Trim whitespace and convert to lowercase";
+        return "Convert to uppercase and strip diacritical marks";
     }
 
     @Override
@@ -30,30 +32,34 @@ public class TrimAndLowerCaseHeuristic implements HeuristicRule {
         return 2;
     }
 
-    /**
-     * Only applicable if source values have whitespace or uppercase letters.
-     */
     @Override
     public boolean isApplicable(ValuesPairSample<?, ?> sample) {
         return sample.pairs().stream()
                 .flatMap(pair -> pair.getSourceValues(sample.direction()).stream())
                 .filter(value -> value instanceof String)
                 .map(value -> (String) value)
-                .anyMatch(str -> str != null &&
-                        (!str.equals(str.trim()) || !str.equals(str.toLowerCase())));
+                .anyMatch(str -> str != null && (hasDiacritics(str) || !str.equals(str.toUpperCase())));
+    }
+
+    private boolean hasDiacritics(String str) {
+        String normalized = Normalizer.normalize(str, Normalizer.Form.NFD);
+        if (normalized.matches(".*\\p{InCombiningDiacriticalMarks}+.*")) {
+            return true;
+        }
+        return str.matches(".*[ŁłØøÅåÆæŒœĐđŦŧĦħŊŋĸŁłŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽž].*");
     }
 
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "input?.trim()?.toLowerCase()",
-                "Trim and convert to lowercase");
+                "basic.toAscii(input)?.toUpperCase()",
+                "Convert to uppercase and strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                focusPropertyName + "?.trim()?.toLowerCase()",
-                "Trim and convert to lowercase");
+                "basic.toAscii(" + focusPropertyName + ")?.toUpperCase()",
+                "Convert to uppercase and strip diacritical marks");
     }
 }
