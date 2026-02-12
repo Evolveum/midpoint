@@ -135,6 +135,20 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
                                 CelPolyStringExtensions::polystringAddPolystring)
                 ),
 
+                // polystring + int
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                Operator.ADD.getFunction(),
+                                CelOverloadDecl.newGlobalOverload(
+                                        "mel-polystring-plus-int",
+                                        "Concatenation of int into polystring.",
+                                        SimpleType.STRING,
+                                        PolyStringCelValue.CEL_TYPE, SimpleType.INT)),
+                        CelFunctionBinding.from("mel-polystring-plus-int", PolyStringCelValue.class, Long.class,
+                                this::polystringPlusInt)
+
+                ),
+
                 // charAt
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(
@@ -478,6 +492,7 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
         );
     }
 
+
     private static final class Library implements CelExtensionLibrary<CelPolyStringExtensions> {
         private final CelPolyStringExtensions version0;
 
@@ -561,6 +576,10 @@ public class CelPolyStringExtensions extends AbstractMidPointCelExtensions {
             return polystringValue2.getOrig();
         }
         return polystringValue1.getOrig() + polystringValue2.getOrig();
+    }
+
+    private Object polystringPlusInt(PolyStringCelValue polyStringCelValue, Long aLong) {
+        return polyStringCelValue.getOrig() + aLong.toString();
     }
 
     private static boolean polystringIsBlank(PolyStringCelValue celPolystring) {

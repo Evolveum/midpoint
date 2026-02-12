@@ -9,6 +9,6 @@
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
         // resource dummy
-        midpoint.getLinkedShadow(user, '10000000-0000-0000-0000-000000000004').getName()
+        midpoint.getLinkedShadow(user, '10000000-0000-0000-0000-000000000004').name
     </code>
 </script>

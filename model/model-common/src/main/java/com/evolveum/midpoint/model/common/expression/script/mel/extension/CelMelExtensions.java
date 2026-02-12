@@ -58,7 +58,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
 
-            // ascii
+            // string + int
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             Operator.ADD.getFunction(),

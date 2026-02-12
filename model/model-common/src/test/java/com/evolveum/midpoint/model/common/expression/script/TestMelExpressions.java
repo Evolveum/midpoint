@@ -61,7 +61,9 @@ public class TestMelExpressions extends AbstractScriptTest {
     @Override
     protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
         FunctionLibraryBinding basicFunctionLibraryBinding = FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock);
-        return new MelScriptEvaluator(prismContext, protector, localizationService, (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation());
+        return new MelScriptEvaluator(prismContext, protector, localizationService,
+                (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation(),
+                null);
     }
 
     @Override

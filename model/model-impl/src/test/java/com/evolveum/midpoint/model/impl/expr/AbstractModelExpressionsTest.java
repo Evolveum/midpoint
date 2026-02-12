@@ -70,7 +70,8 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
     private static final QName PROPERTY_NAME = new QName(SchemaConstants.NS_C, "foo");
 
-    private static final String CHEF_OID = "00000003-0000-0000-0000-000000000000";
+    protected static final String CHEF_OID = "00000003-0000-0000-0000-000000000000";
+    protected static final String CHEF_NAME = "chef";
     private static final String CHEESE_OID = "00000002-0000-0000-0000-000000000000";
     private static final String CHEESE_JR_OID = "00000002-0000-0000-0000-000000000001";
     private static final String LECHUCK_OID = "00000007-0000-0000-0000-000000000000";
@@ -140,7 +141,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + shortTestName + ".xml");
         PrismPropertyDefinition<String> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(
-                        PROPERTY_NAME, DOMUtil.XSD_STRING);
+                        PROPERTY_NAME, DOMUtil.XSD_STRING, 0, -1);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                 scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
                 shortTestName, result);
@@ -494,7 +495,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         assertExecuteScriptExpressionString(variables, getTestNameShort(), expectedOutput);
     }
 
-    private void assertExecuteScriptExpressionString(
+    protected void assertExecuteScriptExpressionString(
             VariablesMap variables, String scriptTag, String expectedOutput)
             throws ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
             IOException, CommunicationException, SchemaException, SecurityViolationException {

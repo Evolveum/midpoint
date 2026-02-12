@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.common.expression.script.mel;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
@@ -64,6 +65,7 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
     private final BasicExpressionFunctions basicExpressionFunctions;
+    private final MidpointFunctions midpointExpressionFunctions;
     private final CelOptions celOptions = CelOptions.current().
             enableRegexPartialMatch(true).build();
 
@@ -73,10 +75,16 @@ public class MelScriptEvaluator extends AbstractScriptEvaluator {
     private final FunctionLibraryProcessor functionLibraryProcessor;
 
     /** Called by Spring but also by lower-level tests */
-    public MelScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService, BasicExpressionFunctions basicExpressionFunctions) {
+    public MelScriptEvaluator(PrismContext prismContext,
+            Protector protector,
+            LocalizationService localizationService,
+            BasicExpressionFunctions basicExpressionFunctions,
+            MidpointFunctions midpointExpressionFunctions) {
         super(prismContext, protector, localizationService);
         this.basicExpressionFunctions = basicExpressionFunctions;
-        midPointCelExtensionManager = new MidPointCelExtensionManager(protector, basicExpressionFunctions, celOptions);
+        this.midpointExpressionFunctions = midpointExpressionFunctions;
+        midPointCelExtensionManager = new MidPointCelExtensionManager(protector,
+                basicExpressionFunctions, midpointExpressionFunctions, celOptions);
         functionLibraryProcessor = new FunctionLibraryProcessor();
 
         // No compiler/interpreter initialization here. Compilers/interpreters are initialized on demand.

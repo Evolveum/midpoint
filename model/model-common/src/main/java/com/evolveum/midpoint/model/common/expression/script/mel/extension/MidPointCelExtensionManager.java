@@ -5,6 +5,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -24,6 +25,7 @@ public class MidPointCelExtensionManager {
 
     private final Protector protector;
     private final BasicExpressionFunctions basicExpressionFunctions;
+    private final MidpointFunctions midpointExpressionFunctions;
     private final CelOptions celOptions;
 
     private CelMelExtensions extMel;
@@ -32,13 +34,15 @@ public class MidPointCelExtensionManager {
     private CelLdapExtensions extLdap;
     private CelObjectExtensions extObject;
     private CelLogExtensions extLog;
+    private CelMidPointExtensions extMidpoint;
 
     private ImmutableList<? extends CelCompilerLibrary> allCompilerLibraries;
     private ImmutableList<? extends CelRuntimeLibrary> allRuntimeLibraries;
 
-    public MidPointCelExtensionManager(Protector protector, BasicExpressionFunctions basicExpressionFunctions, CelOptions celOptions) {
+    public MidPointCelExtensionManager(Protector protector, BasicExpressionFunctions basicExpressionFunctions, MidpointFunctions midpointExpressionFunctions, CelOptions celOptions) {
         this.protector = protector;
         this.basicExpressionFunctions = basicExpressionFunctions;
+        this.midpointExpressionFunctions = midpointExpressionFunctions;
         this.celOptions = celOptions;
         initializeExtensions();
     }
@@ -51,6 +55,7 @@ public class MidPointCelExtensionManager {
         extLdap = CelLdapExtensions.library(basicExpressionFunctions).latest();
         extObject = CelObjectExtensions.library().latest();
         extLog = CelLogExtensions.library().latest();
+        extMidpoint = CelMidPointExtensions.library(midpointExpressionFunctions).latest();
 
         allCompilerLibraries = ImmutableList.of(
                 CelExtensions.strings(),
@@ -67,7 +72,8 @@ public class MidPointCelExtensionManager {
                 extFormat,
                 extLdap,
                 extObject,
-                extLog
+                extLog,
+                extMidpoint
         );
 
         allRuntimeLibraries = ImmutableList.of(
@@ -84,7 +90,8 @@ public class MidPointCelExtensionManager {
                 extFormat,
                 extLdap,
                 extObject,
-                extLog
+                extLog,
+                extMidpoint
         );
     }
 

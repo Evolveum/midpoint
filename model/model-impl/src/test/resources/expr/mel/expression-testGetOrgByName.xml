@@ -9,6 +9,6 @@
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
         // we are not able to return complex objects yet, so we test by returning the OID
-        midpoint.getOrgByName("F0006").getOid();
+        midpoint.getOrgByName('F0006').oid
     </code>
 </script>
