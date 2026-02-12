@@ -279,7 +279,20 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             ),
 
-            // TODO: secret.resolveProtectedString(provider, key)?
+            // secret.resolveProtectedString(provider, key)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "secret.resolveProtectedString",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-secret-resolveProtectedString",
+                                    "Resolves a secret specified by the key, using a provider specified by its name. "
+                                            + "Returns the secret in protected string form.",
+                                    CelTypeMapper.PROTECTED_STRING_CEL_TYPE,
+                                    SimpleType.STRING, SimpleType.STRING)),
+                    CelFunctionBinding.from("mel-secret-resolveProtectedString", String.class, String.class,
+                            this::secretResolveProtectedString)
+
+            ),
 
             // single
             new Function(
@@ -447,6 +460,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private String secretResolveString(String providerName, String key) {
         return basicExpressionFunctions.resolveSecretString(providerName, key);
+    }
+
+    private ProtectedStringType secretResolveProtectedString(String providerName, String key) {
+        return basicExpressionFunctions.resolveSecretProtectedString(providerName, key);
     }
 
     private static Timestamp longAgo(Object[] args) {

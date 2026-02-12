@@ -1178,6 +1178,10 @@ public class BasicExpressionFunctions {
         }
     }
 
+    public ProtectedStringType resolveSecretProtectedString(@NotNull String provider, @NotNull String key) {
+        return encrypt(resolveSecretString(provider,key));
+    }
+
     /**
      * Creates a valid LDAP distinguished name from the wide range of components. The method
      * can be invoked in many ways, e.g.:

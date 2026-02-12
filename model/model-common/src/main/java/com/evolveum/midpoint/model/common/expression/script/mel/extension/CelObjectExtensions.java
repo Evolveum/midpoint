@@ -8,13 +8,12 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.common.expression.script.mel.value.AbstractContainerValueCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.ContainerValueCelValue;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ObjectCelValue;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -29,6 +28,7 @@ import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOverloadDecl;
 import dev.cel.common.types.ListType;
 import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.runtime.CelFunctionBinding;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +56,32 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
     @Override
     protected ImmutableSet<Function> initializeFunctions() {
         return ImmutableSet.of(
+
+            // This is supposed to handle prismobject[qname] as well, as cel-java seem to handle both
+            // ContainerValueCelValue.CEL_TYPE and ObjectCelValue.CEL_TYPE as DYN.
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "index_map",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-container-index_map-qname",
+                                    "Resolves a structure using a QName",
+                                    SimpleType.ANY,
+                                    ContainerValueCelValue.CEL_TYPE,
+                                    QNameCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-container-index_map-qname", ContainerValueCelValue.class, QNameCelValue.class,
+                            CelObjectExtensions::prismIndexMap)),
+
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "find",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-object-find-string",
+                                    "Returns an item to which the specified item path refers.",
+                                    SimpleType.ANY,
+                                    ObjectCelValue.CEL_TYPE,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from("prism-object-find-string", ObjectCelValue.class, String.class,
+                            CelObjectExtensions::prismFind)),
 
             // resource.connectorConfiguration(propertyName)
             new Function(
@@ -94,6 +120,21 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("mp-shadow-secondaryIdentifiers", Object.class,
                             this::secondaryIdentifiers))
         );
+    }
+
+    public static Object prismFind(ObjectCelValue<?> objectCelValue, String stringPath) {
+        Object o = objectCelValue.getObject().find(PrismContext.get().itemPathParser().asItemPath(stringPath));
+        if (o == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return o;
+    }
+
+    private static Object prismIndexMap(AbstractContainerValueCelValue<?> celValue, QNameCelValue celQName) {
+        if (CelTypeMapper.isCellNull(celValue) || CelTypeMapper.isCellNull(celQName)) {
+            return NullValue.NULL_VALUE;
+        }
+        return CelTypeMapper.toCelValue(celValue.getContainerValue().find(ItemName.fromQName(celQName.getQName())));
     }
 
     @NotNull

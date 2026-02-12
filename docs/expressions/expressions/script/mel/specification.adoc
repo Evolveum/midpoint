@@ -1048,7 +1048,18 @@ Returns the secret in string form.
 secret.resolveString('prov1', 'midpoint-ldap-admin')
 ----
 
-// TODO: secret.resolveProtectedString(provider, key)?
+==== secret.resolveProtectedString
+
+`secret.resolveProtectedString(provider, key)` -> string
+
+Resolves a secret specified by the key, using a provider specified by its name.
+Returns the secret in protected string form for additional protection of the secret.
+
+.Example
+[source,mel]
+----
+secret.resolveProtectedString('prov1', 'midpoint-ldap-admin')
+----
 
 === Object Extension
 

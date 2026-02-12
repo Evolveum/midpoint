@@ -29,7 +29,6 @@ public class MidPointCelExtensionManager {
     private CelMelExtensions extMel;
     private CelPolyStringExtensions extPolyString;
     private CelFormatExtensions extFormat;
-    private CelPrismItemsExtensions extPrismItems;
     private CelLdapExtensions extLdap;
     private CelObjectExtensions extObject;
     private CelLogExtensions extLog;
@@ -49,7 +48,6 @@ public class MidPointCelExtensionManager {
         extMel = CelMelExtensions.library(protector, basicExpressionFunctions).latest();
         extPolyString = CelPolyStringExtensions.library(celOptions, basicExpressionFunctions).latest();
         extFormat = CelFormatExtensions.library(basicExpressionFunctions).latest();
-        extPrismItems = CelPrismItemsExtensions.library().latest();
         extLdap = CelLdapExtensions.library(basicExpressionFunctions).latest();
         extObject = CelObjectExtensions.library().latest();
         extLog = CelLogExtensions.library().latest();
@@ -67,7 +65,6 @@ public class MidPointCelExtensionManager {
                 extMel,
                 extPolyString,
                 extFormat,
-                extPrismItems,
                 extLdap,
                 extObject,
                 extLog
@@ -85,7 +82,6 @@ public class MidPointCelExtensionManager {
                 extMel,
                 extPolyString,
                 extFormat,
-                extPrismItems,
                 extLdap,
                 extObject,
                 extLog
